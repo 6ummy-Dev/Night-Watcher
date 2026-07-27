@@ -75,6 +75,50 @@ win.addEventListener("load", function(){
     /* --- QR restore link is absolute and reachable --- */
     check("restore link is absolute", /^https:\/\//.test(win.restoreLink("NW1WSR")));
 
+    /* --- detail panels are built on demand, not for all 151 entries --- */
+    S.tab = "watch"; S.scope = "all"; S.filter = "all"; S.q = ""; S.open = {};
+    win.render();
+    var view = win.document.getElementById("view");
+    var closedSize = view.innerHTML.length;
+    check("no detail panels rendered while every row is closed",
+          view.querySelectorAll(".fdetail").length === 0,
+          view.querySelectorAll(".fdetail").length + " found");
+    S.open["batman-mask-of-the-phantasm-1993"] = true;
+    win.render();
+    view = win.document.getElementById("view");
+    check("opening one row renders exactly one detail panel",
+          view.querySelectorAll(".fdetail").length === 1,
+          view.querySelectorAll(".fdetail").length + " found");
+    check("closed view is materially smaller than the old always-on markup",
+          closedSize < 150000, closedSize + " chars");
+    S.open = {};
+
+    /* --- all six filters reachable from the Path tab --- */
+    win.render();
+    var chips = win.document.getElementById("view").querySelectorAll(".chip");
+    check("all six filter chips are present", chips.length === 6, chips.length + " chips");
+
+    /* --- tab state uses valid ARIA --- */
+    S.tab = "stats"; win.render();
+    var cur = win.document.querySelectorAll("#tabs button[aria-current]");
+    check("exactly one tab marked aria-current", cur.length === 1, cur.length + " marked");
+    check("aria-current is on the active tab", cur[0] && cur[0].dataset.tab === "stats");
+    check("no invalid aria-selected on tab buttons",
+          win.document.querySelectorAll("#tabs button[aria-selected]").length === 0);
+
+    /* --- no <div> or <h2> nested inside a <button> (invalid HTML) --- */
+    S.tab = "watch"; win.render();
+    var bad = win.document.querySelectorAll("#view button div, #view button h2");
+    check("no flow content nested inside a button", bad.length === 0, bad.length + " found");
+
+    /* --- memoised groups stay correct across a scope flip --- */
+    S.scope = "movies"; var movieCount = win.pool().length;
+    S.scope = "all";    var allCount   = win.pool().length;
+    S.scope = "movies"; var backAgain  = win.pool().length;
+    check("group cache survives a scope round-trip",
+          movieCount === backAgain && allCount > movieCount,
+          movieCount + " / " + allCount + " / " + backAgain);
+
     /* --- tabs still switch without throwing --- */
     var e = null;
     try { ["home","watch","next","stats"].forEach(function(t){ win.S.tab = t; win.render(); }); }

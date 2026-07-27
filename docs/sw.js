@@ -14,9 +14,11 @@
  * 133 KB index.html, so a stale cache means a stale catalogue AND stale code
  * with no way to push a fix.
  */
-var VERSION = "2026-07-27";
+var VERSION = "1.0.0";
 var CACHE   = "night-watcher-" + VERSION;
-var SHELL   = ["./", "./index.html", "./manifest.json", "./icon.png"];
+/* icon-192.png is in the shell because index.html's <head> now references it
+   directly for rel=icon and apple-touch-icon (it used to inline the bytes). */
+var SHELL   = ["./", "./index.html", "./manifest.json", "./icon.png", "./icon-192.png"];
 
 var FONT_ORIGINS = ["https://fonts.googleapis.com", "https://fonts.gstatic.com"];
 var NEVER_CACHE  = ["https://static.cloudflareinsights.com"];

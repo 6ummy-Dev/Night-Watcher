@@ -309,6 +309,49 @@ var actual = {
   if(claimed !== t[2]) fail("README claims " + claimed + " " + t[0] + ", data has " + t[2]);
 });
 
+/* ---------- 11b. The <meta> headline counts match the data ---------- */
+/* The README counts were guarded; the identical numbers baked into the meta
+   description and og:description were not. Those are what search results and
+   every shared link show, so a stale one is more visible than a stale README. */
+
+[["meta description", /<meta name="description" content="([^"]+)"/],
+ ["og:description",   /<meta property="og:description" content="([^"]+)"/]
+].forEach(function(t){
+  var m = HTML.match(t[1]);
+  if(!m) return warn(t[0] + " is missing");
+  var txt = m[1];
+  [[/(\d+)\s+films/, actual.films, "films"],
+   [/(\d+)\s+seasons/, actual.seasons, "seasons"],
+   [/(\d+)\s+continuities/, actual.continuities, "continuities"]
+  ].forEach(function(c){
+    var got = txt.match(c[0]);
+    if(got && parseInt(got[1], 10) !== c[1]){
+      fail(t[0] + " claims " + got[1] + " " + c[2] + ", data has " + c[1]);
+    }
+  });
+});
+
+/* ---------- 11c. Every shipped version is written down ---------- */
+/* A change nobody recorded is a change the next person silently undoes. BUILD,
+   sw.js VERSION and the top entry of CHANGELOG.md must agree. */
+
+var changelogPath = path.join(ROOT, "CHANGELOG.md");
+if(!fs.existsSync(changelogPath)){
+  fail("CHANGELOG.md is missing — every shipped change needs a written record");
+} else if(buildM){
+  var log = fs.readFileSync(changelogPath, "utf8");
+  var esc = buildM[1].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  if(!new RegExp("^##\\s*\\[" + esc + "\\]", "m").test(log)){
+    fail("CHANGELOG.md has no \"## [" + buildM[1] + "]\" section — BUILD was bumped " +
+         "without recording what changed");
+  }
+  var firstRelease = log.match(/^##\s*\[(?!Unreleased)([^\]]+)\]/m);
+  if(firstRelease && firstRelease[1] !== buildM[1]){
+    fail("CHANGELOG.md's newest release is " + firstRelease[1] + " but BUILD is " +
+         buildM[1] + " — one of them was not updated");
+  }
+}
+
 /* ---------- 12. Rating writes go through the clamp ---------- */
 /* new Array(n+1) throws RangeError on a fractional or negative n, and a
    thrown render blanks the app. Imported JSON is user-supplied. */

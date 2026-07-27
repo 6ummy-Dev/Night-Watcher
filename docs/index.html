@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<!-- No maximum-scale: capping it blocks pinch-zoom, which fails WCAG 1.4.4 and
+     is a real problem on a screen this dense in 9-10px mono type. iOS stopped
+     honouring the cap in Safari 10 anyway, so it only ever penalised Android. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Night Watcher">
@@ -17,8 +20,13 @@
 <meta property="og:image" content="https://6ummy-dev.github.io/Night-Watcher/icon.png">
 <meta name="twitter:card" content="summary">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E %3Crect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22#0C111C%22/%3E %3Cg fill=%22#FFCF1F%22 transform=%22translate%280,5%29%22%3E %3Cpath d=%22M50 36 C 44 25, 29 21, 12 30 C 21 34, 25 41, 24 50 C 31 45, 37 47, 39 55 C 43 50, 47 51, 49 58 L 50 61 L 51 58 C 53 51, 57 50, 61 55 C 63 47, 69 45, 76 50 C 75 41, 79 34, 88 30 C 71 21, 56 25, 50 36 Z%22/%3E %3Cpath d=%22M42 32 L38 17 L49 29 Z%22/%3E %3Cpath d=%22M58 32 L62 17 L51 29 Z%22/%3E %3Cellipse cx=%2250%22 cy=%2242%22 rx=%2210%22 ry=%2211%22/%3E %3Cpath d=%22M50 51 C 45 60, 45 69, 50 78 C 55 69, 55 60, 50 51 Z%22/%3E %3C/g%3E %3C/svg%3E">
-<link rel="icon" type="image/png" sizes="180x180" href="data:image/png;base64,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">
-<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<!-- The 180x180 bat PNG used to be inlined here TWICE as identical base64 (14,552
+     chars, ~11% of this file) once for rel=icon and once for apple-touch-icon.
+     Both now point at the real icon-192.png sitting beside this file, which the
+     manifest and the service worker already ship. Relative paths, so a file://
+     open still resolves them. -->
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,7 +65,7 @@ header{position:sticky;top:0;z-index:30;background:rgba(10,12,17,.9);-webkit-bac
 .mark svg{display:block;width:32px;height:auto;}
 .mark:active{opacity:.7;}
 .wordmark{flex:1;min-width:0;text-align:center;}
-.wordmark h1{font-family:var(--disp);font-weight:800;text-transform:uppercase;font-size:23px;line-height:.95;margin:0;}
+.wordmark h1{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:21px;line-height:.95;margin:0;}
 .wordmark p{font-family:var(--mono);font-size:9.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--dim);margin:4px 0 0;}
 .ring{width:46px;height:46px;flex:none;position:relative;padding:0;border:0;background:none;cursor:pointer;}
 .ring:active{opacity:.7;}
@@ -73,9 +81,11 @@ header{position:sticky;top:0;z-index:30;background:rgba(10,12,17,.9);-webkit-bac
 .ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:600;}
 main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 28px);max-width:760px;margin:0 auto;width:100%;}
 #tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;background:rgba(14,17,25,.94);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);}
-#tabs button{flex:1;height:var(--tab-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);transition:color .15s;}
-#tabs button .ic{font-size:17px;line-height:1;}
-#tabs button[aria-selected="true"]{color:var(--signal);}
+#tabs button{flex:1;height:var(--tab-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);transition:color .15s;}
+/* Fixed box, fixed grid: every icon occupies exactly 20x20 regardless of the
+   shape inside it, so all four labels and all four icons share one baseline. */
+#tabs button svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;}
+#tabs button[aria-current]{color:var(--signal);}
 
 .modes{display:flex;gap:0;border:1px solid var(--line2);border-radius:10px;overflow:hidden;margin-bottom:10px;}
 .modes button{flex:1;padding:11px 6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dust);border-right:1px solid var(--line2);min-height:42px;}
@@ -91,12 +101,14 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .search::placeholder{color:var(--dim);}
 
 .group{margin:0 0 14px;border:1px solid var(--line);border-radius:14px;background:var(--sunk);}
+.ghwrap{margin:0;font:inherit;border-radius:inherit;
+  position:sticky;top:calc(env(safe-area-inset-top) + 70px);z-index:2;}
 .ghead{display:flex;align-items:center;gap:12px;width:100%;padding:15px;text-align:left;min-height:56px;
-  position:sticky;top:calc(env(safe-area-inset-top) + 70px);z-index:2;background:var(--sunk);border-radius:inherit;}
+  background:var(--sunk);border-radius:inherit;}
 .group.open .ghead{border-radius:13px 13px 0 0;box-shadow:0 1px 0 var(--line);}
-.gnum{font-family:var(--mono);font-size:10px;color:var(--signal);border:1px solid rgba(227,167,44,.35);border-radius:5px;padding:4px 6px;flex:none;}
+.gnum{font-family:var(--mono);font-size:10px;color:var(--signal);border:1px solid rgba(255,207,31,.4);border-radius:5px;padding:4px 6px;flex:none;}
 .gname{flex:1;min-width:0;}
-.gname h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:19px;line-height:1.02;margin:0;}
+.gname .gtitle{display:block;font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:17px;line-height:1.02;margin:0;}
 .gname .meta{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--dim);margin-top:4px;text-transform:uppercase;display:block;}
 .gbar{height:3px;border-radius:2px;background:var(--line2);margin-top:7px;overflow:hidden;display:block;}
 .gbar i{display:block;height:100%;background:var(--signal);transition:width .3s;}
@@ -116,8 +128,8 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .film.skip .tick{border-color:var(--line2);color:var(--dim);}
 .film.skip .tick::after{content:"\2013";}
 .fmain{flex:1;min-width:0;text-align:left;padding:2px 0;}
-.ftitle{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:17.5px;line-height:1.06;margin:0;}
-.fmeta{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:5px;letter-spacing:.05em;}
+.ftitle{display:block;font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:17.5px;line-height:1.06;margin:0;}
+.fmeta{display:block;font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:5px;letter-spacing:.05em;}
 .film.done .ftitle{color:var(--dim);text-decoration:line-through;text-decoration-color:var(--line2);}
 .film.skip .ftitle{color:var(--dim);}
 .badges{display:inline-flex;gap:5px;margin-left:7px;vertical-align:2px;flex-wrap:wrap;}
@@ -139,7 +151,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 
 .hero{border:1px solid var(--line);border-radius:16px;background:linear-gradient(175deg,var(--card2),var(--card) 60%);padding:22px 20px 20px;}
 .hero .kick{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0 0 12px;}
-.hero h2{font-family:var(--disp);font-weight:800;text-transform:uppercase;font-size:clamp(28px,7.5vw,42px);line-height:.94;margin:0;}
+.hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(28px,7.5vw,42px);line-height:.94;margin:0;}
 .hero .yr{font-family:var(--mono);font-size:12px;color:var(--dim);margin:10px 0 0;letter-spacing:.06em;}
 .hero .blurb{font-size:15px;color:var(--dust);margin:16px 0 0;line-height:1.5;}
 .hero .where{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--dust);margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line);}
@@ -152,32 +164,32 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .qhead{font-family:var(--mono);font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--dim);margin:0 0 12px;}
 .qitem{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--line);}
 .qn{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;width:18px;}
-.qt{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:15px;line-height:1.1;flex:1;color:var(--dust);}
+.qt{font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:15px;line-height:1.1;flex:1;color:var(--dust);}
 .qy{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;}
 
 .bigstat{display:flex;gap:10px;margin-bottom:20px;}
 .bigstat div{flex:1;border:1px solid var(--line);border-radius:12px;padding:15px 13px;background:var(--sunk);}
-.bigstat b{display:block;font-family:var(--disp);font-weight:800;font-size:32px;line-height:1;}
+.bigstat b{display:block;font-family:var(--disp);font-weight:400;letter-spacing:.025em;font-size:32px;line-height:1;}
 .bigstat span{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);display:block;margin-top:7px;}
 .srow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);}
-.srow .sn{flex:1;font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:15px;line-height:1.1;min-width:0;}
+.srow .sn{flex:1;font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:15px;line-height:1.1;min-width:0;}
 .srow .sb{flex:0 0 80px;height:5px;border-radius:3px;background:var(--line2);overflow:hidden;}
 .srow .sb i{display:block;height:100%;background:var(--signal);transition:width .3s;}
 .srow .sc{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;width:42px;text-align:right;}
 .danger{margin-top:28px;width:100%;border:1px solid rgba(176,58,58,.5);color:var(--crimson);border-radius:10px;padding:14px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;min-height:46px;}
 .note{font-size:12.5px;color:var(--dim);margin-top:16px;line-height:1.5;}
 .empty{text-align:center;padding:60px 20px;color:var(--dim);}
-.empty .big{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:26px;color:var(--dust);margin-bottom:8px;}
+.empty .big{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:26px;color:var(--dust);margin-bottom:8px;}
 .legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin:4px 0 18px;}
 .legend span{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);}
 .legend i{font-style:normal;font-weight:600;}
 .ugrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .ucard{border:1px solid var(--line);border-radius:12px;background:var(--sunk);padding:13px 12px;text-align:left;display:flex;flex-direction:column;gap:8px;min-height:98px;}
 .ucard:active{background:var(--card);}
-.ucard.full{border-color:rgba(227,167,44,.55);}
+.ucard.full{border-color:rgba(255,207,31,.55);}
 .unum{font-family:var(--mono);font-size:9.5px;color:var(--signal);letter-spacing:.08em;}
 .ucard.full .unum::after{content:" \2713";}
-.uname{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:14.5px;line-height:1.05;flex:1;}
+.uname{font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:14.5px;line-height:1.05;flex:1;}
 .ubar{height:3px;border-radius:2px;background:var(--line2);overflow:hidden;}
 .ubar i{display:block;height:100%;background:var(--signal);}
 .ucount{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.08em;}
@@ -220,7 +232,12 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .toast.show{opacity:1;transform:translate(-50%,0);}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
 
-/* ---------- Canon skin: Dark Deco ---------- */
+/* ---------- Canon skin: Dark Deco ----------
+   Everything below is ADDITIVE. It used to also restate font-family,
+   font-weight, font-size and two border-colours that were already set
+   above, so eleven declarations in the base rules were dead on arrival
+   and the real value of a token lived 180 lines from its declaration.
+   Those are folded back into their single base rule. Keep it additive. */
 ::selection{background:var(--signal);color:var(--ink);}
 html{scrollbar-color:var(--line2) transparent;}
 .intro{border:1px solid var(--line);border-left:3px solid var(--signal);border-radius:12px;background:var(--sunk);padding:18px 18px 16px;margin-bottom:16px;}
@@ -230,17 +247,11 @@ html{scrollbar-color:var(--line2) transparent;}
 .istats{display:flex;gap:18px;padding-top:12px;border-top:1px solid var(--line);font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);flex-wrap:wrap;}
 .istats b{color:var(--bone);font-weight:600;margin-right:4px;}
 .homefoot{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:center;margin:30px 0 4px;line-height:1.8;}
-.wordmark h1,.hero h2,.gname h2,.empty .big{
-  font-family:var(--deco);font-weight:400;letter-spacing:.02em;
-}
-.ftitle,.qt,.sn,.uname,.bigstat b{
-  font-family:var(--disp);font-weight:400;letter-spacing:.025em;
-}
-.wordmark h1{font-size:21px;}
-.gname h2{font-size:17px;}
+/* The header ring is the only progress track that was drawing its own colours
+   from hardcoded hex in the SVG. It now reads the same two tokens as every
+   other track in the app (.gbar / .ubar / .tbar / .segs). */
+#ringTrack{stroke:var(--line2);}
 #ringArc{stroke:var(--signal);}
-.gnum{border-color:rgba(255,207,31,.4);}
-.ucard.full{border-color:rgba(255,207,31,.55);}
 
 </style>
 </head>
@@ -257,10 +268,10 @@ html{scrollbar-color:var(--line2) transparent;}
         </g></svg>
       </button>
       <div class="wordmark"><h1>Night Watcher</h1><p id="hsub">Loading</p></div>
-      <button class="ring" id="ringBtn" data-tab="stats" aria-label="Open progress">
-        <svg width="46" height="46" viewBox="0 0 46 46">
-          <circle cx="23" cy="23" r="19" fill="none" stroke="#28303F" stroke-width="4"></circle>
-          <circle id="ringArc" cx="23" cy="23" r="19" fill="none" stroke="#E3A72C" stroke-width="4"
+      <button class="ring" id="ringBtn" aria-label="Open progress">
+        <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">
+          <circle id="ringTrack" cx="23" cy="23" r="19" fill="none" stroke-width="4"></circle>
+          <circle id="ringArc" cx="23" cy="23" r="19" fill="none" stroke-width="4"
                   stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="119.4"></circle>
         </svg>
         <b id="ringPct">0%</b>
@@ -268,11 +279,25 @@ html{scrollbar-color:var(--line2) transparent;}
     </div>
   </header>
   <main id="view"></main>
-  <nav id="tabs">
-    <button data-tab="home"  aria-selected="true"><span class="ic">&#8962;</span>Home</button>
-    <button data-tab="next"  aria-selected="false"><span class="ic">&#9654;</span>Next up</button>
-    <button data-tab="watch" aria-selected="false"><span class="ic">&#9776;</span>The path</button>
-    <button data-tab="stats" aria-selected="false"><span class="ic">&#9632;</span>Progress</button>
+  <!-- Tab icons are inline SVG on a shared 24x24 grid, NOT unicode glyphs.
+       The old set (U+2302 house, U+25B6 triangle, U+2630 trigram, U+25A0
+       square) came from four different font fallbacks with four different
+       advance widths and side bearings, so no two sat on the same optical
+       centre — and U+25B6 has an emoji presentation, which on iOS/Android
+       rendered a colour glyph that ignored the selected-state colour and was
+       visibly wider than its neighbours. Fixed geometry is the only way to
+       guarantee four identically centred icons. The play triangle is drawn
+       so its CENTROID lands on x=12, not its bounding box: a bbox-centred
+       triangle always reads as sitting too far right. -->
+  <nav id="tabs" aria-label="Views">
+    <button data-tab="home" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.1 10.9 12 4.4l7.9 6.5v8.7H4.1Z"/></svg>Home</button>
+    <button data-tab="next">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.75 4.9 18.5 12l-9.75 7.1Z" fill="currentColor" stroke-linejoin="round"/></svg>Next up</button>
+    <button data-tab="watch">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="4.6" cy="6.2" r="1.4" fill="currentColor" stroke="none"/><path d="M9.2 6.2h10.8"/><circle cx="4.6" cy="12" r="1.4" fill="currentColor" stroke="none"/><path d="M9.2 12h10.8"/><circle cx="4.6" cy="17.8" r="1.4" fill="currentColor" stroke="none"/><path d="M9.2 17.8h10.8"/></svg>The path</button>
+    <button data-tab="stats">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.6" opacity=".38"/><path d="M12 4.4a7.6 7.6 0 0 1 7.6 7.6"/></svg>Progress</button>
   </nav>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -624,10 +649,13 @@ PATH.forEach(function(g, gi){
 
 var S = {tab:"home", scope:"movies", mode:"continuity", filter:"all", q:"", code:"",
          watched:{}, skipped:{}, rated:{}, open:{}, groupOpen:{}, log:[]};
-/* Bump this ONLY for a breaking storage-shape change; ids are frozen so
-   catalogue additions never require it. Backup-code hashes (idHash) are
-   collision-checked at build time by qa/guards.js. */
-var BUILD = "2026-07-27";
+/* Release version, shown in the Progress footer and used as the service-worker
+   cache name. It was a date string; it is now semver so it maps 1:1 onto
+   CHANGELOG.md. Bump it for EVERY shipped change — sw.js VERSION and the
+   changelog must both agree, and qa/guards.js fails the build if they don't.
+   KEY is separate on purpose: bump that ONLY for a breaking storage-shape
+   change, because ids are frozen and catalogue additions never require it. */
+var BUILD = "1.0.0";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -717,7 +745,20 @@ function modeNote(){
   var n = MODENOTE[S.mode] || "";
   return n.replace("{span}", yearSpan());
 }
+/* buildGroups() and pool() depend on exactly two things: the ordering mode and
+   the scope. They do NOT depend on watched/skipped/rated — membership of a
+   group never changes when you tick something off. But a single Home render
+   called buildGroups() seven times and pool() six, so visible() ran 1,208
+   times to produce four identical answers.
+
+   Cache on mode|scope. Nothing else can invalidate it, so nothing else needs
+   to clear it: a new key simply misses. If you ever make group membership
+   depend on progress, this cache is the thing that will lie to you. */
+var groupCache = null, groupCacheKey = "";
+function groupsKey(){ return S.mode + "|" + S.scope; }
 function buildGroups(){
+  var key = groupsKey();
+  if(groupCache && groupCacheKey === key) return groupCache.groups;
   var out = [];
   if(S.mode === "continuity"){
     PATH.forEach(function(g, gi){
@@ -738,12 +779,17 @@ function buildGroups(){
       out.push({key:"d"+dec.k, tag:String(i+1), name:dec.name, note:dec.note, where:"", films:fs});
     });
   }
-  return out.filter(function(g){ return g.films.length; });
+  out = out.filter(function(g){ return g.films.length; });
+  var flat = [];
+  out.forEach(function(g){ flat = flat.concat(g.films); });
+  groupCacheKey = key;
+  groupCache = {groups:out, pool:flat};
+  return out;
 }
 function pool(){
-  var p = [];
-  buildGroups().forEach(function(g){ p = p.concat(g.films); });
-  return p;
+  var key = groupsKey();
+  if(!groupCache || groupCacheKey !== key) buildGroups();
+  return groupCache.pool;
 }
 function isDone(f){ return !!S.watched[f.id]; }
 function isSkip(f){ return !!S.skipped[f.id]; }
@@ -879,7 +925,10 @@ function importCode(raw){
   for(i = 0; i + 6 <= m[3].length; i += 6){
     id = map[m[3].substr(i,5)];
     var n = clampRating(parseInt(m[3].charAt(i+5), 10));
-    if(id && n){ res.rated[id] = n; }
+    /* Count ratings too. Without this a code carrying only ratings restored
+       correctly and then reported "Restored 0", which reads as a failure. */
+    if(id && n){ res.rated[id] = n; if(!res.watched[id]) res.found++; }
+    else if(!id) res.unknown++;
   }
   return res;
 }
@@ -896,7 +945,6 @@ function download(name, text, mime){
 function exportJSON(){
   var str = JSON.stringify({app:"night-watcher", v:1, exported:new Date().toISOString(),
     scope:S.scope, watched:S.watched, skipped:S.skipped, rated:S.rated, log:S.log}, null, 1);
-  window.__lastExport = str;
   return str;
 }
 function doRestore(text){
@@ -1066,11 +1114,13 @@ function viewNext(){
     (qhtml ? '<div class="queue"><p class="qhead">Then</p>'+qhtml+'</div>' : '');
 }
 
+/* All six chips, always. They used to be three, with a tier chip spliced in
+   only while that tier was already active — so once you tapped "All" the only
+   route back to Essentials was Home, and the Path tab silently lost three of
+   its own filters. The row scrolls horizontally, so six costs nothing. */
 function chipSet(){
-  var base = [["all","All"],["left","To watch"],["done","Watched"]];
-  var tiers = {core:"Core route", ess:"Essentials", opt:"Optional"};
-  if(tiers[S.filter]) base.splice(1, 0, [S.filter, tiers[S.filter]]);
-  return base;
+  return [["all","All"],["left","To watch"],["done","Watched"],
+          ["ess","Essentials"],["core","Core route"],["opt","Optional"]];
 }
 function viewWatch(){
   var q = S.q.toLowerCase();
@@ -1079,7 +1129,8 @@ function viewWatch(){
       return '<button data-mode="'+m[0]+'" aria-pressed="'+(S.mode===m[0])+'">'+m[1]+'</button>';
     }).join("")+'</div>'+
     '<p class="modenote">'+modeNote()+'</p>'+
-    '<input class="search" id="q" type="search" placeholder="Search films" value="'+esc(S.q)+'">'+
+    '<input class="search" id="q" type="search" enterkeyhint="search" aria-label="Search the catalogue" placeholder="'+
+      (S.scope === "all" ? "Search films and series" : "Search films")+'" value="'+esc(S.q)+'">'+
     '<div class="chips">'+
     chipSet().map(function(p){
       return '<button class="chip" data-filter="'+p[0]+'" aria-pressed="'+(S.filter===p[0])+'">'+p[1]+'</button>';
@@ -1097,25 +1148,34 @@ function viewWatch(){
       if(S.filter === "ess" && f.b.indexOf("e") < 0) return;
       if(q && (f.t+" "+f.sub+" "+f.y+" "+f.gname+" "+f.d).toLowerCase().indexOf(q) < 0) return;
       shown++; shownTotal++;
-      var cls = "film" + (isDone(f)?" done":"") + (isSkip(f)?" skip":"") + (S.open[f.id]?" open":"");
+      var isOpen = !!S.open[f.id];
+      var cls = "film" + (isDone(f)?" done":"") + (isSkip(f)?" skip":"") + (isOpen?" open":"");
       var meta = metaOf(f, S.mode !== "continuity");
-      var starBtns = "", s;
-      for(s=1;s<=5;s++){
-        starBtns += '<button data-act="rate" data-id="'+f.id+'" data-n="'+s+'" class="'+
-                 (clampRating(S.rated[f.id]) >= s ? "on":"")+'" aria-label="Rate '+s+'">\u2605</button>';
-      }
-      rows += '<div class="'+cls+'"><div class="frow">'+
-        '<button class="tick" data-act="watched" data-id="'+f.id+'" aria-label="Mark watched"></button>'+
-        '<button class="fmain" data-act="expand" data-id="'+f.id+'">'+
-          '<div class="ftitle">'+esc(f.t)+'</div><div class="fmeta">'+esc(meta)+
-            (clampRating(S.rated[f.id]) ? ' \u00b7 <span style="color:var(--signal)">'+stars(S.rated[f.id])+'</span>' : '')+'</div>'+badges(f)+
-        '</button></div>'+
-        '<div class="fdetail"><p>'+esc(f.d)+'</p><div class="acts">'+
+      /* The detail panel is built ONLY for the row that is actually open.
+         It used to be emitted for every entry and hidden with display:none —
+         a description, five star buttons and three streaming links each. On
+         the full catalogue that was ~220 KB of the ~292 KB this view produced,
+         parsed on every keystroke of the search box, to show none of it. */
+      var detail = "";
+      if(isOpen){
+        var starBtns = "", s;
+        for(s=1;s<=5;s++){
+          starBtns += '<button data-act="rate" data-id="'+f.id+'" data-n="'+s+'" class="'+
+                   (clampRating(S.rated[f.id]) >= s ? "on":"")+'" aria-label="Rate '+s+'">\u2605</button>';
+        }
+        detail = '<div class="fdetail"><p>'+esc(f.d)+'</p><div class="acts">'+
           '<button class="act'+(isDone(f)?" primary":"")+'" data-act="watched" data-id="'+f.id+'">'+
             (isDone(f)?"Watched":"Mark watched")+'</button>'+
           '<button class="act" data-act="skip" data-id="'+f.id+'">'+(isSkip(f)?"Unskip":"Skip")+'</button>'+
           '<div class="stars">'+starBtns+'</div>'+
-        '</div><div class="linkrow">'+watchLinks(f)+'</div></div></div>';
+        '</div><div class="linkrow">'+watchLinks(f)+'</div></div>';
+      }
+      rows += '<div class="'+cls+'"><div class="frow">'+
+        '<button class="tick" data-act="watched" data-id="'+f.id+'" aria-label="Mark '+esc(f.t)+' watched" aria-pressed="'+isDone(f)+'"></button>'+
+        '<button class="fmain" data-act="expand" data-id="'+f.id+'" aria-expanded="'+isOpen+'">'+
+          '<span class="ftitle">'+esc(f.t)+'</span><span class="fmeta">'+esc(meta)+
+            (clampRating(S.rated[f.id]) ? ' \u00b7 <span style="color:var(--signal)">'+stars(S.rated[f.id])+'</span>' : '')+'</span>'+badges(f)+
+        '</button></div>'+detail+'</div>';
     });
     if(!shown) return;
     any = true;
@@ -1123,11 +1183,11 @@ function viewWatch(){
     var isOpen = S.groupOpen[g.key] !== false;
     var sub = gdone + " of " + gtot + (g.where ? " \u00b7 " + g.where : "");
     html += '<div class="group'+(isOpen?" open":"")+'">'+
-      '<button class="ghead" data-act="group" data-gk="'+g.key+'">'+
-        '<span class="gnum">'+g.tag+'</span><span class="gname"><h2>'+esc(g.name)+'</h2>'+
+      '<h2 class="ghwrap"><button class="ghead" data-act="group" data-gk="'+g.key+'" aria-expanded="'+isOpen+'">'+
+        '<span class="gnum">'+g.tag+'</span><span class="gname"><span class="gtitle">'+esc(g.name)+'</span>'+
         '<span class="meta">'+esc(sub)+'</span>'+
         '<span class="gbar"><i style="width:'+pct+'%"></i></span></span>'+
-      '<span class="caret">\u25B6</span></button>'+
+      '<span class="caret" aria-hidden="true">\u25B6</span></button></h2>'+
       '<div class="gbody"><p class="gnote">'+esc(g.note)+'</p>'+
       (g.where ? '<p class="gwhere">Where to watch \u2014 <b>'+esc(g.where)+'</b></p>' : '')+
       rows+'</div></div>';
@@ -1282,9 +1342,20 @@ function render(){
   var gWord = S.mode === "life" ? "eras" : S.mode === "release" ? "decades" : "universes";
   document.getElementById("hsub").textContent =
     c.done + " of " + c.total + " logged \u00b7 " + buildGroups().length + " " + gWord;
-  var v = document.getElementById("view"), keep = v.scrollTop;
+  /* Scroll lives on the document, not on <main>. This used to read and write
+     v.scrollTop — but <main> has no overflow, so it is never a scroll
+     container and that value was always 0. Every re-render silently threw the
+     scroll position away and it only looked fine because replacing innerHTML
+     with content of a similar height leaves the document scroll where it was.
+     Tick something near the bottom of a filtered list and it jumped. */
+  var v = document.getElementById("view");
+  var keep = window.pageYOffset || document.documentElement.scrollTop || 0;
   var qPrev = document.getElementById("q");
   var qSel = qPrev ? qPrev.selectionStart : null;
+  /* Refocus the search box if it HELD focus, not merely if it has text.
+     Keying off S.q meant deleting the last character dropped focus and shut
+     the keyboard mid-edit on mobile. */
+  var qWasFocused = !!qPrev && document.activeElement === qPrev;
   var focus = null, ae = document.activeElement;
   if(ae && ae.tagName === "BUTTON" && v.contains(ae) && ae.dataset){
     focus = {}; ["act","id","tf","gk","mode","scope","filter","n"].forEach(function(k){
@@ -1295,8 +1366,14 @@ function render(){
   v.innerHTML = S.tab === "home" ? viewHome()
               : S.tab === "next" ? viewNext()
               : S.tab === "watch" ? viewWatch() : viewStats();
+  /* aria-current, not aria-selected: aria-selected is only meaningful on a
+     role=tab/option/row. These are plain navigation buttons, and a bare
+     aria-selected on a button is ignored by screen readers. The attribute is
+     REMOVED rather than set to false — aria-current has no false state, and
+     the CSS matches on presence. */
   Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function(b){
-    b.setAttribute("aria-selected", b.dataset.tab === S.tab);
+    if(b.dataset.tab === S.tab) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
   });
   if(focus){
     var btns = v.querySelectorAll("button"), bi, cand, k2, hit;
@@ -1307,12 +1384,12 @@ function render(){
     }
   }
   var qi = document.getElementById("q");
-  if(qi && S.q){
+  if(qi && qWasFocused){
     qi.focus();
     var pos = (qSel === null || qSel === undefined) ? qi.value.length : Math.min(qSel, qi.value.length);
     qi.setSelectionRange(pos, pos);
   }
-  v.scrollTop = keep;
+  window.scrollTo(0, keep);
 }
 
 function goToGroup(jk){
@@ -1321,6 +1398,15 @@ function goToGroup(jk){
   S.groupOpen = {};
   buildGroups().forEach(function(g){ S.groupOpen[g.key] = (g.key === jk); });
   window.scrollTo(0,0); persist(); render();
+  /* Every other group is collapsed, but "collapsed" is still a 56px sticky
+     header — jumping to the top can leave the group you actually asked for
+     twenty-odd headers below the fold. Tapping a donut slice is advertised as
+     going straight there, so go straight there. */
+  var target = document.querySelector('.ghead[data-gk="'+jk+'"]');
+  if(target && target.scrollIntoView){
+    try{ target.scrollIntoView({block:"start", behavior:"smooth"}); }
+    catch(e){ target.scrollIntoView(); }
+  }
 }
 
 document.getElementById("tabs").addEventListener("click", function(e){

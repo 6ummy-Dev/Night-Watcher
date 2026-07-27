@@ -51,7 +51,7 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | File | Purpose |
 | --- | --- |
 | `docs/index.html` | The entire app — markup, styles, data and logic |
-| `docs/sw.js` | Service worker — offline support. `VERSION` must match `BUILD` in `index.html` |
+| `docs/sw.js` | Service worker — offline support. `VERSION` must match `BUILD` in `index.html` and the newest version in `CHANGELOG.md` |
 | `docs/manifest.json` | Web app manifest — lets Android install it with the right name and icon |
 | `docs/icon.png` | 512px icon, used for social cards and as the install icon |
 | `docs/icon-192.png` | 192px install icon |
@@ -62,6 +62,7 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `qa/guards.js` | Build guards — run before every commit (see below) |
 | `qa/frozen-ids.json` | Snapshot of every `i:` slug, so a rename can't slip through |
 | `qa/smoke.js` | Optional headless render test (requires jsdom) |
+| `CHANGELOG.md` | Every shipped change, newest first. Enforced by the guards |
 | `README.md` | This file |
 
 ## Checks
@@ -71,9 +72,20 @@ node qa/guards.js          # verify; exits non-zero on failure
 node qa/guards.js --bless  # re-snapshot frozen IDs after adding entries
 ```
 
-Zero dependencies for the guards, and it evaluates the real functions out of `docs/index.html` rather than reimplementing them, so it can't quietly drift from the app. It checks that every `i:` is present, unique and unchanged since the last snapshot; that no two backup-code hashes collide; that every entry lands in exactly one tier and that Core route + Optional accounts for the whole catalogue; that every era and year has a bucket; that the backup code round-trips losslessly; that the worst-case QR payload still fits; that `sw.js` and `index.html` agree on the version; and that the four headline counts in this README match the data.
+Zero dependencies for the guards, and it evaluates the real functions out of `docs/index.html` rather than reimplementing them, so it can't quietly drift from the app. It checks that every `i:` is present, unique and unchanged since the last snapshot; that no two backup-code hashes collide; that every entry lands in exactly one tier and that Core route + Optional accounts for the whole catalogue; that every era and year has a bucket; that the backup code round-trips losslessly; that the worst-case QR payload still fits; that `sw.js`, `index.html` and `CHANGELOG.md` all agree on the version; and that the four headline counts in this README — and the counts baked into the `<meta>` and `og:` description tags — match the data.
 
 There is also `qa/smoke.js`, a headless render test. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
+
+## Releasing
+
+`BUILD` in `docs/index.html`, `VERSION` in `docs/sw.js` and the newest `## [x.y.z]`
+heading in `CHANGELOG.md` are one version string in three places. Change all
+three together, or `qa/guards.js` fails the build.
+
+Write the changelog entry in the same commit as the change. Catalogue additions
+are a MINOR bump, fixes and copy are PATCH, and MAJOR is reserved for a breaking
+change to saved progress — which should never happen, because every `i:` is
+frozen.
 
 ## Adding to the catalogue
 
