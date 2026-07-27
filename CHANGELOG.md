@@ -76,7 +76,7 @@ re-litigated the next time it lands.
   that sequence is an em dash; in markup it is six literal characters. Writing
   markup by adapting a nearby JS string is the natural way to do it, and it
   produced exactly this bug while the storage warning was being written.
-- `qa/smoke.js` grew from 24 checks to 41. It now boots a **second document with
+- `qa/smoke.js` grew from 24 checks to 38. It now boots a **second document with
   `localStorage` throwing**, which is the only way to observe the silent-failure
   bug this release fixes, and drives the real in-page parser against a 1.0.0
   code, a forward-dated `NW2` code, a pasted restore URL, a code broken across
