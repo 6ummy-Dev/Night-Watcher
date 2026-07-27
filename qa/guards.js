@@ -6,7 +6,7 @@
  *
  * Zero dependencies. Exits 1 on any failure, 0 when clean.
  *
- * The functions under test are EXTRACTED FROM public/index.html and evaluated, not
+ * The functions under test are EXTRACTED FROM docs/index.html and evaluated, not
  * reimplemented here. A copy would drift from the app and quietly stop
  * testing it, which is exactly the failure this file exists to prevent.
  */
@@ -17,7 +17,7 @@ var path = require("path");
 var vm   = require("vm");
 
 var ROOT   = path.join(__dirname, "..");
-var PUBLIC = path.join(ROOT, "public");
+var PUBLIC = path.join(ROOT, "docs");
 var HTML   = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8");
 var SNAP   = path.join(__dirname, "frozen-ids.json");
 var BLESS  = process.argv.indexOf("--bless") >= 0;
