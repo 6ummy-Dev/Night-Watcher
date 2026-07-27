@@ -7,7 +7,7 @@
     "enabled": true
   },
   "assets": {
-    "directory": "public",
+    "directory": "docs",
     "not_found_handling": "single-page-application"
   }
 }
