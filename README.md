@@ -14,6 +14,8 @@ A single-file web app mapping every animated Batman story ever made — **96 fil
 - **Home dashboard.** Resume card, tier meters, scoreboard, a tappable grid of every universe, and your recent watches.
 - **Progress.** Two donut charts — one for the universes, one for the eras of Bruce's life — where each slice is sized by its share of the catalogue and fills as you watch. Tap any slice to jump straight there.
 - **Live where-to-watch links.** JustWatch, Prime Video and Apple TV searches on every entry, so availability stays correct as streaming libraries rotate.
+- **Backup & transfer.** A compact code, a scannable QR that restores on a new phone, and a full JSON export/import — all client-side, built on frozen IDs so backups stay valid forever.
+- **Shareable views.** Link straight to a view: [`#life`](https://6ummy-dev.github.io/Night-Watcher/#life) for the chronology of Bruce's life, `#release`, `#universes`, `#progress` — combine with scope like `#life-series`.
 - **Progress that sticks.** Watched, skipped and star ratings saved in your browser (localStorage). No accounts, no server; your watch data never leaves your device.
 - **Anonymous visit counts** via [Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/): cookie-free, no fingerprinting, no personal data.
 

@@ -78,8 +78,10 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .search{width:100%;background:var(--card);border:1px solid var(--line);color:var(--bone);border-radius:10px;padding:12px 14px;font-family:var(--body);font-size:15px;margin-bottom:12px;-webkit-appearance:none;appearance:none;}
 .search::placeholder{color:var(--dim);}
 
-.group{margin:0 0 14px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--sunk);}
-.ghead{display:flex;align-items:center;gap:12px;width:100%;padding:15px;text-align:left;min-height:56px;}
+.group{margin:0 0 14px;border:1px solid var(--line);border-radius:14px;background:var(--sunk);}
+.ghead{display:flex;align-items:center;gap:12px;width:100%;padding:15px;text-align:left;min-height:56px;
+  position:sticky;top:calc(env(safe-area-inset-top) + 70px);z-index:2;background:var(--sunk);border-radius:inherit;}
+.group.open .ghead{border-radius:13px 13px 0 0;box-shadow:0 1px 0 var(--line);}
 .gnum{font-family:var(--mono);font-size:10px;color:var(--signal);border:1px solid rgba(227,167,44,.35);border-radius:5px;padding:4px 6px;flex:none;}
 .gname{flex:1;min-width:0;}
 .gname h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:19px;line-height:1.02;margin:0;}
@@ -217,10 +219,10 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 :root{
   --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
   --line:#252E42; --line2:#33405C;
-  --bone:#E7E9F0; --dust:#93A0B8; --dim:#5E6B85;
+  --bone:#E7E9F0; --dust:#93A0B8; --dim:#78849E;
   --signal:#FFCF1F;      /* utility-belt yellow */
   --steel:#5B84C4;       /* cape blue-grey */
-  --crimson:#B32F26;     /* animated-sky red */
+  --crimson:#C43A30;     /* animated-sky red, AA-adjusted */
   --deco:"Limelight","Big Shoulders Display",serif;
   --disp:"Anton","Haettenschweiler","Arial Narrow",Impact,sans-serif;
 }
@@ -806,6 +808,51 @@ function importCode(raw){
   }
   return res;
 }
+function download(name, text, mime){
+  try{
+    var blob = new Blob([text], {type:mime || "text/plain"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    return true;
+  }catch(e){ return false; }
+}
+function exportJSON(){
+  var str = JSON.stringify({app:"night-watcher", v:1, exported:new Date().toISOString(),
+    scope:S.scope, watched:S.watched, skipped:S.skipped, rated:S.rated, log:S.log}, null, 1);
+  window.__lastExport = str;
+  return str;
+}
+function doRestore(text){
+  text = String(text || "").trim();
+  if(text.charAt(0) === "{"){
+    var o; try{ o = JSON.parse(text); }catch(e){ return null; }
+    if(!o || typeof o !== "object" || (!o.watched && !o.skipped && !o.rated)) return null;
+    var res = {watched:o.watched || {}, skipped:o.skipped || {}, rated:o.rated || {}, found:0, unknown:0};
+    var known = {}; FILMS.forEach(function(f){ known[f.id] = 1; });
+    var id2;
+    for(id2 in res.watched){ known[id2] ? res.found++ : res.unknown++; }
+    var id3;
+    for(id3 in res.watched){ if(!S.watched[id3]){ S.watched[id3] = 1; } }
+    for(id3 in res.skipped){ if(!S.watched[id3]) S.skipped[id3] = 1; }
+    for(id3 in res.rated){ S.rated[id3] = res.rated[id3]; }
+    if(Array.isArray(o.log)){
+      o.log.forEach(function(en){
+        if(en && en.id && en.ts && !S.log.some(function(x){ return x.id === en.id; })) S.log.push(en);
+      });
+      S.log.sort(function(a2,b2){ return a2.ts - b2.ts; });
+    } else {
+      var id4; for(id4 in res.watched){ if(!S.log.some(function(x){ return x.id === id4; })) S.log.push({id:id4, ts:Date.now()}); }
+    }
+    persist(); render();
+    return res;
+  }
+  var code = importCode(text);
+  if(!code) return null;
+  applyImport(code);
+  return code;
+}
 function applyImport(res){
   var id;
   for(id in res.watched){ if(!S.watched[id]){ S.watched[id] = 1; S.log.push({id:id, ts:Date.now()}); } }
@@ -842,8 +889,10 @@ function viewHome(){
       '<p class="ibody">Every animated Batman film ever made, sorted into watch orders that spoil nothing '+
       '\u2014 by universe, by the arc of one life, or by release. Films only, or every series too. Tap anything for what it is and where it '+
       'streams right now. Tick them off as you go; your progress stays on this device.</p>'+
-      '<div class="istats"><span><b>96</b> films</span><span><b>55</b> seasons of TV</span>'+
-      '<span><b>1993\u20132028</b></span></div></div>';
+      '<div class="istats"><span><b>'+FILMS.filter(function(f){return !f.tv;}).length+'</b> films</span>'+
+      '<span><b>'+FILMS.filter(function(f){return f.tv;}).length+'</b> seasons of TV</span>'+
+      '<span><b>'+Math.min.apply(null,FILMS.map(function(f){return f.y;}))+'\u2013'+
+      Math.max.apply(null,FILMS.map(function(f){return f.y;}))+'</b></span></div></div>';
   }
 
   if(nxt){
@@ -1005,7 +1054,19 @@ function viewWatch(){
       (g.where ? '<p class="gwhere">Where to watch \u2014 <b>'+esc(g.where)+'</b></p>' : '')+
       rows+'</div></div>';
   });
-  if(!any) html += '<div class="empty"><div class="big">Nothing here</div><p>No films match that filter.</p></div>';
+  if(!any){
+    var hidden = 0;
+    if(S.scope === "movies" && q){
+      FILMS.forEach(function(f){
+        if(f.tv && (f.t.toLowerCase().indexOf(q) >= 0 || f.d.toLowerCase().indexOf(q) >= 0)) hidden++;
+      });
+    }
+    html += '<div class="empty"><div class="big">Nothing here</div>'+
+      (hidden
+        ? '<p>No films match \u2014 but '+hidden+' series '+(hidden===1?'entry':'entries')+' do.</p>'+
+          '<button class="bkbtn primary" data-act="searchall" style="flex:none;padding:12px 18px">Search everything</button>'
+        : '<p>Nothing matches that filter.</p>')+'</div>';
+  }
   return html;
 }
 
@@ -1050,8 +1111,8 @@ function viewStats(){
   }).filter(function(g){ return g.films.length; });
 
   var html = scopeSwitch() + '<div class="pies" style="margin-top:18px">'+
-    donut(uniGroups, "The universes", "16 continuities \u00b7 tap a slice") +
-    donut(lifeGroups, "Bruce\u2019s life", "11 eras \u00b7 tap a slice") +
+    donut(uniGroups, "The universes", uniGroups.length + " universes \u00b7 tap a slice") +
+    donut(lifeGroups, "Bruce\u2019s life", lifeGroups.length + " eras \u00b7 tap a slice") +
     '</div>'+
     '<div class="bigstat">'+
     '<div><b>'+c.done+'</b><span>Watched</span></div>'+
@@ -1101,7 +1162,8 @@ function viewStats(){
     '<p>Your progress lives only in this browser \u2014 a new phone, or clearing site data, starts you at zero. '+
     'Make a code and you can carry it anywhere.</p><div class="bkbtns">'+
     '<button class="bkbtn primary" data-act="mkcode">'+(S.code ? "Refresh code" : "Create backup code")+'</button>'+
-    (S.code ? '<button class="bkbtn" data-act="dl">Download</button>' : '')+
+    (S.code ? '<button class="bkbtn" data-act="dl">Code file</button>' : '')+
+    '<button class="bkbtn" data-act="dljson">Full JSON</button>'+
     '</div>';
   if(S.code){
     html += '<textarea class="code" readonly rows="3" id="codebox">'+esc(S.code)+'</textarea>'+
@@ -1119,9 +1181,13 @@ function viewStats(){
   }
   html += '<hr class="bkhr"><h3>Restore</h3>'+
     '<p>Paste a backup code from another device. It merges in \u2014 nothing already ticked is lost.</p>'+
-    '<textarea class="bkin" id="restorebox" placeholder="NW1W..."></textarea>'+
-    '<div class="bkbtns"><button class="bkbtn" data-act="restore">Restore progress</button></div></div>';
-  html += '<button class="danger" data-act="reset">Clear all progress</button>';
+    '<textarea class="bkin" id="restorebox" placeholder="NW1W\u2026 or paste a full JSON backup"></textarea>'+
+    '<div class="bkbtns"><button class="bkbtn" data-act="restore">Restore progress</button>'+
+    '<button class="bkbtn" data-act="pickfile">Import a file</button></div>'+
+    '<input type="file" id="restorefile" accept=".json,.txt" style="display:none"></div>';
+  html += S.confirmReset
+    ? '<button class="danger" data-act="reset" style="background:var(--crimson);color:#fff;border-color:var(--crimson)">Tap again to erase everything</button>'
+    : '<button class="danger" data-act="reset">Clear all progress</button>';
   html += '<p class="note">'+(canSave
     ? "Progress saves automatically on this device and follows you across all three orderings."
     : "Saving is unavailable here, so progress lasts for this session only.")+
@@ -1133,17 +1199,33 @@ function render(){
   var c = counts(), pct = c.total ? c.done / c.total : 0;
   document.getElementById("ringArc").setAttribute("stroke-dashoffset", (119.4 * (1 - pct)).toFixed(1));
   document.getElementById("ringPct").textContent = Math.round(pct*100) + "%";
+  var gWord = S.mode === "life" ? "eras" : S.mode === "release" ? "decades" : "universes";
   document.getElementById("hsub").textContent =
-    c.done + " of " + c.total + " logged \u00b7 " + buildGroups().length + " continuities";
+    c.done + " of " + c.total + " logged \u00b7 " + buildGroups().length + " " + gWord;
   var v = document.getElementById("view"), keep = v.scrollTop;
   var qPrev = document.getElementById("q");
   var qSel = qPrev ? qPrev.selectionStart : null;
+  var focus = null, ae = document.activeElement;
+  if(ae && ae.tagName === "BUTTON" && v.contains(ae) && ae.dataset){
+    focus = {}; ["act","id","tf","gk","mode","scope","filter","n"].forEach(function(k){
+      if(ae.dataset[k] !== undefined) focus[k] = ae.dataset[k];
+    });
+    if(!Object.keys(focus).length) focus = null;
+  }
   v.innerHTML = S.tab === "home" ? viewHome()
               : S.tab === "next" ? viewNext()
               : S.tab === "watch" ? viewWatch() : viewStats();
   Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function(b){
     b.setAttribute("aria-selected", b.dataset.tab === S.tab);
   });
+  if(focus){
+    var btns = v.querySelectorAll("button"), bi, cand, k2, hit;
+    for(bi = 0; bi < btns.length; bi++){
+      cand = btns[bi]; hit = true;
+      for(k2 in focus){ if(cand.dataset[k2] !== focus[k2]){ hit = false; break; } }
+      if(hit){ try{ cand.focus({preventScroll:true}); }catch(e){ cand.focus(); } break; }
+    }
+  }
   var qi = document.getElementById("q");
   if(qi && S.q){
     qi.focus();
@@ -1176,6 +1258,7 @@ document.getElementById("view").addEventListener("click", function(e){
   if(seg){ goToGroup(seg.getAttribute("data-seg")); return; }
   var b = e.target.closest("button");
   if(!b) return;
+  if(b.dataset.act === "searchall"){ S.scope = "all"; S.filter = "all"; persist(); render(); toast("Series added"); return; }
   if(b.dataset.scope){
     S.scope = b.dataset.scope; S.groupOpen = {}; persist(); render();
     toast(S.scope === "all" ? "Series added" : "Films only");
@@ -1213,24 +1296,42 @@ document.getElementById("view").addEventListener("click", function(e){
     }
   }
   else if(act === "dl"){
-    try{
-      var blob = new Blob([S.code + "\n"], {type:"text/plain"});
-      var a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "night-watcher-backup.txt";
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
-      toast("Downloaded");
-    }catch(e){ toast("Download unavailable"); }
+    toast(download("night-watcher-backup.txt", S.code + "\n") ? "Downloaded" : "Download unavailable");
   }
   else if(act === "restore"){
     var ta = document.getElementById("restorebox");
-    var res = importCode(ta ? ta.value : "");
-    if(!res){ toast("That code isn\u2019t valid"); return; }
-    applyImport(res);
-    toast("Restored " + res.found + (res.unknown ? " \u00b7 " + res.unknown + " unknown" : ""));
+    var res = doRestore(ta ? ta.value : "");
+    if(!res){ toast("That doesn\u2019t look like a backup"); return; }
+    toast("Restored " + res.found + (res.unknown ? " \u00b7 " + res.unknown + " kept for a newer version" : ""));
   }
-  else if(act === "reset"){ S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.code = ""; persist(); render(); toast("Progress cleared"); }
+  else if(act === "dljson"){
+    toast(download("night-watcher-full.json", exportJSON(), "application/json")
+      ? "Full backup downloaded" : "Download unavailable");
+  }
+  else if(act === "pickfile"){
+    var fi = document.getElementById("restorefile");
+    if(fi) fi.click();
+  }
+  else if(act === "reset"){
+    if(!S.confirmReset){
+      S.confirmReset = true; render();
+      setTimeout(function(){ if(S.confirmReset){ S.confirmReset = false; if(S.tab === "stats") render(); } }, 4000);
+      return;
+    }
+    S.confirmReset = false;
+    S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.code = "";
+    persist(); render(); toast("Progress cleared");
+  }
+});
+
+document.getElementById("view").addEventListener("change", function(e){
+  if(e.target.id !== "restorefile" || !e.target.files || !e.target.files[0]) return;
+  var rd = new FileReader();
+  rd.onload = function(){
+    var res = doRestore(rd.result);
+    toast(res ? "Restored " + res.found + " from file" : "That file isn\u2019t a backup");
+  };
+  rd.readAsText(e.target.files[0]);
 });
 
 document.getElementById("view").addEventListener("input", function(e){
@@ -1249,6 +1350,18 @@ restore(function(){
         setTimeout(function(){ toast("Restored " + res.found + " from your backup"); }, 400);
       }
       if(history.replaceState) history.replaceState(null, "", location.pathname);
+    } else if(h.length > 1){
+      /* shareable views: #life  #release  #universes  #progress  #next
+         combine with scope: #life-series  #universes-movies */
+      h.slice(1).toLowerCase().split(/[-+]/).forEach(function(tok){
+        if(tok === "life"){ S.tab = "watch"; S.mode = "life"; }
+        else if(tok === "release"){ S.tab = "watch"; S.mode = "release"; }
+        else if(tok === "universes" || tok === "path"){ S.tab = "watch"; S.mode = "continuity"; }
+        else if(tok === "progress"){ S.tab = "stats"; }
+        else if(tok === "next"){ S.tab = "next"; }
+        else if(tok === "series"){ S.scope = "all"; }
+        else if(tok === "movies"){ S.scope = "movies"; }
+      });
     }
   }catch(e){}
   render();
