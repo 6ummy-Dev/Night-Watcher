@@ -5,7 +5,8 @@
 "use strict";
 var fs = require("fs"), path = require("path");
 var ROOT = path.join(__dirname, "..");
-var PUBLIC = path.join(ROOT, "docs");
+var PUBLIC = fs.existsSync(path.join(ROOT, "docs", "index.html"))
+  ? path.join(ROOT, "docs") : ROOT;
 var jsdom;
 try { jsdom = require("jsdom"); }
 catch(e){ console.log("skipped — jsdom not installed (npm i -D jsdom)"); process.exit(0); }

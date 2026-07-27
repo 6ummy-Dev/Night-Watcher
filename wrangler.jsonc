@@ -8,6 +8,13 @@
   },
   "assets": {
     "directory": "docs",
-    "not_found_handling": "single-page-application"
+    /* "none" on purpose, NOT "single-page-application". The app is one page
+       with hash routing (#life, #progress...), and hashes never reach the
+       server, so SPA fallback buys nothing here. What it DOES do is turn
+       every missing-asset request into a 200 text/html response — and sw.js
+       caches any ok response, so a missing icon would get cached as HTML
+       under the icon's URL and stay wrong until the next deploy. A 404
+       should be a 404. qa/guards.js enforces this. */
+    "not_found_handling": "none"
   }
 }

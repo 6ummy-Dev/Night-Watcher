@@ -17,7 +17,12 @@ var path = require("path");
 var vm   = require("vm");
 
 var ROOT   = path.join(__dirname, "..");
-var PUBLIC = path.join(ROOT, "docs");
+/* The site is served from docs/ — GitHub Pages (branch-folder mode) and
+   wrangler.jsonc's assets.directory both point there. Autodetect rather than
+   assume, so the guards can never silently validate a stale copy living in
+   the wrong place. */
+var PUBLIC = fs.existsSync(path.join(ROOT, "docs", "index.html"))
+  ? path.join(ROOT, "docs") : ROOT;
 var HTML   = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8");
 var SNAP   = path.join(__dirname, "frozen-ids.json");
 var BLESS  = process.argv.indexOf("--bless") >= 0;
@@ -239,11 +244,54 @@ if(!manifest.icons.some(function(ic){ return /maskable/.test(ic.purpose || ""); 
   warn("manifest has no maskable icon — Android will letterbox the install icon");
 }
 
+/* ---------- 10b. Deployment layout ---------- */
+/* The site is served from docs/ only. During the docs/ migration a
+   placeholder index.html was left behind at the repo root — nothing served
+   it, but the next person to open "index.html" at the root would have edited
+   a dead file and wondered why prod never changed. Deployables live in
+   docs/, nowhere else. */
+
+if(PUBLIC !== ROOT){
+  note("site dir: " + path.relative(ROOT, PUBLIC) + "/ (GitHub Pages + wrangler)");
+  ["index.html", "sw.js", "manifest.json", "icon.png", "icon-192.png", "icon-maskable-512.png"]
+    .forEach(function(f){
+      if(fs.existsSync(path.join(ROOT, f))){
+        fail("stray " + f + " at the repo root — the site is served from " +
+             path.relative(ROOT, PUBLIC) + "/, so this copy is dead and will drift. Delete it.");
+      }
+    });
+}
+
+var wranglerPath = path.join(ROOT, "wrangler.jsonc");
+if(fs.existsSync(wranglerPath)){
+  var wtxt = fs.readFileSync(wranglerPath, "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+  var wcfg = null;
+  try { wcfg = JSON.parse(wtxt); }
+  catch(e){ fail("wrangler.jsonc does not parse as JSONC: " + e.message); }
+  if(wcfg && wcfg.assets){
+    var wdir = path.resolve(ROOT, wcfg.assets.directory || ".");
+    if(wdir !== PUBLIC){
+      fail("wrangler assets.directory (\"" + wcfg.assets.directory +
+           "\") does not match the site dir (" + path.relative(ROOT, PUBLIC) + "/)");
+    }
+    if(wcfg.assets.not_found_handling === "single-page-application"){
+      fail("wrangler not_found_handling is \"single-page-application\" — the app is " +
+           "hash-routed so SPA fallback buys nothing, and sw.js caches any 200, so a " +
+           "missing asset would be cached as HTML under the asset's URL. Keep it \"none\".");
+    }
+  }
+}
+
 /* ---------- 11. README headline counts match the data ---------- */
 /* The README hard-codes four numbers. They are the first thing a reader
    checks and the last thing anyone remembers to update. */
 
 var readme = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
+if(/\bpublic\//.test(readme) && !fs.existsSync(path.join(ROOT, "public"))){
+  fail("README references public/ but no such directory exists — the site dir is " +
+       path.relative(ROOT, PUBLIC) + "/");
+}
 var actual = {
   films:        FILMS.filter(function(f){ return !f.tv; }).length,
   seasons:      FILMS.filter(function(f){ return f.tv; }).length,
