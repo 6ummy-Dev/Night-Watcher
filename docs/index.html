@@ -61,6 +61,13 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 #app{display:flex;flex-direction:column;min-height:100%;}
 header{position:sticky;top:0;z-index:30;background:rgba(10,12,17,.9);-webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
 .hrow{display:flex;align-items:center;gap:14px;max-width:760px;margin:0 auto;}
+/* Storage can fail silently: Safari Private Browsing, a full quota, or an
+   embedded webview. Ticking then went on working in memory and the whole
+   session evaporated on reload with nothing having said so. Signal yellow,
+   not crimson: crimson on --sunk is 3.59:1 and would fail AA inside the
+   very warning that exists for accessibility. */
+#nosave{max-width:760px;margin:11px auto 0;padding:8px 12px;border:1px solid var(--signal);border-radius:8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;line-height:1.55;color:var(--signal);text-align:center;}
+#nosave[hidden]{display:none;}
 .mark{width:46px;flex:none;padding:0;color:var(--signal);display:flex;justify-content:center;align-items:center;}
 .mark svg{display:block;width:32px;height:auto;}
 .mark:active{opacity:.7;}
@@ -142,8 +149,16 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
 .act{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line2);border-radius:8px;padding:10px 12px;color:var(--dust);min-height:38px;}
 .act.primary{background:var(--bone);color:var(--ink);border-color:var(--bone);font-weight:600;}
-.stars{display:flex;gap:2px;margin-left:auto;}
-.stars button{width:30px;height:34px;font-size:16px;color:var(--line2);}
+/* Stars are the most-tapped control in the app and were 30x34 with a 2px
+   gap. The hit area is now 36x44: width carries the gap so neighbours TILE
+   rather than overlap (an overlapping expansion makes rating LESS accurate,
+   which is the opposite of the point), and the height is bought with a
+   pseudo-element so the row does not grow by 10px. 44 wide as well would
+   need a 220px row and push the buttons in .acts onto their own line for a
+   AAA-level target; 30px already cleared AA (2.5.8, 24x24). */
+.stars{display:flex;gap:0;margin-left:auto;}
+.stars button{position:relative;width:36px;height:34px;font-size:16px;color:var(--line2);}
+.stars button::before{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%);}
 .stars button.on{color:var(--signal);}
 .lnk{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line2);border-radius:8px;padding:10px 12px;color:var(--steel);min-height:38px;display:inline-flex;align-items:center;text-decoration:none;}
 .lnk:active{background:var(--card2);}
@@ -156,7 +171,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
    Next up kept the 28-42px default — so tapping "Resume the path" grew the
    identical title by 15%. The inline overrides are gone; change it here. */
 .hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(24px,6.5vw,36px);line-height:.94;margin:0;}
-.hero .yr{font-family:var(--mono);font-size:12px;color:var(--dim);margin:10px 0 0;letter-spacing:.06em;}
+.hero .yr{font-family:var(--mono);font-size:12px;color:var(--dust);margin:10px 0 0;letter-spacing:.06em;}
 .hero .blurb{font-size:15px;color:var(--dust);margin:16px 0 0;line-height:1.5;}
 .hero .where{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--dust);margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line);}
 .hero .where span{color:var(--dim);display:block;margin-bottom:4px;}
@@ -287,6 +302,7 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
         <b id="ringPct">0%</b>
       </button>
     </div>
+    <p id="nosave" role="status" hidden>Storage is blocked here — progress will be gone when you reload. Back up your code from Progress.</p>
   </header>
   <main id="view"></main>
   <!-- Tab icons are inline SVG on a shared 24x24 grid, NOT unicode glyphs.
@@ -665,7 +681,7 @@ var S = {tab:"home", scope:"movies", mode:"continuity", filter:"all", q:"", code
    changelog must both agree, and qa/guards.js fails the build if they don't.
    KEY is separate on purpose: bump that ONLY for a breaking storage-shape
    change, because ids are frozen and catalogue additions never require it. */
-var BUILD = "1.0.0";
+var BUILD = "1.1.0";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -703,14 +719,18 @@ var store = (function(){
 })();
 if(!store) canSave = false;
 
+function flagSave(){
+  var el = document.getElementById("nosave");
+  if(el) el.hidden = canSave;
+}
 function persist(){
   if(!canSave || !store) return;
   var payload = JSON.stringify({watched:S.watched, skipped:S.skipped, rated:S.rated,
                                 mode:S.mode, scope:S.scope, log:S.log});
   try{
     var p = store.set(KEY, payload);
-    if(p && p.catch) p.catch(function(){ canSave = false; });
-  }catch(e){ canSave = false; }
+    if(p && p.catch) p.catch(function(){ canSave = false; flagSave(); });
+  }catch(e){ canSave = false; flagSave(); }
 }
 function restore(done){
   var finish = function(raw){
@@ -915,12 +935,24 @@ function exportCode(){
   });
   return "NW1W" + w.join("") + "S" + k.join("") + "R" + r.join("");
 }
+/* A code is NW<version> followed by segments, each an UPPERCASE letter and its
+   payload: W watched, S skipped, R rated. Payloads are base36 lowercase, so the
+   letters delimit unambiguously. Unrecognised segments AND unrecognised version
+   numbers are skipped rather than rejected, which is what lets a future format
+   (carrying, say, the chosen path) still restore everything this build knows
+   how to read. Forward tolerance is worthless unless it ships BEFORE the first
+   code that needs it — that is the whole reason this is in 1.1.0.
+   exportCode still writes NW1: nothing new is being carried yet, so codes stay
+   interchangeable with 1.0.0 in both directions. */
 function importCode(raw){
   var code = String(raw || "").trim().replace(/\s+/g, "");
-  var hit = code.indexOf("NW1W");
+  var hit = code.search(/NW\d+[A-Z]/);
   if(hit > 0) code = code.slice(hit);                    /* tolerate a pasted URL */
-  var m = /^NW1W([0-9a-z]*)S([0-9a-z]*)R([0-9a-z]*)$/.exec(code);
-  if(!m) return null;
+  if(!/^NW\d+(?:[A-Z][0-9a-z]*)+$/.test(code)) return null;
+  var seg = {}, sre = /([A-Z])([0-9a-z]*)/g, sm;
+  var body = code.replace(/^NW\d+/, "");
+  while((sm = sre.exec(body))){ if(!(sm[1] in seg)) seg[sm[1]] = sm[2]; }
+  var m = [null, seg.W || "", seg.S || "", seg.R || ""];
   var map = {}, i, id;
   FILMS.forEach(function(f){ map[idHash(f.id)] = f.id; });
   var res = {watched:{}, skipped:{}, rated:{}, found:0, unknown:0};
@@ -1346,6 +1378,7 @@ function viewStats(){
 }
 
 function render(){
+  flagSave();
   var c = counts(), pct = c.total ? c.done / c.total : 0;
   document.getElementById("ringArc").setAttribute("stroke-dashoffset", (119.4 * (1 - pct)).toFixed(1));
   document.getElementById("ringPct").textContent = Math.round(pct*100) + "%";
