@@ -151,7 +151,58 @@ win.addEventListener("load", function(){
     catch(err){ e = err; }
     check("all four tabs render", !e, e && e.message);
 
-    console.log(fails.length ? "\n" + fails.length + " smoke failure(s)\n" : "\n  ✓ smoke passed\n");
-    process.exit(fails.length ? 1 : 0);
+    /* --- the parser must read old, current and future codes --- */
+    /* Guards test importCode in isolation; this drives the copy that actually
+       shipped, inside the page, against a code the page itself produced. */
+    S.watched = {}; S.rated = {};
+    FILMS.slice(0, 9).forEach(function(f, i){ if(i % 2 === 0) S.watched[f.id] = 1; });
+    S.rated[FILMS[0].id] = 4;
+    var code = win.exportCode();
+    var mine = win.importCode(code);
+    check("exportCode still writes NW1 (1.0.0 can read it)", /^NW1W/.test(code), code.slice(0, 14) + "…");
+    check("code round-trips in the page", mine && mine.found === Object.keys(S.watched).length,
+          mine ? "found " + mine.found : "null");
+
+    var future = win.importCode(code.replace(/^NW1/, "NW2") + "P3X7ab");
+    check("a future NW2 code with unknown segments still restores",
+          future && mine && future.found === mine.found, future ? "found " + future.found : "REJECTED");
+    check("unknown segments are ignored, not restored as junk",
+          future && mine && future.unknown === mine.unknown, future ? "unknown " + future.unknown : "-");
+    check("a pasted restore URL still works",
+          !!win.importCode("  " + win.SITE + "#nw=" + code + "  "));
+    check("a code split across lines still works",
+          !!win.importCode(code.slice(0, 10) + "\n" + code.slice(10)));
+    var junkOk = ["", "hello", "NW1", "NW1W!!!", "not-a-code"].every(function(j){
+      return win.importCode(j) === null;
+    });
+    check("junk is still rejected", junkOk);
+
+    /* --- a blocked store must SAY so --- */
+    /* The failure this exists for is silent: writes throw, canSave goes false,
+       and the user keeps ticking into memory that dies on reload. Booting a
+       second document with localStorage throwing is the only way to see it. */
+    var blocked = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://6ummy-dev.github.io/Night-Watcher/",
+      pretendToBeVisual:true, beforeParse:function(w){
+        Object.defineProperty(w, "localStorage", {get:function(){
+          throw new Error("SecurityError: storage is disabled in this browser");
+        }});
+      }});
+    blocked.window.addEventListener("load", function(){
+      setTimeout(function(){
+        var w = blocked.window, strip = w.document.getElementById("nosave");
+        check("blocked store sets canSave false", w.canSave === false, "canSave=" + w.canSave);
+        check("blocked store shows the warning", strip && strip.hidden === false);
+        check("warning sits inside the sticky header", !!(strip && strip.closest("header")));
+        check("warning names the consequence", !!(strip && /reload/i.test(strip.textContent)),
+              strip ? strip.textContent.slice(0, 48) : "-");
+        check("no raw \\uXXXX escape leaked into the warning text",
+              !!(strip && strip.textContent.indexOf("\\u") < 0), strip ? strip.textContent.slice(0, 48) : "-");
+        check("app still renders and stays usable", w.document.getElementById("app").textContent.length > 500);
+        check("warning is hidden when storage works", win.document.getElementById("nosave").hidden === true);
+
+        console.log(fails.length ? "\n" + fails.length + " smoke failure(s)\n" : "\n  ✓ smoke passed\n");
+        process.exit(fails.length ? 1 : 0);
+      }, 200);
+    });
   }, 200);
 });

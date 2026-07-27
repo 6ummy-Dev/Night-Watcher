@@ -157,42 +157,23 @@ Object.keys(used).forEach(function(k){
 });
 
 /* ---------- 7. Backup code round-trips losslessly ---------- */
+/* These two functions used to be REIMPLEMENTED here, which quietly broke this
+   file's own rule: a copy drifts from the app and stops testing it. They are
+   now extracted from index.html like everything else, so a change to the real
+   parser is a change to what this guard runs. */
 
-function exportCode(S){
-  var w = [], k = [], r = [];
-  FILMS.forEach(function(f){
-    var h = idHash(f.id);
-    if(S.watched[f.id]) w.push(h);
-    if(S.skipped[f.id]) k.push(h);
-    if(clampRating(S.rated[f.id])) r.push(h + clampRating(S.rated[f.id]));
-  });
-  return "NW1W" + w.join("") + "S" + k.join("") + "R" + r.join("");
-}
-function importCode(raw){
-  var code = String(raw || "").trim().replace(/\s+/g, "");
-  var hit = code.indexOf("NW1W");
-  if(hit > 0) code = code.slice(hit);
-  var m = /^NW1W([0-9a-z]*)S([0-9a-z]*)R([0-9a-z]*)$/.exec(code);
-  if(!m) return null;
-  var map = {}, i, id;
-  FILMS.forEach(function(f){ map[idHash(f.id)] = f.id; });
-  var res = {watched:{}, skipped:{}, rated:{}};
-  for(i = 0; i + 5 <= m[1].length; i += 5){ id = map[m[1].substr(i,5)]; if(id) res.watched[id] = 1; }
-  for(i = 0; i + 5 <= m[2].length; i += 5){ id = map[m[2].substr(i,5)]; if(id) res.skipped[id] = 1; }
-  for(i = 0; i + 6 <= m[3].length; i += 6){
-    id = map[m[3].substr(i,5)];
-    var n = clampRating(parseInt(m[3].charAt(i+5), 10));
-    if(id && n) res.rated[id] = n;
-  }
-  return res;
-}
+sandbox.FILMS = FILMS;
+sandbox.S = {watched:{}, skipped:{}, rated:{}};
+vm.runInContext(fn("exportCode") + "\n" + fn("importCode") + "\n", sandbox);
+var exportCode = sandbox.exportCode, importCode = sandbox.importCode;
 
-var S = {watched:{}, skipped:{}, rated:{}};
+var S = sandbox.S;
 FILMS.forEach(function(f, i){
   if(i % 2 === 0) S.watched[f.id] = 1; else if(i % 5 === 0) S.skipped[f.id] = 1;
   if(i % 7 === 0) S.rated[f.id] = (i % 5) + 1;
 });
-var back = importCode(exportCode(S));
+var code = exportCode();
+var back = importCode(code);
 if(!back) fail("backup code failed to parse its own output");
 else {
   ["watched","skipped","rated"].forEach(function(kind){
@@ -202,6 +183,31 @@ else {
     a.forEach(function(id){ if(kind === "rated" && back.rated[id] !== S.rated[id]) fail("rating changed on round-trip: " + id); });
   });
 }
+
+/* ---------- 7b. The parser tolerates codes it was not written for ---------- */
+/* A code written by a LATER version will carry segments this build has never
+   heard of. It must restore what it recognises instead of refusing the lot —
+   otherwise the first format change strands everyone who has not updated.
+   Tolerance is only worth anything if it shipped BEFORE the code that needs
+   it, so it is guarded from the release that introduced it. */
+
+if(!/^NW1W/.test(code)){
+  fail("exportCode no longer writes NW1 — 1.0.0 clients cannot read the new codes; " +
+       "bump deliberately and say so in CHANGELOG.md");
+}
+
+var future = code.replace(/^NW1/, "NW2") + "P3" ;          /* unknown segment, unknown version */
+var ftr = importCode(future);
+if(!ftr) fail("parser rejected a forward-compatible code (NW2 + unknown segment) outright");
+else if(Object.keys(ftr.watched).sort().join("|") !== Object.keys(back.watched).sort().join("|")){
+  fail("parser dropped watched entries from a code carrying an unknown segment");
+}
+
+/* A pasted restore URL still has to work, and real junk still has to fail. */
+if(!importCode("https://6ummy-dev.github.io/Night-Watcher/#nw=" + code)) fail("parser rejected a pasted restore URL");
+["", "hello", "NW1", "NW1W!!!", "NW1W-----"].forEach(function(bad){
+  if(importCode(bad)) fail("parser accepted junk it should reject: \"" + bad + "\"");
+});
 
 /* ---------- 8. QR payload still fits ---------- */
 /* The QR is byte mode at EC level L: 2953 bytes at v40. The code is
@@ -386,6 +392,105 @@ if(/new Array\(S\.rated\[/.test(HTML)){
 }
 if(/S\.rated\[id\d*\] = res\.rated\[/.test(HTML)){
   fail("import writes a raw rating into S.rated — clamp it first");
+}
+
+/* ---------- 13. Text contrast against the surface it sits on ---------- */
+/* An external review claimed --dim was 3.2:1 and had to be lightened. Measured,
+   it is 5.03:1 on --sunk and 4.57:1 on --card — it passes, and lightening it
+   would have flattened the meta/body hierarchy for nothing. But the same
+   measurement found a real one: the hero is a gradient from --card2, and
+   .hero .yr sat at roughly 4.33:1 against it. Numbers, not vibes — so the
+   numbers live here now and nobody has to re-litigate the palette by eye. */
+
+var pal = {}, pre = /--([a-z0-9]+):\s*(#[0-9A-Fa-f]{6})/g, pm;
+while((pm = pre.exec(HTML))) if(!(pm[1] in pal)) pal[pm[1]] = pm[2];
+
+function lin(c){ c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+function lum(h){
+  return 0.2126 * lin(parseInt(h.substr(1,2),16)) +
+         0.7152 * lin(parseInt(h.substr(3,2),16)) +
+         0.0722 * lin(parseInt(h.substr(5,2),16));
+}
+function contrast(a, b){
+  var x = lum(a), y = lum(b);
+  if(y > x){ var t = x; x = y; y = t; }
+  return (x + 0.05) / (y + 0.05);
+}
+
+[["dim","card"], ["dim","sunk"], ["dust","card"], ["bone","card"]].forEach(function(pair){
+  var fg = pal[pair[0]], bg = pal[pair[1]];
+  if(!fg || !bg){ fail("palette token --" + pair[0] + " or --" + pair[1] + " is missing from :root"); return; }
+  var r = contrast(fg, bg);
+  note("--" + pair[0] + " on --" + pair[1] + " = " + r.toFixed(2) + ":1");
+  if(r < 4.5) fail("--" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
+                   ":1 — below the 4.5:1 AA floor for body text");
+  else if(r < 4.8) warn("--" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
+                        ":1 — clears AA with little room; lightening --" + pair[1] +
+                        " (or dimming --" + pair[0] + ") breaks it");
+});
+
+/* The hero's top stop is --card2, the darkest surface in the palette. Nothing
+   inside it may use --dim, which measures 4.12:1 there. */
+/* The gradient reaches --card at 60%, so only the TOP of the hero is the
+   problem. .hero .yr is the one that sits up there — that is a hard fail.
+   Anything lower (.where and its span) is on --card at 4.57:1 and passes, so
+   it gets the measured number and a human decision, not a forced change. */
+var heroRules = HTML.match(/^\.hero[^{]*\{[^}]*\}/gm) || [];
+heroRules.forEach(function(rule){
+  if(!/color:\s*var\(--dim\)/.test(rule)) return;
+  var sel = rule.slice(0, rule.indexOf("{")).trim();
+  if(/^\.hero \.yr$/.test(sel)){
+    fail(".hero .yr is back on --dim — it sits in the gradient's --card2 zone at " +
+         "roughly 4.33:1, under AA. It uses --dust for that reason.");
+  } else {
+    warn(sel + " uses --dim inside the hero (" + contrast(pal.dim, pal.card2).toFixed(2) +
+         ":1 at the top of the gradient, " + contrast(pal.dim, pal.card).toFixed(2) +
+         ":1 once it reaches --card) — fine while it stays low in the card");
+  }
+});
+
+/* ---------- 14. A blocked store has to say so ---------- */
+/* Safari Private Browsing, a full quota and some embedded webviews all make
+   writes throw. Before 1.1.0 the app caught that, set canSave = false and said
+   nothing: ticking kept working in memory and the session vanished on reload.
+   The warning has to live INSIDE the sticky header — below it, the one message
+   that must not be missed scrolls away. */
+
+if(!/id="nosave"/.test(HTML)){
+  fail("the storage-blocked warning (#nosave) is gone — a blocked store fails silently again");
+} else {
+  var hOpen = HTML.indexOf("<header>"), hClose = HTML.indexOf("</header>"), nAt = HTML.indexOf('id="nosave"');
+  if(!(nAt > hOpen && nAt < hClose)){
+    fail("#nosave is outside <header> — it will scroll out of sight");
+  }
+  if(!/#nosave\[hidden\]\{display:none/.test(HTML)){
+    fail("#nosave has no [hidden] display rule — the warning will show even when saving works");
+  }
+  var calls = (HTML.match(/flagSave\(\)/g) || []).length;
+  if(calls < 4){
+    fail("flagSave() is called " + calls + " times, expected at least 4 (definition, " +
+         "render, and both persist failure paths) — a store that fails AFTER load " +
+         "would never surface");
+  }
+}
+
+/* ---------- 15. No JS escapes stranded in the markup ---------- */
+/* Most user-visible strings in this app are built inside <script>, where
+   "\u2014" is an em dash. The static markup is NOT JavaScript, so the same
+   sequence renders as the six literal characters. Writing markup by adapting a
+   nearby JS string is the obvious way to do it and it produced exactly this bug
+   while 1.1.0's storage warning was being added. */
+
+var bodyAt = HTML.indexOf("<body>");
+var scriptAt = HTML.indexOf("<script", bodyAt);
+if(bodyAt > 0){
+  var markup = HTML.slice(bodyAt, scriptAt > bodyAt ? scriptAt : HTML.length);
+  var stranded = markup.match(/\\u[0-9a-fA-F]{4}/g);
+  if(stranded){
+    fail("static markup contains " + stranded.length + " JS escape(s) (" +
+         stranded.slice(0, 3).join(", ") + ") — these render literally, not as " +
+         "the character. Use the character itself or an HTML entity.");
+  }
 }
 
 /* ---------- report ---------- */
