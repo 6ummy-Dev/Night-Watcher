@@ -1,15 +1,16 @@
 #!/usr/bin/env node
-/* Headless render test. Boots index.html in jsdom and drives the paths the
+/* Headless render test. Boots public/index.html in jsdom and drives the paths the
    guards cannot reach — actual rendering, scope switching, and hostile import.
    Requires jsdom (dev-only): npm i -D jsdom      Run: node qa/smoke.js */
 "use strict";
 var fs = require("fs"), path = require("path");
 var ROOT = path.join(__dirname, "..");
+var PUBLIC = path.join(ROOT, "public");
 var jsdom;
 try { jsdom = require("jsdom"); }
 catch(e){ console.log("skipped — jsdom not installed (npm i -D jsdom)"); process.exit(0); }
 
-var html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8")
+var html = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8")
   /* strip network assets so the test is offline and deterministic */
   .replace(/<link[^>]*fonts\.googleapis[^>]*>/g, "")
   .replace(/<script[^>]*cloudflareinsights[^>]*><\/script>/g, "");
