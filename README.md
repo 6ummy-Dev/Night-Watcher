@@ -4,7 +4,7 @@
 
 A single-file web app that maps every animated Batman film — 95 movies across 16 continuities — into clear watch orders, tracks your progress, and always knows where each one is streaming.
 
-**Live:** https://night-watcher.zonaescon.workers.dev
+**Live:** https://6ummy-dev.github.io/Night-Watcher/
 
 ## What it does
 
@@ -18,7 +18,7 @@ A single-file web app that maps every animated Batman film — 95 movies across 
 
 ## Running it
 
-It's one HTML file. Open `index.html` in any modern browser, or serve it from any static host — this repo deploys to Cloudflare Workers.
+It's one HTML file. Open `index.html` in any modern browser, or serve it from any static host — this repo publishes via GitHub Pages.
 
 ## Credits & legal
 
