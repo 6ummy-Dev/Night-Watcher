@@ -6,7 +6,7 @@
  *
  * Zero dependencies. Exits 1 on any failure, 0 when clean.
  *
- * The functions under test are EXTRACTED FROM index.html and evaluated, not
+ * The functions under test are EXTRACTED FROM public/index.html and evaluated, not
  * reimplemented here. A copy would drift from the app and quietly stop
  * testing it, which is exactly the failure this file exists to prevent.
  */
@@ -17,7 +17,8 @@ var path = require("path");
 var vm   = require("vm");
 
 var ROOT   = path.join(__dirname, "..");
-var HTML   = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+var PUBLIC = path.join(ROOT, "public");
+var HTML   = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8");
 var SNAP   = path.join(__dirname, "frozen-ids.json");
 var BLESS  = process.argv.indexOf("--bless") >= 0;
 
@@ -216,7 +217,7 @@ else if(maxUrl > CAP * 0.85) warn("QR payload above 85% of capacity — roughly 
 /* ---------- 9. BUILD and the service worker agree ---------- */
 
 var buildM = HTML.match(/var BUILD = "([^"]+)"/);
-var swPath = path.join(ROOT, "sw.js");
+var swPath = path.join(PUBLIC, "sw.js");
 if(!buildM) fail("cannot find BUILD in index.html");
 if(!fs.existsSync(swPath)) fail("sw.js is missing but index.html registers it");
 else {
@@ -230,9 +231,9 @@ else {
 
 /* ---------- 10. Referenced files exist ---------- */
 
-var manifest = JSON.parse(fs.readFileSync(path.join(ROOT, "manifest.json"), "utf8"));
+var manifest = JSON.parse(fs.readFileSync(path.join(PUBLIC, "manifest.json"), "utf8"));
 manifest.icons.forEach(function(ic){
-  if(!fs.existsSync(path.join(ROOT, ic.src))) fail("manifest references missing file: " + ic.src);
+  if(!fs.existsSync(path.join(PUBLIC, ic.src))) fail("manifest references missing file: " + ic.src);
 });
 if(!manifest.icons.some(function(ic){ return /maskable/.test(ic.purpose || ""); })){
   warn("manifest has no maskable icon — Android will letterbox the install icon");
