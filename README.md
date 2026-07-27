@@ -10,7 +10,7 @@ A single-file web app mapping every animated Batman story ever made — **96 fil
 
 - **One switch, two journeys.** Opens on **Movies** for the 96 films. Flip to **Movies + Series** and 55 seasons — 1,434 episodes, every show from *The Adventures of Batman* (1968) to *Caped Crusader* (2026) — weave into the same orders. Nothing else about the app changes.
 - **Three orderings.** By universe (spoiler-safe), as one composite chronology of Bruce's life, or straight release order from 1968 to 2028.
-- **Three tiers.** Everything is tagged **Essential**, **Core**, or **Optional**, plus modifiers (Mature, Short, Interactive, Not out yet). Nothing is untagged.
+- **Three tiers.** Everything is tagged **Essential**, **Core**, or **Optional** — tiers are exclusive, with Essential outranking Optional — plus modifiers (Mature, Short, Interactive, Not out yet). Nothing is untagged.
 - **Home dashboard.** Resume card, tier meters, scoreboard, a tappable grid of every universe, and your recent watches.
 - **Progress.** Two donut charts — one for the universes, one for the eras of Bruce's life — where each slice is sized by its share of the catalogue and fills as you watch. Tap any slice to jump straight there.
 - **Live where-to-watch links.** JustWatch, Prime Video and Apple TV searches on every entry, so availability stays correct as streaming libraries rotate.
