@@ -44,25 +44,27 @@ One HTML file, no build step, no dependencies. Open `index.html` in any modern b
 
 ## Adding to the catalogue
 
-The data lives in the `PATH` array near the top of the `<script>` block. Every entry uses the same shape, so extending it is a one-line job:
+The data lives in the `PATH` array near the top of the `<script>` block. Every entry uses the same shape:
 
 ```js
 // a film
-{t:"Batman: Year One", y:2011, e:2, d:"Description.", b:["e"]}
+{i:"batman-year-one-2011", t:"Batman: Year One", y:2011, e:2, d:"Description.", b:["e"]}
 
 // a season of television
-{t:"Batman: Caped Crusader", sub:"Season 2", y:2026, ep:10, k:"tv", e:2, d:"Description.", o:1}
+{i:"batman-caped-crusader-season-2-2026", t:"Batman: Caped Crusader", sub:"Season 2", y:2026, ep:10, k:"tv", e:2, d:"Description.", o:1}
 ```
 
-`t` title · `sub` season label · `y` year · `ep` episode count · `k:"tv"` marks it a series
-`e` era for the Bruce's-life ordering (`0` = outside any timeline) · `d` description
+`i` **stable unique ID** (required) · `t` title · `sub` season label · `y` year · `ep` episode count · `k:"tv"` marks it a series  
+`e` era for the Bruce's-life ordering (`0` = outside any timeline) · `d` description  
 `b` badges (`e` essential, `m` mature, `u` unreleased, `s` short, `c` interactive) · `o` optional
 
-A whole new continuity is one object in the same array. IDs are generated from the title, so adding entries never disturbs anyone's saved progress.
+**Important:** Always give every entry a unique, permanent `i:` slug. **Never change an existing `i:`** — it is the frozen key that preserves user progress across updates. Adding new entries is always safe; renaming or deleting an `i:` will break saved progress for anyone who already marked that title.
+
+A whole new continuity is simply one more object in the same `PATH` array.
 
 ## Credits & legal
 
 - Fonts: [Limelight](https://fonts.google.com/specimen/Limelight) and [Anton](https://fonts.google.com/specimen/Anton) via Google Fonts, plus IBM Plex Sans and Mono — all under the SIL Open Font License.
-- The favicon is an original bat silhouette drawn for this project. It is not a DC mark.
+- The favicon and app icon are original bat silhouettes drawn for this project. They are not DC marks.
 - This is an unofficial fan-made tracker. It contains no trademarked logos, symbols or artwork. Batman and all related characters are property of DC / Warner Bros. Discovery; this project is not affiliated with or endorsed by them.
 - Catalogue compiled from public sources. Release dates for unreleased titles are as announced and may change.
