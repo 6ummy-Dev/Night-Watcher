@@ -1,0 +1,12 @@
+{
+  "name": "Night Watcher",
+  "short_name": "Night Watcher",
+  "description": "Every animated Batman story in watch orders that spoil nothing.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#08090F",
+  "theme_color": "#0C111C",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

@@ -38,7 +38,8 @@ One HTML file, no build step, no dependencies. Open `index.html` in any modern b
 | File | Purpose |
 | --- | --- |
 | `index.html` | The entire app — markup, styles, data and logic |
-| `icon.png` | 512px icon used for social sharing cards |
+| `icon.png` | 512px icon used for social cards and the install icon |
+| `manifest.json` | Web app manifest — lets Android install it with the right name and icon |
 | `README.md` | This file |
 
 ## Adding to the catalogue
