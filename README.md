@@ -35,7 +35,7 @@ The DC Animated Universe entry also carries the full interleave: where *Mask of 
 
 One HTML file, no build step, nothing to install. The only third-party code is a single vendored MIT QR encoder (see Credits); everything else is written for this project.
 
-Open `index.html` in any modern browser, or serve it from any static host — this repo publishes via GitHub Pages and Cloudflare Workers Assets. Served over HTTPS it registers a service worker, so after the first visit it opens and works with no network at all. Opened straight off disk as `file://` it still works; the service worker just doesn't register, since browsers only allow them in a secure context.
+Open `public/index.html` in any modern browser, or serve the `public/` folder from any static host — this repo publishes via GitHub Pages and Cloudflare Workers Assets. Served over HTTPS it registers a service worker, so after the first visit it opens and works with no network at all. Opened straight off disk as `file://` it still works; the service worker just doesn't register, since browsers only allow them in a secure context.
 
 ### Deploy to Cloudflare Workers
 
@@ -44,19 +44,19 @@ npm install          # or bun install
 npx wrangler deploy
 ```
 
-The project is configured as pure static assets (`wrangler.jsonc`). The service worker and SPA routing are handled correctly.
+The static files live in `public/`. `wrangler.jsonc` points the assets directory there so `node_modules` is never uploaded.
 
 ## Files
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | The entire app — markup, styles, data and logic |
-| `sw.js` | Service worker — offline support. `VERSION` must match `BUILD` in `index.html` |
-| `manifest.json` | Web app manifest — lets Android install it with the right name and icon |
-| `icon.png` | 512px icon, used for social cards and as the install icon |
-| `icon-192.png` | 192px install icon |
-| `icon-maskable-512.png` | Full-bleed variant so Android can apply its own mask without cropping |
-| `wrangler.jsonc` | Cloudflare Workers config (static assets + SPA fallback) |
+| `public/index.html` | The entire app — markup, styles, data and logic |
+| `public/sw.js` | Service worker — offline support. `VERSION` must match `BUILD` in `index.html` |
+| `public/manifest.json` | Web app manifest — lets Android install it with the right name and icon |
+| `public/icon.png` | 512px icon, used for social cards and as the install icon |
+| `public/icon-192.png` | 192px install icon |
+| `public/icon-maskable-512.png` | Full-bleed variant so Android can apply its own mask without cropping |
+| `wrangler.jsonc` | Cloudflare Workers config (points assets at `public/`) |
 | `.gitignore` | Ignores `node_modules`, Wrangler state, editor files, etc. |
 | `package.json` | Dev scripts + optional jsdom for smoke tests |
 | `qa/guards.js` | Build guards — run before every commit (see below) |
@@ -71,13 +71,13 @@ node qa/guards.js          # verify; exits non-zero on failure
 node qa/guards.js --bless  # re-snapshot frozen IDs after adding entries
 ```
 
-Zero dependencies for the guards, and it evaluates the real functions out of `index.html` rather than reimplementing them, so it can't quietly drift from the app. It checks that every `i:` is present, unique and unchanged since the last snapshot; that no two backup-code hashes collide; that every entry lands in exactly one tier and that Core route + Optional accounts for the whole catalogue; that every era and year has a bucket; that the backup code round-trips losslessly; that the worst-case QR payload still fits; that `sw.js` and `index.html` agree on the version; and that the four headline counts in this README match the data.
+Zero dependencies for the guards, and it evaluates the real functions out of `public/index.html` rather than reimplementing them, so it can't quietly drift from the app. It checks that every `i:` is present, unique and unchanged since the last snapshot; that no two backup-code hashes collide; that every entry lands in exactly one tier and that Core route + Optional accounts for the whole catalogue; that every era and year has a bucket; that the backup code round-trips losslessly; that the worst-case QR payload still fits; that `sw.js` and `index.html` agree on the version; and that the four headline counts in this README match the data.
 
 There is also `qa/smoke.js`, a headless render test. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
 
 ## Adding to the catalogue
 
-The data lives in the `PATH` array near the top of the `<script>` block. Every entry uses the same shape:
+The data lives in the `PATH` array near the top of the `<script>` block in `public/index.html`. Every entry uses the same shape:
 
 ```js
 // a film
