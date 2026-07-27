@@ -13,7 +13,8 @@ A single-file web app that maps every animated Batman film — 95 movies across 
 - **Three tiers** — every film tagged **Essential**, **Core**, or **Optional**, plus modifiers (Mature, Short, Interactive, Not out yet).
 - **Home dashboard** — resume card, tier meters, scoreboard, a tappable universe grid, and your recent watches.
 - **Live where-to-watch links** — JustWatch, Prime Video, and Apple TV searches per film, so availability never goes stale.
-- **Progress that sticks** — watched, skipped, and star ratings saved in your browser (localStorage). No accounts, no server, nothing leaves your device.
+- **Progress that sticks** — watched, skipped, and star ratings saved in your browser (localStorage). No accounts, no server; your watch data never leaves your device.
+- **Anonymous visit counts** — via [Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/): cookie-free, no fingerprinting, no personal data.
 
 ## Running it
 
