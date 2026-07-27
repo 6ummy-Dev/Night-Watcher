@@ -16,9 +16,9 @@ Also available on Cloudflare Workers (static assets).
 - **Home dashboard.** Resume card, tier meters, scoreboard, a tappable grid of every universe, and your recent watches.
 - **Progress.** Two donut charts — one for the universes, one for the eras of Bruce's life — where each slice is sized by its share of the catalogue and fills as you watch. Tap any slice to jump straight there.
 - **Live where-to-watch links.** JustWatch, Prime Video and Apple TV searches on every entry, so availability stays correct as streaming libraries rotate.
-- **Backup & transfer.** A compact code, a scannable QR that restores on a new phone, and a full JSON export/import — all client-side, built on frozen IDs so backups stay valid forever.
+- **Backup & transfer.** A compact code, a scannable QR that restores on a new phone, and a full JSON export/import — all client-side, built on frozen IDs so backups stay valid forever. The code is versioned and read tolerantly: a code written by a newer build still restores everything an older one understands.
 - **Shareable views.** Link straight to a view: [`#life`](https://6ummy-dev.github.io/Night-Watcher/#life) for the chronology of Bruce's life, `#release`, `#universes`, `#progress` — combine with scope like `#life-series`.
-- **Progress that sticks.** Watched, skipped and star ratings saved in your browser (localStorage). No accounts, no server; your watch data never leaves your device.
+- **Progress that sticks.** Watched, skipped and star ratings saved in your browser (localStorage). No accounts, no server; your watch data never leaves your device — and if the browser refuses to save (Private Browsing, a full quota, some in-app webviews) the app says so in the header instead of losing your evening silently.
 - **Anonymous visit counts** via [Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/): cookie-free, no fingerprinting, no personal data.
 
 ## The chronology
@@ -72,9 +72,17 @@ node qa/guards.js          # verify; exits non-zero on failure
 node qa/guards.js --bless  # re-snapshot frozen IDs after adding entries
 ```
 
-Zero dependencies for the guards, and it evaluates the real functions out of `docs/index.html` rather than reimplementing them, so it can't quietly drift from the app. It checks that every `i:` is present, unique and unchanged since the last snapshot; that no two backup-code hashes collide; that every entry lands in exactly one tier and that Core route + Optional accounts for the whole catalogue; that every era and year has a bucket; that the backup code round-trips losslessly; that the worst-case QR payload still fits; that `sw.js`, `index.html` and `CHANGELOG.md` all agree on the version; and that the four headline counts in this README — and the counts baked into the `<meta>` and `og:` description tags — match the data.
+Zero dependencies, and every function under test is **extracted from `docs/index.html` and evaluated**, never reimplemented here — a copy drifts from the app and quietly stops testing it, which is the exact failure this file exists to prevent.
 
-There is also `qa/smoke.js`, a headless render test. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
+**Data and progress.** Every `i:` is present, unique and unchanged since the last snapshot. No two backup-code hashes collide, with the birthday risk reported on every run. Every entry lands in exactly one tier, and Core route + Optional accounts for the whole catalogue. Every era and year has a bucket. The backup code round-trips losslessly, still reads a forward-dated code carrying segments this build has never seen, still reads a pasted restore URL, and still rejects junk. The worst-case QR payload still fits.
+
+**Interface.** Text contrast is computed from the palette and measured against the surface it sits on, rather than argued about by eye. The storage-blocked warning must exist, must sit inside the sticky header where it cannot scroll away, and must be wired to every path that can turn saving off. No `\uXXXX` escape may appear in the static markup — inside a script that is an em dash, in markup it is six literal characters. One hero size, declared once. The centred column may not shift between tabs.
+
+**Deployment and bookkeeping.** Nothing deployable strays to the repo root, `wrangler.jsonc` points at the served directory with SPA fallback off, and `sw.js`, `index.html` and `CHANGELOG.md` all agree on the version. The four headline counts in this README — and the counts baked into the `<meta>` and `og:` description tags — match the data.
+
+Every guard has been negative-tested: made to fail on purpose before being trusted.
+
+There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. 38 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
 
 ## Releasing
 
