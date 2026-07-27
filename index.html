@@ -29,11 +29,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Limelight&family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#0A0C11; --sunk:#0E1119; --card:#161C29; --card2:#1D2534;
-  --line:#28303F; --line2:#333D4F;
-  --bone:#E9E3D5; --dust:#8B94A7; --dim:#5C6678;
-  --signal:#E3A72C; --crimson:#B03A3A; --steel:#6E9BC4; --moss:#7FA98B;
-  --disp:"Big Shoulders Display","Haettenschweiler","Arial Narrow",Impact,sans-serif;
+  /* Canon skin: Dark Deco. Single source of truth — there is no second
+     :root override further down; adding one is how the palette drifts. */
+  --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
+  --line:#252E42; --line2:#33405C;
+  --bone:#E7E9F0; --dust:#93A0B8; --dim:#78849E;
+  --signal:#FFCF1F;      /* utility-belt yellow */
+  --steel:#5B84C4;       /* cape blue-grey */
+  --crimson:#C43A30;     /* animated-sky red, AA-adjusted */
+  --moss:#7FA98B;        /* interactive badge */
+  --deco:"Limelight","Big Shoulders Display",serif;
+  --disp:"Anton","Haettenschweiler","Arial Narrow",Impact,sans-serif;
   --body:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
   --tab-h:58px;
@@ -224,16 +230,6 @@ html{scrollbar-color:var(--line2) transparent;}
 .istats{display:flex;gap:18px;padding-top:12px;border-top:1px solid var(--line);font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);flex-wrap:wrap;}
 .istats b{color:var(--bone);font-weight:600;margin-right:4px;}
 .homefoot{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:center;margin:30px 0 4px;line-height:1.8;}
-:root{
-  --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
-  --line:#252E42; --line2:#33405C;
-  --bone:#E7E9F0; --dust:#93A0B8; --dim:#78849E;
-  --signal:#FFCF1F;      /* utility-belt yellow */
-  --steel:#5B84C4;       /* cape blue-grey */
-  --crimson:#C43A30;     /* animated-sky red, AA-adjusted */
-  --deco:"Limelight","Big Shoulders Display",serif;
-  --disp:"Anton","Haettenschweiler","Arial Narrow",Impact,sans-serif;
-}
 .wordmark h1,.hero h2,.gname h2,.empty .big{
   font-family:var(--deco);font-weight:400;letter-spacing:.02em;
 }
@@ -597,14 +593,15 @@ var DECADES = [
  {k:1990, name:"The nineties",    note:"The Animated Series lands and resets the character. Everything here is essential."},
  {k:2000, name:"The 2000s",       note:"The DCAU winds down and Warner starts the direct-to-video line."},
  {k:2010, name:"The 2010s",       note:"The boom. Comic adaptations, a sixteen-film shared universe, and LEGO."},
- {k:2020, name:"The 2020s",       note:"The Tomorrowverse, the reset, and Knightfall."}
+ {k:2020, name:"The 2020s",       note:"The Tomorrowverse, the reset, and Knightfall."},
+ {k:2030, name:"The 2030s",       note:"The decade still being made."}
 ];
 
 var BADGE = {e:"ESSENTIAL", m:"MATURE", u:"NOT OUT YET", o:"OPTIONAL", s:"SHORT", c:"INTERACTIVE", k:"CORE"};
 var MODENOTE = {
  continuity:"Grouped by universe, each in its own story order. The safest way through \u2014 nothing spoils anything ahead of it.",
  life:"One composite life, stitched from every continuity. These are different Bruces from different realities, so this is an interpretation, not a canon \u2014 but it is as chronological as the material allows. Films with no place in a single lifetime are collected at the end.",
- release:"Straight release order, 1993 to 2028. The only ordering that is objectively complete \u2014 it just jumps between universes constantly."
+ release:"Straight release order, {span}. The only ordering that is objectively complete \u2014 it just jumps between universes constantly."
 };
 
 /* Stable IDs are FROZEN in the data as i:"..." and must never change.
@@ -632,7 +629,17 @@ var S = {tab:"home", scope:"movies", mode:"continuity", filter:"all", q:"", code
    collision-checked at build time by qa/guards.js. */
 var BUILD = "2026-07-27";
 var KEY = "batwatch-v3";
+var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
+
+/* On a file:// open, location.origin is the string "null", so building the
+   transfer link from it produces a QR that resolves nowhere. Fall back to the
+   published copy — the point of the QR is to reach a DIFFERENT device, which
+   cannot see this machine's local file either way. */
+function restoreLink(code){
+  var http = (location.protocol === "http:" || location.protocol === "https:");
+  return (http ? location.origin + location.pathname : SITE) + "#nw=" + code;
+}
 
 /* Storage adapter: window.storage inside Claude artifacts; localStorage on the
    open web (GitHub Pages etc.); memory-only if neither is available. */
@@ -693,6 +700,23 @@ function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
 /* ---- ordering ---- */
 function visible(f){ return S.scope === "all" || !f.tv; }
 
+/* The release note quotes a year span, and that span depends on scope:
+   films alone start in 1993, but the series reach back to 1968. Compute it
+   from what is actually on screen rather than hard-coding either one. */
+function yearSpan(){
+  var p = FILMS.filter(visible), lo, hi, i;
+  if(!p.length) return "";
+  lo = hi = p[0].y;
+  for(i = 1; i < p.length; i++){
+    if(p[i].y < lo) lo = p[i].y;
+    if(p[i].y > hi) hi = p[i].y;
+  }
+  return lo + " to " + hi;
+}
+function modeNote(){
+  var n = MODENOTE[S.mode] || "";
+  return n.replace("{span}", yearSpan());
+}
 function buildGroups(){
   var out = [];
   if(S.mode === "continuity"){
@@ -746,7 +770,18 @@ function metaOf(f, withUniverse){
 }
 /* Tier membership is EXCLUSIVE: Essential > Optional > Core.
    An essential season is Essential, full stop — it never also counts as
-   Optional. "Core route" stays defined as the film path (never series). */
+   Optional.
+
+   The raw o:1 flag is a ROUTE marker ("off the film path"), not a tier —
+   every TV season carries it. Always resolve through tierOf() before
+   counting or filtering, never test f.o directly: an essential season
+   carries o:1 too, and testing the raw flag drops it from Core AND from
+   Optional, leaving it in no bucket at all.
+
+   The two route sets partition the catalogue:
+     Core route = tierOf !== "o"   (Essentials + Core — a complete path)
+     Optional   = tierOf === "o"
+   In Movies scope this is films only, since every season is o:1. */
 function tierOf(f){ return f.b.indexOf("e") >= 0 ? "e" : (f.o ? "o" : "k"); }
 function badges(f){
   var tier = tierOf(f);
@@ -794,7 +829,21 @@ function toggleSkip(id){
   else { S.skipped[id] = 1; unmarkWatched(id); }
   persist(); render();
 }
+/* Ratings are integers 1-5. Imported JSON is user-supplied and may carry
+   anything at all; an out-of-range or fractional value reaches
+   new Array(n+1) in the star render and throws RangeError, which blanks
+   the entire view. EVERY path that writes S.rated goes through this. */
+function clampRating(n){
+  n = Math.floor(Number(n));
+  return (n >= 1 && n <= 5) ? n : 0;
+}
+function stars(n){
+  n = clampRating(n);
+  return n ? new Array(n + 1).join("\u2605") : "";
+}
 function rate(id, n){
+  n = clampRating(n);
+  if(!n) return;
   if(S.rated[id] === n) delete S.rated[id]; else S.rated[id] = n;
   markWatched(id);
   persist(); render();
@@ -806,7 +855,7 @@ function exportCode(){
     var h = idHash(f.id);
     if(S.watched[f.id]) w.push(h);
     if(S.skipped[f.id]) k.push(h);
-    if(S.rated[f.id])  r.push(h + S.rated[f.id]);
+    if(clampRating(S.rated[f.id])) r.push(h + clampRating(S.rated[f.id]));
   });
   return "NW1W" + w.join("") + "S" + k.join("") + "R" + r.join("");
 }
@@ -829,7 +878,7 @@ function importCode(raw){
   }
   for(i = 0; i + 6 <= m[3].length; i += 6){
     id = map[m[3].substr(i,5)];
-    var n = parseInt(m[3].charAt(i+5), 10);
+    var n = clampRating(parseInt(m[3].charAt(i+5), 10));
     if(id && n){ res.rated[id] = n; }
   }
   return res;
@@ -864,7 +913,7 @@ function doRestore(text){
     var id3;
     for(id3 in res.watched){ if(!S.watched[id3]){ S.watched[id3] = 1; } }
     for(id3 in res.skipped){ if(!S.watched[id3]) S.skipped[id3] = 1; }
-    for(id3 in res.rated){ S.rated[id3] = res.rated[id3]; }
+    for(id3 in res.rated){ var rv = clampRating(res.rated[id3]); if(rv) S.rated[id3] = rv; }
     if(Array.isArray(o.log)){
       o.log.forEach(function(en){
         if(en && en.id && en.ts && !S.log.some(function(x){ return x.id === en.id; })) S.log.push(en);
@@ -885,7 +934,7 @@ function applyImport(res){
   var id;
   for(id in res.watched){ if(!S.watched[id]){ S.watched[id] = 1; S.log.push({id:id, ts:Date.now()}); } }
   for(id in res.skipped){ if(!S.watched[id]) S.skipped[id] = 1; }
-  for(id in res.rated){ S.rated[id] = res.rated[id]; }
+  for(id in res.rated){ var rn = clampRating(res.rated[id]); if(rn) S.rated[id] = rn; }
   persist(); render();
 }
 function scopeSwitch(compact){
@@ -903,7 +952,7 @@ function viewHome(){
   var nxt = upNext();
   var ess = pool().filter(function(f){ return f.b.indexOf("e") >= 0; });
   var essDone = ess.filter(isDone).length;
-  var coreFs = pool().filter(function(f){ return !f.o; });
+  var coreFs = pool().filter(function(f){ return tierOf(f) !== "o"; });
   var coreDone = coreFs.filter(isDone).length;
   var optFs = pool().filter(function(f){ return tierOf(f) === "o"; });
   var optDone = optFs.filter(isDone).length;
@@ -1029,7 +1078,7 @@ function viewWatch(){
     [['continuity','By universe'],['life',"Bruce's life"],['release','Release order']].map(function(m){
       return '<button data-mode="'+m[0]+'" aria-pressed="'+(S.mode===m[0])+'">'+m[1]+'</button>';
     }).join("")+'</div>'+
-    '<p class="modenote">'+MODENOTE[S.mode]+'</p>'+
+    '<p class="modenote">'+modeNote()+'</p>'+
     '<input class="search" id="q" type="search" placeholder="Search films" value="'+esc(S.q)+'">'+
     '<div class="chips">'+
     chipSet().map(function(p){
@@ -1041,7 +1090,7 @@ function viewWatch(){
     var rows = "", shown = 0, gdone = 0, gtot = g.films.length;
     g.films.forEach(function(f){
       if(isDone(f)) gdone++;
-      if(S.filter === "core" && f.o) return;
+      if(S.filter === "core" && tierOf(f) === "o") return;
       if(S.filter === "opt" && tierOf(f) !== "o") return;
       if(S.filter === "left" && (isDone(f) || isSkip(f))) return;
       if(S.filter === "done" && !isDone(f)) return;
@@ -1050,22 +1099,22 @@ function viewWatch(){
       shown++; shownTotal++;
       var cls = "film" + (isDone(f)?" done":"") + (isSkip(f)?" skip":"") + (S.open[f.id]?" open":"");
       var meta = metaOf(f, S.mode !== "continuity");
-      var stars = "", s;
+      var starBtns = "", s;
       for(s=1;s<=5;s++){
-        stars += '<button data-act="rate" data-id="'+f.id+'" data-n="'+s+'" class="'+
-                 ((S.rated[f.id]||0) >= s ? "on":"")+'" aria-label="Rate '+s+'">\u2605</button>';
+        starBtns += '<button data-act="rate" data-id="'+f.id+'" data-n="'+s+'" class="'+
+                 (clampRating(S.rated[f.id]) >= s ? "on":"")+'" aria-label="Rate '+s+'">\u2605</button>';
       }
       rows += '<div class="'+cls+'"><div class="frow">'+
         '<button class="tick" data-act="watched" data-id="'+f.id+'" aria-label="Mark watched"></button>'+
         '<button class="fmain" data-act="expand" data-id="'+f.id+'">'+
           '<div class="ftitle">'+esc(f.t)+'</div><div class="fmeta">'+esc(meta)+
-            (S.rated[f.id] ? ' \u00b7 <span style="color:var(--signal)">'+new Array(S.rated[f.id]+1).join("\u2605")+'</span>' : '')+'</div>'+badges(f)+
+            (clampRating(S.rated[f.id]) ? ' \u00b7 <span style="color:var(--signal)">'+stars(S.rated[f.id])+'</span>' : '')+'</div>'+badges(f)+
         '</button></div>'+
         '<div class="fdetail"><p>'+esc(f.d)+'</p><div class="acts">'+
           '<button class="act'+(isDone(f)?" primary":"")+'" data-act="watched" data-id="'+f.id+'">'+
             (isDone(f)?"Watched":"Mark watched")+'</button>'+
           '<button class="act" data-act="skip" data-id="'+f.id+'">'+(isSkip(f)?"Unskip":"Skip")+'</button>'+
-          '<div class="stars">'+stars+'</div>'+
+          '<div class="stars">'+starBtns+'</div>'+
         '</div><div class="linkrow">'+watchLinks(f)+'</div></div></div>';
     });
     if(!shown) return;
@@ -1179,14 +1228,14 @@ function viewStats(){
       '<span class="sc">'+d+'/'+fs.length+'</span></div>';
   });
 
-  var rated = FILMS.filter(function(f){ return S.rated[f.id]; })
-                   .sort(function(a,b){ return S.rated[b.id]-S.rated[a.id]; });
+  var rated = FILMS.filter(function(f){ return clampRating(S.rated[f.id]); })
+                   .sort(function(a,b){ return clampRating(S.rated[b.id]) - clampRating(S.rated[a.id]); });
   if(rated.length){
     html += '<p class="qhead" style="margin:28px 0 4px">Your ratings</p>';
     rated.forEach(function(f){
       html += '<div class="srow"><span class="sn">'+esc(f.t)+'</span>'+
         '<span class="sc" style="width:auto;color:var(--signal)">'+
-        new Array(S.rated[f.id]+1).join("\u2605")+'</span></div>';
+        stars(S.rated[f.id])+'</span></div>';
     });
   }
   html += '<div class="bk"><h3>Backup &amp; transfer</h3>'+
@@ -1201,7 +1250,7 @@ function viewStats(){
       '<div class="bkbtns"><button class="bkbtn" data-act="copy">Copy code</button></div>';
     var qrOk = false;
     try{
-      var link = location.origin + location.pathname + "#nw=" + S.code;
+      var link = restoreLink(S.code);
       var q = qrcode(0, "L"); q.addData(link); q.make();
       html += '<p class="qrcap" style="margin-top:16px">Scan with your new phone</p>'+
         '<div class="qrwrap">'+q.createSvgTag({cellSize:3, margin:2, scalable:true})+'</div>'+
@@ -1404,6 +1453,17 @@ restore(function(){
   }catch(e){}
   render();
 });
+
+/* Offline support. Registration is guarded: service workers require a secure
+   context, so a file:// open (which is a supported way to run this) would
+   throw. Failure is silent and non-fatal — the app is one self-contained file
+   and works without it. */
+if("serviceWorker" in navigator &&
+   (location.protocol === "https:" || location.hostname === "localhost")){
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
+}
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "56234d8ef9da41639508bb60f7ef72d3"}'></script><!-- End Cloudflare Web Analytics -->
 </body>

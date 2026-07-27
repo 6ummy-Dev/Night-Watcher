@@ -1,0 +1,13 @@
+{
+  "name": "night-watcher",
+  "private": true,
+  "description": "Build guards for Night Watcher. The app itself ships as a single static index.html with nothing to install.",
+  "scripts": {
+    "test": "node qa/guards.js && node qa/smoke.js",
+    "guards": "node qa/guards.js",
+    "bless": "node qa/guards.js --bless"
+  },
+  "devDependencies": {
+    "jsdom": "^30.0.0"
+  }
+}
