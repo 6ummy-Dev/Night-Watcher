@@ -1,6 +1,6 @@
 # Night Watcher
 
-**The best way to watch Gotham City night.**
+**The best way to watch Gotham City life.**
 
 A single-file web app that maps every animated Batman film — 95 movies across 16 continuities — into clear watch orders, tracks your progress, and always knows where each one is streaming.
 
