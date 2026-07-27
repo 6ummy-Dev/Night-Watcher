@@ -352,6 +352,31 @@ if(!fs.existsSync(changelogPath)){
   }
 }
 
+/* ---------- 12b. One hero size, declared once ---------- */
+/* Home and Next up render the SAME title (both call upNext()), so an inline
+   font-size on one of them makes the identical card resize as you tap between
+   the two. That is exactly how they drifted 15% apart. Keep the size in the
+   .hero h2 rule and nowhere else. */
+
+var inlineHero = HTML.match(/'<h2 style="[^"]*font-size/g);
+if(inlineHero){
+  fail(inlineHero.length + " hero title(s) carry an inline font-size — put it in " +
+       "the .hero h2 rule instead, or Home and Next up will disagree again");
+}
+if(!/\.hero h2\{[^}]*font-size:/.test(HTML)){
+  fail(".hero h2 has no font-size — the shared hero size has gone missing");
+}
+
+/* ---------- 12c. Short views must not shift the centred column ---------- */
+/* main is `max-width:760px; margin:0 auto`. Next up is the only view short
+   enough to fit a desktop screen, so without a reserved gutter it loses the
+   scrollbar the other three have and the whole column slides ~7.5px sideways. */
+
+if(!/scrollbar-gutter:\s*stable/.test(HTML)){
+  fail("html is missing scrollbar-gutter:stable — Next up will jump sideways " +
+       "relative to the other tabs on any desktop viewport");
+}
+
 /* ---------- 12. Rating writes go through the clamp ---------- */
 /* new Array(n+1) throws RangeError on a fractional or negative n, and a
    thrown render blanks the app. Imported JSON is user-supplied. */

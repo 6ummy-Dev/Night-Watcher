@@ -151,7 +151,11 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 
 .hero{border:1px solid var(--line);border-radius:16px;background:linear-gradient(175deg,var(--card2),var(--card) 60%);padding:22px 20px 20px;}
 .hero .kick{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0 0 12px;}
-.hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(28px,7.5vw,42px);line-height:.94;margin:0;}
+/* ONE hero size for every hero. Home and Next up show the SAME title (both
+   render upNext()), and Home used to override this inline to 24-36px while
+   Next up kept the 28-42px default — so tapping "Resume the path" grew the
+   identical title by 15%. The inline overrides are gone; change it here. */
+.hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(24px,6.5vw,36px);line-height:.94;margin:0;}
 .hero .yr{font-family:var(--mono);font-size:12px;color:var(--dim);margin:10px 0 0;letter-spacing:.06em;}
 .hero .blurb{font-size:15px;color:var(--dust);margin:16px 0 0;line-height:1.5;}
 .hero .where{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--dust);margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line);}
@@ -239,7 +243,13 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
    and the real value of a token lived 180 lines from its declaration.
    Those are folded back into their single base rule. Keep it additive. */
 ::selection{background:var(--signal);color:var(--ink);}
-html{scrollbar-color:var(--line2) transparent;}
+/* scrollbar-gutter reserves the scrollbar's width even when there is nothing
+   to scroll. Without it, Next up — the one view short enough to fit on a
+   desktop screen — loses the vertical scrollbar that every other view has, and
+   because main is `max-width:760px; margin:0 auto` the whole centred column
+   slides 7.5px sideways the moment you land on that tab. Overlay scrollbars
+   (all touch devices) have no gutter, so this changes nothing on mobile. */
+html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
 .intro{border:1px solid var(--line);border-left:3px solid var(--signal);border-radius:12px;background:var(--sunk);padding:18px 18px 16px;margin-bottom:16px;}
 .ikick{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--signal);margin:0 0 10px;}
 .ititle{font-family:var(--deco);font-weight:400;text-transform:uppercase;font-size:clamp(21px,5.5vw,28px);line-height:1.05;margin:0 0 10px;letter-spacing:.02em;}
@@ -655,7 +665,7 @@ var S = {tab:"home", scope:"movies", mode:"continuity", filter:"all", q:"", code
    changelog must both agree, and qa/guards.js fails the build if they don't.
    KEY is separate on purpose: bump that ONLY for a breaking storage-shape
    change, because ids are frozen and catalogue additions never require it. */
-var BUILD = "1.0.0";
+var BUILD = "1.0.1";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -1023,12 +1033,12 @@ function viewHome(){
   if(nxt){
     html += '<div class="hero">'+
       '<p class="kick">'+(isSkip(nxt) ? "Back to a skipped one" : fresh ? "First patrol" : "Tonight\u2019s patrol")+' \u00b7 '+nxt.gn+' \u00b7 '+esc(nxt.gname)+'</p>'+
-      '<h2 style="font-size:clamp(24px,6.5vw,36px)">'+esc(nxt.t)+'</h2>'+
+      '<h2>'+esc(nxt.t)+'</h2>'+
       '<p class="yr">'+esc(metaOf(nxt,false))+((nxt.b.length||nxt.o) ? ' &nbsp;'+badges(nxt) : '')+'</p>'+
       '<div class="heroacts"><button class="go" data-act="resume">'+(fresh ? "Begin the path" : "Resume the path")+'</button></div></div>';
   } else {
     html += '<div class="hero"><p class="kick">Case closed</p>'+
-      '<h2 style="font-size:clamp(24px,6.5vw,36px)">All '+c.total+' logged</h2>'+
+      '<h2>All '+c.total+' logged</h2>'+
       '<p class="blurb">Gotham sleeps. All '+c.total+' logged — every'+(S.scope==="all"?' film and every season':' film')+', every side story.</p></div>';
   }
 

@@ -19,6 +19,35 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.0.1] — 2026-07-27
+
+Alignment and sizing pass on the Next up view.
+
+### Fixed
+
+- **Next up sat 7.5px off-centre from every other tab.** `main` is
+  `max-width:760px; margin:0 auto`, and Next up is the only view short enough
+  to fit a desktop viewport without scrolling — so it alone lost the vertical
+  scrollbar the other three tabs have, and the centred column slid sideways by
+  half the scrollbar width every time you landed on it. `html` now sets
+  `scrollbar-gutter:stable`, reserving the gutter whether or not there is
+  anything to scroll. Touch devices use overlay scrollbars and are unaffected.
+- **The hero title was 15% larger on Next up than on Home** — for the same
+  film. Both views render `upNext()`, so tapping "Resume the path" showed the
+  identical title jumping from `clamp(24px,6.5vw,36px)` to
+  `clamp(28px,7.5vw,42px)`: Home overrode the size inline in both its hero
+  variants, Next up was the only caller left on the stylesheet default, and the
+  two drifted. The size now lives in the `.hero h2` rule alone and both inline
+  overrides are gone.
+
+### Added
+
+- Guard: fails if any hero title carries an inline `font-size`, or if
+  `.hero h2` loses its own, so the two views cannot drift apart again.
+- Guard: fails if `scrollbar-gutter:stable` is removed.
+- Smoke: asserts Home and Next up render the same title with no inline sizing,
+  including in the completed-catalogue state.
+
 ## [1.0.0] — 2026-07-27
 
 First tagged release. The catalogue and all saved progress are unchanged: every

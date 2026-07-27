@@ -119,6 +119,32 @@ win.addEventListener("load", function(){
           movieCount === backAgain && allCount > movieCount,
           movieCount + " / " + allCount + " / " + backAgain);
 
+    /* --- Home and Next up render the SAME title; it must not resize --- */
+    S.scope = "movies"; S.q = ""; S.filter = "all";
+    S.tab = "home"; win.render();
+    var homeH2 = win.document.querySelector("#view .hero h2");
+    S.tab = "next"; win.render();
+    var nextH2 = win.document.querySelector("#view .hero h2");
+    check("Home and Next up show the same hero title",
+          homeH2 && nextH2 && homeH2.textContent === nextH2.textContent,
+          homeH2 && nextH2 ? homeH2.textContent + " vs " + nextH2.textContent : "missing hero");
+    check("no hero title carries an inline font-size",
+          !/font-size/.test((homeH2 && homeH2.getAttribute("style")) || "") &&
+          !/font-size/.test((nextH2 && nextH2.getAttribute("style")) || ""));
+
+    /* same again once the catalogue is complete — the "Case closed" variant */
+    var savedWatched = S.watched;
+    S.watched = {}; FILMS.forEach(function(f){ S.watched[f.id] = 1; });
+    var sized = 0;
+    ["home","next"].forEach(function(t){
+      S.tab = t; win.render();
+      Array.prototype.forEach.call(win.document.querySelectorAll("#view .hero h2"), function(el){
+        if(/font-size/.test(el.getAttribute("style") || "")) sized++;
+      });
+    });
+    check("completed-catalogue heroes are unsized too", sized === 0, sized + " sized");
+    S.watched = savedWatched;
+
     /* --- tabs still switch without throwing --- */
     var e = null;
     try { ["home","watch","next","stats"].forEach(function(t){ win.S.tab = t; win.render(); }); }
