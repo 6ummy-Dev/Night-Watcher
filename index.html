@@ -165,6 +165,13 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
 
 /* ---------- Canon skin: Dark Deco ---------- */
+.intro{border:1px solid var(--line);border-left:3px solid var(--signal);border-radius:12px;background:var(--sunk);padding:18px 18px 16px;margin-bottom:16px;}
+.ikick{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--signal);margin:0 0 10px;}
+.ititle{font-family:var(--deco);font-weight:400;text-transform:uppercase;font-size:clamp(21px,5.5vw,28px);line-height:1.05;margin:0 0 10px;letter-spacing:.02em;}
+.ibody{font-size:14.5px;color:var(--dust);line-height:1.55;margin:0 0 14px;}
+.istats{display:flex;gap:18px;padding-top:12px;border-top:1px solid var(--line);font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);flex-wrap:wrap;}
+.istats b{color:var(--bone);font-weight:600;margin-right:4px;}
+.homefoot{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:center;margin:30px 0 4px;line-height:1.8;}
 :root{
   --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
   --line:#252E42; --line2:#33405C;
@@ -193,7 +200,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 <div id="app">
   <header>
     <div class="hrow">
-      <div class="wordmark"><h1>The Animated Dark Knight</h1><p id="hsub">Loading</p></div>
+      <div class="wordmark"><h1>Night Watcher</h1><p id="hsub">Loading</p></div>
       <div class="ring">
         <svg width="46" height="46" viewBox="0 0 46 46">
           <circle cx="23" cy="23" r="19" fill="none" stroke="#28303F" stroke-width="4"></circle>
@@ -598,14 +605,26 @@ function viewHome(){
   var coreDone = coreFs.filter(isDone).length;
   var optFs = pool().filter(function(f){ return f.o; });
   var optDone = optFs.filter(isDone).length;
+  var fresh = (c.done === 0);
   var html = "";
+
+  if(fresh){
+    html += '<div class="intro">'+
+      '<p class="ikick">An unofficial field guide</p>'+
+      '<h2 class="ititle">The Animated Dark Knight</h2>'+
+      '<p class="ibody">Every animated Batman film ever made, sorted into watch orders that spoil nothing '+
+      '\u2014 by universe, by the arc of one life, or by release. Tap a film for what it is and where it '+
+      'streams right now. Tick them off as you go; your progress stays on this device.</p>'+
+      '<div class="istats"><span><b>95</b> films</span><span><b>16</b> continuities</span>'+
+      '<span><b>1993\u20132028</b></span></div></div>';
+  }
 
   if(nxt){
     html += '<div class="hero">'+
-      '<p class="kick">Tonight\u2019s patrol \u00b7 '+nxt.gn+' \u00b7 '+esc(nxt.gname)+'</p>'+
+      '<p class="kick">'+(fresh ? "First patrol" : "Tonight\u2019s patrol")+' \u00b7 '+nxt.gn+' \u00b7 '+esc(nxt.gname)+'</p>'+
       '<h2 style="font-size:clamp(24px,6.5vw,36px)">'+esc(nxt.t)+'</h2>'+
       '<p class="yr">'+nxt.y+((nxt.b.length||nxt.o) ? ' &nbsp;'+badges(nxt) : '')+'</p>'+
-      '<div class="heroacts"><button class="go" data-act="resume">Resume the path</button></div></div>';
+      '<div class="heroacts"><button class="go" data-act="resume">'+(fresh ? "Begin the path" : "Resume the path")+'</button></div></div>';
   } else {
     html += '<div class="hero"><p class="kick">Case closed</p>'+
       '<h2 style="font-size:clamp(24px,6.5vw,36px)">All '+c.total+' logged</h2>'+
@@ -661,6 +680,7 @@ function viewHome(){
     });
     html += '</div>';
   }
+  html += '<p class="homefoot">Night Watcher \u00b7 an unofficial fan guide \u00b7 progress saves in this browser only</p>';
   return html;
 }
 
