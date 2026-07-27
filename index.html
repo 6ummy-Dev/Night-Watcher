@@ -172,6 +172,22 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .scope button:last-child{border-right:0;}
 .scope button[aria-pressed="true"]{background:var(--bone);color:var(--ink);font-weight:600;}
 .scopenote{font-size:12px;color:var(--dim);margin:9px 2px 0;line-height:1.5;}
+.bk{margin-top:26px;border:1px solid var(--line);border-radius:12px;background:var(--sunk);padding:16px 15px;}
+.bk h3{font-family:var(--mono);font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--signal);margin:0 0 10px;font-weight:600;}
+.bk p{font-size:13px;color:var(--dust);margin:0 0 13px;line-height:1.5;}
+.bk .warn{color:var(--dim);font-size:12px;}
+.bkbtns{display:flex;flex-wrap:wrap;gap:8px;}
+.bkbtn{font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;border:1px solid var(--line2);border-radius:9px;padding:12px 14px;color:var(--dust);min-height:44px;flex:1;}
+.bkbtn.primary{background:var(--bone);color:var(--ink);border-color:var(--bone);font-weight:600;}
+.code{width:100%;background:var(--ink);border:1px solid var(--line2);border-radius:8px;color:var(--bone);
+  font-family:var(--mono);font-size:11px;line-height:1.6;padding:11px;margin:12px 0 10px;
+  word-break:break-all;max-height:96px;overflow:auto;-webkit-user-select:all;user-select:all;resize:none;}
+.qrwrap{background:#fff;border-radius:10px;padding:12px;margin:12px 0 6px;max-width:230px;}
+.qrwrap svg{width:100%;height:auto;display:block;}
+.qrcap{font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;color:var(--dim);text-transform:uppercase;margin:0 0 4px;}
+.bkin{width:100%;background:var(--ink);border:1px solid var(--line2);border-radius:8px;color:var(--bone);
+  font-family:var(--mono);font-size:11px;padding:11px;margin:0 0 9px;min-height:62px;resize:vertical;-webkit-appearance:none;}
+.bkhr{border:0;border-top:1px solid var(--line);margin:18px 0;}
 .tiers{margin:14px 0 22px;border:1px solid var(--line);border-radius:12px;background:var(--sunk);overflow:hidden;}
 .trow{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;min-height:52px;text-align:left;border-top:1px solid var(--line);}
 .trow:first-child{border-top:0;}
@@ -247,6 +263,9 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 </div>
 <div class="toast" id="toast"></div>
 
+<script>/*! qrcode-generator v2.0.4 | (c) Kazuhiko Arase | MIT licence | github.com/kazuhikoarase/qrcode-generator */
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1})},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(o*r,n*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}(function(){return qrcode});
+</script>
 <script>
 "use strict";
 
@@ -256,287 +275,287 @@ var PATH = [
  note:"Bruce Timm's world, Kevin Conroy's voice \u2014 the foundation everything after gets measured against. The full weave: run The Animated Series, dropping Mask of the Phantasm in around season two and SubZero after it. Then The New Batman Adventures, detouring into Superman's 'World\u2019s Finest' and 'Knight Time', and finishing with Mystery of the Batwoman and Chase Me. Justice League and Unlimited follow \u2014 but JLU's 'Epilogue' spoils Batman Beyond, so save Beyond, Zeta and Return of the Joker for the very end.",
  where:"HBO Max, next to the series",
  films:[
- {t:"Batman: Mask of the Phantasm",y:1993,e:2,d:"The best place to begin. A mob hit, a masked killer, and the love that nearly stopped Bruce becoming Batman.",b:["e"]},
- {t:"Batman & Mr. Freeze: SubZero",y:1998,e:3,d:"Quieter and warmer. Freeze at his most sympathetic, chasing a cure rather than a grudge."},
- {t:"Batman Beyond: The Movie",y:1999,e:10,d:"The Beyond pilot cut together as a feature. Bruce is old, Terry takes the suit. Really two episodes, but it shipped as a film.",b:["s"],o:1},
- {t:"Batman: Mystery of the Batwoman",y:2003,e:5,d:"Late-era TAS. A straight whodunit \u2014 three suspects, one new mask in Gotham."},
- {t:"Chase Me",y:2003,e:3,d:"A wordless seven-minute Batman and Catwoman chase, scored like a jazz number. Packaged with Mystery of the Batwoman.",b:["s"],o:1},
- {t:"Batman and Harley Quinn",y:2017,e:5,d:"A loose comic reunion made years later. Same world, much lighter touch."},
- {t:"Batman Beyond: Return of the Joker",y:2000,e:10,d:"Fifty years on, Terry McGinnis in the suit. Find the uncut version \u2014 the theatrical edit was censored. This is the end of Bruce's story.",b:["e"]},
- {t:"The Batman Superman Movie: World's Finest",y:1997,e:7,d:"The 'World's Finest' three-parter cut into a feature. Batman and Superman meet for the first time while Joker and Luthor team up.",b:["s"],o:1},
- {t:"Batman: The Animated Series",sub:"Season 1",y:1992,ep:65,k:"tv",e:3,d:"Where all of it starts. Sixty-five episodes of Dark Deco noir that redefined the character for a generation, invented Harley Quinn and rewrote Mr. Freeze.",b:["e"],o:1},
- {t:"Batman: The Animated Series",sub:"Season 2",y:1994,ep:20,k:"tv",e:3,d:"The back half, running to 1995. Fewer episodes, but it holds some of the sharpest writing of the run.",o:1},
- {t:"Superman: The Animated Series",sub:"Season 1",y:1996,ep:13,k:"tv",e:7,d:"No Batman yet, but this is the show that turns the DCAU into a shared universe.",o:1},
- {t:"Superman: The Animated Series",sub:"Season 2",y:1997,ep:28,k:"tv",e:7,d:"Contains the 'World's Finest' three-parter, the first Batman crossover.",o:1},
- {t:"Superman: The Animated Series",sub:"Season 3",y:1999,ep:13,k:"tv",e:7,d:"Includes 'Knight Time', in which Superman impersonates a missing Batman, and 'The Demon Reborn'.",o:1},
- {t:"The New Batman Adventures",sub:"Season 1",y:1997,ep:13,k:"tv",e:5,d:"Redesigned, sharper, and more interested in the wider Bat-family. Tim Drake is Robin, Dick is Nightwing.",o:1},
- {t:"The New Batman Adventures",sub:"Season 2",y:1998,ep:11,k:"tv",e:5,d:"Includes 'Mad Love', the Harley Quinn origin that won an Emmy.",b:["e"],o:1},
- {t:"Static Shock",sub:"Seasons 1\u20134",y:2000,ep:52,k:"tv",e:7,d:"Virgil Hawkins in Dakota. Three episodes cross into Batman's world: 'The Big Leagues', 'Hard as Nails' and 'Future Shock'.",o:1},
- {t:"Justice League",sub:"Season 1",y:2001,ep:26,k:"tv",e:7,d:"The seven founders. Batman as the one without powers, and the one everyone quietly defers to.",b:["e"],o:1},
- {t:"Justice League",sub:"Season 2",y:2003,ep:26,k:"tv",e:7,d:"Includes 'A Better World' and the 'Starcrossed' finale that breaks and remakes the team.",o:1},
- {t:"Justice League Unlimited",sub:"Season 1",y:2004,ep:13,k:"tv",e:7,d:"The roster explodes to dozens of heroes. Batman anchors the Cadmus arc.",o:1},
- {t:"Justice League Unlimited",sub:"Season 2",y:2005,ep:13,k:"tv",e:7,d:"The Cadmus conspiracy pays off, and Batman's paranoia turns out to be justified.",o:1},
- {t:"Justice League Unlimited",sub:"Season 3",y:2006,ep:13,k:"tv",e:7,d:"The end of the DCAU. 'Epilogue' lives here and it spoils Batman Beyond \u2014 so take Beyond after this.",b:["e"],o:1},
- {t:"Batman Beyond",sub:"Season 1",y:1999,ep:13,k:"tv",e:10,d:"Fifty years on. Terry McGinnis takes the suit from an old, bitter Bruce who never learned to stop.",b:["e"],o:1},
- {t:"Batman Beyond",sub:"Season 2",y:2000,ep:26,k:"tv",e:10,d:"The strongest run \u2014 Ten, Curare, Inque and the Royal Flush Gang.",o:1},
- {t:"Batman Beyond",sub:"Season 3",y:2000,ep:13,k:"tv",e:10,d:"The last stretch, running into 2001.",o:1},
- {t:"The Zeta Project",sub:"Seasons 1\u20132",y:2001,ep:26,k:"tv",e:10,d:"A Beyond spin-off about a runaway infiltration android. Batman appears sparingly.",o:1}]},
+ {i:"batman-mask-of-the-phantasm-1993",t:"Batman: Mask of the Phantasm",y:1993,e:2,d:"The best place to begin. A mob hit, a masked killer, and the love that nearly stopped Bruce becoming Batman.",b:["e"]},
+ {i:"batman-mr-freeze-subzero-1998",t:"Batman & Mr. Freeze: SubZero",y:1998,e:3,d:"Quieter and warmer. Freeze at his most sympathetic, chasing a cure rather than a grudge."},
+ {i:"batman-beyond-the-movie-1999",t:"Batman Beyond: The Movie",y:1999,e:10,d:"The Beyond pilot cut together as a feature. Bruce is old, Terry takes the suit. Really two episodes, but it shipped as a film.",b:["s"],o:1},
+ {i:"batman-mystery-of-the-batwoman-2003",t:"Batman: Mystery of the Batwoman",y:2003,e:5,d:"Late-era TAS. A straight whodunit \u2014 three suspects, one new mask in Gotham."},
+ {i:"chase-me-2003",t:"Chase Me",y:2003,e:3,d:"A wordless seven-minute Batman and Catwoman chase, scored like a jazz number. Packaged with Mystery of the Batwoman.",b:["s"],o:1},
+ {i:"batman-and-harley-quinn-2017",t:"Batman and Harley Quinn",y:2017,e:5,d:"A loose comic reunion made years later. Same world, much lighter touch."},
+ {i:"batman-beyond-return-of-the-joker-2000",t:"Batman Beyond: Return of the Joker",y:2000,e:10,d:"Fifty years on, Terry McGinnis in the suit. Find the uncut version \u2014 the theatrical edit was censored. This is the end of Bruce's story.",b:["e"]},
+ {i:"the-batman-superman-movie-world-s-finest-1997",t:"The Batman Superman Movie: World's Finest",y:1997,e:7,d:"The 'World's Finest' three-parter cut into a feature. Batman and Superman meet for the first time while Joker and Luthor team up.",b:["s"],o:1},
+ {i:"batman-the-animated-series-season-1-1992",t:"Batman: The Animated Series",sub:"Season 1",y:1992,ep:65,k:"tv",e:3,d:"Where all of it starts. Sixty-five episodes of Dark Deco noir that redefined the character for a generation, invented Harley Quinn and rewrote Mr. Freeze.",b:["e"],o:1},
+ {i:"batman-the-animated-series-season-2-1994",t:"Batman: The Animated Series",sub:"Season 2",y:1994,ep:20,k:"tv",e:3,d:"The back half, running to 1995. Fewer episodes, but it holds some of the sharpest writing of the run.",o:1},
+ {i:"superman-the-animated-series-season-1-1996",t:"Superman: The Animated Series",sub:"Season 1",y:1996,ep:13,k:"tv",e:7,d:"No Batman yet, but this is the show that turns the DCAU into a shared universe.",o:1},
+ {i:"superman-the-animated-series-season-2-1997",t:"Superman: The Animated Series",sub:"Season 2",y:1997,ep:28,k:"tv",e:7,d:"Contains the 'World's Finest' three-parter, the first Batman crossover.",o:1},
+ {i:"superman-the-animated-series-season-3-1999",t:"Superman: The Animated Series",sub:"Season 3",y:1999,ep:13,k:"tv",e:7,d:"Includes 'Knight Time', in which Superman impersonates a missing Batman, and 'The Demon Reborn'.",o:1},
+ {i:"the-new-batman-adventures-season-1-1997",t:"The New Batman Adventures",sub:"Season 1",y:1997,ep:13,k:"tv",e:5,d:"Redesigned, sharper, and more interested in the wider Bat-family. Tim Drake is Robin, Dick is Nightwing.",o:1},
+ {i:"the-new-batman-adventures-season-2-1998",t:"The New Batman Adventures",sub:"Season 2",y:1998,ep:11,k:"tv",e:5,d:"Includes 'Mad Love', the Harley Quinn origin that won an Emmy.",b:["e"],o:1},
+ {i:"static-shock-seasons-1-4-2000",t:"Static Shock",sub:"Seasons 1\u20134",y:2000,ep:52,k:"tv",e:7,d:"Virgil Hawkins in Dakota. Three episodes cross into Batman's world: 'The Big Leagues', 'Hard as Nails' and 'Future Shock'.",o:1},
+ {i:"justice-league-season-1-2001",t:"Justice League",sub:"Season 1",y:2001,ep:26,k:"tv",e:7,d:"The seven founders. Batman as the one without powers, and the one everyone quietly defers to.",b:["e"],o:1},
+ {i:"justice-league-season-2-2003",t:"Justice League",sub:"Season 2",y:2003,ep:26,k:"tv",e:7,d:"Includes 'A Better World' and the 'Starcrossed' finale that breaks and remakes the team.",o:1},
+ {i:"justice-league-unlimited-season-1-2004",t:"Justice League Unlimited",sub:"Season 1",y:2004,ep:13,k:"tv",e:7,d:"The roster explodes to dozens of heroes. Batman anchors the Cadmus arc.",o:1},
+ {i:"justice-league-unlimited-season-2-2005",t:"Justice League Unlimited",sub:"Season 2",y:2005,ep:13,k:"tv",e:7,d:"The Cadmus conspiracy pays off, and Batman's paranoia turns out to be justified.",o:1},
+ {i:"justice-league-unlimited-season-3-2006",t:"Justice League Unlimited",sub:"Season 3",y:2006,ep:13,k:"tv",e:7,d:"The end of the DCAU. 'Epilogue' lives here and it spoils Batman Beyond \u2014 so take Beyond after this.",b:["e"],o:1},
+ {i:"batman-beyond-season-1-1999",t:"Batman Beyond",sub:"Season 1",y:1999,ep:13,k:"tv",e:10,d:"Fifty years on. Terry McGinnis takes the suit from an old, bitter Bruce who never learned to stop.",b:["e"],o:1},
+ {i:"batman-beyond-season-2-2000",t:"Batman Beyond",sub:"Season 2",y:2000,ep:26,k:"tv",e:10,d:"The strongest run \u2014 Ten, Curare, Inque and the Royal Flush Gang.",o:1},
+ {i:"batman-beyond-season-3-2000",t:"Batman Beyond",sub:"Season 3",y:2000,ep:13,k:"tv",e:10,d:"The last stretch, running into 2001.",o:1},
+ {i:"the-zeta-project-seasons-1-2-2001",t:"The Zeta Project",sub:"Seasons 1\u20132",y:2001,ep:26,k:"tv",e:10,d:"A Beyond spin-off about a runaway infiltration android. Batman appears sparingly.",o:1}]},
 
 {n:"02",name:"The Comic Canon",
  note:"Unconnected films that happen to line up into one whole life. Nobody planned this arc, but in this order it runs from Bruce's first night on the roof to his last stand at fifty-five.",
  where:"HBO Max, or buy digitally",
  films:[
- {t:"Batman: Year One",y:2011,e:2,d:"Frank Miller's origin, adapted almost panel for panel. Half of it is Jim Gordon's story.",b:["e"]},
- {t:"Batman: The Killing Joke",y:2016,e:3,d:"Alan Moore's Joker origin. The 25-minute Batgirl prologue is divisive; the adaptation proper starts after it.",b:["m"]},
- {t:"Batman: Death in the Family",y:2020,e:4,d:"An interactive branching film that rewinds to Jason Todd's death and lets you choose what happens instead. A direct companion to Under the Red Hood.",b:["c"]},
- {t:"Batman: Under the Red Hood",y:2010,e:5,d:"The best of the standalones. A dead Robin, a new player in Gotham, and the one question Bruce cannot answer.",b:["e"]},
- {t:"The Dark Knight Returns \u2014 Part One",y:2012,e:9,d:"Bruce at fifty-five, retired a decade, pulling the cowl back on for a Gotham that has rotted through.",b:["e"]},
- {t:"The Dark Knight Returns \u2014 Part Two",y:2013,e:9,d:"The Joker wakes up and Superman comes to Gotham. One film in two halves \u2014 watch them back to back.",b:["e","m"]},
- {t:"The Dark Knight Returns \u2014 Deluxe Edition",y:2013,e:9,d:"Both parts recut into one R-rated feature. Only worth it on a rewatch.",o:1}]},
+ {i:"batman-year-one-2011",t:"Batman: Year One",y:2011,e:2,d:"Frank Miller's origin, adapted almost panel for panel. Half of it is Jim Gordon's story.",b:["e"]},
+ {i:"batman-the-killing-joke-2016",t:"Batman: The Killing Joke",y:2016,e:3,d:"Alan Moore's Joker origin. The 25-minute Batgirl prologue is divisive; the adaptation proper starts after it.",b:["m"]},
+ {i:"batman-death-in-the-family-2020",t:"Batman: Death in the Family",y:2020,e:4,d:"An interactive branching film that rewinds to Jason Todd's death and lets you choose what happens instead. A direct companion to Under the Red Hood.",b:["c"]},
+ {i:"batman-under-the-red-hood-2010",t:"Batman: Under the Red Hood",y:2010,e:5,d:"The best of the standalones. A dead Robin, a new player in Gotham, and the one question Bruce cannot answer.",b:["e"]},
+ {i:"the-dark-knight-returns-part-one-2012",t:"The Dark Knight Returns \u2014 Part One",y:2012,e:9,d:"Bruce at fifty-five, retired a decade, pulling the cowl back on for a Gotham that has rotted through.",b:["e"]},
+ {i:"the-dark-knight-returns-part-two-2013",t:"The Dark Knight Returns \u2014 Part Two",y:2013,e:9,d:"The Joker wakes up and Superman comes to Gotham. One film in two halves \u2014 watch them back to back.",b:["e","m"]},
+ {i:"the-dark-knight-returns-deluxe-edition-2013",t:"The Dark Knight Returns \u2014 Deluxe Edition",y:2013,e:9,d:"Both parts recut into one R-rated feature. Only worth it on a rewatch.",o:1}]},
 
 {n:"03",name:"Superman / Batman",
  note:"A two-film continuity of its own, adapting the first two arcs of Jeph Loeb's Superman/Batman run. Conroy and Tim Daly return, but this is not the DCAU.",
  where:"HBO Max",
  films:[
- {t:"Superman/Batman: Public Enemies",y:2009,e:7,d:"Lex Luthor is president and has put a bounty on Superman's head. Loud, blunt, very fun."},
- {t:"Superman/Batman: Apocalypse",y:2010,e:7,d:"Supergirl arrives on Earth and Darkseid wants her. Batman plays the sceptic."}]},
+ {i:"superman-batman-public-enemies-2009",t:"Superman/Batman: Public Enemies",y:2009,e:7,d:"Lex Luthor is president and has put a bounty on Superman's head. Loud, blunt, very fun."},
+ {i:"superman-batman-apocalypse-2010",t:"Superman/Batman: Apocalypse",y:2010,e:7,d:"Supergirl arrives on Earth and Darkseid wants her. Batman plays the sceptic."}]},
 
 {n:"04",name:"Justice League One-Offs",
  note:"Standalone League films where Batman is a lead rather than a guest. Doom in particular is a Batman story wearing a Justice League jacket \u2014 the plot is his own contingency plans turned against the team.",
  where:"HBO Max",
  films:[
- {t:"Justice League: The New Frontier",y:2008,e:7,d:"Darwyn Cooke's 1950s DC. Batman starts as a paranoid urban legend and grows into something else. Jeremy Sisto in the cowl."},
- {t:"Justice League: Crisis on Two Earths",y:2010,e:7,d:"A parallel Earth where the League are criminals. The villain is Owlman \u2014 Batman's counterpart, and the best thing in it."},
- {t:"Justice League: Doom",y:2012,e:7,d:"Vandal Savage steals Batman's files on how to kill every one of his friends, then uses them. Conroy's Batman, and one of the strongest of the whole line.",b:["e"]},
- {t:"JLA Adventures: Trapped in Time",y:2014,e:7,d:"A retro-styled all-ages one-off. Minor, but it exists.",o:1},
- {t:"Justice League: Gods and Monsters",y:2015,e:0,d:"A Timm-created alternate universe where Batman is Kirk Langstrom, a vampire. Radically different and worth it for that alone.",b:["m"]},
- {t:"Justice League vs. the Fatal Five",y:2019,e:7,d:"Made in the DCAU house style with Conroy and several returning voices. Whether it is actually in that continuity is argued endlessly.",o:1}]},
+ {i:"justice-league-the-new-frontier-2008",t:"Justice League: The New Frontier",y:2008,e:7,d:"Darwyn Cooke's 1950s DC. Batman starts as a paranoid urban legend and grows into something else. Jeremy Sisto in the cowl."},
+ {i:"justice-league-crisis-on-two-earths-2010",t:"Justice League: Crisis on Two Earths",y:2010,e:7,d:"A parallel Earth where the League are criminals. The villain is Owlman \u2014 Batman's counterpart, and the best thing in it."},
+ {i:"justice-league-doom-2012",t:"Justice League: Doom",y:2012,e:7,d:"Vandal Savage steals Batman's files on how to kill every one of his friends, then uses them. Conroy's Batman, and one of the strongest of the whole line.",b:["e"]},
+ {i:"jla-adventures-trapped-in-time-2014",t:"JLA Adventures: Trapped in Time",y:2014,e:7,d:"A retro-styled all-ages one-off. Minor, but it exists.",o:1},
+ {i:"justice-league-gods-and-monsters-2015",t:"Justice League: Gods and Monsters",y:2015,e:0,d:"A Timm-created alternate universe where Batman is Kirk Langstrom, a vampire. Radically different and worth it for that alone.",b:["m"]},
+ {i:"justice-league-vs-the-fatal-five-2019",t:"Justice League vs. the Fatal Five",y:2019,e:7,d:"Made in the DCAU house style with Conroy and several returning voices. Whether it is actually in that continuity is argued endlessly.",o:1}]},
 
 {n:"05",name:"DC Animated Movie Universe",
  note:"Sixteen films running 2013\u20132020, Jason O'Mara as Batman, Damian Wayne as the spine. Four are Batman-led; the rest carry the plot between them.",
  where:"HBO Max \u2014 the most complete run on the service",
  films:[
- {t:"Justice League: The Flashpoint Paradox",y:2013,e:7,d:"The reset that starts the whole timeline.",o:1},
- {t:"Justice League: War",y:2014,e:7,d:"The team forms against Darkseid.",o:1},
- {t:"Son of Batman",y:2014,e:8,d:"Damian Wayne arrives \u2014 assassin-raised, ten years old, furious. Start here for the Batman thread."},
- {t:"Justice League: Throne of Atlantis",y:2015,e:7,d:"Aquaman's introduction.",o:1},
- {t:"Batman vs. Robin",y:2015,e:8,d:"Damian tests the no-kill rule while the Court of Owls closes in on Gotham."},
- {t:"Batman: Bad Blood",y:2016,e:8,d:"Bruce goes missing. Dick takes the cowl, Batwoman and Batwing arrive, the family assembles."},
- {t:"Justice League vs. Teen Titans",y:2016,e:8,d:"Damian joins the Titans.",o:1},
- {t:"Justice League Dark",y:2017,e:7,d:"Batman assembles the occult team under Constantine. More Batman in it than you would expect.",o:1},
- {t:"Teen Titans: The Judas Contract",y:2017,e:8,d:"Deathstroke and Terra.",o:1},
- {t:"Suicide Squad: Hell to Pay",y:2018,e:7,d:"Task Force X side story.",o:1},
- {t:"The Death of Superman",y:2018,e:7,d:"Doomsday arrives.",o:1},
- {t:"Constantine: City of Demons",y:2018,e:7,d:"Constantine solo.",o:1},
- {t:"Reign of the Supermen",y:2019,e:7,d:"The aftermath of Superman's death.",o:1},
- {t:"Batman: Hush",y:2019,e:5,d:"A loose take on the Loeb and Lee epic. A bandaged stranger who knows everything Bruce knows."},
- {t:"Wonder Woman: Bloodlines",y:2019,e:7,d:"Diana's origin, late in the run.",o:1},
- {t:"Justice League Dark: Apokolips War",y:2020,e:7,d:"The finale, and it earns its reputation for being brutal.",b:["m"],o:1}]},
+ {i:"justice-league-the-flashpoint-paradox-2013",t:"Justice League: The Flashpoint Paradox",y:2013,e:7,d:"The reset that starts the whole timeline.",o:1},
+ {i:"justice-league-war-2014",t:"Justice League: War",y:2014,e:7,d:"The team forms against Darkseid.",o:1},
+ {i:"son-of-batman-2014",t:"Son of Batman",y:2014,e:8,d:"Damian Wayne arrives \u2014 assassin-raised, ten years old, furious. Start here for the Batman thread."},
+ {i:"justice-league-throne-of-atlantis-2015",t:"Justice League: Throne of Atlantis",y:2015,e:7,d:"Aquaman's introduction.",o:1},
+ {i:"batman-vs-robin-2015",t:"Batman vs. Robin",y:2015,e:8,d:"Damian tests the no-kill rule while the Court of Owls closes in on Gotham."},
+ {i:"batman-bad-blood-2016",t:"Batman: Bad Blood",y:2016,e:8,d:"Bruce goes missing. Dick takes the cowl, Batwoman and Batwing arrive, the family assembles."},
+ {i:"justice-league-vs-teen-titans-2016",t:"Justice League vs. Teen Titans",y:2016,e:8,d:"Damian joins the Titans.",o:1},
+ {i:"justice-league-dark-2017",t:"Justice League Dark",y:2017,e:7,d:"Batman assembles the occult team under Constantine. More Batman in it than you would expect.",o:1},
+ {i:"teen-titans-the-judas-contract-2017",t:"Teen Titans: The Judas Contract",y:2017,e:8,d:"Deathstroke and Terra.",o:1},
+ {i:"suicide-squad-hell-to-pay-2018",t:"Suicide Squad: Hell to Pay",y:2018,e:7,d:"Task Force X side story.",o:1},
+ {i:"the-death-of-superman-2018",t:"The Death of Superman",y:2018,e:7,d:"Doomsday arrives.",o:1},
+ {i:"constantine-city-of-demons-2018",t:"Constantine: City of Demons",y:2018,e:7,d:"Constantine solo.",o:1},
+ {i:"reign-of-the-supermen-2019",t:"Reign of the Supermen",y:2019,e:7,d:"The aftermath of Superman's death.",o:1},
+ {i:"batman-hush-2019",t:"Batman: Hush",y:2019,e:5,d:"A loose take on the Loeb and Lee epic. A bandaged stranger who knows everything Bruce knows."},
+ {i:"wonder-woman-bloodlines-2019",t:"Wonder Woman: Bloodlines",y:2019,e:7,d:"Diana's origin, late in the run.",o:1},
+ {i:"justice-league-dark-apokolips-war-2020",t:"Justice League Dark: Apokolips War",y:2020,e:7,d:"The finale, and it earns its reputation for being brutal.",b:["m"],o:1}]},
 
 {n:"06",name:"Tomorrowverse",
  note:"A planned ten-film run, 2020\u20132024, closed out by the Crisis trilogy. Jensen Ackles plays Batman throughout \u2014 he leads Long Halloween and Warworld, and runs through all of Crisis.",
  where:"HBO Max",
  films:[
- {t:"Superman: Man of Tomorrow",y:2020,e:7,d:"The run's opener. No Batman \u2014 included so the timeline makes sense.",o:1},
- {t:"Justice Society: World War II",y:2021,e:7,d:"A 1940s detour with the JSA.",o:1},
- {t:"Batman: The Long Halloween \u2014 Part One",y:2021,e:2,d:"A killer who only strikes on holidays, working through the Falcone family. Set in Batman's second year, and the best-looking film in the whole line.",b:["e"]},
- {t:"Batman: The Long Halloween \u2014 Part Two",y:2021,e:2,d:"The solution, and the birth of Two-Face.",b:["e"]},
- {t:"The Long Halloween \u2014 Deluxe Edition",y:2022,e:2,d:"Both parts recut into one R-rated feature with restored violence.",o:1},
- {t:"Green Lantern: Beware My Power",y:2022,e:7,d:"John Stewart's introduction to the run.",o:1},
- {t:"Legion of Super-Heroes",y:2023,e:7,d:"Supergirl in the 31st century.",o:1},
- {t:"Justice League: Warworld",y:2023,e:7,d:"Batman, Superman and Wonder Woman trapped in a loop of pulp genre worlds \u2014 western, noir, sword and sorcery. Batman is one of the three leads."},
- {t:"Crisis on Infinite Earths \u2014 Part One",y:2024,e:7,d:"The Anti-Monitor starts erasing realities and the multiverse's heroes are pulled together."},
- {t:"Crisis on Infinite Earths \u2014 Part Two",y:2024,e:7,d:"The shadow demons arrive. The middle chapter is the weakest of the three."},
- {t:"Crisis on Infinite Earths \u2014 Part Three",y:2024,e:7,d:"The last stand, and the end of the Tomorrowverse."}]},
+ {i:"superman-man-of-tomorrow-2020",t:"Superman: Man of Tomorrow",y:2020,e:7,d:"The run's opener. No Batman \u2014 included so the timeline makes sense.",o:1},
+ {i:"justice-society-world-war-ii-2021",t:"Justice Society: World War II",y:2021,e:7,d:"A 1940s detour with the JSA.",o:1},
+ {i:"batman-the-long-halloween-part-one-2021",t:"Batman: The Long Halloween \u2014 Part One",y:2021,e:2,d:"A killer who only strikes on holidays, working through the Falcone family. Set in Batman's second year, and the best-looking film in the whole line.",b:["e"]},
+ {i:"batman-the-long-halloween-part-two-2021",t:"Batman: The Long Halloween \u2014 Part Two",y:2021,e:2,d:"The solution, and the birth of Two-Face.",b:["e"]},
+ {i:"the-long-halloween-deluxe-edition-2022",t:"The Long Halloween \u2014 Deluxe Edition",y:2022,e:2,d:"Both parts recut into one R-rated feature with restored violence.",o:1},
+ {i:"green-lantern-beware-my-power-2022",t:"Green Lantern: Beware My Power",y:2022,e:7,d:"John Stewart's introduction to the run.",o:1},
+ {i:"legion-of-super-heroes-2023",t:"Legion of Super-Heroes",y:2023,e:7,d:"Supergirl in the 31st century.",o:1},
+ {i:"justice-league-warworld-2023",t:"Justice League: Warworld",y:2023,e:7,d:"Batman, Superman and Wonder Woman trapped in a loop of pulp genre worlds \u2014 western, noir, sword and sorcery. Batman is one of the three leads."},
+ {i:"crisis-on-infinite-earths-part-one-2024",t:"Crisis on Infinite Earths \u2014 Part One",y:2024,e:7,d:"The Anti-Monitor starts erasing realities and the multiverse's heroes are pulled together."},
+ {i:"crisis-on-infinite-earths-part-two-2024",t:"Crisis on Infinite Earths \u2014 Part Two",y:2024,e:7,d:"The shadow demons arrive. The middle chapter is the weakest of the three."},
+ {i:"crisis-on-infinite-earths-part-three-2024",t:"Crisis on Infinite Earths \u2014 Part Three",y:2024,e:7,d:"The last stand, and the end of the Tomorrowverse."}]},
 
 {n:"07",name:"Knightfall Trilogy",
  note:"The current release. Three films adapting the 1993 saga \u2014 Bane breaks the Bat, a replacement takes the cowl, Bruce fights to take it back. Anson Mount as Batman.",
  where:"Buy digitally: Prime Video, Apple TV, Fandango",
  films:[
- {t:"Batman: Knightfall \u2014 Part 1",y:2026,e:6,d:"Bane empties Arkham onto Gotham's streets and lets exhaustion do the rest. Digital 25 August 2026, disc 8 September.",b:["m","u"]},
- {t:"Knightfall \u2014 Part 2: Knightquest",y:2026,e:6,d:"Jean-Paul Valley wears the cowl, and Gotham finds out what a Batman without restraint looks like. Late 2026.",b:["u"]},
- {t:"Knightfall \u2014 Part 3: KnightsEnd",y:2027,e:6,d:"Bruce comes back for what is his. Early 2027.",b:["u"]}]},
+ {i:"batman-knightfall-part-1-2026",t:"Batman: Knightfall \u2014 Part 1",y:2026,e:6,d:"Bane empties Arkham onto Gotham's streets and lets exhaustion do the rest. Digital 25 August 2026, disc 8 September.",b:["m","u"]},
+ {i:"knightfall-part-2-knightquest-2026",t:"Knightfall \u2014 Part 2: Knightquest",y:2026,e:6,d:"Jean-Paul Valley wears the cowl, and Gotham finds out what a Batman without restraint looks like. Late 2026.",b:["u"]},
+ {i:"knightfall-part-3-knightsend-2027",t:"Knightfall \u2014 Part 3: KnightsEnd",y:2027,e:6,d:"Bruce comes back for what is his. Early 2027.",b:["u"]}]},
 
 {n:"08",name:"Elseworlds & One-Offs",
  note:"Self-contained films connected to nothing. Each is a different answer to the question of what Batman is for.",
  where:"HBO Max for most; rent the rest",
  films:[
- {t:"Batman: Gotham Knight",y:2008,e:2,d:"Six anime shorts by six studios, made to sit between Batman Begins and The Dark Knight. Later contradicted by those films, so treat it as its own thing."},
- {t:"Batman: Assault on Arkham",y:2014,e:5,d:"Set in the Arkham games' world and secretly one of the best Suicide Squad films. Batman is the antagonist for most of it.",b:["m"]},
- {t:"Batman: Strange Days",y:2014,e:0,d:"A three-minute Bruce Timm short for Batman's 75th, drawn in the 1939 style. Hugo Strange, and almost no dialogue.",b:["s"],o:1},
- {t:"Batman: Gotham by Gaslight",y:2018,e:0,d:"Victorian Gotham. Batman hunts Jack the Ripper. Bruce Greenwood back in the cowl.",b:["e"]},
- {t:"Batman vs. Teenage Mutant Ninja Turtles",y:2019,e:0,d:"Exactly what it says, and far better than it has any right to be."},
- {t:"Superman: Red Son",y:2020,e:0,d:"Superman's rocket lands in Ukraine instead. There is a Batman in it, and he is a Soviet dissident in a ushanka.",o:1},
- {t:"Batman: Soul of the Dragon",y:2021,e:1,d:"A 1970s martial-arts picture with Batman in it. Built around Bruce's training years under a master sensei.",},
- {t:"Injustice",y:2021,e:7,d:"The Joker kills Lois, Superman turns tyrant, and Batman leads the resistance against him. Anson Mount's first go at the cowl.",b:["m"]},
- {t:"Catwoman: Hunted",y:2022,e:0,d:"Anime-styled Selina heist picture. Batwoman is the foil; Batman himself sits this one out.",o:1},
- {t:"Battle of the Super Sons",y:2022,e:8,d:"Damian and Jon Kent team up. CG-animated and aimed younger.",o:1},
- {t:"The Doom That Came to Gotham",y:2023,e:0,d:"Mignola's Lovecraftian Gotham, 1920s. Bruce returns from an Antarctic expedition with something following him."},
- {t:"Justice League x RWBY \u2014 Part One",y:2023,e:0,d:"The League turned into teenagers in the world of Remnant. A crossover with a very specific audience.",o:1},
- {t:"Justice League x RWBY \u2014 Part Two",y:2024,e:0,d:"The second half of that crossover.",o:1},
- {t:"Suicide Squad Isekai",sub:"Complete series",y:2024,ep:10,k:"tv",e:0,d:"Task Force X dropped into a sword-and-sorcery anime world. Batman appears at either end of it.",b:["m"],o:1},
- {t:"Aztec Batman: Clash of Empires",y:2025,e:0,d:"Yohualli Coatl in the Aztec empire under Spanish invasion. A genuine reimagining, not a reskin."},
- {t:"Dynamic Duo",y:2028,e:3,d:"Theatrical, from Swaybox \u2014 puppetry mixed with CG. The origin of Dick Grayson and Jason Todd, and the friendship that breaks between them. 30 June 2028.",b:["u"]}]},
+ {i:"batman-gotham-knight-2008",t:"Batman: Gotham Knight",y:2008,e:2,d:"Six anime shorts by six studios, made to sit between Batman Begins and The Dark Knight. Later contradicted by those films, so treat it as its own thing."},
+ {i:"batman-assault-on-arkham-2014",t:"Batman: Assault on Arkham",y:2014,e:5,d:"Set in the Arkham games' world and secretly one of the best Suicide Squad films. Batman is the antagonist for most of it.",b:["m"]},
+ {i:"batman-strange-days-2014",t:"Batman: Strange Days",y:2014,e:0,d:"A three-minute Bruce Timm short for Batman's 75th, drawn in the 1939 style. Hugo Strange, and almost no dialogue.",b:["s"],o:1},
+ {i:"batman-gotham-by-gaslight-2018",t:"Batman: Gotham by Gaslight",y:2018,e:0,d:"Victorian Gotham. Batman hunts Jack the Ripper. Bruce Greenwood back in the cowl.",b:["e"]},
+ {i:"batman-vs-teenage-mutant-ninja-turtles-2019",t:"Batman vs. Teenage Mutant Ninja Turtles",y:2019,e:0,d:"Exactly what it says, and far better than it has any right to be."},
+ {i:"superman-red-son-2020",t:"Superman: Red Son",y:2020,e:0,d:"Superman's rocket lands in Ukraine instead. There is a Batman in it, and he is a Soviet dissident in a ushanka.",o:1},
+ {i:"batman-soul-of-the-dragon-2021",t:"Batman: Soul of the Dragon",y:2021,e:1,d:"A 1970s martial-arts picture with Batman in it. Built around Bruce's training years under a master sensei.",},
+ {i:"injustice-2021",t:"Injustice",y:2021,e:7,d:"The Joker kills Lois, Superman turns tyrant, and Batman leads the resistance against him. Anson Mount's first go at the cowl.",b:["m"]},
+ {i:"catwoman-hunted-2022",t:"Catwoman: Hunted",y:2022,e:0,d:"Anime-styled Selina heist picture. Batwoman is the foil; Batman himself sits this one out.",o:1},
+ {i:"battle-of-the-super-sons-2022",t:"Battle of the Super Sons",y:2022,e:8,d:"Damian and Jon Kent team up. CG-animated and aimed younger.",o:1},
+ {i:"the-doom-that-came-to-gotham-2023",t:"The Doom That Came to Gotham",y:2023,e:0,d:"Mignola's Lovecraftian Gotham, 1920s. Bruce returns from an Antarctic expedition with something following him."},
+ {i:"justice-league-x-rwby-part-one-2023",t:"Justice League x RWBY \u2014 Part One",y:2023,e:0,d:"The League turned into teenagers in the world of Remnant. A crossover with a very specific audience.",o:1},
+ {i:"justice-league-x-rwby-part-two-2024",t:"Justice League x RWBY \u2014 Part Two",y:2024,e:0,d:"The second half of that crossover.",o:1},
+ {i:"suicide-squad-isekai-complete-series-2024",t:"Suicide Squad Isekai",sub:"Complete series",y:2024,ep:10,k:"tv",e:0,d:"Task Force X dropped into a sword-and-sorcery anime world. Batman appears at either end of it.",b:["m"],o:1},
+ {i:"aztec-batman-clash-of-empires-2025",t:"Aztec Batman: Clash of Empires",y:2025,e:0,d:"Yohualli Coatl in the Aztec empire under Spanish invasion. A genuine reimagining, not a reskin."},
+ {i:"dynamic-duo-2028",t:"Dynamic Duo",y:2028,e:3,d:"Theatrical, from Swaybox \u2014 puppetry mixed with CG. The origin of Dick Grayson and Jason Todd, and the friendship that breaks between them. 30 June 2028.",b:["u"]}]},
 
 {n:"09",name:"Ninjaverse",
  note:"Batman and his rogues thrown into feudal Japan, animated by Kamikaze Douga. Watch it in Japanese with subtitles if you can \u2014 the dub flattens it.",
  where:"HBO Max; Netflix in some regions",
  films:[
- {t:"Batman Ninja",y:2018,e:0,d:"Gorilla Grodd's time displacement drops the whole cast into the Sengoku period. It gets much stranger than that."},
- {t:"Batman Ninja vs. Yakuza League",y:2025,e:0,d:"Japan is floating above Gotham and the Justice League have evil counterparts. Continuity is not the point."}]},
+ {i:"batman-ninja-2018",t:"Batman Ninja",y:2018,e:0,d:"Gorilla Grodd's time displacement drops the whole cast into the Sengoku period. It gets much stranger than that."},
+ {i:"batman-ninja-vs-yakuza-league-2025",t:"Batman Ninja vs. Yakuza League",y:2025,e:0,d:"Japan is floating above Gotham and the Justice League have evil counterparts. Continuity is not the point."}]},
 
 {n:"10",name:"Batman '66",
  note:"Same continuity as the 1966 series, with Adam West, Burt Ward and Julie Newmar back in their roles. Vs. Two-Face was West's final performance.",
  where:"Rent or buy digitally",
  films:[
- {t:"Return of the Caped Crusaders",y:2016,e:0,d:"A pitch-perfect revival of the camp \u2014 both parodying the show and completely sincere about it."},
- {t:"Batman vs. Two-Face",y:2017,e:0,d:"William Shatner as Two-Face, a role the 1966 series never got to make."}]},
+ {i:"return-of-the-caped-crusaders-2016",t:"Return of the Caped Crusaders",y:2016,e:0,d:"A pitch-perfect revival of the camp \u2014 both parodying the show and completely sincere about it."},
+ {i:"batman-vs-two-face-2017",t:"Batman vs. Two-Face",y:2017,e:0,d:"William Shatner as Two-Face, a role the 1966 series never got to make."}]},
 
 {n:"11",name:"Series Spin-Offs & Crossovers",
  note:"Films that extend a television continuity, or drop Batman into someone else's show.",
  where:"Free with ads on YouTube (Dracula); rent or buy the rest",
  films:[
- {t:"Scooby-Doo Meets Batman",y:2002,e:3,d:"Two 1972 episodes of The New Scooby-Doo Movies stitched into a feature. The oldest animated Batman on this list.",b:["s"],o:1},
- {t:"Scooby-Doo! and Krypto, Too!",y:2023,e:0,d:"The League goes missing and Mystery Inc. investigate. Retro-styled and very slight.",o:1}]},
+ {i:"scooby-doo-meets-batman-2002",t:"Scooby-Doo Meets Batman",y:2002,e:3,d:"Two 1972 episodes of The New Scooby-Doo Movies stitched into a feature. The oldest animated Batman on this list.",b:["s"],o:1},
+ {i:"scooby-doo-and-krypto-too-2023",t:"Scooby-Doo! and Krypto, Too!",y:2023,e:0,d:"The League goes missing and Mystery Inc. investigate. Retro-styled and very slight.",o:1}]},
 
 {n:"12",name:"The LEGO Movieverse",
  note:"The theatrical LEGO films. Will Arnett's Batman debuts as a supporting joke and gets promoted to leading man. Confirmed separate from the direct-to-video LEGO DC line.",
  where:"HBO Max, and rentable everywhere",
  films:[
- {t:"The LEGO Movie",y:2014,e:0,d:"Where this Batman is introduced. Not his film, but it sets up everything the next one takes apart.",o:1},
- {t:"The LEGO Batman Movie",y:2017,e:0,d:"The sharpest Batman parody ever made, and quietly one of the most sincere films about him. Works even if you skip the other two.",b:["e"]},
- {t:"The LEGO Movie 2: The Second Part",y:2019,e:0,d:"Arnett's Batman gets a subplot of his own here.",o:1}]},
+ {i:"the-lego-movie-2014",t:"The LEGO Movie",y:2014,e:0,d:"Where this Batman is introduced. Not his film, but it sets up everything the next one takes apart.",o:1},
+ {i:"the-lego-batman-movie-2017",t:"The LEGO Batman Movie",y:2017,e:0,d:"The sharpest Batman parody ever made, and quietly one of the most sincere films about him. Works even if you skip the other two.",b:["e"]},
+ {i:"the-lego-movie-2-the-second-part-2019",t:"The LEGO Movie 2: The Second Part",y:2019,e:0,d:"Arnett's Batman gets a subplot of his own here.",o:1}]},
 
 {n:"13",name:"LEGO DC Direct-to-Video",
  note:"A separate ten-film LEGO continuity that shares nothing with the theatrical movies. Troy Baker voices most of them. Two are Batman-led; the rest are League films he appears in.",
  where:"Rent or buy digitally; some on HBO Max",
  films:[
- {t:"LEGO Batman: DC Super Heroes Unite",y:2013,e:0,d:"The line's opener, based on the LEGO Batman 2 video game."},
- {t:"LEGO DC Comics: Batman Be-Leaguered",y:2014,e:0,d:"A 22-minute special where Batman refuses to join the League. Slight, but Batman-centred.",b:["s"]},
- {t:"Justice League vs. Bizarro League",y:2015,e:0,d:"Bizarro gets his own world.",o:1},
- {t:"Justice League: Attack of the Legion of Doom",y:2015,e:0,d:"Cyborg joins; the Legion forms.",o:1},
- {t:"Justice League: Cosmic Clash",y:2016,e:0,d:"Brainiac scatters the League through time.",o:1},
- {t:"Justice League: Gotham City Breakout",y:2016,e:0,d:"Batgirl and Nightwing force Batman to take a holiday while the League cover Gotham. The most Batman-forward of the line."},
- {t:"LEGO DC Comics Super Heroes: The Flash",y:2018,e:0,d:"Barry stuck in a time loop.",o:1},
- {t:"Aquaman: Rage of Atlantis",y:2018,e:0,d:"Aquaman's turn.",o:1},
- {t:"LEGO DC Batman: Family Matters",y:2019,e:0,d:"Someone is picking off the Bat-family. A whodunit in bricks."},
- {t:"LEGO DC Shazam!: Magic and Monsters",y:2020,e:0,d:"The last of the line.",o:1}]},
+ {i:"lego-batman-dc-super-heroes-unite-2013",t:"LEGO Batman: DC Super Heroes Unite",y:2013,e:0,d:"The line's opener, based on the LEGO Batman 2 video game."},
+ {i:"lego-dc-comics-batman-be-leaguered-2014",t:"LEGO DC Comics: Batman Be-Leaguered",y:2014,e:0,d:"A 22-minute special where Batman refuses to join the League. Slight, but Batman-centred.",b:["s"]},
+ {i:"justice-league-vs-bizarro-league-2015",t:"Justice League vs. Bizarro League",y:2015,e:0,d:"Bizarro gets his own world.",o:1},
+ {i:"justice-league-attack-of-the-legion-of-doom-2015",t:"Justice League: Attack of the Legion of Doom",y:2015,e:0,d:"Cyborg joins; the Legion forms.",o:1},
+ {i:"justice-league-cosmic-clash-2016",t:"Justice League: Cosmic Clash",y:2016,e:0,d:"Brainiac scatters the League through time.",o:1},
+ {i:"justice-league-gotham-city-breakout-2016",t:"Justice League: Gotham City Breakout",y:2016,e:0,d:"Batgirl and Nightwing force Batman to take a holiday while the League cover Gotham. The most Batman-forward of the line."},
+ {i:"lego-dc-comics-super-heroes-the-flash-2018",t:"LEGO DC Comics Super Heroes: The Flash",y:2018,e:0,d:"Barry stuck in a time loop.",o:1},
+ {i:"aquaman-rage-of-atlantis-2018",t:"Aquaman: Rage of Atlantis",y:2018,e:0,d:"Aquaman's turn.",o:1},
+ {i:"lego-dc-batman-family-matters-2019",t:"LEGO DC Batman: Family Matters",y:2019,e:0,d:"Someone is picking off the Bat-family. A whodunit in bricks."},
+ {i:"lego-dc-shazam-magic-and-monsters-2020",t:"LEGO DC Shazam!: Magic and Monsters",y:2020,e:0,d:"The last of the line.",o:1}]},
 
 {n:"14",name:"All-Ages & Oddities",
  note:"Films where Batman is a supporting player, a punchline, or a guest in someone else's comedy. Included for completeness.",
  where:"HBO Max, or rent",
  films:[
- {t:"DC Super Heroes vs. Eagle Talon",y:2017,e:0,d:"A Japanese comedy crossover where a low-budget villain org investigates what is wrong with Batman, and keeps breaking the fourth wall about the licensing fee.",o:1},
- {t:"Teen Titans Go! To the Movies",y:2018,e:0,d:"Robin wants a movie; Batman gets mocked throughout.",o:1},
- {t:"DC League of Super-Pets",y:2022,e:0,d:"Keanu Reeves voices a deadpan Batman opposite Ace the Bat-Hound.",o:1}]},
+ {i:"dc-super-heroes-vs-eagle-talon-2017",t:"DC Super Heroes vs. Eagle Talon",y:2017,e:0,d:"A Japanese comedy crossover where a low-budget villain org investigates what is wrong with Batman, and keeps breaking the fourth wall about the licensing fee.",o:1},
+ {i:"teen-titans-go-to-the-movies-2018",t:"Teen Titans Go! To the Movies",y:2018,e:0,d:"Robin wants a movie; Batman gets mocked throughout.",o:1},
+ {i:"dc-league-of-super-pets-2022",t:"DC League of Super-Pets",y:2022,e:0,d:"Keanu Reeves voices a deadpan Batman opposite Ace the Bat-Hound.",o:1}]},
 
 {n:"15",name:"Batman Unlimited",
  note:"A trilogy built around a Mattel toyline. Aimed young, brisk, and strictly for completionists.",
  where:"Rent or buy digitally",
  films:[
- {t:"Batman Unlimited: Animal Instincts",y:2015,e:0,d:"Animal-themed rogues take Gotham.",o:1},
- {t:"Batman Unlimited: Monster Mayhem",y:2015,e:0,d:"The Joker recruits the classic monsters.",o:1},
- {t:"Batman Unlimited: Mechs vs. Mutants",y:2016,e:0,d:"Giant robots, as promised.",o:1}]},
+ {i:"batman-unlimited-animal-instincts-2015",t:"Batman Unlimited: Animal Instincts",y:2015,e:0,d:"Animal-themed rogues take Gotham.",o:1},
+ {i:"batman-unlimited-monster-mayhem-2015",t:"Batman Unlimited: Monster Mayhem",y:2015,e:0,d:"The Joker recruits the classic monsters.",o:1},
+ {i:"batman-unlimited-mechs-vs-mutants-2016",t:"Batman Unlimited: Mechs vs. Mutants",y:2016,e:0,d:"Giant robots, as promised.",o:1}]},
 
 {n:"17",name:"The Filmation Years",
  note:"Batman\u2019s first animated appearances, made on the back of the Adam West show. Stiff, cheap and charming, and historically the start of everything.",
  where:"Rent or buy digitally",
  films:[
- {t:"The Adventures of Batman",sub:"Complete series",y:1968,ep:17,k:"tv",e:0,d:"Batman\u2019s first solo cartoon, recut from The Batman/Superman Hour. Two 6-minute stories per episode, Olan Soule as Batman and Casey Kasem as Robin.",o:1},
- {t:"The New Adventures of Batman",sub:"Complete series",y:1977,ep:16,k:"tv",e:0,d:"Adam West and Burt Ward return to voice their roles, joined by Batgirl and the dimension-hopping imp Bat-Mite.",o:1}]},
+ {i:"the-adventures-of-batman-complete-series-1968",t:"The Adventures of Batman",sub:"Complete series",y:1968,ep:17,k:"tv",e:0,d:"Batman\u2019s first solo cartoon, recut from The Batman/Superman Hour. Two 6-minute stories per episode, Olan Soule as Batman and Casey Kasem as Robin.",o:1},
+ {i:"the-new-adventures-of-batman-complete-series-1977",t:"The New Adventures of Batman",sub:"Complete series",y:1977,ep:16,k:"tv",e:0,d:"Adam West and Burt Ward return to voice their roles, joined by Batgirl and the dimension-hopping imp Bat-Mite.",o:1}]},
 
 {n:"18",name:"Super Friends",
  note:"Hanna-Barbera\u2019s Saturday-morning Justice League, retitled almost every year across thirteen years. Batman is a core member throughout. Its creators considered all incarnations one show.",
  where:"HBO Max and digital purchase",
  films:[
- {t:"Super Friends",sub:"1973",y:1973,ep:16,k:"tv",e:0,d:"The original hour-long run, with Wendy, Marvin and Wonder Dog in tow.",o:1},
- {t:"The All-New Super Friends Hour",sub:"1977",y:1977,ep:15,k:"tv",e:0,d:"The Wonder Twins arrive and the format splits into segments.",o:1},
- {t:"Challenge of the Super Friends",sub:"1978",y:1978,ep:16,k:"tv",e:0,d:"The best-remembered season: the Legion of Doom and their swamp headquarters.",b:["e"],o:1},
- {t:"The World\u2019s Greatest SuperFriends",sub:"1979",y:1979,ep:8,k:"tv",e:0,d:"Back to hour-long stories for a short run.",o:1},
- {t:"Super Friends",sub:"1980",y:1980,ep:8,k:"tv",e:0,d:"Shorter format, expanded hero roster.",o:1},
- {t:"Super Friends",sub:"1981",y:1981,ep:6,k:"tv",e:0,d:"A six-episode season.",o:1},
- {t:"Super Friends",sub:"1983",y:1983,ep:8,k:"tv",e:0,d:"Often called the lost episodes \u2014 some went unaired in the US for years.",o:1},
- {t:"The Legendary Super Powers Show",sub:"1984",y:1984,ep:8,k:"tv",e:0,d:"Toyline tie-in era. Darkseid becomes the recurring threat.",o:1},
- {t:"The Super Powers Team: Galactic Guardians",sub:"1985",y:1985,ep:8,k:"tv",e:0,d:"The final season, and the one that finally animates Batman\u2019s origin.",o:1}]},
+ {i:"super-friends-1973-1973",t:"Super Friends",sub:"1973",y:1973,ep:16,k:"tv",e:0,d:"The original hour-long run, with Wendy, Marvin and Wonder Dog in tow.",o:1},
+ {i:"the-all-new-super-friends-hour-1977-1977",t:"The All-New Super Friends Hour",sub:"1977",y:1977,ep:15,k:"tv",e:0,d:"The Wonder Twins arrive and the format splits into segments.",o:1},
+ {i:"challenge-of-the-super-friends-1978-1978",t:"Challenge of the Super Friends",sub:"1978",y:1978,ep:16,k:"tv",e:0,d:"The best-remembered season: the Legion of Doom and their swamp headquarters.",b:["e"],o:1},
+ {i:"the-world-s-greatest-superfriends-1979-1979",t:"The World\u2019s Greatest SuperFriends",sub:"1979",y:1979,ep:8,k:"tv",e:0,d:"Back to hour-long stories for a short run.",o:1},
+ {i:"super-friends-1980-1980",t:"Super Friends",sub:"1980",y:1980,ep:8,k:"tv",e:0,d:"Shorter format, expanded hero roster.",o:1},
+ {i:"super-friends-1981-1981",t:"Super Friends",sub:"1981",y:1981,ep:6,k:"tv",e:0,d:"A six-episode season.",o:1},
+ {i:"super-friends-1983-1983",t:"Super Friends",sub:"1983",y:1983,ep:8,k:"tv",e:0,d:"Often called the lost episodes \u2014 some went unaired in the US for years.",o:1},
+ {i:"the-legendary-super-powers-show-1984-1984",t:"The Legendary Super Powers Show",sub:"1984",y:1984,ep:8,k:"tv",e:0,d:"Toyline tie-in era. Darkseid becomes the recurring threat.",o:1},
+ {i:"the-super-powers-team-galactic-guardians-198-1985",t:"The Super Powers Team: Galactic Guardians",sub:"1985",y:1985,ep:8,k:"tv",e:0,d:"The final season, and the one that finally animates Batman\u2019s origin.",o:1}]},
 
 {n:"19",name:"The Batman (2004)",
  note:"Its own continuity with a younger, more athletic Bruce, a stylised Gotham and radically redesigned rogues. Starts in Batman\u2019s third year and gradually builds the family around him.",
  where:"HBO Max and digital purchase",
  films:[
- {t:"The Batman",sub:"Season 1",y:2004,ep:13,k:"tv",e:2,d:"Year three. Batman still works alone and the police still want him arrested. Rino Romano in the cowl.",o:1},
- {t:"The Batman",sub:"Season 2",y:2005,ep:13,k:"tv",e:2,d:"The rogues gallery fills out and Ethan Bennett\u2019s slow turn into Clayface plays out.",o:1},
- {t:"The Batman vs. Dracula",y:2005,e:2,d:"The series\u2019 feature-length entry, and startlingly dark for a kids\u2019 tie-in. Dracula is played completely straight."},
- {t:"The Batman",sub:"Season 3",y:2005,ep:13,k:"tv",e:3,d:"Batgirl arrives and the tone lightens considerably.",o:1},
- {t:"The Batman",sub:"Season 4",y:2006,ep:13,k:"tv",e:3,d:"Robin joins, and the Bat-family finally assembles.",o:1},
- {t:"The Batman",sub:"Season 5",y:2007,ep:13,k:"tv",e:7,d:"The Justice League turns up for the final run, into 2008.",o:1}]},
+ {i:"the-batman-season-1-2004",t:"The Batman",sub:"Season 1",y:2004,ep:13,k:"tv",e:2,d:"Year three. Batman still works alone and the police still want him arrested. Rino Romano in the cowl.",o:1},
+ {i:"the-batman-season-2-2005",t:"The Batman",sub:"Season 2",y:2005,ep:13,k:"tv",e:2,d:"The rogues gallery fills out and Ethan Bennett\u2019s slow turn into Clayface plays out.",o:1},
+ {i:"the-batman-vs-dracula-2005",t:"The Batman vs. Dracula",y:2005,e:2,d:"The series\u2019 feature-length entry, and startlingly dark for a kids\u2019 tie-in. Dracula is played completely straight."},
+ {i:"the-batman-season-3-2005",t:"The Batman",sub:"Season 3",y:2005,ep:13,k:"tv",e:3,d:"Batgirl arrives and the tone lightens considerably.",o:1},
+ {i:"the-batman-season-4-2006",t:"The Batman",sub:"Season 4",y:2006,ep:13,k:"tv",e:3,d:"Robin joins, and the Bat-family finally assembles.",o:1},
+ {i:"the-batman-season-5-2007",t:"The Batman",sub:"Season 5",y:2007,ep:13,k:"tv",e:7,d:"The Justice League turns up for the final run, into 2008.",o:1}]},
 
 {n:"20",name:"The Brave and the Bold",
  note:"Diedrich Bader\u2019s Batman in a bright silver-age world, teaming up with a different obscure hero every week. Wildly different in tone from everything around it, and beloved for exactly that.",
  where:"HBO Max and digital purchase",
  films:[
- {t:"Batman: The Brave and the Bold",sub:"Season 1",y:2008,ep:26,k:"tv",e:0,d:"Team-ups with Blue Beetle, Aquaman, Plastic Man and dozens more. Aquaman alone is worth it.",b:["e"],o:1},
- {t:"Batman: The Brave and the Bold",sub:"Season 2",y:2010,ep:26,k:"tv",e:0,d:"Includes the musical episode \u2018Mayhem of the Music Meister\u2019 with Neil Patrick Harris.",o:1},
- {t:"Batman: The Brave and the Bold",sub:"Season 3",y:2011,ep:13,k:"tv",e:0,d:"The final run, ending with a fourth-wall-breaking farewell.",o:1},
- {t:"Scooby-Doo and Batman: The Brave and the Bold",y:2018,e:0,d:"Bader\u2019s Batman meets Mystery Inc. Which implies things about both franchises best left alone."}]},
+ {i:"batman-the-brave-and-the-bold-season-1-2008",t:"Batman: The Brave and the Bold",sub:"Season 1",y:2008,ep:26,k:"tv",e:0,d:"Team-ups with Blue Beetle, Aquaman, Plastic Man and dozens more. Aquaman alone is worth it.",b:["e"],o:1},
+ {i:"batman-the-brave-and-the-bold-season-2-2010",t:"Batman: The Brave and the Bold",sub:"Season 2",y:2010,ep:26,k:"tv",e:0,d:"Includes the musical episode \u2018Mayhem of the Music Meister\u2019 with Neil Patrick Harris.",o:1},
+ {i:"batman-the-brave-and-the-bold-season-3-2011",t:"Batman: The Brave and the Bold",sub:"Season 3",y:2011,ep:13,k:"tv",e:0,d:"The final run, ending with a fourth-wall-breaking farewell.",o:1},
+ {i:"scooby-doo-and-batman-the-brave-and-the-bold-2018",t:"Scooby-Doo and Batman: The Brave and the Bold",y:2018,e:0,d:"Bader\u2019s Batman meets Mystery Inc. Which implies things about both franchises best left alone."}]},
 
 {n:"21",name:"Beware the Batman",
  note:"CG-animated, cancelled early, and quietly one of the most interesting takes \u2014 no Robin, an ex-MI6 Alfred, Katana as the partner, and deep-cut villains instead of the usual rogues.",
  where:"Digital purchase",
  films:[
- {t:"Beware the Batman",sub:"Complete series",y:2013,ep:26,k:"tv",e:2,d:"Early-career Bruce with Anthony Ruivivar in the cowl. Professor Pyg, Anarky and Magpie over Joker and Penguin. Ends on an unresolved note.",o:1}]},
+ {i:"beware-the-batman-complete-series-2013",t:"Beware the Batman",sub:"Complete series",y:2013,ep:26,k:"tv",e:2,d:"Early-career Bruce with Anthony Ruivivar in the cowl. Professor Pyg, Anarky and Magpie over Joker and Penguin. Ends on an unresolved note.",o:1}]},
 
 {n:"22",name:"Caped Crusader",
  note:"Bruce Timm returns, with J.J. Abrams and Matt Reeves producing. A 1940s noir reimagining that strips out the gadgets in favour of detective work. Not connected to the DCAU.",
  where:"Prime Video only",
  films:[
- {t:"Batman: Caped Crusader",sub:"Season 1",y:2024,ep:10,k:"tv",e:2,d:"Batman\u2019s early days in a period-accurate Gotham. Hamish Linklater in the cowl, Minnie Driver as Oswalda Cobblepot.",b:["e"],o:1},
- {t:"Batman: Caped Crusader",sub:"Season 2",y:2026,ep:10,k:"tv",e:2,d:"The \u2018year one-and-a-half\u2019 phase, introducing the Riddler, Carrie Kelley, Roxy Rocket and this world\u2019s Joker. All ten episodes land 31 July 2026.",b:["u"],o:1}]},
+ {i:"batman-caped-crusader-season-1-2024",t:"Batman: Caped Crusader",sub:"Season 1",y:2024,ep:10,k:"tv",e:2,d:"Batman\u2019s early days in a period-accurate Gotham. Hamish Linklater in the cowl, Minnie Driver as Oswalda Cobblepot.",b:["e"],o:1},
+ {i:"batman-caped-crusader-season-2-2026",t:"Batman: Caped Crusader",sub:"Season 2",y:2026,ep:10,k:"tv",e:2,d:"The \u2018year one-and-a-half\u2019 phase, introducing the Riddler, Carrie Kelley, Roxy Rocket and this world\u2019s Joker. All ten episodes land 31 July 2026.",b:["u"],o:1}]},
 
 {n:"23",name:"Young Justice",
  note:"The sidekicks\u2019 show, and one of the most densely plotted things DC animation has produced. Batman is the League\u2019s strategist and Dick Grayson\u2019s arc runs the whole series.",
  where:"HBO Max",
  films:[
- {t:"Young Justice",sub:"Season 1",y:2010,ep:26,k:"tv",e:7,d:"The covert team forms. Robin, Aqualad, Kid Flash, Superboy, Miss Martian, Artemis.",b:["e"],o:1},
- {t:"Young Justice",sub:"Season 2: Invasion",y:2012,ep:20,k:"tv",e:7,d:"A five-year time skip. Dick is Nightwing and running the team.",o:1},
- {t:"Young Justice",sub:"Season 3: Outsiders",y:2019,ep:26,k:"tv",e:7,d:"Revived after seven years off the air, and darker for it.",o:1},
- {t:"Young Justice",sub:"Season 4: Phantoms",y:2021,ep:26,k:"tv",e:7,d:"The final season to date, running into 2022.",o:1}]},
+ {i:"young-justice-season-1-2010",t:"Young Justice",sub:"Season 1",y:2010,ep:26,k:"tv",e:7,d:"The covert team forms. Robin, Aqualad, Kid Flash, Superboy, Miss Martian, Artemis.",b:["e"],o:1},
+ {i:"young-justice-season-2-invasion-2012",t:"Young Justice",sub:"Season 2: Invasion",y:2012,ep:20,k:"tv",e:7,d:"A five-year time skip. Dick is Nightwing and running the team.",o:1},
+ {i:"young-justice-season-3-outsiders-2019",t:"Young Justice",sub:"Season 3: Outsiders",y:2019,ep:26,k:"tv",e:7,d:"Revived after seven years off the air, and darker for it.",o:1},
+ {i:"young-justice-season-4-phantoms-2021",t:"Young Justice",sub:"Season 4: Phantoms",y:2021,ep:26,k:"tv",e:7,d:"The final season to date, running into 2022.",o:1}]},
 
 {n:"24",name:"Justice League Action",
  note:"Eleven-minute episodes at a relentless pace, with Kevin Conroy back as Batman alongside Mark Hamill\u2019s Joker. A greatest-hits reunion in miniature.",
  where:"HBO Max and digital purchase",
  films:[
- {t:"Justice League Action",sub:"Complete series",y:2016,ep:52,k:"tv",e:7,d:"Conroy, Hamill and a rotating cast of DC heroes in bite-sized adventures. Ran to 2018.",o:1}]},
+ {i:"justice-league-action-complete-series-2016",t:"Justice League Action",sub:"Complete series",y:2016,ep:52,k:"tv",e:7,d:"Conroy, Hamill and a rotating cast of DC heroes in bite-sized adventures. Ran to 2018.",o:1}]},
 
 {n:"25",name:"Harley Quinn\u2019s Gotham",
  note:"An adult, profane satire of the whole mythos. Batman is a recurring foil rather than the lead, and the show is sharper about him than most straight adaptations.",
  where:"HBO Max",
  films:[
- {t:"Harley Quinn",sub:"Season 1",y:2019,ep:13,k:"tv",e:0,d:"Harley leaves the Joker and builds her own crew. Diedrich Bader plays Batman again, very differently.",b:["m"],o:1},
- {t:"Harley Quinn",sub:"Season 2",y:2020,ep:13,k:"tv",e:0,d:"Gotham falls apart and the Injustice League moves in.",b:["m"],o:1},
- {t:"Harley Quinn",sub:"Season 3",y:2022,ep:10,k:"tv",e:0,d:"Harley and Ivy together, with Bruce in Arkham for much of it.",b:["m"],o:1},
- {t:"Harley Quinn",sub:"Season 4",y:2023,ep:10,k:"tv",e:0,d:"Harley tries heroism; Ivy runs the Legion of Doom.",b:["m"],o:1},
- {t:"Harley Quinn",sub:"Season 5",y:2024,ep:10,k:"tv",e:0,d:"The most recent run.",b:["m"],o:1}]},
+ {i:"harley-quinn-season-1-2019",t:"Harley Quinn",sub:"Season 1",y:2019,ep:13,k:"tv",e:0,d:"Harley leaves the Joker and builds her own crew. Diedrich Bader plays Batman again, very differently.",b:["m"],o:1},
+ {i:"harley-quinn-season-2-2020",t:"Harley Quinn",sub:"Season 2",y:2020,ep:13,k:"tv",e:0,d:"Gotham falls apart and the Injustice League moves in.",b:["m"],o:1},
+ {i:"harley-quinn-season-3-2022",t:"Harley Quinn",sub:"Season 3",y:2022,ep:10,k:"tv",e:0,d:"Harley and Ivy together, with Bruce in Arkham for much of it.",b:["m"],o:1},
+ {i:"harley-quinn-season-4-2023",t:"Harley Quinn",sub:"Season 4",y:2023,ep:10,k:"tv",e:0,d:"Harley tries heroism; Ivy runs the Legion of Doom.",b:["m"],o:1},
+ {i:"harley-quinn-season-5-2024",t:"Harley Quinn",sub:"Season 5",y:2024,ep:10,k:"tv",e:0,d:"The most recent run.",b:["m"],o:1}]},
 
 {n:"26",name:"Teen Titans",
  note:"Two very different shows sharing a cast. Batman is mostly an off-screen presence shaping Robin, which is arguably the point.",
  where:"HBO Max",
  films:[
- {t:"Teen Titans",sub:"Complete series",y:2003,ep:65,k:"tv",e:0,d:"Anime-influenced, surprisingly serious, and built around Robin\u2019s obsession with Slade. Five seasons to 2006.",o:1},
- {t:"Teen Titans Go!",sub:"All seasons",y:2013,ep:400,k:"tv",e:0,d:"The comedy reboot, still running. Batman turns up as a recurring punchline. Listed as one entry \u2014 nobody is ticking off four hundred episodes.",o:1}]},
+ {i:"teen-titans-complete-series-2003",t:"Teen Titans",sub:"Complete series",y:2003,ep:65,k:"tv",e:0,d:"Anime-influenced, surprisingly serious, and built around Robin\u2019s obsession with Slade. Five seasons to 2006.",o:1},
+ {i:"teen-titans-go-all-seasons-2013",t:"Teen Titans Go!",sub:"All seasons",y:2013,ep:400,k:"tv",e:0,d:"The comedy reboot, still running. Batman turns up as a recurring punchline. Listed as one entry \u2014 nobody is ticking off four hundred episodes.",o:1}]},
 
 {n:"27",name:"Batwheels",
  note:"Preschool CG about the Bat-vehicles gaining sentience. Ethan Hawke voices Batman. Included for completeness \u2014 it is genuinely for small children.",
  where:"HBO Max",
  films:[
- {t:"Batwheels",sub:"Season 1",y:2022,ep:37,k:"tv",e:0,d:"The Batcomputer brings the vehicles to life while Batman is captured.",o:1},
- {t:"Batwheels",sub:"Season 2",y:2024,ep:20,k:"tv",e:0,d:"More of the same, with Nightwing\u2019s bike added to the garage.",o:1}]},
+ {i:"batwheels-season-1-2022",t:"Batwheels",sub:"Season 1",y:2022,ep:37,k:"tv",e:0,d:"The Batcomputer brings the vehicles to life while Batman is captured.",o:1},
+ {i:"batwheels-season-2-2024",t:"Batwheels",sub:"Season 2",y:2024,ep:20,k:"tv",e:0,d:"More of the same, with Nightwing\u2019s bike added to the garage.",o:1}]},
 
 {n:"28",name:"Merry Little Universe",
  note:"A gentler Damian Wayne, and the start of its own small continuity \u2014 the Bat-Fam series carries it on.",
  where:"Prime Video only",
  films:[
- {t:"Merry Little Batman",y:2023,e:8,d:"Damian, left home alone at Christmas, decides he is Batman now. Warm, funny, and gorgeously animated.",b:["e"]},
- {t:"Bat-Fam",sub:"Season 1",y:2025,ep:10,k:"tv",e:8,d:"The series continuation. Luke Wilson takes over as Bruce, running a household of reformed villains and a very small Damian.",o:1}]}
+ {i:"merry-little-batman-2023",t:"Merry Little Batman",y:2023,e:8,d:"Damian, left home alone at Christmas, decides he is Batman now. Warm, funny, and gorgeously animated.",b:["e"]},
+ {i:"bat-fam-season-1-2025",t:"Bat-Fam",sub:"Season 1",y:2025,ep:10,k:"tv",e:8,d:"The series continuation. Luke Wilson takes over as Bruce, running a household of reformed villains and a very small Damian.",o:1}]}
 ];
 
 var ERAS = [
@@ -570,18 +589,25 @@ var MODENOTE = {
  release:"Straight release order, 1993 to 2028. The only ordering that is objectively complete \u2014 it just jumps between universes constantly."
 };
 
-function slug(t){ return t.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,44); }
+/* Stable IDs are FROZEN in the data as i:"..." and must never change.
+   Titles are display text only - rename them freely. Adding entries is always
+   safe; changing or removing an i breaks saved progress for real people. */
+function idHash(id){
+  var h = 2166136261, i;
+  for(i = 0; i < id.length; i++){ h ^= id.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return ("0000" + (h >>> 0).toString(36)).slice(-5);
+}
 
 var FILMS = [];
 PATH.forEach(function(g, gi){
   g.films.forEach(function(f, fx){
-    FILMS.push({id:slug(f.t+(f.sub?" "+f.sub:""))+"-"+f.y, gi:gi, ix:fx, gn:g.n, gname:g.name,
+    FILMS.push({id:f.i, gi:gi, ix:fx, gn:g.n, gname:g.name,
                 where:g.where, t:f.t, sub:f.sub||"", ep:f.ep||0, tv:(f.k==="tv"),
                 y:f.y, d:f.d, e:(f.e||0), b:f.b||[], o:!!f.o});
   });
 });
 
-var S = {tab:"home", scope:"movies", mode:"continuity", filter:"all", q:"",
+var S = {tab:"home", scope:"movies", mode:"continuity", filter:"all", q:"", code:"",
          watched:{}, skipped:{}, rated:{}, open:{}, groupOpen:{}, log:[]};
 var KEY = "batwatch-v3";
 var canSave = true;
@@ -746,6 +772,57 @@ function rate(id, n){
   persist(); render();
 }
 
+function exportCode(){
+  var w = [], k = [], r = [];
+  FILMS.forEach(function(f){
+    var h = idHash(f.id);
+    if(S.watched[f.id]) w.push(h);
+    if(S.skipped[f.id]) k.push(h);
+    if(S.rated[f.id])  r.push(h + S.rated[f.id]);
+  });
+  return "NW1W" + w.join("") + "S" + k.join("") + "R" + r.join("");
+}
+function importCode(raw){
+  var code = String(raw || "").trim().replace(/\s+/g, "");
+  var hit = code.indexOf("NW1W");
+  if(hit > 0) code = code.slice(hit);                    /* tolerate a pasted URL */
+  var m = /^NW1W([0-9a-z]*)S([0-9a-z]*)R([0-9a-z]*)$/.exec(code);
+  if(!m) return null;
+  var map = {}, i, id;
+  FILMS.forEach(function(f){ map[idHash(f.id)] = f.id; });
+  var res = {watched:{}, skipped:{}, rated:{}, found:0, unknown:0};
+  for(i = 0; i + 5 <= m[1].length; i += 5){
+    id = map[m[1].substr(i,5)];
+    if(id){ res.watched[id] = 1; res.found++; } else res.unknown++;
+  }
+  for(i = 0; i + 5 <= m[2].length; i += 5){
+    id = map[m[2].substr(i,5)];
+    if(id){ res.skipped[id] = 1; res.found++; } else res.unknown++;
+  }
+  for(i = 0; i + 6 <= m[3].length; i += 6){
+    id = map[m[3].substr(i,5)];
+    var n = parseInt(m[3].charAt(i+5), 10);
+    if(id && n){ res.rated[id] = n; }
+  }
+  return res;
+}
+function applyImport(res){
+  var id;
+  for(id in res.watched){ if(!S.watched[id]){ S.watched[id] = 1; S.log.push({id:id, ts:Date.now()}); } }
+  for(id in res.skipped){ if(!S.watched[id]) S.skipped[id] = 1; }
+  for(id in res.rated){ S.rated[id] = res.rated[id]; }
+  persist(); render();
+}
+function scopeSwitch(){
+  var nFilm = FILMS.filter(function(f){ return !f.tv; }).length;
+  var nTv = FILMS.filter(function(f){ return f.tv; }).length;
+  return '<div class="scope">'+
+    '<button data-scope="movies" aria-pressed="'+(S.scope==="movies")+'">Movies</button>'+
+    '<button data-scope="all" aria-pressed="'+(S.scope==="all")+'">Movies + Series</button></div>'+
+    '<p class="scopenote">'+(S.scope==="movies"
+      ? nFilm+' films. Switch on the series to add '+nTv+' seasons of television \u2014 every show from 1968 to now.'
+      : nFilm+' films and '+nTv+' seasons of television, woven into the same orders.')+'</p>';
+}
 function viewHome(){
   var c = counts();
   var nxt = upNext();
@@ -781,14 +858,7 @@ function viewHome(){
       '<p class="blurb">Gotham sleeps. All 95 films logged — including every side story.</p></div>';
   }
 
-  var nFilm = FILMS.filter(function(f){ return !f.tv; }).length;
-  var nTv = FILMS.filter(function(f){ return f.tv; }).length;
-  html += '<div class="scope">'+
-    '<button data-scope="movies" aria-pressed="'+(S.scope==="movies")+'">Movies</button>'+
-    '<button data-scope="all" aria-pressed="'+(S.scope==="all")+'">Movies + Series</button></div>'+
-    '<p class="scopenote">'+(S.scope==="movies"
-      ? nFilm+' films. Switch on the series to add '+nTv+' seasons of television \u2014 every show from 1968 to now.'
-      : nFilm+' films and '+nTv+' seasons of television, woven into the same orders.')+'</p>';
+  html += scopeSwitch();
 
   var segs = "";
   for(var i = 0; i < ess.length; i++){ segs += '<i class="'+(i < essDone ? "on" : "")+'"></i>'; }
@@ -979,7 +1049,7 @@ function viewStats(){
     return {key:"e"+era.k, films:FILMS.filter(function(f){ return f.e === era.k && visible(f); })};
   }).filter(function(g){ return g.films.length; });
 
-  var html = '<div class="pies">'+
+  var html = scopeSwitch() + '<div class="pies" style="margin-top:18px">'+
     donut(uniGroups, "The universes", "16 continuities \u00b7 tap a slice") +
     donut(lifeGroups, "Bruce\u2019s life", "11 eras \u00b7 tap a slice") +
     '</div>'+
@@ -1027,6 +1097,30 @@ function viewStats(){
         new Array(S.rated[f.id]+1).join("\u2605")+'</span></div>';
     });
   }
+  html += '<div class="bk"><h3>Backup &amp; transfer</h3>'+
+    '<p>Your progress lives only in this browser \u2014 a new phone, or clearing site data, starts you at zero. '+
+    'Make a code and you can carry it anywhere.</p><div class="bkbtns">'+
+    '<button class="bkbtn primary" data-act="mkcode">'+(S.code ? "Refresh code" : "Create backup code")+'</button>'+
+    (S.code ? '<button class="bkbtn" data-act="dl">Download</button>' : '')+
+    '</div>';
+  if(S.code){
+    html += '<textarea class="code" readonly rows="3" id="codebox">'+esc(S.code)+'</textarea>'+
+      '<div class="bkbtns"><button class="bkbtn" data-act="copy">Copy code</button></div>';
+    var qrOk = false;
+    try{
+      var link = location.origin + location.pathname + "#nw=" + S.code;
+      var q = qrcode(0, "L"); q.addData(link); q.make();
+      html += '<p class="qrcap" style="margin-top:16px">Scan with your new phone</p>'+
+        '<div class="qrwrap">'+q.createSvgTag({cellSize:3, margin:2, scalable:true})+'</div>'+
+        '<p class="warn">Opens Night Watcher on that device and restores everything.</p>';
+      qrOk = true;
+    }catch(e){}
+    if(!qrOk) html += '<p class="warn">Code too long for a QR here \u2014 use Copy or Download.</p>';
+  }
+  html += '<hr class="bkhr"><h3>Restore</h3>'+
+    '<p>Paste a backup code from another device. It merges in \u2014 nothing already ticked is lost.</p>'+
+    '<textarea class="bkin" id="restorebox" placeholder="NW1W..."></textarea>'+
+    '<div class="bkbtns"><button class="bkbtn" data-act="restore">Restore progress</button></div></div>';
   html += '<button class="danger" data-act="reset">Clear all progress</button>';
   html += '<p class="note">'+(canSave
     ? "Progress saves automatically on this device and follows you across all three orderings."
@@ -1103,7 +1197,40 @@ document.getElementById("view").addEventListener("click", function(e){
   else if(act === "rate"){ rate(id, parseInt(b.dataset.n,10)); }
   else if(act === "expand"){ S.open[id] = !S.open[id]; render(); }
   else if(act === "group"){ var gk = b.dataset.gk; S.groupOpen[gk] = (S.groupOpen[gk] === false); render(); }
-  else if(act === "reset"){ S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; persist(); render(); toast("Progress cleared"); }
+  else if(act === "mkcode"){ S.code = exportCode(); render(); toast("Code ready"); }
+  else if(act === "copy"){
+    var box = document.getElementById("codebox");
+    if(box){
+      box.focus(); box.select();
+      var done = false;
+      try{ done = document.execCommand("copy"); }catch(e){}
+      if(!done && navigator.clipboard){
+        navigator.clipboard.writeText(S.code).then(function(){ toast("Copied"); },
+                                                   function(){ toast("Select and copy"); });
+        return;
+      }
+      toast(done ? "Copied" : "Select and copy");
+    }
+  }
+  else if(act === "dl"){
+    try{
+      var blob = new Blob([S.code + "\n"], {type:"text/plain"});
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "night-watcher-backup.txt";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+      toast("Downloaded");
+    }catch(e){ toast("Download unavailable"); }
+  }
+  else if(act === "restore"){
+    var ta = document.getElementById("restorebox");
+    var res = importCode(ta ? ta.value : "");
+    if(!res){ toast("That code isn\u2019t valid"); return; }
+    applyImport(res);
+    toast("Restored " + res.found + (res.unknown ? " \u00b7 " + res.unknown + " unknown" : ""));
+  }
+  else if(act === "reset"){ S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.code = ""; persist(); render(); toast("Progress cleared"); }
 });
 
 document.getElementById("view").addEventListener("input", function(e){
@@ -1111,7 +1238,21 @@ document.getElementById("view").addEventListener("input", function(e){
   S.q = e.target.value; render();
 });
 
-restore(render);
+restore(function(){
+  try{
+    var h = location.hash || "";
+    if(h.indexOf("#nw=") === 0){
+      var res = importCode(decodeURIComponent(h.slice(4)));
+      if(res){
+        applyImport(res);
+        S.tab = "home";
+        setTimeout(function(){ toast("Restored " + res.found + " from your backup"); }, 400);
+      }
+      if(history.replaceState) history.replaceState(null, "", location.pathname);
+    }
+  }catch(e){}
+  render();
+});
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "56234d8ef9da41639508bb60f7ef72d3"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
