@@ -5,9 +5,12 @@
   "scripts": {
     "test": "node qa/guards.js && node qa/smoke.js",
     "guards": "node qa/guards.js",
-    "bless": "node qa/guards.js --bless"
+    "bless": "node qa/guards.js --bless",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "devDependencies": {
-    "jsdom": "^30.0.0"
+    "jsdom": "^30.0.0",
+    "wrangler": "^4.114.0"
   }
 }
