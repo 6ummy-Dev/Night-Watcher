@@ -19,6 +19,86 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.1.0] — 2026-07-27
+
+Acted on an external QA review. Two of its five findings were already fixed in
+1.0.0, one was based on a miscalculation, and one was real but in a different
+place than reported — the reasoning is kept here so the same review does not get
+re-litigated the next time it lands.
+
+### Fixed
+
+- **A blocked store now says so.** Safari Private Browsing, an exhausted quota
+  and some embedded webviews all make writes throw. The app already caught that
+  and set `canSave = false`, but said nothing: ticking kept working in memory
+  and the entire session disappeared on reload. A warning now sits inside the
+  sticky header — below the header it would scroll away, and this is the one
+  message that must not be missed. It is checked on every render and on both
+  failure paths, so a store that dies mid-session surfaces too.
+- **`.hero .yr` reads `--dust` instead of `--dim`.** The hero is a gradient from
+  `--card2`, and the year line sits high enough in it to measure roughly
+  **4.33:1** — under the 4.5:1 AA floor. Everything lower in the hero has
+  reached `--card` and passes.
+- **Star buttons are a 36×44 target**, up from 30×34. The width carries what was
+  the gap so neighbouring stars tile exactly rather than overlap — an
+  overlapping expansion would make rating *less* accurate, which is the opposite
+  of the point — and the height comes from a pseudo-element, so the row does not
+  grow by 10px. A full 44 wide would need a 220px row and push the buttons in
+  `.acts` onto a line of their own; 30px already cleared WCAG 2.2 AA (2.5.8,
+  24×24), so that trade was not worth making for an AAA-level target.
+
+### Changed
+
+- **The backup-code parser tolerates codes it was not written for.** A code is
+  now read as `NW<version>` plus segments, and unrecognised segments and version
+  numbers are skipped rather than rejected. `exportCode` still writes `NW1`, so
+  codes remain interchangeable with 1.0.0 in both directions — nothing new is
+  being carried yet. This ships now precisely because it is worthless later:
+  forward tolerance only helps if it is already installed when the first code
+  that needs it appears.
+
+### Added
+
+- Guard: text contrast is computed from the palette rather than argued about.
+  `--dim` measures **5.03:1** on `--sunk` and **4.57:1** on `--card` — the review
+  reported 3.2:1 and asked for it to be lightened, which would have flattened the
+  meta/body hierarchy to fix nothing. The guard fails under 4.5:1, warns under
+  4.8:1, and hard-fails if `.hero .yr` returns to `--dim`.
+- Guard: the storage warning must exist, must sit inside `<header>`, must have
+  its `[hidden]` rule, and `flagSave()` must be called on all four paths.
+- Guard: the parser must accept a forward-dated code (`NW2` carrying an unknown
+  segment), must still accept a pasted restore URL, and must still reject junk.
+- Guard 7 now **extracts** `exportCode` and `importCode` from `index.html`
+  instead of reimplementing them. The copies had already drifted out of sync
+  with the app, which is the exact failure this file exists to prevent — the
+  parser change above would have gone completely untested.
+- Guard: no `\uXXXX` escape may appear in the static markup. Inside `<script>`
+  that sequence is an em dash; in markup it is six literal characters. Writing
+  markup by adapting a nearby JS string is the natural way to do it, and it
+  produced exactly this bug while the storage warning was being written.
+- `qa/smoke.js` grew from 24 checks to 41. It now boots a **second document with
+  `localStorage` throwing**, which is the only way to observe the silent-failure
+  bug this release fixes, and drives the real in-page parser against a 1.0.0
+  code, a forward-dated `NW2` code, a pasted restore URL, a code broken across
+  lines, and five kinds of junk.
+- Verified across two live documents that a 1.0.0 page and a 1.1.0 page produce
+  **byte-identical codes** for identical progress and restore each other's
+  correctly in both directions. A `NW2` code is, as designed, rejected by 1.0.0 —
+  which is the whole argument for shipping the tolerance before it is needed.
+
+### Not changed, deliberately
+
+- **`idHash` stays 5 characters.** The review put collision risk at 0.019% today
+  and >1% past ~300 entries, and asked for 6. Guard 3 has measured that since
+  1.0.0 and warns at 1%; widening the hash means a new code format and orphans
+  every backup already saved. The day a collision is real, the guard fails the
+  build and the format changes then.
+- **Tier badges already carry text.** `BADGE` renders the words ESSENTIAL, CORE
+  and OPTIONAL, and guard 6 fails if any badge key lacks a label, so the
+  colour-blindness finding does not apply.
+- **The Cloudflare SPA fallback** was fixed before 1.0.0 — `not_found_handling`
+  is `"none"` and guard 10b fails if anyone re-enables it.
+
 ## [1.0.0] — 2026-07-27
 
 First public release: **96 films and 55 seasons of television, 1,434 episodes
