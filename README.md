@@ -11,15 +11,27 @@ Also available on Cloudflare Workers (static assets).
 ## What it does
 
 - **One switch, two journeys.** Opens on **Movies** for the 96 films. Flip to **Movies + Series** and 55 seasons — 1,434 episodes, every show from *The Adventures of Batman* (1968) to *Caped Crusader* (2026) — weave into the same orders. Nothing else about the app changes.
-- **Three orderings.** By universe (spoiler-safe), as one composite chronology of Bruce's life, or straight release order from 1968 to 2028.
+- **One path, chosen once.** Pick by universe (spoiler-safe), the composite chronology of Bruce's life, or straight release order from 1968 to 2028 — and the whole app follows it. No switcher to re-answer on every visit; the header carries the path name and Home leads with its completion ring. Change it whenever you like: switching re-sorts, it never clears a tick.
+- **Shared links are views, not takeovers.** Following someone's `#life` link shows you their ordering and offers to adopt it, rather than silently rewriting yours.
 - **Three tiers.** Everything is tagged **Essential**, **Core**, or **Optional** — tiers are exclusive, with Essential outranking Optional — plus modifiers (Mature, Short, Interactive, Not out yet). Nothing is untagged.
 - **Home dashboard.** Resume card, tier meters, scoreboard, a tappable grid of every universe, and your recent watches.
 - **Progress.** Two donut charts — one for the universes, one for the eras of Bruce's life — where each slice is sized by its share of the catalogue and fills as you watch. Tap any slice to jump straight there.
 - **Live where-to-watch links.** JustWatch, Prime Video and Apple TV searches on every entry, so availability stays correct as streaming libraries rotate.
-- **Backup & transfer.** A compact code, a scannable QR that restores on a new phone, and a full JSON export/import — all client-side, built on frozen IDs so backups stay valid forever. The code is versioned and read tolerantly: a code written by a newer build still restores everything an older one understands.
+- **Backup & transfer.** A compact code, a scannable QR that restores on a new phone, and a full JSON export/import — all client-side, built on frozen IDs so backups stay valid forever. The code is versioned and read tolerantly: it carries your chosen path, and a code written by a newer build still restores everything an older one understands.
 - **Shareable views.** Link straight to a view: [`#life`](https://6ummy-dev.github.io/Night-Watcher/#life) for the chronology of Bruce's life, `#release`, `#universes`, `#progress` — combine with scope like `#life-series`.
 - **Progress that sticks.** Watched, skipped and star ratings saved in your browser (localStorage). No accounts, no server; your watch data never leaves your device — and if the browser refuses to save (Private Browsing, a full quota, some in-app webviews) the app says so in the header instead of losing your evening silently.
+- **Darker.** An optional pure-black variant for watching in an actually dark room, including the system status bar. Surfaces only — the palette, type and accents are unchanged.
 - **Anonymous visit counts** via [Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/): cookie-free, no fingerprinting, no personal data.
+
+## Non-goals
+
+These are the constraints the app is built around, not features nobody has got to yet. Two of them are enforced by `qa/guards.js` rather than by good intentions.
+
+- **No accounts, ever.** Nothing to sign up for, nothing to log into.
+- **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
+- **No runtime dependencies** — *guarded.* One vendored MIT QR encoder, inlined. Nothing is fetched from a CDN; the app runs with the network off.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 150 KB raw and 50 KB gzipped; it is currently 138 KB / 45 KB. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
 
@@ -74,15 +86,17 @@ node qa/guards.js --bless  # re-snapshot frozen IDs after adding entries
 
 Zero dependencies, and every function under test is **extracted from `docs/index.html` and evaluated**, never reimplemented here — a copy drifts from the app and quietly stops testing it, which is the exact failure this file exists to prevent.
 
-**Data and progress.** Every `i:` is present, unique and unchanged since the last snapshot. No two backup-code hashes collide, with the birthday risk reported on every run. Every entry lands in exactly one tier, and Core route + Optional accounts for the whole catalogue. Every era and year has a bucket. The backup code round-trips losslessly, still reads a forward-dated code carrying segments this build has never seen, still reads a pasted restore URL, and still rejects junk. The worst-case QR payload still fits.
+**Data and progress.** Every `i:` is present, unique and unchanged since the last snapshot. The path vocabulary agrees with itself — every ordering has a label, a chooser blurb and a backup-code letter that round-trips, because two paths sharing a letter would restore as each other. No two backup-code hashes collide, with the birthday risk reported on every run. Every entry lands in exactly one tier, and Core route + Optional accounts for the whole catalogue. Every era and year has a bucket. The backup code round-trips losslessly, still reads a forward-dated code carrying segments this build has never seen, still reads a pasted restore URL, and still rejects junk. The worst-case QR payload still fits.
 
-**Interface.** Text contrast is computed from the palette and measured against the surface it sits on, rather than argued about by eye. The storage-blocked warning must exist, must sit inside the sticky header where it cannot scroll away, and must be wired to every path that can turn saving off. No `\uXXXX` escape may appear in the static markup — inside a script that is an em dash, in markup it is six literal characters. One hero size, declared once. The centred column may not shift between tabs.
+**Interface.** Text contrast is computed from the palette and measured against the surface it sits on, for every theme rather than just the default. The mode switcher may not return to The Path, the chooser and path card must exist, and `persist()` may not write the currently-viewed ordering as the chosen path — that is how a shared link would quietly overwrite it. Every theme needs a status-bar colour, and the header and tab bar must stay on tokens so a theme can reach them. The storage-blocked warning must exist, must sit inside the sticky header where it cannot scroll away, and must be wired to every path that can turn saving off. No `\uXXXX` escape may appear in the static markup — inside a script that is an em dash, in markup it is six literal characters. One hero size, declared once. The centred column may not shift between tabs.
+
+**Weight.** `index.html` must stay inside the size budget above, and no external script may be loaded at runtime.
 
 **Deployment and bookkeeping.** Nothing deployable strays to the repo root, `wrangler.jsonc` points at the served directory with SPA fallback off, and `sw.js`, `index.html` and `CHANGELOG.md` all agree on the version. The four headline counts in this README — and the counts baked into the `<meta>` and `og:` description tags — match the data.
 
 Every guard has been negative-tested: made to fail on purpose before being trusted.
 
-There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. 38 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
+There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. It drives the path end to end: the chooser on first run, choosing through the real click handler, a reload returning on the same path and theme, a 1.1.0 save migrating without being asked again, and a shared link that does not change what is stored. 72 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
 
 ## Releasing
 

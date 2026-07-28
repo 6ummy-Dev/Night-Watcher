@@ -19,6 +19,84 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.2.0] — 2026-07-27
+
+The ordering becomes a choice you make once instead of a question the app asks
+on every visit. Plus a darker theme. The catalogue is unchanged.
+
+### Added
+
+- **Your path.** The three orderings are no longer a switcher — you pick one and
+  the whole app follows it. Home is the chooser until you have picked; after
+  that it leads with a path card carrying that path's own completion ring and a
+  quiet **Change**. The header sub-line reads the path name on every screen, so
+  the reminder costs no new chrome. `S.path` is the locked choice; `S.mode` is
+  what is currently on screen.
+- **Following a shared link no longer rewrites your path.** `#life`, `#release`
+  and `#universes` set `mode` only, and The Path shows a banner offering to
+  adopt what you are looking at. Only `path` is persisted, which is what makes a
+  view a view.
+- **Darker.** A pure-black AMOLED variant for watching in an actually dark room,
+  in Progress next to the path row. Surfaces only — every text and accent token
+  is untouched, so contrast can only improve: `--dim` on `--card` measures
+  **5.07:1** against the default theme's 4.57:1. The header and tab bar were
+  hardcoded `rgba()` and are now tokens, or no theme could have reached them.
+  `<meta name="theme-color">` is repainted at runtime, since CSS cannot touch
+  the system status bar and an installed app would otherwise show a header in
+  one colour under a bar in the other.
+
+### Changed
+
+- **The Path stops asking.** The three-way switcher is gone from the tab; it
+  survives as Change on Home and one row in Progress. Two controls removed from
+  a screen you visit constantly, for a decision you make once.
+- **Backup codes are `NW2`** and carry the chosen path in a `P` segment, so a
+  restore onto a new phone arrives already on the right ordering. Verified
+  against the real shipped 1.1.0 build in both directions: 1.1.0 restores
+  everything except the path from an `NW2` code — exactly what the forward
+  tolerance shipped in that release was for — and 1.2.0 still reads every `NW1`
+  code ever written. 1.0.0 will reject `NW2`; `sw.js` is network-first, so any
+  1.0.0 client that has opened online since is already past it.
+- JSON exports are `v:2` and carry the path. A restore adopts it only when no
+  path is set locally — restore merges progress, it does not take over a device.
+- `persist()` writes `mode` as well as `path`, deliberately carrying the *path*
+  value: a 1.1.0 build reading this payload knows nothing about `path` and would
+  otherwise fall back to its own default, landing the user in an ordering they
+  never chose.
+
+### Migration
+
+Anyone upgrading from 1.1.0 has their saved `mode` adopted as their path. They
+already answered this question; asking again with progress on the board would be
+asking for nothing. The chooser is for genuinely new arrivals — a save with no
+ordering at all still gets it.
+
+### Added — guards
+
+- The path vocabulary must agree with itself: every path in `PATHS` needs a
+  blurb, a code letter, and a letter that round-trips. Two paths sharing a
+  letter would restore as each other.
+- The switcher may not return to The Path, the path card and chooser must exist,
+  Change must exist, and `persist()` may not write `S.mode` as the path — that
+  last one is how following a shared link would quietly overwrite your ordering.
+- **Contrast is now measured per theme.** The previous version took the first
+  value of each token seen anywhere in the file, which measured the default
+  palette and would have ignored the darker one entirely. Themes are parsed as
+  blocks; a second palette failing AA is precisely the regression this guard
+  exists to catch, and it would have sailed straight through.
+- Every theme needs a `THEMEBAR` colour, `applyTheme()` must be called, and the
+  header and tab bar must stay on tokens.
+- **A weight budget:** 150 KB raw and 50 KB gzipped, currently **138.5 / 45.5**.
+  Nothing enforced the premise but good intentions. It should hurt to import a
+  library. No external script may be loaded at runtime.
+
+`qa/smoke.js` grew from 38 checks to 72 — first run shows three cards and no
+hero, choosing goes through the real click handler, a reload comes back on the
+path and theme, a 1.1.0 payload migrates without being asked again, a save with
+no ordering still gets the chooser, viewing a foreign ordering does not change
+storage, switching path keeps every tick, and the status bar follows the theme
+both ways. Every new guard was negative-tested.
+
 ## [1.1.0] — 2026-07-27
 
 Acted on an external QA review. Two of its five findings were already fixed in
