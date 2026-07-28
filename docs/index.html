@@ -179,7 +179,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .stars button.on{color:var(--signal);}
 .lnk{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line2);border-radius:8px;padding:10px 12px;color:var(--steel);min-height:38px;display:inline-flex;align-items:center;text-decoration:none;}
 .lnk:active{background:var(--card2);}
-.linkrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.linkrow{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:10px;}
 
 .hero{border:1px solid var(--line);border-radius:16px;background:linear-gradient(175deg,var(--card2),var(--card) 60%);padding:22px 20px 20px;}
 .hero .kick{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0 0 12px;}
@@ -666,7 +666,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.3.1";
+var BUILD = "1.3.2";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -847,20 +847,13 @@ function badges(f){
   });
   return '<span class="badges">'+out.join("")+'</span>';
 }
-/* The aggregator's country codes are its own, not ISO \u2014 the UK is /uk, not
-   /gb \u2014 and the search segment is localised (/us/search, /uy/buscar). Neither
-   can be derived safely, so only pairs checked against a live page ship here.
-   Everyone else gets the root, which redirects to their country. */
-var JW = {us:"us/search", uy:"uy/buscar"};
+/* A search engine instead of an aggregator. One URL shape everywhere: no
+   country in the path, no localised segment, nothing to verify per market and
+   nothing that can 404. Three attempts at building an aggregator URL shipped or
+   staged broken before this. */
 function watchUrl(title){
-  var langs = (navigator.languages && navigator.languages.length)
-      ? navigator.languages : [navigator.language || ""];
-  for(var i = 0; i < langs.length; i++){
-    if(!/^[a-z]{2}-[a-z]{2}$/i.test(langs[i])) continue;
-    var path = JW[langs[i].slice(3).toLowerCase()];
-    if(path) return "https://www.justwatch.com/" + path + "?q=" + encodeURIComponent(title);
-  }
-  return "https://www.justwatch.com/";
+  return "https://search.brave.com/search?q=" +
+         encodeURIComponent("where to watch " + title);
 }
 function watchLinks(f){
   return '<a class="lnk" href="'+watchUrl(f.t)+
