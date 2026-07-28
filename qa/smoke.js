@@ -77,6 +77,28 @@ win.addEventListener("load", function(){
     check("adopting the view sets the path", S.path === "release" && S.mode === "release");
     S.tab = "watch"; S.path = S.mode = "life"; win.persist(); win.render();
 
+    /* --- a view has to be reversible without a reload (1.2.1) --- */
+    /* Reported from the field: choose Bruce's life, tap a universe card on
+       Home, land in by-universe with no way back. mode is not persisted, so a
+       reload appeared to fix it, which is what made a missing control look
+       like a glitch. */
+    S.path = S.mode = "life"; S.tab = "home"; win.persist(); win.render();
+    doc.querySelector('#view [data-act="jump"]').click();
+    check("a Home card enters a view of another ordering",
+          S.mode === "continuity" && S.path === "life", "mode=" + S.mode);
+    check("the banner offers a way back", !!doc.querySelector('.viewing [data-act="mypath"]'));
+    check("the way back names your path",
+          /Bruce/.test((doc.querySelector('[data-act="mypath"]') || {textContent:""}).textContent));
+    doc.querySelector('.viewing [data-act="mypath"]').click();
+    check("it returns to your path with no reload", S.mode === "life", "mode=" + S.mode);
+    check("and the banner clears", !doc.querySelector(".viewing"));
+    doc.querySelector('#tabs [data-tab="home"]').click();
+    doc.querySelector('#view [data-act="jump"]').click();
+    doc.querySelector('#tabs [data-tab="next"]').click();
+    doc.querySelector('#tabs [data-tab="watch"]').click();
+    check("tapping The Path tab also returns to your path", S.mode === "life", "mode=" + S.mode);
+    S.tab = "watch"; win.render();
+
     /* --- switching never costs progress --- */
     var beforeSwitch = Object.keys(S.watched).length;
     S.watched[FILMS[3].id] = 1; win.persist();

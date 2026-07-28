@@ -599,6 +599,20 @@ if(HTML.indexOf('class="pick"') < 0){
 if(!/data-act="repath"/.test(HTML)){
   fail("the Change control on the path card is gone — the choice would be permanent");
 }
+/* A view has to be a door, not a trap. The banner shipped in 1.2.0 offered
+   only "make this my path", so tapping a universe on Home dropped you into
+   by-universe with no way back except a reload — mode is deliberately not
+   persisted, which is precisely why a reload looked like it fixed things and
+   made a missing control look like a glitch. */
+if(!/data-act="mypath"/.test(HTML)){
+  fail("the viewing banner has no way back to the chosen path — entering a view " +
+       "from a Home card would be one-way until a reload");
+}
+if(!/dataset\.tab === "watch" && S\.path/.test(HTML)){
+  fail("tapping The Path tab no longer returns to the chosen path — a view " +
+       "would outlive the visit that started it");
+}
+
 /* mode must stay OUT of what gets persisted as the path, or following someone
    else's shared link quietly rewrites your own ordering. */
 if(/payload = JSON\.stringify\(\{[^}]*mode:S\.mode/.test(HTML)){
