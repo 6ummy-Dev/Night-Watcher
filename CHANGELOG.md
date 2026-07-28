@@ -19,6 +19,46 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.2.4] — 2026-07-28
+
+### Removed
+
+- **The QR encoder.** 20 KB of vendored, minified third-party JavaScript — 15% of
+  the whole file, carrying a licence obligation — for a feature used twice a
+  year. **index.html drops from 131.4 KB to 111.2 KB raw, and 42.4 KB to 34.9 KB
+  gzipped.** The app now contains no third-party code at all.
+
+### Changed
+
+- **Transfer is a link instead of a QR.** This is not a replacement built for the
+  occasion: `restoreLink()` already existed, already produced a `#nw=` URL, and
+  the app already restored from that hash on load. The QR was one *presentation*
+  of that link and the only thing surfacing it — **Copy link** now does the job
+  in three lines.
+
+  It is also better. A link travels through any messaging app, needs no camera,
+  no line of sight and no second device present, and it never hits the capacity
+  ceiling the QR did — the old panel had a fallback for codes too long to encode.
+
+### Added — guards
+
+- The Copy link control, `restoreLink()` and the `#nw=` handler must all exist.
+  With the QR gone the link is the entire transfer mechanism, and losing the
+  control that surfaces it would quietly reduce transfer to copy-and-paste.
+- No vendored third-party code may return to `index.html`.
+- Guard 8 previously measured worst-case QR payload against v40-L capacity. That
+  ceiling no longer exists, so the guard now protects the link instead.
+
+`qa/smoke.js` is 83 checks: making a code surfaces Copy link, the link is
+absolute and carries the code, opening it restores, and no QR encoder is loaded.
+
+### Headroom
+
+18.5 KB → **38.8 KB raw**. At 246 bytes per entry that is room for roughly 155
+more titles rather than 75, which changes the live-action expansion from tight to
+comfortable and makes the planned v1.5.0 efficiency pass optional rather than a
+prerequisite.
+
 ## [1.2.3] — 2026-07-28
 
 A catalogue QA pass. No code paths changed, no IDs added or renamed — still 151
