@@ -33,6 +33,74 @@ win.addEventListener("load", function(){
 
     var S = win.S, FILMS = win.FILMS, tierOf = win.tierOf;
 
+    /* --- first run: Home IS the chooser, and nothing else --- */
+    var doc = win.document;
+    check("no path is set on a fresh device", S.path === "", 'path="' + S.path + '"');
+    check("Home shows the three path cards", doc.querySelectorAll(".pick").length === 3,
+          doc.querySelectorAll(".pick").length + " cards");
+    check("Home shows no hero until a path is chosen", !doc.querySelector("#view .hero"));
+    check("chooser cards all carry a blurb",
+          Array.prototype.every.call(doc.querySelectorAll(".pick"), function(b){
+            return b.querySelector("span") && b.querySelector("span").textContent.length > 20;
+          }));
+
+    /* --- choosing one: through the real click handler, not by assignment --- */
+    doc.querySelector('.pick[data-path="life"]').click();
+    check("choosing sets both path and mode", S.path === "life" && S.mode === "life",
+          "path=" + S.path + " mode=" + S.mode);
+    check("Home swaps the chooser for the path card",
+          !doc.querySelector(".pick") && !!doc.querySelector(".pathcard"));
+    check("the path card names the path",
+          /Bruce/.test(doc.querySelector(".pathname").textContent),
+          doc.querySelector(".pathname").textContent);
+    check("the header sub-line carries the path name",
+          /Bruce/.test(doc.getElementById("hsub").textContent),
+          doc.getElementById("hsub").textContent);
+    check("the choice was written to storage",
+          /"path":"life"/.test(win.localStorage.getItem("batwatch-v3") || ""));
+
+    /* --- The Path stops asking --- */
+    S.tab = "watch"; win.render();
+    check("The Path has no mode switcher", doc.querySelectorAll("#view [data-mode]").length === 0,
+          doc.querySelectorAll("#view [data-mode]").length + " switcher buttons");
+    check("The Path titles the chosen ordering",
+          !!doc.querySelector(".pathtitle") && /Bruce/.test(doc.querySelector(".pathtitle").textContent));
+    check("no adopt banner while mode agrees with path", !doc.querySelector(".viewing"));
+
+    /* --- a shared link is a VIEW, not a takeover --- */
+    S.mode = "release"; win.render();
+    check("a foreign ordering offers to be adopted", !!doc.querySelector(".viewing"));
+    check("viewing does not change the stored path", S.path === "life");
+    check("stored payload still says life after viewing",
+          /"path":"life"/.test(win.localStorage.getItem("batwatch-v3") || ""));
+    doc.querySelector('.viewing button[data-path="release"]').click();
+    check("adopting the view sets the path", S.path === "release" && S.mode === "release");
+    S.tab = "watch"; S.path = S.mode = "life"; win.persist(); win.render();
+
+    /* --- switching never costs progress --- */
+    var beforeSwitch = Object.keys(S.watched).length;
+    S.watched[FILMS[3].id] = 1; win.persist();
+    S.path = S.mode = "release"; win.persist(); win.render();
+    check("switching path keeps every tick",
+          Object.keys(S.watched).length === beforeSwitch + 1,
+          Object.keys(S.watched).length + " watched");
+    delete S.watched[FILMS[3].id];
+    S.path = S.mode = "life"; win.persist(); win.render();
+
+    /* --- darker --- */
+    var bar = function(){ return doc.querySelector('meta[name="theme-color"]').getAttribute("content"); };
+    check("default theme is dark", S.theme === "dark" &&
+          doc.documentElement.getAttribute("data-theme") === "dark", bar());
+    S.tab = "stats"; win.render();
+    doc.querySelector('#view [data-theme="darker"]').click();
+    check("darker sets the document attribute",
+          doc.documentElement.getAttribute("data-theme") === "darker");
+    check("darker repaints the status bar", bar() === "#000000", bar());
+    check("darker is persisted", /"theme":"darker"/.test(win.localStorage.getItem("batwatch-v3") || ""));
+    doc.querySelector('#view [data-theme="dark"]').click();
+    check("switching back restores the bar", bar() === "#0C111C", bar());
+    S.tab = "home"; win.render();
+
     /* --- tier partition closes in BOTH scopes (the 9-season gap) --- */
     ["movies", "all"].forEach(function(scope){
       S.scope = scope;
@@ -159,11 +227,12 @@ win.addEventListener("load", function(){
     S.rated[FILMS[0].id] = 4;
     var code = win.exportCode();
     var mine = win.importCode(code);
-    check("exportCode still writes NW1 (1.0.0 can read it)", /^NW1W/.test(code), code.slice(0, 14) + "…");
+    check("exportCode writes NW2", /^NW2W/.test(code), code.slice(0, 14) + "…");
+    check("the code carries the chosen path", /P[clr]$/.test(code), code.slice(-2));
     check("code round-trips in the page", mine && mine.found === Object.keys(S.watched).length,
           mine ? "found " + mine.found : "null");
 
-    var future = win.importCode(code.replace(/^NW1/, "NW2") + "P3X7ab");
+    var future = win.importCode(code + "X7ab");
     check("a future NW2 code with unknown segments still restores",
           future && mine && future.found === mine.found, future ? "found " + future.found : "REJECTED");
     check("unknown segments are ignored, not restored as junk",
@@ -172,11 +241,64 @@ win.addEventListener("load", function(){
           !!win.importCode("  " + win.SITE + "#nw=" + code + "  "));
     check("a code split across lines still works",
           !!win.importCode(code.slice(0, 10) + "\n" + code.slice(10)));
+    check("an NW1 code from 1.0.0 still restores",
+          !!win.importCode(code.replace(/^NW2/, "NW1").replace(/P[clr]$/, "")));
+    check("a code with no path segment still restores",
+          !!win.importCode(code.replace(/P[clr]$/, "")));
     var junkOk = ["", "hello", "NW1", "NW1W!!!", "not-a-code"].every(function(j){
       return win.importCode(j) === null;
     });
     check("junk is still rejected", junkOk);
 
+    /* --- the choice has to survive a reload, which is the entire point --- */
+    /* A fresh document with storage pre-seeded is a reload: same origin, same
+       key, no shared state with the document above. */
+    function reboot(seed, label, then){
+      var d = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://6ummy-dev.github.io/Night-Watcher/",
+        pretendToBeVisual:true, beforeParse:function(w){
+          w.localStorage.setItem("batwatch-v3", seed);
+        }});
+      d.window.addEventListener("load", function(){
+        setTimeout(function(){ then(d.window, d.window.document); }, 200);
+      });
+    }
+
+    S.path = S.mode = "release"; S.theme = "darker"; win.persist();
+    var saved = win.localStorage.getItem("batwatch-v3");
+
+    reboot(saved, "1.2.0", function(w2, d2){
+      check("a reload comes back on the chosen path", w2.S.path === "release", "path=" + w2.S.path);
+      check("a reload does not ask again", !d2.querySelector(".pick"));
+      check("a reload comes back in the chosen theme",
+            d2.documentElement.getAttribute("data-theme") === "darker");
+      w2.S.tab = "watch"; w2.render();
+      check("The Path opens in the chosen ordering",
+            /Release/i.test(d2.querySelector(".pathtitle").textContent),
+            d2.querySelector(".pathtitle").textContent);
+      check("no adopt banner after a clean reload", !d2.querySelector(".viewing"));
+
+      /* --- upgrading from 1.1.0: they already answered this question --- */
+      /* A 1.1.0 payload has mode and no path. Showing the chooser to someone
+         with progress on the board would be asking again for no reason. */
+      var legacy = JSON.stringify({watched:{}, skipped:{}, rated:{},
+        mode:"life", scope:"movies", log:[]});
+      reboot(legacy, "1.1.0", function(w3, d3){
+        check("a 1.1.0 save migrates its mode into the path", w3.S.path === "life",
+              "path=" + w3.S.path);
+        check("an upgrading user is not asked to choose again", !d3.querySelector(".pick"));
+        check("the migrated path renders the card", !!d3.querySelector(".pathcard"));
+
+        /* --- a save from before any of this still opens --- */
+        var ancient = JSON.stringify({watched:{}, skipped:{}, rated:{}, log:[]});
+        reboot(ancient, "no mode", function(w4, d4){
+          check("a save with no ordering at all falls back to the chooser",
+                w4.S.path === "" && !!d4.querySelector(".pick"));
+          runBlocked();
+        });
+      });
+    });
+
+    function runBlocked(){
     /* --- a blocked store must SAY so --- */
     /* The failure this exists for is silent: writes throw, canSave goes false,
        and the user keeps ticking into memory that dies on reload. Booting a
@@ -204,5 +326,6 @@ win.addEventListener("load", function(){
         process.exit(fails.length ? 1 : 0);
       }, 200);
     });
+    }
   }, 200);
 });

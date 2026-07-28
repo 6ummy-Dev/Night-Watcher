@@ -51,7 +51,8 @@ var sandbox = {};
 vm.createContext(sandbox);
 vm.runInContext(
   slice("var PATH = [", "var MODENOTE") + "\n" +
-  fn("idHash") + "\n" + fn("tierOf") + "\n" + fn("clampRating") + "\n",
+  slice("var PATHS = [", "function isPath") + "\n" +
+  fn("idHash") + "\n" + fn("tierOf") + "\n" + fn("clampRating") + "\n" + fn("isPath") + "\n",
   sandbox
 );
 
@@ -191,9 +192,27 @@ else {
    Tolerance is only worth anything if it shipped BEFORE the code that needs
    it, so it is guarded from the release that introduced it. */
 
-if(!/^NW1W/.test(code)){
-  fail("exportCode no longer writes NW1 — 1.0.0 clients cannot read the new codes; " +
-       "bump deliberately and say so in CHANGELOG.md");
+if(!/^NW2W/.test(code)){
+  fail("exportCode is not writing NW2 — 1.2.0 codes carry the chosen path in a " +
+       "P segment; bump deliberately and say so in CHANGELOG.md");
+}
+
+/* The promise made in 1.1.0: a build that has never heard of P still restores
+   everything else from this code. Simulated by stripping the segment, which is
+   precisely what a reader that skips unknown segments sees. */
+var without = code.replace(/P[0-9a-z]*$/, "");
+var older = importCode(without);
+if(!older) fail("a 1.1.0 reader (P segment skipped) cannot parse a 1.2.0 code");
+else if(Object.keys(older.watched).sort().join("|") !== Object.keys(back.watched).sort().join("|")){
+  fail("stripping the path segment loses watched entries — the forward tolerance " +
+       "shipped in 1.1.0 does not actually cover this format");
+}
+
+/* And codes already in the wild must still restore. */
+var legacy = importCode(without.replace(/^NW2/, "NW1"));
+if(!legacy) fail("a 1.0.0/1.1.0 NW1 code no longer imports — every saved backup just broke");
+else if(Object.keys(legacy.watched).sort().join("|") !== Object.keys(back.watched).sort().join("|")){
+  fail("NW1 codes import but lose entries");
 }
 
 var future = code.replace(/^NW1/, "NW2") + "P3" ;          /* unknown segment, unknown version */
@@ -402,8 +421,35 @@ if(/S\.rated\[id\d*\] = res\.rated\[/.test(HTML)){
    .hero .yr sat at roughly 4.33:1 against it. Numbers, not vibes — so the
    numbers live here now and nobody has to re-litigate the palette by eye. */
 
-var pal = {}, pre = /--([a-z0-9]+):\s*(#[0-9A-Fa-f]{6})/g, pm;
-while((pm = pre.exec(HTML))) if(!(pm[1] in pal)) pal[pm[1]] = pm[2];
+/* This used to take the first value of each token seen anywhere in the file,
+   which measured the default palette and silently ignored every theme added
+   after it. Themes are parsed as blocks now: a second palette that fails AA
+   is exactly the regression this guard exists to catch, and it would have
+   sailed straight through the old version. */
+function palette(css){
+  var out = {}, re = /--([a-z0-9]+):\s*(#[0-9A-Fa-f]{6})/g, m;
+  while((m = re.exec(css))) if(!(m[1] in out)) out[m[1]] = m[2];
+  return out;
+}
+function block(sel){
+  var at = HTML.indexOf(sel + "{");
+  if(at < 0) return null;
+  return HTML.slice(at, HTML.indexOf("}", at));
+}
+var rootCss = block(":root");
+if(!rootCss) fail("cannot find the :root palette block");
+var pal = palette(rootCss || "");
+
+var themes = [["dark", pal]];
+var tre = /:root\[data-theme="([a-z]+)"\]\{/g, tm;
+while((tm = tre.exec(HTML))){
+  var over = palette(block(':root[data-theme="' + tm[1] + '"]') || "");
+  var merged = {}, k;
+  for(k in pal) merged[k] = pal[k];
+  for(k in over) merged[k] = over[k];
+  themes.push([tm[1], merged]);
+}
+note("themes measured: " + themes.map(function(t){ return t[0]; }).join(", "));
 
 function lin(c){ c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
 function lum(h){
@@ -417,16 +463,24 @@ function contrast(a, b){
   return (x + 0.05) / (y + 0.05);
 }
 
-[["dim","card"], ["dim","sunk"], ["dust","card"], ["bone","card"]].forEach(function(pair){
-  var fg = pal[pair[0]], bg = pal[pair[1]];
-  if(!fg || !bg){ fail("palette token --" + pair[0] + " or --" + pair[1] + " is missing from :root"); return; }
-  var r = contrast(fg, bg);
-  note("--" + pair[0] + " on --" + pair[1] + " = " + r.toFixed(2) + ":1");
-  if(r < 4.5) fail("--" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
-                   ":1 — below the 4.5:1 AA floor for body text");
-  else if(r < 4.8) warn("--" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
-                        ":1 — clears AA with little room; lightening --" + pair[1] +
-                        " (or dimming --" + pair[0] + ") breaks it");
+themes.forEach(function(t){
+  var name = t[0], p = t[1];
+  [["dim","card"], ["dim","card2"], ["dim","sunk"], ["dust","card"], ["bone","card"]].forEach(function(pair){
+    var fg = p[pair[0]], bg = p[pair[1]];
+    if(!fg || !bg){ fail("token --" + pair[0] + " or --" + pair[1] + " missing from theme " + name); return; }
+    var r = contrast(fg, bg);
+    note(name + ": --" + pair[0] + " on --" + pair[1] + " = " + r.toFixed(2) + ":1");
+    /* --card2 is the hero's top stop, where only .hero .yr sits; it is held to
+       the AA floor as a warning rather than a failure because the default
+       theme has shipped at 4.12 there since 1.0.0 with nothing dim on it. */
+    var soft = (pair[1] === "card2");
+    if(r < 4.5 && !soft) fail(name + ": --" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
+                     ":1 — below the 4.5:1 AA floor for body text");
+    else if(r < 4.5) warn(name + ": --" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
+                     ":1 — under AA; nothing dim may sit high in the hero gradient");
+    else if(r < 4.8) warn(name + ": --" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
+                          ":1 — clears AA with little room");
+  });
 });
 
 /* The hero's top stop is --card2, the darkest surface in the palette. Nothing
@@ -492,6 +546,106 @@ if(bodyAt > 0){
          "the character. Use the character itself or an HTML entity.");
   }
 }
+
+/* ---------- 16. The path vocabulary agrees with itself ---------- */
+/* Four tables describe the same three orderings: PATHS (labels), PATHBLURB
+   (chooser copy), PATHCODE and CODEPATH (the backup-code letter). A path added
+   to one and missed in another gives a chooser card with no description, or a
+   code letter that restores nothing. */
+
+var PATHS = sandbox.PATHS, PATHBLURB = sandbox.PATHBLURB,
+    PATHCODE = sandbox.PATHCODE, CODEPATH = sandbox.CODEPATH;
+
+if(!PATHS || !PATHBLURB || !PATHCODE || !CODEPATH){
+  fail("cannot extract the path tables from index.html");
+} else {
+  var ids = PATHS.map(function(x){ return x[0]; });
+  ids.forEach(function(id){
+    if(!PATHBLURB[id]) fail('path "' + id + '" has no PATHBLURB — its chooser card would be blank');
+    if(!PATHCODE[id])  fail('path "' + id + '" has no PATHCODE — it cannot survive a backup code');
+    else if(CODEPATH[PATHCODE[id]] !== id){
+      fail('path "' + id + '" does not round-trip through PATHCODE/CODEPATH');
+    }
+  });
+  Object.keys(PATHCODE).forEach(function(id){
+    if(ids.indexOf(id) < 0) fail('PATHCODE has "' + id + '", which is not in PATHS');
+  });
+  var letters = ids.map(function(id){ return PATHCODE[id]; });
+  if(letters.length !== letters.filter(function(l, i){ return letters.indexOf(l) === i; }).length){
+    fail("two paths share a PATHCODE letter — one would restore as the other");
+  }
+  /* buildGroups() switches on these strings; a rename that misses it silently
+     falls through to the by-universe branch. */
+  ids.forEach(function(id){
+    if(HTML.indexOf('"' + id + '"') < 0) fail('path id "' + id + '" appears in PATHS but nowhere else');
+  });
+  note("paths: " + ids.join(", "));
+}
+
+/* ---------- 17. The path is actually load-bearing ---------- */
+/* The point of 1.2.0 is that the ordering is chosen once, not re-answered on
+   every visit. If the switcher comes back to The Path, that is undone. */
+
+if(/data-mode="\047?\+?m\[0\]/.test(HTML) || /<div class="modes">'\+\s*\n?\s*\[\['continuity'/.test(HTML)){
+  fail("the three-way mode switcher is back in The Path — the path is chosen once, " +
+       "from Home or Progress, not re-answered on every visit");
+}
+if(HTML.indexOf('class="pathcard"') < 0){
+  fail("Home no longer renders the path card");
+}
+if(HTML.indexOf('class="pick"') < 0){
+  fail("the first-run path chooser is gone — a new arrival would have no way to pick");
+}
+if(!/data-act="repath"/.test(HTML)){
+  fail("the Change control on the path card is gone — the choice would be permanent");
+}
+/* mode must stay OUT of what gets persisted as the path, or following someone
+   else's shared link quietly rewrites your own ordering. */
+if(/payload = JSON\.stringify\(\{[^}]*mode:S\.mode/.test(HTML)){
+  fail("persist() writes S.mode as the path — viewing a shared #life link would " +
+       "silently overwrite the path the user chose");
+}
+
+/* ---------- 18. Theme reaches the chrome, not just the CSS ---------- */
+/* The status bar is painted from <meta name="theme-color">, which CSS cannot
+   touch. Switch theme without updating it and an installed app shows a header
+   in one colour under a system bar in the other. */
+
+var barM = HTML.match(/var THEMEBAR = \{([^}]*)\}/);
+if(!barM){
+  fail("THEMEBAR is missing — theme changes would leave the status bar behind");
+} else {
+  themes.forEach(function(t){
+    if(barM[1].indexOf(t[0] + ":") < 0){
+      fail('theme "' + t[0] + '" has no THEMEBAR colour — the status bar would not follow it');
+    }
+  });
+}
+if(HTML.indexOf("applyTheme()") < 0) fail("applyTheme() is never called");
+if(!/background:var\(--hdr\)/.test(HTML) || !/background:var\(--tabbg\)/.test(HTML)){
+  fail("the header or tab bar is back on a hardcoded rgba — a theme cannot reach it");
+}
+
+/* ---------- 19. Weight budget ---------- */
+/* The premise is a single file that opens instantly and works offline. Nothing
+   enforces that but arithmetic, so: arithmetic. The ceiling is deliberately
+   close — it should hurt to import a library or inline an image. */
+
+var zlib = require("zlib");
+var rawKB  = Buffer.byteLength(HTML) / 1024;
+var gzipKB = zlib.gzipSync(Buffer.from(HTML)).length / 1024;
+note("index.html " + rawKB.toFixed(1) + " KB raw, " + gzipKB.toFixed(1) + " KB gzipped");
+if(rawKB > 150) fail("index.html is " + rawKB.toFixed(1) + " KB raw, over the 150 KB budget");
+if(gzipKB > 50) fail("index.html is " + gzipKB.toFixed(1) + " KB gzipped, over the 50 KB budget");
+
+/* Zero runtime dependencies is a promise in the README. The only third-party
+   code is the vendored QR encoder; nothing may be fetched at runtime. */
+var ext = HTML.match(/<script[^>]+src="https?:\/\/[^"]+"/g) || [];
+ext.forEach(function(tag){
+  if(tag.indexOf("cloudflareinsights") < 0){
+    fail("index.html loads external script " + tag + " — the app must run with no network");
+  }
+});
 
 /* ---------- report ---------- */
 
