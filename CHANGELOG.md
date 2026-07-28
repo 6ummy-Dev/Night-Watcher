@@ -19,6 +19,79 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.2.2] — 2026-07-27
+
+Tidying the bottom of Progress turned up a real bug on the way.
+
+### Fixed
+
+- **Ticking anything before choosing a path silently assigned you one.** The
+  chooser is Home’s empty state, but the other tabs work without a path — you
+  can open The Path and start ticking straight away. `persist()` wrote
+  `mode: S.path || S.mode`, so with no path chosen it saved `mode:"continuity"`,
+  and on the next load the 1.1.0 migration rule adopted that as a deliberate
+  choice. The chooser never came back and the user was on by-universe having
+  never picked it.
+
+  `mode` now mirrors `path` and nothing else. When no path is set it writes an
+  empty string, which fails `isPath()` and is adopted by nothing. Real 1.1.0
+  saves still migrate exactly as before.
+
+  Found by questioning a `persist()` call that looked merely redundant. It
+  wasn’t redundant on the one route where it mattered.
+
+### Changed
+
+- **The path row is gone from Progress.** It duplicated the Change control on
+  Home’s path card — two controls for one setting, which is how two places drift
+  into disagreeing. Deleted rather than relocated.
+- **“Backup & transfer” is now “Your data”**, which is what that half of the
+  screen is: progress in portable form. It stays in Progress rather than moving
+  to a settings screen, because backup, restore and clear-all are all progress
+  operations and only one item in that tail was genuinely misfiled.
+- **Darker is a single unlabelled row at the very bottom**, below everything
+  else. One toggle does not earn a settings screen, and building a room for one
+  object is how a small app stops being one.
+
+### Removed
+
+- The `data-mode` click handler. Nothing has rendered `data-mode` since the
+  switcher left The Path in 1.2.0; the handler survived it and read as though
+  the ordering were still switchable from somewhere.
+- The `persist()` in `goToGroup()`. Every value that function touches — tab,
+  filter, query, mode, groupOpen — is session state by design.
+
+### Added — guards
+
+- `persist()` may not fall back to `S.mode`, and must still mirror `path` into
+  it for downgrade safety. Both directions guarded, both negative-tested.
+- `PATHS.map` must appear exactly once, so a second path control cannot reappear.
+- `dataset.mode` may not return.
+
+`qa/smoke.js` is 79 checks, including persisting with no path chosen and
+asserting the payload carries no ordering.
+
+### Changed — source
+
+- **Comments trimmed throughout**, in `index.html` and both test files. The rule
+  applied: keep the sentence that stops someone reintroducing a bug, drop the
+  retelling of how it was found. Constraints, warnings and “never do X”
+  instructions are intact — frozen IDs, exclusive tier resolution, the ratings
+  clamp, the scrollbar gutter, the single hero size — each now in one or two
+  lines instead of four to fourteen.
+- The vendored QR encoder’s MIT licence header and the fonts/palette attribution
+  block are untouched, verbatim.
+- One comment had gone stale and is now correct: `persist()` still described the
+  `S.mode` fallback removed directly beneath it. Prose that isn’t load-bearing
+  doesn’t get checked when the code moves, which is the argument for less of it.
+
+### Not removed
+
+Two CSS rules looked unreferenced under a first audit and both were false
+positives: `.full` is emitted by string concatenation (`'ucard'+(pct===100?" full":"")`)
+so no `class="…full…"` literal exists to grep for, and `.js` was never a class
+at all — a crude selector regex reading `sw.js` in a comment. Left alone.
+
 ## [1.2.1] — 2026-07-27
 
 ### Fixed
