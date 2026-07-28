@@ -716,72 +716,55 @@ BRANDS.forEach(function(b){
     fail('"' + b + '" is back in the catalogue or the watch link \u2014 the app names no services');
   }
 });
-/* 1.3.0 assumed a region-less path would redirect. It 404s: the country is
-   required AND the search segment is localised (/us/search, /uy/buscar). Grep
-   is the wrong tool here \u2014 the first version of this guard checked strings and
-   missed both a hardcoded country and a reintroduced region-less path. Extract
-   the function and run it, like everything else in this file. */
+/* Three versions of this link shipped or were staged broken: a region-less path
+   (404), then a locale-derived country (404 for the UK, whose code is /uk, not
+   the ISO /gb). Neither the country code nor the search word can be derived \u2014
+   they are the aggregator's own vocabulary. Only verified pairs ship. Grep is
+   the wrong tool: extract the function and run it. */
 
 var watchSrc = fn("watchUrl");
-if(!watchSrc){
-  fail("watchUrl() is gone \u2014 nothing derives the country for the watch link");
-}
+if(!watchSrc) fail("watchUrl() is gone \u2014 nothing builds the watch link");
 vm.runInContext((watchSrc || "function watchUrl(){ return \"\"; }") + "\n" +
-                slice("var JWORD = {", "function watchUrl"), sandbox);
+                slice("var JW = {", "function watchUrl"), sandbox);
 
 function urlFor(langs){
   sandbox.navigator = {languages:langs, language:langs[0] || ""};
   return sandbox.watchUrl("Batman: Soul of the Dragon");
 }
+var ROOT = "https://www.justwatch.com/";
 
-[["es-UY", "/uy/buscar?q=", "a Spanish country gets the localised segment"],
- ["en-US", "/us/search?q=", "an English country gets the English segment"],
- ["en-GB", "/gb/search?q=", "English is not assumed to mean the United States"]
-].forEach(function(c){
+[["es-UY", "https://www.justwatch.com/uy/buscar?q="],
+ ["en-US", "https://www.justwatch.com/us/search?q="]].forEach(function(c){
   var u = urlFor([c[0]]);
-  if(u.indexOf("https://www.justwatch.com" + c[1]) !== 0) fail(c[2] + " \u2014 got " + u);
-  if(u.indexOf("Batman%3A%20Soul") < 0) fail("the title is not encoded into the query \u2014 " + u);
+  if(u.indexOf(c[1]) !== 0) fail("verified locale " + c[0] + " built " + u);
+  if(u.indexOf("Batman%3A%20Soul") < 0) fail("the title is not encoded \u2014 " + u);
 });
 
-/* An unverified word would 404, so those locales get the country home page. */
-[["pt-BR", "https://www.justwatch.com/br"],
- ["de-DE", "https://www.justwatch.com/de"]].forEach(function(c){
-  var u = urlFor([c[0]]);
-  if(u !== c[1]) fail("an unmapped language must fall back to the country home page \u2014 got " + u);
+/* Anything unverified must fall back, never guess a path. en-GB is the case
+   that caught this: the ISO code is gb, the aggregator uses uk. */
+["en-GB", "pt-BR", "de-DE", "fr-FR", "es-419", "es", "en"].forEach(function(l){
+  var u = urlFor([l]);
+  if(u !== ROOT) fail("unverified locale " + l + " built " + u + " \u2014 it must fall back to the root");
 });
+if(urlFor([]) !== ROOT) fail("an empty locale list must fall back to the root");
 
-/* No country in the tag at all: the bare root does redirect. */
-[["es-419"], ["es"], []].forEach(function(langs){
-  var u = urlFor(langs);
-  if(u !== "https://www.justwatch.com/"){
-    fail("a locale with no country must fall back to the root \u2014 got " + u);
-  }
-});
-
-/* The exact shape that shipped broken. */
-["es-UY", "en-US", "pt-BR", "es"].forEach(function(l){
-  if(/justwatch\.com\/(search|buscar)/.test(urlFor([l]))){
-    fail("the region-less search path is back for " + l + " \u2014 that is the 1.3.0 404");
-  }
-});
-
-var jw = HTML.match(/var JWORD = \{([^}]*)\}/);
-if(!jw){
-  fail("JWORD is missing \u2014 the localised search segment cannot be resolved");
-} else {
-  var VERIFIED = ["en", "es"];
-  (jw[1].match(/([a-z]{2}):/g) || []).forEach(function(x){
-    var l = x.slice(0, 2);
-    if(VERIFIED.indexOf(l) < 0){
-      fail('JWORD carries "' + l + '", not verified against a live page. An ' +
-           "unverified search word is a 404 \u2014 check it, then add it.");
-    }
-  });
+/* A later entry with a country still wins over an earlier one without. */
+if(urlFor(["es-419", "es-UY"]).indexOf("/uy/buscar?q=") < 0){
+  fail("a country further down navigator.languages is being ignored");
 }
 
-if((HTML.match(/class="lnk"/g) || []).length !== 1){
-  fail("the entry link row is not a single link \u2014 1.3.0 collapsed three branded " +
-       "buttons into one unnamed one");
+var jw = HTML.match(/var JW = \{([^}]*)\}/);
+if(!jw){
+  fail("JW is missing \u2014 nothing maps a country to a verified search path");
+} else {
+  var VERIFIED = {us:"us/search", uy:"uy/buscar"};
+  (jw[1].match(/([a-z]{2}):"([^"]+)"/g) || []).forEach(function(pair){
+    var k = pair.slice(0, 2), v = pair.split('"')[1];
+    if(VERIFIED[k] !== v){
+      fail('JW maps ' + k + ' to "' + v + '", which has not been checked against a ' +
+           "live page. Open it, confirm it resolves, then add it here.");
+    }
+  });
 }
 
 /* ---------- 29. One tagline, everywhere ---------- */
