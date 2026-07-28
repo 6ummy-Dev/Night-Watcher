@@ -847,24 +847,20 @@ function badges(f){
   });
   return '<span class="badges">'+out.join("")+'</span>';
 }
-/* The aggregator needs a country in the path AND localises the search segment
-   itself: /us/search, /uy/buscar. It runs 36 languages, so a complete word map
-   is not worth carrying and any gap in it is a 404. Only words verified against
-   a live page go in JWORD; every other language gets that country's home page,
-   which always resolves. 1.3.0 shipped a region-less path on the assumption it
-   would redirect. It does not. */
-var JWORD = {en:"search", es:"buscar"};
+/* The aggregator's country codes are its own, not ISO \u2014 the UK is /uk, not
+   /gb \u2014 and the search segment is localised (/us/search, /uy/buscar). Neither
+   can be derived safely, so only pairs checked against a live page ship here.
+   Everyone else gets the root, which redirects to their country. */
+var JW = {us:"us/search", uy:"uy/buscar"};
 function watchUrl(title){
   var langs = (navigator.languages && navigator.languages.length)
       ? navigator.languages : [navigator.language || ""];
-  var tag = "", i;
-  for(i = 0; i < langs.length; i++){
-    if(/^[a-z]{2}-[a-z]{2}$/i.test(langs[i])){ tag = langs[i]; break; }
+  for(var i = 0; i < langs.length; i++){
+    if(!/^[a-z]{2}-[a-z]{2}$/i.test(langs[i])) continue;
+    var path = JW[langs[i].slice(3).toLowerCase()];
+    if(path) return "https://www.justwatch.com/" + path + "?q=" + encodeURIComponent(title);
   }
-  if(!tag) return "https://www.justwatch.com/";
-  var word = JWORD[tag.slice(0,2).toLowerCase()];
-  var base = "https://www.justwatch.com/" + tag.slice(3).toLowerCase();
-  return word ? base + "/" + word + "?q=" + encodeURIComponent(title) : base;
+  return "https://www.justwatch.com/";
 }
 function watchLinks(f){
   return '<a class="lnk" href="'+watchUrl(f.t)+
