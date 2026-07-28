@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<!-- No maximum-scale: capping it blocks pinch-zoom, which fails WCAG 1.4.4 and
-     is a real problem on a screen this dense in 9-10px mono type. iOS stopped
-     honouring the cap in Safari 10 anyway, so it only ever penalised Android. -->
+<!-- No maximum-scale: capping it blocks pinch-zoom, failing WCAG 1.4.4 on a
+     screen this dense in 9-10px mono. -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,11 +19,8 @@
 <meta property="og:image" content="https://6ummy-dev.github.io/Night-Watcher/icon.png">
 <meta name="twitter:card" content="summary">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E %3Crect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22#0C111C%22/%3E %3Cg fill=%22#FFCF1F%22 transform=%22translate%280,5%29%22%3E %3Cpath d=%22M50 36 C 44 25, 29 21, 12 30 C 21 34, 25 41, 24 50 C 31 45, 37 47, 39 55 C 43 50, 47 51, 49 58 L 50 61 L 51 58 C 53 51, 57 50, 61 55 C 63 47, 69 45, 76 50 C 75 41, 79 34, 88 30 C 71 21, 56 25, 50 36 Z%22/%3E %3Cpath d=%22M42 32 L38 17 L49 29 Z%22/%3E %3Cpath d=%22M58 32 L62 17 L51 29 Z%22/%3E %3Cellipse cx=%2250%22 cy=%2242%22 rx=%2210%22 ry=%2211%22/%3E %3Cpath d=%22M50 51 C 45 60, 45 69, 50 78 C 55 69, 55 60, 50 51 Z%22/%3E %3C/g%3E %3C/svg%3E">
-<!-- The 180x180 bat PNG used to be inlined here TWICE as identical base64 (14,552
-     chars, ~11% of this file) once for rel=icon and once for apple-touch-icon.
-     Both now point at the real icon-192.png sitting beside this file, which the
-     manifest and the service worker already ship. Relative paths, so a file://
-     open still resolves them. -->
+<!-- Points at icon-192.png rather than inlining base64 twice (~11% of this
+     file). Relative, so a file:// open still resolves it. -->
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
@@ -37,10 +33,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Limelight&family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Canon skin: Dark Deco. Single source of truth. There is no second :root
-     further down — themes are [data-theme] blocks that override surfaces only,
-     and qa/guards.js measures the contrast of every one of them. Adding a bare
-     second :root is still how the palette drifts. */
+  /* Canon skin: Dark Deco. Single source of truth. Themes are [data-theme]
+     blocks overriding surfaces only; guards measure the contrast of each. */
   --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
   --line:#252E42; --line2:#33405C;
   --bone:#E7E9F0; --dust:#93A0B8; --dim:#78849E;
@@ -56,10 +50,7 @@
   --tabbg:rgba(14,17,25,.94);
   --tab-h:58px;
 }
-/* Darker: an AMOLED variant for watching in an actually dark room. Surfaces
-   only — every text and accent token is untouched, so contrast can only go up
-   from here (guard 13 measures every theme, not just this one). Not a light
-   theme: Dark Deco is the app, and a second full palette is a permanent tax. */
+/* AMOLED variant. Surfaces only, so contrast can only rise from here. */
 :root[data-theme="darker"]{
   --ink:#000000; --sunk:#05070C; --card:#0B101B; --card2:#111826;
   --line:#1B2233; --line2:#2C3853;
@@ -75,11 +66,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 #app{display:flex;flex-direction:column;min-height:100%;}
 header{position:sticky;top:0;z-index:30;background:var(--hdr);-webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
 .hrow{display:flex;align-items:center;gap:14px;max-width:760px;margin:0 auto;}
-/* Storage can fail silently: Safari Private Browsing, a full quota, or an
-   embedded webview. Ticking then went on working in memory and the whole
-   session evaporated on reload with nothing having said so. Signal yellow,
-   not crimson: crimson on --sunk is 3.59:1 and would fail AA inside the
-   very warning that exists for accessibility. */
+/* A blocked store used to fail silently. Signal, not crimson: crimson on
+   --sunk is 3.59:1 and would fail AA inside the accessibility warning. */
 #nosave{max-width:760px;margin:11px auto 0;padding:8px 12px;border:1px solid var(--signal);border-radius:8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;line-height:1.55;color:var(--signal);text-align:center;}
 #nosave[hidden]{display:none;}
 .mark{width:46px;flex:none;padding:0;color:var(--signal);display:flex;justify-content:center;align-items:center;}
@@ -108,8 +96,6 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 #tabs button svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;}
 #tabs button[aria-current]{color:var(--signal);}
 
-/* The path card. Same gradient as .hero so Home reads as one surface, not as a
-   widget bolted above the hero. */
 .pathcard{border:1px solid var(--line);border-radius:16px;background:linear-gradient(175deg,var(--card2),var(--card) 60%);padding:16px 18px 18px;margin-bottom:20px;}
 .pathtop{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
 .pathkick{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0;}
@@ -129,6 +115,10 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .viewing p{margin:0;flex:1;min-width:150px;font-size:13px;color:var(--dust);line-height:1.4;}
 .viewing button{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);background:var(--signal);border-radius:8px;padding:9px 12px;min-height:40px;font-weight:600;}
 .viewing button.ghost{background:none;color:var(--steel);border:1px solid var(--line2);font-weight:400;}
+/* The only preference. No heading, no card, last row on the last screen. */
+.prefrow{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:26px 0 0;}
+.preflab{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);}
+.prefrow .modes{margin-bottom:0;}
 .pathtitle{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(20px,5.2vw,27px);line-height:1;margin:0 0 10px;}
 .modes{display:flex;gap:0;border:1px solid var(--line2);border-radius:10px;overflow:hidden;margin-bottom:10px;}
 .modes button{flex:1;padding:11px 6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dust);border-right:1px solid var(--line2);min-height:42px;}
@@ -185,13 +175,8 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
 .act{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line2);border-radius:8px;padding:10px 12px;color:var(--dust);min-height:38px;}
 .act.primary{background:var(--bone);color:var(--ink);border-color:var(--bone);font-weight:600;}
-/* Stars are the most-tapped control in the app and were 30x34 with a 2px
-   gap. The hit area is now 36x44: width carries the gap so neighbours TILE
-   rather than overlap (an overlapping expansion makes rating LESS accurate,
-   which is the opposite of the point), and the height is bought with a
-   pseudo-element so the row does not grow by 10px. 44 wide as well would
-   need a 220px row and push the buttons in .acts onto their own line for a
-   AAA-level target; 30px already cleared AA (2.5.8, 24x24). */
+/* 36x44 target. Width carries the gap so neighbours tile rather than
+   overlap; height comes from the pseudo-element so rows do not grow. */
 .stars{display:flex;gap:0;margin-left:auto;}
 .stars button{position:relative;width:36px;height:34px;font-size:16px;color:var(--line2);}
 .stars button::before{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%);}
@@ -202,10 +187,8 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 
 .hero{border:1px solid var(--line);border-radius:16px;background:linear-gradient(175deg,var(--card2),var(--card) 60%);padding:22px 20px 20px;}
 .hero .kick{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0 0 12px;}
-/* ONE hero size for every hero. Home and Next up show the SAME title (both
-   render upNext()), and Home used to override this inline to 24-36px while
-   Next up kept the 28-42px default — so tapping "Resume the path" grew the
-   identical title by 15%. The inline overrides are gone; change it here. */
+/* ONE hero size. Home and Next up render the same title; inline overrides
+   grew it by 15% on one of them. Change it here, not at the call site. */
 .hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(24px,6.5vw,36px);line-height:.94;margin:0;}
 .hero .yr{font-family:var(--mono);font-size:12px;color:var(--dust);margin:10px 0 0;letter-spacing:.06em;}
 .hero .blurb{font-size:15px;color:var(--dust);margin:16px 0 0;line-height:1.5;}
@@ -287,19 +270,12 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .toast.show{opacity:1;transform:translate(-50%,0);}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
 
-/* ---------- Canon skin: Dark Deco ----------
-   Everything below is ADDITIVE. It used to also restate font-family,
-   font-weight, font-size and two border-colours that were already set
-   above, so eleven declarations in the base rules were dead on arrival
-   and the real value of a token lived 180 lines from its declaration.
-   Those are folded back into their single base rule. Keep it additive. */
+/* Canon skin: Dark Deco. ADDITIVE only — restating a token here leaves its
+   real value 180 lines from its declaration. */
 ::selection{background:var(--signal);color:var(--ink);}
-/* scrollbar-gutter reserves the scrollbar's width even when there is nothing
-   to scroll. Without it, Next up — the one view short enough to fit on a
-   desktop screen — loses the vertical scrollbar that every other view has, and
-   because main is `max-width:760px; margin:0 auto` the whole centred column
-   slides 7.5px sideways the moment you land on that tab. Overlay scrollbars
-   (all touch devices) have no gutter, so this changes nothing on mobile. */
+/* Reserves the scrollbar width even with nothing to scroll. Without it Next
+   up, the one view that fits a desktop screen, slides the centred column
+   7.5px sideways. Overlay scrollbars have no gutter, so mobile is unaffected. */
 html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
 .intro{border:1px solid var(--line);border-left:3px solid var(--signal);border-radius:12px;background:var(--sunk);padding:18px 18px 16px;margin-bottom:16px;}
 .ikick{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--signal);margin:0 0 10px;}
@@ -308,9 +284,7 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
 .istats{display:flex;gap:18px;padding-top:12px;border-top:1px solid var(--line);font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);flex-wrap:wrap;}
 .istats b{color:var(--bone);font-weight:600;margin-right:4px;}
 .homefoot{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:center;margin:30px 0 4px;line-height:1.8;}
-/* The header ring is the only progress track that was drawing its own colours
-   from hardcoded hex in the SVG. It now reads the same two tokens as every
-   other track in the app (.gbar / .ubar / .tbar / .segs). */
+/* Reads the same tokens as every other track (.gbar / .ubar / .tbar / .segs). */
 #ringTrack{stroke:var(--line2);}
 #ringArc{stroke:var(--signal);}
 
@@ -341,16 +315,10 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
     <p id="nosave" role="status" hidden>Storage is blocked here — progress will be gone when you reload. Back up your code from Progress.</p>
   </header>
   <main id="view"></main>
-  <!-- Tab icons are inline SVG on a shared 24x24 grid, NOT unicode glyphs.
-       The old set (U+2302 house, U+25B6 triangle, U+2630 trigram, U+25A0
-       square) came from four different font fallbacks with four different
-       advance widths and side bearings, so no two sat on the same optical
-       centre — and U+25B6 has an emoji presentation, which on iOS/Android
-       rendered a colour glyph that ignored the selected-state colour and was
-       visibly wider than its neighbours. Fixed geometry is the only way to
-       guarantee four identically centred icons. The play triangle is drawn
-       so its CENTROID lands on x=12, not its bounding box: a bbox-centred
-       triangle always reads as sitting too far right. -->
+  <!-- Inline SVG on a shared 24x24 grid, NOT unicode glyphs: the old set came
+       from four font fallbacks with four advance widths, and U+25B6 has an emoji
+       presentation that ignored the selected-state colour. Fixed geometry is the
+       only way to guarantee four identical optical centres. -->
   <nav id="tabs" aria-label="Views">
     <button data-tab="home" aria-current="page">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.1 10.9 12 4.4l7.9 6.5v8.7H4.1Z"/></svg>Home</button>
@@ -691,9 +659,8 @@ var MODENOTE = {
  release:"Straight release order, {span}. The only ordering that is objectively complete \u2014 it just jumps between universes constantly."
 };
 
-/* Stable IDs are FROZEN in the data as i:"..." and must never change.
-   Titles are display text only - rename them freely. Adding entries is always
-   safe; changing or removing an i breaks saved progress for real people. */
+/* IDs in i:"..." are FROZEN. Titles are display text — rename freely. Adding
+   is safe; changing or removing an i breaks saved progress for real people. */
 function idHash(id){
   var h = 2166136261, i;
   for(i = 0; i < id.length; i++){ h ^= id.charCodeAt(i); h = Math.imul(h, 16777619); }
@@ -709,10 +676,8 @@ PATH.forEach(function(g, gi){
   });
 });
 
-/* path is the LOCKED choice; mode is what is currently on screen. They are
-   normally identical. A shared deep link sets mode alone, so following someone
-   else's #release link shows you release order without silently rewriting the
-   path you chose. Only path is persisted — that is what makes a view a view. */
+/* path is the locked choice, mode is what is on screen. Only path is
+   persisted — that is what makes a shared deep link a view, not a takeover. */
 var S = {tab:"home", scope:"movies", path:"", mode:"continuity", filter:"all", q:"", code:"",
          theme:"dark", watched:{}, skipped:{}, rated:{}, open:{}, groupOpen:{}, log:[]};
 var PATHS = [["continuity","By universe"], ["life","Bruce\u2019s life"], ["release","Release order"]];
@@ -728,21 +693,16 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-/* Release version, shown in the Progress footer and used as the service-worker
-   cache name. It was a date string; it is now semver so it maps 1:1 onto
-   CHANGELOG.md. Bump it for EVERY shipped change — sw.js VERSION and the
-   changelog must both agree, and qa/guards.js fails the build if they don't.
-   KEY is separate on purpose: bump that ONLY for a breaking storage-shape
-   change, because ids are frozen and catalogue additions never require it. */
-var BUILD = "1.2.1";
+/* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
+   VERSION and the changelog must agree or guards fail the build. KEY is
+   separate: bump it ONLY for a breaking storage shape. */
+var BUILD = "1.2.2";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
 
-/* On a file:// open, location.origin is the string "null", so building the
-   transfer link from it produces a QR that resolves nowhere. Fall back to the
-   published copy — the point of the QR is to reach a DIFFERENT device, which
-   cannot see this machine's local file either way. */
+/* On file:// location.origin is the string "null". Fall back to the published
+   copy — the QR exists to reach a different device either way. */
 function restoreLink(code){
   var http = (location.protocol === "http:" || location.protocol === "https:");
   return (http ? location.origin + location.pathname : SITE) + "#nw=" + code;
@@ -776,9 +736,7 @@ function flagSave(){
   var el = document.getElementById("nosave");
   if(el) el.hidden = canSave;
 }
-/* The status bar is painted by the browser from <meta name="theme-color">, not
-   by CSS, so switching theme without updating the tag leaves an installed app
-   with a header in one colour and the bar above it in the other. */
+/* CSS cannot reach the system status bar; the meta tag has to follow. */
 var THEMEBAR = {dark:"#0C111C", darker:"#000000"};
 function applyTheme(){
   document.documentElement.setAttribute("data-theme", S.theme);
@@ -787,12 +745,10 @@ function applyTheme(){
 }
 function persist(){
   if(!canSave || !store) return;
-  /* mode is written as well as path, and deliberately carries the PATH value:
-     a 1.1.0 build reading this payload knows nothing about path and would fall
-     back to its own default, landing the user in an ordering they never chose.
-     Writing both means a downgrade still opens on the right one. */
+  /* mode mirrors path, for a 1.1.0 downgrade. Never S.mode: with no path
+     chosen that wrote a real ordering, which the next load adopted as one. */
   var payload = JSON.stringify({watched:S.watched, skipped:S.skipped, rated:S.rated,
-                                path:S.path, mode:S.path || S.mode, theme:S.theme,
+                                path:S.path, mode:S.path, theme:S.theme,
                                 scope:S.scope, log:S.log});
   try{
     var p = store.set(KEY, payload);
@@ -807,10 +763,7 @@ function restore(done){
         S.watched = o.watched || {}; S.skipped = o.skipped || {};
         S.rated = o.rated || {};
         S.log = Array.isArray(o.log) ? o.log : [];
-        /* Anyone upgrading from 1.1.0 already has an ordering they use. Making
-           them pick again — with progress on the board — would be asking a
-           question they have already answered, so their saved mode becomes
-           their path. The chooser is for genuinely new arrivals. */
+        /* Upgrading from 1.1.0: their saved mode is a question already answered. */
         if(isPath(o.path)) S.path = o.path;
         else if(isPath(o.mode)) S.path = o.mode;
         if(S.path) S.mode = S.path;
@@ -832,9 +785,7 @@ function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
 /* ---- ordering ---- */
 function visible(f){ return S.scope === "all" || !f.tv; }
 
-/* The release note quotes a year span, and that span depends on scope:
-   films alone start in 1993, but the series reach back to 1968. Compute it
-   from what is actually on screen rather than hard-coding either one. */
+/* The span depends on scope: films start 1993, series reach back to 1968. */
 function yearSpan(){
   var p = FILMS.filter(visible), lo, hi, i;
   if(!p.length) return "";
@@ -849,15 +800,9 @@ function modeNote(){
   var n = MODENOTE[S.mode] || "";
   return n.replace("{span}", yearSpan());
 }
-/* buildGroups() and pool() depend on exactly two things: the ordering mode and
-   the scope. They do NOT depend on watched/skipped/rated — membership of a
-   group never changes when you tick something off. But a single Home render
-   called buildGroups() seven times and pool() six, so visible() ran 1,208
-   times to produce four identical answers.
-
-   Cache on mode|scope. Nothing else can invalidate it, so nothing else needs
-   to clear it: a new key simply misses. If you ever make group membership
-   depend on progress, this cache is the thing that will lie to you. */
+/* Cached on mode|scope — the only two things membership depends on. Never on
+   watched/skipped/rated, so nothing needs to clear it and a new key simply
+   misses. If membership ever depends on progress, this cache is wrong. */
 var groupCache = null, groupCacheKey = "";
 function groupsKey(){ return S.mode + "|" + S.scope; }
 function buildGroups(){
@@ -918,20 +863,10 @@ function metaOf(f, withUniverse){
   if(withUniverse) bits.push(f.gname);
   return bits.join(" \u00b7 ");
 }
-/* Tier membership is EXCLUSIVE: Essential > Optional > Core.
-   An essential season is Essential, full stop — it never also counts as
-   Optional.
-
-   The raw o:1 flag is a ROUTE marker ("off the film path"), not a tier —
-   every TV season carries it. Always resolve through tierOf() before
-   counting or filtering, never test f.o directly: an essential season
-   carries o:1 too, and testing the raw flag drops it from Core AND from
-   Optional, leaving it in no bucket at all.
-
-   The two route sets partition the catalogue:
-     Core route = tierOf !== "o"   (Essentials + Core — a complete path)
-     Optional   = tierOf === "o"
-   In Movies scope this is films only, since every season is o:1. */
+/* Tier membership is EXCLUSIVE: Essential > Optional > Core. The raw o:1 flag
+   is a ROUTE marker, not a tier — every TV season carries it. Always resolve
+   through tierOf(); testing f.o directly drops an essential season from Core
+   AND Optional, leaving it in no bucket at all. */
 function tierOf(f){ return f.b.indexOf("e") >= 0 ? "e" : (f.o ? "o" : "k"); }
 function badges(f){
   var tier = tierOf(f);
@@ -979,10 +914,9 @@ function toggleSkip(id){
   else { S.skipped[id] = 1; unmarkWatched(id); }
   persist(); render();
 }
-/* Ratings are integers 1-5. Imported JSON is user-supplied and may carry
-   anything at all; an out-of-range or fractional value reaches
-   new Array(n+1) in the star render and throws RangeError, which blanks
-   the entire view. EVERY path that writes S.rated goes through this. */
+/* Ratings are integers 1-5. Imported JSON may carry anything, and an
+   out-of-range value reaches new Array(n+1) in the star render and throws,
+   blanking the view. Every write to S.rated goes through this. */
 function clampRating(n){
   n = Math.floor(Number(n));
   return (n >= 1 && n <= 5) ? n : 0;
@@ -1007,23 +941,14 @@ function exportCode(){
     if(S.skipped[f.id]) k.push(h);
     if(clampRating(S.rated[f.id])) r.push(h + clampRating(S.rated[f.id]));
   });
-  /* NW2 carries the chosen path in a P segment. The 1.1.0 reader skips
-     segments it does not know, so a 1.1.0 app restores everything except the
-     path from this — which is exactly what the forward tolerance shipped in
-     that release was for. 1.0.0 will reject it; sw.js is network-first, so a
-     1.0.0 client that has opened online since is already past it. */
+  /* NW2 adds the path in a P segment. 1.1.0 skips segments it does not know,
+     so it restores everything else. 1.0.0 rejects NW2; sw.js is network-first. */
   return "NW2W" + w.join("") + "S" + k.join("") + "R" + r.join("") +
          (S.path ? "P" + PATHCODE[S.path] : "");
 }
-/* A code is NW<version> followed by segments, each an UPPERCASE letter and its
-   payload: W watched, S skipped, R rated. Payloads are base36 lowercase, so the
-   letters delimit unambiguously. Unrecognised segments AND unrecognised version
-   numbers are skipped rather than rejected, which is what lets a future format
-   (carrying, say, the chosen path) still restore everything this build knows
-   how to read. Forward tolerance is worthless unless it ships BEFORE the first
-   code that needs it — that is the whole reason this is in 1.1.0.
-   exportCode still writes NW1: nothing new is being carried yet, so codes stay
-   interchangeable with 1.0.0 in both directions. */
+/* NW<version> plus segments. Unknown segments and versions are skipped, so a
+   code from a newer build still restores what this one understands. Useless
+   unless it ships before the first code that needs it. */
 function importCode(raw){
   var code = String(raw || "").trim().replace(/\s+/g, "");
   var hit = code.search(/NW\d+[A-Z]/);
@@ -1105,9 +1030,7 @@ function doRestore(text){
 }
 function applyImport(res){
   var id;
-  /* A restore onto a fresh device should arrive already on the right path. It
-     must NOT overwrite a path already chosen here — restore merges progress,
-     it does not take over the device. */
+  /* Restore merges progress; it must not overwrite a path chosen here. */
   if(!S.path && isPath(res.path)){ S.path = S.mode = res.path; }
   for(id in res.watched){ if(!S.watched[id]){ S.watched[id] = 1; S.log.push({id:id, ts:Date.now()}); } }
   for(id in res.skipped){ if(!S.watched[id]) S.skipped[id] = 1; }
@@ -1136,10 +1059,8 @@ function viewHome(){
   var fresh = (c.done === 0);
   var html = "";
 
-  /* No path yet: Home IS the chooser. Not a modal and not an onboarding flow —
-     there is nothing to dismiss, and a deep link straight into a view still
-     works because routing never depends on this. Pick one and it becomes the
-     path card below, permanently. */
+  /* No path yet: Home is the chooser. Not a modal — nothing to dismiss, and
+     deep links still route, because routing never depends on it. */
   if(!S.path){
     html += '<div class="chooser"><p class="pathkick">Choose your path</p>' +
       '<p class="picknote" style="margin:8px 0 14px">Three honest answers instead of one fake one. ' +
@@ -1270,31 +1191,22 @@ function viewNext(){
     (qhtml ? '<div class="queue"><p class="qhead">Then</p>'+qhtml+'</div>' : '');
 }
 
-/* All six chips, always. They used to be three, with a tier chip spliced in
-   only while that tier was already active — so once you tapped "All" the only
-   route back to Essentials was Home, and the Path tab silently lost three of
-   its own filters. The row scrolls horizontally, so six costs nothing. */
+/* All six chips, always. Splicing the tier chip in only while it was active
+   left Home as the only route back to Essentials. The row scrolls. */
 function chipSet(){
   return [["all","All"],["left","To watch"],["done","Watched"],
           ["ess","Essentials"],["core","Core route"],["opt","Optional"]];
 }
 function viewWatch(){
   var q = S.q.toLowerCase();
-  /* The three-way switcher used to live here and was re-answered on every
-     visit. It is now the "Change" link on Home plus one row in Progress: the
-     tab opens in your order and stops asking. When mode and path disagree you
-     are following somebody else's link, and the banner offers to adopt it
-     rather than taking the decision for you. */
+  /* Switcher removed in 1.2.0: chosen once from Home, not re-asked per visit. */
   var viewing = "";
   if(!S.path){
     viewing = '<div class="viewing"><p>You haven\u2019t chosen a path yet. This is '+
       esc(pathName(S.mode))+'.</p><button data-path="'+S.mode+'">Make this my path</button></div>';
   } else if(S.mode !== S.path){
-    /* Both directions. The banner used to offer only "make this mine", which
-       made a view a one-way door: tapping a universe on Home dropped you into
-       by-universe with no way back to your own path except a reload, because
-       mode is deliberately not persisted. Going back is the likelier intent of
-       the two, so it leads. */
+    /* Both directions. Offering only "make this mine" made a view a one-way
+       door, since mode is not persisted and only a reload undid it. */
     viewing = '<div class="viewing"><p>Viewing <b>'+esc(pathName(S.mode))+'</b>. Your path is '+
       esc(pathName(S.path))+'.</p>'+
       '<button data-act="mypath">Back to '+esc(pathName(S.path))+'</button>'+
@@ -1325,11 +1237,8 @@ function viewWatch(){
       var isOpen = !!S.open[f.id];
       var cls = "film" + (isDone(f)?" done":"") + (isSkip(f)?" skip":"") + (isOpen?" open":"");
       var meta = metaOf(f, S.mode !== "continuity");
-      /* The detail panel is built ONLY for the row that is actually open.
-         It used to be emitted for every entry and hidden with display:none —
-         a description, five star buttons and three streaming links each. On
-         the full catalogue that was ~220 KB of the ~292 KB this view produced,
-         parsed on every keystroke of the search box, to show none of it. */
+      /* Built ONLY for the open row. Emitting it for every entry and hiding it was
+         ~220 KB of the ~292 KB this view produced, reparsed on every keystroke. */
       var detail = "";
       if(isOpen){
         var starBtns = "", s;
@@ -1472,19 +1381,9 @@ function viewStats(){
         stars(S.rated[f.id])+'</span></div>';
     });
   }
-  html += '<div class="bk" style="margin-bottom:16px"><h3>Your path</h3>'+
-    '<p>The ordering the whole app follows. Switching re-sorts everything \u2014 it never clears a tick, a skip or a rating.</p>'+
-    '<div class="modes" style="margin-bottom:0">'+
-    PATHS.map(function(m){
-      return '<button data-path="'+m[0]+'" aria-pressed="'+(S.path===m[0])+'">'+m[1]+'</button>';
-    }).join("")+'</div>'+
-    '<hr class="bkhr"><h3>Darker</h3>'+
-    '<p>Pure black surfaces for watching in an actually dark room. Nothing else changes.</p>'+
-    '<div class="modes" style="margin-bottom:0">'+
-    [["dark","Dark deco"],["darker","Darker"]].map(function(m){
-      return '<button data-theme="'+m[0]+'" aria-pressed="'+(S.theme===m[0])+'">'+m[1]+'</button>';
-    }).join("")+'</div></div>';
-  html += '<div class="bk"><h3>Backup &amp; transfer</h3>'+
+  /* The path row here duplicated Home's Change. What is left is progress in
+     portable form, which is why it stays in Progress. */
+  html += '<div class="bk"><h3>Your data</h3>'+
     '<p>Your progress lives only in this browser \u2014 a new phone, or clearing site data, starts you at zero. '+
     'Make a code and you can carry it anywhere.</p><div class="bkbtns">'+
     '<button class="bkbtn primary" data-act="mkcode">'+(S.code ? "Refresh code" : "Create backup code")+'</button>'+
@@ -1514,6 +1413,11 @@ function viewStats(){
   html += S.confirmReset
     ? '<button class="danger" data-act="reset" style="background:var(--crimson);color:#fff;border-color:var(--crimson)">Tap again to erase everything</button>'
     : '<button class="danger" data-act="reset">Clear all progress</button>';
+  html += '<div class="prefrow"><span class="preflab">Darker</span>'+
+    '<div class="modes">'+
+    [["dark","Dark deco"],["darker","Darker"]].map(function(m){
+      return '<button data-theme="'+m[0]+'" aria-pressed="'+(S.theme===m[0])+'">'+m[1]+'</button>';
+    }).join("")+'</div></div>';
   html += '<p class="note">'+(canSave
     ? "Progress saves automatically on this device and follows you across all three orderings."
     : "Saving is unavailable here, so progress lasts for this session only.")+
@@ -1527,26 +1431,18 @@ function render(){
   var c = counts(), pct = c.total ? c.done / c.total : 0;
   document.getElementById("ringArc").setAttribute("stroke-dashoffset", (119.4 * (1 - pct)).toFixed(1));
   document.getElementById("ringPct").textContent = Math.round(pct*100) + "%";
-  /* The sub-line already existed; it now carries the path name. Cheapest
-     possible reminder of which ordering you are in — no new chrome, a label
-     that was there anyway saying something more useful. */
   var gWord = S.mode === "life" ? "eras" : S.mode === "release" ? "decades" : "universes";
   document.getElementById("hsub").textContent = S.path
     ? pathName(S.path) + " \u00b7 " + c.done + " of " + c.total
     : c.done + " of " + c.total + " logged \u00b7 " + buildGroups().length + " " + gWord;
-  /* Scroll lives on the document, not on <main>. This used to read and write
-     v.scrollTop — but <main> has no overflow, so it is never a scroll
-     container and that value was always 0. Every re-render silently threw the
-     scroll position away and it only looked fine because replacing innerHTML
-     with content of a similar height leaves the document scroll where it was.
-     Tick something near the bottom of a filtered list and it jumped. */
+  /* Scroll lives on the document, not <main>: <main> has no overflow, so its
+     scrollTop is always 0 and every re-render threw the position away. */
   var v = document.getElementById("view");
   var keep = window.pageYOffset || document.documentElement.scrollTop || 0;
   var qPrev = document.getElementById("q");
   var qSel = qPrev ? qPrev.selectionStart : null;
-  /* Refocus the search box if it HELD focus, not merely if it has text.
-     Keying off S.q meant deleting the last character dropped focus and shut
-     the keyboard mid-edit on mobile. */
+  /* Refocus if the box HELD focus, not if it merely has text — keying off S.q
+     shut the keyboard when you deleted the last character. */
   var qWasFocused = !!qPrev && document.activeElement === qPrev;
   var focus = null, ae = document.activeElement;
   if(ae && ae.tagName === "BUTTON" && v.contains(ae) && ae.dataset){
@@ -1558,11 +1454,9 @@ function render(){
   v.innerHTML = S.tab === "home" ? viewHome()
               : S.tab === "next" ? viewNext()
               : S.tab === "watch" ? viewWatch() : viewStats();
-  /* aria-current, not aria-selected: aria-selected is only meaningful on a
-     role=tab/option/row. These are plain navigation buttons, and a bare
-     aria-selected on a button is ignored by screen readers. The attribute is
-     REMOVED rather than set to false — aria-current has no false state, and
-     the CSS matches on presence. */
+  /* aria-current, not aria-selected, which is meaningless on a plain button.
+     Removed rather than set false: it has no false state and the CSS matches
+     on presence. */
   Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function(b){
     if(b.dataset.tab === S.tab) b.setAttribute("aria-current", "page");
     else b.removeAttribute("aria-current");
@@ -1589,11 +1483,11 @@ function goToGroup(jk){
   S.mode = (jk.charAt(0) === "e") ? "life" : "continuity";
   S.groupOpen = {};
   buildGroups().forEach(function(g){ S.groupOpen[g.key] = (g.key === jk); });
-  window.scrollTo(0,0); persist(); render();
-  /* Every other group is collapsed, but "collapsed" is still a 56px sticky
-     header — jumping to the top can leave the group you actually asked for
-     twenty-odd headers below the fold. Tapping a donut slice is advertised as
-     going straight there, so go straight there. */
+  /* Nothing here is persisted: tab, filter, query, mode and groupOpen are
+     session state by design. */
+  window.scrollTo(0,0); render();
+  /* A collapsed group is still a 56px sticky header, so scrolling to the top
+     can leave the requested group far below the fold. */
   var target = document.querySelector('.ghead[data-gk="'+jk+'"]');
   if(target && target.scrollIntoView){
     try{ target.scrollIntoView({block:"start", behavior:"smooth"}); }
@@ -1640,7 +1534,6 @@ document.getElementById("view").addEventListener("click", function(e){
     persist(); render();
     return;
   }
-  if(b.dataset.mode){ S.mode = b.dataset.mode; S.groupOpen = {}; persist(); render(); return; }
   if(b.dataset.filter){ S.filter = b.dataset.filter; render(); return; }
   var act = b.dataset.act, id = b.dataset.id;
   if(act === "mypath"){ S.mode = S.path; S.groupOpen = {}; window.scrollTo(0,0); render(); }
@@ -1748,10 +1641,8 @@ restore(function(){
   render();
 });
 
-/* Offline support. Registration is guarded: service workers require a secure
-   context, so a file:// open (which is a supported way to run this) would
-   throw. Failure is silent and non-fatal — the app is one self-contained file
-   and works without it. */
+/* Registration is guarded: service workers need a secure context and file://
+   is a supported way to run this. Failure is silent and non-fatal. */
 if("serviceWorker" in navigator &&
    (location.protocol === "https:" || location.hostname === "localhost")){
   window.addEventListener("load", function(){
