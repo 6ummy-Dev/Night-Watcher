@@ -37,8 +37,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Limelight&family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Canon skin: Dark Deco. Single source of truth — there is no second
-     :root override further down; adding one is how the palette drifts. */
+  /* Canon skin: Dark Deco. Single source of truth. There is no second :root
+     further down — themes are [data-theme] blocks that override surfaces only,
+     and qa/guards.js measures the contrast of every one of them. Adding a bare
+     second :root is still how the palette drifts. */
   --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
   --line:#252E42; --line2:#33405C;
   --bone:#E7E9F0; --dust:#93A0B8; --dim:#78849E;
@@ -50,7 +52,19 @@
   --disp:"Anton","Haettenschweiler","Arial Narrow",Impact,sans-serif;
   --body:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --hdr:rgba(10,12,17,.9);
+  --tabbg:rgba(14,17,25,.94);
   --tab-h:58px;
+}
+/* Darker: an AMOLED variant for watching in an actually dark room. Surfaces
+   only — every text and accent token is untouched, so contrast can only go up
+   from here (guard 13 measures every theme, not just this one). Not a light
+   theme: Dark Deco is the app, and a second full palette is a permanent tax. */
+:root[data-theme="darker"]{
+  --ink:#000000; --sunk:#05070C; --card:#0B101B; --card2:#111826;
+  --line:#1B2233; --line2:#2C3853;
+  --hdr:rgba(0,0,0,.92);
+  --tabbg:rgba(4,6,10,.95);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;height:100%;}
@@ -59,7 +73,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 :focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px;}
 
 #app{display:flex;flex-direction:column;min-height:100%;}
-header{position:sticky;top:0;z-index:30;background:rgba(10,12,17,.9);-webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
+header{position:sticky;top:0;z-index:30;background:var(--hdr);-webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
 .hrow{display:flex;align-items:center;gap:14px;max-width:760px;margin:0 auto;}
 /* Storage can fail silently: Safari Private Browsing, a full quota, or an
    embedded webview. Ticking then went on working in memory and the whole
@@ -87,13 +101,34 @@ header{position:sticky;top:0;z-index:30;background:rgba(10,12,17,.9);-webkit-bac
 .ring svg{transform:rotate(-90deg);display:block;}
 .ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:600;}
 main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 28px);max-width:760px;margin:0 auto;width:100%;}
-#tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;background:rgba(14,17,25,.94);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);}
+#tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;background:var(--tabbg);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);}
 #tabs button{flex:1;height:var(--tab-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);transition:color .15s;}
 /* Fixed box, fixed grid: every icon occupies exactly 20x20 regardless of the
    shape inside it, so all four labels and all four icons share one baseline. */
 #tabs button svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;}
 #tabs button[aria-current]{color:var(--signal);}
 
+/* The path card. Same gradient as .hero so Home reads as one surface, not as a
+   widget bolted above the hero. */
+.pathcard{border:1px solid var(--line);border-radius:16px;background:linear-gradient(175deg,var(--card2),var(--card) 60%);padding:16px 18px 18px;margin-bottom:20px;}
+.pathtop{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+.pathkick{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0;}
+.pathchg{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--steel);text-transform:uppercase;}
+.pathname{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(21px,5.4vw,29px);line-height:1;margin:9px 0 0;}
+.pathrow{display:flex;align-items:center;gap:13px;margin-top:14px;}
+.pathrow b{font-family:var(--disp);font-size:22px;line-height:1;display:block;}
+.pathrow span{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--dust);text-transform:uppercase;display:block;margin-top:4px;}
+.pathring{flex:none;}
+.pathring circle{fill:none;stroke-width:4;}
+.chooser{margin-bottom:22px;}
+.pick{display:block;width:100%;text-align:left;border:1px solid var(--line2);border-radius:12px;background:var(--card);padding:14px 16px;margin-bottom:10px;min-height:44px;}
+.pick b{font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:19px;line-height:1.05;display:block;}
+.pick span{display:block;font-size:13.5px;color:var(--dust);margin-top:6px;line-height:1.45;}
+.picknote{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--dim);margin:2px 0 0;line-height:1.6;}
+.viewing{border:1px solid var(--steel);border-radius:10px;padding:10px 13px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.viewing p{margin:0;flex:1;min-width:150px;font-size:13px;color:var(--dust);line-height:1.4;}
+.viewing button{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);background:var(--signal);border-radius:8px;padding:9px 12px;min-height:40px;font-weight:600;}
+.pathtitle{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(20px,5.2vw,27px);line-height:1;margin:0 0 10px;}
 .modes{display:flex;gap:0;border:1px solid var(--line2);border-radius:10px;overflow:hidden;margin-bottom:10px;}
 .modes button{flex:1;padding:11px 6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dust);border-right:1px solid var(--line2);min-height:42px;}
 .modes button:last-child{border-right:0;}
@@ -673,15 +708,32 @@ PATH.forEach(function(g, gi){
   });
 });
 
-var S = {tab:"home", scope:"movies", mode:"continuity", filter:"all", q:"", code:"",
-         watched:{}, skipped:{}, rated:{}, open:{}, groupOpen:{}, log:[]};
+/* path is the LOCKED choice; mode is what is currently on screen. They are
+   normally identical. A shared deep link sets mode alone, so following someone
+   else's #release link shows you release order without silently rewriting the
+   path you chose. Only path is persisted — that is what makes a view a view. */
+var S = {tab:"home", scope:"movies", path:"", mode:"continuity", filter:"all", q:"", code:"",
+         theme:"dark", watched:{}, skipped:{}, rated:{}, open:{}, groupOpen:{}, log:[]};
+var PATHS = [["continuity","By universe"], ["life","Bruce\u2019s life"], ["release","Release order"]];
+var PATHBLURB = {
+  continuity:"Each continuity intact, in its own story order. The safest first watch \u2014 nothing spoils anything ahead of it.",
+  life:"One composite lifetime stitched across every continuity, from before the cowl to Beyond. An interpretation, not a canon.",
+  release:"Straight release order, 1968 to 2028. The only ordering that is objectively complete \u2014 it just jumps between universes."
+};
+var PATHCODE = {continuity:"c", life:"l", release:"r"};
+var CODEPATH = {c:"continuity", l:"life", r:"release"};
+function isPath(id){ return !!PATHCODE[id]; }
+function pathName(id){
+  for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
+  return "";
+}
 /* Release version, shown in the Progress footer and used as the service-worker
    cache name. It was a date string; it is now semver so it maps 1:1 onto
    CHANGELOG.md. Bump it for EVERY shipped change — sw.js VERSION and the
    changelog must both agree, and qa/guards.js fails the build if they don't.
    KEY is separate on purpose: bump that ONLY for a breaking storage-shape
    change, because ids are frozen and catalogue additions never require it. */
-var BUILD = "1.1.0";
+var BUILD = "1.2.0";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -723,10 +775,24 @@ function flagSave(){
   var el = document.getElementById("nosave");
   if(el) el.hidden = canSave;
 }
+/* The status bar is painted by the browser from <meta name="theme-color">, not
+   by CSS, so switching theme without updating the tag leaves an installed app
+   with a header in one colour and the bar above it in the other. */
+var THEMEBAR = {dark:"#0C111C", darker:"#000000"};
+function applyTheme(){
+  document.documentElement.setAttribute("data-theme", S.theme);
+  var m = document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute("content", THEMEBAR[S.theme] || THEMEBAR.dark);
+}
 function persist(){
   if(!canSave || !store) return;
+  /* mode is written as well as path, and deliberately carries the PATH value:
+     a 1.1.0 build reading this payload knows nothing about path and would fall
+     back to its own default, landing the user in an ordering they never chose.
+     Writing both means a downgrade still opens on the right one. */
   var payload = JSON.stringify({watched:S.watched, skipped:S.skipped, rated:S.rated,
-                                mode:S.mode, scope:S.scope, log:S.log});
+                                path:S.path, mode:S.path || S.mode, theme:S.theme,
+                                scope:S.scope, log:S.log});
   try{
     var p = store.set(KEY, payload);
     if(p && p.catch) p.catch(function(){ canSave = false; flagSave(); });
@@ -740,7 +806,14 @@ function restore(done){
         S.watched = o.watched || {}; S.skipped = o.skipped || {};
         S.rated = o.rated || {};
         S.log = Array.isArray(o.log) ? o.log : [];
-        if(o.mode) S.mode = o.mode;
+        /* Anyone upgrading from 1.1.0 already has an ordering they use. Making
+           them pick again — with progress on the board — would be asking a
+           question they have already answered, so their saved mode becomes
+           their path. The chooser is for genuinely new arrivals. */
+        if(isPath(o.path)) S.path = o.path;
+        else if(isPath(o.mode)) S.path = o.mode;
+        if(S.path) S.mode = S.path;
+        if(o.theme === "darker" || o.theme === "dark") S.theme = o.theme;
         if(o.scope) S.scope = o.scope;
       }catch(e){}
     }
@@ -933,7 +1006,13 @@ function exportCode(){
     if(S.skipped[f.id]) k.push(h);
     if(clampRating(S.rated[f.id])) r.push(h + clampRating(S.rated[f.id]));
   });
-  return "NW1W" + w.join("") + "S" + k.join("") + "R" + r.join("");
+  /* NW2 carries the chosen path in a P segment. The 1.1.0 reader skips
+     segments it does not know, so a 1.1.0 app restores everything except the
+     path from this — which is exactly what the forward tolerance shipped in
+     that release was for. 1.0.0 will reject it; sw.js is network-first, so a
+     1.0.0 client that has opened online since is already past it. */
+  return "NW2W" + w.join("") + "S" + k.join("") + "R" + r.join("") +
+         (S.path ? "P" + PATHCODE[S.path] : "");
 }
 /* A code is NW<version> followed by segments, each an UPPERCASE letter and its
    payload: W watched, S skipped, R rated. Payloads are base36 lowercase, so the
@@ -955,7 +1034,8 @@ function importCode(raw){
   var m = [null, seg.W || "", seg.S || "", seg.R || ""];
   var map = {}, i, id;
   FILMS.forEach(function(f){ map[idHash(f.id)] = f.id; });
-  var res = {watched:{}, skipped:{}, rated:{}, found:0, unknown:0};
+  var res = {watched:{}, skipped:{}, rated:{}, found:0, unknown:0,
+             path:CODEPATH[(seg.P || "").charAt(0)] || ""};
   for(i = 0; i + 5 <= m[1].length; i += 5){
     id = map[m[1].substr(i,5)];
     if(id){ res.watched[id] = 1; res.found++; } else res.unknown++;
@@ -985,8 +1065,8 @@ function download(name, text, mime){
   }catch(e){ return false; }
 }
 function exportJSON(){
-  var str = JSON.stringify({app:"night-watcher", v:1, exported:new Date().toISOString(),
-    scope:S.scope, watched:S.watched, skipped:S.skipped, rated:S.rated, log:S.log}, null, 1);
+  var str = JSON.stringify({app:"night-watcher", v:2, exported:new Date().toISOString(),
+    scope:S.scope, path:S.path, watched:S.watched, skipped:S.skipped, rated:S.rated, log:S.log}, null, 1);
   return str;
 }
 function doRestore(text){
@@ -994,7 +1074,9 @@ function doRestore(text){
   if(text.charAt(0) === "{"){
     var o; try{ o = JSON.parse(text); }catch(e){ return null; }
     if(!o || typeof o !== "object" || (!o.watched && !o.skipped && !o.rated)) return null;
-    var res = {watched:o.watched || {}, skipped:o.skipped || {}, rated:o.rated || {}, found:0, unknown:0};
+    var res = {watched:o.watched || {}, skipped:o.skipped || {}, rated:o.rated || {}, found:0, unknown:0,
+               path:isPath(o.path) ? o.path : ""};
+    if(!S.path && res.path){ S.path = S.mode = res.path; }
     var known = {}; FILMS.forEach(function(f){ known[f.id] = 1; });
     var id2;
     for(id2 in res.watched){ known[id2] ? res.found++ : res.unknown++; }
@@ -1022,6 +1104,10 @@ function doRestore(text){
 }
 function applyImport(res){
   var id;
+  /* A restore onto a fresh device should arrive already on the right path. It
+     must NOT overwrite a path already chosen here — restore merges progress,
+     it does not take over the device. */
+  if(!S.path && isPath(res.path)){ S.path = S.mode = res.path; }
   for(id in res.watched){ if(!S.watched[id]){ S.watched[id] = 1; S.log.push({id:id, ts:Date.now()}); } }
   for(id in res.skipped){ if(!S.watched[id]) S.skipped[id] = 1; }
   for(id in res.rated){ var rn = clampRating(res.rated[id]); if(rn) S.rated[id] = rn; }
@@ -1048,6 +1134,33 @@ function viewHome(){
   var optDone = optFs.filter(isDone).length;
   var fresh = (c.done === 0);
   var html = "";
+
+  /* No path yet: Home IS the chooser. Not a modal and not an onboarding flow —
+     there is nothing to dismiss, and a deep link straight into a view still
+     works because routing never depends on this. Pick one and it becomes the
+     path card below, permanently. */
+  if(!S.path){
+    html += '<div class="chooser"><p class="pathkick">Choose your path</p>' +
+      '<p class="picknote" style="margin:8px 0 14px">Three honest answers instead of one fake one. ' +
+      (c.done ? 'Switching re-sorts what you see \u2014 nothing you have ticked is lost.' : 'You can change it whenever you like.') + '</p>' +
+      PATHS.map(function(m){
+        return '<button class="pick" data-path="'+m[0]+'"><b>'+m[1]+'</b><span>'+
+               esc(PATHBLURB[m[0]])+'</span></button>';
+      }).join("") + '</div>';
+    return html;
+  }
+
+  var pc = counts(), ppct = pc.total ? pc.done / pc.total : 0;
+  html += '<div class="pathcard"><div class="pathtop">'+
+    '<p class="pathkick">Your path</p>'+
+    '<button class="pathchg" data-act="repath">Change</button></div>'+
+    '<h2 class="pathname">'+esc(pathName(S.path))+'</h2>'+
+    '<div class="pathrow"><svg class="pathring" width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">'+
+      '<circle cx="23" cy="23" r="19" stroke="var(--line)"></circle>'+
+      '<circle cx="23" cy="23" r="19" stroke="var(--signal)" stroke-linecap="round" '+
+        'stroke-dasharray="119.4" stroke-dashoffset="'+(119.4*(1-ppct)).toFixed(1)+'" '+
+        'transform="rotate(-90 23 23)"></circle></svg>'+
+    '<div><b>'+Math.round(ppct*100)+'%</b><span>'+pc.done+' of '+pc.total+'</span></div></div></div>';
 
   if(fresh){
     html += '<div class="intro">'+
@@ -1166,10 +1279,21 @@ function chipSet(){
 }
 function viewWatch(){
   var q = S.q.toLowerCase();
-  var html = scopeSwitch(true) + '<div class="modes">'+
-    [['continuity','By universe'],['life',"Bruce's life"],['release','Release order']].map(function(m){
-      return '<button data-mode="'+m[0]+'" aria-pressed="'+(S.mode===m[0])+'">'+m[1]+'</button>';
-    }).join("")+'</div>'+
+  /* The three-way switcher used to live here and was re-answered on every
+     visit. It is now the "Change" link on Home plus one row in Progress: the
+     tab opens in your order and stops asking. When mode and path disagree you
+     are following somebody else's link, and the banner offers to adopt it
+     rather than taking the decision for you. */
+  var viewing = "";
+  if(!S.path){
+    viewing = '<div class="viewing"><p>You haven\u2019t chosen a path yet. This is '+
+      esc(pathName(S.mode))+'.</p><button data-path="'+S.mode+'">Make this my path</button></div>';
+  } else if(S.mode !== S.path){
+    viewing = '<div class="viewing"><p>Viewing <b>'+esc(pathName(S.mode))+'</b>. Your path is '+
+      esc(pathName(S.path))+'.</p><button data-path="'+S.mode+'">Make this my path</button></div>';
+  }
+  var html = scopeSwitch(true) + viewing +
+    '<h2 class="pathtitle">'+esc(pathName(S.mode))+'</h2>'+
     '<p class="modenote">'+modeNote()+'</p>'+
     '<input class="search" id="q" type="search" enterkeyhint="search" aria-label="Search the catalogue" placeholder="'+
       (S.scope === "all" ? "Search films and series" : "Search films")+'" value="'+esc(S.q)+'">'+
@@ -1340,6 +1464,18 @@ function viewStats(){
         stars(S.rated[f.id])+'</span></div>';
     });
   }
+  html += '<div class="bk" style="margin-bottom:16px"><h3>Your path</h3>'+
+    '<p>The ordering the whole app follows. Switching re-sorts everything \u2014 it never clears a tick, a skip or a rating.</p>'+
+    '<div class="modes" style="margin-bottom:0">'+
+    PATHS.map(function(m){
+      return '<button data-path="'+m[0]+'" aria-pressed="'+(S.path===m[0])+'">'+m[1]+'</button>';
+    }).join("")+'</div>'+
+    '<hr class="bkhr"><h3>Darker</h3>'+
+    '<p>Pure black surfaces for watching in an actually dark room. Nothing else changes.</p>'+
+    '<div class="modes" style="margin-bottom:0">'+
+    [["dark","Dark deco"],["darker","Darker"]].map(function(m){
+      return '<button data-theme="'+m[0]+'" aria-pressed="'+(S.theme===m[0])+'">'+m[1]+'</button>';
+    }).join("")+'</div></div>';
   html += '<div class="bk"><h3>Backup &amp; transfer</h3>'+
     '<p>Your progress lives only in this browser \u2014 a new phone, or clearing site data, starts you at zero. '+
     'Make a code and you can carry it anywhere.</p><div class="bkbtns">'+
@@ -1363,7 +1499,7 @@ function viewStats(){
   }
   html += '<hr class="bkhr"><h3>Restore</h3>'+
     '<p>Paste a backup code from another device. It merges in \u2014 nothing already ticked is lost.</p>'+
-    '<textarea class="bkin" id="restorebox" placeholder="NW1W\u2026 or paste a full JSON backup"></textarea>'+
+    '<textarea class="bkin" id="restorebox" placeholder="NW2W\u2026 or paste a full JSON backup"></textarea>'+
     '<div class="bkbtns"><button class="bkbtn" data-act="restore">Restore progress</button>'+
     '<button class="bkbtn" data-act="pickfile">Import a file</button></div>'+
     '<input type="file" id="restorefile" accept=".json,.txt" style="display:none"></div>';
@@ -1379,12 +1515,17 @@ function viewStats(){
 
 function render(){
   flagSave();
+  applyTheme();
   var c = counts(), pct = c.total ? c.done / c.total : 0;
   document.getElementById("ringArc").setAttribute("stroke-dashoffset", (119.4 * (1 - pct)).toFixed(1));
   document.getElementById("ringPct").textContent = Math.round(pct*100) + "%";
+  /* The sub-line already existed; it now carries the path name. Cheapest
+     possible reminder of which ordering you are in — no new chrome, a label
+     that was there anyway saying something more useful. */
   var gWord = S.mode === "life" ? "eras" : S.mode === "release" ? "decades" : "universes";
-  document.getElementById("hsub").textContent =
-    c.done + " of " + c.total + " logged \u00b7 " + buildGroups().length + " " + gWord;
+  document.getElementById("hsub").textContent = S.path
+    ? pathName(S.path) + " \u00b7 " + c.done + " of " + c.total
+    : c.done + " of " + c.total + " logged \u00b7 " + buildGroups().length + " " + gWord;
   /* Scroll lives on the document, not on <main>. This used to read and write
      v.scrollTop — but <main> has no overflow, so it is never a scroll
      container and that value was always 0. Every re-render silently threw the
@@ -1477,10 +1618,24 @@ document.getElementById("view").addEventListener("click", function(e){
     toast(S.scope === "all" ? "Series added" : "Films only");
     return;
   }
+  if(b.dataset.path){
+    if(!isPath(b.dataset.path)) return;
+    var first = !S.path;
+    S.path = S.mode = b.dataset.path; S.groupOpen = {}; persist(); render();
+    window.scrollTo(0,0);
+    toast(first ? pathName(S.path) + " it is" : "Path: " + pathName(S.path));
+    return;
+  }
+  if(b.dataset.theme){
+    S.theme = (b.dataset.theme === "darker") ? "darker" : "dark";
+    persist(); render();
+    return;
+  }
   if(b.dataset.mode){ S.mode = b.dataset.mode; S.groupOpen = {}; persist(); render(); return; }
   if(b.dataset.filter){ S.filter = b.dataset.filter; render(); return; }
   var act = b.dataset.act, id = b.dataset.id;
-  if(act === "resume"){ S.tab = "next"; window.scrollTo(0,0); render(); }
+  if(act === "repath"){ S.path = ""; window.scrollTo(0,0); persist(); render(); }
+  else if(act === "resume"){ S.tab = "next"; window.scrollTo(0,0); render(); }
   else if(act === "tier"){
     S.tab = "watch"; S.filter = b.dataset.tf; S.q = ""; S.groupOpen = {};
     window.scrollTo(0,0); render();
