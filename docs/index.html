@@ -116,9 +116,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .viewing button{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);background:var(--signal);border-radius:8px;padding:9px 12px;min-height:40px;font-weight:600;}
 .viewing button.ghost{background:none;color:var(--steel);border:1px solid var(--line2);font-weight:400;}
 /* The only preference. No heading, no card, last row on the last screen. */
-.prefrow{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:26px 0 0;}
-.preflab{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);}
-.prefrow .modes{margin-bottom:0;}
+.prefrow{margin:26px 0 0;}
 .pathtitle{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(20px,5.2vw,27px);line-height:1;margin:0 0 10px;}
 .modes{display:flex;gap:0;border:1px solid var(--line2);border-radius:10px;overflow:hidden;margin-bottom:10px;}
 .modes button{flex:1;padding:11px 6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dust);border-right:1px solid var(--line2);min-height:42px;}
@@ -1413,11 +1411,10 @@ function viewStats(){
   html += S.confirmReset
     ? '<button class="danger" data-act="reset" style="background:var(--crimson);color:#fff;border-color:var(--crimson)">Tap again to erase everything</button>'
     : '<button class="danger" data-act="reset">Clear all progress</button>';
-  html += '<div class="prefrow"><span class="preflab">Darker</span>'+
-    '<div class="modes">'+
+  html += '<div class="modes prefrow">'+
     [["dark","Dark deco"],["darker","Darker"]].map(function(m){
       return '<button data-theme="'+m[0]+'" aria-pressed="'+(S.theme===m[0])+'">'+m[1]+'</button>';
-    }).join("")+'</div></div>';
+    }).join("")+'</div>';
   html += '<p class="note">'+(canSave
     ? "Progress saves automatically on this device and follows you across all three orderings."
     : "Saving is unavailable here, so progress lasts for this session only.")+
