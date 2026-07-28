@@ -1,15 +1,10 @@
 #!/usr/bin/env node
-/* Night Watcher build guards.
- *
- *   node qa/guards.js          check
- *   node qa/guards.js --bless  check, and (re)write the frozen-ID snapshot
- *
- * Zero dependencies. Exits 1 on any failure, 0 when clean.
- *
- * The functions under test are EXTRACTED FROM docs/index.html and evaluated, not
- * reimplemented here. A copy would drift from the app and quietly stop
- * testing it, which is exactly the failure this file exists to prevent.
- */
+/* Night Watcher build guards.  node qa/guards.js [--bless]
+   
+   Zero dependencies. Exits 1 on any failure. Functions under test are
+   EXTRACTED from docs/index.html and evaluated, never reimplemented here —
+   a copy drifts from the app and quietly stops testing it.
+   Every guard is negative-tested: made to fail on purpose before it is trusted. */
 "use strict";
 
 var fs   = require("fs");
@@ -17,10 +12,8 @@ var path = require("path");
 var vm   = require("vm");
 
 var ROOT   = path.join(__dirname, "..");
-/* The site is served from docs/ — GitHub Pages (branch-folder mode) and
-   wrangler.jsonc's assets.directory both point there. Autodetect rather than
-   assume, so the guards can never silently validate a stale copy living in
-   the wrong place. */
+/* Autodetect the served directory rather than assume, so the guards cannot
+   silently validate a stale copy in the wrong place. */
 var PUBLIC = fs.existsSync(path.join(ROOT, "docs", "index.html"))
   ? path.join(ROOT, "docs") : ROOT;
 var HTML   = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8");
@@ -79,9 +72,8 @@ FILMS.forEach(function(f){
 });
 
 /* ---------- 2. Frozen IDs never change ---------- */
-/* The single most destructive edit in this repo is renaming an existing i:.
-   It silently voids saved progress and every backup code in circulation for
-   everyone who already ticked that title. Nothing else catches it. */
+/* Renaming an i: silently voids saved progress and every backup code in
+   circulation. Nothing else catches it. */
 
 var ids = FILMS.map(function(f){ return f.id; }).sort();
 if(BLESS){
@@ -101,9 +93,8 @@ if(BLESS){
 }
 
 /* ---------- 3. Backup-code hash collisions ---------- */
-/* The advertised check. idHash is FNV-1a truncated by slice(-5), so the real
-   space is 36^5 = 60,466,176, not 2^32 — collisions are far likelier than the
-   hash width suggests. A collision makes importCode() restore the WRONG title. */
+/* idHash is FNV-1a truncated to 5 base36 chars, so the real space is 36^5,
+   not 2^32. A collision makes importCode() restore the WRONG title. */
 
 var byHash = Object.create(null), collisions = 0;
 FILMS.forEach(function(f){
@@ -118,8 +109,8 @@ note("hash space 36^5=" + space.toLocaleString("en-US") +
 if(risk > 0.01) warn("collision risk above 1% — consider widening the hash in a v2 code format");
 
 /* ---------- 4. Every entry resolves to exactly one tier ---------- */
-/* Regression guard for the bug where Core route tested the raw o flag while
-   Optional tested tierOf(), leaving 9 essential seasons in neither bucket. */
+/* Regression: Core tested the raw o flag while Optional tested tierOf(),
+   leaving 9 essential seasons in neither bucket. */
 
 var core = FILMS.filter(function(f){ return tierOf(f) !== "o"; });
 var opt  = FILMS.filter(function(f){ return tierOf(f) === "o"; });
@@ -158,10 +149,7 @@ Object.keys(used).forEach(function(k){
 });
 
 /* ---------- 7. Backup code round-trips losslessly ---------- */
-/* These two functions used to be REIMPLEMENTED here, which quietly broke this
-   file's own rule: a copy drifts from the app and stops testing it. They are
-   now extracted from index.html like everything else, so a change to the real
-   parser is a change to what this guard runs. */
+/* Extracted, not reimplemented: the copies here had already drifted. */
 
 sandbox.FILMS = FILMS;
 sandbox.S = {watched:{}, skipped:{}, rated:{}};
@@ -186,20 +174,14 @@ else {
 }
 
 /* ---------- 7b. The parser tolerates codes it was not written for ---------- */
-/* A code written by a LATER version will carry segments this build has never
-   heard of. It must restore what it recognises instead of refusing the lot —
-   otherwise the first format change strands everyone who has not updated.
-   Tolerance is only worth anything if it shipped BEFORE the code that needs
-   it, so it is guarded from the release that introduced it. */
+/* A code from a later build must restore what this one understands. */
 
 if(!/^NW2W/.test(code)){
   fail("exportCode is not writing NW2 — 1.2.0 codes carry the chosen path in a " +
        "P segment; bump deliberately and say so in CHANGELOG.md");
 }
 
-/* The promise made in 1.1.0: a build that has never heard of P still restores
-   everything else from this code. Simulated by stripping the segment, which is
-   precisely what a reader that skips unknown segments sees. */
+/* Stripping P is what a 1.1.0 reader sees. */
 var without = code.replace(/P[0-9a-z]*$/, "");
 var older = importCode(without);
 if(!older) fail("a 1.1.0 reader (P segment skipped) cannot parse a 1.2.0 code");
@@ -229,10 +211,8 @@ if(!importCode("https://6ummy-dev.github.io/Night-Watcher/#nw=" + code)) fail("p
 });
 
 /* ---------- 8. QR payload still fits ---------- */
-/* The QR is byte mode at EC level L: 2953 bytes at v40. The code is
-   4 + 5*watched + 1 + 5*skipped + 1 + 6*rated; worst case is everything
-   watched and rated. index.html catches overflow and degrades gracefully,
-   but the QR is a headline feature, so warn well before that. */
+/* Byte mode at EC level L: 2953 bytes at v40. Worst case is everything
+   watched and rated. index.html degrades gracefully, but warn well before. */
 
 var siteM = HTML.match(/var SITE = "([^"]+)"/);
 var site = siteM ? siteM[1] : "https://example.com/";
@@ -270,11 +250,8 @@ if(!manifest.icons.some(function(ic){ return /maskable/.test(ic.purpose || ""); 
 }
 
 /* ---------- 10b. Deployment layout ---------- */
-/* The site is served from docs/ only. During the docs/ migration a
-   placeholder index.html was left behind at the repo root — nothing served
-   it, but the next person to open "index.html" at the root would have edited
-   a dead file and wondered why prod never changed. Deployables live in
-   docs/, nowhere else. */
+/* Deployables live in docs/, nowhere else. A placeholder left at the repo
+   root is a dead file the next person edits while prod never changes. */
 
 if(PUBLIC !== ROOT){
   note("site dir: " + path.relative(ROOT, PUBLIC) + "/ (GitHub Pages + wrangler)");
@@ -309,8 +286,8 @@ if(fs.existsSync(wranglerPath)){
 }
 
 /* ---------- 11. README headline counts match the data ---------- */
-/* The README hard-codes four numbers. They are the first thing a reader
-   checks and the last thing anyone remembers to update. */
+/* Four hard-coded numbers: first thing a reader checks, last thing anyone
+   remembers to update. */
 
 var readme = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
 if(/\bpublic\//.test(readme) && !fs.existsSync(path.join(ROOT, "public"))){
@@ -335,9 +312,8 @@ var actual = {
 });
 
 /* ---------- 11b. The <meta> headline counts match the data ---------- */
-/* The README counts were guarded; the identical numbers baked into the meta
-   description and og:description were not. Those are what search results and
-   every shared link show, so a stale one is more visible than a stale README. */
+/* The same numbers in meta/og descriptions are what search results and every
+   shared link show, so a stale one is more visible than a stale README. */
 
 [["meta description", /<meta name="description" content="([^"]+)"/],
  ["og:description",   /<meta property="og:description" content="([^"]+)"/]
@@ -357,8 +333,8 @@ var actual = {
 });
 
 /* ---------- 11c. Every shipped version is written down ---------- */
-/* A change nobody recorded is a change the next person silently undoes. BUILD,
-   sw.js VERSION and the top entry of CHANGELOG.md must agree. */
+/* A change nobody recorded is one the next person silently undoes. BUILD,
+   sw.js VERSION and the top of CHANGELOG.md must agree. */
 
 var changelogPath = path.join(ROOT, "CHANGELOG.md");
 if(!fs.existsSync(changelogPath)){
@@ -378,10 +354,8 @@ if(!fs.existsSync(changelogPath)){
 }
 
 /* ---------- 12b. One hero size, declared once ---------- */
-/* Home and Next up render the SAME title (both call upNext()), so an inline
-   font-size on one of them makes the identical card resize as you tap between
-   the two. That is exactly how they drifted 15% apart. Keep the size in the
-   .hero h2 rule and nowhere else. */
+/* Home and Next up render the SAME title, so an inline font-size on one makes
+   the identical card resize as you tap between them. Keep it in .hero h2. */
 
 var inlineHero = HTML.match(/'<h2 style="[^"]*font-size/g);
 if(inlineHero){
@@ -393,9 +367,8 @@ if(!/\.hero h2\{[^}]*font-size:/.test(HTML)){
 }
 
 /* ---------- 12c. Short views must not shift the centred column ---------- */
-/* main is `max-width:760px; margin:0 auto`. Next up is the only view short
-   enough to fit a desktop screen, so without a reserved gutter it loses the
-   scrollbar the other three have and the whole column slides ~7.5px sideways. */
+/* Next up is the only view short enough to fit a desktop screen; without a
+   reserved gutter the centred column slides ~7.5px sideways. */
 
 if(!/scrollbar-gutter:\s*stable/.test(HTML)){
   fail("html is missing scrollbar-gutter:stable — Next up will jump sideways " +
@@ -403,8 +376,8 @@ if(!/scrollbar-gutter:\s*stable/.test(HTML)){
 }
 
 /* ---------- 12. Rating writes go through the clamp ---------- */
-/* new Array(n+1) throws RangeError on a fractional or negative n, and a
-   thrown render blanks the app. Imported JSON is user-supplied. */
+/* new Array(n+1) throws on a fractional or negative n, and a thrown render
+   blanks the app. Imported JSON is user-supplied. */
 
 if(/new Array\(S\.rated\[/.test(HTML)){
   fail("star render builds new Array() from a raw rating — route it through stars()/clampRating()");
@@ -414,18 +387,11 @@ if(/S\.rated\[id\d*\] = res\.rated\[/.test(HTML)){
 }
 
 /* ---------- 13. Text contrast against the surface it sits on ---------- */
-/* An external review claimed --dim was 3.2:1 and had to be lightened. Measured,
-   it is 5.03:1 on --sunk and 4.57:1 on --card — it passes, and lightening it
-   would have flattened the meta/body hierarchy for nothing. But the same
-   measurement found a real one: the hero is a gradient from --card2, and
-   .hero .yr sat at roughly 4.33:1 against it. Numbers, not vibes — so the
-   numbers live here now and nobody has to re-litigate the palette by eye. */
+/* A review reported --dim at 3.2:1; measured it is 5.03 on --sunk and 4.57
+   on --card. Measuring properly found the real one: .hero .yr at ~4.33. */
 
-/* This used to take the first value of each token seen anywhere in the file,
-   which measured the default palette and silently ignored every theme added
-   after it. Themes are parsed as blocks now: a second palette that fails AA
-   is exactly the regression this guard exists to catch, and it would have
-   sailed straight through the old version. */
+/* Per theme. Taking the first value seen anywhere measured only the default
+   and would have ignored every theme added after it. */
 function palette(css){
   var out = {}, re = /--([a-z0-9]+):\s*(#[0-9A-Fa-f]{6})/g, m;
   while((m = re.exec(css))) if(!(m[1] in out)) out[m[1]] = m[2];
@@ -470,9 +436,8 @@ themes.forEach(function(t){
     if(!fg || !bg){ fail("token --" + pair[0] + " or --" + pair[1] + " missing from theme " + name); return; }
     var r = contrast(fg, bg);
     note(name + ": --" + pair[0] + " on --" + pair[1] + " = " + r.toFixed(2) + ":1");
-    /* --card2 is the hero's top stop, where only .hero .yr sits; it is held to
-       the AA floor as a warning rather than a failure because the default
-       theme has shipped at 4.12 there since 1.0.0 with nothing dim on it. */
+    /* --card2 is the hero's top stop; warn, since the default has shipped at
+       4.12 there since 1.0.0 with nothing dim on it. */
     var soft = (pair[1] === "card2");
     if(r < 4.5 && !soft) fail(name + ": --" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
                      ":1 — below the 4.5:1 AA floor for body text");
@@ -483,12 +448,8 @@ themes.forEach(function(t){
   });
 });
 
-/* The hero's top stop is --card2, the darkest surface in the palette. Nothing
-   inside it may use --dim, which measures 4.12:1 there. */
-/* The gradient reaches --card at 60%, so only the TOP of the hero is the
-   problem. .hero .yr is the one that sits up there — that is a hard fail.
-   Anything lower (.where and its span) is on --card at 4.57:1 and passes, so
-   it gets the measured number and a human decision, not a forced change. */
+/* The gradient reaches --card at 60%, so only .hero .yr sits in the dark
+   zone. Anything lower passes; report it and let a human judge. */
 var heroRules = HTML.match(/^\.hero[^{]*\{[^}]*\}/gm) || [];
 heroRules.forEach(function(rule){
   if(!/color:\s*var\(--dim\)/.test(rule)) return;
@@ -504,11 +465,8 @@ heroRules.forEach(function(rule){
 });
 
 /* ---------- 14. A blocked store has to say so ---------- */
-/* Safari Private Browsing, a full quota and some embedded webviews all make
-   writes throw. Before 1.1.0 the app caught that, set canSave = false and said
-   nothing: ticking kept working in memory and the session vanished on reload.
-   The warning has to live INSIDE the sticky header — below it, the one message
-   that must not be missed scrolls away. */
+/* A blocked store used to fail silently. The warning must be inside the
+   sticky header, where it cannot scroll away. */
 
 if(!/id="nosave"/.test(HTML)){
   fail("the storage-blocked warning (#nosave) is gone — a blocked store fails silently again");
@@ -529,11 +487,7 @@ if(!/id="nosave"/.test(HTML)){
 }
 
 /* ---------- 15. No JS escapes stranded in the markup ---------- */
-/* Most user-visible strings in this app are built inside <script>, where
-   "\u2014" is an em dash. The static markup is NOT JavaScript, so the same
-   sequence renders as the six literal characters. Writing markup by adapting a
-   nearby JS string is the obvious way to do it and it produced exactly this bug
-   while 1.1.0's storage warning was being added. */
+/* \uXXXX is an em dash in a script and six literal characters in markup. */
 
 var bodyAt = HTML.indexOf("<body>");
 var scriptAt = HTML.indexOf("<script", bodyAt);
@@ -548,10 +502,8 @@ if(bodyAt > 0){
 }
 
 /* ---------- 16. The path vocabulary agrees with itself ---------- */
-/* Four tables describe the same three orderings: PATHS (labels), PATHBLURB
-   (chooser copy), PATHCODE and CODEPATH (the backup-code letter). A path added
-   to one and missed in another gives a chooser card with no description, or a
-   code letter that restores nothing. */
+/* PATHS, PATHBLURB, PATHCODE and CODEPATH describe the same three orderings;
+   a path missing from one gives a blank card or a letter that restores nothing. */
 
 var PATHS = sandbox.PATHS, PATHBLURB = sandbox.PATHBLURB,
     PATHCODE = sandbox.PATHCODE, CODEPATH = sandbox.CODEPATH;
@@ -583,8 +535,6 @@ if(!PATHS || !PATHBLURB || !PATHCODE || !CODEPATH){
 }
 
 /* ---------- 17. The path is actually load-bearing ---------- */
-/* The point of 1.2.0 is that the ordering is chosen once, not re-answered on
-   every visit. If the switcher comes back to The Path, that is undone. */
 
 if(/data-mode="\047?\+?m\[0\]/.test(HTML) || /<div class="modes">'\+\s*\n?\s*\[\['continuity'/.test(HTML)){
   fail("the three-way mode switcher is back in The Path — the path is chosen once, " +
@@ -599,15 +549,37 @@ if(HTML.indexOf('class="pick"') < 0){
 if(!/data-act="repath"/.test(HTML)){
   fail("the Change control on the path card is gone — the choice would be permanent");
 }
-/* A view has to be a door, not a trap. The banner shipped in 1.2.0 offered
-   only "make this my path", so tapping a universe on Home dropped you into
-   by-universe with no way back except a reload — mode is deliberately not
-   persisted, which is precisely why a reload looked like it fixed things and
-   made a missing control look like a glitch. */
+/* A view must be reversible. Offering only "make this mine" left a reload as
+   the only way back, since mode is not persisted. */
 if(!/data-act="mypath"/.test(HTML)){
   fail("the viewing banner has no way back to the chosen path — entering a view " +
        "from a Home card would be one-way until a reload");
 }
+/* mode mirrors path only. Falling back to S.mode assigned a path to anyone
+   who ticked something before choosing. */
+if(/mode:\s*S\.path\s*\|\|/.test(HTML)){
+  fail("persist() falls back to S.mode when no path is chosen — a new user who "
+       + "ticks anything before picking would be silently assigned a path");
+}
+if(!/mode:\s*S\.path\s*,/.test(HTML)){
+  fail("persist() no longer mirrors path into mode — a downgrade to 1.1.0 would "
+       + "open on its own default instead of the chosen ordering");
+}
+
+/* One control per setting. The path row in Progress duplicated Home’s Change,
+   and a duplicate is how two places drift into disagreeing. */
+var pathBlocks = (HTML.match(/PATHS\.map\(/g) || []).length;
+if(pathBlocks !== 1){
+  fail("PATHS.map appears " + pathBlocks + " times, expected 1 (the chooser) — "
+       + "a second path control somewhere means two places to change one setting");
+}
+
+/* Nothing emits data-mode since the switcher went in 1.2.0. */
+if(/dataset\.mode/.test(HTML)){
+  fail("the data-mode click handler is back, but nothing renders data-mode — "
+       + "dead code that reads as though the ordering is still switchable");
+}
+
 if(!/dataset\.tab === "watch" && S\.path/.test(HTML)){
   fail("tapping The Path tab no longer returns to the chosen path — a view " +
        "would outlive the visit that started it");
@@ -641,9 +613,7 @@ if(!/background:var\(--hdr\)/.test(HTML) || !/background:var\(--tabbg\)/.test(HT
 }
 
 /* ---------- 19. Weight budget ---------- */
-/* The premise is a single file that opens instantly and works offline. Nothing
-   enforces that but arithmetic, so: arithmetic. The ceiling is deliberately
-   close — it should hurt to import a library or inline an image. */
+/* The premise is arithmetic, so: arithmetic. It should hurt to add a library. */
 
 var zlib = require("zlib");
 var rawKB  = Buffer.byteLength(HTML) / 1024;

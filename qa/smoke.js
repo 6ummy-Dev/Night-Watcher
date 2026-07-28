@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-/* Headless render test. Boots docs/index.html in jsdom and drives the paths the
-   guards cannot reach — actual rendering, scope switching, and hostile import.
+/* Headless render test. Boots docs/index.html in jsdom and drives what the
+   guards cannot reach: rendering, scope switching, hostile import, the path,
+   and a second document with storage throwing.
    Requires jsdom (dev-only): npm i -D jsdom      Run: node qa/smoke.js */
 "use strict";
 var fs = require("fs"), path = require("path");
@@ -77,11 +78,22 @@ win.addEventListener("load", function(){
     check("adopting the view sets the path", S.path === "release" && S.mode === "release");
     S.tab = "watch"; S.path = S.mode = "life"; win.persist(); win.render();
 
+    /* --- ticking before choosing must not invent a path (1.2.2) --- */
+    /* Ticking before choosing used to write a real ordering, which the next load
+       adopted as a path nobody picked. */
+    (function(){
+      var keep = {path:S.path, mode:S.mode, watched:S.watched};
+      S.path = ""; S.mode = "continuity"; S.watched = {};
+      S.watched[FILMS[0].id] = 1; win.persist();
+      var raw = win.localStorage.getItem("batwatch-v3") || "";
+      check("persisting with no path chosen writes no ordering",
+            /"path":"","mode":""/.test(raw),
+            (raw.match(/"path":"[^"]*","mode":"[^"]*"/) || [""])[0]);
+      S.path = keep.path; S.mode = keep.mode; S.watched = keep.watched; win.persist();
+    })();
+
     /* --- a view has to be reversible without a reload (1.2.1) --- */
-    /* Reported from the field: choose Bruce's life, tap a universe card on
-       Home, land in by-universe with no way back. mode is not persisted, so a
-       reload appeared to fix it, which is what made a missing control look
-       like a glitch. */
+    /* Reported: choose a path, tap a universe card, no way back but a reload. */
     S.path = S.mode = "life"; S.tab = "home"; win.persist(); win.render();
     doc.querySelector('#view [data-act="jump"]').click();
     check("a Home card enters a view of another ordering",
@@ -242,8 +254,7 @@ win.addEventListener("load", function(){
     check("all four tabs render", !e, e && e.message);
 
     /* --- the parser must read old, current and future codes --- */
-    /* Guards test importCode in isolation; this drives the copy that actually
-       shipped, inside the page, against a code the page itself produced. */
+    /* Drives the shipped copy, against a code the page itself produced. */
     S.watched = {}; S.rated = {};
     FILMS.slice(0, 9).forEach(function(f, i){ if(i % 2 === 0) S.watched[f.id] = 1; });
     S.rated[FILMS[0].id] = 4;
@@ -273,8 +284,7 @@ win.addEventListener("load", function(){
     check("junk is still rejected", junkOk);
 
     /* --- the choice has to survive a reload, which is the entire point --- */
-    /* A fresh document with storage pre-seeded is a reload: same origin, same
-       key, no shared state with the document above. */
+    /* A fresh document with storage pre-seeded is a reload. */
     function reboot(seed, label, then){
       var d = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://6ummy-dev.github.io/Night-Watcher/",
         pretendToBeVisual:true, beforeParse:function(w){
@@ -300,8 +310,7 @@ win.addEventListener("load", function(){
       check("no adopt banner after a clean reload", !d2.querySelector(".viewing"));
 
       /* --- upgrading from 1.1.0: they already answered this question --- */
-      /* A 1.1.0 payload has mode and no path. Showing the chooser to someone
-         with progress on the board would be asking again for no reason. */
+      /* A 1.1.0 payload has mode and no path. */
       var legacy = JSON.stringify({watched:{}, skipped:{}, rated:{},
         mode:"life", scope:"movies", log:[]});
       reboot(legacy, "1.1.0", function(w3, d3){
@@ -322,9 +331,7 @@ win.addEventListener("load", function(){
 
     function runBlocked(){
     /* --- a blocked store must SAY so --- */
-    /* The failure this exists for is silent: writes throw, canSave goes false,
-       and the user keeps ticking into memory that dies on reload. Booting a
-       second document with localStorage throwing is the only way to see it. */
+    /* Only a document with localStorage throwing can observe the silent failure. */
     var blocked = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://6ummy-dev.github.io/Night-Watcher/",
       pretendToBeVisual:true, beforeParse:function(w){
         Object.defineProperty(w, "localStorage", {get:function(){
