@@ -128,6 +128,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .viewing{border:1px solid var(--steel);border-radius:10px;padding:10px 13px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .viewing p{margin:0;flex:1;min-width:150px;font-size:13px;color:var(--dust);line-height:1.4;}
 .viewing button{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);background:var(--signal);border-radius:8px;padding:9px 12px;min-height:40px;font-weight:600;}
+.viewing button.ghost{background:none;color:var(--steel);border:1px solid var(--line2);font-weight:400;}
 .pathtitle{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(20px,5.2vw,27px);line-height:1;margin:0 0 10px;}
 .modes{display:flex;gap:0;border:1px solid var(--line2);border-radius:10px;overflow:hidden;margin-bottom:10px;}
 .modes button{flex:1;padding:11px 6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dust);border-right:1px solid var(--line2);min-height:42px;}
@@ -733,7 +734,7 @@ function pathName(id){
    changelog must both agree, and qa/guards.js fails the build if they don't.
    KEY is separate on purpose: bump that ONLY for a breaking storage-shape
    change, because ids are frozen and catalogue additions never require it. */
-var BUILD = "1.2.0";
+var BUILD = "1.2.1";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -1289,8 +1290,15 @@ function viewWatch(){
     viewing = '<div class="viewing"><p>You haven\u2019t chosen a path yet. This is '+
       esc(pathName(S.mode))+'.</p><button data-path="'+S.mode+'">Make this my path</button></div>';
   } else if(S.mode !== S.path){
+    /* Both directions. The banner used to offer only "make this mine", which
+       made a view a one-way door: tapping a universe on Home dropped you into
+       by-universe with no way back to your own path except a reload, because
+       mode is deliberately not persisted. Going back is the likelier intent of
+       the two, so it leads. */
     viewing = '<div class="viewing"><p>Viewing <b>'+esc(pathName(S.mode))+'</b>. Your path is '+
-      esc(pathName(S.path))+'.</p><button data-path="'+S.mode+'">Make this my path</button></div>';
+      esc(pathName(S.path))+'.</p>'+
+      '<button data-act="mypath">Back to '+esc(pathName(S.path))+'</button>'+
+      '<button class="ghost" data-path="'+S.mode+'">Make this my path</button></div>';
   }
   var html = scopeSwitch(true) + viewing +
     '<h2 class="pathtitle">'+esc(pathName(S.mode))+'</h2>'+
@@ -1596,6 +1604,7 @@ function goToGroup(jk){
 document.getElementById("tabs").addEventListener("click", function(e){
   var b = e.target.closest("button[data-tab]");
   if(!b) return;
+  if(b.dataset.tab === "watch" && S.path) S.mode = S.path;
   S.tab = b.dataset.tab; window.scrollTo(0,0); render();
 });
 
@@ -1634,7 +1643,8 @@ document.getElementById("view").addEventListener("click", function(e){
   if(b.dataset.mode){ S.mode = b.dataset.mode; S.groupOpen = {}; persist(); render(); return; }
   if(b.dataset.filter){ S.filter = b.dataset.filter; render(); return; }
   var act = b.dataset.act, id = b.dataset.id;
-  if(act === "repath"){ S.path = ""; window.scrollTo(0,0); persist(); render(); }
+  if(act === "mypath"){ S.mode = S.path; S.groupOpen = {}; window.scrollTo(0,0); render(); }
+  else if(act === "repath"){ S.path = ""; window.scrollTo(0,0); persist(); render(); }
   else if(act === "resume"){ S.tab = "next"; window.scrollTo(0,0); render(); }
   else if(act === "tier"){
     S.tab = "watch"; S.filter = b.dataset.tf; S.q = ""; S.groupOpen = {};
