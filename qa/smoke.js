@@ -174,7 +174,18 @@ win.addEventListener("load", function(){
     check("valid ratings still coerced through", win.S.rated["batman-ninja-2018"] === 5,
           "got " + win.S.rated["batman-ninja-2018"]);
 
-    /* --- QR restore link is absolute and reachable --- */
+    /* --- transfer without a QR (1.2.4) --- */
+    S.tab = "stats"; win.render();
+    doc.querySelector('#view [data-act="mkcode"]').click();
+    check("making a code shows Copy link", !!doc.querySelector('#view [data-act="copylink"]'));
+    check("the link it copies is absolute and carries the code",
+          /^https?:\/\/.+#nw=NW2W/.test(win.restoreLink(S.code)), win.restoreLink(S.code).slice(0, 46) + "…");
+    check("that link restores when opened",
+          !!win.importCode(win.restoreLink(S.code)));
+    check("no QR encoder is loaded", typeof win.qrcode === "undefined");
+    S.tab = "home"; win.render();
+
+    /* --- the restore link is absolute and reachable --- */
     check("restore link is absolute", /^https:\/\//.test(win.restoreLink("NW1WSR")));
 
     /* --- detail panels are built on demand, not for all 151 entries --- */

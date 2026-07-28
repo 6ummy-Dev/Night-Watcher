@@ -210,19 +210,30 @@ if(!importCode("https://6ummy-dev.github.io/Night-Watcher/#nw=" + code)) fail("p
   if(importCode(bad)) fail("parser accepted junk it should reject: \"" + bad + "\"");
 });
 
-/* ---------- 8. QR payload still fits ---------- */
-/* Byte mode at EC level L: 2953 bytes at v40. Worst case is everything
-   watched and rated. index.html degrades gracefully, but warn well before. */
+/* ---------- 8. The restore link stays reachable ---------- */
+/* Transfer used to be a QR of this link. The QR is gone; the link is the whole
+   mechanism now, so losing the control that surfaces it would silently remove
+   device-to-device transfer and leave only copy-and-paste. */
 
-var siteM = HTML.match(/var SITE = "([^"]+)"/);
-var site = siteM ? siteM[1] : "https://example.com/";
-var maxCode = 6 + 11 * FILMS.length;
-var maxUrl  = site.length + 4 + maxCode;
-var CAP = 2953;
-note("max QR payload " + maxUrl + " / " + CAP + " bytes (" + Math.round(maxUrl / CAP * 100) + "% of v40-L)");
-if(maxUrl > CAP) fail("worst-case backup URL (" + maxUrl + ") exceeds QR capacity — QR will always fall back");
-else if(maxUrl > CAP * 0.85) warn("QR payload above 85% of capacity — roughly " +
-  Math.floor((CAP - maxUrl) / 11) + " more entries before it overflows");
+if(HTML.indexOf('data-act="copylink"') < 0){
+  fail("the Copy link control is gone \u2014 device-to-device restore would be " +
+       "copy-the-code-and-paste-it only");
+}
+if(!/function restoreLink\s*\(/.test(HTML)){
+  fail("restoreLink() is gone \u2014 nothing builds the #nw= URL");
+}
+if(!/#nw=/.test(HTML)){
+  fail("nothing handles the #nw= hash \u2014 an opened restore link would do nothing");
+}
+
+/* ---------- 8b. No vendored third-party code ---------- */
+/* The QR encoder was 20 KB of somebody else's minified JavaScript, 15% of the
+   file, carrying a licence obligation, for a feature the link does better. */
+
+var vendored = HTML.match(/qrcode-generator|\(c\) [A-Z][a-z]+ [A-Z][a-z]+ \| MIT/g);
+if(vendored){
+  fail("vendored third-party code is back in index.html (" + vendored[0] + ")");
+}
 
 /* ---------- 9. BUILD and the service worker agree ---------- */
 
