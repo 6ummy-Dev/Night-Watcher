@@ -666,7 +666,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.3.0";
+var BUILD = "1.3.1";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -847,12 +847,28 @@ function badges(f){
   });
   return '<span class="badges">'+out.join("")+'</span>';
 }
-/* One link, no region in the path: the aggregator geo-redirects, which is
-   right everywhere instead of right in one country. No service is named \u2014
-   naming them was 40-odd repetitions of one brand across a single scroll. */
+/* The aggregator needs a country in the path AND localises the search segment
+   itself: /us/search, /uy/buscar. It runs 36 languages, so a complete word map
+   is not worth carrying and any gap in it is a 404. Only words verified against
+   a live page go in JWORD; every other language gets that country's home page,
+   which always resolves. 1.3.0 shipped a region-less path on the assumption it
+   would redirect. It does not. */
+var JWORD = {en:"search", es:"buscar"};
+function watchUrl(title){
+  var langs = (navigator.languages && navigator.languages.length)
+      ? navigator.languages : [navigator.language || ""];
+  var tag = "", i;
+  for(i = 0; i < langs.length; i++){
+    if(/^[a-z]{2}-[a-z]{2}$/i.test(langs[i])){ tag = langs[i]; break; }
+  }
+  if(!tag) return "https://www.justwatch.com/";
+  var word = JWORD[tag.slice(0,2).toLowerCase()];
+  var base = "https://www.justwatch.com/" + tag.slice(3).toLowerCase();
+  return word ? base + "/" + word + "?q=" + encodeURIComponent(title) : base;
+}
 function watchLinks(f){
-  return '<a class="lnk" href="https://www.justwatch.com/search?q='+
-         encodeURIComponent(f.t)+'" target="_blank" rel="noopener">Where to watch \u2197</a>';
+  return '<a class="lnk" href="'+watchUrl(f.t)+
+         '" target="_blank" rel="noopener">Where to watch \u2197</a>';
 }
 var toastT;
 function toast(msg){
