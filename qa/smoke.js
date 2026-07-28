@@ -174,19 +174,24 @@ win.addEventListener("load", function(){
     check("valid ratings still coerced through", win.S.rated["batman-ninja-2018"] === 5,
           "got " + win.S.rated["batman-ninja-2018"]);
 
-    /* --- the watch link only builds verified paths (1.3.1) --- */
-    check("a verified locale builds a real search URL",
-          win.watchUrl("Batman") === "https://www.justwatch.com/us/search?q=Batman",
+    /* --- the watch link is a Brave search (1.3.2) --- */
+    check("the link is a Brave search",
+          win.watchUrl("Batman").indexOf("https://search.brave.com/search?q=") === 0,
           win.watchUrl("Batman"));
-    check("the link never uses a region-less search path",
-          win.watchUrl("Batman").indexOf("justwatch.com/search") < 0);
-    check("no ISO country code is invented",
-          win.watchUrl("Batman").indexOf("/gb") < 0);
+    check("the query leads with \"where to watch\"",
+          win.watchUrl("Batman").indexOf("where%20to%20watch%20Batman") > 0);
+    check("no country path can appear", !/\/(us|uy|uk|gb|br|de)\//.test(win.watchUrl("Batman")));
     check("every rendered link comes from the builder", (function(){
       S.tab = "next"; win.render();
       var a = doc.querySelector("#view .linkrow .lnk");
-      return !!a && a.href.indexOf("justwatch.com") > 0 &&
-             a.href.indexOf("justwatch.com/search") < 0;
+      return !!a && a.href.indexOf("search.brave.com") > 0;
+    })());
+    check("the link renders in an expanded row too", (function(){
+      S.tab = "watch"; win.render();
+      var r = doc.querySelector('#view [data-act="expand"]');
+      if(r) r.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+      var a = doc.querySelector("#view .fdetail .linkrow .lnk");
+      return !!a && a.href.indexOf("search.brave.com") > 0;
     })());
     S.tab = "home"; win.render();
 

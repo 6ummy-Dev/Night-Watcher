@@ -716,55 +716,47 @@ BRANDS.forEach(function(b){
     fail('"' + b + '" is back in the catalogue or the watch link \u2014 the app names no services');
   }
 });
-/* Three versions of this link shipped or were staged broken: a region-less path
-   (404), then a locale-derived country (404 for the UK, whose code is /uk, not
-   the ISO /gb). Neither the country code nor the search word can be derived \u2014
-   they are the aggregator's own vocabulary. Only verified pairs ship. Grep is
-   the wrong tool: extract the function and run it. */
+/* A search engine, not an aggregator: one URL shape everywhere, no country in
+   the path and nothing to verify per market. Three attempts at building an
+   aggregator URL were wrong before this \u2014 a region-less path, then an
+   ISO-derived country (the UK is /uk, not /gb). Extract the function and run
+   it; grepping missed both of those. */
 
 var watchSrc = fn("watchUrl");
 if(!watchSrc) fail("watchUrl() is gone \u2014 nothing builds the watch link");
-vm.runInContext((watchSrc || "function watchUrl(){ return \"\"; }") + "\n" +
-                slice("var JW = {", "function watchUrl"), sandbox);
+vm.runInContext(watchSrc || "function watchUrl(){ return \"\"; }", sandbox);
 
-function urlFor(langs){
-  sandbox.navigator = {languages:langs, language:langs[0] || ""};
-  return sandbox.watchUrl("Batman: Soul of the Dragon");
-}
-var ROOT = "https://www.justwatch.com/";
-
-[["es-UY", "https://www.justwatch.com/uy/buscar?q="],
- ["en-US", "https://www.justwatch.com/us/search?q="]].forEach(function(c){
-  var u = urlFor([c[0]]);
-  if(u.indexOf(c[1]) !== 0) fail("verified locale " + c[0] + " built " + u);
-  if(u.indexOf("Batman%3A%20Soul") < 0) fail("the title is not encoded \u2014 " + u);
+["Batman: Soul of the Dragon", "Teen Titans Go! vs. Teen Titans", "Harley Quinn"].forEach(function(t){
+  var u = sandbox.watchUrl(t);
+  if(u.indexOf("https://search.brave.com/search?q=") !== 0){
+    fail("the watch link is not a Brave search \u2014 " + u);
+  }
+  if(u.indexOf(encodeURIComponent("where to watch ")) < 0){
+    fail('the query must lead with "where to watch" \u2014 ' + u);
+  }
+  if(u.indexOf(encodeURIComponent(t)) < 0){
+    fail("the title is not encoded into the query \u2014 " + u);
+  }
 });
 
-/* Anything unverified must fall back, never guess a path. en-GB is the case
-   that caught this: the ISO code is gb, the aggregator uses uk. */
-["en-GB", "pt-BR", "de-DE", "fr-FR", "es-419", "es", "en"].forEach(function(l){
-  var u = urlFor([l]);
-  if(u !== ROOT) fail("unverified locale " + l + " built " + u + " \u2014 it must fall back to the root");
-});
-if(urlFor([]) !== ROOT) fail("an empty locale list must fall back to the root");
-
-/* A later entry with a country still wins over an earlier one without. */
-if(urlFor(["es-419", "es-UY"]).indexOf("/uy/buscar?q=") < 0){
-  fail("a country further down navigator.languages is being ignored");
+/* No country, no locale, nothing that can 404 per market. */
+var u0 = sandbox.watchUrl("Batman");
+if(/\/(us|uy|uk|gb|br|de|fr|mx|es)\//.test(u0)){
+  fail("the watch link carries a country path again \u2014 " + u0);
+}
+if(/justwatch/i.test(HTML)){
+  fail("justwatch is back in index.html \u2014 1.3.2 moved to a search engine");
+}
+if(/google\.com\/search/.test(HTML)){
+  fail("the watch link points at Google \u2014 it must be Brave");
+}
+if((HTML.match(/class="lnk"/g) || []).length !== 1){
+  fail("the entry link row is not a single link");
 }
 
-var jw = HTML.match(/var JW = \{([^}]*)\}/);
-if(!jw){
-  fail("JW is missing \u2014 nothing maps a country to a verified search path");
-} else {
-  var VERIFIED = {us:"us/search", uy:"uy/buscar"};
-  (jw[1].match(/([a-z]{2}):"([^"]+)"/g) || []).forEach(function(pair){
-    var k = pair.slice(0, 2), v = pair.split('"')[1];
-    if(VERIFIED[k] !== v){
-      fail('JW maps ' + k + ' to "' + v + '", which has not been checked against a ' +
-           "live page. Open it, confirm it resolves, then add it here.");
-    }
-  });
+/* Right-aligned in both places it renders: the hero and the detail panel. */
+if(!/\.linkrow\{[^}]*justify-content:flex-end/.test(HTML)){
+  fail("the watch link is no longer right-aligned");
 }
 
 /* ---------- 29. One tagline, everywhere ---------- */
