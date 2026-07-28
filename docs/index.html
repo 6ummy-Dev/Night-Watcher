@@ -10,11 +10,11 @@
 <meta name="apple-mobile-web-app-title" content="Night Watcher">
 <link rel="manifest" href="manifest.json">
 <!-- Night Watcher · https://github.com/6ummy-Dev/Night-Watcher -->
-<title>Night Watcher · The Animated Dark Knight</title>
-<meta name="description" content="Every animated Batman story — 96 films and 55 seasons of TV across 27 continuities — in watch orders that spoil nothing. By universe, by the arc of one life, or by release.">
+<title>Night Watcher · One path through every Batman</title>
+<meta name="description" content="Every Batman story — 98 films and 57 seasons of TV across 28 continuities — in watch orders that spoil nothing. By universe, by the arc of one life, or by release.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Night Watcher · The Animated Dark Knight">
-<meta property="og:description" content="Every animated Batman story — 96 films and 55 seasons of TV across 27 continuities — in watch orders that spoil nothing. Track what you've seen and find where each one streams.">
+<meta property="og:title" content="Night Watcher · One path through every Batman">
+<meta property="og:description" content="Every Batman story — 98 films and 57 seasons of TV across 28 continuities — in watch orders that spoil nothing. Choose a path once and track what you have seen.">
 <meta property="og:url" content="https://6ummy-dev.github.io/Night-Watcher/">
 <meta property="og:image" content="https://6ummy-dev.github.io/Night-Watcher/icon.png">
 <meta name="twitter:card" content="summary">
@@ -148,8 +148,6 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .gbody{display:none;padding:0 15px 6px;}
 .group.open .gbody{display:block;}
 .gnote{font-size:13.5px;color:var(--dust);margin:0 0 10px;line-height:1.45;}
-.gwhere{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--dim);margin:0 0 12px;text-transform:uppercase;}
-.gwhere b{color:var(--dust);font-weight:500;}
 
 .film{border-top:1px solid var(--line);}
 .frow{display:flex;align-items:flex-start;gap:12px;padding:12px 0;}
@@ -190,8 +188,6 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(24px,6.5vw,36px);line-height:.94;margin:0;}
 .hero .yr{font-family:var(--mono);font-size:12px;color:var(--dust);margin:10px 0 0;letter-spacing:.06em;}
 .hero .blurb{font-size:15px;color:var(--dust);margin:16px 0 0;line-height:1.5;}
-.hero .where{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--dust);margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line);}
-.hero .where span{color:var(--dim);display:block;margin-bottom:4px;}
 .heroacts{display:flex;gap:9px;margin-top:20px;}
 .heroacts button{flex:1;min-height:50px;border-radius:11px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;}
 .heroacts .go{background:var(--bone);color:var(--ink);}
@@ -334,7 +330,6 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
 var PATH = [
 {n:"01",name:"DC Animated Universe",
  note:"Bruce Timm's world, Kevin Conroy's voice \u2014 the foundation everything after gets measured against. The full weave: run The Animated Series, dropping Mask of the Phantasm in around season two and SubZero after it. Then The New Batman Adventures, detouring into Superman's 'World\u2019s Finest' and 'Knight Time', and finishing with Mystery of the Batwoman and Chase Me. Justice League and Unlimited follow \u2014 but JLU's 'Epilogue' spoils Batman Beyond, so save Beyond, Zeta and Return of the Joker for the very end.",
- where:"HBO Max, next to the series",
  films:[
  {i:"batman-the-animated-series-season-1-1992",t:"Batman: The Animated Series",sub:"Season 1",y:1992,ep:65,k:"tv",e:3,d:"Where all of it starts. Sixty-five episodes of Dark Deco noir that redefined the character for a generation, invented Harley Quinn and rewrote Mr. Freeze.",b:["e"],o:1},
  {i:"batman-the-animated-series-season-2-1994",t:"Batman: The Animated Series",sub:"Season 2",y:1994,ep:20,k:"tv",e:3,d:"The back half, running to 1995. Fewer episodes, but it holds some of the sharpest writing of the run.",o:1},
@@ -365,7 +360,6 @@ var PATH = [
 
 {n:"02",name:"The Comic Canon",
  note:"Unconnected films that happen to line up into one whole life. Nobody planned this arc, but in this order it runs from Bruce's first night on the roof to his last stand at fifty-five.",
- where:"HBO Max, or buy digitally",
  films:[
  {i:"batman-year-one-2011",t:"Batman: Year One",y:2011,e:2,d:"Frank Miller's origin, adapted almost panel for panel. Half of it is Jim Gordon's story.",b:["e"]},
  {i:"batman-the-killing-joke-2016",t:"Batman: The Killing Joke",y:2016,e:3,d:"Alan Moore's Joker origin. The 25-minute Batgirl prologue is divisive; the adaptation proper starts after it.",b:["m"]},
@@ -377,14 +371,12 @@ var PATH = [
 
 {n:"03",name:"Superman / Batman",
  note:"A two-film continuity of its own, adapting the first two arcs of Jeph Loeb's Superman/Batman run. Conroy and Tim Daly return, but this is not the DCAU.",
- where:"HBO Max",
  films:[
  {i:"superman-batman-public-enemies-2009",t:"Superman/Batman: Public Enemies",y:2009,e:7,d:"Lex Luthor is president and has put a bounty on Superman's head. Loud, blunt, very fun."},
  {i:"superman-batman-apocalypse-2010",t:"Superman/Batman: Apocalypse",y:2010,e:7,d:"Supergirl arrives on Earth and Darkseid wants her. Batman plays the sceptic."}]},
 
 {n:"04",name:"Justice League One-Offs",
  note:"Standalone League films where Batman is a lead rather than a guest. Doom in particular is a Batman story wearing a Justice League jacket \u2014 the plot is his own contingency plans turned against the team.",
- where:"HBO Max",
  films:[
  {i:"justice-league-the-new-frontier-2008",t:"Justice League: The New Frontier",y:2008,e:7,d:"Darwyn Cooke's 1950s DC. Batman starts as a paranoid urban legend and grows into something else. Jeremy Sisto in the cowl."},
  {i:"justice-league-crisis-on-two-earths-2010",t:"Justice League: Crisis on Two Earths",y:2010,e:7,d:"A parallel Earth where the League are criminals. The villain is Owlman \u2014 Batman's counterpart, and the best thing in it."},
@@ -395,7 +387,6 @@ var PATH = [
 
 {n:"05",name:"DC Animated Movie Universe",
  note:"Sixteen films running 2013\u20132020, Jason O'Mara as Batman, Damian Wayne as the spine. Four are Batman-led; the rest carry the plot between them.",
- where:"HBO Max \u2014 the most complete run on the service",
  films:[
  {i:"justice-league-the-flashpoint-paradox-2013",t:"Justice League: The Flashpoint Paradox",y:2013,e:7,d:"The reset that starts the whole timeline.",o:1},
  {i:"justice-league-war-2014",t:"Justice League: War",y:2014,e:7,d:"The team forms against Darkseid.",o:1},
@@ -416,7 +407,6 @@ var PATH = [
 
 {n:"06",name:"Tomorrowverse",
  note:"A planned ten-film run, 2020\u20132024, closed out by the Crisis trilogy. Jensen Ackles plays Batman throughout \u2014 he leads Long Halloween and Warworld, and runs through all of Crisis.",
- where:"HBO Max",
  films:[
  {i:"superman-man-of-tomorrow-2020",t:"Superman: Man of Tomorrow",y:2020,e:7,d:"The run's opener. No Batman \u2014 included so the timeline makes sense.",o:1},
  {i:"justice-society-world-war-ii-2021",t:"Justice Society: World War II",y:2021,e:7,d:"A 1940s detour with the JSA.",o:1},
@@ -432,7 +422,6 @@ var PATH = [
 
 {n:"07",name:"Knightfall Trilogy",
  note:"The current release. Three films adapting the 1993 saga \u2014 Bane breaks the Bat, a replacement takes the cowl, Bruce fights to take it back. Anson Mount as Batman.",
- where:"Buy digitally: Prime Video, Apple TV, Fandango",
  films:[
  {i:"batman-knightfall-part-1-2026",t:"Batman: Knightfall \u2014 Part 1",y:2026,e:6,d:"Bane empties Arkham onto Gotham's streets and lets exhaustion do the rest. Digital 25 August 2026, disc 8 September.",b:["m","u"]},
  {i:"knightfall-part-2-knightquest-2026",t:"Knightfall \u2014 Part 2: Knightquest",y:2026,e:6,d:"Jean-Paul Valley wears the cowl, and Gotham finds out what a Batman without restraint looks like. Late 2026.",b:["u"]},
@@ -440,7 +429,6 @@ var PATH = [
 
 {n:"08",name:"Elseworlds & One-Offs",
  note:"Self-contained films connected to nothing. Each is a different answer to the question of what Batman is for.",
- where:"HBO Max for most; rent the rest",
  films:[
  {i:"batman-gotham-knight-2008",t:"Batman: Gotham Knight",y:2008,e:2,d:"Six anime shorts by six studios, made to sit between Batman Begins and The Dark Knight. Later contradicted by those films, so treat it as its own thing."},
  {i:"batman-assault-on-arkham-2014",t:"Batman: Assault on Arkham",y:2014,e:5,d:"Set in the Arkham games' world and secretly one of the best Suicide Squad films. Batman is the antagonist for most of it.",b:["m"]},
@@ -461,28 +449,24 @@ var PATH = [
 
 {n:"09",name:"Ninjaverse",
  note:"Batman and his rogues thrown into feudal Japan, animated by Kamikaze Douga. Watch it in Japanese with subtitles if you can \u2014 the dub flattens it.",
- where:"HBO Max; Netflix in some regions",
  films:[
  {i:"batman-ninja-2018",t:"Batman Ninja",y:2018,e:0,d:"Gorilla Grodd's time displacement drops the whole cast into the Sengoku period. It gets much stranger than that."},
  {i:"batman-ninja-vs-yakuza-league-2025",t:"Batman Ninja vs. Yakuza League",y:2025,e:0,d:"Japan is floating above Gotham and the Justice League have evil counterparts. Continuity is not the point."}]},
 
 {n:"10",name:"Batman '66",
  note:"Same continuity as the 1966 series, with Adam West, Burt Ward and Julie Newmar back in their roles. Vs. Two-Face was West's final performance.",
- where:"Rent or buy digitally",
  films:[
  {i:"return-of-the-caped-crusaders-2016",t:"Return of the Caped Crusaders",y:2016,e:0,d:"A pitch-perfect revival of the camp \u2014 both parodying the show and completely sincere about it."},
  {i:"batman-vs-two-face-2017",t:"Batman vs. Two-Face",y:2017,e:0,d:"William Shatner as Two-Face, a role the 1966 series never got to make."}]},
 
 {n:"11",name:"Series Spin-Offs & Crossovers",
  note:"Films that extend a television continuity, or drop Batman into someone else's show.",
- where:"Free with ads on YouTube (Dracula); rent or buy the rest",
  films:[
  {i:"scooby-doo-meets-batman-2002",t:"Scooby-Doo Meets Batman",y:2002,e:3,d:"Two 1972 episodes of The New Scooby-Doo Movies stitched into a feature. The oldest animated Batman on this list.",b:["s"],o:1},
  {i:"scooby-doo-and-krypto-too-2023",t:"Scooby-Doo! and Krypto, Too!",y:2023,e:0,d:"The League goes missing and Mystery Inc. investigate. Retro-styled and very slight.",o:1}]},
 
 {n:"12",name:"The LEGO Movieverse",
  note:"The theatrical LEGO films. Will Arnett's Batman debuts as a supporting joke and gets promoted to leading man. Confirmed separate from the direct-to-video LEGO DC line.",
- where:"HBO Max, and rentable everywhere",
  films:[
  {i:"the-lego-movie-2014",t:"The LEGO Movie",y:2014,e:0,d:"Where this Batman is introduced. Not his film, but it sets up everything the next one takes apart.",o:1},
  {i:"the-lego-batman-movie-2017",t:"The LEGO Batman Movie",y:2017,e:0,d:"The sharpest Batman parody ever made, and quietly one of the most sincere films about him. Works even if you skip the other two.",b:["e"]},
@@ -490,7 +474,6 @@ var PATH = [
 
 {n:"13",name:"LEGO DC Direct-to-Video",
  note:"A separate ten-film LEGO continuity that shares nothing with the theatrical movies. Troy Baker voices most of them. Two are Batman-led; the rest are League films he appears in.",
- where:"Rent or buy digitally; some on HBO Max",
  films:[
  {i:"lego-batman-dc-super-heroes-unite-2013",t:"LEGO Batman: DC Super Heroes Unite",y:2013,e:0,d:"The line's opener, based on the LEGO Batman 2 video game."},
  {i:"lego-dc-comics-batman-be-leaguered-2014",t:"LEGO DC Comics: Batman Be-Leaguered",y:2014,e:0,d:"A 22-minute special where Batman refuses to join the League. Slight, but Batman-centred.",b:["s"]},
@@ -505,7 +488,6 @@ var PATH = [
 
 {n:"14",name:"All-Ages & Oddities",
  note:"Films where Batman is a supporting player, a punchline, or a guest in someone else's comedy. Included for completeness.",
- where:"HBO Max, or rent",
  films:[
  {i:"dc-super-heroes-vs-eagle-talon-2017",t:"DC Super Heroes vs. Eagle Talon",y:2017,e:0,d:"A Japanese comedy crossover where a low-budget villain org investigates what is wrong with Batman, and keeps breaking the fourth wall about the licensing fee.",o:1},
  {i:"teen-titans-go-to-the-movies-2018",t:"Teen Titans Go! To the Movies",y:2018,e:0,d:"Robin wants a movie; Batman gets mocked throughout.",o:1},
@@ -513,7 +495,6 @@ var PATH = [
 
 {n:"15",name:"Batman Unlimited",
  note:"A trilogy built around a Mattel toyline. Aimed young, brisk, and strictly for completionists.",
- where:"Rent or buy digitally",
  films:[
  {i:"batman-unlimited-animal-instincts-2015",t:"Batman Unlimited: Animal Instincts",y:2015,e:0,d:"Animal-themed rogues take Gotham.",o:1},
  {i:"batman-unlimited-monster-mayhem-2015",t:"Batman Unlimited: Monster Mayhem",y:2015,e:0,d:"The Joker recruits the classic monsters.",o:1},
@@ -521,14 +502,12 @@ var PATH = [
 
 {n:"16",name:"The Filmation Years",
  note:"Batman\u2019s first animated appearances, made on the back of the Adam West show. Stiff, cheap and charming, and historically the start of everything.",
- where:"Rent or buy digitally",
  films:[
  {i:"the-adventures-of-batman-complete-series-1968",t:"The Adventures of Batman",sub:"Complete series",y:1968,ep:17,k:"tv",e:0,d:"Batman\u2019s first solo cartoon, recut from The Batman/Superman Hour. Two 6-minute stories per episode, Olan Soule as Batman and Casey Kasem as Robin.",o:1},
  {i:"the-new-adventures-of-batman-complete-series-1977",t:"The New Adventures of Batman",sub:"Complete series",y:1977,ep:16,k:"tv",e:0,d:"Adam West and Burt Ward return to voice their roles, joined by Batgirl and the dimension-hopping imp Bat-Mite.",o:1}]},
 
 {n:"17",name:"Super Friends",
  note:"Hanna-Barbera\u2019s Saturday-morning Justice League, retitled almost every year across thirteen years. Batman is a core member throughout. Its creators considered all incarnations one show.",
- where:"HBO Max and digital purchase",
  films:[
  {i:"super-friends-1973-1973",t:"Super Friends",sub:"1973",y:1973,ep:16,k:"tv",e:0,d:"The original hour-long run, with Wendy, Marvin and Wonder Dog in tow.",o:1},
  {i:"the-all-new-super-friends-hour-1977-1977",t:"The All-New Super Friends Hour",sub:"1977",y:1977,ep:15,k:"tv",e:0,d:"The Wonder Twins arrive and the format splits into segments.",o:1},
@@ -542,7 +521,6 @@ var PATH = [
 
 {n:"18",name:"The Batman (2004)",
  note:"Its own continuity with a younger, more athletic Bruce, a stylised Gotham and radically redesigned rogues. Starts in Batman\u2019s third year and gradually builds the family around him.",
- where:"HBO Max and digital purchase",
  films:[
  {i:"the-batman-season-1-2004",t:"The Batman",sub:"Season 1",y:2004,ep:13,k:"tv",e:2,d:"Year three. Batman still works alone and the police still want him arrested. Rino Romano in the cowl.",o:1},
  {i:"the-batman-season-2-2005",t:"The Batman",sub:"Season 2",y:2005,ep:13,k:"tv",e:2,d:"The rogues gallery fills out and Ethan Bennett\u2019s slow turn into Clayface plays out.",o:1},
@@ -553,7 +531,6 @@ var PATH = [
 
 {n:"19",name:"The Brave and the Bold",
  note:"Diedrich Bader\u2019s Batman in a bright silver-age world, teaming up with a different obscure hero every week. Wildly different in tone from everything around it, and beloved for exactly that.",
- where:"HBO Max and digital purchase",
  films:[
  {i:"batman-the-brave-and-the-bold-season-1-2008",t:"Batman: The Brave and the Bold",sub:"Season 1",y:2008,ep:26,k:"tv",e:0,d:"Team-ups with Blue Beetle, Aquaman, Plastic Man and dozens more. Aquaman alone is worth it.",b:["e"],o:1},
  {i:"batman-the-brave-and-the-bold-season-2-2010",t:"Batman: The Brave and the Bold",sub:"Season 2",y:2010,ep:26,k:"tv",e:0,d:"Includes the musical episode \u2018Mayhem of the Music Meister\u2019 with Neil Patrick Harris.",o:1},
@@ -562,20 +539,17 @@ var PATH = [
 
 {n:"20",name:"Beware the Batman",
  note:"CG-animated, cancelled early, and quietly one of the most interesting takes \u2014 no Robin, an ex-MI6 Alfred, Katana as the partner, and deep-cut villains instead of the usual rogues.",
- where:"Digital purchase",
  films:[
  {i:"beware-the-batman-complete-series-2013",t:"Beware the Batman",sub:"Complete series",y:2013,ep:26,k:"tv",e:2,d:"Early-career Bruce with Anthony Ruivivar in the cowl. Professor Pyg, Anarky and Magpie over Joker and Penguin. Ends on an unresolved note.",o:1}]},
 
 {n:"21",name:"Caped Crusader",
  note:"Bruce Timm returns, with J.J. Abrams and Matt Reeves producing. A 1940s noir reimagining that strips out the gadgets in favour of detective work. Not connected to the DCAU.",
- where:"Prime Video only",
  films:[
  {i:"batman-caped-crusader-season-1-2024",t:"Batman: Caped Crusader",sub:"Season 1",y:2024,ep:10,k:"tv",e:2,d:"Batman\u2019s early days in a period-accurate Gotham. Hamish Linklater in the cowl, Minnie Driver as Oswalda Cobblepot.",b:["e"],o:1},
  {i:"batman-caped-crusader-season-2-2026",t:"Batman: Caped Crusader",sub:"Season 2",y:2026,ep:10,k:"tv",e:2,d:"The \u2018year one-and-a-half\u2019 phase, introducing the Riddler, Carrie Kelley, Roxy Rocket and this world\u2019s Joker. All ten episodes land 31 July 2026.",b:["u"],o:1}]},
 
 {n:"22",name:"Young Justice",
  note:"The sidekicks\u2019 show, and one of the most densely plotted things DC animation has produced. Batman is the League\u2019s strategist and Dick Grayson\u2019s arc runs the whole series.",
- where:"HBO Max",
  films:[
  {i:"young-justice-season-1-2010",t:"Young Justice",sub:"Season 1",y:2010,ep:26,k:"tv",e:7,d:"The covert team forms. Robin, Aqualad, Kid Flash, Superboy, Miss Martian, Artemis.",b:["e"],o:1},
  {i:"young-justice-season-2-invasion-2012",t:"Young Justice",sub:"Season 2: Invasion",y:2012,ep:20,k:"tv",e:7,d:"A five-year time skip. Dick is Nightwing and running the team.",o:1},
@@ -584,40 +558,43 @@ var PATH = [
 
 {n:"23",name:"Justice League Action",
  note:"Eleven-minute episodes at a relentless pace, with Kevin Conroy back as Batman alongside Mark Hamill\u2019s Joker. A greatest-hits reunion in miniature.",
- where:"HBO Max and digital purchase",
  films:[
  {i:"justice-league-action-complete-series-2016",t:"Justice League Action",sub:"Complete series",y:2016,ep:52,k:"tv",e:7,d:"Conroy, Hamill and a rotating cast of DC heroes in bite-sized adventures. Ran to 2018.",o:1}]},
 
 {n:"24",name:"Harley Quinn\u2019s Gotham",
  note:"An adult, profane satire of the whole mythos. Batman is a recurring foil rather than the lead, and the show is sharper about him than most straight adaptations.",
- where:"HBO Max",
  films:[
  {i:"harley-quinn-season-1-2019",t:"Harley Quinn",sub:"Season 1",y:2019,ep:13,k:"tv",e:0,d:"Harley leaves the Joker and builds her own crew. Diedrich Bader plays Batman again, very differently.",b:["m"],o:1},
  {i:"harley-quinn-season-2-2020",t:"Harley Quinn",sub:"Season 2",y:2020,ep:13,k:"tv",e:0,d:"Gotham falls apart and the Injustice League moves in.",b:["m"],o:1},
  {i:"harley-quinn-season-3-2022",t:"Harley Quinn",sub:"Season 3",y:2022,ep:10,k:"tv",e:0,d:"Harley and Ivy together, with Bruce in Arkham for much of it.",b:["m"],o:1},
  {i:"harley-quinn-season-4-2023",t:"Harley Quinn",sub:"Season 4",y:2023,ep:10,k:"tv",e:0,d:"Harley tries heroism; Ivy runs the Legion of Doom.",b:["m"],o:1},
- {i:"harley-quinn-season-5-2024",t:"Harley Quinn",sub:"Season 5",y:2024,ep:10,k:"tv",e:0,d:"The most recent run.",b:["m"],o:1}]},
+ {i:"harley-quinn-season-5-2024",t:"Harley Quinn",sub:"Season 5",y:2024,ep:10,k:"tv",e:0,d:"The most recent run.",b:["m"],o:1},
+ {i:"kite-man-hell-yeah-2024",t:"Kite Man: Hell Yeah!",y:2024,ep:10,k:"tv",e:0,d:"Kite Man buys a bar and Bane becomes a regular. Same Gotham, same writers, and it sets up the fifth season of Harley Quinn.",b:["m"],o:1}]},
 
 {n:"25",name:"Teen Titans",
  note:"Two very different shows sharing a cast. Batman is mostly an off-screen presence shaping Robin, which is arguably the point.",
- where:"HBO Max",
  films:[
  {i:"teen-titans-complete-series-2003",t:"Teen Titans",sub:"Complete series",y:2003,ep:65,k:"tv",e:0,d:"Anime-influenced, surprisingly serious, and built around Robin\u2019s obsession with Slade. Five seasons to 2006.",o:1},
- {i:"teen-titans-go-all-seasons-2013",t:"Teen Titans Go!",sub:"All seasons",y:2013,ep:400,k:"tv",e:0,d:"The comedy reboot, still running. Batman turns up as a recurring punchline. Listed as one entry \u2014 nobody is ticking off four hundred episodes.",o:1}]},
+ {i:"teen-titans-trouble-in-tokyo-2006",t:"Teen Titans: Trouble in Tokyo",y:2006,e:0,d:"Closes the 2003 series. Robin follows a case to Tokyo and spends the film failing not to be Batman.",o:1},
+ {i:"teen-titans-go-all-seasons-2013",t:"Teen Titans Go!",sub:"All seasons",y:2013,ep:400,k:"tv",e:0,d:"The comedy reboot, still running. Batman turns up as a recurring punchline. Listed as one entry \u2014 nobody is ticking off four hundred episodes.",o:1},
+ {i:"teen-titans-go-vs-teen-titans-2019",t:"Teen Titans Go! vs. Teen Titans",y:2019,e:0,d:"The two casts meet. Mostly a joke at the reboot\u2019s expense, but the only place both versions share a screen.",o:1}]},
 
 {n:"26",name:"Batwheels",
  note:"Preschool CG about the Bat-vehicles gaining sentience. Ethan Hawke voices Batman. Included for completeness \u2014 it is genuinely for small children.",
- where:"HBO Max",
  films:[
  {i:"batwheels-season-1-2022",t:"Batwheels",sub:"Season 1",y:2022,ep:37,k:"tv",e:0,d:"The Batcomputer brings the vehicles to life while Batman is captured.",o:1},
  {i:"batwheels-season-2-2024",t:"Batwheels",sub:"Season 2",y:2024,ep:20,k:"tv",e:0,d:"More of the same, with Nightwing\u2019s bike added to the garage.",o:1}]},
 
 {n:"27",name:"Merry Little Universe",
  note:"A gentler Damian Wayne, and the start of its own small continuity \u2014 the Bat-Fam series carries it on.",
- where:"Prime Video only",
  films:[
  {i:"merry-little-batman-2023",t:"Merry Little Batman",y:2023,e:8,d:"Damian, left home alone at Christmas, decides he is Batman now. Warm, funny, and gorgeously animated.",b:["e"]},
- {i:"bat-fam-season-1-2025",t:"Bat-Fam",sub:"Season 1",y:2025,ep:10,k:"tv",e:8,d:"The series continuation. Luke Wilson takes over as Bruce, running a household of reformed villains and a very small Damian.",o:1}]}
+ {i:"bat-fam-season-1-2025",t:"Bat-Fam",sub:"Season 1",y:2025,ep:10,k:"tv",e:8,d:"The series continuation. Luke Wilson takes over as Bruce, running a household of reformed villains and a very small Damian.",o:1}]},
+
+{n:"28",name:"The DCU",
+ note:"James Gunn\u2019s rebooted continuity, shared with the live-action films. Batman is a single passing appearance so far \u2014 the group is here because this is where the rest of it will land.",
+ films:[
+ {i:"creature-commandos-season-1-2024",t:"Creature Commandos",sub:"Season 1",y:2024,ep:7,k:"tv",e:0,d:"The first thing made in Gunn\u2019s DCU. Batman turns up for a moment, apprehending Doctor Phosphorus, which is the only reason it is here.",b:["m"],o:1}]}
 ];
 
 var ERAS = [
@@ -664,7 +641,7 @@ var FILMS = [];
 PATH.forEach(function(g, gi){
   g.films.forEach(function(f, fx){
     FILMS.push({id:f.i, gi:gi, ix:fx, gn:g.n, gname:g.name,
-                where:g.where, t:f.t, sub:f.sub||"", ep:f.ep||0, tv:(f.k==="tv"),
+                t:f.t, sub:f.sub||"", ep:f.ep||0, tv:(f.k==="tv"),
                 y:f.y, d:f.d, e:(f.e||0), b:f.b||[], o:!!f.o});
   });
 });
@@ -689,7 +666,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.2.5";
+var BUILD = "1.3.0";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -804,7 +781,7 @@ function buildGroups(){
   var out = [];
   if(S.mode === "continuity"){
     PATH.forEach(function(g, gi){
-      out.push({key:"c"+gi, tag:g.n, name:g.name, note:g.note, where:g.where,
+      out.push({key:"c"+gi, tag:g.n, name:g.name, note:g.note,
                 films:FILMS.filter(function(f){ return f.gi === gi && visible(f); })});
     });
   } else if(S.mode === "life"){
@@ -812,13 +789,13 @@ function buildGroups(){
       var fs = FILMS.filter(function(f){ return f.e === era.k && visible(f); });
       fs.sort(function(a,b){ return (a.gi - b.gi) || (a.ix - b.ix); });
       out.push({key:"e"+era.k, tag:(era.k === 0 ? "\u2014" : String(i+1)),
-                name:era.name, note:era.note, where:"", films:fs});
+                name:era.name, note:era.note, films:fs});
     });
   } else {
     DECADES.forEach(function(dec, i){
       var fs = FILMS.filter(function(f){ return visible(f) && f.y >= dec.k && f.y < dec.k + 10; });
       fs.sort(function(a,b){ return (a.y - b.y) || a.t.localeCompare(b.t); });
-      out.push({key:"d"+dec.k, tag:String(i+1), name:dec.name, note:dec.note, where:"", films:fs});
+      out.push({key:"d"+dec.k, tag:String(i+1), name:dec.name, note:dec.note, films:fs});
     });
   }
   out = out.filter(function(g){ return g.films.length; });
@@ -870,15 +847,12 @@ function badges(f){
   });
   return '<span class="badges">'+out.join("")+'</span>';
 }
+/* One link, no region in the path: the aggregator geo-redirects, which is
+   right everywhere instead of right in one country. No service is named \u2014
+   naming them was 40-odd repetitions of one brand across a single scroll. */
 function watchLinks(f){
-  var qt = encodeURIComponent(f.t);
-  var qy = encodeURIComponent(f.t + " " + f.y);
-  return '<a class="lnk" href="https://www.justwatch.com/us/search?q='+qt+
-           '" target="_blank" rel="noopener">Streaming now \u2197</a>'+
-         '<a class="lnk" href="https://www.amazon.com/s?k='+qy+
-           '&amp;i=instant-video" target="_blank" rel="noopener">Rent on Prime \u2197</a>'+
-         '<a class="lnk" href="https://tv.apple.com/search?term='+qt+
-           '" target="_blank" rel="noopener">Apple TV \u2197</a>';
+  return '<a class="lnk" href="https://www.justwatch.com/search?q='+
+         encodeURIComponent(f.t)+'" target="_blank" rel="noopener">Where to watch \u2197</a>';
 }
 var toastT;
 function toast(msg){
@@ -1080,10 +1054,10 @@ function viewHome(){
   if(fresh){
     html += '<div class="intro">'+
       '<p class="ikick">An unofficial field guide</p>'+
-      '<h2 class="ititle">The Animated Dark Knight</h2>'+
-      '<p class="ibody">Every animated Batman film ever made, sorted into watch orders that spoil nothing '+
-      '\u2014 by universe, by the arc of one life, or by release. Films only, or every series too. Tap anything for what it is and where it '+
-      'streams right now. Tick them off as you go; your progress stays on this device.</p>'+
+      '<h2 class="ititle">One path through every Batman</h2>'+
+      '<p class="ibody">Every Batman story ever animated, sorted into watch orders that spoil nothing '+
+      '\u2014 by universe, by the arc of one life, or by release. Films only, or every series too. Tap anything for what it is and where '+
+      'to watch it. Tick them off as you go; your progress stays on this device.</p>'+
       '<div class="istats"><span><b>'+FILMS.filter(function(f){return !f.tv;}).length+'</b> films</span>'+
       '<span><b>'+FILMS.filter(function(f){return f.tv;}).length+'</b> seasons of TV</span>'+
       '<span><b>'+Math.min.apply(null,FILMS.map(function(f){return f.y;}))+'\u2013'+
@@ -1175,7 +1149,6 @@ function viewNext(){
     '<h2>'+esc(f.t)+'</h2>'+
     '<p class="yr">'+esc(metaOf(f,false))+((f.b.length||f.o) ? ' &nbsp;'+badges(f) : '')+'</p>'+
     '<p class="blurb">'+esc(f.d)+'</p>'+
-    '<p class="where"><span>Where to watch</span>'+esc(f.where)+'</p>'+
     '<div class="linkrow">'+watchLinks(f)+'</div>'+
     '<div class="heroacts">'+
       '<button class="go" data-act="watched" data-id="'+f.id+'">Mark watched</button>'+
@@ -1257,7 +1230,7 @@ function viewWatch(){
     any = true;
     var pct = gtot ? Math.round(gdone/gtot*100) : 0;
     var isOpen = S.groupOpen[g.key] !== false;
-    var sub = gdone + " of " + gtot + (g.where ? " \u00b7 " + g.where : "");
+    var sub = gdone + " of " + gtot;
     html += '<div class="group'+(isOpen?" open":"")+'">'+
       '<h2 class="ghwrap"><button class="ghead" data-act="group" data-gk="'+g.key+'" aria-expanded="'+isOpen+'">'+
         '<span class="gnum">'+g.tag+'</span><span class="gname"><span class="gtitle">'+esc(g.name)+'</span>'+
@@ -1265,7 +1238,6 @@ function viewWatch(){
         '<span class="gbar"><i style="width:'+pct+'%"></i></span></span>'+
       '<span class="caret" aria-hidden="true">\u25B6</span></button></h2>'+
       '<div class="gbody"><p class="gnote">'+esc(g.note)+'</p>'+
-      (g.where ? '<p class="gwhere">Where to watch \u2014 <b>'+esc(g.where)+'</b></p>' : '')+
       rows+'</div></div>';
   });
   html = html.replace("%%COUNT%%", q
