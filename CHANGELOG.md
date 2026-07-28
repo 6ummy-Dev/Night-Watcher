@@ -25,34 +25,34 @@ Nothing yet.
 
 - **Every watch link in 1.3.0 was a 404.** That release replaced three branded
   links with one “clean” global link, `justwatch.com/search?q=…`, on the
-  assumption that a region-less path would geo-redirect. It does not. The country
-  is a required path segment — and the search segment is **localised too**:
-  `/us/search` in English, `/uy/buscar` in Spanish.
+  assumption that a region-less path would geo-redirect. It does not.
 
-  The link is now built from the browser locale. `es-UY` produces
-  `/uy/buscar?q=…`; `en-GB` produces `/gb/search?q=…`. Locale rather than IP is
-  deliberate: it reflects the device, so it stays correct behind a VPN, which
-  IP-based geolocation does not.
+  Two things make that URL impossible to construct blind. The country is a
+  required path segment, and **the aggregator's country codes are its own, not
+  ISO** — the United Kingdom is `/uk`, not `/gb`. On top of that the search
+  segment is localised: `/us/search` in English, `/uy/buscar` in Spanish.
 
-  The aggregator runs 36 languages, so a complete map of search words is not
-  worth carrying and any gap in it is another 404. **Only words verified against
-  a live page ship** — currently `en` and `es`. Every other language gets that
-  country's home page, which always resolves: `pt-BR` → `/br`, `de-DE` → `/de`.
-  A locale with no country at all (`es-419`, bare `es`) gets the root, which does
-  redirect.
+  So nothing is derived any more. A small table holds only country/path pairs
+  **checked against a live page**, currently `us` and `uy`. Any other locale gets
+  `justwatch.com/`, which redirects to that visitor's country — a working page
+  rather than a guess. The table grows one verified entry at a time.
 
 ### Added — guards
 
-- The watch link may not hardcode a country, `watchUrl()` must exist, and
-  **`JWORD` may only contain verified languages** — adding a guessed search word
-  is how this broke, so the build now refuses one.
-- Four smoke checks on the resolved URL, including that it never contains the
-  region-less search path again.
+- `watchUrl()` is extracted and **run** against nine locales rather than grepped:
+  the two verified ones must build a real search URL, and `en-GB`, `pt-BR`,
+  `de-DE`, `fr-FR`, `es-419`, bare `es` and an empty list must all fall back to
+  the root without inventing a path. The `JW` table may contain only the
+  verified pairs, byte for byte.
+- Four smoke checks on the rendered link, including that no ISO country code is
+  invented and the region-less path never returns.
 
 ### Note
 
-This was avoidable. The 1.3.0 plan named the URL shape as the one thing needing
-a human check before building, and it shipped without that check.
+Three versions of this link were wrong before this one: a region-less path, then
+a locale-derived country. The first guards written for it grepped for strings and
+would have missed both failures they existed to catch — they now run the function,
+which is the rule this repository already had.
 
 ## [1.3.0] — 2026-07-28
 
