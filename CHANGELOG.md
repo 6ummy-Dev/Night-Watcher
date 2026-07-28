@@ -19,6 +19,33 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.2.1] — 2026-07-27
+
+### Fixed
+
+- **A view was a one-way door.** With a path chosen, tapping a universe card on
+  Home takes you into by-universe — correctly, since that grouping only exists
+  in that ordering. But the banner offered only *Make this my path*, so the only
+  route back to your own was a reload. `mode` is deliberately not persisted,
+  which is exactly why reloading appeared to fix it, and why a missing control
+  looked like a glitch instead.
+
+  The banner now goes both ways, and **Back to *your path*** leads, because
+  returning is the likelier intent of the two. *Make this my path* stays as the
+  quieter option beside it.
+- **Tapping The Path tab returns you to your path.** A view now lasts as long as
+  you are looking at it, which was already true of a reload. Leaving the tab and
+  coming back used to leave you in the borrowed ordering with no indication that
+  the tab was no longer showing what its name promised.
+
+### Added — guards
+
+- The viewing banner must contain a way back, and the tab handler must reset
+  `mode` to the chosen path. Both negative-tested.
+- `qa/smoke.js` grew from 72 checks to 78, walking the exact reported route:
+  choose a path, tap a Home card, confirm the banner offers the way back, take
+  it, and confirm both that the ordering returns and that the banner clears.
+
 ## [1.2.0] — 2026-07-27
 
 The ordering becomes a choice you make once instead of a question the app asks
