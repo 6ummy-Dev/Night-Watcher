@@ -19,6 +19,42 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.2.5] — 2026-07-28
+
+A deep QA pass over 1.2.4. Two behavioural fixes, one copy fix, and the README
+catches up with the QR removal.
+
+### Fixed
+
+- **Shared view links now work while the app is open.** The hash router ran only
+  on page load — there was no `hashchange` listener — so tapping a `#life` or
+  `#release` link with Night Watcher already running did nothing at all. The
+  router is extracted to `routeHash()` and runs on both load and hashchange.
+  Routing a view still never changes the stored path.
+- **The restore box admits what it accepts.** It has taken a full restore link
+  (not just a bare code) since 1.1.0, but the placeholder only ever mentioned
+  codes. Now: “Backup code, restore link, or full JSON”.
+- **The README no longer describes the QR** removed in 1.2.4: the intro’s
+  “only third-party code” line, the guards paragraph’s payload sentence, and the
+  full vendored-licence block in Credits — a licence for code no longer in the
+  repository — are gone or rewritten.
+
+### Added — guards
+
+- A `hashchange` listener and `routeHash()` must exist — shared links working
+  only on a cold load is exactly the kind of regression nothing else would catch.
+- The README may not mention the QR, the encoder, or its author — 1.2.4 removed
+  the code and three passages kept describing it, one of them a licence block.
+  Docs drift is invisible until a reader trips on it, so the check is mechanical.
+
+### Verified, no action
+
+The deep pass also cleared three suspicions as false alarms: the clear-all
+confirmation exists (two-tap, crimson, self-disarming after 4 s — the probe
+grepped for words the copy doesn’t use); Next up is fully path-aware through
+`pool()`; and “next = 1993” under release order was movie scope working as
+designed, films starting in 1993.
+
 ## [1.2.4] — 2026-07-28
 
 ### Removed
