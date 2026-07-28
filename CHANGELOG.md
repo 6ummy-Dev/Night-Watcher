@@ -19,6 +19,41 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.3.1] — 2026-07-28
+
+### Fixed
+
+- **Every watch link in 1.3.0 was a 404.** That release replaced three branded
+  links with one “clean” global link, `justwatch.com/search?q=…`, on the
+  assumption that a region-less path would geo-redirect. It does not. The country
+  is a required path segment — and the search segment is **localised too**:
+  `/us/search` in English, `/uy/buscar` in Spanish.
+
+  The link is now built from the browser locale. `es-UY` produces
+  `/uy/buscar?q=…`; `en-GB` produces `/gb/search?q=…`. Locale rather than IP is
+  deliberate: it reflects the device, so it stays correct behind a VPN, which
+  IP-based geolocation does not.
+
+  The aggregator runs 36 languages, so a complete map of search words is not
+  worth carrying and any gap in it is another 404. **Only words verified against
+  a live page ship** — currently `en` and `es`. Every other language gets that
+  country's home page, which always resolves: `pt-BR` → `/br`, `de-DE` → `/de`.
+  A locale with no country at all (`es-419`, bare `es`) gets the root, which does
+  redirect.
+
+### Added — guards
+
+- The watch link may not hardcode a country, `watchUrl()` must exist, and
+  **`JWORD` may only contain verified languages** — adding a guessed search word
+  is how this broke, so the build now refuses one.
+- Four smoke checks on the resolved URL, including that it never contains the
+  region-less search path again.
+
+### Note
+
+This was avoidable. The 1.3.0 plan named the URL shape as the one thing needing
+a human check before building, and it shipped without that check.
+
 ## [1.3.0] — 2026-07-28
 
 The catalogue release. Four entries, a new continuity, every brand name removed,
