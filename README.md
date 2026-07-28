@@ -1,8 +1,8 @@
 # Night Watcher
 
-**The best way to watch Gotham City life.**
+**One path through every Batman.**
 
-A single-file web app mapping every animated Batman story ever made — **96 films and 55 seasons of television across 27 continuities** — into watch orders that spoil nothing, with progress tracking and live streaming links.
+A single-file web app mapping every Batman story ever animated — **98 films and 57 seasons of television across 28 continuities** — into watch orders that spoil nothing, with progress tracking and a where-to-watch link for every entry.
 
 **Live:** https://6ummy-dev.github.io/Night-Watcher/
 
@@ -10,7 +10,7 @@ Also available on Cloudflare Workers (static assets).
 
 ## What it does
 
-- **One switch, two journeys.** Opens on **Movies** for the 96 films. Flip to **Movies + Series** and 55 seasons — 1,434 episodes, every show from *The Adventures of Batman* (1968) to *Caped Crusader* (2026) — weave into the same orders. Nothing else about the app changes.
+- **One switch, two journeys.** Opens on **Movies** for the 98 films. Flip to **Movies + Series** and 57 seasons — 1,451 episodes, every show from *The Adventures of Batman* (1968) to *Caped Crusader* (2026) — weave into the same orders. Nothing else about the app changes.
 - **One path, chosen once.** Pick by universe (spoiler-safe), the composite chronology of Bruce's life, or straight release order from 1968 to 2028 — and the whole app follows it. No switcher to re-answer on every visit; the header carries the path name and Home leads with its completion ring. Change it whenever you like: switching re-sorts, it never clears a tick.
 - **Shared links are views, not takeovers.** Following someone's `#life` link shows you their ordering and offers to adopt it, rather than silently rewriting yours.
 - **Three tiers.** Everything is tagged **Essential**, **Core**, or **Optional** — tiers are exclusive, with Essential outranking Optional — plus modifiers (Mature, Short, Interactive, Not out yet). Nothing is untagged.

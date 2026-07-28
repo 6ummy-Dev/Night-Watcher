@@ -19,6 +19,66 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.3.0] — 2026-07-28
+
+The catalogue release. Four entries, a new continuity, every brand name removed,
+and one tagline in place of three.
+
+### Added
+
+- **Kite Man: Hell Yeah!** (2024, 10 episodes) joins Harley Quinn’s Gotham. Same
+  continuity, same writers, and it sets up the fifth season directly.
+- **Teen Titans: Trouble in Tokyo** (2006) and **Teen Titans Go! vs. Teen Titans**
+  (2019) join the Teen Titans group. Each now follows the series it closes or
+  crosses, the same interleaving that made group 18 the model for the DCAU fix.
+- **Group 28, The DCU**, with **Creature Commandos** (2024, 7 episodes). Batman
+  appears once, apprehending Doctor Phosphorus. The group is named for the
+  continuity rather than the show because it is where live-action will land.
+
+All four sit in era 0, “Outside any timeline”, so **Bruce’s life is unchanged** by
+this release — only by-universe and release order gain entries.
+
+Counts: **151 → 155 entries, 96 → 98 films, 55 → 57 seasons, 27 → 28
+continuities, 1,434 → 1,451 episodes.** `frozen-ids.json` re-blessed.
+
+Creature Commandos season 2 is deliberately absent: it is announced, but sources
+disagree between 2026 and 2027. It goes in behind the “NOT OUT YET” badge when
+the date firms.
+
+### Removed
+
+- **Every brand name.** All 27 `where:` strings deleted, along with the three
+  places each rendered: the hero’s where line, the group sub-line
+  (`6 of 11 · HBO Max` → `6 of 11`) and the group where line. Nineteen of 27
+  groups named HBO Max, up to three times each — roughly forty repetitions of one
+  brand down a single scroll, for information that rotted monthly and was wrong
+  outside one country.
+- **Two of the three watch links.** “Rent on Prime” and “Apple TV” are gone.
+- `.gwhere` and `.hero .where` CSS, now dead.
+
+### Changed
+
+- **One link: “Where to watch ↗”**, with no region in the path. The aggregator
+  geo-redirects, which is right everywhere instead of right in the United States.
+- **One tagline, in all six places it lives:** `<title>`, `og:title`, the meta
+  description, `og:description`, `manifest.json` and the README headline all now
+  read **One path through every Batman**. They previously carried three different
+  strings between them.
+- **“The Animated Dark Knight” is retired**, and “animated” comes out of the
+  descriptions — both stop being true when live-action arrives, and `og:title` is
+  what every shared link displays.
+- `og:description` no longer promises to “find where each one streams”, which
+  described a feature this release removes.
+
+### Added — guards
+
+- A brand denylist across the catalogue and the watch link, so no service name
+  returns one entry at a time. The link may not hardcode a region, and the entry
+  link row must stay a single link.
+- The tagline must appear in the title, `og:title` and the README, the retired
+  ones must not appear anywhere, and copy may not describe the catalogue as
+  “animated” — that becomes false in 1.5.0.
+
 ## [1.2.5] — 2026-07-28
 
 A deep QA pass over 1.2.4. Two behavioural fixes, one copy fix, and the README
