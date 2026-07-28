@@ -174,6 +174,18 @@ win.addEventListener("load", function(){
     check("valid ratings still coerced through", win.S.rated["batman-ninja-2018"] === 5,
           "got " + win.S.rated["batman-ninja-2018"]);
 
+    /* --- shared links route in a running app (1.2.5) --- */
+    S.path = S.mode = "life"; S.tab = "home"; win.render();
+    win.location.hash = "#release";
+    win.dispatchEvent(new win.Event("hashchange"));
+    check("a #release link routes while the app is open",
+          S.tab === "watch" && S.mode === "release", "tab=" + S.tab + " mode=" + S.mode);
+    check("routing a view does not change the stored path", S.path === "life");
+    win.location.hash = "#progress";
+    win.dispatchEvent(new win.Event("hashchange"));
+    check("#progress routes to the stats tab", S.tab === "stats", "tab=" + S.tab);
+    win.location.hash = ""; S.tab = "home"; S.mode = S.path; win.render();
+
     /* --- transfer without a QR (1.2.4) --- */
     S.tab = "stats"; win.render();
     doc.querySelector('#view [data-act="mkcode"]').click();

@@ -225,6 +225,16 @@ if(!/function restoreLink\s*\(/.test(HTML)){
 if(!/#nw=/.test(HTML)){
   fail("nothing handles the #nw= hash \u2014 an opened restore link would do nothing");
 }
+/* A shared view link has to work in a RUNNING app too; found in 1.2.5 QA — the
+   router only ran on load, so tapping a #life link with the app open did
+   nothing. */
+if(!/addEventListener\("hashchange"/.test(HTML)){
+  fail("no hashchange listener — shared #life/#release links only work on a full page load");
+}
+if(!/function routeHash\s*\(/.test(HTML)){
+  fail("routeHash() is gone — nothing routes shareable views");
+}
+
 
 /* ---------- 8b. No vendored third-party code ---------- */
 /* The QR encoder was 20 KB of somebody else's minified JavaScript, 15% of the
@@ -678,6 +688,19 @@ SPOILERS.forEach(function(rule){
   });
 });
 note("spoiler rules checked: " + SPOILERS.length);
+
+/* ---------- 27. The README describes the app that exists ---------- */
+/* 1.2.4 removed the QR; three README passages kept describing it, including a
+   full licence block for code no longer in the repo. Docs drift is invisible
+   until a reader trips on it, so the check is mechanical. */
+
+var README = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
+var readmeStale = ["QR", "qrcode", "scannable", "Kazuhiko"];
+readmeStale.forEach(function(term){
+  if(README.indexOf(term) >= 0){
+    fail("README still mentions \"" + term + "\" — the QR was removed in 1.2.4");
+  }
+});
 
 /* ---------- report ---------- */
 
