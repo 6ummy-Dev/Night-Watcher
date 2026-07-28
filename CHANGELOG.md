@@ -19,6 +19,32 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.3.2] — 2026-07-28
+
+### Changed
+
+- **Where to watch is a Brave search.** The link now opens
+  `search.brave.com/search?q=where to watch <title>` — one URL shape for every
+  visitor, with no country in the path, no localised segment and nothing that
+  can 404 in a market nobody checked. It replaces the aggregator entirely.
+
+  Three attempts at building an aggregator URL were wrong first: a region-less
+  path (404 everywhere), then a locale-derived country (404 in the UK, whose
+  code is `/uk`, not the ISO `/gb`), then a table of two hand-verified pairs
+  that left most of the world on a home page. A search query has none of that
+  surface.
+
+- **The link is right-aligned**, in the hero card and in an expanded row on The
+  Path, rather than sitting flush left under the description.
+
+### Added — guards
+
+- `watchUrl()` is extracted and run: every title must produce a Brave search
+  whose query leads with “where to watch” and carries the encoded title. No
+  country path may appear, `justwatch` may not return to `index.html`, the link
+  may not point at Google, and the row must stay a single right-aligned link.
+- Smoke checks the rendered link in both places it appears.
+
 ## [1.3.1] — 2026-07-28
 
 ### Fixed
