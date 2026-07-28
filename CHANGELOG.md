@@ -19,6 +19,51 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.2.3] — 2026-07-28
+
+A catalogue QA pass. No code paths changed, no IDs added or renamed — still 151
+entries, 96 films, 55 seasons, 1,434 episodes, 27 continuities.
+
+### Fixed
+
+- **The DC Animated Universe spoiled itself.** By-universe renders in array
+  order, so the array *is* the watch order. Group 01’s note says to save Beyond,
+  Zeta and Return of the Joker for the very end, because JLU’s “Epilogue” spoils
+  Batman Beyond — but the array listed all eight films first, putting **Batman
+  Beyond: The Movie third and Return of the Joker seventh** out of 25. The two
+  things the note warns about were among the first a new user would tick, with
+  the warning printed directly above them.
+
+  The group now follows its own instructions: the series first with Phantasm and
+  SubZero dropped in, the Superman detour around The New Batman Adventures,
+  Mystery of the Batwoman and Chase Me to finish, then Justice League and
+  Unlimited, and Beyond, Zeta and Return of the Joker last. *The Batman* (group
+  18) was already interleaved correctly and was the model.
+
+  Reordering only — every `i:` is unchanged, so saved progress and every backup
+  code in circulation still resolve exactly as before.
+
+### Added — guards
+
+- Documented spoiler order is now enforced. Three rules, checked by array
+  position: Beyond, Zeta and Return of the Joker must follow JLU; Phantasm and
+  SubZero must follow the first season they drop into; Return of the Joker must
+  close Beyond. A group note is prose and cannot enforce itself — this is the
+  same failure that let the order drift in the first place.
+
+### Known, not actioned
+
+Three titles sit inside continuities the catalogue already carries in full and
+are missing: **Kite Man: Hell Yeah!** (2024, Harley Quinn continuity),
+**Teen Titans: Trouble in Tokyo** (2006, the 2003 series’ finale film) and
+**Teen Titans Go! vs. Teen Titans** (2019). They are additions, which is a MINOR
+bump under this repo’s own rule — they move the headline counts and require
+re-blessing `frozen-ids.json` — so they wait for 1.3.0.
+
+Also noted: *Teen Titans Go!* sits in group 25 while *TTG To the Movies* sits in
+group 14. And sources disagree on whether Knightfall is a three- or four-part
+adaptation; the catalogue carries three.
+
 ## [1.2.2] — 2026-07-27
 
 Tidying the bottom of Progress turned up a real bug on the way.
