@@ -631,6 +631,43 @@ ext.forEach(function(tag){
   }
 });
 
+/* ---------- 26. Documented spoiler order holds ---------- */
+/* By-universe renders in array order, so the array IS the watch order. Group
+   notes make promises about it \u2014 the DCAU note says to save Beyond for the end
+   because JLU's "Epilogue" spoils it, while the array put Beyond third. Prose
+   cannot enforce itself. */
+
+var pos = {};
+sandbox.PATH.forEach(function(g, gi){
+  g.films.forEach(function(f, ix){ pos[f.i] = gi * 1000 + ix; });
+});
+
+var SPOILERS = [
+  ["justice-league-unlimited-season-3-2006",
+   ["batman-beyond-the-movie-1999", "batman-beyond-season-1-1999",
+    "batman-beyond-season-2-2000", "batman-beyond-season-3-2000",
+    "the-zeta-project-seasons-1-2-2001", "batman-beyond-return-of-the-joker-2000"],
+   "JLU 'Epilogue' spoils Batman Beyond"],
+  ["batman-the-animated-series-season-1-1992",
+   ["batman-mask-of-the-phantasm-1993", "batman-mr-freeze-subzero-1998"],
+   "Phantasm and SubZero drop into the series, not ahead of it"],
+  ["batman-beyond-season-3-2000",
+   ["batman-beyond-return-of-the-joker-2000"],
+   "Return of the Joker closes Beyond"]
+];
+
+SPOILERS.forEach(function(rule){
+  var first = rule[0], after = rule[1], why = rule[2];
+  if(!(first in pos)){ fail("spoiler rule references a missing id: " + first); return; }
+  after.forEach(function(id){
+    if(!(id in pos)){ fail("spoiler rule references a missing id: " + id); return; }
+    if(pos[id] < pos[first]){
+      fail("watch order spoils itself: " + id + " comes before " + first + " \u2014 " + why);
+    }
+  });
+});
+note("spoiler rules checked: " + SPOILERS.length);
+
 /* ---------- report ---------- */
 
 console.log("\nNight Watcher guards — " + FILMS.length + " entries, " + PATH.length + " continuities");
