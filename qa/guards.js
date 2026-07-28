@@ -702,6 +702,47 @@ readmeStale.forEach(function(term){
   }
 });
 
+/* ---------- 28. No brand names in the catalogue or the UI ---------- */
+/* Nineteen of 27 groups named HBO Max, rendered up to three times each \u2014 forty
+   repetitions of one brand down a single scroll. The strings also rotted:
+   availability changes monthly and differs by country. One unnamed link now
+   does the job. This stops them returning one entry at a time. */
+
+var BRANDS = ["HBO Max", "Netflix", "Prime Video", "Apple TV", "Disney+", "Hulu",
+              "Paramount+", "Peacock", "Fandango", "Amazon", "Crunchyroll", "Tubi"];
+var haystack = slice("var PATH = [", "var ERAS") + "\n" + fn("watchLinks");
+BRANDS.forEach(function(b){
+  if(haystack.indexOf(b) >= 0){
+    fail('"' + b + '" is back in the catalogue or the watch link \u2014 the app names no services');
+  }
+});
+if(/justwatch\.com\/[a-z]{2}\//.test(HTML)){
+  fail("the watch link hardcodes a region \u2014 it must let the site geo-redirect");
+}
+if((HTML.match(/class="lnk"/g) || []).length !== 1){
+  fail("the entry link row is not a single link \u2014 1.3.0 collapsed three branded " +
+       "buttons into one unnamed one");
+}
+
+/* ---------- 29. One tagline, everywhere ---------- */
+/* It lived in six places carrying three different strings. Six copies that can
+   disagree is the same shape of bug the README drift was. */
+
+var TAGLINE = "One path through every Batman";
+[["<title>", HTML], ["og:title", HTML], ["README headline", README]].forEach(function(pair){
+  if(pair[1].indexOf(TAGLINE) < 0){
+    fail(pair[0] + " does not carry the tagline \"" + TAGLINE + "\"");
+  }
+});
+["The Animated Dark Knight", "Gotham City life"].forEach(function(dead){
+  if(HTML.indexOf(dead) >= 0 || README.indexOf(dead) >= 0){
+    fail('retired tagline "' + dead + '" is still present');
+  }
+});
+if(/Every animated Batman/.test(HTML) || /every animated Batman/.test(README)){
+  fail('copy still says "animated" as a limit \u2014 it stops being true when live-action lands');
+}
+
 /* ---------- report ---------- */
 
 console.log("\nNight Watcher guards — " + FILMS.length + " entries, " + PATH.length + " continuities");
