@@ -19,6 +19,45 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.3.3] — 2026-07-28
+
+Three interface fixes.
+
+### Added
+
+- **Rate what you just watched, from Next up.** Marking something watched
+  advances the card immediately, so rating it meant finding the title again on
+  The Path. A prompt below the hero now shows **Just watched · ‹title›** with its
+  stars. Rating there records against that title and does not advance anything —
+  `markWatched` is a no-op on something already watched.
+
+  No new state: `S.log` has recorded every tick in order since 1.0.0, so the last
+  entry is exactly what was just marked.
+- **Tapping the app title returns to the top.** The wordmark is the one element
+  present on every screen, which makes it the obvious control for it. It stays
+  inside its `h1`, so the heading is still a heading.
+
+### Changed
+
+- **The Progress footer described a link that no longer exists.** It still
+  promised that “Streaming rows rotate monthly, so the ‘Streaming now’ link on
+  each film checks live availability” — two releases after that link was
+  replaced. It now says availability changes constantly and differs by country,
+  which is why “Where to watch” runs a fresh search rather than trusting a
+  stored answer.
+- The star markup moved into a single `starRow()` used by both the detail panel
+  and the new prompt, rather than being built inline in one place and copied to
+  the other.
+
+### Added — guards
+
+- `ratePrompt()` and `starRow()` must exist and be rendered, and `data-act="rate"`
+  may appear in exactly one place — two copies of the star markup is how they
+  drift apart.
+- The wordmark must be a control with a handler, and must stay inside its `h1`.
+- The footer may not mention “Streaming now”, “Streaming rows” or the old
+  aggregator. That copy survived two releases past the feature it described.
+
 ## [1.3.2] — 2026-07-28
 
 ### Changed
