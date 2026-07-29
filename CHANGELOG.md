@@ -19,6 +19,38 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.3.4] — 2026-07-29
+
+Activity replaces the rating prompt, and Home ends at the universe grid.
+
+### Added
+
+- **Activity, on Next up.** The last five things logged, newest first, each with
+  the stars you gave it and the ability to change them. It sits below **Then**
+  as a bordered surface with taller rows — deliberately not another `.qitem`
+  list, because it is a record of what you did, not another step in the queue.
+
+  It ignores the scope toggle. Scope is a queue control; hiding a series you
+  logged because the toggle now reads Movies would be a lie about your own
+  history. No log, no block.
+
+### Changed
+
+- **`ratePrompt()` is gone.** 1.3.3 showed **Just watched · ‹title›** below the
+  hero, which rated exactly one entry. Activity does the same job for the last
+  five and reads as a record rather than an interruption.
+- **Home ends at the universe grid.** Its **Recently logged** list drew the same
+  `S.log` a second time, in a second format, with a different length. Two
+  renderings of one list is how they drift.
+
+### Fixed
+
+- **The log holds one entry per id.** Saved progress is deduped on read, keeping
+  the earliest timestamp — that is when it was actually watched. No reachable
+  write in this build can produce a duplicate; a saved payload can also arrive
+  hand-edited or from another build, so the invariant is enforced where the data
+  is read rather than where it is written.
+
 ## [1.3.3] — 2026-07-28
 
 Three interface fixes.
