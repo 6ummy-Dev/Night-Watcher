@@ -127,6 +127,9 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 
 .chips{display:flex;gap:7px;overflow-x:auto;padding:2px 0 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .chips::-webkit-scrollbar{display:none;}
+.allrow{display:flex;justify-content:flex-end;margin:-4px 0 12px;}
+.allbtn{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 13px;border:1px solid var(--line2);border-radius:100px;color:var(--dust);min-height:34px;white-space:nowrap;}
+.allbtn:active{background:var(--card2);}
 .chip{flex:none;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 13px;border:1px solid var(--line2);border-radius:100px;color:var(--dust);min-height:34px;white-space:nowrap;}
 .chip[aria-pressed="true"]{background:var(--bone);color:var(--ink);border-color:var(--bone);font-weight:600;}
 .search{width:100%;background:var(--card);border:1px solid var(--line);color:var(--bone);border-radius:10px;padding:12px 14px;font-family:var(--body);font-size:15px;margin-bottom:12px;-webkit-appearance:none;appearance:none;}
@@ -674,7 +677,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.3.4";
+var BUILD = "1.3.5";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -742,7 +745,7 @@ function persist(){
      chosen that wrote a real ordering, which the next load adopted as one. */
   var payload = JSON.stringify({watched:S.watched, skipped:S.skipped, rated:S.rated,
                                 path:S.path, mode:S.path, theme:S.theme,
-                                scope:S.scope, log:S.log});
+                                scope:S.scope, log:S.log, groupOpen:S.groupOpen});
   try{
     var p = store.set(KEY, payload);
     if(p && p.catch) p.catch(function(){ canSave = false; flagSave(); });
@@ -762,6 +765,11 @@ function restore(done){
         if(S.path) S.mode = S.path;
         if(o.theme === "darker" || o.theme === "dark") S.theme = o.theme;
         if(o.scope) S.scope = o.scope;
+        /* Only false is meaningful \u2014 open is the default and absent keys read as
+           open, so anything else in here is noise from a hand-edited payload. */
+        if(o.groupOpen && typeof o.groupOpen === "object"){
+          var gk; for(gk in o.groupOpen){ if(o.groupOpen[gk] === false) S.groupOpen[gk] = false; }
+        }
       }catch(e){}
     }
     done();
@@ -827,6 +835,30 @@ function buildGroups(){
   groupCacheKey = key;
   groupCache = {groups:out, pool:flat};
   return out;
+}
+/* Absent reads as open, so "any open" is not simply Object.keys().length. */
+function anyOpen(){
+  var gs = buildGroups(), i;
+  for(i = 0; i < gs.length; i++){ if(S.groupOpen[gs[i].key] !== false) return true; }
+  return false;
+}
+function setAllGroups(open){
+  S.groupOpen = {};
+  if(!open) buildGroups().forEach(function(g){ S.groupOpen[g.key] = false; });
+}
+/* The hero's group opens when you arrive at The Path, so the thing you are
+   actually up to is never hidden behind a header you have to find. A deliberate
+   collapse-all is left alone \u2014 re-opening it on every visit would make the
+   control useless. */
+function revealHero(){
+  if(!anyOpen()) return;
+  var f = upNext(); if(!f) return;
+  var gs = buildGroups(), i, j;
+  for(i = 0; i < gs.length; i++){
+    for(j = 0; j < gs[i].films.length; j++){
+      if(gs[i].films[j].id === f.id){ delete S.groupOpen[gs[i].key]; return; }
+    }
+  }
 }
 function pool(){
   var key = groupsKey();
@@ -1238,7 +1270,9 @@ function viewWatch(){
     '<div class="chips">'+
     chipSet().map(function(p){
       return '<button class="chip" data-filter="'+p[0]+'" aria-pressed="'+(S.filter===p[0])+'">'+p[1]+'</button>';
-    }).join("")+'</div>%%COUNT%%';
+    }).join("")+'</div>'+
+    '<div class="allrow"><button class="allbtn" data-act="allgroups">'+
+      (anyOpen() ? "Collapse all" : "Expand all")+'</button></div>%%COUNT%%';
 
   var any = false, shownTotal = 0;
   buildGroups().forEach(function(g){
@@ -1383,16 +1417,6 @@ function viewStats(){
       '<span class="sc">'+d+'/'+fs.length+'</span></div>';
   });
 
-  var rated = FILMS.filter(function(f){ return clampRating(S.rated[f.id]); })
-                   .sort(function(a,b){ return clampRating(S.rated[b.id]) - clampRating(S.rated[a.id]); });
-  if(rated.length){
-    html += '<p class="qhead" style="margin:28px 0 4px">Your ratings</p>';
-    rated.forEach(function(f){
-      html += '<div class="srow"><span class="sn">'+esc(f.t)+'</span>'+
-        '<span class="sc" style="width:auto;color:var(--signal)">'+
-        stars(S.rated[f.id])+'</span></div>';
-    });
-  }
   /* The path row here duplicated Home's Change. What is left is progress in
      portable form, which is why it stays in Progress. */
   html += '<div class="bk"><h3>Your data</h3>'+
@@ -1486,8 +1510,9 @@ function goToGroup(jk){
   S.mode = (jk.charAt(0) === "e") ? "life" : "continuity";
   S.groupOpen = {};
   buildGroups().forEach(function(g){ S.groupOpen[g.key] = (g.key === jk); });
-  /* Nothing here is persisted: tab, filter, query, mode and groupOpen are
-     session state by design. */
+  /* groupOpen persists as of 1.3.5; tab, filter, query and mode remain session
+     state by design. Jumping is a deliberate act, so its collapse sticks. */
+  persist();
   window.scrollTo(0,0); render();
   /* A collapsed group is still a 56px sticky header, so scrolling to the top
      can leave the requested group far below the fold. */
@@ -1501,7 +1526,7 @@ function goToGroup(jk){
 document.getElementById("tabs").addEventListener("click", function(e){
   var b = e.target.closest("button[data-tab]");
   if(!b) return;
-  if(b.dataset.tab === "watch" && S.path) S.mode = S.path;
+  if(b.dataset.tab === "watch" && S.path){ S.mode = S.path; revealHero(); }
   S.tab = b.dataset.tab; window.scrollTo(0,0); render();
 });
 
@@ -1545,12 +1570,12 @@ document.getElementById("view").addEventListener("click", function(e){
   }
   if(b.dataset.filter){ S.filter = b.dataset.filter; render(); return; }
   var act = b.dataset.act, id = b.dataset.id;
-  if(act === "mypath"){ S.mode = S.path; S.groupOpen = {}; window.scrollTo(0,0); render(); }
+  if(act === "mypath"){ S.mode = S.path; S.groupOpen = {}; persist(); window.scrollTo(0,0); render(); }
   else if(act === "repath"){ S.path = ""; window.scrollTo(0,0); persist(); render(); }
   else if(act === "resume"){ S.tab = "next"; window.scrollTo(0,0); render(); }
   else if(act === "tier"){
     S.tab = "watch"; S.filter = b.dataset.tf; S.q = ""; S.groupOpen = {};
-    window.scrollTo(0,0); render();
+    persist(); window.scrollTo(0,0); render();
   }
   else if(act === "jump"){
     goToGroup(b.dataset.gk);
@@ -1559,7 +1584,8 @@ document.getElementById("view").addEventListener("click", function(e){
   else if(act === "skip"){ var k = !!S.skipped[id]; toggleSkip(id); toast(k ? "Back in the queue" : "Skipped"); }
   else if(act === "rate"){ rate(id, parseInt(b.dataset.n,10)); }
   else if(act === "expand"){ S.open[id] = !S.open[id]; render(); }
-  else if(act === "group"){ var gk = b.dataset.gk; S.groupOpen[gk] = (S.groupOpen[gk] === false); render(); }
+  else if(act === "group"){ var gk = b.dataset.gk; S.groupOpen[gk] = (S.groupOpen[gk] === false); persist(); render(); }
+  else if(act === "allgroups"){ setAllGroups(!anyOpen()); persist(); render(); window.scrollTo(0,0); }
   else if(act === "mkcode"){ S.code = exportCode(); render(); toast("Code ready"); }
   else if(act === "copylink"){
     var lk = restoreLink(S.code);
@@ -1652,9 +1678,9 @@ function routeHash(){
     /* shareable views: #life  #release  #universes  #progress  #next
        combine with scope: #life-series  #universes-movies */
     h.slice(1).toLowerCase().split(/[-+]/).forEach(function(tok){
-      if(tok === "life"){ S.tab = "watch"; S.mode = "life"; }
-      else if(tok === "release"){ S.tab = "watch"; S.mode = "release"; }
-      else if(tok === "universes" || tok === "path"){ S.tab = "watch"; S.mode = "continuity"; }
+      if(tok === "life"){ S.tab = "watch"; S.mode = "life"; revealHero(); }
+      else if(tok === "release"){ S.tab = "watch"; S.mode = "release"; revealHero(); }
+      else if(tok === "universes" || tok === "path"){ S.tab = "watch"; S.mode = "continuity"; revealHero(); }
       else if(tok === "progress"){ S.tab = "stats"; }
       else if(tok === "next"){ S.tab = "next"; }
       else if(tok === "series"){ S.scope = "all"; }
