@@ -190,15 +190,21 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .hero .yr{font-family:var(--mono);font-size:12px;color:var(--dust);margin:10px 0 0;letter-spacing:.06em;}
 .hero .blurb{font-size:15px;color:var(--dust);margin:16px 0 0;line-height:1.5;}
 .heroacts{display:flex;gap:9px;margin-top:20px;}
-.rateprompt{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
-.rateprompt span{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dust);flex:1;min-width:150px;line-height:1.5;}
-.rateprompt .stars{margin-left:auto;}
 .heroacts button{flex:1;min-height:50px;border-radius:11px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;}
 .heroacts .go{background:var(--bone);color:var(--ink);}
 .heroacts .no{border:1px solid var(--line2);color:var(--dust);flex:0 0 38%;}
 .queue{margin-top:26px;}
 .qhead{font-family:var(--mono);font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--dim);margin:0 0 12px;}
 .qitem{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--line);}
+/* Activity is history, not queue. It is a bordered surface with taller rows so
+   it does not read as another step in the list above it. */
+.activity{margin-top:26px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:4px 16px 8px;}
+.activity .qhead{margin:14px 0 2px;}
+.arow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 0;border-top:1px solid var(--line);}
+.arow:first-of-type{border-top:0;}
+.arow .at{flex:1;min-width:130px;font-size:14px;color:var(--bone);line-height:1.35;}
+.arow .ad{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
+.arow .stars{margin-left:auto;}
 .qn{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;width:18px;}
 .qt{font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:15px;line-height:1.1;flex:1;color:var(--dust);}
 .qy{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;}
@@ -259,8 +265,6 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .segs{display:flex;gap:3px;flex:1;}
 .segs i{flex:1;height:8px;border-radius:2px;background:var(--line2);}
 .segs i.on{background:var(--signal);}
-.recent{border-top:1px solid var(--line);}
-.recent .qitem .qt{color:var(--bone);}
 .toast{position:fixed;left:50%;transform:translate(-50%,80px);bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 16px);background:var(--bone);color:var(--ink);border-radius:100px;padding:11px 20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;z-index:60;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;}
 .toast.show{opacity:1;transform:translate(-50%,0);}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
@@ -670,7 +674,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.3.3";
+var BUILD = "1.3.4";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -717,6 +721,21 @@ function applyTheme(){
   var m = document.querySelector('meta[name="theme-color"]');
   if(m) m.setAttribute("content", THEMEBAR[S.theme] || THEMEBAR.dark);
 }
+/* One entry per id, earliest timestamp wins \u2014 that is when it was actually
+   watched. Enforced where saved data is read rather than where it is written,
+   because a payload can also arrive hand-edited or from a build that is not
+   this one. Ratings are not reconciled here: they live in S.rated keyed by id,
+   so there is only ever one. */
+function dedupeLog(log){
+  var seen = Object.create(null), out = [];
+  log.forEach(function(e){
+    if(!e || !e.id) return;
+    var prev = seen[e.id];
+    if(prev){ if(e.ts < prev.ts) prev.ts = e.ts; return; }
+    seen[e.id] = e; out.push(e);
+  });
+  return out;
+}
 function persist(){
   if(!canSave || !store) return;
   /* mode mirrors path, for a 1.1.0 downgrade. Never S.mode: with no path
@@ -736,7 +755,7 @@ function restore(done){
         var o = JSON.parse(raw);
         S.watched = o.watched || {}; S.skipped = o.skipped || {};
         S.rated = o.rated || {};
-        S.log = Array.isArray(o.log) ? o.log : [];
+        S.log = dedupeLog(Array.isArray(o.log) ? o.log : []);
         /* Upgrading from 1.1.0: their saved mode is a question already answered. */
         if(isPath(o.path)) S.path = o.path;
         else if(isPath(o.mode)) S.path = o.mode;
@@ -868,21 +887,32 @@ function starRow(f){
   }
   return '<div class="stars">'+out+'</div>';
 }
-/* Marking something watched happens on Next up, and the card advances the
-   instant you do \u2014 so rating it meant going to The Path to find it again.
-   S.log already records every tick in order, so the last entry is what you just
-   marked. Rating it here does not advance anything: markWatched is a no-op on
-   something already watched. */
-function ratePrompt(){
+/* Activity: the last five ticks, newest first, with the stars you gave them.
+   Rating from here cannot move the hero \u2014 rate() calls markWatched(), which is
+   a no-op on something already watched, and nothing here touches watched or
+   skipped. Scope is deliberately ignored: this is a record of what you did, and
+   hiding a series you logged because the toggle now says films would be a lie
+   about your own history. */
+var ACTIVITYMAX = 5;
+function activityBlock(){
   if(!S.log.length) return "";
-  var id = S.log[S.log.length - 1].id, i;
-  for(i = 0; i < FILMS.length; i++){
-    if(FILMS[i].id === id){
-      return '<div class="rateprompt"><span>Just watched \u00b7 '+esc(FILMS[i].t)+'</span>'+
-             starRow(FILMS[i])+'</div>';
-    }
+  var rows = "", n = 0, i, j, f;
+  for(i = S.log.length - 1; i >= 0 && n < ACTIVITYMAX; i--){
+    f = null;
+    for(j = 0; j < FILMS.length; j++){ if(FILMS[j].id === S.log[i].id){ f = FILMS[j]; break; } }
+    if(!f) continue;                      /* an id from a newer build */
+    rows += '<div class="arow"><span class="at">'+esc(f.t)+'</span>'+
+            '<span class="ad">'+esc(logDate(S.log[i].ts))+'</span>'+
+            starRow(f)+'</div>';
+    n++;
   }
-  return "";
+  if(!n) return "";
+  return '<div class="activity"><p class="qhead">Activity</p>'+rows+'</div>';
+}
+function logDate(ts){
+  var d = new Date(ts);
+  if(isNaN(d.getTime())) return "";
+  return d.toLocaleDateString(undefined, {day:"numeric", month:"short"});
 }
 function watchLinks(f){
   return '<a class="lnk" href="'+watchUrl(f.t)+
@@ -1148,19 +1178,6 @@ function viewHome(){
   });
   html += '</div>';
 
-  if(S.log.length){
-    var rec = S.log.slice(-3).reverse();
-    html += '<p class="qhead" style="margin:26px 0 0">Recently logged</p><div class="recent">';
-    rec.forEach(function(e){
-      var f = null, i;
-      for(i = 0; i < FILMS.length; i++){ if(FILMS[i].id === e.id){ f = FILMS[i]; break; } }
-      if(!f) return;
-      var dt = new Date(e.ts);
-      var ds = dt.toLocaleDateString(undefined, {day:"numeric", month:"short"});
-      html += '<div class="qitem"><span class="qt">'+esc(f.t)+'</span><span class="qy">'+ds+'</span></div>';
-    });
-    html += '</div>';
-  }
   html += '<p class="homefoot">Night Watcher \u00b7 an unofficial fan guide \u00b7 progress saves in this browser only \u00b7 anonymous visit stats via Cloudflare</p>';
   return html;
 }
@@ -1169,7 +1186,7 @@ function viewNext(){
   var f = upNext(), c = counts();
   if(!f){
     return '<div class="empty"><div class="big">Case closed</div><p>All '+c.total+
-      ' logged — the complete animated Batman. Go back to Mask of the Phantasm.</p></div>';
+      ' logged — the complete animated Batman. Go back to Mask of the Phantasm.</p></div>'+activityBlock();
   }
   var p = pool(), i = p.indexOf(f);
   var queue = p.slice(i+1).filter(function(x){ return !isDone(x) && !isSkip(x); }).slice(0,4);
@@ -1188,8 +1205,8 @@ function viewNext(){
       '<button class="go" data-act="watched" data-id="'+f.id+'">Mark watched</button>'+
       '<button class="no" data-act="skip" data-id="'+f.id+'">Skip</button>'+
     '</div></div>'+
-    ratePrompt()+
-    (qhtml ? '<div class="queue"><p class="qhead">Then</p>'+qhtml+'</div>' : '');
+    (qhtml ? '<div class="queue"><p class="qhead">Then</p>'+qhtml+'</div>' : '')+
+    activityBlock();
 }
 
 /* All six chips, always. Splicing the tier chip in only while it was active
