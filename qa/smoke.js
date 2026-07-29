@@ -253,6 +253,82 @@ win.addEventListener("load", function(){
     S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
     S.scope = "movies"; S.tab = "home"; win.render();
 
+    /* --- The Path collapses and remembers (1.3.5) --- */
+    S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.groupOpen = {};
+    /* Group keys are namespaced per ordering (c0.., e0.., d1960..), so collapse
+       state is deliberately per-ordering. Hold mode still or the tab click
+       realigns it to the path and the keys legitimately stop matching. */
+    S.path = S.mode = "continuity";
+    S.tab = "watch"; S.filter = "all"; S.q = ""; win.render();
+    var groupsShown = doc.querySelectorAll("#view .group").length;
+    check("The Path renders groups", groupsShown > 1, groupsShown + " groups");
+    check("groups start expanded",
+          doc.querySelectorAll("#view .group.open").length === groupsShown);
+    var allBtn = doc.querySelector('[data-act="allgroups"]');
+    check("the collapse control is present", !!allBtn);
+    check("it offers to collapse while things are open",
+          !!allBtn && allBtn.textContent === "Collapse all", allBtn && allBtn.textContent);
+
+    allBtn.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("collapse all closes every group",
+          doc.querySelectorAll("#view .group.open").length === 0,
+          doc.querySelectorAll("#view .group.open").length + " still open");
+    check("the control flips to expand",
+          doc.querySelector('[data-act="allgroups"]').textContent === "Expand all",
+          doc.querySelector('[data-act="allgroups"]').textContent);
+    check("a collapsed group reports aria-expanded=false",
+          doc.querySelector("#view .ghead").getAttribute("aria-expanded") === "false");
+
+    /* Persistence: the whole reason the state stopped being session-only. */
+    var savedRaw = win.localStorage.getItem("batwatch-v3") || "";
+    check("collapse state reached storage",
+          !!savedRaw && JSON.parse(savedRaw).groupOpen &&
+          Object.keys(JSON.parse(savedRaw).groupOpen).length > 0,
+          savedRaw ? "groupOpen=" + JSON.stringify(JSON.parse(savedRaw).groupOpen).slice(0,40) : "(nothing saved)");
+
+    doc.querySelector('[data-act="allgroups"]').dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("expand all reopens every group",
+          doc.querySelectorAll("#view .group.open").length === groupsShown);
+
+    /* revealHero must not undo a deliberate collapse-all. */
+    doc.querySelector('[data-act="allgroups"]').dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    S.tab = "home"; win.render();
+    doc.querySelector('#tabs button[data-tab="watch"]')
+       .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("returning to The Path leaves a deliberate collapse-all alone",
+          doc.querySelectorAll("#view .group.open").length === 0,
+          doc.querySelectorAll("#view .group.open").length + " reopened");
+
+    /* ...but it does open the hero's group when something is open. */
+    var firstKey = win.buildGroups()[0].key;
+    S.groupOpen = {}; win.buildGroups().forEach(function(g){ S.groupOpen[g.key] = (g.key !== firstKey) ? false : false; });
+    S.groupOpen[win.buildGroups()[1].key] = undefined;   /* one group left open */
+    delete S.groupOpen[win.buildGroups()[1].key];
+    S.tab = "home"; win.render();
+    doc.querySelector('#tabs button[data-tab="watch"]')
+       .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    var heroFilm = win.upNext();
+    var heroKey = win.buildGroups().filter(function(g){
+      return g.films.some(function(f){ return f.id === heroFilm.id; }); })[0];
+    check("the hero's group is open on arrival",
+          !!heroKey && S.groupOpen[heroKey.key] !== false,
+          heroKey ? heroKey.key + "=" + S.groupOpen[heroKey.key] : "(hero group not found)");
+
+    S.groupOpen = {}; S.tab = "home"; win.render();
+
+    /* --- Progress no longer restates The Path (1.3.5) --- */
+    var ratedFilm = win.FILMS.filter(function(f){ return !f.tv; })[0];
+    S.rated = {}; S.rated[ratedFilm.id] = 5; S.watched[ratedFilm.id] = 1;
+    S.tab = "stats"; win.render();
+    check("Progress has no ratings list",
+          doc.getElementById("view").textContent.indexOf("Your ratings") < 0);
+    check("Progress still shows the donuts and backup tools",
+          !!doc.querySelector("#view .pies") && !!doc.querySelector('[data-act="mkcode"]'));
+    S.tab = "watch"; S.filter = "all"; win.render();
+    check("The Path still carries the rating",
+          doc.getElementById("view").textContent.indexOf("\u2605\u2605\u2605\u2605\u2605") >= 0);
+    S.watched = {}; S.rated = {}; S.tab = "home"; win.render();
+
     /* --- the watch link is a Brave search (1.3.2) --- */
     check("the link is a Brave search",
           win.watchUrl("Batman").indexOf("https://search.brave.com/search?q=") === 0,
@@ -417,6 +493,21 @@ win.addEventListener("load", function(){
         setTimeout(function(){ then(d.window, d.window.document); }, 200);
       });
     }
+
+    /* Collapse state has to survive a reload too \u2014 that is why 1.3.5 stopped
+       treating it as session state. */
+    S.path = S.mode = "continuity"; S.groupOpen = {};
+    win.buildGroups().forEach(function(g){ S.groupOpen[g.key] = false; });
+    win.persist();
+    reboot(win.localStorage.getItem("batwatch-v3"), "collapse", function(w3, d3){
+      w3.S.tab = "watch"; w3.render();
+      check("a reload comes back collapsed",
+            d3.querySelectorAll("#view .group").length > 1 &&
+            d3.querySelectorAll("#view .group.open").length === 0,
+            d3.querySelectorAll("#view .group.open").length + " of " +
+            d3.querySelectorAll("#view .group").length + " open");
+    });
+    S.groupOpen = {};
 
     S.path = S.mode = "release"; S.theme = "darker"; win.persist();
     var saved = win.localStorage.getItem("batwatch-v3");

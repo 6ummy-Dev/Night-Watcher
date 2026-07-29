@@ -852,6 +852,74 @@ if((HTML.match(/data-act="rate"/g) || []).length !== 1){
   fail("the star markup exists in more than one place \u2014 it belongs in starRow()");
 }
 
+/* ---------- 30c. The Path collapses, and remembers ---------- */
+/* 28 continuities is a long scroll. The control is only worth having if the
+   state survives a reload, which is why groupOpen stopped being session state. */
+
+if(!/data-act="allgroups"/.test(HTML)){
+  fail("the collapse-all control is gone from The Path");
+}
+if(!/act === "allgroups"/.test(HTML)){
+  fail("the collapse-all control has no handler");
+}
+["anyOpen", "setAllGroups", "revealHero"].forEach(function(name){
+  if(!new RegExp("function\\s+" + name + "\\s*\\(").test(HTML)) fail(name + "() is gone");
+});
+if(!/groupOpen:S\.groupOpen/.test(HTML)){
+  fail("groupOpen is not written to the saved payload \u2014 collapse state dies on reload");
+}
+if(!/if\(o\.groupOpen && typeof o\.groupOpen === "object"\)/.test(HTML)){
+  fail("restore() does not read the saved groupOpen back \u2014 collapse state would " +
+       "be written and never used");
+}
+/* Absent means open. Persisting anything but false would invert the default on
+   the next build that adds a group. */
+var gsave = HTML.slice(HTML.indexOf("if(o.groupOpen"), HTML.indexOf("if(o.groupOpen") + 260);
+if(!/=== false/.test(gsave)){
+  fail("restore() accepts non-false groupOpen values \u2014 only false is meaningful");
+}
+/* Every mutation of groupOpen must persist, or the state is half-remembered.
+   The scan stops at the next branch or closing brace: an early version let
+   act==="mypath" borrow the persist() belonging to act==="repath" below it. */
+var lines = HTML.split("\n"), unsaved = [];
+lines.forEach(function(l, i){
+  if(!/S\.groupOpen(\[[^\]]*\])?\s*=(?!==)/.test(l)) return;
+  if(/o\.groupOpen|theme:"dark"/.test(l)) return;
+  /* setAllGroups() is a pure helper; the guard below proves its caller saves. */
+  if(/function setAllGroups/.test(lines[i - 1] || "") ||
+     /function setAllGroups/.test(lines[i - 2] || "")) return;
+  var j, saved = false;
+  for(j = i; j < Math.min(i + 6, lines.length); j++){
+    if(j > i && /^\s*(\}|else\b)/.test(lines[j])) break;
+    if(/persist\(\)/.test(lines[j])){ saved = true; break; }
+  }
+  if(!saved) unsaved.push("line " + (i + 1) + ": " + l.trim().slice(0, 70));
+});
+if(unsaved.length) fail("groupOpen written without persist():\n     " + unsaved.join("\n     "));
+if(!/setAllGroups\(.*?\);\s*persist\(\)/.test(HTML)){
+  fail("the collapse-all handler does not persist what it just set");
+}
+
+/* revealHero must not fight a deliberate collapse-all. */
+if(/function revealHero\s*\(/.test(HTML)){
+  var rh = fn("revealHero");
+  if(!/anyOpen\(\)/.test(rh)){
+    fail("revealHero() does not check anyOpen() \u2014 it would re-open a group on " +
+         "every visit and make collapse-all useless");
+  }
+}
+
+/* ---------- 30d. Progress does not restate The Path ---------- */
+/* The list grew without limit and pushed the backup tools off the screen. */
+
+if(/Your ratings/.test(HTML)){
+  fail("\"Your ratings\" survives in Progress \u2014 The Path carries the same stars");
+}
+if((HTML.match(/stars\(S\.rated\[/g) || []).length !== 1){
+  fail("the rating stars are rendered in " +
+       (HTML.match(/stars\(S\.rated\[/g) || []).length + " places, expected 1 (The Path)");
+}
+
 /* ---------- 31. The wordmark returns to the top ---------- */
 if(!/id="topBtn"/.test(HTML)) fail("the wordmark is no longer a control");
 if(HTML.indexOf('getElementById("topBtn")') < 0){
