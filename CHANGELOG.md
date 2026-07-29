@@ -19,6 +19,15 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.3.6] — 2026-07-29
+
+### Fixed
+
+- **The collapse control was invisible.** It wore the same mono caps, the same
+  pill border and the same `--dust` as the filter chips directly above it, so it
+  read as a seventh chip rather than something that acts on the whole list. It
+  now carries the signal colour and a caret that points the way it will move.
+
 ## [1.3.5] — 2026-07-29
 
 The Path collapses, and Progress stops repeating what The Path already shows.
