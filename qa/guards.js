@@ -778,18 +778,73 @@ if(/Every animated Batman/.test(HTML) || /every animated Batman/.test(README)){
   fail('copy still says "animated" as a limit \u2014 it stops being true when live-action lands');
 }
 
-/* ---------- 30. Rating is reachable from Next up ---------- */
+/* ---------- 30. Activity is reachable from Next up ---------- */
 /* Next up is where things get ticked, and the card advances the instant you
-   tick one \u2014 so rating meant hunting the title down on The Path. The prompt
-   rates the last entry in S.log, which is what was just marked. */
+   tick one \u2014 so rating meant hunting the title down on The Path. Activity
+   keeps the last five ticks rateable in place. */
 
-if(!/function ratePrompt\s*\(/.test(HTML)){
-  fail("ratePrompt() is gone \u2014 marking something watched on Next up would again " +
+if(/ratePrompt/.test(HTML)){
+  fail("ratePrompt survives \u2014 1.3.4 replaced it with Activity and left no " +
+       "second place for the same idea to drift out of sync");
+}
+if(/rateprompt/.test(HTML)){
+  fail(".rateprompt CSS survives with no consumer");
+}
+if(!/function activityBlock\s*\(/.test(HTML)){
+  fail("activityBlock() is gone \u2014 marking something watched on Next up would again " +
        "leave no way to rate it without going to The Path");
 }
-if(!/[^a-zA-Z]ratePrompt\(\)/.test(HTML)){
-  fail("ratePrompt() is never rendered");
+if(!/\+\s*activityBlock\(\)/.test(HTML)){
+  fail("activityBlock() is never concatenated into a view \u2014 it is defined and " +
+       "not rendered");
 }
+/* Home ends at the universe grid. The old block was the second place the same
+   log was drawn, and two renderings of one list is how they diverge. */
+if(/Recently logged/.test(HTML)){
+  fail("\"Recently logged\" survives \u2014 Activity is the only place the log is drawn");
+}
+if(/\.recent\{/.test(HTML)){
+  fail(".recent CSS survives with no consumer");
+}
+/* Five. A longer list turns Next up into a history page. */
+var amax = HTML.match(/var ACTIVITYMAX = (\d+);/);
+if(!amax || amax[1] !== "5"){
+  fail("ACTIVITYMAX is " + (amax ? amax[1] : "missing") + ", expected 5");
+}
+if(/function activityBlock\s*\(/.test(HTML)){
+  var ab = fn("activityBlock");
+  /* Scope is a queue control. Activity is history, and must not consult it. */
+  if(/visible\s*\(/.test(ab) || /S\.scope/.test(ab)){
+    fail("activityBlock() consults scope \u2014 history must not hide what you logged");
+  }
+  /* Nothing here may write watched or skipped \u2014 that is what moves the hero. */
+  if(/S\.watched\s*\[[^\]]*\]\s*=|S\.skipped\s*\[[^\]]*\]\s*=|markWatched\(/.test(ab)){
+    fail("activityBlock() writes progress \u2014 rating from Activity must not move the hero");
+  }
+}
+
+/* ---------- 30b. The log holds one entry per id ---------- */
+/* Not reproducible through any reachable write, but saved payloads also arrive
+   hand-edited and from other builds. Enforced on read, so it holds regardless. */
+
+if(!/function dedupeLog\s*\(/.test(HTML)){
+  fail("dedupeLog() is gone \u2014 a saved payload could hold two entries for one id");
+}
+var dedupeLog = /function dedupeLog\s*\(/.test(HTML)
+  ? new vm.Script(fn("dedupeLog") + "\ndedupeLog;").runInNewContext({})
+  : function(a){ return a; };
+var dl = dedupeLog([{id:"a",ts:300},{id:"b",ts:200},{id:"a",ts:100},{id:"a",ts:900}]);
+if(dl.length !== 2) fail("dedupeLog left " + dl.length + " entries, expected 2");
+if(dl.map(function(e){ return e.id; }).join(",") !== "a,b"){
+  fail("dedupeLog did not preserve first-seen order: " + dl.map(function(e){return e.id;}));
+}
+if(dl[0].ts !== 100) fail("dedupeLog kept ts " + dl[0].ts + ", expected the earliest (100)");
+if(JSON.stringify(dedupeLog(dl)) !== JSON.stringify(dl)) fail("dedupeLog is not idempotent");
+if(dedupeLog([null, {ts:1}, {id:"a",ts:1}]).length !== 1) fail("dedupeLog admitted a junk entry");
+if(!/dedupeLog\(Array\.isArray\(o\.log\)/.test(HTML)){
+  fail("restore() does not pass the saved log through dedupeLog()");
+}
+
 if(!/function starRow\s*\(/.test(HTML)){
   fail("starRow() is gone \u2014 the star markup would be duplicated again");
 }

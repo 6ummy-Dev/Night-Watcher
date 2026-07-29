@@ -174,27 +174,84 @@ win.addEventListener("load", function(){
     check("valid ratings still coerced through", win.S.rated["batman-ninja-2018"] === 5,
           "got " + win.S.rated["batman-ninja-2018"]);
 
-    /* --- rate what you just marked, from Next up (1.3.3) --- */
-    S.watched = {}; S.rated = {}; S.log = [];
+    /* --- Activity (1.3.4) --- */
+    S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
     S.tab = "next"; win.render();
-    check("no rating prompt before anything is watched", !doc.querySelector(".rateprompt"));
+    check("no Activity block before anything is watched", !doc.querySelector(".activity"));
+
     var wasShowing = doc.querySelector("#view .hero h2").textContent;
     doc.querySelector("#view .heroacts .go").dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("the hero advances after marking watched",
           doc.querySelector("#view .hero h2").textContent !== wasShowing);
-    var rp = doc.querySelector(".rateprompt");
-    check("a prompt appears for what was just marked",
-          !!rp && rp.querySelector("span").textContent.indexOf(wasShowing) > 0,
-          rp ? rp.querySelector("span").textContent : "(none)");
-    rp.querySelectorAll(".stars button")[3].dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
-    check("rating from the prompt records against the right title",
+
+    var act = doc.querySelector(".activity");
+    check("Activity appears once something is logged", !!act);
+    check("the heading is Activity",
+          !!act && act.querySelector(".qhead").textContent === "Activity",
+          act ? act.querySelector(".qhead").textContent : "(none)");
+    check("the first row is what was just marked",
+          !!act && act.querySelector(".arow .at").textContent === wasShowing,
+          act ? act.querySelector(".arow .at").textContent : "(none)");
+    check("Activity sits below Then",
+          !!act && !!doc.querySelector("#view .queue") &&
+          (doc.querySelector("#view .queue").compareDocumentPosition(act) & 4) !== 0);
+    check("Activity is not the queue list",
+          !!act && act.querySelectorAll(".qitem").length === 0);
+
+    /* Baseline is the hero as it stands NOW, not the title marked earlier \u2014
+       comparing against that one passes even if the hero advances again. */
+    var heroBefore = doc.querySelector("#view .hero h2").textContent;
+    act.querySelectorAll(".arow")[0].querySelectorAll(".stars button")[3]
+       .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("rating from Activity records against the right title",
           Object.keys(S.rated).length === 1 && S.rated[Object.keys(S.rated)[0]] === 4,
           JSON.stringify(S.rated));
-    check("rating there does not advance the hero",
-          doc.querySelector("#view .hero h2").textContent !== wasShowing);
-    check("the prompt reflects the rating",
-          doc.querySelectorAll(".rateprompt .stars button.on").length === 4);
-    S.watched = {}; S.rated = {}; S.log = []; S.tab = "home"; win.render();
+    check("rating from Activity does not move the hero",
+          doc.querySelector("#view .hero h2").textContent === heroBefore,
+          "was " + heroBefore + ", now " + doc.querySelector("#view .hero h2").textContent);
+    check("rating from Activity logs nothing new", S.log.length === 1,
+          S.log.length + " entries");
+    check("Activity reflects the rating",
+          doc.querySelectorAll(".activity .arow")[0]
+             .querySelectorAll(".stars button.on").length === 4);
+
+    /* Five, newest first, no matter how long the log gets. */
+    S.rated = {}; S.log = [];
+    var mark8 = win.FILMS.slice(0, 8);
+    mark8.forEach(function(f, i){ S.watched[f.id] = 1; S.log.push({id:f.id, ts:1000 + i}); });
+    win.render();
+    var rows = doc.querySelectorAll(".activity .arow");
+    check("Activity shows at most five", rows.length === 5, "got " + rows.length);
+    check("newest first", rows[0].querySelector(".at").textContent === mark8[7].t,
+          rows[0].querySelector(".at").textContent);
+
+    /* History ignores scope: a logged series stays visible under Movies. */
+    var tvLogged = win.FILMS.filter(function(f){ return f.tv; })[0];
+    S.watched = {}; S.rated = {}; S.log = [{id:tvLogged.id, ts:2000}];
+    S.watched[tvLogged.id] = 1;
+    S.scope = "movies"; win.render();
+    check("Activity ignores the scope toggle",
+          !!doc.querySelector(".activity") &&
+          doc.querySelector(".activity .arow .at").textContent === tvLogged.t,
+          doc.querySelector(".activity") ? doc.querySelector(".activity .arow .at").textContent : "(no block)");
+
+    /* An id from a newer build must be skipped, not thrown on. */
+    S.log = [{id:"a-film-that-does-not-exist", ts:3000}, {id:tvLogged.id, ts:2000}];
+    var threw2 = null;
+    try { win.render(); } catch(e){ threw2 = e; }
+    check("an unknown logged id does not throw", !threw2, threw2 && threw2.message);
+    check("an unknown logged id is skipped",
+          doc.querySelectorAll(".activity .arow").length === 1,
+          doc.querySelectorAll(".activity .arow").length + " rows");
+
+    /* Home ends at the universe grid. */
+    S.tab = "home"; win.render();
+    check("Home has no Activity block", !doc.querySelector("#view .activity"));
+    check("Home has no Recently logged",
+          doc.getElementById("view").textContent.indexOf("Recently logged") < 0);
+
+    S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
+    S.scope = "movies"; S.tab = "home"; win.render();
 
     /* --- the watch link is a Brave search (1.3.2) --- */
     check("the link is a Brave search",
