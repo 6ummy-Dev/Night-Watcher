@@ -174,6 +174,28 @@ win.addEventListener("load", function(){
     check("valid ratings still coerced through", win.S.rated["batman-ninja-2018"] === 5,
           "got " + win.S.rated["batman-ninja-2018"]);
 
+    /* --- rate what you just marked, from Next up (1.3.3) --- */
+    S.watched = {}; S.rated = {}; S.log = [];
+    S.tab = "next"; win.render();
+    check("no rating prompt before anything is watched", !doc.querySelector(".rateprompt"));
+    var wasShowing = doc.querySelector("#view .hero h2").textContent;
+    doc.querySelector("#view .heroacts .go").dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("the hero advances after marking watched",
+          doc.querySelector("#view .hero h2").textContent !== wasShowing);
+    var rp = doc.querySelector(".rateprompt");
+    check("a prompt appears for what was just marked",
+          !!rp && rp.querySelector("span").textContent.indexOf(wasShowing) > 0,
+          rp ? rp.querySelector("span").textContent : "(none)");
+    rp.querySelectorAll(".stars button")[3].dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("rating from the prompt records against the right title",
+          Object.keys(S.rated).length === 1 && S.rated[Object.keys(S.rated)[0]] === 4,
+          JSON.stringify(S.rated));
+    check("rating there does not advance the hero",
+          doc.querySelector("#view .hero h2").textContent !== wasShowing);
+    check("the prompt reflects the rating",
+          doc.querySelectorAll(".rateprompt .stars button.on").length === 4);
+    S.watched = {}; S.rated = {}; S.log = []; S.tab = "home"; win.render();
+
     /* --- the watch link is a Brave search (1.3.2) --- */
     check("the link is a Brave search",
           win.watchUrl("Batman").indexOf("https://search.brave.com/search?q=") === 0,

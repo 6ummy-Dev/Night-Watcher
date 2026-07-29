@@ -778,6 +778,42 @@ if(/Every animated Batman/.test(HTML) || /every animated Batman/.test(README)){
   fail('copy still says "animated" as a limit \u2014 it stops being true when live-action lands');
 }
 
+/* ---------- 30. Rating is reachable from Next up ---------- */
+/* Next up is where things get ticked, and the card advances the instant you
+   tick one \u2014 so rating meant hunting the title down on The Path. The prompt
+   rates the last entry in S.log, which is what was just marked. */
+
+if(!/function ratePrompt\s*\(/.test(HTML)){
+  fail("ratePrompt() is gone \u2014 marking something watched on Next up would again " +
+       "leave no way to rate it without going to The Path");
+}
+if(!/[^a-zA-Z]ratePrompt\(\)/.test(HTML)){
+  fail("ratePrompt() is never rendered");
+}
+if(!/function starRow\s*\(/.test(HTML)){
+  fail("starRow() is gone \u2014 the star markup would be duplicated again");
+}
+if((HTML.match(/data-act="rate"/g) || []).length !== 1){
+  fail("the star markup exists in more than one place \u2014 it belongs in starRow()");
+}
+
+/* ---------- 31. The wordmark returns to the top ---------- */
+if(!/id="topBtn"/.test(HTML)) fail("the wordmark is no longer a control");
+if(HTML.indexOf('getElementById("topBtn")') < 0){
+  fail("the wordmark has no click handler \u2014 tapping the title would do nothing");
+}
+if(!/<h1><button id="topBtn">/.test(HTML)){
+  fail("the wordmark button is outside its h1 \u2014 the heading must stay a heading");
+}
+
+/* ---------- 32. The footer describes the link that exists ---------- */
+/* It described "Streaming now" for two releases after that link was replaced. */
+["Streaming now", "Streaming rows", "justwatch"].forEach(function(dead){
+  if(HTML.indexOf(dead) >= 0){
+    fail('the Progress footer still mentions "' + dead + '" \u2014 the link is a search now');
+  }
+});
+
 /* ---------- report ---------- */
 
 console.log("\nNight Watcher guards — " + FILMS.length + " entries, " + PATH.length + " continuities");
