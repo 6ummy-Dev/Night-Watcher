@@ -19,6 +19,36 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.3.5] — 2026-07-29
+
+The Path collapses, and Progress stops repeating what The Path already shows.
+
+### Added
+
+- **Collapse all / expand all, on The Path.** 28 continuities is a long scroll to
+  reach the one you want. The control sits under the filter chips and flips
+  label to whichever action is available.
+
+  Group state now **persists**. It was deliberately session-only until now, on
+  the grounds that tab, filter, query and mode are; collapsing 27 groups is a
+  different kind of act from typing a search, and losing it on every reload made
+  the control not worth using. Stored inside the existing payload as one key, so
+  nothing about saved progress changes shape.
+- **Arriving at The Path opens the group you are up to.** Only when something is
+  open already \u2014 a deliberate collapse-all is left alone, since re-opening it on
+  every visit would undo the control you just used.
+
+### Removed
+
+- **Progress no longer lists your ratings.** It repeated, in a second format and
+  a different order, what every row on The Path already carries \u2014 and it grew
+  without limit, so the more you rated the further the backup tools sank below
+  it. Ratings stay readable and editable where the titles are.
+
+  One consequence worth knowing: that list ignored scope, and The Path does not.
+  A series you rated is now hidden while the toggle reads Movies, in the same
+  way the series itself is.
+
 ## [1.3.4] — 2026-07-29
 
 Activity replaces the rating prompt, and Home ends at the universe grid.
