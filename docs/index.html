@@ -75,6 +75,7 @@ header{position:sticky;top:0;z-index:30;background:var(--hdr);-webkit-backdrop-f
 .mark:active{opacity:.7;}
 .wordmark{flex:1;min-width:0;text-align:center;}
 .wordmark h1{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:21px;line-height:.95;margin:0;}
+.wordmark h1 button{font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;}
 .wordmark p{font-family:var(--mono);font-size:9.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--dim);margin:4px 0 0;}
 .ring{width:46px;height:46px;flex:none;position:relative;padding:0;border:0;background:none;cursor:pointer;}
 .ring:active{opacity:.7;}
@@ -189,6 +190,9 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .hero .yr{font-family:var(--mono);font-size:12px;color:var(--dust);margin:10px 0 0;letter-spacing:.06em;}
 .hero .blurb{font-size:15px;color:var(--dust);margin:16px 0 0;line-height:1.5;}
 .heroacts{display:flex;gap:9px;margin-top:20px;}
+.rateprompt{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
+.rateprompt span{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dust);flex:1;min-width:150px;line-height:1.5;}
+.rateprompt .stars{margin-left:auto;}
 .heroacts button{flex:1;min-height:50px;border-radius:11px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;}
 .heroacts .go{background:var(--bone);color:var(--ink);}
 .heroacts .no{border:1px solid var(--line2);color:var(--dust);flex:0 0 38%;}
@@ -293,7 +297,7 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
           <path d="M50 51 C 45 60, 45 69, 50 78 C 55 69, 55 60, 50 51 Z"/>
         </g></svg>
       </button>
-      <div class="wordmark"><h1>Night Watcher</h1><p id="hsub">Loading</p></div>
+      <div class="wordmark"><h1><button id="topBtn">Night Watcher</button></h1><p id="hsub">Loading</p></div>
       <button class="ring" id="ringBtn" aria-label="Open progress">
         <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">
           <circle id="ringTrack" cx="23" cy="23" r="19" fill="none" stroke-width="4"></circle>
@@ -666,7 +670,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.3.2";
+var BUILD = "1.3.3";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -854,6 +858,31 @@ function badges(f){
 function watchUrl(title){
   return "https://search.brave.com/search?q=" +
          encodeURIComponent("where to watch " + title);
+}
+/* One star row, shared by the detail panel and Next up. */
+function starRow(f){
+  var out = "", s;
+  for(s = 1; s <= 5; s++){
+    out += '<button data-act="rate" data-id="'+f.id+'" data-n="'+s+'" class="'+
+           (clampRating(S.rated[f.id]) >= s ? "on" : "")+'" aria-label="Rate '+s+'">\u2605</button>';
+  }
+  return '<div class="stars">'+out+'</div>';
+}
+/* Marking something watched happens on Next up, and the card advances the
+   instant you do \u2014 so rating it meant going to The Path to find it again.
+   S.log already records every tick in order, so the last entry is what you just
+   marked. Rating it here does not advance anything: markWatched is a no-op on
+   something already watched. */
+function ratePrompt(){
+  if(!S.log.length) return "";
+  var id = S.log[S.log.length - 1].id, i;
+  for(i = 0; i < FILMS.length; i++){
+    if(FILMS[i].id === id){
+      return '<div class="rateprompt"><span>Just watched \u00b7 '+esc(FILMS[i].t)+'</span>'+
+             starRow(FILMS[i])+'</div>';
+    }
+  }
+  return "";
 }
 function watchLinks(f){
   return '<a class="lnk" href="'+watchUrl(f.t)+
@@ -1159,6 +1188,7 @@ function viewNext(){
       '<button class="go" data-act="watched" data-id="'+f.id+'">Mark watched</button>'+
       '<button class="no" data-act="skip" data-id="'+f.id+'">Skip</button>'+
     '</div></div>'+
+    ratePrompt()+
     (qhtml ? '<div class="queue"><p class="qhead">Then</p>'+qhtml+'</div>' : '');
 }
 
@@ -1212,16 +1242,11 @@ function viewWatch(){
          ~220 KB of the ~292 KB this view produced, reparsed on every keystroke. */
       var detail = "";
       if(isOpen){
-        var starBtns = "", s;
-        for(s=1;s<=5;s++){
-          starBtns += '<button data-act="rate" data-id="'+f.id+'" data-n="'+s+'" class="'+
-                   (clampRating(S.rated[f.id]) >= s ? "on":"")+'" aria-label="Rate '+s+'">\u2605</button>';
-        }
         detail = '<div class="fdetail"><p>'+esc(f.d)+'</p><div class="acts">'+
           '<button class="act'+(isDone(f)?" primary":"")+'" data-act="watched" data-id="'+f.id+'">'+
             (isDone(f)?"Watched":"Mark watched")+'</button>'+
           '<button class="act" data-act="skip" data-id="'+f.id+'">'+(isSkip(f)?"Unskip":"Skip")+'</button>'+
-          '<div class="stars">'+starBtns+'</div>'+
+          starRow(f)+
         '</div><div class="linkrow">'+watchLinks(f)+'</div></div>';
       }
       rows += '<div class="'+cls+'"><div class="frow">'+
@@ -1382,7 +1407,7 @@ function viewStats(){
   html += '<p class="note">'+(canSave
     ? "Progress saves automatically on this device and follows you across all three orderings."
     : "Saving is unavailable here, so progress lasts for this session only.")+
-    ' Streaming rows rotate monthly, so the "Streaming now" link on each film checks live availability. Knightfall and Dynamic Duo dates are as announced and can move. \u00b7 Build '+BUILD+'</p>';
+    ' Availability changes constantly and differs by country, so "Where to watch" runs a fresh search each time rather than trusting a stored answer. Knightfall and Dynamic Duo dates are as announced and can move. \u00b7 Build '+BUILD+'</p>';
   return html;
 }
 
@@ -1463,6 +1488,12 @@ document.getElementById("tabs").addEventListener("click", function(e){
   S.tab = b.dataset.tab; window.scrollTo(0,0); render();
 });
 
+/* The wordmark is the one element on every screen, so it is the natural
+   "back to the top" \u2014 scroll lives on the document, not on <main>. */
+document.getElementById("topBtn").addEventListener("click", function(){
+  try{ window.scrollTo({top:0, behavior:"smooth"}); }
+  catch(e){ window.scrollTo(0, 0); }
+});
 document.getElementById("ringBtn").addEventListener("click", function(){
   S.tab = "stats"; window.scrollTo(0,0); render();
 });
