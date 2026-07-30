@@ -19,6 +19,35 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.3.7] — 2026-07-30
+
+Fixes only. No new surface.
+
+### Fixed
+
+- **The where-to-watch link now carries a year.** Thirteen titles repeat across
+  the catalogue — five different things called *The Batman*, four called *Super
+  Friends* — and without a year the search resolved every one of them to
+  whichever was more famous.
+
+  The year used is the **first** the title appeared, not the entry's own, so all
+  five seasons of a show ask the same question. Availability is sold per show,
+  not per season.
+- **`--dim` lifted from `#78849E` to `#8B97B1`.** Worst-case contrast went from
+  4.12:1 to 5.28:1, clearing AA with room on every surface in both themes. The
+  Activity dates added in 1.3.4 were sitting at 4.57:1 — passing by 0.07, which
+  is not passing in any way that matters at 10px.
+- **README stated 111 KB / 35 KB.** It had been wrong since 1.2.x. Now guarded,
+  so it cannot drift again.
+
+### Added
+
+- **A canonical URL.** The page has been reachable at two addresses since the
+  Worker went up, and nothing said which one was the page.
+- **JSON-LD, robots.txt and a sitemap.** Roughly 0.6 KB inline, and the two new
+  files cost the budget nothing. The JSON-LD description is now cross-checked
+  against the meta and og descriptions, so the three cannot drift apart.
+
 ## [1.3.6] — 2026-07-29
 
 ### Fixed
