@@ -70,6 +70,7 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `docs/icon-maskable-512.png` | Full-bleed variant so Android can apply its own mask without cropping |
 | `docs/robots.txt` | Opens the site to crawlers and points at the sitemap |
 | `docs/sitemap.xml` | One URL — the app is a single page |
+| `docs/google38dc2f1303c788e7.html` | Search Console ownership token. Google re-checks it, so it stays |
 | `wrangler.jsonc` | Cloudflare Workers config (points assets at `docs/`) |
 | `.gitignore` | Ignores `node_modules`, Wrangler state, editor files, etc. |
 | `package.json` | Dev scripts + optional jsdom for smoke tests |

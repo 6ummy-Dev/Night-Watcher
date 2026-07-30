@@ -17,7 +17,12 @@ happen, because every `i:` slug is frozen (see the README).
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Search Console ownership token** (`docs/google38dc2f1303c788e7.html`).
+  Deliberately not versioned: it changes nothing about the app, and a version
+  bump would retire the service worker cache and make every installed client
+  re-download 116 KB for a file none of them will ever request.
 
 ## [1.3.7] — 2026-07-30
 
