@@ -19,6 +19,45 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.3.9] — 2026-07-30
+
+A copy pass. Nothing in the app moved; several things it said were wrong.
+
+### Fixed
+
+- **The chooser and The Path described the same orderings differently.** Each
+  ordering had two blurbs, written months apart. One called it the *safest first
+  watch*, the other the *safest way through*; one said *composite lifetime
+  stitched across*, the other *composite life, stitched from*.
+
+  They are now one string. The chooser takes the opening of the note and nothing
+  else, so they cannot drift again.
+- **The chooser claimed release order ran from 1968.** Its blurb hardcoded a
+  year while The Path computed one from what is actually on screen — which under
+  Movies is 1993. The chooser was stating a number the app contradicted one tab
+  away. Both come from `yearSpan()` now.
+- **Progress was said to live on "this device". It lives in a browser.** Two
+  browsers on one phone do not share storage, so anyone who switched and lost
+  their ticks had been told the wrong thing. All four statements of that fact
+  now say browser.
+- **The app called itself two things.** *An unofficial field guide* in the
+  intro, *an unofficial fan guide* in the footer, both on the same screen. Fan
+  guide everywhere — it states the position more plainly.
+
+### Changed
+
+- **The Progress footer was three unrelated facts in one paragraph** — saving,
+  availability, and release dates. Now three.
+- **Named titles left the announced-dates line.** It read *Knightfall and
+  Dynamic Duo dates are as announced and can move*, which needed editing every
+  time one landed or another was announced. It now reads **Announced dates can
+  move.**
+- **The empty state repeated its own heading.** *Nothing here* over *Nothing
+  matches that filter* said one thing twice. The body now says what to do, and
+  distinguishes an empty search from an empty filter.
+- **Backup buttons named for what they are.** *Full JSON* is now *JSON file*,
+  matching *Code file* beside it.
+
 ## [1.3.8] — 2026-07-30
 
 ### Changed
