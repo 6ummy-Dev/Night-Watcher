@@ -774,11 +774,25 @@ if(!/\.linkrow\{[^}]*justify-content:flex-end/.test(HTML)){
    disagree is the same shape of bug the README drift was. */
 
 var TAGLINE = "One path through every Batman";
-[["<title>", HTML], ["og:title", HTML], ["README headline", README]].forEach(function(pair){
+/* <title> gave the tagline up in 1.3.8: it is the one string search reads, and
+   nobody types "path". The tagline holds everywhere a human sees it \u2014 the
+   wordmark, shared links, the README. Each location is now checked against its
+   own string; testing all three against the whole document meant one surviving
+   copy could satisfy the other two. */
+var titleTag = (HTML.match(/<title>([^<]+)<\/title>/) || [])[1] || "";
+var ogTitle  = (HTML.match(/<meta property="og:title" content="([^"]+)"/) || [])[1] || "";
+[["og:title", ogTitle], ["README headline", README]].forEach(function(pair){
   if(pair[1].indexOf(TAGLINE) < 0){
     fail(pair[0] + " does not carry the tagline \"" + TAGLINE + "\"");
   }
 });
+if(titleTag.indexOf("Night Watcher") < 0){
+  fail("<title> does not name the app \u2014 it is what search results show");
+}
+if(titleTag.indexOf(TAGLINE) >= 0){
+  fail("<title> carries the tagline again \u2014 1.3.8 traded it for words people " +
+       "actually search, and og:title keeps it for shares");
+}
 ["The Animated Dark Knight", "Gotham City life"].forEach(function(dead){
   if(HTML.indexOf(dead) >= 0 || README.indexOf(dead) >= 0){
     fail('retired tagline "' + dead + '" is still present');
@@ -952,8 +966,8 @@ if(!ld){
   catch(e){ fail("JSON-LD does not parse: " + e.message); }
   if(parsed){
     var title = (HTML.match(/<title>([^<]+)<\/title>/) || [])[1] || "";
-    if(title.indexOf(parsed.name) !== 0){
-      fail("JSON-LD name \"" + parsed.name + "\" does not open the <title> \"" + title + "\"");
+    if(title.indexOf(parsed.name) < 0){
+      fail("JSON-LD name \"" + parsed.name + "\" does not appear in the <title> \"" + title + "\"");
     }
     if(canon && parsed.url !== canon[1]){
       fail("JSON-LD url is " + parsed.url + ", canonical is " + canon[1]);
