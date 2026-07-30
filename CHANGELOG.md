@@ -17,12 +17,32 @@ happen, because every `i:` slug is frozen (see the README).
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [1.3.8] — 2026-07-30
+
+### Changed
+
+- **The page title now says what people search for.** It read *Night Watcher ·
+  One path through every Batman*, which contains none of the words anyone types.
+  It now reads **Batman watch orders that spoil nothing · Night Watcher**.
+
+  The tagline is unchanged everywhere a person sees it — the wordmark, shared
+  links, the README. `<title>` is read by search; `og:title` is read by humans,
+  and they no longer have to be the same string. Nothing in the app moved.
+
 ### Added
 
-- **Search Console ownership token** (`docs/google38dc2f1303c788e7.html`).
-  Deliberately not versioned: it changes nothing about the app, and a version
-  bump would retire the service worker cache and make every installed client
-  re-download 116 KB for a file none of them will ever request.
+- **Search Console ownership token** (`docs/google38dc2f1303c788e7.html`), added
+  ahead of this release without a version bump, since it changes nothing about
+  the app and would have retired the service worker cache for no reason.
+
+### Fixed
+
+- **A guard that could not fail.** The tagline check tested `<title>`, `og:title`
+  and the README against the whole document rather than against their own
+  strings, so one surviving copy satisfied all three. Each is now checked where
+  it actually lives.
 
 ## [1.3.7] — 2026-07-30
 
