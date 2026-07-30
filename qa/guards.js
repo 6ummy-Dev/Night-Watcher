@@ -44,6 +44,9 @@ var sandbox = {};
 vm.createContext(sandbox);
 vm.runInContext(
   slice("var PATH = [", "var MODENOTE") + "\n" +
+  /* MODENOTE became the single source for path copy in 1.3.9, so the sandbox
+     needs it to check the chooser derives from the same string. */
+  slice("var MODENOTE = {", "var PATHS = [") + "\n" +
   slice("var PATHS = [", "function isPath") + "\n" +
   fn("idHash") + "\n" + fn("tierOf") + "\n" + fn("clampRating") + "\n" + fn("isPath") + "\n",
   sandbox
@@ -524,18 +527,18 @@ if(bodyAt > 0){
 }
 
 /* ---------- 16. The path vocabulary agrees with itself ---------- */
-/* PATHS, PATHBLURB, PATHCODE and CODEPATH describe the same three orderings;
+/* PATHS, MODENOTE, PATHCODE and CODEPATH describe the same three orderings;
    a path missing from one gives a blank card or a letter that restores nothing. */
 
-var PATHS = sandbox.PATHS, PATHBLURB = sandbox.PATHBLURB,
+var PATHS = sandbox.PATHS, MODENOTE = sandbox.MODENOTE,
     PATHCODE = sandbox.PATHCODE, CODEPATH = sandbox.CODEPATH;
 
-if(!PATHS || !PATHBLURB || !PATHCODE || !CODEPATH){
+if(!PATHS || !MODENOTE || !PATHCODE || !CODEPATH){
   fail("cannot extract the path tables from index.html");
 } else {
   var ids = PATHS.map(function(x){ return x[0]; });
   ids.forEach(function(id){
-    if(!PATHBLURB[id]) fail('path "' + id + '" has no PATHBLURB — its chooser card would be blank');
+    if(!MODENOTE[id]) fail('path "' + id + '" has no MODENOTE — its chooser card\n                           and its note on The Path would both be blank');
     if(!PATHCODE[id])  fail('path "' + id + '" has no PATHCODE — it cannot survive a backup code');
     else if(CODEPATH[PATHCODE[id]] !== id){
       fail('path "' + id + '" does not round-trip through PATHCODE/CODEPATH');
@@ -554,7 +557,63 @@ if(!PATHS || !PATHBLURB || !PATHCODE || !CODEPATH){
     if(HTML.indexOf('"' + id + '"') < 0) fail('path id "' + id + '" appears in PATHS but nowhere else');
   });
   note("paths: " + ids.join(", "));
+
+  /* ---- 16b. one string per ordering, not two ---- */
+  /* The chooser held its own blurbs and they drifted: "safest first watch"
+     against "safest way through", and a hardcoded 1968 against a computed
+     1993. Nobody sees both at once, which is why nobody noticed. */
+  if(/PATHBLURB/.test(HTML)){
+    fail("PATHBLURB is back — 1.3.9 made MODENOTE the only source for path copy");
+  }
+  if(!/function pathBlurb\s*\(/.test(HTML)){
+    fail("pathBlurb() is gone — the chooser has nothing to build its cards from");
+  }
+  if(!/esc\(pathBlurb\(/.test(HTML)){
+    fail("the chooser does not render pathBlurb()");
+  }
+  /* fn() throws on a missing function, which would end the run with a stack
+     trace instead of the readable failure above. */
+  var pb = (/function pathBlurb\s*\(/.test(HTML) && /function noteFor\s*\(/.test(HTML))
+    ? new vm.Script(
+        fn("noteFor") + "\n" + fn("pathBlurb") + "\n({noteFor:noteFor, pathBlurb:pathBlurb});"
+      ).runInNewContext({MODENOTE: MODENOTE, yearSpan: function(){ return "1993 to 2028"; }})
+    : null;
+  if(pb) ids.forEach(function(id){
+    var card = pb.pathBlurb(id), full = pb.noteFor(id);
+    if(!card){ fail('pathBlurb("' + id + '") is empty'); return; }
+    if(full.indexOf(card.replace(/\.$/, "")) !== 0){
+      fail('pathBlurb("' + id + '") is not the opening of its MODENOTE');
+    }
+    if(card.length > 200){
+      fail('pathBlurb("' + id + '") is ' + card.length + ' chars — too long for a card');
+    }
+    if(/\{span\}/.test(card)){
+      fail('pathBlurb("' + id + '") carries an unsubstituted {span}');
+    }
+  });
+  /* The release span is computed from the catalogue. A hardcoded year is how
+     the chooser came to claim 1968 while The Path said 1993. */
+  if(/release order, 19\d\d to/.test(HTML)){
+    fail("release copy hardcodes a year span — it must come from yearSpan()");
+  }
 }
+
+/* ---------- 16c. Storage is a browser, not a device ---------- */
+/* Two browsers on one phone do not share storage. Saying "device" promised
+   people their ticks would follow them somewhere they will not. */
+
+if(/this device/.test(HTML)){
+  fail("copy still says progress is kept on \"this device\" — storage is per browser");
+}
+
+/* ---------- 16d. One name for what this is ---------- */
+
+if(/field guide/.test(HTML)){
+  fail('"field guide" is back — the app calls itself a fan guide');
+}
+(HTML.match(/unofficial [a-z]+ guide/g) || []).forEach(function(x){
+  if(x !== "unofficial fan guide") fail('unexpected self-description: "' + x + '"');
+});
 
 /* ---------- 17. The path is actually load-bearing ---------- */
 

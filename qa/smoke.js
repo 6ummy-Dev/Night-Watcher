@@ -253,6 +253,26 @@ win.addEventListener("load", function(){
     S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
     S.scope = "movies"; S.tab = "home"; win.render();
 
+    /* --- one source for path copy (1.3.9) --- */
+    S.path = ""; S.tab = "home"; win.render();
+    var cards = doc.querySelectorAll("#view .pick");
+    check("the chooser shows a card per path", cards.length === 3, cards.length + " cards");
+    Array.prototype.forEach.call(cards, function(b){
+      var id = b.dataset.path, card = b.querySelector("span").textContent;
+      check("the " + id + " card opens its own note",
+            win.noteFor(id).indexOf(card.replace(/\.$/, "")) === 0, card.slice(0, 60));
+    });
+    check("the release card carries the computed span, not a fixed year",
+          doc.querySelector('.pick[data-path="release"] span').textContent
+             .indexOf(win.yearSpan()) > 0,
+          doc.querySelector('.pick[data-path="release"] span').textContent);
+    /* Under Movies the films start in 1993; the old chooser copy said 1968. */
+    S.scope = "movies"; win.render();
+    check("the chooser and The Path agree on the span",
+          doc.querySelector('.pick[data-path="release"] span').textContent.indexOf("1993") > 0,
+          doc.querySelector('.pick[data-path="release"] span').textContent);
+    S.path = "continuity"; S.mode = "continuity";
+
     /* --- The Path collapses and remembers (1.3.5) --- */
     S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.groupOpen = {};
     /* Group keys are namespaced per ordering (c0.., e0.., d1960..), so collapse
