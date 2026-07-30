@@ -337,7 +337,8 @@ var actual = {
    shared link show, so a stale one is more visible than a stale README. */
 
 [["meta description", /<meta name="description" content="([^"]+)"/],
- ["og:description",   /<meta property="og:description" content="([^"]+)"/]
+ ["og:description",   /<meta property="og:description" content="([^"]+)"/],
+ ["JSON-LD description", /"description":"([^"]+)"/]
 ].forEach(function(t){
   var m = HTML.match(t[1]);
   if(!m) return warn(t[0] + " is missing");
@@ -724,7 +725,16 @@ BRANDS.forEach(function(b){
 
 var watchSrc = fn("watchUrl");
 if(!watchSrc) fail("watchUrl() is gone \u2014 nothing builds the watch link");
-vm.runInContext(watchSrc || "function watchUrl(){ return \"\"; }", sandbox);
+/* watchUrl() reads titleYear(), which reads FILMS. Loading it alone used to
+   work and silently stopped in 1.3.7; the sandbox now carries the whole chain. */
+sandbox.FILMS = FILMS;
+sandbox.TITLEYEAR = null;
+if(!/function titleYear\s*\(/.test(HTML)){
+  fail("titleYear() is gone \u2014 the watch link would lose its year");
+  vm.runInContext("function titleYear(){ return 0; }\n" + watchSrc, sandbox);
+} else {
+  vm.runInContext(fn("titleYear") + "\n" + watchSrc, sandbox);
+}
 
 ["Batman: Soul of the Dragon", "Teen Titans Go! vs. Teen Titans", "Harley Quinn"].forEach(function(t){
   var u = sandbox.watchUrl(t);
@@ -918,6 +928,114 @@ if(/Your ratings/.test(HTML)){
 if((HTML.match(/stars\(S\.rated\[/g) || []).length !== 1){
   fail("the rating stars are rendered in " +
        (HTML.match(/stars\(S\.rated\[/g) || []).length + " places, expected 1 (The Path)");
+}
+
+/* ---------- 30e. What a crawler and a shared link see ---------- */
+/* One URL, stated once. Two addresses serving the same page compete with each
+   other, and the app has had two since the Worker went up. */
+
+var canon = HTML.match(/<link rel="canonical" href="([^"]+)"/);
+if(!canon) fail("no canonical URL \u2014 the Pages address and the Worker redirect " +
+                "would be indexed as separate pages");
+var ogurl = HTML.match(/<meta property="og:url" content="([^"]+)"/);
+if(canon && ogurl && canon[1] !== ogurl[1]){
+  fail("canonical is " + canon[1] + " but og:url is " + ogurl[1] + " \u2014 a shared " +
+       "link and an indexed link must be the same page");
+}
+
+var ld = HTML.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+if(!ld){
+  fail("the JSON-LD block is gone");
+} else {
+  var parsed = null;
+  try { parsed = JSON.parse(ld[1]); }
+  catch(e){ fail("JSON-LD does not parse: " + e.message); }
+  if(parsed){
+    var title = (HTML.match(/<title>([^<]+)<\/title>/) || [])[1] || "";
+    if(title.indexOf(parsed.name) !== 0){
+      fail("JSON-LD name \"" + parsed.name + "\" does not open the <title> \"" + title + "\"");
+    }
+    if(canon && parsed.url !== canon[1]){
+      fail("JSON-LD url is " + parsed.url + ", canonical is " + canon[1]);
+    }
+  }
+}
+/* JSON-LD must stay inert: the no-third-party rule is about executable code,
+   and a bare <script> here would also break the app's own script extraction. */
+if(/<script type="application\/ld\+json"[^>]*src=/.test(HTML)){
+  fail("the JSON-LD block loads an external file");
+}
+
+/* ---------- 30f. Every watch link carries a year ---------- */
+/* Thirteen titles repeat across the catalogue. Without a year they all resolve
+   to whichever one the search engine thinks is more famous. */
+
+var wu = fn("watchUrl");
+if(!/titleYear\(/.test(wu)){
+  fail("watchUrl() does not add a year \u2014 repeated titles would resolve to the " +
+       "wrong show");
+}
+(function(){
+  var byUrl = {};
+  FILMS.forEach(function(f){
+    var u = decodeURIComponent(sandbox.watchUrl(f.t));
+    var y = sandbox.titleYear(f.t);
+    if(u.indexOf(" " + y) < 0){
+      fail("watch URL for \"" + f.t + "\" carries no year: " + u);
+    }
+    /* The earliest year for the title, not the entry's own \u2014 otherwise every
+       season of a show asks a different question about the same show. */
+    if(y !== Math.min.apply(null, FILMS.filter(function(g){ return g.t === f.t; })
+                                       .map(function(g){ return g.y; }))){
+      fail("watch URL for \"" + f.t + "\" uses " + y + ", not the title's first year");
+    }
+    byUrl[u] = byUrl[u] || {}; byUrl[u][f.t] = 1;
+  });
+  /* Seasons of one show sharing a URL is the design. Two different titles
+     sharing one would mean a year failed to separate them. */
+  var collided = Object.keys(byUrl).filter(function(u){ return Object.keys(byUrl[u]).length > 1; });
+  if(collided.length){
+    fail("two different titles share a watch URL: " + collided[0] + " \u2014 " +
+         Object.keys(byUrl[collided[0]]).join(", "));
+  }
+})();
+
+/* ---------- 30f2. The README lists every served file ---------- */
+/* Two files shipped in 1.3.7 and neither reached the table. The size figure had
+   been wrong since 1.2.x for the same reason: prose about the repo drifts from
+   the repo unless something compares them. */
+
+(function(){
+  var listed = {}, m, re = /\|\s*`(docs\/[^`]+)`\s*\|/g;
+  while((m = re.exec(README))) listed[m[1].replace("docs/", "")] = true;
+  var onDisk = fs.readdirSync(PUBLIC).filter(function(f){
+    return f.charAt(0) !== "." && fs.statSync(path.join(PUBLIC, f)).isFile();
+  });
+  var missing = onDisk.filter(function(f){ return !listed[f]; });
+  if(missing.length){
+    fail("README's file table does not list: " + missing.join(", "));
+  }
+  var ghost = Object.keys(listed).filter(function(f){
+    return !fs.existsSync(path.join(PUBLIC, f));
+  });
+  if(ghost.length){
+    fail("README's file table lists files that do not exist: " + ghost.join(", "));
+  }
+})();
+
+/* ---------- 30g. The README states the real weight ---------- */
+/* It drifts every release, and it is the first number anyone reads. */
+
+var rmSize = README.match(/currently (\d+) KB \/ (\d+) KB/);
+if(!rmSize){
+  warn("README no longer states the current size");
+} else {
+  var realRaw = Math.round(Buffer.byteLength(HTML) / 1024);
+  var realGz  = Math.round(require("zlib").gzipSync(Buffer.from(HTML), {level:9}).length / 1024);
+  if(parseInt(rmSize[1], 10) !== realRaw || parseInt(rmSize[2], 10) !== realGz){
+    fail("README says " + rmSize[1] + " KB / " + rmSize[2] + " KB, actual is " +
+         realRaw + " KB / " + realGz + " KB");
+  }
 }
 
 /* ---------- 31. The wordmark returns to the top ---------- */

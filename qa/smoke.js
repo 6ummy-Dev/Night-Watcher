@@ -336,6 +336,17 @@ win.addEventListener("load", function(){
     check("the query leads with \"where to watch\"",
           win.watchUrl("Batman").indexOf("where%20to%20watch%20Batman") > 0);
     check("no country path can appear", !/\/(us|uy|uk|gb|br|de)\//.test(win.watchUrl("Batman")));
+    /* A real title carries its year; an unknown one degrades to no year rather
+       than to the string "undefined" (1.3.7). */
+    var tvShow = win.FILMS.filter(function(f){ return f.tv; })[0];
+    check("a real title carries its year",
+          decodeURIComponent(win.watchUrl(tvShow.t)).indexOf(" " + win.titleYear(tvShow.t)) > 0,
+          decodeURIComponent(win.watchUrl(tvShow.t)));
+    check("every season of a show asks the same question",
+          win.FILMS.filter(function(f){ return f.t === tvShow.t; })
+                   .every(function(f){ return win.watchUrl(f.t) === win.watchUrl(tvShow.t); }));
+    check("an unknown title degrades cleanly",
+          win.watchUrl("Batman").indexOf("undefined") < 0, win.watchUrl("Batman"));
     check("every rendered link comes from the builder", (function(){
       S.tab = "next"; win.render();
       var a = doc.querySelector("#view .linkrow .lnk");
