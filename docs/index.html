@@ -669,11 +669,6 @@ PATH.forEach(function(g, gi){
 var S = {tab:"home", scope:"movies", path:"", mode:"continuity", filter:"all", q:"", code:"",
          theme:"dark", watched:{}, skipped:{}, rated:{}, open:{}, groupOpen:{}, log:[]};
 var PATHS = [["continuity","By universe"], ["life","Bruce\u2019s life"], ["release","Release order"]];
-var PATHBLURB = {
-  continuity:"Each continuity intact, in its own story order. The safest first watch \u2014 nothing spoils anything ahead of it.",
-  life:"One composite lifetime stitched across every continuity, from before the cowl to Beyond. An interpretation, not a canon.",
-  release:"Straight release order, 1968 to 2028. The only ordering that is objectively complete \u2014 it just jumps between universes."
-};
 var PATHCODE = {continuity:"c", life:"l", release:"r"};
 var CODEPATH = {c:"continuity", l:"life", r:"release"};
 function isPath(id){ return !!PATHCODE[id]; }
@@ -684,7 +679,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.3.8";
+var BUILD = "1.3.9";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -804,9 +799,18 @@ function yearSpan(){
   }
   return lo + " to " + hi;
 }
-function modeNote(){
-  var n = MODENOTE[S.mode] || "";
-  return n.replace("{span}", yearSpan());
+function noteFor(id){
+  return (MODENOTE[id] || "").replace("{span}", yearSpan());
+}
+function modeNote(){ return noteFor(S.mode); }
+/* The chooser carried its own copy of these and the two drifted: one said
+   "safest first watch" where the other said "safest way through", and the
+   release blurb hardcoded 1968 while the note computed 1993 from the actual
+   scope. One source now, trimmed to its first two sentences \u2014 nobody sees both
+   at once, which is exactly why they diverged. */
+function pathBlurb(id){
+  var parts = noteFor(id).split(". ");
+  return parts.length <= 2 ? parts.join(". ") : parts.slice(0, 2).join(". ") + ".";
 }
 /* Cached on mode|scope — the only two things membership depends on. Never on
    watched/skipped/rated, so nothing needs to clear it and a new key simply
@@ -1153,7 +1157,7 @@ function viewHome(){
       (c.done ? 'Switching re-sorts what you see \u2014 nothing you have ticked is lost.' : 'You can change it whenever you like.') + '</p>' +
       PATHS.map(function(m){
         return '<button class="pick" data-path="'+m[0]+'"><b>'+m[1]+'</b><span>'+
-               esc(PATHBLURB[m[0]])+'</span></button>';
+               esc(pathBlurb(m[0]))+'</span></button>';
       }).join("") + '</div>';
     return html;
   }
@@ -1172,11 +1176,11 @@ function viewHome(){
 
   if(fresh){
     html += '<div class="intro">'+
-      '<p class="ikick">An unofficial field guide</p>'+
+      '<p class="ikick">An unofficial fan guide</p>'+
       '<h2 class="ititle">One path through every Batman</h2>'+
       '<p class="ibody">Every Batman story ever animated, sorted into watch orders that spoil nothing '+
       '\u2014 by universe, by the arc of one life, or by release. Films only, or every series too. Tap anything for what it is and where '+
-      'to watch it. Tick them off as you go; your progress stays on this device.</p>'+
+      'to watch it. Tick them off as you go; your progress stays in this browser.</p>'+
       '<div class="istats"><span><b>'+FILMS.filter(function(f){return !f.tv;}).length+'</b> films</span>'+
       '<span><b>'+FILMS.filter(function(f){return f.tv;}).length+'</b> seasons of TV</span>'+
       '<span><b>'+Math.min.apply(null,FILMS.map(function(f){return f.y;}))+'\u2013'+
@@ -1357,7 +1361,9 @@ function viewWatch(){
       (hidden
         ? '<p>No films match \u2014 but '+hidden+' series '+(hidden===1?'entry':'entries')+' do.</p>'+
           '<button class="bkbtn primary" data-act="searchall" style="flex:none;padding:12px 18px">Search everything</button>'
-        : '<p>Nothing matches that filter.</p>')+'</div>';
+        : '<p>'+(S.q
+            ? 'Nothing matches that search. Try fewer words, or another filter.'
+            : 'Nothing in this filter yet.')+'</p>')+'</div>';
   }
   return html;
 }
@@ -1447,7 +1453,7 @@ function viewStats(){
     'Make a code and you can carry it anywhere.</p><div class="bkbtns">'+
     '<button class="bkbtn primary" data-act="mkcode">'+(S.code ? "Refresh code" : "Create backup code")+'</button>'+
     (S.code ? '<button class="bkbtn" data-act="dl">Code file</button>' : '')+
-    '<button class="bkbtn" data-act="dljson">Full JSON</button>'+
+    '<button class="bkbtn" data-act="dljson">JSON file</button>'+
     '</div>';
   if(S.code){
     html += '<textarea class="code" readonly rows="3" id="codebox">'+esc(S.code)+'</textarea>'+
@@ -1469,9 +1475,13 @@ function viewStats(){
       return '<button data-theme="'+m[0]+'" aria-pressed="'+(S.theme===m[0])+'">'+m[1]+'</button>';
     }).join("")+'</div>';
   html += '<p class="note">'+(canSave
-    ? "Progress saves automatically on this device and follows you across all three orderings."
-    : "Saving is unavailable here, so progress lasts for this session only.")+
-    ' Availability changes constantly and differs by country, so "Where to watch" runs a fresh search each time rather than trusting a stored answer. Knightfall and Dynamic Duo dates are as announced and can move. \u00b7 Build '+BUILD+'</p>';
+    ? "Progress saves automatically in this browser and follows you across all three orderings."
+    : "Saving is unavailable here, so progress lasts for this session only.")+'</p>'+
+    '<p class="note">Availability changes constantly and differs by country, so \u201cWhere to watch\u201d '+
+      'runs a fresh search each time rather than trusting a stored answer.</p>'+
+    /* Named titles here went stale every time one landed or another was
+       announced. The fact is about announced dates, not about which ones. */
+    '<p class="note">Announced dates can move. \u00b7 Build '+BUILD+'</p>';
   return html;
 }
 
