@@ -88,7 +88,10 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      49   The card reads what it means
 
    META
-     50   The guards are navigable
+     50   Rating and progress stay separate
+
+   META
+     51   The guards are navigable
 
    Sections are numbered in file order. Groups are for finding things;
    they do not affect what runs. Guard 49 enforces the numbering.
@@ -1458,7 +1461,70 @@ if(!/\.linkrow\{[^}]*justify-content:flex-end/.test(HTML)){
 /* Credit where it is due, in the one place the app talks about itself. */
 if(!/kept by 6ummy/.test(HTML)) fail("the credit line is gone from the footer");
 
-/* ---------- 50. The guards are navigable ---------- */
+/* ---------- 50. Rating and progress stay separate ---------- */
+/* rate() marked watched on both branches, so clearing a rating re-marked the
+   entry \u2014 untick something, tap its lit star to clear the stale rating, and it
+   came back watched. The bug is old; putting stars on the hero in 1.4.1 made it
+   easy to reach. */
+
+(function(){
+  var src = optionalFn("rate", "nothing would record a rating");
+  var box = { S:{watched:{}, skipped:{}, rated:{}, log:[]},
+              clampRating:function(n){ n = parseInt(n,10); return (n>=1 && n<=5) ? n : 0; },
+              persist:function(){}, render:function(){} };
+  box.markWatched = function(id){
+    if(box.S.watched[id]) return;
+    box.S.watched[id] = 1;
+    box.S.log.push({id:id, ts:1});
+  };
+  var rate = new vm.Script(src + "\nrate;").runInNewContext(box);
+
+  rate("x", 4);
+  if(box.S.rated.x !== 4) fail("rate() did not record the rating");
+  if(!box.S.watched.x) fail("rating something did not mark it watched");
+
+  /* Clearing it must leave progress alone... */
+  rate("x", 4);
+  if(box.S.rated.x !== undefined) fail("tapping the same star did not clear the rating");
+  if(!box.S.watched.x) fail("clearing a rating unmarked the entry \u2014 it should not touch progress");
+
+  /* ...and clearing on something unwatched must not mark it. */
+  box.S.watched = {}; box.S.log = []; box.S.rated = {y:3};
+  rate("y", 3);
+  if(box.S.rated.y !== undefined) fail("the rating was not cleared");
+  if(box.S.watched.y){
+    fail("clearing a rating marked the entry watched \u2014 the exact bug 1.4.4 fixed");
+  }
+  if(box.S.log.length) fail("clearing a rating wrote a log entry");
+})();
+
+/* The label has to hold one line inside the column it shares with Skip. */
+if(!/\.lnk\{[^}]*white-space:nowrap/.test(HTML)){
+  fail('"Where to watch" can wrap again \u2014 it needs white-space:nowrap');
+}
+if(!/\.herorow \.lnk\{[^}]*font-size:9px/.test(HTML)){
+  fail("the hero link is back at full size and will not fit its column");
+}
+if(!/@media \(max-width:360px\)/.test(HTML)){
+  fail("the narrow-screen fallback is gone \u2014 nowrap would overflow instead");
+}
+
+/* The suites only protect the file if something runs them. */
+(function(){
+  var wf = path.join(ROOT, ".github", "workflows", "qa.yml");
+  if(!fs.existsSync(wf)){
+    fail("the QA workflow is gone \u2014 the guards would protect nothing between commits");
+    return;
+  }
+  var y = fs.readFileSync(wf, "utf8");
+  if(!/npm ci/.test(y)) fail("the workflow does not use npm ci, so it ignores the lockfile");
+  if(!/npm test/.test(y)) fail("the workflow does not run npm test");
+  if(!/permissions:\s*\n\s*contents: read/.test(y)){
+    fail("the workflow does not pin itself to read-only permissions");
+  }
+})();
+
+/* ---------- 51. The guards are navigable ---------- */
 /* Before 1.4.2 the numbering ran 1-19, jumped to 26, and hung eleven
    sub-sections off 30 with suffixes b through g. 12b and 12c sat before 12.
    Nothing enforced any of it, so every release made it worse. */

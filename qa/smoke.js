@@ -255,6 +255,29 @@ win.addEventListener("load", function(){
           doc.querySelector("#view .hero h2").textContent);
     check("Recent activity disappears with nothing in it", !doc.querySelector(".activity"));
 
+    /* Clearing a rating must not put progress back (1.4.4). */
+    S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
+    S.tab = "next"; win.render();
+    var hs = doc.querySelector("#view .herorate .stars");
+    var heroWas = doc.querySelector("#view .hero h2").textContent;
+    hs.querySelectorAll("button")[2].dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    var ratedId = Object.keys(S.rated)[0];
+    check("rating from the hero marks it watched", !!S.watched[ratedId]);
+
+    doc.querySelector(".activity .arow .tick")
+       .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("unticking rewinds the hero",
+          doc.querySelector("#view .hero h2").textContent === heroWas);
+    check("unticking keeps the rating", S.rated[ratedId] === 3, JSON.stringify(S.rated));
+
+    var stars2 = doc.querySelector("#view .herorate .stars");
+    stars2.querySelectorAll("button")[2].dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("clearing the rating clears it", S.rated[ratedId] === undefined, JSON.stringify(S.rated));
+    check("clearing the rating does not re-mark it watched",
+          !S.watched[ratedId], JSON.stringify(Object.keys(S.watched)));
+    check("clearing the rating does not log it", S.log.length === 0, S.log.length + " entries");
+    S.watched = {}; S.rated = {}; S.log = [];
+
     /* The legend defines Path badges and now lives on The Path (1.4.1). */
     S.watched = {}; S.rated = {}; S.log = [];
     S.tab = "watch"; S.filter = "all"; S.q = ""; win.render();

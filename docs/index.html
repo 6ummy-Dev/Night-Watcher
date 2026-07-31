@@ -26,7 +26,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-RPNcBbc24Q9KzOzZCOrpNqQsFFulh6Z1UwTf5elQzFE=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-cGtkvjny5wSZAGQC3WZfp/RMPLACe1rr3Dgzqd3a5+s=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 98 films and 57 seasons of TV across 28 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -201,7 +201,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .stars button{position:relative;width:36px;height:34px;font-size:16px;color:var(--staroff);}
 .stars button::before{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%);}
 .stars button.on{color:var(--signal);}
-.lnk{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line2);border-radius:8px;padding:10px 12px;color:var(--steel);min-height:38px;display:inline-flex;align-items:center;text-decoration:none;}
+.lnk{font-family:var(--mono);font-size:10px;letter-spacing:.1em;white-space:nowrap;text-transform:uppercase;border:1px solid var(--line2);border-radius:8px;padding:10px 12px;color:var(--steel);min-height:38px;display:inline-flex;align-items:center;text-decoration:none;}
 .lnk:active{background:var(--card2);}
 .linkrow{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:10px;}
 
@@ -237,7 +237,18 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
    alignment, which put them off the button they belong to. */
 .herorow{display:flex;align-items:center;gap:9px;margin:18px 0 0;}
 .herorow .herorate{flex:1;min-width:0;}
+/* At 10px with .1em tracking, "Where to watch" needs about 112px and the 38%
+   column gives 96px, so it wrapped to two lines and left the stars floating in
+   the dead space beside it. The link is a secondary control and does not have
+   to match Skip's weight, only its edges. */
 .herorow .linkrow{flex:0 0 38%;justify-content:flex-start;margin-top:0;}
+.herorow .lnk{font-size:9px;letter-spacing:.04em;padding:10px 10px;}
+/* Below this the column cannot hold the label at any readable size, so the two
+   rows stack rather than overflow. */
+@media (max-width:360px){
+  .herorow{display:block;}
+  .herorow .linkrow{margin-top:10px;justify-content:flex-start;}
+}
 .herorate .stars{margin-left:-4px;}
 .qn{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;width:18px;}
 .qt{font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:15px;line-height:1.1;flex:1;color:var(--dust);}
@@ -707,7 +718,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.4.3";
+var BUILD = "1.4.4";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -1076,8 +1087,12 @@ function stars(n){
 function rate(id, n){
   n = clampRating(n);
   if(!n) return;
-  if(S.rated[id] === n) delete S.rated[id]; else S.rated[id] = n;
-  markWatched(id);
+  /* Only setting a rating implies you watched it. Clearing one used to run
+     markWatched() as well, so untick something, tap its lit star to clear the
+     stale rating, and it came back marked watched \u2014 the opposite of both
+     actions. Reachable from the hero since 1.4.1. */
+  if(S.rated[id] === n){ delete S.rated[id]; }
+  else { S.rated[id] = n; markWatched(id); }
   persist(); render();
 }
 

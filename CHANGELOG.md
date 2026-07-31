@@ -19,6 +19,36 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.4.4] — 2026-07-31
+
+### Fixed
+
+- **Clearing a rating marked the entry watched.** Untick something in Recent
+  activity, then tap its lit star to clear the rating it kept — and it came back
+  marked watched. The opposite of both actions.
+
+  `rate()` called `markWatched()` on both branches, including the one that
+  deletes a rating. Only setting a rating implies you watched it. The bug is old;
+  putting stars on the hero in 1.4.1 is what made it easy to reach.
+
+  Unticking still keeps your rating. It is usually a mis-tap being corrected, and
+  silently discarding a rating you gave is worse than leaving it.
+- **"Where to watch" wrapped to two lines.** At 10px with wide tracking the
+  label needs about 112px and its column gives 96px, so it broke mid-phrase and
+  left the stars floating in the dead space beside it. The label keeps its
+  wording at a smaller size — it is a secondary control and only has to share
+  Skip's edges, not its weight. Below 360px the two rows stack instead.
+
+### Added
+
+- **A GitHub Action running both suites on every push.** `index.html` carries
+  five independent tripwires — the CSP script hash, the frozen-ID snapshot, the
+  changelog and version lock, the README size figure, and the third-party origin
+  allowlist. Any edit that is not deliberate trips at least one.
+
+  Until now nothing ran them except a person remembering to. They now run in
+  public, on every commit, read-only, from the committed lockfile.
+
 ## [1.4.3] — 2026-07-31
 
 ### Fixed
