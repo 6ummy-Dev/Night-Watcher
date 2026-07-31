@@ -19,6 +19,45 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.5.1] — 2026-07-31
+
+### Fixed
+
+- **Two places still called the catalogue animated.** The first-run intro read
+  *"Every Batman story ever animated"* and the finished state read *"the complete
+  animated Batman"*. Both went out with 1.5.0, and the intro is the first thing
+  a new visitor reads.
+- **The guard meant to prevent exactly that was looking for the wrong words.** It
+  matched two exact phrases, both of which had already been reworded, so it never
+  saw either live string. It now scans both files for the word used as a limit on
+  the catalogue — narrow enough that a description saying something is animated,
+  which several truthfully do, still passes.
+- **The intro counted the whole catalogue whatever the format switch said.**
+  Choosing Live action still claimed 110 films and 58 seasons of television. The
+  counts follow the selection now, and the television line disappears when there
+  is none.
+- **Endless scrolling in Chrome.** `render()` replaces the view wholesale and
+  restores the scroll offset by hand; Chrome is the only one of the three engines
+  with scroll anchoring on by default, so it was compensating for the same change
+  at the same time. Anchoring is off for the view, and the restored offset is now
+  clamped to the document, which stops a shorter view leaving the page parked
+  past its own end.
+- **A hand-edited save could empty the catalogue.** `format` is clamped to the
+  three real values on restore instead of being trusted.
+
+### Added
+
+- **The Penguin (2024).** The Epic Crime Saga note promised it. Eight episodes,
+  opening the week the film ends, and the first live-action series in the
+  catalogue — 168 entries now, 110 films and 58 seasons.
+- **Complete Twitter card tags**, `og:locale`, and image dimensions, so a shared
+  link renders properly rather than relying on fallbacks.
+
+### Changed
+
+- The service worker's header comment described a Google Fonts caching strategy
+  that stopped existing in 1.4.2.
+
 ## [1.5.0] — 2026-07-31
 
 Live action arrives, and the app gains a second axis.

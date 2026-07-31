@@ -977,9 +977,28 @@ if(titleTag.indexOf(TAGLINE) >= 0){
     fail('retired tagline "' + dead + '" is still present');
   }
 });
-if(/Every animated Batman/.test(HTML) || /every animated Batman/.test(README)){
-  fail('copy still says "animated" as a limit \u2014 it stops being true when live-action lands');
-}
+/* This matched two exact phrases, both already reworded, so it sailed past
+   "Every Batman story ever animated" in the first-run intro and "the complete
+   animated Batman" on the finished state for a whole release. The rule is
+   about the word used as a limit on the catalogue, not about one sentence \u2014
+   so the scan is now the whole file, with the phrases narrow enough that a
+   description saying something is animated does not trip it. */
+(function(){
+  var LIMITS = [/\bever animated\b/i, /\ball animated\b/i, /\bevery animated\b/i,
+                /\bcomplete animated\b/i, /\bthe animated Batman\b/i,
+                /\banimated catalogue\b/i, /\bonly animated\b/i,
+                /\banimated only\b/i, /\bBatman ever animated\b/i];
+  [["index.html", HTML], ["README.md", README]].forEach(function(src){
+    LIMITS.forEach(function(re){
+      var hit = src[1].match(re);
+      if(hit){
+        var at = src[1].indexOf(hit[0]);
+        fail(src[0] + ' claims the catalogue is animated only: "' + hit[0] + '" in ' +
+             src[1].slice(Math.max(0, at - 40), at + 40).replace(/\s+/g, " "));
+      }
+    });
+  });
+})();
 
 /* ---------- 34. Activity is reachable from Next up -------------------- */
 /* Next up is where things get ticked, and the card advances the instant you
@@ -1577,7 +1596,7 @@ if(!/@media \(max-width:360px\)/.test(HTML)){
     fail("the group cache key omits format \u2014 switching format would serve stale groups");
   }
   var live = FILMS.filter(function(f){ return f.fmt === "live"; });
-  if(live.length !== 12) fail("expected 12 live-action entries, found " + live.length);
+  if(live.length < 12) fail("live-action entries dropped to " + live.length + ", expected at least 12");
   live.forEach(function(f){
     if(f.e === undefined) fail(f.id + " has no era");
     if(!tierOf(f)) fail(f.id + " resolves to no tier");
@@ -1596,7 +1615,7 @@ if(!/@media \(max-width:360px\)/.test(HTML)){
    would grow the denominator and put a live-action film in Next up without
    them asking. This is the migration-bug shape: invisible in the data. */
 
-if(!/S\.format = o\.format \|\| "anim";/.test(HTML)){
+if(!/S\.format = \["anim", "live", "all"\]\.indexOf\(o\.format\) >= 0 \? o\.format : "anim";/.test(HTML)){
   fail("restore() does not default an old save to Animated \u2014 existing progress " +
        "would silently gain 12 entries and a new denominator");
 }

@@ -363,8 +363,9 @@ win.addEventListener("load", function(){
 
     var poolAll = win.pool().length;
     doc.querySelector('[data-format="live"]').dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
-    check("choosing Live action narrows the pool", win.pool().length === 12,
-          win.pool().length + " entries");
+    check("choosing Live action narrows the pool",
+          win.pool().length > 0 && win.pool().length < poolAll,
+          win.pool().length + " of " + poolAll);
     check("the live-action groups are all that remain",
           win.buildGroups().every(function(g){
             return g.films.every(function(f){ return f.fmt === "live"; }); }));
@@ -372,6 +373,10 @@ win.addEventListener("load", function(){
           doc.querySelector(".scopenote").textContent.indexOf("57") < 0,
           doc.querySelector(".scopenote").textContent);
 
+    S.scope = "movies"; win.render();
+    check("Movies hides the live-action series too",
+          win.pool().every(function(f){ return !f.tv; }));
+    S.scope = "all"; win.render();
     doc.querySelector('[data-format="anim"]').dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("Animated hides every live-action entry",
           win.pool().every(function(f){ return f.fmt === "anim"; }));

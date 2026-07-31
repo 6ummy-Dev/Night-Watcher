@@ -6,15 +6,16 @@
  * Strategy, chosen to make a bad deploy recoverable rather than sticky:
  *   same-origin  -> network-first, cache as fallback. A deploy lands on the
  *                   next load while online; offline still opens from cache.
- *   Google Fonts -> cache-first with background refresh. They are immutable
- *                   and are the only reason a pure-offline open looks wrong.
  *   analytics    -> never touched.
+ *
+ * Fonts were a third case until 1.4.2, cached from Google's CDN. They are
+ * self-hosted now, so they are same-origin and need no special handling.
  *
  * Deliberately NOT cache-first for HTML: this file ships inside a single
  * 133 KB index.html, so a stale cache means a stale catalogue AND stale code
  * with no way to push a fix.
  */
-var VERSION = "1.5.0";
+var VERSION = "1.5.1";
 var CACHE   = "night-watcher-" + VERSION;
 /* icon-192.png is in the shell because index.html's <head> now references it
    directly for rel=icon and apple-touch-icon (it used to inline the bytes). */
