@@ -30,7 +30,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code at all** — *guarded.* Not one line, vendored or fetched. The app runs with the network off.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 150 KB raw and 50 KB gzipped; it is currently 119 KB / 38 KB. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 150 KB raw and 50 KB gzipped; it is currently 120 KB / 38 KB. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -71,6 +71,13 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `docs/robots.txt` | Opens the site to crawlers and points at the sitemap |
 | `docs/sitemap.xml` | One URL — the app is a single page |
 | `docs/google38dc2f1303c788e7.html` | Search Console ownership token. Google re-checks it, so it stays |
+| `docs/fonts/limelight-latin-400-normal.woff2` | Display face for the wordmark and headings |
+| `docs/fonts/anton-latin-400-normal.woff2` | Condensed face for titles |
+| `docs/fonts/ibm-plex-sans-latin-400-normal.woff2` | Body text |
+| `docs/fonts/ibm-plex-sans-latin-600-normal.woff2` | Body text, semibold |
+| `docs/fonts/ibm-plex-mono-latin-400-normal.woff2` | Labels, counts, and every uppercase micro-line |
+| `docs/fonts/ibm-plex-mono-latin-600-normal.woff2` | The same, semibold |
+| `docs/fonts/OFL.txt` | SIL Open Font License. Redistribution requires it to travel with them |
 | `wrangler.jsonc` | Cloudflare Workers config (points assets at `docs/`) |
 | `.gitignore` | Ignores `node_modules`, Wrangler state, editor files, etc. |
 | `package.json` | Dev scripts + optional jsdom for smoke tests |

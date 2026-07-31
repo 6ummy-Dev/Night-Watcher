@@ -23,7 +23,11 @@ function check(name, cond, detail){
   else { console.log("  FAIL " + name + (detail ? "  — " + detail : "")); fails.push(name); }
 }
 
-var dom = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://6ummy-dev.github.io/Night-Watcher/", pretendToBeVisual:true});
+/* jsdom has no scrollTo and throws on every call, catching it internally and
+   printing a notice. The app scrolls on nearly every interaction, so that was
+   97 lines of stderr and 97 thrown exceptions per run. */
+var dom = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://6ummy-dev.github.io/Night-Watcher/",
+  pretendToBeVisual:true, beforeParse:function(w){ w.scrollTo = function(){}; }});
 var win = dom.window;
 
 win.addEventListener("load", function(){
@@ -562,10 +566,13 @@ win.addEventListener("load", function(){
     function reboot(seed, label, then){
       var d = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://6ummy-dev.github.io/Night-Watcher/",
         pretendToBeVisual:true, beforeParse:function(w){
+        w.scrollTo = function(){};
           w.localStorage.setItem("batwatch-v3", seed);
         }});
+      /* restore() is synchronous once the store answers, and the app renders
+         before "load" fires. The 200ms was padding, at five reboots a run. */
       d.window.addEventListener("load", function(){
-        setTimeout(function(){ then(d.window, d.window.document); }, 200);
+        setTimeout(function(){ then(d.window, d.window.document); }, 0);
       });
     }
 

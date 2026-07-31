@@ -19,6 +19,79 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.4.2] — 2026-07-31
+
+A security pass, and an audit of the tests themselves.
+
+### Changed
+
+- **The fonts are self-hosted.** All four came from Google's CDN, which meant
+  every visit told a third party the page had loaded — on an app whose own
+  structured data says nothing tracks you. Six `.woff2` files now ship in
+  `docs/fonts/`, costing nothing against the index.html budget and making the
+  page genuinely offline on a first load rather than only after caching.
+
+  All four are SIL Open Font License, and redistribution requires the licence to
+  travel with them, so `fonts/OFL.txt` ships too.
+
+  The old request asked for weight 500 of both IBM Plex families. Nothing has
+  ever used it. One rule asked for weight 700, which was never loaded and was
+  being faked by the browser; it is 600 now, which is a weight the app actually
+  has.
+- **The footer says what Cloudflare sees.** *"anonymous visit stats via
+  Cloudflare"* was accurate and vague enough that a sceptic would fill the gap
+  themselves. It now reads **"Cloudflare counts visits, never what you watch"**,
+  which is the actual boundary.
+
+### Added
+
+- **A Content-Security-Policy.** `default-src 'none'` with everything opened
+  explicitly: the app's own script by hash, Cloudflare's beacon by origin, and
+  nothing else. `object-src`, `base-uri` and `form-action` are all `'none'`, and
+  `unsafe-eval` is refused — the app has never used `eval`, `new Function`, or a
+  single inline event handler, so nothing had to be loosened to fit.
+
+  The hash changes with every edit to the script, and a stale one means the
+  browser refuses to run the app at all. A guard recomputes it from the file, and
+  `npm run bless` rewrites it.
+- **A referrer policy**, and `rel="noreferrer"` on the where-to-watch link, so
+  the search engine is not told where the visitor came from.
+- **`LICENSE`** — MIT for the code, the written descriptions and continuity
+  judgements reserved, DC's marks acknowledged as DC's, and the fonts' OFL noted.
+- **`SECURITY.md`**, pointing at GitHub's private reporting rather than a public
+  issue.
+- **`package-lock.json` is committed.** Without it, a CI run would install
+  whatever the version ranges resolved to that day.
+
+### Guarded
+
+- **No third-party origins.** Any host in `index.html` outside a short allowlist
+  now fails the build.
+- **Fonts, weights, and the licence.** A weight used but not declared would be
+  faked by the browser; a weight declared but unused is a wasted download. Both
+  now fail.
+- **The file table recurses.** It listed only the top level of `docs/`, so the
+  seven files added to `docs/fonts/` shipped undocumented without the build
+  noticing — the same gap that guard was written to close.
+
+### The test suites
+
+- **Sections renumbered 1–49, in file order, with an index.** The numbering had
+  run 1–19, jumped to 26, and hung eleven sub-sections off 30 with suffixes b
+  through g; 12b and 12c sat before 12. **Guard 49 now enforces it** — sections
+  must run 1..n with no gaps, and every one must appear in the index.
+- **`optionalFn()`.** `fn()` throws on a missing function, so any guard reporting
+  a function's *absence* crashed before it could print. That was fixed in place
+  three separate times before becoming one helper.
+- **The suites run in 6.7s instead of 11.2s.** jsdom throws on every `scrollTo`
+  and catches it internally — 97 exceptions and 97 lines of stderr per run, now
+  one stub. Each reload test also carried 200ms of padding, five times over.
+
+  The five reloads themselves were left alone. Re-running `restore()` inside an
+  existing window would be faster still, but `restore()` is promise-based and
+  wired into the boot sequence, so that would test something other than what
+  happens on load.
+
 ## [1.4.1] — 2026-07-30
 
 Next up corrects itself.

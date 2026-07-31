@@ -20,6 +20,78 @@ var HTML   = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8");
 var SNAP   = path.join(__dirname, "frozen-ids.json");
 var BLESS  = process.argv.indexOf("--bless") >= 0;
 
+/* INDEX
+
+   CATALOGUE
+     1    IDs present, unique, well formed
+     2    Frozen IDs never change
+     3    Backup-code hash collisions
+     4    Every entry resolves to exactly one tier
+     5    Era and decade coverage
+     6    Badges all have labels
+     30   Documented spoiler order holds
+     32   No brand names in the catalogue or the UI
+
+   STORAGE
+     7    Backup code round-trips losslessly
+     8    The parser tolerates codes it was not written for
+     9    The restore link stays reachable
+     19   Rating writes go through the clamp
+     21   A blocked store has to say so
+     35   The log holds one entry per id
+
+   COPY
+     14   README headline counts match the data
+     15   The <meta> headline counts match the data
+     23   The path vocabulary agrees with itself
+     24   one string per ordering, not two
+     25   Storage is a browser, not a device
+     26   One name for what this is
+     33   One tagline, everywhere
+     37   Progress does not restate The Path
+     48   The footer describes the link that exists
+
+   LAYOUT
+     17   One hero size, declared once
+     18   Short views must not shift the centred column
+     27   The path is actually load-bearing
+     28   Theme reaches the chrome, not just the CSS
+     34   Activity is reachable from Next up
+     36   The Path collapses, and remembers
+     40   One scoreboard
+     47   The wordmark returns to the top
+
+   ACCESS
+     20   Text contrast against the surface it sits on
+     41   The restore box has a real label
+
+   DEPLOY
+     10   No vendored third-party code
+     11   BUILD and the service worker agree
+     12   Referenced files exist
+     13   Deployment layout
+     16   Every shipped version is written down
+     22   No JS escapes stranded in the markup
+     29   Weight budget
+     31   The README describes the app that exists
+     45   The README lists every served file
+     46   The README states the real weight
+
+   DISCOVERY
+     38   What a crawler and a shared link see
+     39   What the app refuses to do is a feature
+     42   The page asks nothing of anyone else
+     43   Content-Security-Policy
+     44   Every watch link carries a year
+
+   META
+     49   The guards are navigable
+
+   Sections are numbered in file order. Groups are for finding things;
+   they do not affect what runs. Guard 49 enforces the numbering.
+*/
+
+
 var fails = [], warns = [], notes = [];
 function fail(m){ fails.push(m); }
 function warn(m){ warns.push(m); }
@@ -32,6 +104,18 @@ function slice(from, to){
   var b = HTML.indexOf(to, a);
   if(a < 0 || b < 0) throw new Error("cannot locate source block: " + from);
   return HTML.slice(a, b);
+}
+/* fn() throws when a function is missing, which ends the run with a stack trace
+   instead of the readable failure the guard was written to print. That bug was
+   fixed in place three times \u2014 activityBlock, dedupeLog, pathBlurb \u2014 before
+   becoming this. optionalFn() reports the absence and returns a stub, so the
+   guard below it still runs and still says something useful. */
+function optionalFn(name, why){
+  if(!new RegExp("function\\s+" + name + "\\s*\\(").test(HTML)){
+    fail(name + "() is gone" + (why ? " \u2014 " + why : ""));
+    return "function " + name + "(){ return undefined; }";
+  }
+  return fn(name);
 }
 function fn(name){
   var re = new RegExp("function\\s+" + name + "\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\}", "m");
@@ -64,7 +148,7 @@ PATH.forEach(function(g, gi){
   });
 });
 
-/* ---------- 1. IDs present, unique, well formed ---------- */
+/* ---------- 1. IDs present, unique, well formed ----------------------- */
 
 var seen = Object.create(null);
 FILMS.forEach(function(f){
@@ -74,7 +158,7 @@ FILMS.forEach(function(f){
   seen[f.id] = 1;
 });
 
-/* ---------- 2. Frozen IDs never change ---------- */
+/* ---------- 2. Frozen IDs never change -------------------------------- */
 /* Renaming an i: silently voids saved progress and every backup code in
    circulation. Nothing else catches it. */
 
@@ -95,7 +179,7 @@ if(BLESS){
   if(added.length) note(added.length + " new id(s) added — safe. Re-bless when ready.");
 }
 
-/* ---------- 3. Backup-code hash collisions ---------- */
+/* ---------- 3. Backup-code hash collisions ---------------------------- */
 /* idHash is FNV-1a truncated to 5 base36 chars, so the real space is 36^5,
    not 2^32. A collision makes importCode() restore the WRONG title. */
 
@@ -111,7 +195,7 @@ note("hash space 36^5=" + space.toLocaleString("en-US") +
      ", birthday risk at " + FILMS.length + " entries ≈ " + (risk * 100).toFixed(3) + "%");
 if(risk > 0.01) warn("collision risk above 1% — consider widening the hash in a v2 code format");
 
-/* ---------- 4. Every entry resolves to exactly one tier ---------- */
+/* ---------- 4. Every entry resolves to exactly one tier --------------- */
 /* Regression: Core tested the raw o flag while Optional tested tierOf(),
    leaving 9 essential seasons in neither bucket. */
 
@@ -128,7 +212,7 @@ if(/S\.filter === "core" && f\.o/.test(HTML) || /return !f\.o;/.test(HTML)){
   fail("route filtering tests the raw f.o flag — must go through tierOf(); see the tierOf comment");
 }
 
-/* ---------- 5. Era and decade coverage ---------- */
+/* ---------- 5. Era and decade coverage -------------------------------- */
 
 var eraKeys = {}; ERAS.forEach(function(e){ eraKeys[e.k] = 1; });
 FILMS.forEach(function(f){
@@ -143,7 +227,7 @@ FILMS.forEach(function(f){
 var headroom = (maxDec + 9) - FILMS.reduce(function(a, f){ return Math.max(a, f.y); }, 0);
 if(headroom <= 2) warn("only " + headroom + " year(s) of DECADES headroom left — add the next bucket");
 
-/* ---------- 6. Badges all have labels ---------- */
+/* ---------- 6. Badges all have labels --------------------------------- */
 
 var used = {};
 FILMS.forEach(function(f){ f.b.forEach(function(k){ used[k] = 1; }); });
@@ -151,7 +235,7 @@ Object.keys(used).forEach(function(k){
   if(!(k in BADGE)) fail("badge \"" + k + "\" used in data but absent from BADGE");
 });
 
-/* ---------- 7. Backup code round-trips losslessly ---------- */
+/* ---------- 7. Backup code round-trips losslessly --------------------- */
 /* Extracted, not reimplemented: the copies here had already drifted. */
 
 sandbox.FILMS = FILMS;
@@ -176,7 +260,7 @@ else {
   });
 }
 
-/* ---------- 7b. The parser tolerates codes it was not written for ---------- */
+/* ---------- 8. The parser tolerates codes it was not written for ------ */
 /* A code from a later build must restore what this one understands. */
 
 if(!/^NW2W/.test(code)){
@@ -213,7 +297,7 @@ if(!importCode("https://6ummy-dev.github.io/Night-Watcher/#nw=" + code)) fail("p
   if(importCode(bad)) fail("parser accepted junk it should reject: \"" + bad + "\"");
 });
 
-/* ---------- 8. The restore link stays reachable ---------- */
+/* ---------- 9. The restore link stays reachable ----------------------- */
 /* Transfer used to be a QR of this link. The QR is gone; the link is the whole
    mechanism now, so losing the control that surfaces it would silently remove
    device-to-device transfer and leave only copy-and-paste. */
@@ -239,7 +323,7 @@ if(!/function routeHash\s*\(/.test(HTML)){
 }
 
 
-/* ---------- 8b. No vendored third-party code ---------- */
+/* ---------- 10. No vendored third-party code -------------------------- */
 /* The QR encoder was 20 KB of somebody else's minified JavaScript, 15% of the
    file, carrying a licence obligation, for a feature the link does better. */
 
@@ -248,7 +332,7 @@ if(vendored){
   fail("vendored third-party code is back in index.html (" + vendored[0] + ")");
 }
 
-/* ---------- 9. BUILD and the service worker agree ---------- */
+/* ---------- 11. BUILD and the service worker agree -------------------- */
 
 var buildM = HTML.match(/var BUILD = "([^"]+)"/);
 var swPath = path.join(PUBLIC, "sw.js");
@@ -263,7 +347,7 @@ else {
   }
 }
 
-/* ---------- 10. Referenced files exist ---------- */
+/* ---------- 12. Referenced files exist -------------------------------- */
 
 var manifest = JSON.parse(fs.readFileSync(path.join(PUBLIC, "manifest.json"), "utf8"));
 manifest.icons.forEach(function(ic){
@@ -273,7 +357,7 @@ if(!manifest.icons.some(function(ic){ return /maskable/.test(ic.purpose || ""); 
   warn("manifest has no maskable icon — Android will letterbox the install icon");
 }
 
-/* ---------- 10b. Deployment layout ---------- */
+/* ---------- 13. Deployment layout ------------------------------------- */
 /* Deployables live in docs/, nowhere else. A placeholder left at the repo
    root is a dead file the next person edits while prod never changes. */
 
@@ -309,7 +393,7 @@ if(fs.existsSync(wranglerPath)){
   }
 }
 
-/* ---------- 11. README headline counts match the data ---------- */
+/* ---------- 14. README headline counts match the data ----------------- */
 /* Four hard-coded numbers: first thing a reader checks, last thing anyone
    remembers to update. */
 
@@ -335,7 +419,7 @@ var actual = {
   if(claimed !== t[2]) fail("README claims " + claimed + " " + t[0] + ", data has " + t[2]);
 });
 
-/* ---------- 11b. The <meta> headline counts match the data ---------- */
+/* ---------- 15. The <meta> headline counts match the data ------------- */
 /* The same numbers in meta/og descriptions are what search results and every
    shared link show, so a stale one is more visible than a stale README. */
 
@@ -357,7 +441,7 @@ var actual = {
   });
 });
 
-/* ---------- 11c. Every shipped version is written down ---------- */
+/* ---------- 16. Every shipped version is written down ----------------- */
 /* A change nobody recorded is one the next person silently undoes. BUILD,
    sw.js VERSION and the top of CHANGELOG.md must agree. */
 
@@ -378,7 +462,7 @@ if(!fs.existsSync(changelogPath)){
   }
 }
 
-/* ---------- 12b. One hero size, declared once ---------- */
+/* ---------- 17. One hero size, declared once -------------------------- */
 /* Home and Next up render the SAME title, so an inline font-size on one makes
    the identical card resize as you tap between them. Keep it in .hero h2. */
 
@@ -391,7 +475,7 @@ if(!/\.hero h2\{[^}]*font-size:/.test(HTML)){
   fail(".hero h2 has no font-size — the shared hero size has gone missing");
 }
 
-/* ---------- 12c. Short views must not shift the centred column ---------- */
+/* ---------- 18. Short views must not shift the centred column --------- */
 /* Next up is the only view short enough to fit a desktop screen; without a
    reserved gutter the centred column slides ~7.5px sideways. */
 
@@ -400,7 +484,7 @@ if(!/scrollbar-gutter:\s*stable/.test(HTML)){
        "relative to the other tabs on any desktop viewport");
 }
 
-/* ---------- 12. Rating writes go through the clamp ---------- */
+/* ---------- 19. Rating writes go through the clamp -------------------- */
 /* new Array(n+1) throws on a fractional or negative n, and a thrown render
    blanks the app. Imported JSON is user-supplied. */
 
@@ -411,7 +495,7 @@ if(/S\.rated\[id\d*\] = res\.rated\[/.test(HTML)){
   fail("import writes a raw rating into S.rated — clamp it first");
 }
 
-/* ---------- 13. Text contrast against the surface it sits on ---------- */
+/* ---------- 20. Text contrast against the surface it sits on ---------- */
 /* A review reported --dim at 3.2:1; measured it is 5.03 on --sunk and 4.57
    on --card. Measuring properly found the real one: .hero .yr at ~4.33. */
 
@@ -511,7 +595,7 @@ heroRules.forEach(function(rule){
   }
 });
 
-/* ---------- 14. A blocked store has to say so ---------- */
+/* ---------- 21. A blocked store has to say so ------------------------- */
 /* A blocked store used to fail silently. The warning must be inside the
    sticky header, where it cannot scroll away. */
 
@@ -533,7 +617,7 @@ if(!/id="nosave"/.test(HTML)){
   }
 }
 
-/* ---------- 15. No JS escapes stranded in the markup ---------- */
+/* ---------- 22. No JS escapes stranded in the markup ------------------ */
 /* \uXXXX is an em dash in a script and six literal characters in markup. */
 
 var bodyAt = HTML.indexOf("<body>");
@@ -548,7 +632,7 @@ if(bodyAt > 0){
   }
 }
 
-/* ---------- 16. The path vocabulary agrees with itself ---------- */
+/* ---------- 23. The path vocabulary agrees with itself ---------------- */
 /* PATHS, MODENOTE, PATHCODE and CODEPATH describe the same three orderings;
    a path missing from one gives a blank card or a letter that restores nothing. */
 
@@ -580,27 +664,24 @@ if(!PATHS || !MODENOTE || !PATHCODE || !CODEPATH){
   });
   note("paths: " + ids.join(", "));
 
-  /* ---- 16b. one string per ordering, not two ---- */
+  /* ---------- 24. one string per ordering, not two ---------------------- */
   /* The chooser held its own blurbs and they drifted: "safest first watch"
      against "safest way through", and a hardcoded 1968 against a computed
      1993. Nobody sees both at once, which is why nobody noticed. */
   if(/PATHBLURB/.test(HTML)){
     fail("PATHBLURB is back — 1.3.9 made MODENOTE the only source for path copy");
   }
-  if(!/function pathBlurb\s*\(/.test(HTML)){
-    fail("pathBlurb() is gone — the chooser has nothing to build its cards from");
-  }
-  if(!/esc\(pathBlurb\(/.test(HTML)){
+    if(!/esc\(pathBlurb\(/.test(HTML)){
     fail("the chooser does not render pathBlurb()");
   }
   /* fn() throws on a missing function, which would end the run with a stack
      trace instead of the readable failure above. */
-  var pb = (/function pathBlurb\s*\(/.test(HTML) && /function noteFor\s*\(/.test(HTML))
-    ? new vm.Script(
-        fn("noteFor") + "\n" + fn("pathBlurb") + "\n({noteFor:noteFor, pathBlurb:pathBlurb});"
-      ).runInNewContext({MODENOTE: MODENOTE, yearSpan: function(){ return "1993 to 2028"; }})
-    : null;
-  if(pb) ids.forEach(function(id){
+  var pb = new vm.Script(
+    optionalFn("noteFor") + "\n" +
+    optionalFn("pathBlurb", "the chooser has nothing to build its cards from") +
+    "\n({noteFor:noteFor, pathBlurb:pathBlurb});"
+  ).runInNewContext({MODENOTE: MODENOTE, yearSpan: function(){ return "1993 to 2028"; }});
+  ids.forEach(function(id){
     var card = pb.pathBlurb(id), full = pb.noteFor(id);
     if(!card){ fail('pathBlurb("' + id + '") is empty'); return; }
     if(full.indexOf(card.replace(/\.$/, "")) !== 0){
@@ -620,7 +701,7 @@ if(!PATHS || !MODENOTE || !PATHCODE || !CODEPATH){
   }
 }
 
-/* ---------- 16c. Storage is a browser, not a device ---------- */
+/* ---------- 25. Storage is a browser, not a device -------------------- */
 /* Two browsers on one phone do not share storage. Saying "device" promised
    people their ticks would follow them somewhere they will not. */
 
@@ -628,7 +709,7 @@ if(/this device/.test(HTML)){
   fail("copy still says progress is kept on \"this device\" — storage is per browser");
 }
 
-/* ---------- 16d. One name for what this is ---------- */
+/* ---------- 26. One name for what this is ----------------------------- */
 
 if(/field guide/.test(HTML)){
   fail('"field guide" is back — the app calls itself a fan guide');
@@ -637,7 +718,7 @@ if(/field guide/.test(HTML)){
   if(x !== "unofficial fan guide") fail('unexpected self-description: "' + x + '"');
 });
 
-/* ---------- 17. The path is actually load-bearing ---------- */
+/* ---------- 27. The path is actually load-bearing --------------------- */
 
 if(/data-mode="\047?\+?m\[0\]/.test(HTML) || /<div class="modes">'\+\s*\n?\s*\[\['continuity'/.test(HTML)){
   fail("the three-way mode switcher is back in The Path — the path is chosen once, " +
@@ -695,7 +776,7 @@ if(/payload = JSON\.stringify\(\{[^}]*mode:S\.mode/.test(HTML)){
        "silently overwrite the path the user chose");
 }
 
-/* ---------- 18. Theme reaches the chrome, not just the CSS ---------- */
+/* ---------- 28. Theme reaches the chrome, not just the CSS ------------ */
 /* The status bar is painted from <meta name="theme-color">, which CSS cannot
    touch. Switch theme without updating it and an installed app shows a header
    in one colour under a system bar in the other. */
@@ -715,7 +796,7 @@ if(!/background:var\(--hdr\)/.test(HTML) || !/background:var\(--tabbg\)/.test(HT
   fail("the header or tab bar is back on a hardcoded rgba — a theme cannot reach it");
 }
 
-/* ---------- 19. Weight budget ---------- */
+/* ---------- 29. Weight budget ----------------------------------------- */
 /* The premise is arithmetic, so: arithmetic. It should hurt to add a library. */
 
 var zlib = require("zlib");
@@ -734,7 +815,7 @@ ext.forEach(function(tag){
   }
 });
 
-/* ---------- 26. Documented spoiler order holds ---------- */
+/* ---------- 30. Documented spoiler order holds ------------------------ */
 /* By-universe renders in array order, so the array IS the watch order. Group
    notes make promises about it \u2014 the DCAU note says to save Beyond for the end
    because JLU's "Epilogue" spoils it, while the array put Beyond third. Prose
@@ -771,7 +852,7 @@ SPOILERS.forEach(function(rule){
 });
 note("spoiler rules checked: " + SPOILERS.length);
 
-/* ---------- 27. The README describes the app that exists ---------- */
+/* ---------- 31. The README describes the app that exists -------------- */
 /* 1.2.4 removed the QR; three README passages kept describing it, including a
    full licence block for code no longer in the repo. Docs drift is invisible
    until a reader trips on it, so the check is mechanical. */
@@ -784,7 +865,7 @@ readmeStale.forEach(function(term){
   }
 });
 
-/* ---------- 28. No brand names in the catalogue or the UI ---------- */
+/* ---------- 32. No brand names in the catalogue or the UI ------------- */
 /* Nineteen of 27 groups named HBO Max, rendered up to three times each \u2014 forty
    repetitions of one brand down a single scroll. The strings also rotted:
    availability changes monthly and differs by country. One unnamed link now
@@ -850,7 +931,7 @@ if(!/\.linkrow\{[^}]*justify-content:flex-end/.test(HTML)){
   fail("the watch link is no longer right-aligned");
 }
 
-/* ---------- 29. One tagline, everywhere ---------- */
+/* ---------- 33. One tagline, everywhere ------------------------------- */
 /* It lived in six places carrying three different strings. Six copies that can
    disagree is the same shape of bug the README drift was. */
 
@@ -883,7 +964,7 @@ if(/Every animated Batman/.test(HTML) || /every animated Batman/.test(README)){
   fail('copy still says "animated" as a limit \u2014 it stops being true when live-action lands');
 }
 
-/* ---------- 30. Activity is reachable from Next up ---------- */
+/* ---------- 34. Activity is reachable from Next up -------------------- */
 /* Next up is where things get ticked, and the card advances the instant you
    tick one \u2014 so rating meant hunting the title down on The Path. Activity
    keeps the last five ticks rateable in place. */
@@ -938,8 +1019,9 @@ var amax = HTML.match(/var ACTIVITYMAX = (\d+);/);
 if(!amax || amax[1] !== "5"){
   fail("ACTIVITYMAX is " + (amax ? amax[1] : "missing") + ", expected 5");
 }
-if(/function activityBlock\s*\(/.test(HTML)){
-  var ab = fn("activityBlock");
+{
+  var ab = optionalFn("activityBlock", "marking something watched on Next up would " +
+                      "again leave no way to rate it without going to The Path");
   /* Scope is a queue control. Activity is history, and must not consult it. */
   if(/visible\s*\(/.test(ab) || /S\.scope/.test(ab)){
     fail("activityBlock() consults scope \u2014 history must not hide what you logged");
@@ -951,16 +1033,14 @@ if(/function activityBlock\s*\(/.test(HTML)){
   }
 }
 
-/* ---------- 30b. The log holds one entry per id ---------- */
+/* ---------- 35. The log holds one entry per id ------------------------ */
 /* Not reproducible through any reachable write, but saved payloads also arrive
    hand-edited and from other builds. Enforced on read, so it holds regardless. */
 
-if(!/function dedupeLog\s*\(/.test(HTML)){
-  fail("dedupeLog() is gone \u2014 a saved payload could hold two entries for one id");
-}
-var dedupeLog = /function dedupeLog\s*\(/.test(HTML)
-  ? new vm.Script(fn("dedupeLog") + "\ndedupeLog;").runInNewContext({})
-  : function(a){ return a; };
+var dedupeLog = new vm.Script(
+  optionalFn("dedupeLog", "a saved payload could hold two entries for one id") +
+  "\ntypeof dedupeLog === 'function' ? dedupeLog : function(a){ return a; };"
+).runInNewContext({});
 var dl = dedupeLog([{id:"a",ts:300},{id:"b",ts:200},{id:"a",ts:100},{id:"a",ts:900}]);
 if(dl.length !== 2) fail("dedupeLog left " + dl.length + " entries, expected 2");
 if(dl.map(function(e){ return e.id; }).join(",") !== "a,b"){
@@ -980,7 +1060,7 @@ if((HTML.match(/data-act="rate"/g) || []).length !== 1){
   fail("the star markup exists in more than one place \u2014 it belongs in starRow()");
 }
 
-/* ---------- 30c. The Path collapses, and remembers ---------- */
+/* ---------- 36. The Path collapses, and remembers --------------------- */
 /* 28 continuities is a long scroll. The control is only worth having if the
    state survives a reload, which is why groupOpen stopped being session state. */
 
@@ -1037,7 +1117,7 @@ if(/function revealHero\s*\(/.test(HTML)){
   }
 }
 
-/* ---------- 30d. Progress does not restate The Path ---------- */
+/* ---------- 37. Progress does not restate The Path -------------------- */
 /* The list grew without limit and pushed the backup tools off the screen. */
 
 if(/Your ratings/.test(HTML)){
@@ -1048,7 +1128,7 @@ if((HTML.match(/stars\(S\.rated\[/g) || []).length !== 1){
        (HTML.match(/stars\(S\.rated\[/g) || []).length + " places, expected 1 (The Path)");
 }
 
-/* ---------- 30e. What a crawler and a shared link see ---------- */
+/* ---------- 38. What a crawler and a shared link see ------------------ */
 /* One URL, stated once. Two addresses serving the same page compete with each
    other, and the app has had two since the Worker went up. */
 
@@ -1095,7 +1175,7 @@ if(/<script type="application\/ld\+json"[^>]*src=/.test(HTML)){
   fail("the JSON-LD block loads an external file");
 }
 
-/* ---------- 30e2. What the app refuses to do is a feature ---------- */
+/* ---------- 39. What the app refuses to do is a feature --------------- */
 
 if(!/<meta property="og:site_name" content="Night Watcher">/.test(HTML)){
   fail("og:site_name is gone " + "\u2014" + " without it the site name in results is a guess");
@@ -1118,7 +1198,7 @@ if(!/<meta property="og:site_name" content="Night Watcher">/.test(HTML)){
   if(app.isAccessibleForFree !== true) fail("JSON-LD no longer says the app is free");
 })();
 
-/* ---------- 30e3. One scoreboard ---------- */
+/* ---------- 40. One scoreboard ---------------------------------------- */
 /* Home and Progress drew their own, with a different third stat each. */
 
 if((HTML.match(/class="bigstat"/g) || []).length !== 1){
@@ -1143,14 +1223,115 @@ scCss.forEach(function(rule){
   }
 });
 
-/* ---------- 30e4. The restore box has a real label ---------- */
+/* ---------- 41. The restore box has a real label ---------------------- */
 /* A placeholder is not a label: it disappears the moment anyone types. */
 
 if(!/<label class="bklab" for="restorebox">/.test(HTML)){
   fail("the restore box is labelled by its placeholder only (WCAG 3.3.2)");
 }
 
-/* ---------- 30f. Every watch link carries a year ---------- */
+/* ---------- 42. The page asks nothing of anyone else ------------------ */
+/* Until 1.4.2 the fonts came from Google's CDN, so every visit told a third
+   party the page had loaded \u2014 on an app whose own structured data says nothing
+   tracks you. Cloudflare's beacon is the one deliberate exception and is
+   disclosed in the footer. */
+
+(function(){
+  var ALLOWED = ["static.cloudflareinsights.com", "cloudflareinsights.com",
+                 "6ummy-dev.github.io", "search.brave.com",
+                 "schema.org", "www.w3.org", "github.com"];
+  var origins = {};
+  (HTML.match(/https?:\/\/[a-z0-9.-]+/gi) || []).forEach(function(u){
+    origins[u.replace(/^https?:\/\//, "").toLowerCase()] = true;
+  });
+  Object.keys(origins).forEach(function(o){
+    if(ALLOWED.indexOf(o) < 0){
+      fail("index.html reaches out to " + o + " \u2014 every origin here is a third " +
+           "party told that someone opened the page");
+    }
+  });
+  if(/fonts\.(googleapis|gstatic)\.com/.test(HTML)){
+    fail("the fonts are back on Google's CDN");
+  }
+})();
+
+/* Self-hosting is redistribution, and OFL requires the licence to travel. */
+["limelight-latin-400-normal", "anton-latin-400-normal",
+ "ibm-plex-sans-latin-400-normal", "ibm-plex-sans-latin-600-normal",
+ "ibm-plex-mono-latin-400-normal", "ibm-plex-mono-latin-600-normal"].forEach(function(f){
+  if(HTML.indexOf("fonts/" + f + ".woff2") < 0) fail("@font-face lost " + f);
+  if(!fs.existsSync(path.join(PUBLIC, "fonts", f + ".woff2"))) fail("missing font file: " + f + ".woff2");
+});
+if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
+  fail("fonts/OFL.txt is gone \u2014 OFL requires the licence to ship with the fonts");
+}
+/* A weight declared and never loaded is a faux-bold; a weight loaded and never
+   used is a wasted download. 500 was the latter until 1.4.2. */
+(function(){
+  var used = {}, declared = {};
+  /* The @font-face blocks have to come out of the haystack first. Scanning the
+     whole file for font-weight put every declared weight into "used" as well,
+     which made both checks below incapable of failing. */
+  var faces = HTML.match(/@font-face\{[^}]*\}/g) || [];
+  faces.forEach(function(f){
+    var m = f.match(/font-weight:(\d+)/);
+    if(m) declared[m[1]] = true;
+  });
+  var rest = HTML;
+  faces.forEach(function(f){ rest = rest.replace(f, ""); });
+  (rest.match(/font-weight:(\d+)/g) || []).forEach(function(m){ used[m.split(":")[1]] = true; });
+  Object.keys(used).forEach(function(w){
+    if(w !== "400" && !declared[w]){
+      fail("font-weight:" + w + " is used but no @font-face declares it \u2014 the " +
+           "browser would fake it");
+    }
+  });
+  Object.keys(declared).forEach(function(w){
+    if(!used[w]) fail("@font-face declares weight " + w + ", which nothing uses");
+  });
+})();
+
+/* ---------- 43. Content-Security-Policy ------------------------------- */
+/* The hash changes with every edit to the script, so it has to be recomputed
+   from the file rather than trusted. */
+
+(function(){
+  var meta = HTML.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/);
+  if(!meta){ fail("the Content-Security-Policy meta tag is gone"); return; }
+  var csp = meta[1];
+  [["default-src", "'none'"], ["object-src", "'none'"],
+   ["base-uri", "'none'"], ["form-action", "'none'"]].forEach(function(d){
+    if(csp.indexOf(d[0] + " " + d[1]) < 0) fail("CSP no longer sets " + d[0] + " " + d[1]);
+  });
+  if(/'unsafe-eval'/.test(csp)) fail("CSP allows unsafe-eval");
+  if(/script-src[^;]*'unsafe-inline'/.test(csp)){
+    fail("CSP allows unsafe-inline scripts \u2014 the hash is there so it does not have to");
+  }
+  var declared = (csp.match(/'sha256-([A-Za-z0-9+/=]+)'/) || [])[1];
+  if(!declared){ fail("CSP has no script hash"); return; }
+  var body = (HTML.match(/<script>([\s\S]*?)<\/script>/) || [])[1];
+  var actual = require("crypto").createHash("sha256").update(body, "utf8").digest("base64");
+  if(declared === actual) return;
+  /* Any edit to the script invalidates the hash, and a stale one is not a
+     cosmetic failure \u2014 the browser refuses to execute the app at all. --bless
+     rewrites it, so the fix is one command rather than a manual paste. */
+  if(BLESS){
+    fs.writeFileSync(path.join(PUBLIC, "index.html"), HTML.replace("'sha256-" + declared + "'", "'sha256-" + actual + "'"));
+    note("blessed the CSP script hash");
+    return;
+  }
+  fail("the CSP script hash is stale \u2014 declared " + declared.slice(0, 12) +
+       "..., actual " + actual.slice(0, 12) + "... The app would refuse to run. " +
+       "Fix with: npm run bless");
+})();
+if(!/<meta name="referrer" content="strict-origin-when-cross-origin">/.test(HTML)){
+  fail("the referrer policy is gone");
+}
+if(/target="_blank"(?![^>]*noreferrer)/.test(HTML)){
+  fail('a target="_blank" link is missing rel="noreferrer"');
+}
+
+/* ---------- 44. Every watch link carries a year ----------------------- */
 /* Thirteen titles repeat across the catalogue. Without a year they all resolve
    to whichever one the search engine thinks is more famous. */
 
@@ -1184,7 +1365,7 @@ if(!/titleYear\(/.test(wu)){
   }
 })();
 
-/* ---------- 30f2. The README lists every served file ---------- */
+/* ---------- 45. The README lists every served file -------------------- */
 /* Two files shipped in 1.3.7 and neither reached the table. The size figure had
    been wrong since 1.2.x for the same reason: prose about the repo drifts from
    the repo unless something compares them. */
@@ -1192,9 +1373,19 @@ if(!/titleYear\(/.test(wu)){
 (function(){
   var listed = {}, m, re = /\|\s*`(docs\/[^`]+)`\s*\|/g;
   while((m = re.exec(README))) listed[m[1].replace("docs/", "")] = true;
-  var onDisk = fs.readdirSync(PUBLIC).filter(function(f){
-    return f.charAt(0) !== "." && fs.statSync(path.join(PUBLIC, f)).isFile();
-  });
+  /* Recursive as of 1.4.2: the flat version skipped directories, so docs/fonts/
+     shipped seven undocumented files without the build noticing. */
+  function walk(dir, prefix){
+    var out = [];
+    fs.readdirSync(dir).forEach(function(f){
+      if(f.charAt(0) === ".") return;
+      var full = path.join(dir, f), rel = prefix ? prefix + "/" + f : f;
+      if(fs.statSync(full).isDirectory()) out = out.concat(walk(full, rel));
+      else out.push(rel);
+    });
+    return out;
+  }
+  var onDisk = walk(PUBLIC, "");
   var missing = onDisk.filter(function(f){ return !listed[f]; });
   if(missing.length){
     fail("README's file table does not list: " + missing.join(", "));
@@ -1207,7 +1398,7 @@ if(!/titleYear\(/.test(wu)){
   }
 })();
 
-/* ---------- 30g. The README states the real weight ---------- */
+/* ---------- 46. The README states the real weight --------------------- */
 /* It drifts every release, and it is the first number anyone reads. */
 
 var rmSize = README.match(/currently (\d+) KB \/ (\d+) KB/);
@@ -1222,7 +1413,7 @@ if(!rmSize){
   }
 }
 
-/* ---------- 31. The wordmark returns to the top ---------- */
+/* ---------- 47. The wordmark returns to the top ----------------------- */
 if(!/id="topBtn"/.test(HTML)) fail("the wordmark is no longer a control");
 if(HTML.indexOf('getElementById("topBtn")') < 0){
   fail("the wordmark has no click handler \u2014 tapping the title would do nothing");
@@ -1231,7 +1422,37 @@ if(!/<h1><button id="topBtn">/.test(HTML)){
   fail("the wordmark button is outside its h1 \u2014 the heading must stay a heading");
 }
 
-/* ---------- 32. The footer describes the link that exists ---------- */
+/* ---------- 48. The footer describes the link that exists ------------- */
+
+/* ---------- 49. The guards are navigable ---------- */
+/* Before 1.4.2 the numbering ran 1-19, jumped to 26, and hung eleven
+   sub-sections off 30 with suffixes b through g. 12b and 12c sat before 12.
+   Nothing enforced any of it, so every release made it worse. */
+
+(function(){
+  var src = fs.readFileSync(__filename, "utf8");
+  var nums = (src.match(/\/\* -{3,} (\d+)\./g) || []).map(function(m){
+    return parseInt(m.match(/(\d+)\./)[1], 10);
+  });
+  if(!nums.length){ fail("guards.js has no numbered sections"); return; }
+  var i;
+  for(i = 0; i < nums.length; i++){
+    if(nums[i] !== i + 1){
+      fail("guard sections are out of order at position " + (i + 1) + ": found " +
+           nums[i] + ". They must run 1..n with no gaps and no suffixes.");
+      break;
+    }
+  }
+  /* The index has to list every section, or it stops being worth reading. */
+  var idx = (src.match(/\/\* INDEX[\s\S]*?\n\*\//) || [""])[0];
+  nums.forEach(function(n){
+    if(!new RegExp("\\n\\s+" + n + "\\s").test(idx)){
+      fail("section " + n + " is missing from the INDEX at the top of guards.js");
+    }
+  });
+  note("guard sections: " + nums.length + ", numbered 1.." + nums[nums.length - 1]);
+})();
+
 /* It described "Streaming now" for two releases after that link was replaced. */
 ["Streaming now", "Streaming rows", "justwatch"].forEach(function(dead){
   if(HTML.indexOf(dead) >= 0){
