@@ -216,6 +216,9 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .arow .at{flex:1;min-width:130px;font-size:14px;color:var(--bone);line-height:1.35;}
 .arow .ad{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
 .arow .stars{margin-left:auto;}
+.arow .tick{flex:none;}
+.herorate{margin:16px 0 2px;}
+.herorate .stars{margin-left:-6px;}
 .qn{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;width:18px;}
 .qt{font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:15px;line-height:1.1;flex:1;color:var(--dust);}
 .qy{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;}
@@ -236,7 +239,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .note{font-size:12.5px;color:var(--dim);margin-top:16px;line-height:1.5;}
 .empty{text-align:center;padding:60px 20px;color:var(--dim);}
 .empty .big{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:26px;color:var(--dust);margin-bottom:8px;}
-.legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin:4px 0 18px;}
+.legend{margin-top:30px;border-top:1px solid var(--line);padding-top:18px;display:flex;flex-wrap:wrap;gap:8px 14px;margin:4px 0 18px;}
 .legend span{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);}
 .legend i{font-style:normal;font-weight:600;}
 .ugrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -684,7 +687,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.4.0";
+var BUILD = "1.4.1";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -963,13 +966,28 @@ function starRow(f){
   }
   return '<div class="stars">'+out+'</div>';
 }
-/* Activity: the last five ticks, newest first, with the stars you gave them.
-   Rating from here cannot move the hero \u2014 rate() calls markWatched(), which is
-   a no-op on something already watched, and nothing here touches watched or
-   skipped. Scope is deliberately ignored: this is a record of what you did, and
+/* The last five ticks, newest first, with the stars you gave them and a tick to
+   take them back. Stars never move the hero — rate() calls markWatched(), a
+   no-op on something already watched. The tick is the one control here that
+   does move it, and that is its whole purpose: 1.4.1 put stars on the hero, and
+   a 34px star beside a full-width button needs an undo within reach of the
+   thumb that missed. Scope is deliberately ignored: this is what you did, and
    hiding a series you logged because the toggle now says films would be a lie
    about your own history. */
 var ACTIVITYMAX = 5;
+/* The badges this defines render on The Path and nowhere else. It sat on
+   Progress until 1.4.1 \u2014 a key printed on a different page. It goes last,
+   because reference is something you go looking for. */
+function legendBlock(){
+  return '<div class="legend">'+
+    '<span><i style="color:var(--signal)">Essential</i> \u2014 do not skip</span>'+
+    '<span><i style="color:var(--dust)">Core</i> \u2014 the main route</span>'+
+    '<span><i style="color:var(--dim)">Optional</i> \u2014 side material</span>'+
+    '<span><i style="color:var(--crimson2)">Mature</i> \u2014 R or close</span>'+
+    '<span><i style="color:var(--steel)">Not out yet</i></span>'+
+    '<span><i style="color:var(--moss)">Interactive</i></span>'+
+    '<span><i>Short</i> \u2014 under 30 min</span></div>';
+}
 function activityBlock(){
   if(!S.log.length) return "";
   var rows = "", n = 0, i, j, f;
@@ -977,13 +995,16 @@ function activityBlock(){
     f = null;
     for(j = 0; j < FILMS.length; j++){ if(FILMS[j].id === S.log[i].id){ f = FILMS[j]; break; } }
     if(!f) continue;                      /* an id from a newer build */
-    rows += '<div class="arow"><span class="at">'+esc(f.t)+'</span>'+
+    rows += '<div class="arow">'+
+            '<button class="tick" data-act="watched" data-id="'+f.id+'" aria-label="Remove '+
+              esc(f.t)+' from your progress" aria-pressed="true"></button>'+
+            '<span class="at">'+esc(f.t)+'</span>'+
             '<span class="ad">'+esc(logDate(S.log[i].ts))+'</span>'+
             starRow(f)+'</div>';
     n++;
   }
   if(!n) return "";
-  return '<div class="activity"><p class="qhead">Activity</p>'+rows+'</div>';
+  return '<div class="activity"><p class="qhead">Recent activity</p>'+rows+'</div>';
 }
 function logDate(ts){
   var d = new Date(ts);
@@ -1274,6 +1295,7 @@ function viewNext(){
     '<p class="yr">'+esc(metaOf(f,false))+((f.b.length||f.o) ? ' &nbsp;'+badges(f) : '')+'</p>'+
     '<p class="blurb">'+esc(f.d)+'</p>'+
     '<div class="linkrow">'+watchLinks(f)+'</div>'+
+    '<div class="herorate">'+starRow(f)+'</div>'+
     '<div class="heroacts">'+
       '<button class="go" data-act="watched" data-id="'+f.id+'">Mark watched</button>'+
       '<button class="no" data-act="skip" data-id="'+f.id+'">Skip</button>'+
@@ -1379,7 +1401,7 @@ function viewWatch(){
             ? 'Nothing matches that search. Try fewer words, or another filter.'
             : 'Nothing in this filter yet.')+'</p>')+'</div>';
   }
-  return html;
+  return html + legendBlock();
 }
 
 function donut(groups, title, sub){
@@ -1426,15 +1448,7 @@ function viewStats(){
     donut(uniGroups, "The universes", uniGroups.length + " universes \u00b7 tap a slice") +
     donut(lifeGroups, "Bruce\u2019s life", lifeGroups.length + " eras \u00b7 tap a slice") +
     '</div>'+
-    scoreboard(c)+
-    '<div class="legend">'+
-      '<span><i style="color:var(--signal)">Essential</i> \u2014 do not skip</span>'+
-      '<span><i style="color:var(--dust)">Core</i> \u2014 the main route</span>'+
-      '<span><i style="color:var(--dim)">Optional</i> \u2014 side material</span>'+
-      '<span><i style="color:var(--crimson2)">Mature</i> \u2014 R or close</span>'+
-      '<span><i style="color:var(--steel)">Not out yet</i></span>'+
-      '<span><i style="color:var(--moss)">Interactive</i></span>'+
-      '<span><i>Short</i> \u2014 under 30 min</span></div>';
+    scoreboard(c);
 
   html += '<p class="qhead" style="margin:26px 0 0">By universe</p>';
   PATH.forEach(function(g, gi){
