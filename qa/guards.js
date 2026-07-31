@@ -99,7 +99,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
    META
    LAYOUT
      54   Home tells before it asks
-     55   The chooser is not another panel
+     55   The chooser is a deck, not a list
      56   Format is legible where it is ambiguous
 
    META
@@ -752,7 +752,7 @@ if(!/class="pathseg"/.test(HTML)){
   fail("Home has no path control " + "\u2014" + " the chosen ordering would be unchangeable " +
        "without clearing progress");
 }
-if(!/class="pick big"/.test(HTML)){
+if(!/class="pick big/.test(HTML)){
   fail("the first-run chooser is gone " + "\u2014" + " a new arrival would have no way to pick");
 }
 /* A view must be reversible. Offering only "make this mine" left a reload as
@@ -1673,21 +1673,35 @@ if(!/S\.format/.test(sn)){
   }
 })();
 
-/* ---------- 55. The chooser is not another panel ------------------ */
-/* Seven surfaces shared one formula: 1px border, card fill, rounded corner.
-   The chooser was the seventh, and it is the only one asking a question. */
+/* ---------- 55. The chooser is a deck, not a list ---------------- */
+/* Seven surfaces share one formula \u2014 border, card fill, rounded corner. Three
+   more flat panels made the one screen that asks a question read as another
+   list. These overlap; nothing else in the app does. */
 
 (function(){
   var rule = (HTML.match(/\.pick\.big\{[^}]*\}/) || [""])[0];
   if(!rule){ fail(".pick.big has no styling of its own"); return; }
-  if(!/border:0/.test(rule) || !/background:none/.test(rule)){
-    fail("the chooser is back inside a card \u2014 it looked like the other six panels");
+  if(!/margin:-\d+px/.test(rule)){
+    fail("the chooser cards no longer overlap \u2014 they would read as a flat list " +
+         "like every other panel");
   }
-  if(!/\.pick\.big b\{[^}]*var\(--deco\)/.test(HTML)){
-    fail("the chooser lost its display type");
+  if(!/box-shadow/.test(rule)){
+    fail("the deck has no shadow, so nothing shows which card sits on which");
   }
-  var sig = HTML.match(/\.pick\.big[^{]*\{[^}]*var\(--signal\)[^}]*\}/);
-  if(!sig) fail("the chooser uses none of the signal colour the rest of the app reserves for this");
+  if(!/class="deck"/.test(HTML)) fail("the deck wrapper is gone");
+  /* Signal marks the recommendation. On all three it would mean nothing. */
+  if(!/\.pick\.big\.lead\{[^}]*var\(--signal\)/.test(HTML)){
+    fail("the recommended path is not marked \u2014 three equal cards leave a newcomer " +
+         "guessing at the one decision the app has an opinion about");
+  }
+  var leads = (HTML.match(/i === 0 \? ' lead' : ''/g) || []).length;
+  if(!leads) fail("nothing assigns the lead card");
+  if(!/leadkick/.test(HTML)) fail("the lead card has no label saying why it leads");
+  /* Signal must not also be a press state; that is what made it read as charged. */
+  if(/\.pick\.big:active\{[^}]*var\(--signal\)/.test(HTML)){
+    fail("signal is back on the press state \u2014 it either means \"this one\" or it " +
+         "means nothing");
+  }
 })();
 
 /* ---------- 56. Format is legible where it is ambiguous ----------- */

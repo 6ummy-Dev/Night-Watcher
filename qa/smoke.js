@@ -356,10 +356,14 @@ win.addEventListener("load", function(){
     /* --- Home order, chooser, format badges (1.5.2) --- */
     S.path = ""; S.tab = "home"; S.watched = {}; S.log = []; win.render();
     var blocks = doc.querySelectorAll("#view .pick.big");
-    check("the chooser is three blocks", blocks.length === 3);
-    check("the chooser is not a card",
-          win.getComputedStyle(blocks[0]).border !== "1px solid" ||
-          !/pick\.big\{[^}]*border:1px/.test(win.document.documentElement.innerHTML));
+    check("the chooser is three cards", blocks.length === 3);
+    check("they sit in a deck", !!doc.querySelector("#view .deck"));
+    check("the first card leads", blocks[0].classList.contains("lead"));
+    check("only one card leads", doc.querySelectorAll("#view .pick.big.lead").length === 1);
+    check("the lead is the spoiler-safe path", blocks[0].dataset.path === "continuity",
+          blocks[0].dataset.path);
+    check("and it says why", !!doc.querySelector("#view .lead .leadkick"),
+          doc.querySelector("#view .leadkick") ? doc.querySelector("#view .leadkick").textContent : "(none)");
 
     S.path = "continuity"; S.mode = "continuity"; win.render();
     var v = doc.getElementById("view");

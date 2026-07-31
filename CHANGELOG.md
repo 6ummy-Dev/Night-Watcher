@@ -19,6 +19,25 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.5.3] — 2026-07-31
+
+### Changed
+
+- **The chooser is a deck.** 1.5.2 took the three paths out of cards entirely to
+  stop them looking like the other seven panels. That worked, and read as too
+  much — large display caps, a ring on each, and the signal colour flooding in on
+  press.
+
+  They are cards again, but overlapping: each sits on the one below it, which
+  nothing else in the app does. Quieter type, and room above the first one, which
+  had been jammed against the line before it.
+- **The recommended path is marked.** *By universe* is the spoiler-safe answer
+  and the app's own copy says so, but three equally weighted cards left a
+  newcomer guessing at the one decision the app actually has an opinion about. It
+  carries the signal colour and a line saying **Start here**.
+
+  Signal is no longer a press state. It marks one card, or it means nothing.
+
 ## [1.5.2] — 2026-07-31
 
 A visual pass on the first screen.

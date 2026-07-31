@@ -33,7 +33,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-xy1O4l7F8G2+D42LaQmVlu/w6EX2ppaSzsHu+dtNuRU=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-zvAvOIWhopMRUSxSSxZZ1ipk7W5MMUqIggPLt9fnZ8o=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -290,22 +290,28 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 /* One control language at two sizes. The chooser blocks are the same three
    options as the segmented row, large because it is the only decision on the
    screen, small once it has been made. */
-/* Seven surfaces in this app were the same formula \u2014 1px border, card fill,
-   rounded corner \u2014 and the chooser was the seventh, which made the one screen
-   that asks a question look like a list of panels. No box here: display type on
-   the page itself, hairline rules between, and the signal colour doing the work
-   it does everywhere else. */
-.pick.big{border:0;background:none;border-radius:0;padding:22px 2px 20px;margin:0;
-  border-top:1px solid var(--line);}
-.pick.big:first-of-type{border-top:0;padding-top:6px;}
-.pick.big b{font-family:var(--deco);font-weight:400;font-size:clamp(22px,6vw,30px);
-  letter-spacing:.02em;text-transform:uppercase;line-height:1;color:var(--bone);
-  display:flex;align-items:baseline;gap:11px;}
-.pick.big b::before{content:"";flex:none;width:9px;height:9px;border-radius:50%;
-  border:1.5px solid var(--steel);transition:.18s;}
-.pick.big:active b::before{background:var(--signal);border-color:var(--signal);}
-.pick.big span{margin-top:10px;padding-left:20px;font-size:14px;line-height:1.5;}
-.pick.big:active b{color:var(--signal);}
+/* A deck, not a list. Seven surfaces in this app share one formula \u2014 border,
+   card fill, rounded corner \u2014 and three more flat panels made the one screen
+   that asks a question look like another list. These overlap instead, each
+   sitting on the one below, so they read as cards to choose between. Nothing
+   else in the app overlaps. */
+.deck{position:relative;margin-top:4px;}
+.pick.big{position:relative;display:block;width:100%;text-align:left;
+  border:1px solid var(--line);border-radius:14px;background:var(--card);
+  padding:17px 17px 19px;margin:-9px 0 0;
+  box-shadow:0 -12px 22px -14px rgba(0,0,0,.85);}
+.pick.big:first-of-type{margin-top:0;}
+.pick.big + .pick.big{padding-top:23px;}
+.pick.big b{display:block;font-family:var(--deco);font-weight:400;
+  font-size:clamp(17px,4.4vw,21px);letter-spacing:.02em;text-transform:uppercase;
+  line-height:1.05;color:var(--bone);}
+.pick.big span{display:block;margin-top:9px;font-size:13.5px;line-height:1.5;color:var(--dust);}
+.pick.big:active{background:var(--card2);}
+/* Signal marks the recommendation. It is not a press state, and it is not on
+   all three \u2014 it means "this one" or it means nothing. */
+.pick.big.lead{border-color:var(--signal);}
+.leadkick{display:block;font-family:var(--mono);font-style:normal;font-size:8.5px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--signal);margin:0 0 9px;}
 .pathseg{display:flex;gap:6px;margin-bottom:16px;}
 .pathseg button{flex:1;min-width:0;min-height:42px;padding:10px 6px;border:1px solid var(--line2);border-radius:10px;font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--dust);background:var(--card);}
 .pathseg button[aria-pressed="true"]{background:var(--bone);color:var(--ink);border-color:var(--bone);}
@@ -781,7 +787,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.5.2";
+var BUILD = "1.5.3";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -1346,10 +1352,14 @@ function viewHome(){
       '<p class="pathkick" style="margin-top:22px">Choose your path</p>' +
       '<p class="picknote" style="margin:8px 0 16px">Three honest answers instead of one fake one. ' +
       (c.done ? 'Switching re-sorts what you see \u2014 nothing you have ticked is lost.' : 'You can change it whenever you like.') + '</p>' +
-      PATHS.map(function(m){
-        return '<button class="pick big" data-path="'+m[0]+'"><b>'+m[1]+'</b><span>'+
-               esc(pathBlurb(m[0]))+'</span></button>';
-      }).join("") + '</div>';
+      '<div class="deck">'+PATHS.map(function(m, i){
+        /* By universe is the recommendation, and nothing said so \u2014 three equally
+           weighted cards leave a newcomer guessing at the one decision the app
+           actually has an opinion about. */
+        return '<button class="pick big'+(i === 0 ? ' lead' : '')+'" data-path="'+m[0]+'">'+
+               (i === 0 ? '<em class="leadkick">Start here</em>' : '')+
+               '<b>'+m[1]+'</b><span>'+esc(pathBlurb(m[0]))+'</span></button>';
+      }).join("")+'</div>' + '</div>';
     return html;
   }
 
