@@ -14,13 +14,12 @@
  * 133 KB index.html, so a stale cache means a stale catalogue AND stale code
  * with no way to push a fix.
  */
-var VERSION = "1.4.4";
+var VERSION = "1.5.0";
 var CACHE   = "night-watcher-" + VERSION;
 /* icon-192.png is in the shell because index.html's <head> now references it
    directly for rel=icon and apple-touch-icon (it used to inline the bytes). */
 var SHELL   = ["./", "./index.html", "./manifest.json", "./icon.png", "./icon-192.png"];
 
-var FONT_ORIGINS = ["https://fonts.googleapis.com", "https://fonts.gstatic.com"];
 var NEVER_CACHE  = ["https://static.cloudflareinsights.com"];
 
 self.addEventListener("install", function(e){
@@ -58,21 +57,6 @@ self.addEventListener("fetch", function(e){
 
   if(inList(url.origin, NEVER_CACHE)) return;
 
-  /* Fonts: serve instantly from cache, refresh quietly behind it. */
-  if(inList(url.origin, FONT_ORIGINS)){
-    e.respondWith(
-      caches.open(CACHE).then(function(c){
-        return c.match(req).then(function(hit){
-          var net = fetch(req).then(function(res){
-            if(res && (res.ok || res.type === "opaque")) c.put(req, res.clone());
-            return res;
-          }).catch(function(){ return hit; });
-          return hit || net;
-        });
-      })
-    );
-    return;
-  }
 
   if(url.origin !== location.origin) return;
 

@@ -19,6 +19,75 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.5.0] — 2026-07-31
+
+Live action arrives, and the app gains a second axis.
+
+### Added
+
+- **Twelve live-action films, in five continuities.** The Dark Knight Saga, the
+  Epic Crime Saga, the Burton / Schumacher films, the DC Extended Universe, and
+  the Adam West Universe. The catalogue is 167 entries across 33 continuities.
+
+  The list is DC's own. Their guide covers thirteen films; *Justice League* and
+  *Zack Snyder's Justice League* are one entry here, since they are one story in
+  two cuts. *The Flash* sits in the DC Extended Universe, and the note on the
+  Burton / Schumacher group records that Keaton's Batman returns in it — rather
+  than filing one film in two places and inflating every count that touches it.
+- **A format switch: Animated, Live action, or All.** It sits above the existing
+  Movies / Movies + Series toggle, because they answer versions of the same
+  question — format asks which kind of Batman, scope asks how much of it. They
+  are one control block now. The path control answers a different question and
+  stays apart from them.
+- **Tiers are judged within a format.** Essential-for-animated and
+  Essential-for-live-action are separate calls. Nobody has to rank Burton
+  against Timm, and *Essential* keeps meaning "do not skip" rather than "good".
+
+### Changed
+
+- **Existing progress opens in Animated. A first visit opens in All.** A save
+  written before this release has no format, and defaulting those people to All
+  would grow the denominator overnight and put a Nolan film in Next up without
+  them asking for it. Everyone keeps the app they had; nothing is hidden from
+  anyone new.
+
+  Progress is keyed by entry, so a tick survives every format switch. Backup
+  codes and restore links are untouched — they never carried scope.
+- **The first-run screen is three full blocks**, with the format switch above
+  them. The chooser and the segmented control below are now the same three
+  options at two sizes: large while it is the only decision on the screen, small
+  once it has been made.
+- **Home's path card is gone.** It repeated the header exactly — name, ring,
+  percentage, done of total — and its only unique content was a Change button.
+  A segmented control sits there instead, so switching is one tap rather than
+  three.
+- **The licence is AGPL-3.0.** The old one granted the right to sell under MIT
+  and then reserved the writing separately, which was incoherent: the writing
+  lives in the same file as the code, and one file cannot be both granted and
+  withheld. Everything is under one licence now. Fork it, change it, host it —
+  but if you put it in front of other people, publish your source.
+
+### Fixed
+
+- **`sw.js` still carried Google's font origins** in a cache branch that could
+  never fire, five releases after the fonts were self-hosted. The origin guard
+  read `index.html` only, so a service worker reaching a third party was outside
+  what it checked.
+- **The README's file table listed only `docs/`.** `LICENSE`, `SECURITY.md` and
+  `package-lock.json` all shipped in 1.4.2 undocumented, because the root half of
+  that table was maintained by hand.
+
+### Guarded
+
+- Every shipped file is scanned for third-party origins, not just the page.
+- The whole repository is checked against the README's table, in both directions.
+- Format is inherited from the group, so no entry can be half-assigned. All six
+  format × scope combinations must return a duplicate-free pool.
+- A continuous arc gets one era. The Nolan trilogy fails the build if it is ever
+  split across eras, the way Knightfall would.
+- An old save must land in Animated and a new one in All — the migration-bug
+  shape, invisible in the data and only visible in someone's hands.
+
 ## [1.4.4] — 2026-07-31
 
 ### Fixed

@@ -2,7 +2,7 @@
 
 **One path through every Batman.**
 
-A single-file web app mapping every Batman story ever animated — **98 films and 57 seasons of television across 28 continuities** — into watch orders that spoil nothing, with progress tracking and a where-to-watch link for every entry.
+A single-file web app mapping every Batman story ever filmed — **110 films and 57 seasons of television across 33 continuities** — into watch orders that spoil nothing, with progress tracking and a where-to-watch link for every entry.
 
 **Live:** https://6ummy-dev.github.io/Night-Watcher/
 
@@ -10,7 +10,7 @@ Also available on Cloudflare Workers (static assets).
 
 ## What it does
 
-- **One switch, two journeys.** Opens on **Movies** for the 98 films. Flip to **Movies + Series** and 57 seasons — 1,451 episodes, every show from *The Adventures of Batman* (1968) to *Caped Crusader* (2026) — weave into the same orders. Nothing else about the app changes.
+- **One switch, two journeys.** Opens on **Movies** for the 110 films. Flip to **Movies + Series** and 57 seasons — 1,451 episodes, every show from *The Adventures of Batman* (1968) to *Caped Crusader* (2026) — weave into the same orders. Nothing else about the app changes.
 - **One path, chosen once.** Pick by universe (spoiler-safe), the composite chronology of Bruce's life, or straight release order from 1968 to 2028 — and the whole app follows it. No switcher to re-answer on every visit; the header carries the path name and Home leads with its completion ring. Change it whenever you like: switching re-sorts, it never clears a tick.
 - **Shared links are views, not takeovers.** Following someone's `#life` link shows you their ordering and offers to adopt it, rather than silently rewriting yours.
 - **Three tiers.** Everything is tagged **Essential**, **Core**, or **Optional** — tiers are exclusive, with Essential outranking Optional — plus modifiers (Mature, Short, Interactive, Not out yet). Nothing is untagged.
@@ -30,7 +30,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code at all** — *guarded.* Not one line, vendored or fetched. The app runs with the network off.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 150 KB raw and 50 KB gzipped; it is currently 122 KB / 39 KB. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 150 KB raw and 50 KB gzipped; it is currently 127 KB / 40 KB. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -86,6 +86,9 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `qa/frozen-ids.json` | Snapshot of every `i:` slug, so a rename can't slip through |
 | `qa/smoke.js` | Optional headless render test (requires jsdom) |
 | `CHANGELOG.md` | Every shipped change, newest first. Enforced by the guards |
+| `LICENSE` | AGPL-3.0 for the code, with the writing, DC's marks and the fonts set out separately |
+| `SECURITY.md` | How to report something privately |
+| `package-lock.json` | Pinned dev dependencies, so CI runs what was reviewed |
 | `README.md` | This file |
 
 ## Checks

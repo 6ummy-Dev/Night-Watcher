@@ -11,10 +11,10 @@
 <link rel="manifest" href="manifest.json">
 <!-- Night Watcher · https://github.com/6ummy-Dev/Night-Watcher -->
 <title>Batman watch orders that spoil nothing · Night Watcher</title>
-<meta name="description" content="Every Batman story — 98 films and 57 seasons of TV across 28 continuities — in watch orders that spoil nothing. By universe, by the arc of one life, or by release.">
+<meta name="description" content="Every Batman story — 110 films and 57 seasons of TV across 33 continuities — in watch orders that spoil nothing. By universe, by the arc of one life, or by release.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Night Watcher · One path through every Batman">
-<meta property="og:description" content="Every Batman story — 98 films and 57 seasons of TV across 28 continuities — in watch orders that spoil nothing. Choose a path once and track what you have seen.">
+<meta property="og:description" content="Every Batman story — 110 films and 57 seasons of TV across 33 continuities — in watch orders that spoil nothing. Choose a path once and track what you have seen.">
 <meta property="og:url" content="https://6ummy-dev.github.io/Night-Watcher/">
 <meta property="og:site_name" content="Night Watcher">
 <link rel="canonical" href="https://6ummy-dev.github.io/Night-Watcher/">
@@ -26,9 +26,9 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-cGtkvjny5wSZAGQC3WZfp/RMPLACe1rr3Dgzqd3a5+s=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-TdlxQvP/kUSuyK2DKbhfsnJN6eEXEMLFV8ab41PShuo=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 98 films and 57 seasons of TV across 28 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 57 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
      Palette: original hex values styled after the classic black / blue-grey / belt-yellow scheme.
      No trademarked logos, symbols, or proprietary lettering are used anywhere in this file.
@@ -112,15 +112,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 #tabs button svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;}
 #tabs button[aria-current]{color:var(--signal);}
 
-.pathcard{border:1px solid var(--line);border-radius:16px;background:linear-gradient(175deg,var(--card2),var(--card) 60%);padding:16px 18px 18px;margin-bottom:20px;}
-.pathtop{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
 .pathkick{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0;}
-.pathchg{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--steel);text-transform:uppercase;}
-.pathname{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(21px,5.4vw,29px);line-height:1;margin:9px 0 0;}
-.pathrow{display:flex;align-items:center;gap:13px;margin-top:14px;}
-.pathrow b{font-family:var(--disp);font-size:22px;line-height:1;display:block;}
-.pathrow span{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--dust);text-transform:uppercase;display:block;margin-top:4px;}
-.pathring{flex:none;}
 .pathring circle{fill:none;stroke-width:4;}
 .chooser{margin-bottom:22px;}
 .pick{display:block;width:100%;text-align:left;border:1px solid var(--line2);border-radius:12px;background:var(--card);padding:14px 16px;margin-bottom:10px;min-height:44px;}
@@ -283,6 +275,19 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .ubar{height:3px;border-radius:2px;background:var(--line2);overflow:hidden;}
 .ubar i{display:block;height:100%;background:var(--signal);}
 .ucount{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.08em;}
+/* One control language at two sizes. The chooser blocks are the same three
+   options as the segmented row, large because it is the only decision on the
+   screen, small once it has been made. */
+.pick.big{padding:20px 18px;margin-bottom:12px;border-radius:14px;}
+.pick.big b{font-size:19px;}
+.pick.big span{margin-top:8px;}
+.pathseg{display:flex;gap:6px;margin-bottom:16px;}
+.pathseg button{flex:1;min-width:0;min-height:42px;padding:10px 6px;border:1px solid var(--line2);border-radius:10px;font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--dust);background:var(--card);}
+.pathseg button[aria-pressed="true"]{background:var(--bone);color:var(--ink);border-color:var(--bone);}
+/* Format and scope answer the same question at two depths, so they sit in one
+   block. The path control above answers a different one. */
+.includes{margin-bottom:18px;}
+.scope.fmt{margin-bottom:8px;}
 .scope{display:flex;border:1px solid var(--line2);border-radius:10px;overflow:hidden;margin:16px 0 0;}
 .scope button{flex:1;padding:12px 6px;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dust);border-right:1px solid var(--line2);min-height:44px;}
 .scope button:last-child{border-right:0;}
@@ -651,7 +656,39 @@ var PATH = [
 {n:"28",name:"The DCU",
  note:"James Gunn\u2019s rebooted continuity, shared with the live-action films. Batman is a single passing appearance so far \u2014 the group is here because this is where the rest of it will land.",
  films:[
- {i:"creature-commandos-season-1-2024",t:"Creature Commandos",sub:"Season 1",y:2024,ep:7,k:"tv",e:0,d:"The first thing made in Gunn\u2019s DCU. Batman turns up for a moment, apprehending Doctor Phosphorus, which is the only reason it is here.",b:["m"],o:1}]}
+ {i:"creature-commandos-season-1-2024",t:"Creature Commandos",sub:"Season 1",y:2024,ep:7,k:"tv",e:0,d:"The first thing made in Gunn\u2019s DCU. Batman turns up for a moment, apprehending Doctor Phosphorus, which is the only reason it is here.",b:["m"],o:1}]},
+
+{n:"29",name:"The Dark Knight Saga",fmt:"live",
+ note:"Christopher Nolan's three films, one continuous story told over seven years. Grounded, procedural, and the reason a generation thinks Batman should whisper.",
+ films:[
+ {i:"batman-begins-2005",t:"Batman Begins",y:2005,e:2,d:"The training film. Bruce learns to fight in a mountain prison, comes home, and turns the thing he is afraid of into a costume.",b:["e"]},
+ {i:"the-dark-knight-2008",t:"The Dark Knight",y:2008,e:2,d:"The one that made everyone else stop trying. A man in makeup sets out to prove the city was always one bad day away from itself.",b:["e","m"]},
+ {i:"the-dark-knight-rises-2012",t:"The Dark Knight Rises",y:2012,e:2,d:"Eight years off the roof, a broken back, and a city held hostage. The trilogy closes on the thing it opened with.",b:[]}]},
+
+{n:"30",name:"The Epic Crime Saga",fmt:"live",
+ note:"Matt Reeves' Gotham, and the newest live-action continuity. The Penguin continues it.",
+ films:[
+ {i:"the-batman-2022",t:"The Batman",y:2022,e:2,d:"Year two, and he still signs his name Vengeance. Gotham as a rain-soaked crime scene, worked by a detective who is barely holding.",b:["e","m"]}]},
+
+{n:"31",name:"The Burton / Schumacher Films",fmt:"live",
+ note:"Four films, two directors, one continuity  \u2014  and the tone changes completely halfway through. Keaton's Batman returns thirty years later in The Flash, which is filed under The DC Extended Universe.",
+ films:[
+ {i:"batman-1989",t:"Batman",y:1989,e:2,d:"The film that proved Gotham could be built rather than found. Gothic, purple, and deeply strange about its own hero.",b:["e"]},
+ {i:"batman-returns-1992",t:"Batman Returns",y:1992,e:2,d:"Burton at his least supervised. Snow, sewers, and three broken people in animal suits.",b:[]},
+ {i:"batman-forever-1995",t:"Batman Forever",y:1995,e:3,d:"The lights come on and Robin arrives. Louder, brighter, and only half as odd as what came before it.",b:[],o:1},
+ {i:"batman-and-robin-1997",t:"Batman & Robin",y:1997,e:3,d:"Ice puns and neon. Famous for how badly it landed, and still the same continuity as the two that opened it.",b:[],o:1}]},
+
+{n:"32",name:"The DC Extended Universe",fmt:"live",
+ note:"Batman as a supporting character in somebody else's universe, played by Ben Affleck.",
+ films:[
+ {i:"batman-v-superman-dawn-of-justice-2016",t:"Batman v Superman: Dawn of Justice",y:2016,e:7,d:"Twenty years on the roof and furious about it. Batman as the one who has already lost too much to be reasonable.",b:[]},
+ {i:"justice-league-2017",t:"Justice League",y:2017,e:7,d:"Seven of them, finally. Two versions exist: the theatrical cut and Zack Snyder's four-hour restoration from 2021.",b:[]},
+ {i:"the-flash-2023",t:"The Flash",y:2023,e:0,d:"The multiverse cracks and a second Batman walks in  \u2014  Keaton's, thirty years older. Belongs to no single life.",b:[],o:1}]},
+
+{n:"33",name:"The Adam West Universe",fmt:"live",
+ note:"The 1966 film, made between seasons of the television series it belongs to. Two animated continuations exist in Batman '66.",
+ films:[
+ {i:"batman-1966",t:"Batman",y:1966,e:0,d:"Bright, square-jawed, and completely committed to the joke. A shark, a bomb nobody can put down, and the rarest thing in the catalogue: a Batman visibly having fun.",b:["e"],o:1}]}
 ];
 
 var ERAS = [
@@ -697,7 +734,7 @@ function idHash(id){
 var FILMS = [];
 PATH.forEach(function(g, gi){
   g.films.forEach(function(f, fx){
-    FILMS.push({id:f.i, gi:gi, ix:fx, gn:g.n, gname:g.name,
+    FILMS.push({id:f.i, gi:gi, ix:fx, gn:g.n, gname:g.name, fmt:(g.fmt || "anim"),
                 t:f.t, sub:f.sub||"", ep:f.ep||0, tv:(f.k==="tv"),
                 y:f.y, d:f.d, e:(f.e||0), b:f.b||[], o:!!f.o});
   });
@@ -705,7 +742,7 @@ PATH.forEach(function(g, gi){
 
 /* path is the locked choice, mode is what is on screen. Only path is
    persisted — that is what makes a shared deep link a view, not a takeover. */
-var S = {tab:"home", scope:"movies", path:"", mode:"continuity", filter:"all", q:"", code:"",
+var S = {tab:"home", scope:"movies", format:"all", path:"", mode:"continuity", filter:"all", q:"", code:"",
          theme:"dark", watched:{}, skipped:{}, rated:{}, open:{}, groupOpen:{}, log:[]};
 var PATHS = [["continuity","By universe"], ["life","Bruce\u2019s life"], ["release","Release order"]];
 var PATHCODE = {continuity:"c", life:"l", release:"r"};
@@ -718,7 +755,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.4.4";
+var BUILD = "1.5.0";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -786,7 +823,8 @@ function persist(){
      chosen that wrote a real ordering, which the next load adopted as one. */
   var payload = JSON.stringify({watched:S.watched, skipped:S.skipped, rated:S.rated,
                                 path:S.path, mode:S.path, theme:S.theme,
-                                scope:S.scope, log:S.log, groupOpen:S.groupOpen});
+                                scope:S.scope, format:S.format, log:S.log,
+                                groupOpen:S.groupOpen});
   try{
     var p = store.set(KEY, payload);
     if(p && p.catch) p.catch(function(){ canSave = false; flagSave(); });
@@ -806,6 +844,11 @@ function restore(done){
         if(S.path) S.mode = S.path;
         if(o.theme === "darker" || o.theme === "dark") S.theme = o.theme;
         if(o.scope) S.scope = o.scope;
+        /* A save written before 1.5.0 has no format. Those people have been
+           tracking animated for months, and defaulting them to All would grow
+           the denominator overnight and hand them a live-action film in Next
+           up. They keep the world they had; only new arrivals get All. */
+        S.format = o.format || "anim";
         /* Only false is meaningful \u2014 open is the default and absent keys read as
            open, so anything else in here is noise from a hand-edited payload. */
         if(o.groupOpen && typeof o.groupOpen === "object"){
@@ -825,7 +868,11 @@ function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
   return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
 /* ---- ordering ---- */
-function visible(f){ return S.scope === "all" || !f.tv; }
+/* Two axes now. Format asks which kind of Batman; scope asks how much of it.
+   Format narrows first, then scope narrows within it. */
+function visible(f){
+  return (S.format === "all" || f.fmt === S.format) && (S.scope === "all" || !f.tv);
+}
 
 /* The span depends on scope: films start 1993, series reach back to 1968. */
 function yearSpan(){
@@ -855,7 +902,7 @@ function pathBlurb(id){
    watched/skipped/rated, so nothing needs to clear it and a new key simply
    misses. If membership ever depends on progress, this cache is wrong. */
 var groupCache = null, groupCacheKey = "";
-function groupsKey(){ return S.mode + "|" + S.scope; }
+function groupsKey(){ return S.mode + "|" + S.scope + "|" + S.format; }
 function buildGroups(){
   var key = groupsKey();
   if(groupCache && groupCacheKey === key) return groupCache.groups;
@@ -1200,15 +1247,36 @@ function applyImport(res){
   for(id in res.rated){ var rn = clampRating(res.rated[id]); if(rn) S.rated[id] = rn; }
   persist(); render();
 }
+/* Format asks which kind of Batman, scope asks how much of it. Two questions of
+   the same sort, so they sit together \u2014 the path control above answers a
+   different one entirely, which is how you tell them apart without a label. */
+function formatSwitch(){
+  var n = {anim:0, live:0};
+  FILMS.forEach(function(f){ n[f.fmt] = (n[f.fmt] || 0) + 1; });
+  return '<div class="scope fmt">'+
+    [["anim","Animated"],["live","Live action"],["all","All"]].map(function(m){
+      return '<button data-format="'+m[0]+'" aria-pressed="'+(S.format===m[0])+'">'+m[1]+'</button>';
+    }).join("")+'</div>';
+}
+function includeBlock(compact){
+  return '<div class="includes">'+formatSwitch()+scopeSwitch(compact)+'</div>';
+}
 function scopeSwitch(compact){
-  var nFilm = FILMS.filter(function(f){ return !f.tv; }).length;
-  var nTv = FILMS.filter(function(f){ return f.tv; }).length;
   return '<div class="scope"'+(compact ? ' style="margin:0 0 12px"' : '')+'>'+
     '<button data-scope="movies" aria-pressed="'+(S.scope==="movies")+'">Movies</button>'+
     '<button data-scope="all" aria-pressed="'+(S.scope==="all")+'">Movies + Series</button></div>'+
-    (compact ? '' : '<p class="scopenote">'+(S.scope==="movies"
-      ? nFilm+' films. Switch on the series to add '+nTv+' seasons of television \u2014 every show from 1968 to now.'
-      : nFilm+' films and '+nTv+' seasons of television, woven into the same orders.')+'</p>');
+    (compact ? '' : '<p class="scopenote">'+scopeNote()+'</p>');
+}
+/* Counts follow the format in view. Saying "57 seasons" while Live action is
+   selected would be describing a catalogue the person cannot see. */
+function scopeNote(){
+  var inFmt = FILMS.filter(function(f){ return S.format === "all" || f.fmt === S.format; });
+  var nFilm = inFmt.filter(function(f){ return !f.tv; }).length;
+  var nTv = inFmt.filter(function(f){ return f.tv; }).length;
+  if(!nTv) return nFilm + ' films. No television in this selection.';
+  return S.scope === "movies"
+    ? nFilm + ' films. Switch on the series to add ' + nTv + ' seasons of television.'
+    : nFilm + ' films and ' + nTv + ' seasons of television, woven into the same orders.';
 }
 function viewHome(){
   var c = counts();
@@ -1225,27 +1293,27 @@ function viewHome(){
   /* No path yet: Home is the chooser. Not a modal — nothing to dismiss, and
      deep links still route, because routing never depends on it. */
   if(!S.path){
-    html += '<div class="chooser"><p class="pathkick">Choose your path</p>' +
-      '<p class="picknote" style="margin:8px 0 14px">Three honest answers instead of one fake one. ' +
+    html += '<div class="chooser">'+
+      '<p class="pathkick">What are you watching</p>'+formatSwitch()+
+      '<p class="pathkick" style="margin-top:22px">Choose your path</p>' +
+      '<p class="picknote" style="margin:8px 0 16px">Three honest answers instead of one fake one. ' +
       (c.done ? 'Switching re-sorts what you see \u2014 nothing you have ticked is lost.' : 'You can change it whenever you like.') + '</p>' +
       PATHS.map(function(m){
-        return '<button class="pick" data-path="'+m[0]+'"><b>'+m[1]+'</b><span>'+
+        return '<button class="pick big" data-path="'+m[0]+'"><b>'+m[1]+'</b><span>'+
                esc(pathBlurb(m[0]))+'</span></button>';
       }).join("") + '</div>';
     return html;
   }
 
-  var pc = counts(), ppct = pc.total ? pc.done / pc.total : 0;
-  html += '<div class="pathcard"><div class="pathtop">'+
-    '<p class="pathkick">Your path</p>'+
-    '<button class="pathchg" data-act="repath">Change</button></div>'+
-    '<h2 class="pathname">'+esc(pathName(S.path))+'</h2>'+
-    '<div class="pathrow"><svg class="pathring" width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">'+
-      '<circle cx="23" cy="23" r="19" stroke="var(--line)"></circle>'+
-      '<circle cx="23" cy="23" r="19" stroke="var(--signal)" stroke-linecap="round" '+
-        'stroke-dasharray="119.4" stroke-dashoffset="'+(119.4*(1-ppct)).toFixed(1)+'" '+
-        'transform="rotate(-90 23 23)"></circle></svg>'+
-    '<div><b>'+Math.round(ppct*100)+'%</b><span>'+pc.done+' of '+pc.total+'</span></div></div></div>';
+  var pc = counts();
+  /* The card repeated the header exactly \u2014 name, ring, percentage, done of
+     total \u2014 and its only unique content was a Change button. The header carries
+     all of that on every tab already. What Home needs is the switch itself. */
+  html += '<div class="pathseg">'+
+    PATHS.map(function(m){
+      return '<button data-path="'+m[0]+'" aria-pressed="'+(S.path===m[0])+'">'+
+             esc(m[1])+'</button>';
+    }).join("")+'</div>';
 
   if(fresh){
     html += '<div class="intro">'+
@@ -1272,7 +1340,7 @@ function viewHome(){
       '<p class="blurb">Gotham sleeps. All '+c.total+' logged — every'+(S.scope==="all"?' film and every season':' film')+', every side story.</p></div>';
   }
 
-  html += scopeSwitch();
+  html += includeBlock();
 
   var segs = "";
   for(var i = 0; i < ess.length; i++){ segs += '<i class="'+(i < essDone ? "on" : "")+'"></i>'; }
@@ -1309,7 +1377,7 @@ function viewHome(){
 
   html += '<p class="homefoot">Night Watcher \u00b7 an unofficial fan guide \u00b7 ' +
     'progress saves in this browser only \u00b7 Cloudflare counts visits, never what ' +
-    'you watch \u00b7 kept by 6ummy, with Claude on the night shift</p>';
+    'you watch \u00b7 free software under the AGPL \u00b7 kept by 6ummy, with Claude on the night shift</p>';
   return html;
 }
 
@@ -1648,6 +1716,10 @@ document.getElementById("view").addEventListener("click", function(e){
   var b = e.target.closest("button");
   if(!b) return;
   if(b.dataset.act === "searchall"){ S.scope = "all"; S.filter = "all"; persist(); render(); toast("Series added"); return; }
+  if(b.dataset.format){
+    S.format = b.dataset.format; S.groupOpen = {}; persist(); render();
+    return;
+  }
   if(b.dataset.scope){
     S.scope = b.dataset.scope; S.groupOpen = {}; persist(); render();
     toast(S.scope === "all" ? "Series added" : "Films only");

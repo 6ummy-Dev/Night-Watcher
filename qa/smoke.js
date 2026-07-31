@@ -53,11 +53,11 @@ win.addEventListener("load", function(){
     doc.querySelector('.pick[data-path="life"]').click();
     check("choosing sets both path and mode", S.path === "life" && S.mode === "life",
           "path=" + S.path + " mode=" + S.mode);
-    check("Home swaps the chooser for the path card",
-          !doc.querySelector(".pick") && !!doc.querySelector(".pathcard"));
-    check("the path card names the path",
-          /Bruce/.test(doc.querySelector(".pathname").textContent),
-          doc.querySelector(".pathname").textContent);
+    check("Home swaps the chooser for the segmented control",
+          !doc.querySelector(".pick") && !!doc.querySelector(".pathseg"));
+    check("the segmented control marks the chosen path",
+          /Bruce/.test(doc.querySelector('.pathseg button[aria-pressed="true"]').textContent),
+          doc.querySelector('.pathseg button[aria-pressed="true"]').textContent);
     check("the header sub-line carries the path name",
           /Bruce/.test(doc.getElementById("hsub").textContent),
           doc.getElementById("hsub").textContent);
@@ -154,12 +154,17 @@ win.addEventListener("load", function(){
     var btas = FILMS.filter(function(f){ return f.id === "batman-the-animated-series-season-1-1992"; })[0];
     check("B:TAS S1 is on the Core route", btas && tierOf(btas) !== "o", btas ? "tier " + tierOf(btas) : "not found");
 
-    /* --- release note tracks scope --- */
-    S.mode = "release";
+    /* --- release note tracks format and scope (1.5.0) --- */
+    S.mode = "release"; S.format = "anim";
     S.scope = "movies"; var mNote = win.modeNote();
     S.scope = "all";    var aNote = win.modeNote();
-    check("release note says 1993 in Movies scope", /1993 to 2028/.test(mNote), mNote.slice(0, 46));
-    check("release note says 1968 in Movies+Series", /1968 to 2028/.test(aNote), aNote.slice(0, 46));
+    check("animated films start at 1993", /1993 to 2028/.test(mNote), mNote.slice(0, 46));
+    check("animated series reach back to 1968", /1968 to 2028/.test(aNote), aNote.slice(0, 46));
+    S.format = "live"; S.scope = "movies";
+    check("live action reaches back to 1966", /1966 to /.test(win.modeNote()), win.modeNote().slice(0, 46));
+    S.format = "all";
+    check("all formats span the whole catalogue", /1966 to 2028/.test(win.modeNote()), win.modeNote().slice(0, 46));
+    S.format = "anim";
 
     /* --- hostile import must not blank the app --- */
     var poison = JSON.stringify({app:"night-watcher", v:1, watched:{}, skipped:{},
@@ -340,12 +345,59 @@ win.addEventListener("load", function(){
           doc.querySelector('.pick[data-path="release"] span').textContent
              .indexOf(win.yearSpan()) > 0,
           doc.querySelector('.pick[data-path="release"] span').textContent);
-    /* Under Movies the films start in 1993; the old chooser copy said 1968. */
-    S.scope = "movies"; win.render();
+    /* Under Animated + Movies the films start in 1993. */
+    S.format = "anim"; S.scope = "movies"; win.render();
     check("the chooser and The Path agree on the span",
           doc.querySelector('.pick[data-path="release"] span').textContent.indexOf("1993") > 0,
           doc.querySelector('.pick[data-path="release"] span').textContent);
+    S.format = "all";
     S.path = "continuity"; S.mode = "continuity";
+
+    /* --- format is the second axis (1.5.0) --- */
+    S.path = "continuity"; S.mode = "continuity"; S.format = "all"; S.scope = "all";
+    S.tab = "home"; win.render();
+    check("Home groups format with scope",
+          !!doc.querySelector(".includes .fmt") && !!doc.querySelector(".includes .scope:not(.fmt)"));
+    check("the path control sits outside that group",
+          !!doc.querySelector(".pathseg") && !doc.querySelector(".includes .pathseg"));
+
+    var poolAll = win.pool().length;
+    doc.querySelector('[data-format="live"]').dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("choosing Live action narrows the pool", win.pool().length === 12,
+          win.pool().length + " entries");
+    check("the live-action groups are all that remain",
+          win.buildGroups().every(function(g){
+            return g.films.every(function(f){ return f.fmt === "live"; }); }));
+    check("the note counts what is in view, not the catalogue",
+          doc.querySelector(".scopenote").textContent.indexOf("57") < 0,
+          doc.querySelector(".scopenote").textContent);
+
+    doc.querySelector('[data-format="anim"]').dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("Animated hides every live-action entry",
+          win.pool().every(function(f){ return f.fmt === "anim"; }));
+    doc.querySelector('[data-format="all"]').dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("All restores the whole pool", win.pool().length === poolAll);
+
+    /* Progress is keyed by id, so a tick survives every format switch. */
+    var liveFilm = win.FILMS.filter(function(f){ return f.fmt === "live"; })[0];
+    S.watched = {}; S.watched[liveFilm.id] = 1; S.log = [{id:liveFilm.id, ts:1}];
+    S.format = "anim"; win.render();
+    check("progress on a hidden entry is kept, not lost", S.watched[liveFilm.id] === 1);
+    S.format = "all"; win.render();
+    check("and reappears when the format returns",
+          win.pool().filter(win.isDone).length === 1);
+    S.watched = {}; S.log = [];
+
+    /* An old save has no format and must land in Animated. */
+    S.path = "continuity"; S.mode = "continuity"; win.persist();
+    var raw = JSON.parse(win.localStorage.getItem("batwatch-v3"));
+    delete raw.format;
+    reboot(JSON.stringify(raw), "no-format", function(w5, d5){
+      check("a save from before 1.5.0 opens in Animated", w5.S.format === "anim", w5.S.format);
+      check("and sees only the animated catalogue",
+            w5.pool().every(function(f){ return f.fmt === "anim"; }));
+    });
+    S.format = "all"; S.scope = "movies";
 
     /* --- The Path collapses and remembers (1.3.5) --- */
     S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.groupOpen = {};
@@ -639,7 +691,7 @@ win.addEventListener("load", function(){
         check("a 1.1.0 save migrates its mode into the path", w3.S.path === "life",
               "path=" + w3.S.path);
         check("an upgrading user is not asked to choose again", !d3.querySelector(".pick"));
-        check("the migrated path renders the card", !!d3.querySelector(".pathcard"));
+        check("the migrated path renders the control", !!d3.querySelector(".pathseg"));
 
         /* --- a save from before any of this still opens --- */
         var ancient = JSON.stringify({watched:{}, skipped:{}, rated:{}, log:[]});

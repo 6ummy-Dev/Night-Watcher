@@ -91,7 +91,13 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      50   Rating and progress stay separate
 
    META
-     51   The guards are navigable
+   CATALOGUE
+     51   Format is the second axis
+     52   Nobody's world changes overnight
+     53   Two questions, two control groups
+
+   META
+     54   The guards are navigable
 
    Sections are numbered in file order. Groups are for finding things;
    they do not affect what runs. Guard 49 enforces the numbering.
@@ -149,7 +155,8 @@ var idHash = sandbox.idHash, tierOf = sandbox.tierOf, clampRating = sandbox.clam
 var FILMS = [];
 PATH.forEach(function(g, gi){
   g.films.forEach(function(f, fx){
-    FILMS.push({id:f.i, gi:gi, ix:fx, gname:g.name, t:f.t, sub:f.sub||"", ep:f.ep||0,
+    FILMS.push({id:f.i, gi:gi, ix:fx, gn:g.n, gname:g.name, fmt:(g.fmt || "anim"),
+                t:f.t, sub:f.sub||"", ep:f.ep||0,
                 tv:(f.k === "tv"), y:f.y, e:(f.e||0), b:f.b||[], o:!!f.o});
   });
 });
@@ -730,14 +737,17 @@ if(/data-mode="\047?\+?m\[0\]/.test(HTML) || /<div class="modes">'\+\s*\n?\s*\[\
   fail("the three-way mode switcher is back in The Path — the path is chosen once, " +
        "from Home or Progress, not re-answered on every visit");
 }
-if(HTML.indexOf('class="pathcard"') < 0){
-  fail("Home no longer renders the path card");
+/* The card that carried this became a segmented control in 1.5.0. It repeated
+   the header exactly and its only unique content was a Change button. */
+if(/class="pathcard"/.test(HTML)){
+  fail("the path card is back on Home " + "\u2014" + " it duplicated the header entirely");
 }
-if(HTML.indexOf('class="pick"') < 0){
-  fail("the first-run path chooser is gone — a new arrival would have no way to pick");
+if(!/class="pathseg"/.test(HTML)){
+  fail("Home has no path control " + "\u2014" + " the chosen ordering would be unchangeable " +
+       "without clearing progress");
 }
-if(!/data-act="repath"/.test(HTML)){
-  fail("the Change control on the path card is gone — the choice would be permanent");
+if(!/class="pick big"/.test(HTML)){
+  fail("the first-run chooser is gone " + "\u2014" + " a new arrival would have no way to pick");
 }
 /* A view must be reversible. Offering only "make this mine" left a reload as
    the only way back, since mode is not persisted. */
@@ -756,12 +766,13 @@ if(!/mode:\s*S\.path\s*,/.test(HTML)){
        + "open on its own default instead of the chosen ordering");
 }
 
-/* One control per setting. The path row in Progress duplicated Home’s Change,
-   and a duplicate is how two places drift into disagreeing. */
+/* Two renderings of PATHS by design as of 1.5.0: the big blocks on first run,
+   and the segmented control once a path exists. A third would mean a setting
+   with three places to change it. */
 var pathBlocks = (HTML.match(/PATHS\.map\(/g) || []).length;
-if(pathBlocks !== 1){
-  fail("PATHS.map appears " + pathBlocks + " times, expected 1 (the chooser) — "
-       + "a second path control somewhere means two places to change one setting");
+if(pathBlocks !== 2){
+  fail("PATHS.map appears " + pathBlocks + " times, expected 2 " +
+       "(the first-run blocks and the segmented control)");
 }
 
 /* Nothing emits data-mode since the switcher went in 1.2.0. */
@@ -1245,18 +1256,27 @@ if(!/<label class="bklab" for="restorebox">/.test(HTML)){
 (function(){
   var ALLOWED = ["static.cloudflareinsights.com", "cloudflareinsights.com",
                  "6ummy-dev.github.io", "search.brave.com",
-                 "schema.org", "www.w3.org", "github.com"];
+                 "schema.org", "www.w3.org", "www.sitemaps.org", "github.com"];
+  /* Every file that ships, not just index.html. sw.js kept Google's font
+     origins in a dead cache branch from 1.4.2 to 1.5.0 because this scan only
+     ever read the page. A service worker reaches the network too. */
   var origins = {};
-  (HTML.match(/https?:\/\/[a-z0-9.-]+/gi) || []).forEach(function(u){
-    origins[u.replace(/^https?:\/\//, "").toLowerCase()] = true;
+  ["index.html", "sw.js", "manifest.json", "robots.txt", "sitemap.xml"].forEach(function(f){
+    var fp = path.join(PUBLIC, f);
+    if(!fs.existsSync(fp)) return;
+    var txt = fs.readFileSync(fp, "utf8");
+    (txt.match(/https?:\/\/[a-z0-9.-]+/gi) || []).forEach(function(u){
+      var host = u.replace(/^https?:\/\//, "").toLowerCase();
+      origins[host] = origins[host] || f;
+    });
   });
   Object.keys(origins).forEach(function(o){
     if(ALLOWED.indexOf(o) < 0){
-      fail("index.html reaches out to " + o + " \u2014 every origin here is a third " +
+      fail(origins[o] + " reaches out to " + o + " \u2014 every origin here is a third " +
            "party told that someone opened the page");
     }
   });
-  if(/fonts\.(googleapis|gstatic)\.com/.test(HTML)){
+  if(Object.keys(origins).some(function(o){ return /fonts\.(googleapis|gstatic)/.test(o); })){
     fail("the fonts are back on Google's CDN");
   }
 })();
@@ -1377,8 +1397,8 @@ if(!/titleYear\(/.test(wu)){
    the repo unless something compares them. */
 
 (function(){
-  var listed = {}, m, re = /\|\s*`(docs\/[^`]+)`\s*\|/g;
-  while((m = re.exec(README))) listed[m[1].replace("docs/", "")] = true;
+  var listed = {}, m, re = /\|\s*`([^`]+)`\s*\|/g;
+  while((m = re.exec(README))) listed[m[1]] = true;
   /* Recursive as of 1.4.2: the flat version skipped directories, so docs/fonts/
      shipped seven undocumented files without the build noticing. */
   function walk(dir, prefix){
@@ -1391,13 +1411,21 @@ if(!/titleYear\(/.test(wu)){
     });
     return out;
   }
-  var onDisk = walk(PUBLIC, "");
+  var onDisk = walk(PUBLIC, "").map(function(f){ return "docs/" + f; });
+  /* The root half of the table was maintained by hand and drifted: LICENSE,
+     SECURITY.md and package-lock.json all shipped in 1.4.2 undocumented. */
+  ["LICENSE", "SECURITY.md", "README.md", "CHANGELOG.md", "package.json",
+   "package-lock.json", "wrangler.jsonc", ".gitignore",
+   ".github/workflows/qa.yml", "qa/guards.js", "qa/smoke.js",
+   "qa/frozen-ids.json"].forEach(function(f){
+    if(fs.existsSync(path.join(ROOT, f))) onDisk.push(f);
+  });
   var missing = onDisk.filter(function(f){ return !listed[f]; });
   if(missing.length){
     fail("README's file table does not list: " + missing.join(", "));
   }
   var ghost = Object.keys(listed).filter(function(f){
-    return !fs.existsSync(path.join(PUBLIC, f));
+    return !fs.existsSync(path.join(ROOT, f));
   });
   if(ghost.length){
     fail("README's file table lists files that do not exist: " + ghost.join(", "));
@@ -1524,7 +1552,82 @@ if(!/@media \(max-width:360px\)/.test(HTML)){
   }
 })();
 
-/* ---------- 51. The guards are navigable ---------- */
+/* ---------- 51. Format is the second axis --------------------------- */
+/* Format asks which kind of Batman, scope asks how much of it. Every entry
+   inherits its format from its group, so nothing can be half-assigned. */
+
+(function(){
+  var mixed = PATH.filter(function(gr){
+    return gr.fmt && gr.fmt !== "live" && gr.fmt !== "anim";
+  });
+  if(mixed.length) fail("group " + mixed[0].n + ' has an unknown fmt "' + mixed[0].fmt + '"');
+  if(!/fmt:\(g\.fmt \|\| "anim"\)/.test(HTML)){
+    fail("entries no longer inherit format from their group");
+  }
+  /* Scoped to visible(). Testing the whole file passed on scopeNote()'s copy of
+     the same expression, which is how a guard says one thing and checks another. */
+  var vis = optionalFn("visible", "nothing would filter the catalogue");
+  if(!/S\.format/.test(vis)){
+    fail("visible() ignores format \u2014 every format would show everything");
+  }
+  if(!/S\.scope/.test(vis)){
+    fail("visible() ignores scope");
+  }
+  if(!/S\.mode \+ "\|" \+ S\.scope \+ "\|" \+ S\.format/.test(HTML)){
+    fail("the group cache key omits format \u2014 switching format would serve stale groups");
+  }
+  var live = FILMS.filter(function(f){ return f.fmt === "live"; });
+  if(live.length !== 12) fail("expected 12 live-action entries, found " + live.length);
+  live.forEach(function(f){
+    if(f.e === undefined) fail(f.id + " has no era");
+    if(!tierOf(f)) fail(f.id + " resolves to no tier");
+  });
+  /* A continuous arc gets one era; a shared world splits by story. Knightfall
+     set that precedent and the Nolan trilogy follows it. */
+  var nolan = live.filter(function(f){ return f.gn === "29"; });
+  if(nolan.length !== 3) fail("the Dark Knight Saga should hold 3 films, found " + nolan.length);
+  if(nolan.some(function(f){ return f.e !== nolan[0].e; })){
+    fail("the Nolan trilogy is split across eras \u2014 it is one continuous story");
+  }
+})();
+
+/* ---------- 52. Nobody's world changes overnight -------------------- */
+/* A save written before 1.5.0 has no format. Defaulting those people to All
+   would grow the denominator and put a live-action film in Next up without
+   them asking. This is the migration-bug shape: invisible in the data. */
+
+if(!/S\.format = o\.format \|\| "anim";/.test(HTML)){
+  fail("restore() does not default an old save to Animated \u2014 existing progress " +
+       "would silently gain 12 entries and a new denominator");
+}
+if(!/format:"all"/.test(HTML)){
+  fail("a first visit no longer defaults to All \u2014 a newcomer would be shown " +
+       "less than the app contains");
+}
+if(!/format:S\.format/.test(HTML)){
+  fail("format is not persisted");
+}
+
+/* ---------- 53. Two questions, two control groups ------------------- */
+/* Path asks how to order. Format and scope ask what to include, so they sit
+   together \u2014 that grouping is what tells them apart without a label. */
+
+if(!/function formatSwitch\s*\(/.test(HTML)) fail("formatSwitch() is gone");
+if(!/function includeBlock\s*\(/.test(HTML)) fail("includeBlock() is gone");
+if(!/class="includes"/.test(HTML)){
+  fail("format and scope are no longer grouped \u2014 three loose selectors read as a " +
+       "settings panel");
+}
+if(!/b\.dataset\.format/.test(HTML)) fail("nothing handles a format tap");
+/* Counts must describe the format in view, not the whole catalogue. */
+if(!/function scopeNote\s*\(/.test(HTML)) fail("scopeNote() is gone");
+var sn = optionalFn("scopeNote");
+if(!/S\.format/.test(sn)){
+  fail("scopeNote() ignores format \u2014 it would claim 57 seasons while Live action " +
+       "is selected");
+}
+
+/* ---------- 54. The guards are navigable ---------- */
 /* Before 1.4.2 the numbering ran 1-19, jumped to 26, and hung eleven
    sub-sections off 30 with suffixes b through g. 12b and 12c sat before 12.
    Nothing enforced any of it, so every release made it worse. */
