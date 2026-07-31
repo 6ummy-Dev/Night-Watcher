@@ -353,6 +353,37 @@ win.addEventListener("load", function(){
     S.format = "all";
     S.path = "continuity"; S.mode = "continuity";
 
+    /* --- Home order, chooser, format badges (1.5.2) --- */
+    S.path = ""; S.tab = "home"; S.watched = {}; S.log = []; win.render();
+    var blocks = doc.querySelectorAll("#view .pick.big");
+    check("the chooser is three blocks", blocks.length === 3);
+    check("the chooser is not a card",
+          win.getComputedStyle(blocks[0]).border !== "1px solid" ||
+          !/pick\.big\{[^}]*border:1px/.test(win.document.documentElement.innerHTML));
+
+    S.path = "continuity"; S.mode = "continuity"; win.render();
+    var v = doc.getElementById("view");
+    function posOf(sel){ var n = v.querySelector(sel); return n ? Array.prototype.indexOf.call(v.children, n.closest("#view > *")) : -1; }
+    var iIntro = posOf(".intro"), iSeg = posOf(".pathseg"), iInc = posOf(".includes");
+    check("the intro comes before the controls", iIntro < 0 || iIntro < iSeg,
+          "intro " + iIntro + ", pathseg " + iSeg);
+    check("the two control groups are adjacent", iInc === iSeg + 1,
+          "pathseg " + iSeg + ", includes " + iInc);
+
+    /* Format badges only where format is ambiguous. */
+    S.format = "all"; S.scope = "all"; S.tab = "watch"; S.filter = "all"; win.render();
+    check("All labels every row with its format",
+          doc.querySelectorAll(".bd.fmlive, .bd.fmanim").length === win.pool().length,
+          doc.querySelectorAll(".bd.fmlive, .bd.fmanim").length + " of " + win.pool().length);
+    check("the legend explains them",
+          doc.querySelector(".legend").textContent.indexOf("Live action") > 0);
+    S.format = "anim"; win.render();
+    check("one format means no badge on any row",
+          doc.querySelectorAll(".bd.fmlive, .bd.fmanim").length === 0);
+    check("and no legend row for it",
+          doc.querySelector(".legend").textContent.indexOf("Live action") < 0);
+    S.format = "all"; S.tab = "home"; win.render();
+
     /* --- format is the second axis (1.5.0) --- */
     S.path = "continuity"; S.mode = "continuity"; S.format = "all"; S.scope = "all";
     S.tab = "home"; win.render();

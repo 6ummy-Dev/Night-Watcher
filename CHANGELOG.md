@@ -19,6 +19,39 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.5.2] — 2026-07-31
+
+A visual pass on the first screen.
+
+### Changed
+
+- **The chooser stopped looking like everything else.** Seven surfaces in the
+  app were the same formula — a one-pixel border, a card fill, a rounded corner
+  — and the chooser was the seventh. The one screen that asks a question read as
+  another list of panels.
+
+  No box now. Display type on the page itself, hairline rules between the three,
+  and the signal colour doing the work it already does everywhere else.
+- **Home tells before it asks.** The intro rendered between the path control and
+  the format and scope block, so the two only read as a pair once the intro was
+  gone — which meant the layout depended on whether anything had been ticked.
+
+  The order is now: what this is, how to order it, what to include, where you
+  are, where to jump. Explain, control, status, navigate.
+
+### Added
+
+- **A format badge on every row, in All only.** With both formats on screen
+  there was no way to tell an animated entry from a live-action one. Under either
+  single format the badge would be a label for the switch you already set, so it
+  does not appear — and neither does its row in the legend.
+
+### Notes
+
+- `exportJSON` deliberately omits format, scope and theme. A backup restores what
+  you watched onto whatever device you are holding; it does not reach over and
+  change that device's settings. That was already true and is now written down.
+
 ## [1.5.1] — 2026-07-31
 
 ### Fixed

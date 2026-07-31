@@ -97,7 +97,13 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      53   Two questions, two control groups
 
    META
-     54   The guards are navigable
+   LAYOUT
+     54   Home tells before it asks
+     55   The chooser is not another panel
+     56   Format is legible where it is ambiguous
+
+   META
+     57   The guards are navigable
 
    Sections are numbered in file order. Groups are for finding things;
    they do not affect what runs. Guard 49 enforces the numbering.
@@ -1646,7 +1652,67 @@ if(!/S\.format/.test(sn)){
        "is selected");
 }
 
-/* ---------- 54. The guards are navigable ---------- */
+/* ---------- 54. Home tells before it asks ------------------------- */
+/* The intro used to render between the path control and the include block, so
+   the two only read as a pair once the intro was gone \u2014 which made the layout
+   depend on whether anything had been ticked. */
+
+(function(){
+  var home = optionalFn("viewHome", "there would be no Home");
+  var order = ["class=\"intro\"", "class=\"pathseg\"", "includeBlock()", "scoreboard(c)"];
+  var at = order.map(function(k){ return home.indexOf(k); });
+  at.forEach(function(pos, n){
+    if(pos < 0) fail("Home no longer renders " + order[n]);
+  });
+  var k;
+  for(k = 1; k < at.length; k++){
+    if(at[k] >= 0 && at[k - 1] >= 0 && at[k] < at[k - 1]){
+      fail("Home renders " + order[k] + " before " + order[k - 1] +
+           " \u2014 the order is explain, control, status, navigate");
+    }
+  }
+})();
+
+/* ---------- 55. The chooser is not another panel ------------------ */
+/* Seven surfaces shared one formula: 1px border, card fill, rounded corner.
+   The chooser was the seventh, and it is the only one asking a question. */
+
+(function(){
+  var rule = (HTML.match(/\.pick\.big\{[^}]*\}/) || [""])[0];
+  if(!rule){ fail(".pick.big has no styling of its own"); return; }
+  if(!/border:0/.test(rule) || !/background:none/.test(rule)){
+    fail("the chooser is back inside a card \u2014 it looked like the other six panels");
+  }
+  if(!/\.pick\.big b\{[^}]*var\(--deco\)/.test(HTML)){
+    fail("the chooser lost its display type");
+  }
+  var sig = HTML.match(/\.pick\.big[^{]*\{[^}]*var\(--signal\)[^}]*\}/);
+  if(!sig) fail("the chooser uses none of the signal colour the rest of the app reserves for this");
+})();
+
+/* ---------- 56. Format is legible where it is ambiguous ----------- */
+/* Only in All. Under one format every row would carry the same badge, which is
+   a label for the switch you already set. */
+
+if(!/S\.format === "all"/.test(optionalFn("badges", "nothing would label a tier"))){
+  fail("badges() ignores format \u2014 in All you cannot tell an animated entry from a " +
+       "live-action one");
+}
+if(!/\.bd\.fmlive\{/.test(HTML) || !/\.bd\.fmanim\{/.test(HTML)){
+  fail("the format badges have no colour hooks");
+}
+if(!/function legendBlock/.test(HTML) || !/Live action<\/i>/.test(HTML)){
+  fail("the legend does not explain the format badges");
+}
+(function(){
+  var lg = optionalFn("legendBlock");
+  if(!/S\.format === "all"/.test(lg)){
+    fail("the legend shows the format row under every format, including the two " +
+         "where no row carries the badge");
+  }
+})();
+
+/* ---------- 57. The guards are navigable ---------- */
 /* Before 1.4.2 the numbering ran 1-19, jumped to 26, and hung eleven
    sub-sections off 30 with suffixes b through g. 12b and 12c sat before 12.
    Nothing enforced any of it, so every release made it worse. */

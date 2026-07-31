@@ -33,7 +33,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-roD320+bBkLgCiEpUn6J+43MWyW+hBElLd7+BFzgwoQ=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-xy1O4l7F8G2+D42LaQmVlu/w6EX2ppaSzsHu+dtNuRU=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -191,6 +191,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .badges{display:inline-flex;gap:5px;margin-left:7px;vertical-align:2px;flex-wrap:wrap;}
 .bd{font-family:var(--mono);font-size:8px;letter-spacing:.12em;padding:2px 5px;border-radius:3px;border:1px solid currentColor;font-weight:600;}
 .bd.e{color:var(--signal);} .bd.m{color:var(--crimson2);} .bd.u{color:var(--steel);}
+.bd.fmlive{color:var(--moss);} .bd.fmanim{color:var(--dust);}
 .bd.o{color:var(--dim);} .bd.c{color:var(--moss);} .bd.s{color:var(--dim);} .bd.k{color:var(--dust);}
 .fdetail{display:none;padding:0 0 14px 42px;}
 .film.open .fdetail{display:block;}
@@ -289,9 +290,22 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 /* One control language at two sizes. The chooser blocks are the same three
    options as the segmented row, large because it is the only decision on the
    screen, small once it has been made. */
-.pick.big{padding:20px 18px;margin-bottom:12px;border-radius:14px;}
-.pick.big b{font-size:19px;}
-.pick.big span{margin-top:8px;}
+/* Seven surfaces in this app were the same formula \u2014 1px border, card fill,
+   rounded corner \u2014 and the chooser was the seventh, which made the one screen
+   that asks a question look like a list of panels. No box here: display type on
+   the page itself, hairline rules between, and the signal colour doing the work
+   it does everywhere else. */
+.pick.big{border:0;background:none;border-radius:0;padding:22px 2px 20px;margin:0;
+  border-top:1px solid var(--line);}
+.pick.big:first-of-type{border-top:0;padding-top:6px;}
+.pick.big b{font-family:var(--deco);font-weight:400;font-size:clamp(22px,6vw,30px);
+  letter-spacing:.02em;text-transform:uppercase;line-height:1;color:var(--bone);
+  display:flex;align-items:baseline;gap:11px;}
+.pick.big b::before{content:"";flex:none;width:9px;height:9px;border-radius:50%;
+  border:1.5px solid var(--steel);transition:.18s;}
+.pick.big:active b::before{background:var(--signal);border-color:var(--signal);}
+.pick.big span{margin-top:10px;padding-left:20px;font-size:14px;line-height:1.5;}
+.pick.big:active b{color:var(--signal);}
 .pathseg{display:flex;gap:6px;margin-bottom:16px;}
 .pathseg button{flex:1;min-width:0;min-height:42px;padding:10px 6px;border:1px solid var(--line2);border-radius:10px;font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--dust);background:var(--card);}
 .pathseg button[aria-pressed="true"]{background:var(--bone);color:var(--ink);border-color:var(--bone);}
@@ -767,7 +781,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.5.1";
+var BUILD = "1.5.2";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -1017,6 +1031,11 @@ function tierOf(f){ return f.b.indexOf("e") >= 0 ? "e" : (f.o ? "o" : "k"); }
 function badges(f){
   var tier = tierOf(f);
   var out = ['<span class="bd '+tier+'">'+BADGE[tier]+'</span>'];
+  /* Only in All. Under Animated or Live action every row would carry the same
+     badge, which is a label for the switch you already set. */
+  if(S.format === "all"){
+    out.push('<span class="bd fm'+f.fmt+'">'+(f.fmt === "live" ? "LIVE ACTION" : "ANIMATED")+'</span>');
+  }
   f.b.forEach(function(k){
     if(k === "e") return;
     out.push('<span class="bd '+k+'">'+BADGE[k]+'</span>');
@@ -1076,6 +1095,9 @@ function legendBlock(){
     '<span><i style="color:var(--crimson2)">Mature</i> \u2014 R or close</span>'+
     '<span><i style="color:var(--steel)">Not out yet</i></span>'+
     '<span><i style="color:var(--moss)">Interactive</i></span>'+
+    (S.format === "all"
+      ? '<span><i style="color:var(--dust)">Animated</i> / <i style="color:var(--moss)">Live action</i></span>'
+      : '')+
     '<span><i>Short</i> \u2014 under 30 min</span></div>';
 }
 function activityBlock(){
@@ -1212,6 +1234,10 @@ function download(name, text, mime){
     return true;
   }catch(e){ return false; }
 }
+/* Progress, not settings. A backup restores what you watched onto whatever
+   device you are holding; it does not reach over and change that device's
+   format, scope or theme. The local payload carries those because it belongs
+   to one device. */
 function exportJSON(){
   var str = JSON.stringify({app:"night-watcher", v:2, exported:new Date().toISOString(),
     scope:S.scope, path:S.path, watched:S.watched, skipped:S.skipped, rated:S.rated, log:S.log}, null, 1);
@@ -1331,11 +1357,6 @@ function viewHome(){
   /* The card repeated the header exactly \u2014 name, ring, percentage, done of
      total \u2014 and its only unique content was a Change button. The header carries
      all of that on every tab already. What Home needs is the switch itself. */
-  html += '<div class="pathseg">'+
-    PATHS.map(function(m){
-      return '<button data-path="'+m[0]+'" aria-pressed="'+(S.path===m[0])+'">'+
-             esc(m[1])+'</button>';
-    }).join("")+'</div>';
 
   if(fresh){
     html += '<div class="intro">'+
@@ -1358,7 +1379,11 @@ function viewHome(){
       '<h2>All '+c.total+' logged</h2>'+
       '<p class="blurb">Gotham sleeps. All '+c.total+' logged — every'+(S.scope==="all"?' film and every season':' film')+', every side story.</p></div>';
   }
-
+  html += '<div class="pathseg">'+
+    PATHS.map(function(m){
+      return '<button data-path="'+m[0]+'" aria-pressed="'+(S.path===m[0])+'">'+
+             esc(m[1])+'</button>';
+    }).join("")+'</div>';
   html += includeBlock();
 
   var segs = "";
