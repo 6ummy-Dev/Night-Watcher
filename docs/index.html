@@ -16,6 +16,7 @@
 <meta property="og:title" content="Night Watcher · One path through every Batman">
 <meta property="og:description" content="Every Batman story — 98 films and 57 seasons of TV across 28 continuities — in watch orders that spoil nothing. Choose a path once and track what you have seen.">
 <meta property="og:url" content="https://6ummy-dev.github.io/Night-Watcher/">
+<meta property="og:site_name" content="Night Watcher">
 <link rel="canonical" href="https://6ummy-dev.github.io/Night-Watcher/">
 <meta property="og:image" content="https://6ummy-dev.github.io/Night-Watcher/icon.png">
 <meta name="twitter:card" content="summary">
@@ -25,7 +26,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 98 films and 57 seasons of TV across 28 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 98 films and 57 seasons of TV across 28 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Fonts: Limelight & Anton via Google Fonts, both SIL Open Font License (free for any use).
@@ -38,11 +39,11 @@
   /* Canon skin: Dark Deco. Single source of truth. Themes are [data-theme]
      blocks overriding surfaces only; guards measure the contrast of each. */
   --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
-  --line:#252E42; --line2:#33405C;
+  --line:#252E42; --line2:#33405C; --staroff:#63759E;
   --bone:#E7E9F0; --dust:#93A0B8; --dim:#8B97B1;
   --signal:#FFCF1F;      /* utility-belt yellow */
-  --steel:#5B84C4;       /* cape blue-grey */
-  --crimson:#C43A30;     /* animated-sky red, AA-adjusted */
+  --steel:#7295CC;       /* cape blue-grey */
+  --crimson:#C43A30; --crimson2:#DD7A73;     /* animated-sky red, AA-adjusted */
   --moss:#7FA98B;        /* interactive badge */
   --deco:"Limelight","Big Shoulders Display",serif;
   --disp:"Anton","Haettenschweiler","Arial Narrow",Impact,sans-serif;
@@ -55,7 +56,7 @@
 /* AMOLED variant. Surfaces only, so contrast can only rise from here. */
 :root[data-theme="darker"]{
   --ink:#000000; --sunk:#05070C; --card:#0B101B; --card2:#111826;
-  --line:#1B2233; --line2:#2C3853;
+  --line:#1B2233; --line2:#2C3853; --staroff:#63759E;
   --hdr:rgba(0,0,0,.92);
   --tabbg:rgba(4,6,10,.95);
 }
@@ -174,7 +175,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .film.skip .ftitle{color:var(--dim);}
 .badges{display:inline-flex;gap:5px;margin-left:7px;vertical-align:2px;flex-wrap:wrap;}
 .bd{font-family:var(--mono);font-size:8px;letter-spacing:.12em;padding:2px 5px;border-radius:3px;border:1px solid currentColor;font-weight:600;}
-.bd.e{color:var(--signal);} .bd.m{color:var(--crimson);} .bd.u{color:var(--steel);}
+.bd.e{color:var(--signal);} .bd.m{color:var(--crimson2);} .bd.u{color:var(--steel);}
 .bd.o{color:var(--dim);} .bd.c{color:var(--moss);} .bd.s{color:var(--dim);} .bd.k{color:var(--dust);}
 .fdetail{display:none;padding:0 0 14px 42px;}
 .film.open .fdetail{display:block;}
@@ -185,7 +186,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 /* 36x44 target. Width carries the gap so neighbours tile rather than
    overlap; height comes from the pseudo-element so rows do not grow. */
 .stars{display:flex;gap:0;margin-left:auto;}
-.stars button{position:relative;width:36px;height:34px;font-size:16px;color:var(--line2);}
+.stars button{position:relative;width:36px;height:34px;font-size:16px;color:var(--staroff);}
 .stars button::before{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%);}
 .stars button.on{color:var(--signal);}
 .lnk{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line2);border-radius:8px;padding:10px 12px;color:var(--steel);min-height:38px;display:inline-flex;align-items:center;text-decoration:none;}
@@ -220,7 +221,10 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .qy{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;}
 
 .bigstat{display:flex;gap:10px;margin-bottom:20px;}
-.bigstat div{flex:1;border:1px solid var(--line);border-radius:12px;padding:15px 13px;background:var(--sunk);}
+.bigstat div{flex:1;border:1px solid var(--line);border-radius:12px;padding:15px 11px;background:var(--sunk);text-align:center;}
+.bigstat .sc-done{color:var(--signal);}
+.bigstat .sc-left{color:var(--bone);}
+.bigstat .sc-skip{color:var(--steel);}
 .bigstat b{display:block;font-family:var(--disp);font-weight:400;letter-spacing:.025em;font-size:32px;line-height:1;}
 .bigstat span{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);display:block;margin-top:7px;}
 .srow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);}
@@ -228,7 +232,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .srow .sb{flex:0 0 80px;height:5px;border-radius:3px;background:var(--line2);overflow:hidden;}
 .srow .sb i{display:block;height:100%;background:var(--signal);transition:width .3s;}
 .srow .sc{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;width:42px;text-align:right;}
-.danger{margin-top:28px;width:100%;border:1px solid rgba(176,58,58,.5);color:var(--crimson);border-radius:10px;padding:14px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;min-height:46px;}
+.danger{margin-top:28px;width:100%;border:1px solid rgba(176,58,58,.5);color:var(--crimson2);border-radius:10px;padding:14px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;min-height:46px;}
 .note{font-size:12.5px;color:var(--dim);margin-top:16px;line-height:1.5;}
 .empty{text-align:center;padding:60px 20px;color:var(--dim);}
 .empty .big{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:26px;color:var(--dust);margin-bottom:8px;}
@@ -260,6 +264,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .code{width:100%;background:var(--ink);border:1px solid var(--line2);border-radius:8px;color:var(--bone);
   font-family:var(--mono);font-size:11px;line-height:1.6;padding:11px;margin:12px 0 10px;
   word-break:break-all;max-height:96px;overflow:auto;-webkit-user-select:all;user-select:all;resize:none;}
+.bklab{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dust);margin:0 0 7px;}
 .bkin{width:100%;background:var(--ink);border:1px solid var(--line2);border-radius:8px;color:var(--bone);
   font-family:var(--mono);font-size:11px;padding:11px;margin:0 0 9px;min-height:62px;resize:vertical;-webkit-appearance:none;}
 .bkhr{border:0;border-top:1px solid var(--line);margin:18px 0;}
@@ -679,7 +684,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.3.9";
+var BUILD = "1.4.0";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -878,6 +883,18 @@ function pool(){
 }
 function isDone(f){ return !!S.watched[f.id]; }
 function isSkip(f){ return !!S.skipped[f.id]; }
+/* Home and Progress each drew their own board with a different third stat \u2014
+   Skipped on one, Essentials on the other \u2014 so the same component meant two
+   things. Watched, To go and Skipped account for every entry in the pool;
+   Essentials is a different axis and already has its own row and its own donut.
+   Colour comes from the palette and carries the meaning the legend already
+   gives it: signal for done, bone for what is left, steel for passed over. */
+function scoreboard(c){
+  return '<div class="bigstat">'+
+    '<div><b class="sc-done">'+c.done+'</b><span>Watched</span></div>'+
+    '<div><b class="sc-left">'+c.left+'</b><span>To go</span></div>'+
+    '<div><b class="sc-skip">'+c.skip+'</b><span>Skipped</span></div></div>';
+}
 function counts(){
   var p = pool(), done = 0, skip = 0;
   p.forEach(function(f){ if(isDone(f)) done++; else if(isSkip(f)) skip++; });
@@ -1218,10 +1235,7 @@ function viewHome(){
       '<span class="tcount">'+optDone+'/'+optFs.length+'</span><span class="tchev">\u203A</span></button>'+
     '</div>';
 
-  html += '<p class="qhead">Scoreboard</p><div class="bigstat">'+
-    '<div><b>'+c.done+'</b><span>Watched</span></div>'+
-    '<div><b>'+c.left+'</b><span>To go</span></div>'+
-    '<div><b>'+c.skip+'</b><span>Skipped</span></div></div>';
+  html += '<p class="qhead">Scoreboard</p>'+scoreboard(c);
 
   html += '<p class="qhead" style="margin-top:6px">The universes</p><div class="ugrid">';
   PATH.forEach(function(g, gi){
@@ -1412,15 +1426,12 @@ function viewStats(){
     donut(uniGroups, "The universes", uniGroups.length + " universes \u00b7 tap a slice") +
     donut(lifeGroups, "Bruce\u2019s life", lifeGroups.length + " eras \u00b7 tap a slice") +
     '</div>'+
-    '<div class="bigstat">'+
-    '<div><b>'+c.done+'</b><span>Watched</span></div>'+
-    '<div><b>'+c.left+'</b><span>To go</span></div>'+
-    '<div><b>'+essDone+'/'+ess.length+'</b><span>Essentials</span></div></div>'+
+    scoreboard(c)+
     '<div class="legend">'+
       '<span><i style="color:var(--signal)">Essential</i> \u2014 do not skip</span>'+
       '<span><i style="color:var(--dust)">Core</i> \u2014 the main route</span>'+
       '<span><i style="color:var(--dim)">Optional</i> \u2014 side material</span>'+
-      '<span><i style="color:var(--crimson)">Mature</i> \u2014 R or close</span>'+
+      '<span><i style="color:var(--crimson2)">Mature</i> \u2014 R or close</span>'+
       '<span><i style="color:var(--steel)">Not out yet</i></span>'+
       '<span><i style="color:var(--moss)">Interactive</i></span>'+
       '<span><i>Short</i> \u2014 under 30 min</span></div>';
@@ -1463,6 +1474,7 @@ function viewStats(){
   }
   html += '<hr class="bkhr"><h3>Restore</h3>'+
     '<p>Paste a backup code from another device. It merges in \u2014 nothing already ticked is lost.</p>'+
+    '<label class="bklab" for="restorebox">Paste a backup</label>'+
     '<textarea class="bkin" id="restorebox" placeholder="Backup code, restore link, or full JSON"></textarea>'+
     '<div class="bkbtns"><button class="bkbtn" data-act="restore">Restore progress</button>'+
     '<button class="bkbtn" data-act="pickfile">Import a file</button></div>'+
