@@ -19,6 +19,26 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.5.4] — 2026-07-31
+
+Home had three controls of identical weight and no hierarchy between them.
+
+### Changed
+
+- **Format and scope drop a level.** They were two more full-width bars the same
+  size as the path control, with the same fill when selected — so the screen said
+  choosing Movies mattered as much as choosing which life you are watching.
+
+  They share one quieter row now, set smaller, in a subtler fill. The path
+  control keeps its weight, because it is the decision the rest of the screen
+  depends on.
+- **The top card is slimmer.** It was carrying more padding than its contents
+  needed, which pushed everything below it down a screen.
+- **The recommended path is filled, not outlined.** A signal border read as
+  another card with a slightly different edge, which is why it had to be asked
+  for twice. It is yellow now, the way the app's own belt colour is used
+  everywhere else it means something.
+
 ## [1.5.3] — 2026-07-31
 
 ### Changed

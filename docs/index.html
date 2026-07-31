@@ -33,7 +33,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-zvAvOIWhopMRUSxSSxZZ1ipk7W5MMUqIggPLt9fnZ8o=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-9ZDL8jGZrcwrLVOR3QHZQgZQedifUGMnMMnOdW1tZYI=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -209,15 +209,15 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .lnk:active{background:var(--card2);}
 .linkrow{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:10px;}
 
-.hero{border:1px solid var(--line);border-radius:16px;background:linear-gradient(175deg,var(--card2),var(--card) 60%);padding:22px 20px 20px;}
+.hero{border:1px solid var(--line);border-radius:16px;background:linear-gradient(175deg,var(--card2),var(--card) 60%);padding:17px 18px 16px;}
 .hero .kick{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0 0 12px;}
 /* ONE hero size. Home and Next up render the same title; inline overrides
    grew it by 15% on one of them. Change it here, not at the call site. */
 .hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(24px,6.5vw,36px);line-height:.94;margin:0;}
 .hero .yr{font-family:var(--mono);font-size:12px;color:var(--dust);margin:10px 0 0;letter-spacing:.06em;}
 .hero .blurb{font-size:15px;color:var(--dust);margin:16px 0 0;line-height:1.5;}
-.heroacts{display:flex;gap:9px;margin-top:20px;}
-.heroacts button{flex:1;min-height:50px;border-radius:11px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;}
+.heroacts{display:flex;gap:9px;margin-top:15px;}
+.heroacts button{flex:1;min-height:46px;border-radius:11px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;}
 .heroacts .go{background:var(--bone);color:var(--ink);}
 .heroacts .no{border:1px solid var(--line2);color:var(--dust);flex:0 0 38%;}
 .queue{margin-top:26px;}
@@ -239,7 +239,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 /* One grid with the buttons below it: stars over Mark watched, the watch link
    over Skip. The stars used to sit 6px outside the padding edge for optical
    alignment, which put them off the button they belong to. */
-.herorow{display:flex;align-items:center;gap:9px;margin:18px 0 0;}
+.herorow{display:flex;align-items:center;gap:9px;margin:13px 0 0;}
 .herorow .herorate{flex:1;min-width:0;}
 /* At 10px with .1em tracking, "Where to watch" needs about 112px and the 38%
    column gives 96px, so it wrapped to two lines and left the stars floating in
@@ -309,16 +309,29 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .pick.big:active{background:var(--card2);}
 /* Signal marks the recommendation. It is not a press state, and it is not on
    all three \u2014 it means "this one" or it means nothing. */
-.pick.big.lead{border-color:var(--signal);}
+/* Filled, not outlined. A signal border did not read as "this one" \u2014 it read
+   as another card with a slightly different edge. */
+.pick.big.lead{background:var(--signal);border-color:var(--signal);}
+.pick.big.lead b,
+.pick.big.lead span{color:var(--ink);}
+.pick.big.lead span{opacity:.82;}
+.pick.big.lead:active{background:#E8BC1C;}
 .leadkick{display:block;font-family:var(--mono);font-style:normal;font-size:8.5px;
-  letter-spacing:.16em;text-transform:uppercase;color:var(--signal);margin:0 0 9px;}
-.pathseg{display:flex;gap:6px;margin-bottom:16px;}
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ink);opacity:.7;margin:0 0 8px;}
+.pathseg{display:flex;gap:6px;margin:0 0 10px;}
 .pathseg button{flex:1;min-width:0;min-height:42px;padding:10px 6px;border:1px solid var(--line2);border-radius:10px;font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--dust);background:var(--card);}
 .pathseg button[aria-pressed="true"]{background:var(--bone);color:var(--ink);border-color:var(--bone);}
 /* Format and scope answer the same question at two depths, so they sit in one
    block. The path control above answers a different one. */
-.includes{margin-bottom:18px;}
-.scope.fmt{margin-bottom:8px;}
+/* Format and scope are the secondary question, so they read as one quieter row
+   rather than two more bars the size of the path control. */
+.includes{display:flex;gap:8px;margin:0 0 18px;flex-wrap:wrap;}
+.includes .scope{flex:1 1 auto;min-width:0;margin:0;border-color:var(--line);border-radius:9px;}
+.includes .scope button{min-height:36px;padding:9px 5px;font-size:8.5px;letter-spacing:.07em;
+  color:var(--dim);border-right-color:var(--line);}
+.includes .scope button[aria-pressed="true"]{background:var(--card2);color:var(--bone);font-weight:600;}
+.includes .scope.fmt{flex:1 1 58%;margin:0;}
+.scopenote{flex:1 0 100%;order:9;}
 .scope{display:flex;border:1px solid var(--line2);border-radius:10px;overflow:hidden;margin:16px 0 0;}
 .scope button{flex:1;padding:12px 6px;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dust);border-right:1px solid var(--line2);min-height:44px;}
 .scope button:last-child{border-right:0;}
@@ -787,7 +800,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.5.3";
+var BUILD = "1.5.4";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;

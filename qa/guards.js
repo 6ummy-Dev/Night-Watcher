@@ -1690,6 +1690,12 @@ if(!/S\.format/.test(sn)){
   }
   if(!/class="deck"/.test(HTML)) fail("the deck wrapper is gone");
   /* Signal marks the recommendation. On all three it would mean nothing. */
+  /* Filled, not outlined: a signal border read as another card with a slightly
+     different edge, which is why it had to be asked for twice. */
+  if(!/\.pick\.big\.lead\{[^}]*background:var\(--signal\)/.test(HTML)){
+    fail("the recommended card is not filled with signal \u2014 an outline does not " +
+         "read as \"this one\"");
+  }
   if(!/\.pick\.big\.lead\{[^}]*var\(--signal\)/.test(HTML)){
     fail("the recommended path is not marked \u2014 three equal cards leave a newcomer " +
          "guessing at the one decision the app has an opinion about");
@@ -1701,6 +1707,28 @@ if(!/S\.format/.test(sn)){
   if(/\.pick\.big:active\{[^}]*var\(--signal\)/.test(HTML)){
     fail("signal is back on the press state \u2014 it either means \"this one\" or it " +
          "means nothing");
+  }
+})();
+
+/* Three full-width bars of equal weight said the scope toggle mattered as much
+   as which path you are on. Path stays primary; format and scope share a row a
+   level below it. */
+(function(){
+  var inc = (HTML.match(/\.includes\{[^}]*\}/) || [""])[0];
+  if(!/display:flex/.test(inc)){
+    fail("format and scope are stacked as separate full-width rows again \u2014 three " +
+         "controls of equal weight give Home no hierarchy");
+  }
+  var sub = (HTML.match(/\.includes \.scope button\{[^}]*\}/) || [""])[0];
+  if(!sub){ fail("the secondary controls have no styling of their own"); return; }
+  var subSize = parseFloat((sub.match(/font-size:([\d.]+)px/) || [0, 99])[1]);
+  var pathSize = parseFloat((HTML.match(/\.pathseg button\{[^}]*font-size:([\d.]+)px/) || [0, 0])[1]);
+  if(!(subSize < pathSize)){
+    fail("format and scope are set at " + subSize + "px against the path control's " +
+         pathSize + "px \u2014 they are the secondary question and must read as it");
+  }
+  if(/\.includes \.scope button\[aria-pressed="true"\]\{[^}]*background:var\(--bone\)/.test(HTML)){
+    fail("the secondary controls use the path control's selected fill");
   }
 })();
 
