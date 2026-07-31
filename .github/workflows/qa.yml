@@ -1,0 +1,36 @@
+# Runs both suites on every push and pull request.
+#
+# This is the tamper detector. index.html carries several independent tripwires —
+# the CSP script hash, the frozen-ID snapshot, the changelog/BUILD/sw.js version
+# lock, the README size figure, and the third-party origin allowlist — and any
+# edit that is not deliberate trips at least one of them. They were only ever
+# run by hand before this existed, which meant they protected nothing between
+# commits.
+name: QA
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Read-only. Nothing here needs to write to the repository.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # ci, not install: the lockfile is committed so that what runs here is
+      # what was reviewed, not whatever the version ranges resolve to today.
+      - run: npm ci
+
+      - run: npm test
