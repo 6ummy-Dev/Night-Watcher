@@ -26,7 +26,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-f6o/HgppaLegZ4e52nPzrHDI68aKCFzt9hms6BYkZ/0=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-RPNcBbc24Q9KzOzZCOrpNqQsFFulh6Z1UwTf5elQzFE=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 98 films and 57 seasons of TV across 28 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -228,9 +228,17 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .arow .at{flex:1;min-width:130px;font-size:14px;color:var(--bone);line-height:1.35;}
 .arow .ad{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
 .arow .stars{margin-left:auto;}
-.arow .tick{flex:none;}
-.herorate{margin:16px 0 2px;}
-.herorate .stars{margin-left:-6px;}
+/* Everything in this block is watched \u2014 that is what puts it here. The tick
+   inherits .film.done's filled state rather than the empty ring, which read as
+   "not watched" in a list of things you had just watched. */
+.arow .tick{flex:none;background:var(--bone);border-color:var(--bone);color:var(--ink);}
+/* One grid with the buttons below it: stars over Mark watched, the watch link
+   over Skip. The stars used to sit 6px outside the padding edge for optical
+   alignment, which put them off the button they belong to. */
+.herorow{display:flex;align-items:center;gap:9px;margin:18px 0 0;}
+.herorow .herorate{flex:1;min-width:0;}
+.herorow .linkrow{flex:0 0 38%;justify-content:flex-start;margin-top:0;}
+.herorate .stars{margin-left:-4px;}
 .qn{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;width:18px;}
 .qt{font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:15px;line-height:1.1;flex:1;color:var(--dust);}
 .qy{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;}
@@ -699,7 +707,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.4.2";
+var BUILD = "1.4.3";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -1284,7 +1292,9 @@ function viewHome(){
   });
   html += '</div>';
 
-  html += '<p class="homefoot">Night Watcher \u00b7 an unofficial fan guide \u00b7 progress saves in this browser only \u00b7 Cloudflare counts visits, never what you watch</p>';
+  html += '<p class="homefoot">Night Watcher \u00b7 an unofficial fan guide \u00b7 ' +
+    'progress saves in this browser only \u00b7 Cloudflare counts visits, never what ' +
+    'you watch \u00b7 kept by 6ummy, with Claude on the night shift</p>';
   return html;
 }
 
@@ -1306,8 +1316,10 @@ function viewNext(){
     '<h2>'+esc(f.t)+'</h2>'+
     '<p class="yr">'+esc(metaOf(f,false))+((f.b.length||f.o) ? ' &nbsp;'+badges(f) : '')+'</p>'+
     '<p class="blurb">'+esc(f.d)+'</p>'+
-    '<div class="linkrow">'+watchLinks(f)+'</div>'+
-    '<div class="herorate">'+starRow(f)+'</div>'+
+    '<div class="herorow">'+
+      '<div class="herorate">'+starRow(f)+'</div>'+
+      '<div class="linkrow">'+watchLinks(f)+'</div>'+
+    '</div>'+
     '<div class="heroacts">'+
       '<button class="go" data-act="watched" data-id="'+f.id+'">Mark watched</button>'+
       '<button class="no" data-act="skip" data-id="'+f.id+'">Skip</button>'+

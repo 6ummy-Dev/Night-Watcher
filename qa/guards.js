@@ -85,7 +85,10 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      44   Every watch link carries a year
 
    META
-     49   The guards are navigable
+     49   The card reads what it means
+
+   META
+     50   The guards are navigable
 
    Sections are numbered in file order. Groups are for finding things;
    they do not affect what runs. Guard 49 enforces the numbering.
@@ -1424,7 +1427,38 @@ if(!/<h1><button id="topBtn">/.test(HTML)){
 
 /* ---------- 48. The footer describes the link that exists ------------- */
 
-/* ---------- 49. The guards are navigable ---------- */
+/* ---------- 49. The card reads what it means ---------- */
+/* Every row in Recent activity is watched \u2014 that is what puts it there. The
+   tick drew as an empty ring until 1.4.3, which reads as "not watched" in a
+   list of things you had just watched. 1.4.1 tested that the tick existed, was
+   labelled, and worked. Nothing tested what it looked like. */
+
+if(!/\.arow \.tick\{[^}]*background:var\(--bone\)/.test(HTML)){
+  fail("the Activity tick is unfilled \u2014 it reads as unwatched on entries that " +
+       "are watched by definition");
+}
+/* Stars sit over Mark watched, the watch link over Skip. */
+if(!/<div class="herorow">/.test(HTML)){
+  fail("the hero rows are not in a shared grid \u2014 stars and buttons would drift " +
+       "out of alignment again");
+}
+(function(){
+  var skip = (HTML.match(/\.heroacts \.no\{[^}]*flex:0 0 (\d+)%/) || [])[1];
+  var link = (HTML.match(/\.herorow \.linkrow\{[^}]*flex:0 0 (\d+)%/) || [])[1];
+  if(!skip || !link){ fail("cannot read the hero column widths"); return; }
+  if(skip !== link){
+    fail("the watch link is " + link + "% wide but Skip below it is " + skip +
+         "% \u2014 they are meant to share an edge");
+  }
+})();
+/* The detail panel on The Path shares .linkrow and still wants flex-end. */
+if(!/\.linkrow\{[^}]*justify-content:flex-end/.test(HTML)){
+  fail(".linkrow lost flex-end \u2014 the panel on The Path right-aligns its links");
+}
+/* Credit where it is due, in the one place the app talks about itself. */
+if(!/kept by 6ummy/.test(HTML)) fail("the credit line is gone from the footer");
+
+/* ---------- 50. The guards are navigable ---------- */
 /* Before 1.4.2 the numbering ran 1-19, jumped to 26, and hung eleven
    sub-sections off 30 with suffixes b through g. 12b and 12c sat before 12.
    Nothing enforced any of it, so every release made it worse. */

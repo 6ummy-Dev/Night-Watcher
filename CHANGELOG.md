@@ -19,6 +19,25 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.4.3] — 2026-07-31
+
+### Fixed
+
+- **The tick in Recent activity read as unwatched.** It drew as an empty ring on
+  entries that are watched by definition — being watched is what puts them in
+  that list. It now carries the filled state the rows on The Path use.
+
+  1.4.1 tested that the tick existed, that it was labelled, and that it worked.
+  Nothing tested what it looked like.
+- **The hero card's rows did not line up.** The stars sat six pixels outside the
+  padding edge and the watch link was right-aligned to nothing in particular, so
+  neither matched the buttons below. Stars now share a left edge with **Mark
+  watched** and the watch link shares its column with **Skip**.
+
+### Added
+
+- **A line of credit in the footer**, where the app already talks about itself.
+
 ## [1.4.2] — 2026-07-31
 
 A security pass, and an audit of the tests themselves.

@@ -240,6 +240,9 @@ win.addEventListener("load", function(){
     /* ...and the tick on that row takes it back out. */
     var undo = doc.querySelector(".activity .arow .tick");
     check("each activity row carries a tick", !!undo);
+    check("the hero puts stars and the watch link in one row",
+          !!doc.querySelector("#view .herorow .herorate") &&
+          !!doc.querySelector("#view .herorow .linkrow"));
     check("the tick says what it does",
           !!undo && /^Remove /.test(undo.getAttribute("aria-label")),
           undo && undo.getAttribute("aria-label"));
