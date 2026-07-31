@@ -911,6 +911,28 @@ if(/Recently logged/.test(HTML)){
 if(/\.recent\{/.test(HTML)){
   fail(".recent CSS survives with no consumer");
 }
+/* The hero rates in place as of 1.4.1 — the same star row The Path carries,
+   which marks watched as a side effect. */
+if(!/'<div class="herorate">'\+starRow\(f\)/.test(HTML)){
+  fail("the hero has no star row " + "—" + " rating means leaving Next up again");
+}
+/* A 34px star beside a full-width button will be mis-tapped. The undo has to
+   be on the same screen, which is what the tick on each Activity row is for. */
+if(!/class="tick" data-act="watched"[^\n]*aria-label="Remove /.test(HTML)){
+  fail("Activity rows have no tick " + "—" + " a mis-tapped star could not be undone");
+}
+if(!/Recent activity/.test(HTML)){
+  fail("the Activity heading is gone");
+}
+/* The legend defines badges that render only on The Path. */
+if(!/function legendBlock\s*\(/.test(HTML)) fail("legendBlock() is gone");
+if(!/return html \+ legendBlock\(\);/.test(HTML)){
+  fail("The Path does not end with the legend");
+}
+if(/legendBlock\(\)/.test(fn("viewStats"))){
+  fail("the legend is back on Progress, where none of its badges render");
+}
+
 /* Five. A longer list turns Next up into a history page. */
 var amax = HTML.match(/var ACTIVITYMAX = (\d+);/);
 if(!amax || amax[1] !== "5"){
@@ -922,9 +944,10 @@ if(/function activityBlock\s*\(/.test(HTML)){
   if(/visible\s*\(/.test(ab) || /S\.scope/.test(ab)){
     fail("activityBlock() consults scope \u2014 history must not hide what you logged");
   }
-  /* Nothing here may write watched or skipped \u2014 that is what moves the hero. */
+  /* The block renders controls; it must not write progress itself. The tick
+     added in 1.4.1 goes through the same delegated handler as every other. */
   if(/S\.watched\s*\[[^\]]*\]\s*=|S\.skipped\s*\[[^\]]*\]\s*=|markWatched\(/.test(ab)){
-    fail("activityBlock() writes progress \u2014 rating from Activity must not move the hero");
+    fail("activityBlock() writes progress directly instead of rendering a control");
   }
 }
 

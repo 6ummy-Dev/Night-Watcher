@@ -186,8 +186,8 @@ win.addEventListener("load", function(){
 
     var act = doc.querySelector(".activity");
     check("Activity appears once something is logged", !!act);
-    check("the heading is Activity",
-          !!act && act.querySelector(".qhead").textContent === "Activity",
+    check("the heading names it as recent",
+          !!act && act.querySelector(".qhead").textContent === "Recent activity",
           act ? act.querySelector(".qhead").textContent : "(none)");
     check("the first row is what was just marked",
           !!act && act.querySelector(".arow .at").textContent === wasShowing,
@@ -214,6 +214,50 @@ win.addEventListener("load", function(){
     check("Activity reflects the rating",
           doc.querySelectorAll(".activity .arow")[0]
              .querySelectorAll(".stars button.on").length === 4);
+
+    /* The hero rates in place, and rating marks it watched (1.4.1). */
+    S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
+    S.tab = "next"; win.render();
+    var heroStars = doc.querySelector("#view .herorate .stars");
+    check("the hero carries a star row", !!heroStars);
+    var heroTitle = doc.querySelector("#view .hero h2").textContent;
+    heroStars.querySelectorAll("button")[2]
+             .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("rating the hero marks it watched", Object.keys(S.watched).length === 1,
+          JSON.stringify(Object.keys(S.watched)));
+    check("rating the hero records the rating",
+          S.rated[Object.keys(S.watched)[0]] === 3, JSON.stringify(S.rated));
+    check("rating the hero advances the queue",
+          doc.querySelector("#view .hero h2").textContent !== heroTitle);
+    check("what was rated is now the top of Recent activity",
+          doc.querySelector(".activity .arow .at").textContent === heroTitle,
+          doc.querySelector(".activity .arow .at").textContent);
+
+    /* ...and the tick on that row takes it back out. */
+    var undo = doc.querySelector(".activity .arow .tick");
+    check("each activity row carries a tick", !!undo);
+    check("the tick says what it does",
+          !!undo && /^Remove /.test(undo.getAttribute("aria-label")),
+          undo && undo.getAttribute("aria-label"));
+    undo.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("the tick removes it from progress", Object.keys(S.watched).length === 0,
+          JSON.stringify(Object.keys(S.watched)));
+    check("the tick clears the log entry too", S.log.length === 0, S.log.length + " left");
+    check("the hero goes back to what it was",
+          doc.querySelector("#view .hero h2").textContent === heroTitle,
+          doc.querySelector("#view .hero h2").textContent);
+    check("Recent activity disappears with nothing in it", !doc.querySelector(".activity"));
+
+    /* The legend defines Path badges and now lives on The Path (1.4.1). */
+    S.watched = {}; S.rated = {}; S.log = [];
+    S.tab = "watch"; S.filter = "all"; S.q = ""; win.render();
+    var leg = doc.querySelector("#view .legend");
+    check("The Path carries the legend", !!leg);
+    check("the legend is the last thing on The Path",
+          !!leg && leg === doc.getElementById("view").lastElementChild);
+    S.tab = "stats"; win.render();
+    check("Progress no longer carries the legend", !doc.querySelector("#view .legend"));
+    S.tab = "next"; S.watched = {}; S.rated = {}; S.log = []; win.render();
 
     /* Five, newest first, no matter how long the log gets. */
     S.rated = {}; S.log = [];
