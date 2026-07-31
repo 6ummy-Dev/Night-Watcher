@@ -368,11 +368,16 @@ win.addEventListener("load", function(){
     S.path = "continuity"; S.mode = "continuity"; win.render();
     var v = doc.getElementById("view");
     function posOf(sel){ var n = v.querySelector(sel); return n ? Array.prototype.indexOf.call(v.children, n.closest("#view > *")) : -1; }
-    var iIntro = posOf(".intro"), iSeg = posOf(".pathseg"), iInc = posOf(".includes");
-    check("the intro comes before the controls", iIntro < 0 || iIntro < iSeg,
-          "intro " + iIntro + ", pathseg " + iSeg);
+    var iSeg = posOf(".pathseg"), iInc = posOf(".includes"), iHero = posOf(".hero");
+    check("the controls come first", iSeg === 0, "pathseg at " + iSeg);
     check("the two control groups are adjacent", iInc === iSeg + 1,
           "pathseg " + iSeg + ", includes " + iInc);
+    check("the card comes after what governs it", iHero > iInc,
+          "hero " + iHero + ", includes " + iInc);
+    check("the chosen path is marked in signal",
+          /background:var\(--signal\)/.test(
+            (win.document.documentElement.innerHTML.match(
+              /\.pathseg button\[aria-pressed="true"\]\{[^}]*\}/) || [""])[0]));
 
     /* Format badges only where format is ambiguous. */
     S.format = "all"; S.scope = "all"; S.tab = "watch"; S.filter = "all"; win.render();

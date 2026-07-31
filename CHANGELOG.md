@@ -19,6 +19,17 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.5.5] — 2026-07-31
+
+### Changed
+
+- **The path control moves to the top of Home**, with format and scope directly
+  under it. They govern everything below them, and reading them after tonight's
+  card meant meeting the answer before the question.
+- **The chosen path is marked in the belt colour.** It was filled bone, which is
+  the fill this app uses for a primary action — press this. Signal is what it
+  uses when something means *this one*, and that is what a chosen path is.
+
 ## [1.5.4] — 2026-07-31
 
 Home had three controls of identical weight and no hierarchy between them.

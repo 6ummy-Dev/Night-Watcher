@@ -1659,7 +1659,10 @@ if(!/S\.format/.test(sn)){
 
 (function(){
   var home = optionalFn("viewHome", "there would be no Home");
-  var order = ["class=\"intro\"", "class=\"pathseg\"", "includeBlock()", "scoreboard(c)"];
+  /* Controls first: they govern what every block below them shows, and reading
+     them after the card meant meeting the answer before the question. */
+  var order = ["class=\"pathseg\"", "includeBlock()", "class=\"intro\"",
+               "class=\"hero\"", "scoreboard(c)"];
   var at = order.map(function(k){ return home.indexOf(k); });
   at.forEach(function(pos, n){
     if(pos < 0) fail("Home no longer renders " + order[n]);
@@ -1668,10 +1671,17 @@ if(!/S\.format/.test(sn)){
   for(k = 1; k < at.length; k++){
     if(at[k] >= 0 && at[k - 1] >= 0 && at[k] < at[k - 1]){
       fail("Home renders " + order[k] + " before " + order[k - 1] +
-           " \u2014 the order is explain, control, status, navigate");
+           " \u2014 the order is control, then what the controls govern");
     }
   }
 })();
+
+/* The chosen path is marked in the belt colour, not the primary-action fill.
+   Bone means "press this"; signal means "this one". */
+if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.test(HTML)){
+  fail("the chosen path is not marked in signal \u2014 it borrowed the fill the app " +
+       "uses for primary actions");
+}
 
 /* ---------- 55. The chooser is a deck, not a list ---------------- */
 /* Seven surfaces share one formula \u2014 border, card fill, rounded corner. Three

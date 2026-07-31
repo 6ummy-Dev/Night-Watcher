@@ -33,7 +33,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-9ZDL8jGZrcwrLVOR3QHZQgZQedifUGMnMMnOdW1tZYI=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-EXvJotrvbkoGV9ok0kYAmqzc3zhykmBpEu1R5zP65xU=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -320,7 +320,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
   letter-spacing:.16em;text-transform:uppercase;color:var(--ink);opacity:.7;margin:0 0 8px;}
 .pathseg{display:flex;gap:6px;margin:0 0 10px;}
 .pathseg button{flex:1;min-width:0;min-height:42px;padding:10px 6px;border:1px solid var(--line2);border-radius:10px;font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--dust);background:var(--card);}
-.pathseg button[aria-pressed="true"]{background:var(--bone);color:var(--ink);border-color:var(--bone);}
+.pathseg button[aria-pressed="true"]{background:var(--signal);color:var(--ink);border-color:var(--signal);font-weight:600;}
 /* Format and scope answer the same question at two depths, so they sit in one
    block. The path control above answers a different one. */
 /* Format and scope are the secondary question, so they read as one quieter row
@@ -800,7 +800,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.5.4";
+var BUILD = "1.5.5";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -1381,6 +1381,13 @@ function viewHome(){
      total \u2014 and its only unique content was a Change button. The header carries
      all of that on every tab already. What Home needs is the switch itself. */
 
+  html += '<div class="pathseg">'+
+    PATHS.map(function(m){
+      return '<button data-path="'+m[0]+'" aria-pressed="'+(S.path===m[0])+'">'+
+             esc(m[1])+'</button>';
+    }).join("")+'</div>';
+  html += includeBlock();
+
   if(fresh){
     html += '<div class="intro">'+
       '<p class="ikick">An unofficial fan guide</p>'+
@@ -1402,12 +1409,6 @@ function viewHome(){
       '<h2>All '+c.total+' logged</h2>'+
       '<p class="blurb">Gotham sleeps. All '+c.total+' logged — every'+(S.scope==="all"?' film and every season':' film')+', every side story.</p></div>';
   }
-  html += '<div class="pathseg">'+
-    PATHS.map(function(m){
-      return '<button data-path="'+m[0]+'" aria-pressed="'+(S.path===m[0])+'">'+
-             esc(m[1])+'</button>';
-    }).join("")+'</div>';
-  html += includeBlock();
 
   var segs = "";
   for(var i = 0; i < ess.length; i++){ segs += '<i class="'+(i < essDone ? "on" : "")+'"></i>'; }
