@@ -19,6 +19,65 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.4.0] — 2026-07-30
+
+A deep audit, and the things it found. The share card moves to 1.4.5.
+
+### Fixed
+
+- **`--steel` had been under the AA contrast floor since 1.0.0.** The *Change*
+  control sits at the top of the path card, where the gradient is at its
+  lightest, and drew at 4.09:1 against the 4.5:1 minimum. Lifted along its own
+  hue to 5.08:1 at worst — the same blue, further from the background.
+- **`--crimson` was under the floor everywhere it was used as text** — 3.27:1 on
+  a card. Lightening it enough for text would have dropped white-on-crimson on
+  the armed erase button below the floor instead, so there is now a second tint:
+  `--crimson` stays the fill, `--crimson2` is the text. Same hue, same identity,
+  following the `line` / `line2` naming already in the palette.
+- **The empty stars were invisible.** They drew in `--line2` at 1.50:1, which is
+  a border colour doing a control's job — you could not see there were five to
+  tap until you had tapped one. They now have `--staroff`, at 3.37:1: visible as
+  a target, still clearly unscored.
+- **The restore box had no label.** Its placeholder was doing the work, and a
+  placeholder disappears the moment anyone types — leaving a screen reader with
+  an unnamed text box and everyone else with no reminder of what goes in it.
+
+### Changed
+
+- **One scoreboard.** Home and Progress each drew their own, with a different
+  third stat: Skipped on one, Essentials on the other. The same component meant
+  two things. It is now **Watched / To go / Skipped** in both places — the only
+  set that accounts for every entry in the pool — and Essentials keeps the row
+  and the donut it already had.
+
+  Numbers are centred and take their colour from the palette, carrying the
+  meaning the legend already gives it: signal for done, bone for what is left,
+  steel for passed over.
+
+### Added
+
+- **The site now says what it is.** `og:site_name` and a `WebSite` node in the
+  structured data. Without them Google guessed, and what it guessed was
+  "GitHub Pages documentation".
+- **What the app refuses to do is now stated as a feature.** No account, no
+  advertising, nothing tracking what you watch, progress that never leaves the
+  browser, and it works offline — declared in the structured data and guarded,
+  because it is the whole pitch.
+
+### Guarded
+
+- **The contrast check now enumerates instead of remembering.** Every token used
+  as a colour, against every surface it can land on, in both themes — with body
+  text held to 4.5:1 and drawn controls to 3:1. The old list was five pairs
+  chosen by hand, and `--steel`, `--crimson` and `--line2` were in none of them.
+- **The `--card2` exemption is gone**, and it was the real fault. The guard
+  treated the top of a gradient card as warn-only, reasoning that nothing faint
+  was drawn there. *Change* is drawn there, in `--steel`. Two colours sat under
+  the floor across nine releases without a build ever failing. A colour that
+  cannot survive the top of a card does not belong on one.
+- Scoreboard is one component, centred, palette-only. The restore box keeps its
+  label. The site name and the no-account claims cannot quietly disappear.
+
 ## [1.3.9] — 2026-07-30
 
 A copy pass. Nothing in the app moved; several things it said were wrong.
