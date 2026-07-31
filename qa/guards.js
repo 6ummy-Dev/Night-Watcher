@@ -456,18 +456,40 @@ function contrast(a, b){
 
 themes.forEach(function(t){
   var name = t[0], p = t[1];
-  [["dim","card"], ["dim","card2"], ["dim","sunk"], ["dust","card"], ["bone","card"]].forEach(function(pair){
+  /* Every token used as a text colour, against every surface it can land on.
+     The list used to be five hand-picked pairs and --steel was in none of them,
+     so it shipped at 4.09:1 on the pathcard from 1.0.0 until the 1.4.0 audit
+     found it. Enumerating beats remembering. */
+  var SURFACES = ["ink", "sunk", "card", "card2"];
+  var inks = Object.keys(p).filter(function(tok){
+    return SURFACES.indexOf(tok) < 0 &&
+           new RegExp("(^|[;{\"\\s])color:\\s*var\\(--" + tok + "\\)").test(HTML);
+  });
+  var pairs = [];
+  inks.forEach(function(f){ SURFACES.forEach(function(b){ pairs.push([f, b]); }); });
+  pairs.forEach(function(pair){
     var fg = p[pair[0]], bg = p[pair[1]];
     if(!fg || !bg){ fail("token --" + pair[0] + " or --" + pair[1] + " missing from theme " + name); return; }
     var r = contrast(fg, bg);
-    note(name + ": --" + pair[0] + " on --" + pair[1] + " = " + r.toFixed(2) + ":1");
+    if(r < 4.8) note(name + ": --" + pair[0] + " on --" + pair[1] + " = " + r.toFixed(2) + ":1");
     /* --card2 is the hero's top stop; warn, since the default has shipped at
        4.12 there since 1.0.0 with nothing dim on it. */
-    var soft = (pair[1] === "card2");
-    if(r < 4.5 && !soft) fail(name + ": --" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
-                     ":1 — below the 4.5:1 AA floor for body text");
-    else if(r < 4.5) warn(name + ": --" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
-                     ":1 — under AA; nothing dim may sit high in the hero gradient");
+    /* --line2 and --staroff are drawn shapes, not prose. WCAG puts UI
+       components at 3:1 (1.4.11) and body text at 4.5:1 (1.4.3). */
+    var uiOnly = (pair[0] === "line" || pair[0] === "line2" || pair[0] === "staroff");
+    if(uiOnly){
+      if(r < 3) fail(name + ": --" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
+                     ":1 \u2014 below the 3:1 floor for a UI component (1.4.11)");
+      return;
+    }
+    /* --card2 used to be exempt, on the reasoning that it is only a gradient
+       top stop and nothing faint sat there. That was false: .pathchg draws in
+       --steel inside .pathcard, whose gradient starts at --card2. The exemption
+       is why --steel sat at 4.09:1 from 1.0.0 to 1.4.0 without failing a build.
+       No exemption now \u2014 if a colour cannot survive the top of a card, it does
+       not belong on one. */
+    if(r < 4.5) fail(name + ": --" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
+                     ":1 \u2014 below the 4.5:1 AA floor for body text");
     else if(r < 4.8) warn(name + ": --" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
                           ":1 — clears AA with little room");
   });
@@ -1023,6 +1045,17 @@ if(!ld){
   var parsed = null;
   try { parsed = JSON.parse(ld[1]); }
   catch(e){ fail("JSON-LD does not parse: " + e.message); }
+  if(parsed && parsed["@graph"]){
+    var types = parsed["@graph"].map(function(n){ return n["@type"]; });
+    ["WebSite", "WebApplication"].forEach(function(t){
+      if(types.indexOf(t) < 0) fail("JSON-LD has no " + t + " node (found: " + types.join(", ") + ")");
+    });
+    /* Without a declared site name Google guessed one, and what it guessed
+       was "GitHub Pages documentation". */
+    var site = parsed["@graph"].filter(function(n){ return n["@type"] === "WebSite"; })[0];
+    if(site && site.name !== "Night Watcher") fail('WebSite name is "' + site.name + '"');
+    parsed = parsed["@graph"].filter(function(n){ return n["@type"] === "WebApplication"; })[0] || {};
+  }
   if(parsed){
     var title = (HTML.match(/<title>([^<]+)<\/title>/) || [])[1] || "";
     if(title.indexOf(parsed.name) < 0){
@@ -1037,6 +1070,61 @@ if(!ld){
    and a bare <script> here would also break the app's own script extraction. */
 if(/<script type="application\/ld\+json"[^>]*src=/.test(HTML)){
   fail("the JSON-LD block loads an external file");
+}
+
+/* ---------- 30e2. What the app refuses to do is a feature ---------- */
+
+if(!/<meta property="og:site_name" content="Night Watcher">/.test(HTML)){
+  fail("og:site_name is gone " + "\u2014" + " without it the site name in results is a guess");
+}
+(function(){
+  var ldm = HTML.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  if(!ldm) return;
+  var app;
+  try {
+    var o = JSON.parse(ldm[1]);
+    app = (o["@graph"] || [o]).filter(function(n){ return n["@type"] === "WebApplication"; })[0];
+  } catch(e){ return; }
+  if(!app || !app.featureList){ fail("JSON-LD has no featureList"); return; }
+  var joined = app.featureList.join(" ").toLowerCase();
+  ["no account", "no advertising", "never sent", "offline"].forEach(function(claim){
+    if(joined.indexOf(claim) < 0){
+      fail('featureList no longer states "' + claim + '" ' + "\u2014" + ' it is the whole pitch');
+    }
+  });
+  if(app.isAccessibleForFree !== true) fail("JSON-LD no longer says the app is free");
+})();
+
+/* ---------- 30e3. One scoreboard ---------- */
+/* Home and Progress drew their own, with a different third stat each. */
+
+if((HTML.match(/class="bigstat"/g) || []).length !== 1){
+  fail("the scoreboard markup exists in " + (HTML.match(/class="bigstat"/g) || []).length +
+       " places " + "\u2014" + " it is one component");
+}
+if(!/function scoreboard\s*\(/.test(HTML)) fail("scoreboard() is gone");
+if((HTML.match(/[^n] scoreboard\(c\)|\+scoreboard\(c\)/g) || []).length !== 2){
+  fail("scoreboard() is not rendered on both Home and Progress");
+}
+["sc-done", "sc-left", "sc-skip"].forEach(function(cl){
+  if(HTML.indexOf(cl) < 0) fail("the scoreboard lost its ." + cl + " colour hook");
+});
+if(!/\.bigstat div\{[^}]*text-align:center/.test(HTML)){
+  fail("scoreboard numbers are no longer centred");
+}
+/* Palette only. A new hex here would be a second identity. */
+var scCss = HTML.match(/\.bigstat \.sc-[a-z]+\{[^}]*\}/g) || [];
+scCss.forEach(function(rule){
+  if(!/var\(--[a-z0-9]+\)/.test(rule) || /#[0-9A-Fa-f]{3,6}/.test(rule)){
+    fail("scoreboard colour is not from the palette: " + rule);
+  }
+});
+
+/* ---------- 30e4. The restore box has a real label ---------- */
+/* A placeholder is not a label: it disappears the moment anyone types. */
+
+if(!/<label class="bklab" for="restorebox">/.test(HTML)){
+  fail("the restore box is labelled by its placeholder only (WCAG 3.3.2)");
 }
 
 /* ---------- 30f. Every watch link carries a year ---------- */
