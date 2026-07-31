@@ -19,6 +19,32 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.4.1] — 2026-07-30
+
+Next up corrects itself.
+
+### Added
+
+- **The hero rates in place.** The same star row The Path carries, which marks
+  the entry watched as it rates it. Marking something and rating it were two
+  actions in two places; they are one now.
+- **A tick on every Recent activity row.** Stars on the hero are a 34px target
+  beside a full-width button, and that will be mis-tapped. The tick takes the
+  entry back out of your progress from the same screen it went in on, and works
+  on any of the five rather than only the most recent.
+
+  It is the one control in that block that moves the hero, and that is its
+  purpose. Stars still never do.
+
+### Changed
+
+- **Activity is now Recent activity.** Five entries is a window, not a record,
+  and the heading should say which.
+- **The legend moved to the bottom of The Path.** It defines badges that render
+  on Path rows and nowhere else — on Progress it was a key printed on a
+  different page. It sits last, because reference is something you go looking
+  for rather than something that should push the catalogue down.
+
 ## [1.4.0] — 2026-07-30
 
 A deep audit, and the things it found. The share card moves to 1.4.5.
