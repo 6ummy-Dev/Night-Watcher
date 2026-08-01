@@ -33,7 +33,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-o9kdtrcgQEv8+r95L2zbAE+ZaqGIsJtyXwewGl5DodU=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-E7m/OR1rL6cNNxgkLdzlEzCoSWrXMZ8geqRZJ89xndc=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -323,14 +323,16 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .pathseg button[aria-pressed="true"]{background:var(--signal);color:var(--ink);border-color:var(--signal);font-weight:600;}
 /* Format and scope answer the same question at two depths, so they sit in one
    block. The path control above answers a different one. */
-/* Format and scope are the secondary question, so they read as one quieter row
-   rather than two more bars the size of the path control. */
-.includes{display:flex;gap:8px;margin:0 0 18px;flex-wrap:wrap;}
-.includes .scope{flex:1 1 auto;min-width:0;margin:0;border-color:var(--line);border-radius:9px;}
-.includes .scope button{min-height:36px;padding:9px 5px;font-size:8.5px;letter-spacing:.07em;
-  color:var(--dim);border-right-color:var(--line);}
+/* Three rows of the same size. Squeezing format and scope onto one line to make
+   them read as secondary broke both labels across two lines instead \u2014 the size
+   was doing work the palette does better. Signal marks the path you chose;
+   card2 marks the rest. Same shape, different weight of colour. */
+.includes{margin:0 0 18px;}
+.includes .scope{margin:0 0 6px;border-color:var(--line);border-radius:10px;}
+.includes .scope:last-of-type{margin-bottom:0;}
+.includes .scope button{min-height:42px;padding:10px 6px;font-size:9px;
+  letter-spacing:.05em;color:var(--dust);border-right-color:var(--line);white-space:nowrap;}
 .includes .scope button[aria-pressed="true"]{background:var(--card2);color:var(--bone);font-weight:600;}
-.includes .scope.fmt{flex:1 1 58%;margin:0;}
 .scopenote{flex:1 0 100%;order:9;}
 .scope{display:flex;border:1px solid var(--line2);border-radius:10px;overflow:hidden;margin:16px 0 0;}
 .scope button{flex:1;padding:12px 6px;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dust);border-right:1px solid var(--line2);min-height:44px;}
@@ -800,7 +802,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.5.6";
+var BUILD = "1.5.7";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;

@@ -19,6 +19,19 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.5.7] — 2026-07-31
+
+### Fixed
+
+- **Two labels in the master chooser broke across two lines.** Format and scope
+  had been squeezed onto one row and set smaller so they would read as secondary,
+  which left *Live action* and *Movies + series* wrapping on every phone tested —
+  Safari, Chrome and Brave alike.
+
+  All three rows are the same size now, and the palette carries the distinction
+  instead: the path you chose is marked in the belt colour, format and scope in a
+  quieter fill. Size was doing work colour does better, and doing it badly.
+
 ## [1.5.6] — 2026-07-31
 
 ### Changed

@@ -1744,25 +1744,30 @@ if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.t
   }
 })();
 
-/* Three full-width bars of equal weight said the scope toggle mattered as much
-   as which path you are on. Path stays primary; format and scope share a row a
-   level below it. */
+/* Hierarchy is carried by colour, not size. Shrinking format and scope to fit
+   one line broke "Live action" and "Movies + series" across two, so all three
+   rows are the same size now and the palette does the distinguishing. */
 (function(){
-  var inc = (HTML.match(/\.includes\{[^}]*\}/) || [""])[0];
-  if(!/display:flex/.test(inc)){
-    fail("format and scope are stacked as separate full-width rows again \u2014 three " +
-         "controls of equal weight give Home no hierarchy");
-  }
   var sub = (HTML.match(/\.includes \.scope button\{[^}]*\}/) || [""])[0];
-  if(!sub){ fail("the secondary controls have no styling of their own"); return; }
-  var subSize = parseFloat((sub.match(/font-size:([\d.]+)px/) || [0, 99])[1]);
-  var pathSize = parseFloat((HTML.match(/\.pathseg button\{[^}]*font-size:([\d.]+)px/) || [0, 0])[1]);
-  if(!(subSize < pathSize)){
-    fail("format and scope are set at " + subSize + "px against the path control's " +
-         pathSize + "px \u2014 they are the secondary question and must read as it");
+  if(!sub){ fail("the include controls have no styling of their own"); return; }
+  if(!/white-space:nowrap/.test(sub)){
+    fail("the format and scope labels can wrap again \u2014 \"Live action\" and " +
+         "\"Movies + series\" both broke across two lines");
   }
-  if(/\.includes \.scope button\[aria-pressed="true"\]\{[^}]*background:var\(--bone\)/.test(HTML)){
-    fail("the secondary controls use the path control's selected fill");
+  var subH = parseFloat((sub.match(/min-height:([\d.]+)px/) || [0, 0])[1]);
+  var pathH = parseFloat((HTML.match(/\.pathseg button\{[^}]*min-height:([\d.]+)px/) || [0, 0])[1]);
+  if(subH !== pathH){
+    fail("the include controls are " + subH + "px against the path control's " +
+         pathH + "px \u2014 all three rows are the same size and the palette carries " +
+         "the hierarchy");
+  }
+  var sel = (HTML.match(/\.includes \.scope button\[aria-pressed="true"\]\{[^}]*\}/) || [""])[0];
+  if(/var\(--signal\)/.test(sel)){
+    fail("the include controls mark their selection in signal \u2014 that is what " +
+         "distinguishes the path row from them");
+  }
+  if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.test(HTML)){
+    fail("the chosen path is no longer marked in signal");
   }
 })();
 
