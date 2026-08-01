@@ -33,7 +33,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-+l41I3aqWzRqCSgJ1uqWklVAmQCejyRGP91JQu2reVk=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-L1tRKMLB8QdOXCbyNAXtTF8fawFMmBICmdFHHQ5VuO8=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","image":"https://6ummy-dev.github.io/Night-Watcher/icon.png","dateModified":"2026-08-01","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -164,7 +164,12 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .ghead{display:flex;align-items:center;gap:12px;width:100%;padding:15px;text-align:left;min-height:56px;
   background:var(--sunk);border-radius:inherit;}
 .group.open .ghead{border-radius:13px 13px 0 0;box-shadow:0 1px 0 var(--line);}
-.gnum{font-family:var(--mono);font-size:10px;color:var(--signal);border:1px solid rgba(255,207,31,.4);border-radius:5px;padding:4px 6px;flex:none;}
+/* Sized for two characters and centred, because the tag is not always two.
+   By universe zero-pads ("01".."33"); Bruce's life and Release order do not, so
+   era 10 was the one row in eleven whose title started 6px right of the rest.
+   Release order has the same latent bug the moment a 2030s bucket fills, and
+   the catalogue already holds a 2028 title. */
+.gnum{font-family:var(--mono);font-size:10px;color:var(--signal);border:1px solid rgba(255,207,31,.4);border-radius:5px;padding:4px 6px;flex:none;min-width:26px;text-align:center;}
 .gname{flex:1;min-width:0;}
 .gname .gtitle{display:block;font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:17px;line-height:1.02;margin:0;}
 .gname .meta{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--dim);margin-top:4px;text-transform:uppercase;display:block;}
@@ -195,7 +200,13 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
    axis entirely and only appears in All, so it is dimmer still.
    Six colours across nine badges used to mean three exact collisions: Core read
    as Animated, Optional as Short, Interactive as Live action. */
-.bd{font-family:var(--mono);font-size:8px;letter-spacing:.12em;padding:2px 5px;border-radius:3px;font-weight:600;}
+/* The border is on the base rule, transparent, so a filled badge occupies the
+   same box as an outlined one. Without it the filled tiers were 2px shorter:
+   in a flex row the boxes were forced level and the *labels* sat a pixel apart,
+   and in the legend \u2014 which centres rather than stretches \u2014 the boxes
+   themselves were visibly unequal. Background paints under the border area, so
+   a filled badge looks exactly as it did. */
+.bd{font-family:var(--mono);font-size:8px;letter-spacing:.12em;padding:2px 5px;border-radius:3px;font-weight:600;border:1px solid transparent;}
 /* tier \u2014 filled, one per entry */
 .bd.e{background:var(--signal);color:var(--ink);}
 .bd.k{background:var(--dust);color:var(--ink);}
@@ -206,7 +217,12 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .bd.c{color:var(--moss);border:1px solid currentColor;}
 .bd.s{color:var(--bone);border:1px solid currentColor;opacity:.55;}
 /* format \u2014 a different axis, and only in All */
-.bd.fmanim,.bd.fmlive{color:var(--dim);border:1px dashed currentColor;opacity:.8;}
+/* The dash carries "different axis"; it used to also carry opacity:.8, and that
+   fade was the one thing here under AA. --dim composited at 80% over --card is
+   4.21:1 and over --card2 3.91:1, while guard 20 measured --dim itself at 5.28
+   and passed. Hierarchy comes from palette and shape, not from fading text \u2014
+   and these render on every row in All, which is the default. */
+.bd.fmanim,.bd.fmlive{color:var(--dim);border:1px dashed currentColor;}
 .fdetail{display:none;padding:0 0 14px 42px;}
 .film.open .fdetail{display:block;}
 .fdetail p{font-size:14px;color:var(--dust);margin:0 0 12px;line-height:1.5;}
@@ -838,7 +854,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.6.0";
+var BUILD = "1.6.1";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;

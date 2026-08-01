@@ -105,9 +105,14 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
    LAYOUT
      57   The legend is made of badges
      58   Then is the tab, not the gap
+     59   Every badge is the same box
+     60   One left edge for the group chips
+
+   ACCESSIBILITY
+     61   Contrast is measured on the ink that renders
 
    META
-     59   The guards are navigable
+     62   The guards are navigable
 
    Sections are numbered in file order. Groups are for finding things;
    they do not affect what runs. Guard 49 enforces the numbering.
@@ -2049,7 +2054,143 @@ if(!/function legendBlock/.test(HTML) ||
   }
 })();
 
-/* ---------- 59. The guards are navigable ---------- */
+/* ---------- 59. Every badge is the same box ----------------------- */
+/* The filled tiers carried no border while every outlined and dashed badge
+   carried 1px, so a badge's box depended on its kind. In a flex row the boxes
+   were forced level and the mismatch landed on the labels — 3px from the top
+   on a filled badge, 4px on a bordered one, in every row that mixed them. In
+   the legend, which centres instead of stretching, the boxes themselves came
+   out 17.5px against 19.5px side by side. One transparent border on the base
+   rule fixes both, and this is what stops it coming back. */
+
+(function(){
+  var base = (HTML.match(/\n\.bd\{[^}]*\}/) || [""])[0];
+  if(!base){ fail("the base .bd rule is gone"); return; }
+  var bw = base.match(/border:\s*(\d+)px/);
+  if(!bw){
+    fail("the base .bd rule sets no border — a filled badge is 2px smaller than " +
+         "an outlined one, and their labels sit a pixel apart in every row that " +
+         "carries both");
+    return;
+  }
+  var baseW = parseInt(bw[1], 10);
+  if(!/border:\s*\d+px\s+\w+\s+transparent/.test(base)){
+    fail("the base .bd border is not transparent — it would draw on the filled " +
+         "tiers, which are meant to read as fills");
+  }
+  var variants = HTML.match(/\.bd\.[a-z0-9]+[^{]*\{[^}]*\}/g) || [];
+  if(variants.length < 5){ fail("the .bd variants are gone"); return; }
+  variants.forEach(function(rule){
+    var name = (rule.match(/\.bd\.([a-z0-9]+)/) || [])[1];
+    var b = rule.match(/border(?:-width)?:\s*(\d+)px/);
+    if(b && parseInt(b[1], 10) !== baseW){
+      fail(".bd." + name + " draws a " + b[1] + "px border against the base rule's " +
+           baseW + "px — every badge has to occupy the same box");
+    }
+    /* One rule owns the box. A variant that re-pads is the same bug moved. */
+    if(/padding:/.test(rule)){
+      fail(".bd." + name + " sets its own padding — the box comes from one rule " +
+           "or the badges stop matching again");
+    }
+  });
+  note("badge variants measured: " + variants.length);
+})();
+
+/* ---------- 60. One left edge for the group chips ---------------- */
+/* .gnum had padding and no width, so the chip was as wide as its content. By
+   universe zero-pads its tags ("01".."33") and the other two orderings do not,
+   which made era 10 the one row in eleven whose title started 6px right of
+   every other. Release order carries the same bug unfired — it reaches a
+   second digit as soon as a 2030s bucket has an entry, and the catalogue
+   already holds a 2028 title. */
+
+(function(){
+  var rule = (HTML.match(/\.gnum\{[^}]*\}/) || [""])[0];
+  if(!rule){ fail(".gnum has no styling of its own"); return; }
+  var mw = rule.match(/min-width:\s*(\d+)px/);
+  if(!mw){
+    fail("the group number chip has no min-width — a one-character tag makes a " +
+         "narrower chip than a two-character one, and every title behind it moves");
+    return;
+  }
+  if(!/text-align:center/.test(rule)){
+    fail("the group number is not centred in its chip, so a short tag sits left " +
+         "of a long one inside the same box");
+  }
+  if(parseInt(mw[1], 10) < 26){
+    fail("the group chip is " + mw[1] + "px, under the 26px a two-character tag " +
+         "needs at 10px mono");
+  }
+  /* The chip is sized for two characters. Numbering runs from 1, so a
+     hundredth group of any kind would overflow it rather than align. */
+  var counts = {ERAS: ERAS.length, DECADES: DECADES.length, PATH: PATH.length};
+  Object.keys(counts).forEach(function(k){
+    if(counts[k] > 99){
+      fail(k + " has " + counts[k] + " entries — a three-character tag is wider " +
+           "than the chip is sized for");
+    }
+  });
+})();
+
+/* ---------- 61. Contrast is measured on the ink that renders ----- */
+/* Guard 20 reads the token named in color:var(--x) and measures that. It
+   cannot see opacity, so a faded colour was checked at full strength. The
+   format badges shipped as --dim at 80%: guard 20 measured --dim at 5.28:1 on
+   --card2 and passed, while what rendered was 3.91:1. They appear on every row
+   in All, which is the default format. .bd.s is --bone at 55% and passes at
+   4.85:1 — by 0.35, with nothing watching.
+   Same shape as the alignment bugs this release fixes: a true fact about the
+   rendered page that the build could not see. Composites within one rule only;
+   a colour and an opacity that reach an element through different selectors
+   would need a cascade, which is not something to hand-roll here. */
+
+(function(){
+  var SURFACES = ["ink", "sunk", "card", "card2"];
+  function mix(fg, bg, a){
+    var out = "#", i, v;
+    for(i = 0; i < 3; i++){
+      v = Math.round(a * parseInt(fg.substr(1 + i * 2, 2), 16) +
+                     (1 - a) * parseInt(bg.substr(1 + i * 2, 2), 16));
+      out += (v < 16 ? "0" : "") + v.toString(16);
+    }
+    return out;
+  }
+  var css = (HTML.match(/<style>([\s\S]*?)<\/style>/g) || []).join("\n")
+              .replace(/\/\*[\s\S]*?\*\//g, "");
+  var rules = css.match(/[^{}]+\{[^}]*\}/g) || [];
+  var checked = 0, dimmed = 0;
+  rules.forEach(function(rule){
+    var body = rule.slice(rule.indexOf("{"));
+    var tok = (body.match(/(?:^|[;{\s])color:\s*var\(--([a-z0-9]+)\)/) || [])[1];
+    var op = parseFloat((body.match(/(?:^|[;{\s])opacity:\s*([\d.]+)/) || [0, 1])[1]);
+    if(!tok || !(op < 1)) return;
+    /* A surface token used as a colour sits on its own backdrop, not on these
+       four — the lead card's ink on signal is the case. Guard 20 excludes
+       them for the same reason. */
+    if(SURFACES.indexOf(tok) >= 0) return;
+    var sel = rule.slice(0, rule.indexOf("{")).trim().split("\n").pop().trim();
+    dimmed++;
+    themes.forEach(function(t){
+      var name = t[0], p = t[1];
+      if(!p[tok]) return;
+      SURFACES.forEach(function(s){
+        var eff = mix(p[tok], p[s], op);
+        var r = contrast(eff, p[s]);
+        checked++;
+        if(r < 4.5){
+          fail(name + ": " + sel + " renders --" + tok + " at opacity " + op +
+               " over --" + s + " as " + eff + ", which is " + r.toFixed(2) +
+               ":1 — under the 4.5:1 AA floor. Guard 20 measures --" + tok +
+               " at full strength (" + contrast(p[tok], p[s]).toFixed(2) +
+               ":1) and cannot see the fade.");
+        }
+      });
+    });
+  });
+  note("faded inks composited: " + dimmed + " rule(s), " + checked + " colour/surface pairs");
+})();
+
+/* ---------- 62. The guards are navigable ---------- */
 /* Before 1.4.2 the numbering ran 1-19, jumped to 26, and hung eleven
    sub-sections off 30 with suffixes b through g. 12b and 12c sat before 12.
    Nothing enforced any of it, so every release made it worse. */

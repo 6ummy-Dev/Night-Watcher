@@ -19,6 +19,80 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.6.1] — 2026-08-01
+
+Three things a build cannot see, and now can.
+
+### Fixed
+
+- **The badges did not line up.** The two filled tiers carried no border while
+  every outlined modifier and dashed format badge carried 1px, so a badge's box
+  depended on its kind.
+
+  It showed up two ways. In a row, flex forces the boxes level, so the mismatch
+  landed on the *labels*: the text in a filled badge sat 3px from the top and
+  the text beside it 4px, in every row carrying both. In the legend, which
+  centres rather than stretches, the boxes themselves came out **17.5px against
+  19.5px, side by side on one line**. 1.6.0 rebuilt the legend out of real
+  badges, which is what made a two-year-old inconsistency finally visible.
+
+  The border is on the base rule now, transparent, so a filled badge occupies
+  the same box and simply does not paint one. Measured after: every glyph 4px
+  from the top, every legend badge 19.5px. The `vertical-align` nudge on
+  `.badges` was measured too and did not move — the box grows symmetrically, so
+  the badge's centre stays where it was.
+- **One era title was indented 6px further than the other ten.** `.gnum` had
+  padding and no width, so the chip was as wide as its content — and By universe
+  zero-pads its tags while Bruce's life and Release order do not. "Beyond" was
+  the only two-digit era, so it was the only row that moved.
+
+  The chip has a minimum width and centres its tag. All three orderings now
+  share one left edge, which they did not before. Release order carried the same
+  bug unfired: it reaches a second digit the moment a 2030s bucket has an entry,
+  and the catalogue already holds a 2028 title.
+- **The format badges were under AA and the build could not tell.** `Animated`
+  and `Live action` rendered as `--dim` at 80% opacity. Composited against the
+  surface they actually sit on that is **4.21:1 on `--card` and 3.91:1 on
+  `--card2`** — under the 4.5:1 floor — while guard 20 measured `--dim` at full
+  strength, 5.28:1, and passed. They render on every row in All, which is the
+  default format.
+
+  The fade is gone. The dashed border already said "different axis"; hierarchy
+  here comes from palette and shape, which is the rule everywhere else in the
+  app. `Short` is `--bone` at 55% and survives at 4.85:1 — by 0.35, with nothing
+  watching until now.
+
+### Added
+
+- **Guard 59 — every badge is the same box.** The base rule must carry a
+  transparent border, no variant may set a different border width, and no
+  variant may set its own padding.
+- **Guard 60 — one left edge for the group chips.** The chip needs a minimum
+  width wide enough for two characters and must centre its tag. Also fails if
+  any of the three groupings grows past 99 entries, which is where a
+  three-character tag would appear.
+- **Guard 61 — contrast is measured on the ink that renders.** Guard 20 reads
+  the token in `color:var(--x)` and cannot see `opacity`, so a faded colour was
+  checked at full strength. This composites any faded ink against every surface
+  in every theme and holds it to the same AA floor. It is the guard that found
+  the format-badge failure above.
+
+  It composites within a single rule. A colour and an opacity that reach an
+  element through different selectors would need a real cascade, which is not
+  something to hand-roll — noted rather than pretended away.
+
+All three negative-tested in both directions, twelve cases. The 1.6.0 suite was
+re-run unchanged: 19 cases, all still passing.
+
+### Not done
+
+A rendered-pixel assertion in the smoke suite was proposed and is not possible:
+**jsdom does not implement layout** — `getBoundingClientRect()` returns zeros
+for everything. Every defect above was found by measuring a real browser, and
+all three were caught statically instead, by parsing the CSS. Closing the gap
+properly means a headless browser in CI, which is a bigger decision than a patch
+release.
+
 ## [1.6.0] — 2026-08-01
 
 Four things that were saying the wrong thing quietly.
