@@ -7,6 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/anton-latin-400-normal.woff2">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Night Watcher">
 <link rel="manifest" href="manifest.json">
@@ -34,7 +36,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-VdXsF43Ni9hrmXFElIgvoei6BhBP84RHpmyZZcJ3rSo=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nUXdoT/je+FQgY1wa4XOuoYGff3rjkAG0NVHAd3aRb0=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","image":"https://6ummy-dev.github.io/Night-Watcher/icon.png","dateModified":"2026-08-01","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -42,12 +44,6 @@
      No trademarked logos, symbols, or proprietary lettering are used anywhere in this file.
      The favicon is an original bat-animal silhouette drawn for this project; it is not a DC mark. -->
 <style>
-/* Self-hosted as of 1.4.2. These came from Google's CDN, which meant every
-   visit told a third party that someone had loaded the page \u2014 an odd thing on
-   an app that advertises no tracking, and the reason the page could not be
-   fully offline on a first load. All four are OFL-1.1 and redistribution
-   requires the licence, which ships as fonts/OFL.txt. Weight 500 was being
-   downloaded on every visit and used nowhere. */
 @font-face{font-family:"Limelight";src:url("fonts/limelight-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;}
 @font-face{font-family:"Anton";src:url("fonts/anton-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;}
 @font-face{font-family:"IBM Plex Sans";src:url("fonts/ibm-plex-sans-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;}
@@ -56,16 +52,10 @@
 @font-face{font-family:"IBM Plex Mono";src:url("fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap;}
 
 :root{
-  /* Canon skin: Dark Deco. Single source of truth. Themes are [data-theme]
-     blocks overriding surfaces only; guards measure the contrast of each. */
-  --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
+    --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
   --line:#252E42; --line2:#33405C; --staroff:#63759E;
   --bone:#E7E9F0; --dust:#93A0B8; --dim:#8B97B1;
-  --signal:#FFCF1F;      /* utility-belt yellow */
-  --steel:#7295CC;       /* cape blue-grey */
-  --crimson:#C43A30; --crimson2:#DD7A73;     /* animated-sky red, AA-adjusted */
-  --moss:#7FA98B;        /* interactive badge */
-  --deco:"Limelight","Big Shoulders Display",serif;
+  --signal:#FFCF1F;        --steel:#7295CC;         --crimson:#C43A30; --crimson2:#DD7A73;       --moss:#7FA98B;          --deco:"Limelight","Big Shoulders Display",serif;
   --disp:"Anton","Haettenschweiler","Arial Narrow",Impact,sans-serif;
   --body:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
@@ -73,7 +63,6 @@
   --tabbg:rgba(14,17,25,.94);
   --tab-h:58px;
 }
-/* AMOLED variant. Surfaces only, so contrast can only rise from here. */
 :root[data-theme="darker"]{
   --ink:#000000; --sunk:#05070C; --card:#0B101B; --card2:#111826;
   --line:#1B2233; --line2:#2C3853; --staroff:#63759E;
@@ -87,14 +76,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 :focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px;}
 
 #app{display:flex;flex-direction:column;min-height:100dvh;}
-/* render() replaces #view wholesale and restores the offset itself.
-   Chrome is the only one of the three engines with scroll anchoring on
-   by default, and it tries to compensate for the same change. */
 #view{overflow-anchor:none;}
 header{position:sticky;top:0;z-index:30;background:var(--hdr);-webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
 .hrow{display:flex;align-items:center;gap:14px;max-width:760px;margin:0 auto;}
-/* A blocked store used to fail silently. Signal, not crimson: crimson on
-   --sunk is 3.59:1 and would fail AA inside the accessibility warning. */
 #nosave{max-width:760px;margin:11px auto 0;padding:8px 12px;border:1px solid var(--signal);border-radius:8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;line-height:1.55;color:var(--signal);text-align:center;}
 #nosave[hidden]{display:none;}
 .mark{width:46px;flex:none;padding:0;color:var(--signal);display:flex;justify-content:center;align-items:center;}
@@ -119,13 +103,10 @@ header{position:sticky;top:0;z-index:30;background:var(--hdr);-webkit-backdrop-f
 main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 28px);max-width:760px;margin:0 auto;width:100%;}
 #tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;background:var(--tabbg);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);}
 #tabs button{flex:1;height:var(--tab-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);transition:color .15s;}
-/* Fixed box, fixed grid: every icon occupies exactly 20x20 regardless of the
-   shape inside it, so all four labels and all four icons share one baseline. */
 #tabs button svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;}
 #tabs button[aria-current]{color:var(--signal);}
 
 .pathkick{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0;}
-.pathring circle{fill:none;stroke-width:4;}
 .chooser{margin-bottom:22px;}
 .pick{display:block;width:100%;text-align:left;border:1px solid var(--line2);border-radius:12px;background:var(--card);padding:14px 16px;margin-bottom:10px;min-height:44px;}
 .pick b{font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:19px;line-height:1.05;display:block;}
@@ -135,7 +116,6 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .viewing p{margin:0;flex:1;min-width:150px;font-size:13px;color:var(--dust);line-height:1.4;}
 .viewing button{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);background:var(--signal);border-radius:8px;padding:9px 12px;min-height:40px;font-weight:600;}
 .viewing button.ghost{background:none;color:var(--steel);border:1px solid var(--line2);font-weight:400;}
-/* The only preference. No heading, no card, last row on the last screen. */
 .prefrow{margin:26px 0 0;}
 .pathtitle{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(20px,5.2vw,27px);line-height:1;margin:0 0 10px;}
 .modes{display:flex;gap:0;border:1px solid var(--line2);border-radius:10px;overflow:hidden;margin-bottom:10px;}
@@ -147,18 +127,12 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .chips{display:flex;gap:7px;overflow-x:auto;padding:2px 0 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .chips::-webkit-scrollbar{display:none;}
 .allrow{display:flex;justify-content:flex-end;margin:0 0 12px;}
-/* It sat in --dust on a --line2 pill, directly under a row of chips wearing the
-   same thing, and read as a seventh filter. The signal colour is what separates
-   a control that acts on the list from one that filters it. */
 .allbtn{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 14px;border:1px solid var(--signal);border-radius:100px;color:var(--signal);min-height:34px;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;}
 .allbtn::after{content:"\25B6";font-size:8px;transform:rotate(90deg);}
 .allbtn.shut::after{transform:none;}
 .allbtn:active{background:var(--card2);}
 .chip{flex:none;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 13px;border:1px solid var(--line2);border-radius:100px;color:var(--dust);min-height:34px;white-space:nowrap;}
 .chip[aria-pressed="true"]{background:var(--bone);color:var(--ink);border-color:var(--bone);font-weight:600;}
-/* 16px is not a taste \u2014 iOS Safari zooms the page on focus for anything under
-   it, and the viewport deliberately sets no maximum-scale to block that. Every
-   search on an iPhone began with a zoom the reader had to pinch back out of. */
 .search{width:100%;background:var(--card);border:1px solid var(--line);color:var(--bone);border-radius:10px;padding:12px 14px;font-family:var(--body);font-size:16px;margin-bottom:12px;-webkit-appearance:none;appearance:none;}
 .search::placeholder{color:var(--dim);}
 
@@ -168,11 +142,6 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .ghead{display:flex;align-items:center;gap:12px;width:100%;padding:15px;text-align:left;min-height:56px;
   background:var(--sunk);border-radius:inherit;}
 .group.open .ghead{border-radius:13px 13px 0 0;box-shadow:0 1px 0 var(--line);}
-/* Sized for two characters and centred, because the tag is not always two.
-   By universe zero-pads ("01".."33"); Bruce's life and Release order do not, so
-   era 10 was the one row in eleven whose title started 6px right of the rest.
-   Release order has the same latent bug the moment a 2030s bucket fills, and
-   the catalogue already holds a 2028 title. */
 .gnum{font-family:var(--mono);font-size:10px;color:var(--signal);border:1px solid rgba(255,207,31,.4);border-radius:5px;padding:4px 6px;flex:none;min-width:26px;text-align:center;}
 .gname{flex:1;min-width:0;}
 .gname .gtitle{display:block;font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:17px;line-height:1.02;margin:0;}
@@ -198,34 +167,14 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .film.done .ftitle{color:var(--dim);text-decoration:line-through;text-decoration-color:var(--line2);}
 .film.skip .ftitle{color:var(--dim);}
 .badges{display:inline-flex;gap:5px;margin-left:7px;vertical-align:2px;flex-wrap:wrap;}
-/* Three kinds, three shapes. Tier is the answer to "should I watch this" and
-   there is always exactly one, so it is the only filled badge. Modifiers are
-   footnotes \u2014 outlined, and no border, so they recede. Format is a different
-   axis entirely and only appears in All, so it is dimmer still.
-   Six colours across nine badges used to mean three exact collisions: Core read
-   as Animated, Optional as Short, Interactive as Live action. */
-/* The border is on the base rule, transparent, so a filled badge occupies the
-   same box as an outlined one. Without it the filled tiers were 2px shorter:
-   in a flex row the boxes were forced level and the *labels* sat a pixel apart,
-   and in the legend \u2014 which centres rather than stretches \u2014 the boxes
-   themselves were visibly unequal. Background paints under the border area, so
-   a filled badge looks exactly as it did. */
 .bd{font-family:var(--mono);font-size:8px;letter-spacing:.12em;padding:2px 5px;border-radius:3px;font-weight:600;border:1px solid transparent;}
-/* tier \u2014 filled, one per entry */
 .bd.e{background:var(--signal);color:var(--ink);}
 .bd.k{background:var(--dust);color:var(--ink);}
 .bd.o{color:var(--dim);border:1px solid currentColor;}
-/* modifiers \u2014 outlined footnotes */
 .bd.m{color:var(--crimson2);border:1px solid currentColor;}
 .bd.u{color:var(--steel);border:1px solid currentColor;}
 .bd.c{color:var(--moss);border:1px solid currentColor;}
 .bd.s{color:var(--bone);border:1px solid currentColor;opacity:.55;}
-/* format \u2014 a different axis, and only in All */
-/* The dash carries "different axis"; it used to also carry opacity:.8, and that
-   fade was the one thing here under AA. --dim composited at 80% over --card is
-   4.21:1 and over --card2 3.91:1, while guard 20 measured --dim itself at 5.28
-   and passed. Hierarchy comes from palette and shape, not from fading text \u2014
-   and these render on every row in All, which is the default. */
 .bd.fmanim,.bd.fmlive{color:var(--dim);border:1px dashed currentColor;}
 .fdetail{display:none;padding:0 0 14px 42px;}
 .film.open .fdetail{display:block;}
@@ -233,8 +182,6 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
 .act{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line2);border-radius:8px;padding:10px 12px;color:var(--dust);min-height:38px;}
 .act.primary{background:var(--bone);color:var(--ink);border-color:var(--bone);font-weight:600;}
-/* 36x44 target. Width carries the gap so neighbours tile rather than
-   overlap; height comes from the pseudo-element so rows do not grow. */
 .stars{display:flex;gap:0;margin-left:auto;}
 .stars button{position:relative;width:36px;height:34px;font-size:16px;color:var(--staroff);}
 .stars button::before{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%);}
@@ -243,25 +190,11 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .lnk:active{background:var(--card2);}
 .linkrow{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:10px;}
 
-/* One scale for the whole card: 6 / 12 / 18. Before 1.6.2 the gaps ran
-   17-12-10-15-16 top to bottom \u2014 five values with no relationship between any
-   two, which is what made the contents read as assembled rather than composed. */
 .hero{border:1px solid var(--line);border-radius:16px;background:linear-gradient(175deg,var(--card2),var(--card) 60%);padding:18px;}
-/* The kick used to carry the label, the group number and the group name on one
-   10px tracked line. Five of the app's continuities pushed it onto two lines,
-   and it broke mid-field \u2014 "DC ANIMATED / MOVIE UNIVERSE" \u2014 which is exactly
-   where the middot separators stop marking anything. It says one thing now. */
 .hero .kick{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-/* Where the group went. Its own line, so a long continuity name wraps against
-   nothing but itself. */
 .hero .hcont{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dust);margin:0 0 12px;}
-/* ONE hero size. Home and Next up render the same title; inline overrides
-   grew it by 15% on one of them. Change it here, not at the call site. */
 .hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(24px,6.5vw,36px);line-height:.94;margin:0;}
 .hero .yr{font-family:var(--mono);font-size:12px;color:var(--dust);margin:12px 0 0;letter-spacing:.06em;}
-/* The badges used to be glued to the end of .yr with a non-breaking space,
-   which left a hole between "2013" and the first badge that belonged to
-   neither. They are a row. */
 .hero .hbadges{margin:6px 0 0;}
 .hero .blurb{font-size:15px;color:var(--dust);margin:12px 0 0;line-height:1.5;}
 .heroacts{display:flex;gap:9px;margin-top:18px;}
@@ -274,59 +207,22 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .qitem:active{background:var(--card2);}
 .qpeek{flex:0 0 100%;display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:8px 0 1px 24px;}
 .qpeek .qg{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
-/* Activity is history, not queue. It used to say so with a border and a fill \u2014
-   which made it the only card on the tab, so the eye read card, gap, card and
-   Then was the gap. Then is what the tab is for. Both blocks are a heading and
-   a stack of rules now; what separates them is that Then is numbered and
-   Activity is dated, which is the difference that actually exists. */
-.activity{margin-top:26px;}
-/* One line closed, the rest on request \u2014 the same bargain the Then rows strike.
-   Open, Activity was 122.5px a row against a queue row's 56, and it took 40.5%
-   of Next up against Then's 16.4%: the tab spent two and a half times more room
-   on what you had done than on what you were about to do. Two columns: the
-   tick, then everything else. */
-.arow{display:grid;grid-template-columns:auto 1fr;gap:5px 11px;align-items:center;
-  padding:12px 0;border-top:1px solid var(--line);}
+.activity{margin-top:26px;border:1px solid var(--line);border-radius:12px;background:var(--sunk);padding:0 13px 6px;}
+.activity .qhead{margin:13px 0 2px;}
+.arow{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line);}
+.arow:first-of-type{border-top:0;}
 
 .arow .atop{display:flex;align-items:baseline;gap:10px;min-width:0;}
-/* The rows above this in Next up use --disp. Activity inherited body text, which
-   is why its titles read as plain web type among styled ones. */
-/* --dim, not --bone. Bone means "press this" and is the brightest ink in the
-   palette; it was on the history while the film you are actually up to rendered
-   in --dust. The past was drawn brighter than the future. A step down the
-   palette says "done" without fading anything \u2014 dimming the block with opacity
-   puts five of seven tokens under AA (see guard 61). */
 .arow .at{flex:1;min-width:0;font-family:var(--disp);font-weight:400;letter-spacing:.025em;
-  text-transform:uppercase;font-size:15px;line-height:1.15;color:var(--dim);}
-/* The closed row is a button so the reveal is reachable by keyboard. It cannot
-   be the whole row \u2014 the tick and the stars are buttons too, and buttons do
-   not nest. */
-.arow .atop{width:100%;text-align:left;}
-.arow .aopen{display:contents;}
-.arow .ad{flex:none;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--dim);}
-.arow .stars{margin:0 0 0 -6px;}
-.arow .abadge{display:flex;gap:6px;flex-wrap:wrap;margin-top:1px;}
-/* Everything in this block is watched \u2014 that is what puts it here. The tick
-   inherits .film.done's filled state rather than the empty ring, which read as
-   "not watched" in a list of things you had just watched. */
-/* 1 / -1, not 1 / span 3. A hard span of three kept reserving three grid rows
-   after 1.6.2 closed the row down to one, so every collapsed row carried two
-   empty tracks and their gaps — 25px of nothing, per row. */
+  text-transform:uppercase;font-size:15px;line-height:1.15;color:var(--dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.arow .stars{flex:none;margin:0;}
+.arow .stars button{width:20px;height:26px;font-size:13px;}
 .arow .tick{width:24px;height:24px;font-size:11px;grid-row:1 / -1;align-self:start;margin-top:2px;background:var(--bone);border-color:var(--bone);color:var(--ink);}
-/* One grid with the buttons below it: stars over Mark watched, the watch link
-   over Skip. The stars used to sit 6px outside the padding edge for optical
-   alignment, which put them off the button they belong to. */
 .herorow{display:flex;align-items:center;gap:9px;margin:13px 0 0;}
 .herorow .herorate{flex:1;min-width:0;}
-/* At 10px with .1em tracking, "Where to watch" needs about 112px and the 38%
-   column gives 96px, so it wrapped to two lines and left the stars floating in
-   the dead space beside it. The link is a secondary control and does not have
-   to match Skip's weight, only its edges. */
 .herorow .linkrow{flex:0 0 38%;justify-content:flex-start;margin-top:0;}
 .herorow .lnk{font-size:9px;letter-spacing:.04em;padding:10px 10px;}
-/* Below this the column cannot hold the label at any readable size, so the two
-   rows stack rather than overflow. */
 @media (max-width:360px){
   .herorow{display:block;}
   .herorow .linkrow{margin-top:10px;justify-content:flex-start;}
@@ -343,9 +239,6 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .bigstat .sc-skip{color:var(--steel);}
 .bigstat b{display:block;font-family:var(--disp);font-weight:400;letter-spacing:.025em;font-size:32px;line-height:1;}
 .bigstat span{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);display:block;margin-top:7px;}
-/* Buttons, not divs. The donut slices they mirror are pointer-only \u2014 no
-   tabindex, no role, no key handler \u2014 and the universe rows at least had a
-   keyboard route through Home's grid. The era rows had none at all. */
 .srow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);width:100%;text-align:left;min-height:46px;}
 .srow:active{background:var(--card2);}
 .srow .sn{flex:1;font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:15px;line-height:1.1;min-width:0;}
@@ -358,15 +251,8 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .empty .big{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:26px;color:var(--dust);margin-bottom:8px;}
 .legend{margin-top:30px;border-top:1px solid var(--line);padding-top:18px;display:flex;flex-wrap:wrap;gap:8px 14px;margin:4px 0 18px;}
 .legend span{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);}
-/* The swatches are real badges, so the row has to align them against the note
-   beside them rather than sit them on a text baseline. */
 .legend > span{display:inline-flex;align-items:center;gap:6px;}
 .legend .bd{flex:none;}
-/* minmax(0,1fr), not 1fr. A bare 1fr is minmax(auto,1fr), and that auto floor
-   is the column's min-content width \u2014 so "Tomorrowverse", thirteen characters
-   with nowhere to break, pinned its column at 169px and starved the other. At
-   320px that pushed the page to 331px wide and the right column off the screen.
-   Row heights are deliberately left to their content. */
 .ugrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
 .ucard{border:1px solid var(--line);border-radius:12px;background:var(--sunk);padding:13px 12px;text-align:left;display:flex;flex-direction:column;gap:8px;min-height:98px;overflow-wrap:anywhere;}
 .ucard:active{background:var(--card);}
@@ -377,14 +263,6 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .ubar{height:3px;border-radius:2px;background:var(--line2);overflow:hidden;}
 .ubar i{display:block;height:100%;background:var(--signal);}
 .ucount{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.08em;}
-/* One control language at two sizes. The chooser blocks are the same three
-   options as the segmented row, large because it is the only decision on the
-   screen, small once it has been made. */
-/* A deck, not a list. Seven surfaces in this app share one formula \u2014 border,
-   card fill, rounded corner \u2014 and three more flat panels made the one screen
-   that asks a question look like another list. These overlap instead, each
-   sitting on the one below, so they read as cards to choose between. Nothing
-   else in the app overlaps. */
 .deck{position:relative;margin-top:4px;}
 .pick.big{position:relative;display:block;width:100%;text-align:left;
   border:1px solid var(--line);border-radius:14px;background:var(--card);
@@ -397,10 +275,6 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
   line-height:1.05;color:var(--bone);}
 .pick.big span{display:block;margin-top:9px;font-size:13.5px;line-height:1.5;color:var(--dust);}
 .pick.big:active{background:var(--card2);}
-/* Signal marks the recommendation. It is not a press state, and it is not on
-   all three \u2014 it means "this one" or it means nothing. */
-/* Filled, not outlined. A signal border did not read as "this one" \u2014 it read
-   as another card with a slightly different edge. */
 .pick.big.lead{background:var(--signal);border-color:var(--signal);}
 .pick.big.lead b,
 .pick.big.lead span{color:var(--ink);}
@@ -411,15 +285,6 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .pathseg{display:flex;gap:6px;margin:0 0 10px;}
 .pathseg button{flex:1;min-width:0;min-height:42px;padding:10px 6px;border:1px solid var(--line2);border-radius:10px;font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--dust);background:var(--card);}
 .pathseg button[aria-pressed="true"]{background:var(--signal);color:var(--ink);border-color:var(--signal);font-weight:600;}
-/* Format and scope answer the same question at two depths, so they sit in one
-   block. The path control above answers a different one. */
-/* Shorter than the path row, not smaller. Squeezing format and scope onto one
-   line by shrinking the type broke both labels across two lines instead \u2014 the
-   type size was doing work the palette does better. Height and type size are
-   separable: the block gives back 8px of height at the same 9px type, so
-   "Live action" and "Movies + Series" still fit on one line and the path row
-   still reads as the question asked first. Signal marks the path you chose;
-   card2 marks the rest. */
 .includes{margin:0 0 18px;}
 .includes .scope{margin:0 0 6px;border-color:var(--line);border-radius:10px;}
 .includes .scope:last-of-type{margin-bottom:0;}
@@ -462,12 +327,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .toast.show{opacity:1;transform:translate(-50%,0);}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
 
-/* Canon skin: Dark Deco. ADDITIVE only — restating a token here leaves its
-   real value 180 lines from its declaration. */
 ::selection{background:var(--signal);color:var(--ink);}
-/* Reserves the scrollbar width even with nothing to scroll. Without it Next
-   up, the one view that fits a desktop screen, slides the centred column
-   7.5px sideways. Overlay scrollbars have no gutter, so mobile is unaffected. */
 html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
 .intro{border:1px solid var(--line);border-left:3px solid var(--signal);border-radius:12px;background:var(--sunk);padding:18px 18px 16px;margin-bottom:16px;}
 .ikick{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--signal);margin:0 0 10px;}
@@ -476,7 +336,6 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
 .istats{display:flex;gap:18px;padding-top:12px;border-top:1px solid var(--line);font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);flex-wrap:wrap;}
 .istats b{color:var(--bone);font-weight:600;margin-right:4px;}
 .homefoot{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:center;margin:30px 0 4px;line-height:1.8;}
-/* Reads the same tokens as every other track (.gbar / .ubar / .tbar / .segs). */
 #ringTrack{stroke:var(--line2);}
 #ringArc{stroke:var(--signal);}
 
@@ -525,9 +384,18 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
+/* Night Watcher — one file: markup, styles, catalogue and logic.
+
+   Why it is written this way is deliberately NOT in here. Every constraint,
+   every failure that produced a rule, and every decision that looks arbitrary
+   is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
+   qa/guards.js — 65 sections, each one negative-tested.
+
+   Read those before changing something that looks redundant. Most of it is
+   load-bearing, and this project has a long history of rules that only make
+   sense once you know what they were written after. */
 "use strict";
 
-/* e = story era for the composite timeline. 0 = no place in one Bruce's life. */
 var PATH = [
 {n:"01",name:"DC Animated Universe",
  note:"Bruce Timm's world, Kevin Conroy's voice \u2014 the foundation everything after gets measured against. The full weave: run The Animated Series, dropping Mask of the Phantasm in around season two and SubZero after it. Then The New Batman Adventures, detouring into Superman's 'World\u2019s Finest' and 'Knight Time', and finishing with Mystery of the Batwoman and Chase Me. Justice League and Unlimited follow \u2014 but JLU's 'Epilogue' spoils Batman Beyond, so save Beyond, Zeta and Return of the Joker for the very end.",
@@ -880,8 +748,6 @@ PATH.forEach(function(g, gi){
   });
 });
 
-/* path is the locked choice, mode is what is on screen. Only path is
-   persisted — that is what makes a shared deep link a view, not a takeover. */
 var S = {tab:"home", scope:"movies", format:"all", path:"", mode:"continuity", filter:"all", q:"", code:"",
          theme:"dark", watched:{}, skipped:{}, rated:{}, open:{}, groupOpen:{}, log:[]};
 var PATHS = [["continuity","By universe"], ["life","Bruce\u2019s life"], ["release","Release order"]];
@@ -892,23 +758,16 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-/* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
-   VERSION and the changelog must agree or guards fail the build. KEY is
-   separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.6.2";
+var BUILD = "1.6.3";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
 
-/* On file:// location.origin is the string "null". Fall back to the published
-   copy — the link exists to reach a different device either way. */
 function restoreLink(code){
   var http = (location.protocol === "http:" || location.protocol === "https:");
   return (http ? location.origin + location.pathname : SITE) + "#nw=" + code;
 }
 
-/* Storage adapter: window.storage inside Claude artifacts; localStorage on the
-   open web (GitHub Pages etc.); memory-only if neither is available. */
 var store = (function(){
   if (typeof window.storage === "object" && window.storage &&
       typeof window.storage.get === "function") {
@@ -935,18 +794,12 @@ function flagSave(){
   var el = document.getElementById("nosave");
   if(el) el.hidden = canSave;
 }
-/* CSS cannot reach the system status bar; the meta tag has to follow. */
 var THEMEBAR = {dark:"#0C111C", darker:"#000000"};
 function applyTheme(){
   document.documentElement.setAttribute("data-theme", S.theme);
   var m = document.querySelector('meta[name="theme-color"]');
   if(m) m.setAttribute("content", THEMEBAR[S.theme] || THEMEBAR.dark);
 }
-/* One entry per id, earliest timestamp wins \u2014 that is when it was actually
-   watched. Enforced where saved data is read rather than where it is written,
-   because a payload can also arrive hand-edited or from a build that is not
-   this one. Ratings are not reconciled here: they live in S.rated keyed by id,
-   so there is only ever one. */
 function dedupeLog(log){
   var seen = Object.create(null), out = [];
   log.forEach(function(e){
@@ -959,9 +812,7 @@ function dedupeLog(log){
 }
 function persist(){
   if(!canSave || !store) return;
-  /* mode mirrors path, for a 1.1.0 downgrade. Never S.mode: with no path
-     chosen that wrote a real ordering, which the next load adopted as one. */
-  var payload = JSON.stringify({watched:S.watched, skipped:S.skipped, rated:S.rated,
+    var payload = JSON.stringify({watched:S.watched, skipped:S.skipped, rated:S.rated,
                                 path:S.path, mode:S.path, theme:S.theme,
                                 scope:S.scope, format:S.format, log:S.log,
                                 groupOpen:S.groupOpen});
@@ -978,24 +829,13 @@ function restore(done){
         S.watched = o.watched || {}; S.skipped = o.skipped || {};
         S.rated = o.rated || {};
         S.log = dedupeLog(Array.isArray(o.log) ? o.log : []);
-        /* Upgrading from 1.1.0: their saved mode is a question already answered. */
-        if(isPath(o.path)) S.path = o.path;
+                if(isPath(o.path)) S.path = o.path;
         else if(isPath(o.mode)) S.path = o.mode;
         if(S.path) S.mode = S.path;
         if(o.theme === "darker" || o.theme === "dark") S.theme = o.theme;
-        /* Checked against the list, like format two lines down. Any truthy
-           string used to be accepted, and visible() reads anything that is not
-           "all" as movies-only \u2014 so a hand-edited "films" hid every season while
-           neither scope button rendered as pressed. */
-        if(o.scope === "movies" || o.scope === "all") S.scope = o.scope;
-        /* A save written before 1.5.0 has no format. Those people have been
-           tracking animated for months, and defaulting them to All would grow
-           the denominator overnight and hand them a live-action film in Next
-           up. They keep the world they had; only new arrivals get All. */
-        S.format = ["anim", "live", "all"].indexOf(o.format) >= 0 ? o.format : "anim";
-        /* Only false is meaningful \u2014 open is the default and absent keys read as
-           open, so anything else in here is noise from a hand-edited payload. */
-        if(o.groupOpen && typeof o.groupOpen === "object"){
+                if(o.scope === "movies" || o.scope === "all") S.scope = o.scope;
+                S.format = ["anim", "live", "all"].indexOf(o.format) >= 0 ? o.format : "anim";
+                if(o.groupOpen && typeof o.groupOpen === "object"){
           var gk; for(gk in o.groupOpen){ if(o.groupOpen[gk] === false) S.groupOpen[gk] = false; }
         }
       }catch(e){}
@@ -1011,14 +851,10 @@ function restore(done){
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
   return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
-/* ---- ordering ---- */
-/* Two axes now. Format asks which kind of Batman; scope asks how much of it.
-   Format narrows first, then scope narrows within it. */
 function visible(f){
   return (S.format === "all" || f.fmt === S.format) && (S.scope === "all" || !f.tv);
 }
 
-/* The span depends on scope: films start 1993, series reach back to 1968. */
 function yearSpan(){
   var p = FILMS.filter(visible), lo, hi, i;
   if(!p.length) return "";
@@ -1033,18 +869,10 @@ function noteFor(id){
   return (MODENOTE[id] || "").replace("{span}", yearSpan());
 }
 function modeNote(){ return noteFor(S.mode); }
-/* The chooser carried its own copy of these and the two drifted: one said
-   "safest first watch" where the other said "safest way through", and the
-   release blurb hardcoded 1968 while the note computed 1993 from the actual
-   scope. One source now, trimmed to its first two sentences \u2014 nobody sees both
-   at once, which is exactly why they diverged. */
 function pathBlurb(id){
   var parts = noteFor(id).split(". ");
   return parts.length <= 2 ? parts.join(". ") : parts.slice(0, 2).join(". ") + ".";
 }
-/* Cached on mode|scope|format — the three things membership depends on. Never on
-   watched/skipped/rated, so nothing needs to clear it and a new key simply
-   misses. If membership ever depends on progress, this cache is wrong. */
 var groupCache = null, groupCacheKey = "";
 function groupsKey(){ return S.mode + "|" + S.scope + "|" + S.format; }
 function buildGroups(){
@@ -1054,11 +882,11 @@ function buildGroups(){
   if(S.mode === "continuity"){
     PATH.forEach(function(g, gi){
       out.push({key:"c"+gi, tag:g.n, name:g.name, note:g.note,
-                films:FILMS.filter(function(f){ return f.gi === gi && visible(f); })});
+                films:groupFilms("c" + gi)});
     });
   } else if(S.mode === "life"){
     ERAS.forEach(function(era, i){
-      var fs = FILMS.filter(function(f){ return f.e === era.k && visible(f); });
+      var fs = groupFilms("e" + era.k);
       fs.sort(function(a,b){ return (a.gi - b.gi) || (a.ix - b.ix); });
       out.push({key:"e"+era.k, tag:(era.k === 0 ? "\u2014" : String(i+1)),
                 name:era.name, note:era.note, films:fs});
@@ -1077,7 +905,6 @@ function buildGroups(){
   groupCache = {groups:out, pool:flat};
   return out;
 }
-/* Absent reads as open, so "any open" is not simply Object.keys().length. */
 function anyOpen(){
   var gs = buildGroups(), i;
   for(i = 0; i < gs.length; i++){ if(S.groupOpen[gs[i].key] !== false) return true; }
@@ -1087,10 +914,6 @@ function setAllGroups(open){
   S.groupOpen = {};
   if(!open) buildGroups().forEach(function(g){ S.groupOpen[g.key] = false; });
 }
-/* The hero's group opens when you arrive at The Path, so the thing you are
-   actually up to is never hidden behind a header you have to find. A deliberate
-   collapse-all is left alone \u2014 re-opening it on every visit would make the
-   control useless. */
 function revealHero(){
   if(!anyOpen()) return;
   var f = upNext(); if(!f) return;
@@ -1108,12 +931,6 @@ function pool(){
 }
 function isDone(f){ return !!S.watched[f.id]; }
 function isSkip(f){ return !!S.skipped[f.id]; }
-/* Home and Progress each drew their own board with a different third stat \u2014
-   Skipped on one, Essentials on the other \u2014 so the same component meant two
-   things. Watched, To go and Skipped account for every entry in the pool;
-   Essentials is a different axis and already has its own row and its own donut.
-   Colour comes from the palette and carries the meaning the legend already
-   gives it: signal for done, bone for what is left, steel for passed over. */
 function scoreboard(c){
   return '<div class="bigstat">'+
     '<div><b class="sc-done">'+c.done+'</b><span>Watched</span></div>'+
@@ -1126,32 +943,33 @@ function counts(){
   return {total:p.length, done:done, skip:skip, left:p.length - done - skip};
 }
 function upNext(){
-  /* Preference order: never-skipped first. Only when everything left has been
-     skipped do we resurface skipped titles, and the hero labels that state. */
-  var p = pool(), i;
+    var p = pool(), i;
   for(i=0;i<p.length;i++){ if(!isDone(p[i]) && !isSkip(p[i])) return p[i]; }
   for(i=0;i<p.length;i++){ if(!isDone(p[i])) return p[i]; }
   return null;
 }
+function matches(f, q){
+  return !q || (f.t+" "+f.sub+" "+f.y+" "+f.gname+" "+f.d).toLowerCase().indexOf(q) >= 0;
+}
+function groupFilms(gk){
+  var kind = gk.charAt(0), n = parseInt(gk.slice(1), 10);
+  return FILMS.filter(function(f){
+    return visible(f) && (kind === "e" ? f.e === n : f.gi === n);
+  });
+}
 function metaOf(f, withUniverse){
   var bits = [];
-  if(f.sub) bits.push(f.sub);
+  if(f.sub && f.sub !== String(f.y)) bits.push(f.sub);
   bits.push(String(f.y));
   if(f.ep) bits.push(f.ep + (f.ep === 1 ? " episode" : " episodes"));
   if(withUniverse) bits.push(f.gname);
   return bits.join(" \u00b7 ");
 }
-/* Tier membership is EXCLUSIVE: Essential > Optional > Core. The raw o:1 flag
-   is a ROUTE marker, not a tier — every TV season carries it. Always resolve
-   through tierOf(); testing f.o directly drops an essential season from Core
-   AND Optional, leaving it in no bucket at all. */
 function tierOf(f){ return f.b.indexOf("e") >= 0 ? "e" : (f.o ? "o" : "k"); }
 function badges(f){
   var tier = tierOf(f);
   var out = ['<span class="bd '+tier+'">'+BADGE[tier]+'</span>'];
-  /* Only in All. Under Animated or Live action every row would carry the same
-     badge, which is a label for the switch you already set. */
-  if(S.format === "all"){
+    if(S.format === "all"){
     out.push('<span class="bd fm'+f.fmt+'">'+(f.fmt === "live" ? "LIVE ACTION" : "ANIMATED")+'</span>');
   }
   f.b.forEach(function(k){
@@ -1160,15 +978,6 @@ function badges(f){
   });
   return '<span class="badges">'+out.join("")+'</span>';
 }
-/* A search engine instead of an aggregator. One URL shape everywhere: no
-   country in the path, no localised segment, nothing to verify per market and
-   nothing that can 404. Three attempts at building an aggregator URL shipped or
-   staged broken before this. */
-/* The earliest year the title appeared, not the entry's own. Availability is
-   sold per show, not per season, so "Batman: The Animated Series 1994" is a
-   worse query than "\u2026 1992" for the same answer \u2014 and every season of a show
-   asking the same question is the point. Thirteen titles repeat across the
-   catalogue; without a year they all resolve to whichever one is more famous. */
 var TITLEYEAR = null;
 function titleYear(title){
   if(!TITLEYEAR){
@@ -1184,11 +993,6 @@ function watchUrl(title){
   return "https://search.brave.com/search?q=" +
          encodeURIComponent("where to watch " + title + (y ? " " + y : ""));
 }
-/* One star row, shared by the detail panel and Next up. */
-/* "Rate 3" repeated down a page of films says nothing about which film or what
-   it is currently set to, and the tap-the-lit-star-to-clear behaviour was
-   invisible without sight of the row. The title is in scope at every call
-   site, so there is no reason it was ever absent. */
 function starRow(f){
   var out = "", s, cur = clampRating(S.rated[f.id]);
   for(s = 1; s <= 5; s++){
@@ -1200,23 +1004,7 @@ function starRow(f){
   }
   return '<div class="stars" role="group" aria-label="Rating for '+esc(f.t)+'">'+out+'</div>';
 }
-/* The last five ticks, newest first, with the stars you gave them and a tick to
-   take them back. Stars never move the hero — rate() calls markWatched(), a
-   no-op on something already watched. The tick is the one control here that
-   does move it, and that is its whole purpose: 1.4.1 put stars on the hero, and
-   a 34px star beside a full-width button needs an undo within reach of the
-   thumb that missed. Scope is deliberately ignored: this is what you did, and
-   hiding a series you logged because the toggle now says films would be a lie
-   about your own history. */
 var ACTIVITYMAX = 5;
-/* The badges this defines render on The Path and nowhere else. It sat on
-   Progress until 1.4.1 \u2014 a key printed on a different page. It goes last,
-   because reference is something you go looking for. */
-/* Drawn with the badge classes themselves, not a colour picked to match them.
-   1.5.9 made tier filled, modifiers outlined and format dashed; the legend kept
-   describing all nine as coloured words, so the key stopped looking like the
-   thing it explains. Same one-source rule as pathSeg(): the swatch is a badge
-   or the legend can lie. */
 function legendBlock(){
   function sw(k, note){
     return '<span><span class="bd '+k+'">'+BADGE[k]+'</span>'+(note ? ' \u2014 '+note : '')+'</span>';
@@ -1239,25 +1027,15 @@ function activityBlock(){
   for(i = S.log.length - 1; i >= 0 && n < ACTIVITYMAX; i--){
     f = null;
     for(j = 0; j < FILMS.length; j++){ if(FILMS[j].id === S.log[i].id){ f = FILMS[j]; break; } }
-    if(!f) continue;                      /* an id from a newer build */
-    rows += '<div class="arow">'+
+    if(!f) continue;                          rows += '<div class="arow">'+
             '<button class="tick" data-act="watched" data-id="'+f.id+'" aria-label="Remove '+
-              esc(f.t)+' from your progress" aria-pressed="true"></button>'+
-            '<button class="atop" data-act="apeek" data-id="'+f.id+'" aria-expanded="'+
-              (!!S.open[f.id])+'"><span class="at">'+esc(f.t)+'</span>'+
-            '<span class="ad">'+esc(logDate(S.log[i].ts))+'</span></button>'+
-            (S.open[f.id]
-              ? '<div class="abadge">'+badges(f)+'</div>'+starRow(f)
-              : '')+'</div>';
+              esc(f.t)+(f.sub ? ", "+esc(f.sub) : "")+' from your progress" aria-pressed="true"></button>'+
+            '<span class="at">'+esc(f.t)+'</span>'+
+            starRow(f)+'</div>';
     n++;
   }
   if(!n) return "";
   return '<div class="activity"><p class="qhead">Recent activity</p>'+rows+'</div>';
-}
-function logDate(ts){
-  var d = new Date(ts);
-  if(isNaN(d.getTime())) return "";
-  return d.toLocaleDateString(undefined, {day:"numeric", month:"short"});
 }
 function watchLinks(f){
   return '<a class="lnk" href="'+watchUrl(f.t)+
@@ -1290,9 +1068,6 @@ function toggleSkip(id){
   else { S.skipped[id] = 1; unmarkWatched(id); }
   persist(); render();
 }
-/* Ratings are integers 1-5. Imported JSON may carry anything, and an
-   out-of-range value reaches new Array(n+1) in the star render and throws,
-   blanking the view. Every write to S.rated goes through this. */
 function clampRating(n){
   n = Math.floor(Number(n));
   return (n >= 1 && n <= 5) ? n : 0;
@@ -1304,11 +1079,7 @@ function stars(n){
 function rate(id, n){
   n = clampRating(n);
   if(!n) return;
-  /* Only setting a rating implies you watched it. Clearing one used to run
-     markWatched() as well, so untick something, tap its lit star to clear the
-     stale rating, and it came back marked watched \u2014 the opposite of both
-     actions. Reachable from the hero since 1.4.1. */
-  if(S.rated[id] === n){ delete S.rated[id]; }
+    if(S.rated[id] === n){ delete S.rated[id]; }
   else { S.rated[id] = n; markWatched(id); }
   persist(); render();
 }
@@ -1321,19 +1092,13 @@ function exportCode(){
     if(S.skipped[f.id]) k.push(h);
     if(clampRating(S.rated[f.id])) r.push(h + clampRating(S.rated[f.id]));
   });
-  /* NW2 adds the path in a P segment. 1.1.0 skips segments it does not know,
-     so it restores everything else. 1.0.0 rejects NW2; sw.js is network-first. */
-  return "NW2W" + w.join("") + "S" + k.join("") + "R" + r.join("") +
+    return "NW2W" + w.join("") + "S" + k.join("") + "R" + r.join("") +
          (S.path ? "P" + PATHCODE[S.path] : "");
 }
-/* NW<version> plus segments. Unknown segments and versions are skipped, so a
-   code from a newer build still restores what this one understands. Useless
-   unless it ships before the first code that needs it. */
 function importCode(raw){
   var code = String(raw || "").trim().replace(/\s+/g, "");
   var hit = code.search(/NW\d+[A-Z]/);
-  if(hit > 0) code = code.slice(hit);                    /* tolerate a pasted URL */
-  if(!/^NW\d+(?:[A-Z][0-9a-z]*)+$/.test(code)) return null;
+  if(hit > 0) code = code.slice(hit);                      if(!/^NW\d+(?:[A-Z][0-9a-z]*)+$/.test(code)) return null;
   var seg = {}, sre = /([A-Z])([0-9a-z]*)/g, sm;
   var body = code.replace(/^NW\d+/, "");
   while((sm = sre.exec(body))){ if(!(sm[1] in seg)) seg[sm[1]] = sm[2]; }
@@ -1353,9 +1118,7 @@ function importCode(raw){
   for(i = 0; i + 6 <= m[3].length; i += 6){
     id = map[m[3].substr(i,5)];
     var n = clampRating(parseInt(m[3].charAt(i+5), 10));
-    /* Count ratings too. Without this a code carrying only ratings restored
-       correctly and then reported "Restored 0", which reads as a failure. */
-    if(id && n){ res.rated[id] = n; if(!res.watched[id]) res.found++; }
+        if(id && n){ res.rated[id] = n; if(!res.watched[id]) res.found++; }
     else if(!id) res.unknown++;
   }
   return res;
@@ -1370,10 +1133,6 @@ function download(name, text, mime){
     return true;
   }catch(e){ return false; }
 }
-/* Progress, not settings. A backup restores what you watched onto whatever
-   device you are holding; it does not reach over and change that device's
-   format, scope or theme. The local payload carries those because it belongs
-   to one device. */
 function exportJSON(){
   var str = JSON.stringify({app:"night-watcher", v:2, exported:new Date().toISOString(),
     path:S.path, watched:S.watched, skipped:S.skipped, rated:S.rated, log:S.log}, null, 1);
@@ -1384,8 +1143,12 @@ function doRestore(text){
   if(text.charAt(0) === "{"){
     var o; try{ o = JSON.parse(text); }catch(e){ return null; }
     if(!o || typeof o !== "object" || (!o.watched && !o.skipped && !o.rated)) return null;
-    var res = {watched:o.watched || {}, skipped:o.skipped || {}, rated:o.rated || {}, found:0, unknown:0,
+        var res = {watched:Object.create(null), skipped:Object.create(null), rated:Object.create(null), found:0, unknown:0,
                path:isPath(o.path) ? o.path : ""};
+    var src;
+    for(src in (o.watched || {})) res.watched[src] = 1;
+    for(src in (o.skipped || {})) res.skipped[src] = 1;
+    for(src in (o.rated || {})) res.rated[src] = o.rated[src];
     if(!S.path && res.path){ S.path = S.mode = res.path; }
     var known = {}; FILMS.forEach(function(f){ known[f.id] = 1; });
     var id2;
@@ -1398,7 +1161,9 @@ function doRestore(text){
     for(id3 in res.rated){ var rv = clampRating(res.rated[id3]); if(rv) S.rated[id3] = rv; }
     if(Array.isArray(o.log)){
       o.log.forEach(function(en){
-        if(en && en.id && en.ts && !S.log.some(function(x){ return x.id === en.id; })) S.log.push(en);
+                if(en && en.id && isFinite(en.ts) && !S.log.some(function(x){ return x.id === en.id; })){
+          S.log.push({id:String(en.id), ts:Number(en.ts)});
+        }
       });
       S.log.sort(function(a2,b2){ return a2.ts - b2.ts; });
     } else {
@@ -1414,16 +1179,12 @@ function doRestore(text){
 }
 function applyImport(res){
   var id;
-  /* Restore merges progress; it must not overwrite a path chosen here. */
-  if(!S.path && isPath(res.path)){ S.path = S.mode = res.path; }
+    if(!S.path && isPath(res.path)){ S.path = S.mode = res.path; }
   for(id in res.watched){ if(!S.watched[id]){ S.watched[id] = 1; S.log.push({id:id, ts:Date.now()}); } }
   for(id in res.skipped){ if(!S.watched[id]) S.skipped[id] = 1; }
   for(id in res.rated){ var rn = clampRating(res.rated[id]); if(rn) S.rated[id] = rn; }
   persist(); render();
 }
-/* Format asks which kind of Batman, scope asks how much of it. Two questions of
-   the same sort, so they sit together \u2014 the path control above answers a
-   different one entirely, which is how you tell them apart without a label. */
 function formatSwitch(){
   var n = {anim:0, live:0};
   FILMS.forEach(function(f){ n[f.fmt] = (n[f.fmt] || 0) + 1; });
@@ -1435,10 +1196,6 @@ function formatSwitch(){
 function includeBlock(compact){
   return '<div class="includes">'+formatSwitch()+scopeSwitch(compact)+'</div>';
 }
-/* The master chooser. Which ordering, then what is in it \u2014 the two questions
-   every tab is an answer to. It used to be split: the path control only on
-   Home, a lone scope switch at the top of The Path and Progress, and nothing at
-   all on Next up. Same block, same place, everywhere now. */
 function masterChooser(){
   return '<div class="pathseg">'+
     PATHS.map(function(m){
@@ -1452,10 +1209,6 @@ function scopeSwitch(compact){
     '<button data-scope="all" aria-pressed="'+(S.scope==="all")+'">Movies + Series</button></div>'+
     (compact ? '' : '<p class="scopenote">'+scopeNote()+'</p>');
 }
-/* Counts follow the format in view. Saying "57 seasons" while Live action is
-   selected would be describing a catalogue the person cannot see. */
-/* Counts what the format switch is showing. It used to count the catalogue,
-   so picking Live action still claimed 110 films and 58 seasons of television. */
 function introStats(){
   var inFmt = FILMS.filter(function(f){ return S.format === "all" || f.fmt === S.format; });
   var ys = inFmt.map(function(f){ return f.y; });
@@ -1473,10 +1226,6 @@ function scopeNote(){
     ? nFilm + ' films. Switch on the series to add ' + nTv + ' seasons of television.'
     : nFilm + ' films and ' + nTv + ' seasons of television, woven into the same orders.';
 }
-/* One source. The first-run page rendered none of this, so the only page a
-   search engine ever sees contained the word "Bruce" twice and "Batman" not at
-   all \u2014 while the sentence that says it was already written, three branches
-   down, waiting for a path to be chosen. */
 function introBlock(){
   return '<div class="intro">'+
     '<p class="ikick">An unofficial fan guide</p>'+
@@ -1498,29 +1247,21 @@ function viewHome(){
   var fresh = (c.done === 0);
   var html = "";
 
-  /* No path yet: Home is the chooser. Not a modal — nothing to dismiss, and
-     deep links still route, because routing never depends on it. */
-  if(!S.path){
+    if(!S.path){
     html += '<div class="chooser">'+introBlock()+
       '<p class="pathkick">What are you watching</p>'+formatSwitch()+
       '<p class="pathkick" style="margin-top:22px">Choose your path</p>' +
       '<p class="picknote" style="margin:8px 0 16px">Three honest answers instead of one fake one. ' +
       (c.done ? 'Switching re-sorts what you see \u2014 nothing you have ticked is lost.' : 'You can change it whenever you like.') + '</p>' +
       '<div class="deck">'+PATHS.map(function(m, i){
-        /* By universe is the recommendation, and nothing said so \u2014 three equally
-           weighted cards leave a newcomer guessing at the one decision the app
-           actually has an opinion about. */
-        return '<button class="pick big'+(i === 0 ? ' lead' : '')+'" data-path="'+m[0]+'">'+
+                return '<button class="pick big'+(i === 0 ? ' lead' : '')+'" data-path="'+m[0]+'">'+
                (i === 0 ? '<em class="leadkick">Start here</em>' : '')+
                '<b>'+m[1]+'</b><span>'+esc(pathBlurb(m[0]))+'</span></button>';
       }).join("")+'</div>' + '</div>';
     return html;
   }
 
-  /* The card repeated the header exactly \u2014 name, ring, percentage, done of
-     total \u2014 and its only unique content was a Change button. The header carries
-     all of that on every tab already. What Home needs is the switch itself. */
-
+  
   html += masterChooser();
 
   if(fresh){
@@ -1563,7 +1304,7 @@ function viewHome(){
 
   html += '<p class="qhead" style="margin-top:6px">The universes</p><div class="ugrid">';
   PATH.forEach(function(g, gi){
-    var fs = FILMS.filter(function(f){ return f.gi === gi && visible(f); });
+    var fs = groupFilms("c" + gi);
     if(!fs.length) return;
     var d = fs.filter(isDone).length;
     var pct = Math.round(d / fs.length * 100);
@@ -1599,7 +1340,7 @@ function viewNext(){
              : '')+'</button>';
   }).join("");
   return masterChooser()+'<div class="hero">'+
-    '<p class="kick">'+(isSkip(f) ? 'Back to a skipped one' : 'Up next')+'</p>'+
+    '<p class="kick">'+(isSkip(f) ? "Back to a skipped one" : "Tonight\u2019s patrol")+'</p>'+
     '<p class="hcont">'+f.gn+' \u00b7 '+esc(f.gname)+'</p>'+
     '<h2>'+esc(f.t)+'</h2>'+
     '<p class="yr">'+esc(metaOf(f,false))+'</p>'+
@@ -1617,23 +1358,18 @@ function viewNext(){
     activityBlock();
 }
 
-/* All six chips, always. Splicing the tier chip in only while it was active
-   left Home as the only route back to Essentials. The row scrolls. */
 function chipSet(){
   return [["all","All"],["left","To watch"],["done","Watched"],
           ["ess","Essentials"],["core","Core route"],["opt","Optional"]];
 }
 function viewWatch(){
   var q = S.q.toLowerCase();
-  /* Switcher removed in 1.2.0: chosen once from Home, not re-asked per visit. */
-  var viewing = "";
+    var viewing = "";
   if(!S.path){
     viewing = '<div class="viewing"><p>You haven\u2019t chosen a path yet. This is '+
       esc(pathName(S.mode))+'.</p><button data-path="'+S.mode+'">Make this my path</button></div>';
   } else if(S.mode !== S.path){
-    /* Both directions. Offering only "make this mine" made a view a one-way
-       door, since mode is not persisted and only a reload undid it. */
-    viewing = '<div class="viewing"><p>Viewing <b>'+esc(pathName(S.mode))+'</b>. Your path is '+
+        viewing = '<div class="viewing"><p>Viewing <b>'+esc(pathName(S.mode))+'</b>. Your path is '+
       esc(pathName(S.path))+'.</p>'+
       '<button data-act="mypath">Back to '+esc(pathName(S.path))+'</button>'+
       '<button class="ghost" data-path="'+S.mode+'">Make this my path</button></div>';
@@ -1660,14 +1396,12 @@ function viewWatch(){
       if(S.filter === "left" && (isDone(f) || isSkip(f))) return;
       if(S.filter === "done" && !isDone(f)) return;
       if(S.filter === "ess" && f.b.indexOf("e") < 0) return;
-      if(q && (f.t+" "+f.sub+" "+f.y+" "+f.gname+" "+f.d).toLowerCase().indexOf(q) < 0) return;
+      if(!matches(f, q)) return;
       shown++; shownTotal++;
       var isOpen = !!S.open[f.id];
       var cls = "film" + (isDone(f)?" done":"") + (isSkip(f)?" skip":"") + (isOpen?" open":"");
       var meta = metaOf(f, S.mode !== "continuity");
-      /* Built ONLY for the open row. Emitting it for every entry and hiding it was
-         ~220 KB of the ~292 KB this view produced, reparsed on every keystroke. */
-      var detail = "";
+            var detail = "";
       if(isOpen){
         detail = '<div class="fdetail"><p>'+esc(f.d)+'</p><div class="acts">'+
           '<button class="act'+(isDone(f)?" primary":"")+'" data-act="watched" data-id="'+f.id+'">'+
@@ -1703,7 +1437,7 @@ function viewWatch(){
     var hidden = 0;
     if(S.scope === "movies" && q){
       FILMS.forEach(function(f){
-        if(f.tv && (f.t+" "+f.sub+" "+f.y+" "+f.gname+" "+f.d).toLowerCase().indexOf(q) >= 0) hidden++;
+        if(f.tv && matches(f, q)) hidden++;
       });
     }
     html += '<div class="empty"><div class="big">Nothing here</div>'+
@@ -1751,10 +1485,10 @@ function viewStats(){
   var ess = pool().filter(function(f){ return f.b.indexOf("e") >= 0; });
   var essDone = ess.filter(isDone).length;
   var uniGroups = PATH.map(function(g, gi){
-    return {key:"c"+gi, films:FILMS.filter(function(f){ return f.gi === gi && visible(f); })};
+    return {key:"c"+gi, films:groupFilms("c" + gi)};
   }).filter(function(g){ return g.films.length; });
   var lifeGroups = ERAS.map(function(era){
-    return {key:"e"+era.k, films:FILMS.filter(function(f){ return f.e === era.k && visible(f); })};
+    return {key:"e"+era.k, films:groupFilms("e" + era.k)};
   }).filter(function(g){ return g.films.length; });
 
   var html = masterChooser() + '<div class="pies" style="margin-top:18px">'+
@@ -1765,7 +1499,7 @@ function viewStats(){
 
   html += '<p class="qhead" style="margin:26px 0 0">By universe</p>';
   PATH.forEach(function(g, gi){
-    var fs = FILMS.filter(function(f){ return f.gi === gi && visible(f); });
+    var fs = groupFilms("c" + gi);
     if(!fs.length) return;
     var d = fs.filter(isDone).length;
     html += '<button class="srow" data-act="jump" data-gk="c'+gi+'" aria-label="'+
@@ -1776,7 +1510,7 @@ function viewStats(){
 
   html += '<p class="qhead" style="margin:26px 0 0">By era of Bruce\u2019s life</p>';
   ERAS.forEach(function(era){
-    var fs = FILMS.filter(function(f){ return f.e === era.k && visible(f); });
+    var fs = groupFilms("e" + era.k);
     if(!fs.length) return;
     var d = fs.filter(isDone).length;
     var col = era.k === 0 ? "var(--steel)" : "var(--signal)";
@@ -1786,9 +1520,7 @@ function viewStats(){
       '<span class="sc">'+d+'/'+fs.length+'</span></button>';
   });
 
-  /* The path row here duplicated Home's Change. What is left is progress in
-     portable form, which is why it stays in Progress. */
-  html += '<div class="bk"><h3>Your data</h3>'+
+    html += '<div class="bk"><h3>Your data</h3>'+
     '<p>Your progress lives only in this browser \u2014 a new phone, or clearing site data, starts you at zero. '+
     'Make a code and you can carry it anywhere.</p><div class="bkbtns">'+
     '<button class="bkbtn primary" data-act="mkcode">'+(S.code ? "Refresh code" : "Create backup code")+'</button>'+
@@ -1820,9 +1552,7 @@ function viewStats(){
     : "Saving is unavailable here, so progress lasts for this session only.")+'</p>'+
     '<p class="note">Availability changes constantly and differs by country, so \u201cWhere to watch\u201d '+
       'runs a fresh search each time rather than trusting a stored answer.</p>'+
-    /* Named titles here went stale every time one landed or another was
-       announced. The fact is about announced dates, not about which ones. */
-    '<p class="note">Announced dates can move. \u00b7 Build '+BUILD+'</p>';
+        '<p class="note">Announced dates can move. \u00b7 Build '+BUILD+'</p>';
   return html;
 }
 
@@ -1836,15 +1566,11 @@ function render(){
   document.getElementById("hsub").textContent = S.path
     ? pathName(S.path) + " \u00b7 " + c.done + " of " + c.total
     : c.done + " of " + c.total + " logged \u00b7 " + buildGroups().length + " " + gWord;
-  /* Scroll lives on the document, not <main>: <main> has no overflow, so its
-     scrollTop is always 0 and every re-render threw the position away. */
-  var v = document.getElementById("view");
+    var v = document.getElementById("view");
   var keep = window.pageYOffset || document.documentElement.scrollTop || 0;
   var qPrev = document.getElementById("q");
   var qSel = qPrev ? qPrev.selectionStart : null;
-  /* Refocus if the box HELD focus, not if it merely has text — keying off S.q
-     shut the keyboard when you deleted the last character. */
-  var qWasFocused = !!qPrev && document.activeElement === qPrev;
+    var qWasFocused = !!qPrev && document.activeElement === qPrev;
   var focus = null, ae = document.activeElement;
   if(ae && ae.tagName === "BUTTON" && v.contains(ae) && ae.dataset){
     focus = {}; ["act","id","tf","gk","mode","scope","filter","n"].forEach(function(k){
@@ -1855,10 +1581,7 @@ function render(){
   v.innerHTML = S.tab === "home" ? viewHome()
               : S.tab === "next" ? viewNext()
               : S.tab === "watch" ? viewWatch() : viewStats();
-  /* aria-current, not aria-selected, which is meaningless on a plain button.
-     Removed rather than set false: it has no false state and the CSS matches
-     on presence. */
-  Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function(b){
+    Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function(b){
     if(b.dataset.tab === S.tab) b.setAttribute("aria-current", "page");
     else b.removeAttribute("aria-current");
   });
@@ -1876,15 +1599,10 @@ function render(){
     var pos = (qSel === null || qSel === undefined) ? qi.value.length : Math.min(qSel, qi.value.length);
     qi.setSelectionRange(pos, pos);
   }
-  /* Clamp: the new view can be shorter than the old one, and restoring past
-     the end of the document leaves the page parked in empty space. */
-  var maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    var maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
   window.scrollTo(0, Math.min(keep, maxY));
 }
 
-/* The CSS kills transitions under prefers-reduced-motion; these two scrolls
-   were never covered by it, so the one setting that says "do not animate" was
-   half honoured. */
 function calmScroll(){
   try{
     return (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
@@ -1896,24 +1614,15 @@ function goToGroup(jk){
   S.mode = (jk.charAt(0) === "e") ? "life" : "continuity";
   S.groupOpen = {};
   buildGroups().forEach(function(g){ S.groupOpen[g.key] = (g.key === jk); });
-  /* groupOpen persists as of 1.3.5; tab, filter, query and mode remain session
-     state by design. Jumping is a deliberate act, so its collapse sticks. */
-  persist();
+    persist();
   window.scrollTo(0,0); render();
-  /* A collapsed group is still a 56px sticky header, so scrolling to the top
-     can leave the requested group far below the fold. */
-  var target = document.querySelector('.ghead[data-gk="'+jk+'"]');
+    var target = document.querySelector('.ghead[data-gk="'+jk+'"]');
   if(target && target.scrollIntoView){
     try{ target.scrollIntoView({block:"start", behavior:calmScroll()}); }
     catch(e){ target.scrollIntoView(); }
   }
 }
 
-/* Two tabs \u2014 or a tab and the installed app \u2014 both wrote the whole payload on
-   every tick, so whichever acted last silently erased the other's marks. No
-   sync involved; just last-write-wins on one device. Marks only ever move from
-   unset to set, so the merge is a union and never resurrects an untick made
-   here. */
 window.addEventListener("storage", function(e){
   if(!e || e.key !== KEY || !e.newValue) return;
   var o; try{ o = JSON.parse(e.newValue); }catch(err){ return; }
@@ -1939,8 +1648,6 @@ document.getElementById("tabs").addEventListener("click", function(e){
   S.tab = b.dataset.tab; window.scrollTo(0,0); render();
 });
 
-/* The wordmark is the one element on every screen, so it is the natural
-   "back to the top" \u2014 scroll lives on the document, not on <main>. */
 document.getElementById("topBtn").addEventListener("click", function(){
   try{ window.scrollTo({top:0, behavior:calmScroll()}); }
   catch(e){ window.scrollTo(0, 0); }
@@ -1996,15 +1703,8 @@ document.getElementById("view").addEventListener("click", function(e){
   else if(act === "watched"){ var w = !!S.watched[id]; toggleWatched(id); toast(w ? "Unmarked" : "Logged"); }
   else if(act === "skip"){ var k = !!S.skipped[id]; toggleSkip(id); toast(k ? "Back in the queue" : "Skipped"); }
   else if(act === "rate"){ rate(id, parseInt(b.dataset.n,10)); }
-  /* One line, on request. Never the description \u2014 the whole premise is that
-     nothing ahead of you gets spoiled, and the description is where that risk
-     lives. Badges and the continuity name are facts about placement, not plot. */
-  else if(act === "peek"){ S.open[id] = !S.open[id]; render(); }
-  /* Activity's reveal. Shares S.open with the Then rows harmlessly: Then holds
-     only unwatched entries and Activity only watched ones, so no id is ever in
-     both. */
-  else if(act === "apeek"){ S.open[id] = !S.open[id]; render(); }
-  else if(act === "jump"){ goToGroup(b.dataset.gk); }
+      else if(act === "peek"){ S.open[id] = !S.open[id]; render(); }
+    else if(act === "jump"){ goToGroup(b.dataset.gk); }
   else if(act === "expand"){ S.open[id] = !S.open[id]; render(); }
   else if(act === "group"){ var gk = b.dataset.gk; S.groupOpen[gk] = (S.groupOpen[gk] === false); persist(); render(); }
   else if(act === "allgroups"){ setAllGroups(!anyOpen()); persist(); render(); window.scrollTo(0,0); }
@@ -2084,8 +1784,6 @@ restore(function(){
   render();
 });
 
-/* Runs on load and on every hashchange, so a shared #life link works in a
-   running app, not only on a fresh one. */
 function routeHash(){
   var h = location.hash || "";
   if(h.indexOf("#nw=") === 0){
@@ -2097,9 +1795,7 @@ function routeHash(){
     }
     if(history.replaceState) history.replaceState(null, "", location.pathname);
   } else if(h.length > 1){
-    /* shareable views: #life  #release  #universes  #progress  #next
-       combine with scope: #life-series  #universes-movies */
-    h.slice(1).toLowerCase().split(/[-+]/).forEach(function(tok){
+        h.slice(1).toLowerCase().split(/[-+]/).forEach(function(tok){
       if(tok === "life"){ S.tab = "watch"; S.mode = "life"; revealHero(); }
       else if(tok === "release"){ S.tab = "watch"; S.mode = "release"; revealHero(); }
       else if(tok === "universes" || tok === "path"){ S.tab = "watch"; S.mode = "continuity"; revealHero(); }
@@ -2115,8 +1811,6 @@ window.addEventListener("hashchange", function(){
   render();
 });
 
-/* Registration is guarded: service workers need a secure context and file://
-   is a supported way to run this. Failure is silent and non-fatal. */
 if("serviceWorker" in navigator &&
    (location.protocol === "https:" || location.hostname === "localhost")){
   window.addEventListener("load", function(){

@@ -115,8 +115,12 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
    LAYOUT
      63   The grid columns have a floor
 
+   CATALOGUE
+     64   The year is not printed twice
+
    META
-     64   The guards are navigable
+     65   The file points at where its reasoning went
+     66   The guards are navigable
 
    Sections are numbered in file order. Groups are for finding things;
    they do not affect what runs. Guard 49 enforces the numbering.
@@ -1871,15 +1875,34 @@ if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.t
     fail("Activity titles are not set in the display face \u2014 they read as plain " +
          "body text among the styled rows directly above them");
   }
+  /* Flex, and deliberately not grid. The grid version placed the tick with
+     grid-row:1/-1 and no column, so anything added to the row auto-flowed into
+     the first track and pushed every title sideways \u2014 104px, in 1.6.2. Flex has
+     no auto-placement to get wrong. */
   var row = (HTML.match(/\.arow\{[^}]*\}/) || [""])[0];
-  if(!/display:grid/.test(row)){
-    fail("the Activity row is wrapping flex again \u2014 the stars land on their own " +
-         "line and right-align to nothing");
+  if(!/display:flex/.test(row)){
+    fail("the Activity row is a grid again \u2014 its last layout placed the tick " +
+         "across all rows with no column, and auto-placement moved every title");
   }
-  if(/\.arow \.stars\{[^}]*margin-left:auto/.test(HTML)){
-    fail("the Activity stars are pushed right again instead of sitting under the title");
+  if(/flex-wrap/.test(row)){
+    fail("the Activity row can wrap \u2014 one row growing taller than its neighbours " +
+         "is the thing this layout exists to prevent");
   }
-  if(!/class="atop"/.test(HTML)) fail("the title and date are no longer grouped on one line");
+  /* The title truncates rather than wrapping, for the same reason. */
+  if(!/text-overflow:ellipsis/.test(at)){
+    fail("the Activity title wraps instead of truncating, so a long one makes its " +
+         "row taller than every other");
+  }
+  /* The stars are on the line and reachable. Hiding them behind a tap in 1.6.2
+     removed a control that was being used. */
+  if(!/starRow\(f\)/.test(ab)){
+    fail("the Activity rows no longer carry their stars \u2014 hiding them in 1.6.2 " +
+         "took away a control that was in use");
+  }
+  if(/data-act="apeek"/.test(HTML)){
+    fail("Recent activity is behind a tap again \u2014 it hides the stars, and the " +
+         "reveal is what broke the row alignment");
+  }
   var tick = (HTML.match(/\.arow \.tick\{[^}]*\}/) || [""])[0];
   var tickW = parseFloat((tick.match(/width:([\d.]+)px/) || [0, 99])[1]);
   var pathTick = parseFloat((HTML.match(/\.tick\{[^}]*width:([\d.]+)px/) || [0, 0])[1]);
@@ -1932,10 +1955,14 @@ if(!/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/.test(fs.readFileSync(path.join(PUBLI
   });
 })();
 
-/* An entry should carry its badges wherever it appears. Activity was the one
-   place a logged entry rendered with none. */
-if(!/class="abadge"/.test(HTML)){
-  fail("Recent activity rows carry no badges");
+/* Activity carries no badges, on purpose. 1.5.9 added them because it was the
+   one place a logged entry rendered with none; 1.6.3 took them back out because
+   they do not fit on one line beside the stars, and the row being one line is
+   worth more than the label. Recorded as a reversal so it is not "restored" by
+   someone reading only the 1.5.9 note. */
+if(/class="abadge"/.test(HTML)){
+  fail("Recent activity is drawing badges again \u2014 they were removed in 1.6.3 so " +
+       "the row could hold the title, the date and the stars on one line");
 }
 /* The queue reveals badges and the continuity on request \u2014 never the
    description, which is where the spoiler risk lives. */
@@ -2041,35 +2068,47 @@ if(!/function legendBlock/.test(HTML) ||
 })();
 
 /* ---------- 58. Then is the tab, not the gap --------------------- */
-/* Activity was a bordered, filled card and Then was a heading over borderless
-   rows, so Next up read as card, gap, card \u2014 and the gap was the queue the tab
-   exists for. Both are a heading and a stack of rules now. What tells them
-   apart is that Then is numbered and Activity is dated, which is the difference
-   that was actually there. */
+/* Activity took 40.5% of Next up against Then's 16.4% \u2014 a history row was
+   122.5px against a queue row's 56 \u2014 so the tab spent two and a half times more
+   room on what you had done than on what you were about to do.
+   1.6.0 blamed the container and forbade the card. That was the wrong target:
+   the card was fine, the size was not. This guard holds the proportion instead,
+   which is the thing that was actually wrong. It would have passed every build
+   from 1.6.0 on, and still failed the layout that drew the complaint. */
 
 (function(){
   var act = (HTML.match(/\.activity\{[^}]*\}/) || [""])[0];
   if(!act){ fail("the Activity block has no styling of its own"); return; }
-  if(/border:|background:|border-radius:/.test(act)){
-    fail("Activity is a card again \u2014 the only one on the tab, which is what made " +
-         "Then read as the space between things");
+  var ab = optionalFn("activityBlock", "there would be no history");
+
+  /* One line a row. Anything that puts a second line back \u2014 a wrapping title, a
+     badge row, a reveal \u2014 doubles the block and the proportion goes with it. */
+  var rowLines = (ab.match(/'<span class="a[a-z]+"/g) || []).length;
+  if(rowLines > 1){
+    fail("an Activity row is building " + rowLines + " labelled spans \u2014 it holds a " +
+         "title beside its stars, and anything more stops it being one line");
   }
-  /* Numbers are what is left saying Then is a sequence. */
+  /* Five entries, one line each, against a queue of four. If a row can grow,
+     this ratio is what notices. */
+  var amax = parseInt((HTML.match(/var ACTIVITYMAX = (\d+);/) || [0, 0])[1], 10);
+  var arowPad = parseFloat((HTML.match(/\.arow\{[^}]*padding:([\d.]+)px/) || [0, 0])[1]);
+  var qitemPad = parseFloat((HTML.match(/\.qitem\{[^}]*padding:([\d.]+)px/) || [0, 0])[1]);
+  if(!arowPad || !qitemPad){ fail("cannot read the row padding on both blocks"); return; }
+  if(arowPad > qitemPad){
+    fail("an Activity row is padded " + arowPad + "px against a queue row's " +
+         qitemPad + "px \u2014 history must not be roomier than the queue it sits under");
+  }
+  if(amax > 5){
+    fail("ACTIVITYMAX is " + amax + " \u2014 more rows than the queue shows, and the tab " +
+         "tips back toward history");
+  }
+  /* Numbers are what says Then is a sequence rather than another history. */
   if(!/class="qn"/.test(HTML)){
-    fail("the Then rows lost their numbers \u2014 with neither block in a container " +
-         "they are all that separates a queue from a history");
+    fail("the Then rows lost their numbers \u2014 they are what separates a queue from " +
+         "a list of things already done");
   }
   if(!/\.arow\{[^}]*border-top:1px solid var\(--line\)/.test(HTML)){
-    fail("the Activity rows have no rule between them, and with the card gone " +
-         "there is nothing else holding them apart");
-  }
-  if(/\.arow:first-of-type\{[^}]*border-top:0/.test(HTML)){
-    fail("the first Activity row drops its rule \u2014 that was the card's top edge " +
-         "doing the work, and there is no card");
-  }
-  /* Same treatment means the same heading, not a nudged copy of it. */
-  if(/\.activity \.qhead\{/.test(HTML)){
-    fail("Activity's heading is offset from Then's \u2014 they are the same heading");
+    fail("the Activity rows have no rule between them");
   }
 })();
 
@@ -2323,7 +2362,92 @@ if(!/function legendBlock/.test(HTML) ||
   }
 })();
 
-/* ---------- 64. The guards are navigable ---------- */
+/* ---------- 64. The year is not printed twice -------------------- */
+/* Nine Super Friends entries carry the year as their sub label — sub:"1973" and
+   so on — and metaOf() pushes sub then y, so every meta line in the app read
+   "1973 · 1973 · 16 episodes". Both heroes, the Then rows and The Path. Found
+   on a soak, not by a guard, because nothing was checking the sentence the
+   function produces rather than the fields it reads. */
+
+(function(){
+  var mo = optionalFn("metaOf", "nothing would describe an entry");
+  if(!/f\.sub !== String\(f\.y\)/.test(mo)){
+    fail("metaOf() no longer skips a sub that is only the year — nine entries " +
+         "would print it twice on every line that describes them");
+  }
+  /* Run it. The regex above says the intent is there; this says it works. */
+  var sandbox2 = {};
+  vm.runInContext(fn("metaOf"), vm.createContext(sandbox2));
+  var seen = 0;
+  FILMS.forEach(function(f){
+    var line = sandbox2.metaOf(f, false);
+    var years = line.match(/\b\d{4}\b/g) || [];
+    if(years.length > 1 && years[0] === years[1]){
+      seen++;
+      if(seen === 1) fail('metaOf() prints the year twice for "' + f.t + '": ' + line);
+    }
+  });
+  if(seen > 1) fail(seen + " entries in total print their year twice");
+  note("meta lines checked for a repeated year: " + FILMS.length);
+})();
+
+/* ---------- 65. The file points at where its reasoning went ------ */
+/* 1.6.3 took 22 KB of explanatory comments out of index.html — the whole reason
+   the catalogue can grow — and moved them to NOTES.md. What is left is one
+   header block and the slug-freeze warning. The header is now the only thing in
+   the served file telling anyone that the reasoning exists at all, so it is one
+   careless delete from a codebase that looks arbitrary and undocumented. */
+
+(function(){
+  var head = (HTML.match(/<script>\s*(\/\*[\s\S]*?\*\/)/) || [])[1];
+  if(!head){
+    fail("the header block is gone from the top of the script — nothing in the " +
+         "served file now says the reasoning lives in NOTES.md");
+    return;
+  }
+  ["NOTES.md", "CHANGELOG.md", "qa/guards.js"].forEach(function(doc){
+    if(head.indexOf(doc) < 0){
+      fail("the header block no longer names " + doc + " — it is the only pointer " +
+           "left, so it has to point at all three");
+    }
+  });
+  if(!fs.existsSync(path.join(ROOT, "NOTES.md"))){
+    fail("NOTES.md is missing and the header block promises it");
+    return;
+  }
+  /* Comments are gone on purpose. A handful creeping back is how 22 KB came to
+     be there in the first place. */
+  var all = (HTML.match(/\/\*[\s\S]*?\*\//g) || []);
+  if(all.length > 2){
+    fail(all.length + " comments in index.html — the file carries the header " +
+         "block and the slug freeze, and explanations go to NOTES.md");
+  }
+  if(!/IDs in i:"\.\.\." are FROZEN/.test(HTML)){
+    fail("the slug-freeze warning is gone from above PATH — it is the one note " +
+         "that has to sit where the temptation is");
+  }
+  /* Every identifier NOTES.md documents must still exist, or the notes rot the
+     same way the README's file table used to. */
+  var notes = fs.readFileSync(path.join(ROOT, "NOTES.md"), "utf8");
+  var ghosts = [], keys = notes.match(/^### `([^`]+)`/gm) || [];
+  keys.forEach(function(k){
+    var name = k.replace(/^### `|`$/g, "").replace(/ \(cont\.\)$/, "");
+    if(/^[a-zA-Z_$][\w$]*\(\)$/.test(name)){
+      var fnName = name.slice(0, -2);
+      if(!new RegExp("function\\s+" + fnName + "\\s*\\(").test(HTML)) ghosts.push(name);
+    } else if(/^\.[a-zA-Z][\w-]*$/.test(name)){
+      if(HTML.indexOf(name + "{") < 0 && HTML.indexOf(name + " ") < 0 &&
+         HTML.indexOf(name + ",") < 0) ghosts.push(name);
+    }
+  });
+  if(ghosts.length){
+    fail("NOTES.md documents " + ghosts.length + " thing(s) index.html no longer has: " +
+         ghosts.slice(0, 6).join(", "));
+  }
+  note("NOTES.md entries checked against the file: " + keys.length);
+})();
+
+/* ---------- 66. The guards are navigable ---------- */
 /* Before 1.4.2 the numbering ran 1-19, jumped to 26, and hung eleven
    sub-sections off 30 with suffixes b through g. 12b and 12c sat before 12.
    Nothing enforced any of it, so every release made it worse. */

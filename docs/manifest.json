@@ -5,7 +5,7 @@
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
-  "orientation": "portrait",
+  "id": "/Night-Watcher/",
   "background_color": "#08090F",
   "theme_color": "#0C111C",
   "icons": [
