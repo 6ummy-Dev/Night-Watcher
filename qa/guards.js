@@ -778,8 +778,32 @@ if(!/mode:\s*S\.path\s*,/.test(HTML)){
 var pathBlocks = (HTML.match(/PATHS\.map\(/g) || []).length;
 if(pathBlocks !== 2){
   fail("PATHS.map appears " + pathBlocks + " times, expected 2 " +
-       "(the first-run blocks and the segmented control)");
+       "(the first-run blocks and masterChooser)");
 }
+/* One block on every tab. It used to be split three ways \u2014 the path control on
+   Home only, a lone scope switch at the top of The Path and Progress, and
+   nothing on Next up \u2014 so which controls you had depended on where you were. */
+if(!/function masterChooser\s*\(/.test(HTML)){
+  fail("masterChooser() is gone");
+}
+(function(){
+  var calls = (HTML.match(/masterChooser\(\)/g) || []).length - 1;
+  if(calls !== 5){
+    fail("masterChooser() is rendered " + calls + " times, expected 5 \u2014 Home, " +
+         "Next up and its finished state, The Path, and Progress");
+  }
+  ["viewHome", "viewNext", "viewWatch", "viewStats"].forEach(function(v){
+    if(!/masterChooser\(\)/.test(optionalFn(v))){
+      fail(v + "() does not render the master chooser");
+    }
+  });
+  /* The half-block it replaced must not come back beside it. */
+  ["viewWatch", "viewStats"].forEach(function(v){
+    if(/[^r]\bscopeSwitch\(/.test(optionalFn(v))){
+      fail(v + "() still renders a lone scope switch alongside the master chooser");
+    }
+  });
+})();
 
 /* Nothing emits data-mode since the switcher went in 1.2.0. */
 if(/dataset\.mode/.test(HTML)){
@@ -1661,7 +1685,7 @@ if(!/S\.format/.test(sn)){
   var home = optionalFn("viewHome", "there would be no Home");
   /* Controls first: they govern what every block below them shows, and reading
      them after the card meant meeting the answer before the question. */
-  var order = ["class=\"pathseg\"", "includeBlock()", "class=\"intro\"",
+  var order = ["masterChooser()", "class=\"intro\"",
                "class=\"hero\"", "scoreboard(c)"];
   var at = order.map(function(k){ return home.indexOf(k); });
   at.forEach(function(pos, n){

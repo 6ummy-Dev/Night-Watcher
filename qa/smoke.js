@@ -368,6 +368,23 @@ win.addEventListener("load", function(){
     S.path = "continuity"; S.mode = "continuity"; win.render();
     var v = doc.getElementById("view");
     function posOf(sel){ var n = v.querySelector(sel); return n ? Array.prototype.indexOf.call(v.children, n.closest("#view > *")) : -1; }
+    /* The master chooser opens every tab (1.5.6). */
+    ["home", "next", "watch", "stats"].forEach(function(tab){
+      S.tab = tab; win.render();
+      var first = doc.getElementById("view").children[0];
+      check(tab + " opens with the master chooser",
+            !!first && first.className.indexOf("pathseg") >= 0, first && first.className);
+      check(tab + " carries the format and scope row",
+            !!doc.querySelector("#view .includes"));
+      check(tab + " has no lone scope switch left",
+            !doc.querySelector("#view > .scope"));
+    });
+    S.tab = "watch"; win.render();
+    doc.querySelector('#view .pathseg button[data-path="release"]')
+       .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("switching path from another tab works", S.path === "release", S.path);
+    S.path = "continuity"; S.mode = "continuity"; S.tab = "home"; win.render();
+
     var iSeg = posOf(".pathseg"), iInc = posOf(".includes"), iHero = posOf(".hero");
     check("the controls come first", iSeg === 0, "pathseg at " + iSeg);
     check("the two control groups are adjacent", iInc === iSeg + 1,
@@ -409,9 +426,13 @@ win.addEventListener("load", function(){
     check("the live-action groups are all that remain",
           win.buildGroups().every(function(g){
             return g.films.every(function(f){ return f.fmt === "live"; }); }));
-    check("the note counts what is in view, not the catalogue",
-          doc.querySelector(".scopenote").textContent.indexOf("57") < 0,
-          doc.querySelector(".scopenote").textContent);
+    /* The master chooser is compact, so the note lives with the intro on Home. */
+    S.tab = "home"; S.watched = {}; S.log = []; win.render();
+    var stats = doc.querySelector("#view .istats");
+    check("the intro counts what is in view, not the catalogue",
+          !stats || stats.textContent.indexOf("58") < 0,
+          stats ? stats.textContent.replace(/\s+/g, " ") : "(no intro)");
+    S.tab = "watch"; win.render();
 
     S.scope = "movies"; win.render();
     check("Movies hides the live-action series too",

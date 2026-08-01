@@ -19,6 +19,21 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.5.6] — 2026-07-31
+
+### Changed
+
+- **One chooser, on every tab.** Which ordering, then what is in it — the two
+  questions every tab is an answer to.
+
+  They had been split three ways: the path control on Home only, a lone scope
+  switch at the top of The Path and Progress, and nothing at all on Next up. So
+  which controls you had depended on where you were standing, and changing the
+  ordering meant going back to Home and returning.
+
+  The same block now opens all four tabs, rendered from one function, and the
+  half-blocks it replaced are gone.
+
 ## [1.5.5] — 2026-07-31
 
 ### Changed

@@ -33,7 +33,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-EXvJotrvbkoGV9ok0kYAmqzc3zhykmBpEu1R5zP65xU=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-o9kdtrcgQEv8+r95L2zbAE+ZaqGIsJtyXwewGl5DodU=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -800,7 +800,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.5.5";
+var BUILD = "1.5.6";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -1318,6 +1318,17 @@ function formatSwitch(){
 function includeBlock(compact){
   return '<div class="includes">'+formatSwitch()+scopeSwitch(compact)+'</div>';
 }
+/* The master chooser. Which ordering, then what is in it \u2014 the two questions
+   every tab is an answer to. It used to be split: the path control only on
+   Home, a lone scope switch at the top of The Path and Progress, and nothing at
+   all on Next up. Same block, same place, everywhere now. */
+function masterChooser(){
+  return '<div class="pathseg">'+
+    PATHS.map(function(m){
+      return '<button data-path="'+m[0]+'" aria-pressed="'+(S.path===m[0])+'">'+
+             esc(m[1])+'</button>';
+    }).join("")+'</div>'+includeBlock(true);
+}
 function scopeSwitch(compact){
   return '<div class="scope"'+(compact ? ' style="margin:0 0 12px"' : '')+'>'+
     '<button data-scope="movies" aria-pressed="'+(S.scope==="movies")+'">Movies</button>'+
@@ -1381,12 +1392,7 @@ function viewHome(){
      total \u2014 and its only unique content was a Change button. The header carries
      all of that on every tab already. What Home needs is the switch itself. */
 
-  html += '<div class="pathseg">'+
-    PATHS.map(function(m){
-      return '<button data-path="'+m[0]+'" aria-pressed="'+(S.path===m[0])+'">'+
-             esc(m[1])+'</button>';
-    }).join("")+'</div>';
-  html += includeBlock();
+  html += masterChooser();
 
   if(fresh){
     html += '<div class="intro">'+
@@ -1452,7 +1458,7 @@ function viewHome(){
 function viewNext(){
   var f = upNext(), c = counts();
   if(!f){
-    return '<div class="empty"><div class="big">Case closed</div><p>All '+c.total+
+    return masterChooser()+'<div class="empty"><div class="big">Case closed</div><p>All '+c.total+
       ' logged \u2014 every Batman there is. Go back to Mask of the Phantasm.</p></div>'+activityBlock();
   }
   var p = pool(), i = p.indexOf(f);
@@ -1462,7 +1468,7 @@ function viewNext(){
            (x.sub ? ' <span style="color:var(--dim);font-size:11px">'+esc(x.sub)+'</span>' : '')+
            '</span><span class="qy">'+x.y+'</span></div>';
   }).join("");
-  return '<div class="hero">'+
+  return masterChooser()+'<div class="hero">'+
     '<p class="kick">'+(isSkip(f) ? 'Back to a skipped one \u00b7 ' : '')+f.gn+' \u00b7 '+esc(f.gname)+'</p>'+
     '<h2>'+esc(f.t)+'</h2>'+
     '<p class="yr">'+esc(metaOf(f,false))+((f.b.length||f.o) ? ' &nbsp;'+badges(f) : '')+'</p>'+
@@ -1500,7 +1506,7 @@ function viewWatch(){
       '<button data-act="mypath">Back to '+esc(pathName(S.path))+'</button>'+
       '<button class="ghost" data-path="'+S.mode+'">Make this my path</button></div>';
   }
-  var html = scopeSwitch(true) + viewing +
+  var html = masterChooser() + viewing +
     '<h2 class="pathtitle">'+esc(pathName(S.mode))+'</h2>'+
     '<p class="modenote">'+modeNote()+'</p>'+
     '<input class="search" id="q" type="search" enterkeyhint="search" aria-label="Search the catalogue" placeholder="'+
@@ -1619,7 +1625,7 @@ function viewStats(){
     return {key:"e"+era.k, films:FILMS.filter(function(f){ return f.e === era.k && visible(f); })};
   }).filter(function(g){ return g.films.length; });
 
-  var html = scopeSwitch(true) + '<div class="pies" style="margin-top:18px">'+
+  var html = masterChooser() + '<div class="pies" style="margin-top:18px">'+
     donut(uniGroups, "The universes", uniGroups.length + " universes \u00b7 tap a slice") +
     donut(lifeGroups, "Bruce\u2019s life", lifeGroups.length + " eras \u00b7 tap a slice") +
     '</div>'+
