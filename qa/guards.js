@@ -110,9 +110,13 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
 
    ACCESSIBILITY
      61   Contrast is measured on the ink that renders
+     62   Nothing focusable is small enough to zoom
+
+   LAYOUT
+     63   The grid columns have a floor
 
    META
-     62   The guards are navigable
+     64   The guards are navigable
 
    Sections are numbered in file order. Groups are for finding things;
    they do not affect what runs. Guard 49 enforces the numbering.
@@ -1503,6 +1507,21 @@ if(!/titleYear\(/.test(wu)){
   }
 })();
 
+/* The sitemap and the structured data both claim a last-modified date, both
+   are written by hand, and they drifted a day apart before 1.6.0 with nothing
+   to catch it. One is a lie either way. */
+(function(){
+  var sm = fs.readFileSync(path.join(PUBLIC, "sitemap.xml"), "utf8");
+  var last = (sm.match(/<lastmod>([\d-]+)<\/lastmod>/) || [])[1];
+  var mod = (HTML.match(/"dateModified"\s*:\s*"([\d-]+)"/) || [])[1];
+  if(!last){ fail("sitemap.xml states no lastmod"); return; }
+  if(!mod){ fail("the JSON-LD states no dateModified"); return; }
+  if(last !== mod){
+    fail("sitemap.xml says the page changed on " + last + " and the JSON-LD says " +
+         mod + " \u2014 both are hand-written and one of them is wrong");
+  }
+})();
+
 /* ---------- 46. The README states the real weight --------------------- */
 /* It drifts every release, and it is the first number anyone reads. */
 
@@ -2139,10 +2158,15 @@ if(!/function legendBlock/.test(HTML) ||
    --card2 and passed, while what rendered was 3.91:1. They appear on every row
    in All, which is the default format. .bd.s is --bone at 55% and passes at
    4.85:1 — by 0.35, with nothing watching.
-   Same shape as the alignment bugs this release fixes: a true fact about the
-   rendered page that the build could not see. Composites within one rule only;
-   a colour and an opacity that reach an element through different selectors
-   would need a cascade, which is not something to hand-roll here. */
+   Same shape as the alignment bugs 1.6.1 fixed: a true fact about the rendered
+   page that the build could not see.
+   1.6.2 extends it. The single-rule version had a hole big enough to drive the
+   Activity redesign through: a wrapper like .activity{opacity:.7} sets no
+   colour of its own, so there was nothing to composite and it sailed past \u2014
+   while every coloured descendant faded with it, five of seven palette tokens
+   under AA. Any rule that fades and contains text is now measured against every
+   ink the app uses, which is the conservative reading and the right one: a
+   block fade applies to whatever ends up inside it. */
 
 (function(){
   var SURFACES = ["ink", "sunk", "card", "card2"];
@@ -2158,11 +2182,55 @@ if(!/function legendBlock/.test(HTML) ||
   var css = (HTML.match(/<style>([\s\S]*?)<\/style>/g) || []).join("\n")
               .replace(/\/\*[\s\S]*?\*\//g, "");
   var rules = css.match(/[^{}]+\{[^}]*\}/g) || [];
+  /* Every token the app actually paints text with. A block fade reaches all of
+     them, so a rule that fades without naming a colour is held to the worst. */
+  var INKS = {}, SELINK = {};
+  rules.forEach(function(r){
+    var m = r.slice(r.indexOf("{")).match(/(?:^|[;{\s])color:\s*var\(--([a-z0-9]+)\)/);
+    if(!m) return;
+    INKS[m[1]] = 1;
+    /* Which ink each selector ends up with, so a fade written in a separate
+       rule can be measured against the colour that element really paints
+       rather than against every colour in the app. */
+    r.slice(0, r.indexOf("{")).split(",").forEach(function(one){
+      one = one.trim().split("\n").pop().trim();
+      if(one) SELINK[one] = m[1];
+    });
+  });
   var checked = 0, dimmed = 0;
   rules.forEach(function(rule){
     var body = rule.slice(rule.indexOf("{"));
     var tok = (body.match(/(?:^|[;{\s])color:\s*var\(--([a-z0-9]+)\)/) || [])[1];
     var op = parseFloat((body.match(/(?:^|[;{\s])opacity:\s*([\d.]+)/) || [0, 1])[1]);
+    /* A fade with no colour of its own still fades everything under it. Skip
+       only the rules that cannot contain text: a bare :active press state on a
+       control, and a fade to nothing. */
+    if(!tok && op < 1 && op > 0){
+      var s0 = rule.slice(0, rule.indexOf("{")).trim().split("\n").pop().trim();
+      if(/:active$|:hover$/.test(s0)) return;
+      /* If this selector is given a colour elsewhere, that is the ink it fades
+         \u2014 no need to assume the worst in the app. */
+      var pool = SELINK[s0] ? [SELINK[s0]] : Object.keys(INKS);
+      var worst = null, wname = "";
+      pool.forEach(function(k){
+        themes.forEach(function(t){
+          var p = t[1]; if(!p[k]) return;
+          SURFACES.forEach(function(s){
+            if(SURFACES.indexOf(k) >= 0) return;
+            var r2 = contrast(mix(p[k], p[s], op), p[s]);
+            checked++;
+            if(worst === null || r2 < worst){ worst = r2; wname = t[0] + ": --" + k + " on --" + s; }
+          });
+        });
+      });
+      if(worst !== null && worst < 4.5){
+        fail(s0 + " fades everything inside it to opacity " + op + " \u2014 " + wname +
+             " lands at " + worst.toFixed(2) + ":1, under the 4.5:1 AA floor. Step " +
+             "the palette instead; a fade cannot be measured by the token name.");
+      }
+      if(worst !== null) dimmed++;
+      return;
+    }
     if(!tok || !(op < 1)) return;
     /* A surface token used as a colour sits on its own backdrop, not on these
        four — the lead card's ink on signal is the case. Guard 20 excludes
@@ -2190,7 +2258,72 @@ if(!/function legendBlock/.test(HTML) ||
   note("faded inks composited: " + dimmed + " rule(s), " + checked + " colour/surface pairs");
 })();
 
-/* ---------- 62. The guards are navigable ---------- */
+/* ---------- 62. Nothing focusable is small enough to zoom ---------- */
+/* iOS Safari zooms the page whenever a focused input is under 16px, and the
+   viewport meta deliberately sets no maximum-scale to block it — capping zoom
+   fails WCAG 1.4.4, so the input has to be the thing that changes. Search
+   shipped at 15px and the two backup fields at 11px, which meant every search
+   on an iPhone opened with a zoom the reader had to pinch back out of. This is
+   a rule with a number in it, so it belongs here rather than in a review. */
+
+(function(){
+  var css = (HTML.match(/<style>([\s\S]*?)<\/style>/g) || []).join("\n")
+              .replace(/\/\*[\s\S]*?\*\//g, "");
+  var rules = css.match(/[^{}]+\{[^}]*\}/g) || [];
+  /* The selectors the app puts a caret in. */
+  var FIELDS = ["search", "code", "bkin"];
+  var seen = {};
+  rules.forEach(function(rule){
+    var sel = rule.slice(0, rule.indexOf("{")).trim();
+    var body = rule.slice(rule.indexOf("{"));
+    var fs = body.match(/(?:^|[;{\s])font-size:\s*([\d.]+)px/);
+    if(!fs) return;
+    FIELDS.forEach(function(f){
+      if(!new RegExp("\\." + f + "\\b").test(sel)) return;
+      if(/::/.test(sel)) return;
+      seen[f] = 1;
+      if(parseFloat(fs[1]) < 16){
+        fail("." + f + " is " + fs[1] + "px — iOS zooms the page on any focused " +
+             "input under 16px, and the viewport does not cap zoom on purpose");
+      }
+    });
+  });
+  FIELDS.forEach(function(f){
+    if(!seen[f]) fail("." + f + " has no font-size of its own to measure");
+  });
+})();
+
+/* ---------- 63. The grid columns have a floor ------------------- */
+/* A bare 1fr is minmax(auto,1fr), and that auto is the column's min-content
+   width. "Tomorrowverse" is thirteen characters with nowhere to break, so its
+   column could never go under 169px — which pushed the page to 331px wide
+   inside a 320px screen and put the right-hand cards off the edge. The floor
+   has to be zero, and the card has to be allowed to break a word. */
+
+(function(){
+  var rule = (HTML.match(/\.ugrid\{[^}]*\}/) || [""])[0];
+  if(!rule){ fail(".ugrid has no styling of its own"); return; }
+  var cols = (rule.match(/grid-template-columns:\s*([^;}]+)/) || [])[1];
+  if(!cols){ fail(".ugrid sets no columns"); return; }
+  /* Inside minmax() a 1fr is the maximum and perfectly fine; it is 1fr standing
+     on its own that carries the auto minimum. */
+  var bare = cols.replace(/minmax\([^)]*\)/g, "");
+  if(/(^|[\s,(])1fr/.test(bare)){
+    fail(".ugrid uses a bare 1fr (" + cols.trim() + ") — that is minmax(auto,1fr), " +
+         "so one unbreakable word sets the column width and the page scrolls " +
+         "sideways on a 320px screen");
+  }
+  if(!/minmax\(\s*0/.test(cols)){
+    fail(".ugrid columns have no zero floor: " + cols.trim());
+  }
+  var card = (HTML.match(/\.ucard\{[^}]*\}/) || [""])[0];
+  if(!/overflow-wrap:\s*anywhere|word-break:\s*break-word/.test(card)){
+    fail("the universe cards cannot break a long word, so the longest title in " +
+         "the catalogue still decides how wide the column wants to be");
+  }
+})();
+
+/* ---------- 64. The guards are navigable ---------- */
 /* Before 1.4.2 the numbering ran 1-19, jumped to 26, and hung eleven
    sub-sections off 30 with suffixes b through g. 12b and 12c sat before 12.
    Nothing enforced any of it, so every release made it worse. */

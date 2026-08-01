@@ -19,6 +19,113 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.6.2] — 2026-08-01
+
+The card, the history, and a page that scrolled sideways.
+
+### Changed
+
+- **The card on Home was assembled, not composed.** Its top line carried the
+  label, the group number and the group name on one 10px tracked line — and for
+  five of the app's continuities that ran to two lines and broke mid-field:
+  "DC ANIMATED / MOVIE UNIVERSE", which is exactly where the middot separators
+  stop marking anything. The meta line was often four characters and a hole,
+  because a non-breaking space was doing the spacing between "2013" and the
+  first badge. And the gaps ran **17, 12, 10, 15, 16** from top to bottom: five
+  values with no relationship between any two.
+
+  The kick says one thing now. The continuity has its own line, so a long name
+  wraps against nothing but itself. The badges are a row rather than something
+  glued to the end of a sentence. Every gap comes from one scale — 6, 12, 18.
+  Measured at 320, 360 and 390: the kick, the continuity and the meta are one
+  line each at all three, so the card stops resizing as you move through the
+  catalogue.
+
+  It also carries the description now. Home's card was a truncated copy of Next
+  up's — same class, fewer children, so the shared rules were tuned for neither.
+  It said what was next and never why.
+- **Recent activity took 40.5% of Next up; Then took 16.4%.** A history row was
+  122.5px against a queue row's 56. The tab spent two and a half times more room
+  on what you had done than on what you were about to do.
+
+  Rows are one line now — tick, title, date — and reveal their badges and stars
+  on tap, the same bargain the Then rows have struck since 1.5.9. Nothing is
+  gone; it is behind one tap. **59.5px a row, and the block drops from 622px to
+  316px.**
+- **The past was drawn brighter than the future.** Watched titles rendered in
+  `--bone`, the brightest ink in the palette and the one that means "press
+  this", while the film you were actually up to rendered in `--dust`. They are
+  `--dim` now: one step below the queue instead of two above it.
+
+  Not a fade. `.activity{opacity:.7}` puts five of the seven palette tokens
+  under AA — the dates, every outlined badge, the unlit stars. Guard 61 now
+  catches that, and finding out it did not is what led to the fix below.
+
+### Fixed
+
+- **The page scrolled sideways at 320px.** `grid-template-columns:1fr 1fr` is
+  `minmax(auto, 1fr)`, and that auto floor is the column's min-content width.
+  **"Tomorrowverse"** — thirteen characters with nowhere to break — pinned its
+  column at 169px, so at 320 the grid measured 331px inside a 320px screen and
+  the right-hand cards ran off the edge. iPhone SE and the Fold cover screen.
+
+  `repeat(2,minmax(0,1fr))` and a card that may break a word. Row heights are
+  deliberately untouched. No horizontal overflow on any tab at 320, 360 or 390.
+- **iOS zoomed the page on every search.** Safari zooms any focused input under
+  16px, and the viewport sets no `maximum-scale` on purpose, because capping
+  zoom fails WCAG 1.4.4. The search box was 15px and the two backup fields were
+  **11px**, so Progress zoomed harder than search. All three are 16px.
+- **The era rows on Progress had no keyboard route at all.** The donut slices
+  they mirror are pointer-only — `cursor:pointer` and nothing else, no
+  `tabindex`, no `role`, no key handler. The universe rows at least had a way in
+  through Home's grid; the eras had none. Both are buttons now, labelled with
+  their name and their count.
+- **The stars said "Rate 3" and nothing else** — not which film, not what the
+  rating currently was, and not that tapping the lit star clears it. All three
+  are in the label now, and each star carries `aria-pressed`.
+- **Two tabs overwrote each other.** Every interaction wrote the whole payload
+  and nothing listened for the write, so a second tab silently erased the
+  first's ticks. Same device, no sync involved. There is a `storage` listener
+  now, and it merges — marks only ever move from unset to set, so it can never
+  resurrect something you had just unticked.
+- **`restore()` accepted any `scope` it was given** while validating `format`
+  two lines below. A payload saying `scope:"films"` hid every season and left
+  neither scope button looking pressed.
+- **`exportJSON` wrote a `scope` field nothing reads.** The comment above it
+  already said a backup must not reach over and change the device's scope.
+- **Smooth scrolling ignored `prefers-reduced-motion`.** The CSS killed
+  transitions; the two programmatic scrolls were never covered by it.
+- The search match count is announced. The toast truncates with an ellipsis
+  instead of clipping mid-word. `mobile-web-app-capable` joins the deprecated
+  Apple meta. A dead `var pc = counts();` is gone.
+- **The Activity tick reserved three grid rows** after the row collapsed to one,
+  leaving two empty tracks and their gaps — 10px of nothing per row, found by
+  measuring the result rather than trusting the change.
+
+### Added
+
+- **Guard 62 — nothing focusable is small enough to zoom.** Any field the app
+  puts a caret in must be at least 16px.
+- **Guard 63 — the grid columns have a floor.** A bare `1fr` fails, the floor
+  must be zero, and the card must be able to break a word.
+- **Guard 61 now measures inherited fades.** As written in 1.6.1 it composited
+  only where one rule set both a colour and an opacity. A wrapper that fades a
+  block without naming a colour had nothing to measure and passed — which is
+  precisely the change this release rejected. A fade that contains text is now
+  held to whichever ink it actually carries, or to the worst in the app if it
+  carries several.
+- **The sitemap's `lastmod` must equal the JSON-LD `dateModified`.** Both are
+  written by hand and they drifted a day apart before 1.6.0.
+
+Twelve new negative tests. The 1.6.0 and 1.6.1 suites were re-run unchanged —
+43 cases in total, all passing.
+
+### Note
+
+`index.html` is 143 KB raw / 46 KB gzipped against the 150 / 50 budget. The
+headroom is 7 KB and this release spent 6 of it, most of that on the comments
+explaining why. The next release that adds weight should expect to argue for it.
+
 ## [1.6.1] — 2026-08-01
 
 Three things a build cannot see, and now can.

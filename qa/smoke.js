@@ -18,6 +18,19 @@ var html = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8")
   .replace(/<script[^>]*cloudflareinsights[^>]*><\/script>/g, "");
 
 var fails = [];
+/* Activity rows are one line until asked (1.6.2). Anything that drives their
+   stars or reads their badges has to open the row first, the way a reader
+   would. */
+function openActivityRow(win, n){
+  var doc = win.document;
+  var row = doc.querySelectorAll(".activity .arow")[n || 0];
+  if(!row) return null;
+  var head = row.querySelector(".atop");
+  if(head && head.getAttribute("aria-expanded") === "false"){
+    head.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+  }
+  return doc.querySelectorAll(".activity .arow")[n || 0];
+}
 function check(name, cond, detail){
   if(cond) console.log("  ok   " + name);
   else { console.log("  FAIL " + name + (detail ? "  — " + detail : "")); fails.push(name); }
@@ -226,7 +239,18 @@ win.addEventListener("load", function(){
     /* Baseline is the hero as it stands NOW, not the title marked earlier \u2014
        comparing against that one passes even if the hero advances again. */
     var heroBefore = doc.querySelector("#view .hero h2").textContent;
-    act.querySelectorAll(".arow")[0].querySelectorAll(".stars button")[3]
+    /* Closed by default \u2014 that is the whole point of 1.6.2's Activity. */
+    var closedRow = doc.querySelectorAll(".activity .arow")[0];
+    check("an Activity row is one line until it is asked",
+          closedRow.children.length === 2 &&
+          !closedRow.querySelector(".abadge") && !closedRow.querySelector(".stars"),
+          Array.prototype.map.call(closedRow.children, function(c){ return c.className; }).join("|"));
+    check("the closed row says it can open",
+          closedRow.querySelector(".atop").getAttribute("aria-expanded") === "false");
+    var openedRow = openActivityRow(win, 0);
+    check("opening a row reveals its badges and stars",
+          !!openedRow.querySelector(".abadge .bd") && !!openedRow.querySelector(".stars button"));
+    openedRow.querySelectorAll(".stars button")[3]
        .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("rating from Activity records against the right title",
           Object.keys(S.rated).length === 1 && S.rated[Object.keys(S.rated)[0]] === 4,
@@ -237,11 +261,10 @@ win.addEventListener("load", function(){
     check("rating from Activity logs nothing new", S.log.length === 1,
           S.log.length + " entries");
     check("Activity reflects the rating",
-          doc.querySelectorAll(".activity .arow")[0]
-             .querySelectorAll(".stars button.on").length === 4);
+          openActivityRow(win, 0).querySelectorAll(".stars button.on").length === 4);
 
     /* The hero rates in place, and rating marks it watched (1.4.1). */
-    S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
+    S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.open = {};
     S.tab = "next"; win.render();
     var heroStars = doc.querySelector("#view .herorate .stars");
     check("the hero carries a star row", !!heroStars);
@@ -266,15 +289,28 @@ win.addEventListener("load", function(){
           !!doc.querySelector("#view .herorow .linkrow"));
     /* One row, three parts, aligned (1.5.8). */
     var arow = doc.querySelector(".activity .arow");
-    check("the row has a tick, a header line, badges and stars",
+    check("closed, the row is a tick and a line",
+          arow.children.length === 2 && arow.children[1].className === "atop",
+          Array.prototype.map.call(arow.children, function(c){ return c.className; }).join("|"));
+    check("the title and date share that line",
+          !!arow.querySelector(".atop .at") && !!arow.querySelector(".atop .ad"));
+    arow = openActivityRow(win, 0);
+    check("open, it has a tick, a header line, badges and stars",
           arow.children.length === 4 &&
           arow.children[1].className === "atop" &&
           arow.children[2].className === "abadge" &&
           arow.children[3].className.indexOf("stars") >= 0,
           Array.prototype.map.call(arow.children, function(c){ return c.className; }).join("|"));
-    check("the title and date share a line",
-          !!arow.querySelector(".atop .at") && !!arow.querySelector(".atop .ad"));
     check("the row carries its badges", arow.querySelectorAll(".abadge .bd").length > 0);
+    /* Then holds only unwatched entries and Activity only watched ones, so the
+       two reveals can share S.open without ever colliding on an id. */
+    check("no id is in the queue and the history at once",
+          Array.prototype.every.call(doc.querySelectorAll("#view .qitem"), function(q){
+            return !S.watched[q.dataset.id];
+          }));
+    /* Opening the row re-rendered #view, so the node captured before it is
+       detached and clicking it would do nothing. Re-read it. */
+    undo = doc.querySelector(".activity .arow .tick");
     check("the tick says what it does",
           !!undo && /^Remove /.test(undo.getAttribute("aria-label")),
           undo && undo.getAttribute("aria-label"));

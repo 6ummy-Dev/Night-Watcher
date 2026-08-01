@@ -6,6 +6,7 @@
      screen this dense in 9-10px mono. -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Night Watcher">
 <link rel="manifest" href="manifest.json">
@@ -33,7 +34,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-L1tRKMLB8QdOXCbyNAXtTF8fawFMmBICmdFHHQ5VuO8=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-VdXsF43Ni9hrmXFElIgvoei6BhBP84RHpmyZZcJ3rSo=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","image":"https://6ummy-dev.github.io/Night-Watcher/icon.png","dateModified":"2026-08-01","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -155,7 +156,10 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .allbtn:active{background:var(--card2);}
 .chip{flex:none;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 13px;border:1px solid var(--line2);border-radius:100px;color:var(--dust);min-height:34px;white-space:nowrap;}
 .chip[aria-pressed="true"]{background:var(--bone);color:var(--ink);border-color:var(--bone);font-weight:600;}
-.search{width:100%;background:var(--card);border:1px solid var(--line);color:var(--bone);border-radius:10px;padding:12px 14px;font-family:var(--body);font-size:15px;margin-bottom:12px;-webkit-appearance:none;appearance:none;}
+/* 16px is not a taste \u2014 iOS Safari zooms the page on focus for anything under
+   it, and the viewport deliberately sets no maximum-scale to block that. Every
+   search on an iPhone began with a zoom the reader had to pinch back out of. */
+.search{width:100%;background:var(--card);border:1px solid var(--line);color:var(--bone);border-radius:10px;padding:12px 14px;font-family:var(--body);font-size:16px;margin-bottom:12px;-webkit-appearance:none;appearance:none;}
 .search::placeholder{color:var(--dim);}
 
 .group{margin:0 0 14px;border:1px solid var(--line);border-radius:14px;background:var(--sunk);}
@@ -239,14 +243,28 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .lnk:active{background:var(--card2);}
 .linkrow{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:10px;}
 
-.hero{border:1px solid var(--line);border-radius:16px;background:linear-gradient(175deg,var(--card2),var(--card) 60%);padding:17px 18px 16px;}
-.hero .kick{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0 0 12px;}
+/* One scale for the whole card: 6 / 12 / 18. Before 1.6.2 the gaps ran
+   17-12-10-15-16 top to bottom \u2014 five values with no relationship between any
+   two, which is what made the contents read as assembled rather than composed. */
+.hero{border:1px solid var(--line);border-radius:16px;background:linear-gradient(175deg,var(--card2),var(--card) 60%);padding:18px;}
+/* The kick used to carry the label, the group number and the group name on one
+   10px tracked line. Five of the app's continuities pushed it onto two lines,
+   and it broke mid-field \u2014 "DC ANIMATED / MOVIE UNIVERSE" \u2014 which is exactly
+   where the middot separators stop marking anything. It says one thing now. */
+.hero .kick{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* Where the group went. Its own line, so a long continuity name wraps against
+   nothing but itself. */
+.hero .hcont{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dust);margin:0 0 12px;}
 /* ONE hero size. Home and Next up render the same title; inline overrides
    grew it by 15% on one of them. Change it here, not at the call site. */
 .hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:clamp(24px,6.5vw,36px);line-height:.94;margin:0;}
-.hero .yr{font-family:var(--mono);font-size:12px;color:var(--dust);margin:10px 0 0;letter-spacing:.06em;}
-.hero .blurb{font-size:15px;color:var(--dust);margin:16px 0 0;line-height:1.5;}
-.heroacts{display:flex;gap:9px;margin-top:15px;}
+.hero .yr{font-family:var(--mono);font-size:12px;color:var(--dust);margin:12px 0 0;letter-spacing:.06em;}
+/* The badges used to be glued to the end of .yr with a non-breaking space,
+   which left a hole between "2013" and the first badge that belonged to
+   neither. They are a row. */
+.hero .hbadges{margin:6px 0 0;}
+.hero .blurb{font-size:15px;color:var(--dust);margin:12px 0 0;line-height:1.5;}
+.heroacts{display:flex;gap:9px;margin-top:18px;}
 .heroacts button{flex:1;min-height:46px;border-radius:11px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;}
 .heroacts .go{background:var(--bone);color:var(--ink);}
 .heroacts .no{border:1px solid var(--line2);color:var(--dust);flex:0 0 38%;}
@@ -262,18 +280,29 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
    a stack of rules now; what separates them is that Then is numbered and
    Activity is dated, which is the difference that actually exists. */
 .activity{margin-top:26px;}
-/* A grid, not wrapping flex. flex-wrap plus margin-left:auto on the stars put
-   them on their own line AND pushed them right, so nothing lined up with
-   anything. Two columns: the tick, then everything else \u2014 title and date on one
-   line, stars beneath, left-aligned under the title they belong to. */
+/* One line closed, the rest on request \u2014 the same bargain the Then rows strike.
+   Open, Activity was 122.5px a row against a queue row's 56, and it took 40.5%
+   of Next up against Then's 16.4%: the tab spent two and a half times more room
+   on what you had done than on what you were about to do. Two columns: the
+   tick, then everything else. */
 .arow{display:grid;grid-template-columns:auto 1fr;gap:5px 11px;align-items:center;
   padding:12px 0;border-top:1px solid var(--line);}
 
 .arow .atop{display:flex;align-items:baseline;gap:10px;min-width:0;}
 /* The rows above this in Next up use --disp. Activity inherited body text, which
    is why its titles read as plain web type among styled ones. */
+/* --dim, not --bone. Bone means "press this" and is the brightest ink in the
+   palette; it was on the history while the film you are actually up to rendered
+   in --dust. The past was drawn brighter than the future. A step down the
+   palette says "done" without fading anything \u2014 dimming the block with opacity
+   puts five of seven tokens under AA (see guard 61). */
 .arow .at{flex:1;min-width:0;font-family:var(--disp);font-weight:400;letter-spacing:.025em;
-  text-transform:uppercase;font-size:15px;line-height:1.15;color:var(--bone);}
+  text-transform:uppercase;font-size:15px;line-height:1.15;color:var(--dim);}
+/* The closed row is a button so the reveal is reachable by keyboard. It cannot
+   be the whole row \u2014 the tick and the stars are buttons too, and buttons do
+   not nest. */
+.arow .atop{width:100%;text-align:left;}
+.arow .aopen{display:contents;}
 .arow .ad{flex:none;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
   text-transform:uppercase;color:var(--dim);}
 .arow .stars{margin:0 0 0 -6px;}
@@ -281,7 +310,10 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 /* Everything in this block is watched \u2014 that is what puts it here. The tick
    inherits .film.done's filled state rather than the empty ring, which read as
    "not watched" in a list of things you had just watched. */
-.arow .tick{width:24px;height:24px;font-size:11px;grid-row:1 / span 3;align-self:start;margin-top:2px;background:var(--bone);border-color:var(--bone);color:var(--ink);}
+/* 1 / -1, not 1 / span 3. A hard span of three kept reserving three grid rows
+   after 1.6.2 closed the row down to one, so every collapsed row carried two
+   empty tracks and their gaps — 25px of nothing, per row. */
+.arow .tick{width:24px;height:24px;font-size:11px;grid-row:1 / -1;align-self:start;margin-top:2px;background:var(--bone);border-color:var(--bone);color:var(--ink);}
 /* One grid with the buttons below it: stars over Mark watched, the watch link
    over Skip. The stars used to sit 6px outside the padding edge for optical
    alignment, which put them off the button they belong to. */
@@ -311,7 +343,11 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .bigstat .sc-skip{color:var(--steel);}
 .bigstat b{display:block;font-family:var(--disp);font-weight:400;letter-spacing:.025em;font-size:32px;line-height:1;}
 .bigstat span{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);display:block;margin-top:7px;}
-.srow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);}
+/* Buttons, not divs. The donut slices they mirror are pointer-only \u2014 no
+   tabindex, no role, no key handler \u2014 and the universe rows at least had a
+   keyboard route through Home's grid. The era rows had none at all. */
+.srow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);width:100%;text-align:left;min-height:46px;}
+.srow:active{background:var(--card2);}
 .srow .sn{flex:1;font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:15px;line-height:1.1;min-width:0;}
 .srow .sb{flex:0 0 80px;height:5px;border-radius:3px;background:var(--line2);overflow:hidden;}
 .srow .sb i{display:block;height:100%;background:var(--signal);transition:width .3s;}
@@ -326,8 +362,13 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
    beside them rather than sit them on a text baseline. */
 .legend > span{display:inline-flex;align-items:center;gap:6px;}
 .legend .bd{flex:none;}
-.ugrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.ucard{border:1px solid var(--line);border-radius:12px;background:var(--sunk);padding:13px 12px;text-align:left;display:flex;flex-direction:column;gap:8px;min-height:98px;}
+/* minmax(0,1fr), not 1fr. A bare 1fr is minmax(auto,1fr), and that auto floor
+   is the column's min-content width \u2014 so "Tomorrowverse", thirteen characters
+   with nowhere to break, pinned its column at 169px and starved the other. At
+   320px that pushed the page to 331px wide and the right column off the screen.
+   Row heights are deliberately left to their content. */
+.ugrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.ucard{border:1px solid var(--line);border-radius:12px;background:var(--sunk);padding:13px 12px;text-align:left;display:flex;flex-direction:column;gap:8px;min-height:98px;overflow-wrap:anywhere;}
 .ucard:active{background:var(--card);}
 .ucard.full{border-color:rgba(255,207,31,.55);}
 .unum{font-family:var(--mono);font-size:9.5px;color:var(--signal);letter-spacing:.08em;}
@@ -399,11 +440,11 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .bkbtn{font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;border:1px solid var(--line2);border-radius:9px;padding:12px 14px;color:var(--dust);min-height:44px;flex:1;}
 .bkbtn.primary{background:var(--bone);color:var(--ink);border-color:var(--bone);font-weight:600;}
 .code{width:100%;background:var(--ink);border:1px solid var(--line2);border-radius:8px;color:var(--bone);
-  font-family:var(--mono);font-size:11px;line-height:1.6;padding:11px;margin:12px 0 10px;
+  font-family:var(--mono);font-size:16px;line-height:1.5;padding:11px;margin:12px 0 10px;
   word-break:break-all;max-height:96px;overflow:auto;-webkit-user-select:all;user-select:all;resize:none;}
 .bklab{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dust);margin:0 0 7px;}
 .bkin{width:100%;background:var(--ink);border:1px solid var(--line2);border-radius:8px;color:var(--bone);
-  font-family:var(--mono);font-size:11px;padding:11px;margin:0 0 9px;min-height:62px;resize:vertical;-webkit-appearance:none;}
+  font-family:var(--mono);font-size:16px;padding:11px;margin:0 0 9px;min-height:62px;resize:vertical;-webkit-appearance:none;}
 .bkhr{border:0;border-top:1px solid var(--line);margin:18px 0;}
 .tiers{margin:14px 0 22px;border:1px solid var(--line);border-radius:12px;background:var(--sunk);overflow:hidden;}
 .trow{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;min-height:52px;text-align:left;border-top:1px solid var(--line);}
@@ -417,7 +458,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .segs{display:flex;gap:3px;flex:1;}
 .segs i{flex:1;height:8px;border-radius:2px;background:var(--line2);}
 .segs i.on{background:var(--signal);}
-.toast{position:fixed;left:50%;transform:translate(-50%,80px);bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 16px);background:var(--bone);color:var(--ink);border-radius:100px;padding:11px 20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;z-index:60;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;}
+.toast{position:fixed;left:50%;transform:translate(-50%,80px);bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 16px);background:var(--bone);color:var(--ink);border-radius:100px;padding:11px 20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;z-index:60;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;}
 .toast.show{opacity:1;transform:translate(-50%,0);}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
 
@@ -854,7 +895,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.6.1";
+var BUILD = "1.6.2";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -942,7 +983,11 @@ function restore(done){
         else if(isPath(o.mode)) S.path = o.mode;
         if(S.path) S.mode = S.path;
         if(o.theme === "darker" || o.theme === "dark") S.theme = o.theme;
-        if(o.scope) S.scope = o.scope;
+        /* Checked against the list, like format two lines down. Any truthy
+           string used to be accepted, and visible() reads anything that is not
+           "all" as movies-only \u2014 so a hand-edited "films" hid every season while
+           neither scope button rendered as pressed. */
+        if(o.scope === "movies" || o.scope === "all") S.scope = o.scope;
         /* A save written before 1.5.0 has no format. Those people have been
            tracking animated for months, and defaulting them to All would grow
            the denominator overnight and hand them a live-action film in Next
@@ -1140,13 +1185,20 @@ function watchUrl(title){
          encodeURIComponent("where to watch " + title + (y ? " " + y : ""));
 }
 /* One star row, shared by the detail panel and Next up. */
+/* "Rate 3" repeated down a page of films says nothing about which film or what
+   it is currently set to, and the tap-the-lit-star-to-clear behaviour was
+   invisible without sight of the row. The title is in scope at every call
+   site, so there is no reason it was ever absent. */
 function starRow(f){
-  var out = "", s;
+  var out = "", s, cur = clampRating(S.rated[f.id]);
   for(s = 1; s <= 5; s++){
     out += '<button data-act="rate" data-id="'+f.id+'" data-n="'+s+'" class="'+
-           (clampRating(S.rated[f.id]) >= s ? "on" : "")+'" aria-label="Rate '+s+'">\u2605</button>';
+           (cur >= s ? "on" : "")+'" aria-pressed="'+(cur >= s)+'" aria-label="'+
+           esc(f.t)+': rate '+s+(s === 1 ? " star" : " stars")+
+           (cur === s ? ", currently set \u2014 selecting again clears it" : "")+
+           '">\u2605</button>';
   }
-  return '<div class="stars">'+out+'</div>';
+  return '<div class="stars" role="group" aria-label="Rating for '+esc(f.t)+'">'+out+'</div>';
 }
 /* The last five ticks, newest first, with the stars you gave them and a tick to
    take them back. Stars never move the hero — rate() calls markWatched(), a
@@ -1191,10 +1243,12 @@ function activityBlock(){
     rows += '<div class="arow">'+
             '<button class="tick" data-act="watched" data-id="'+f.id+'" aria-label="Remove '+
               esc(f.t)+' from your progress" aria-pressed="true"></button>'+
-            '<div class="atop"><span class="at">'+esc(f.t)+'</span>'+
-            '<span class="ad">'+esc(logDate(S.log[i].ts))+'</span></div>'+
-            '<div class="abadge">'+badges(f)+'</div>'+
-            starRow(f)+'</div>';
+            '<button class="atop" data-act="apeek" data-id="'+f.id+'" aria-expanded="'+
+              (!!S.open[f.id])+'"><span class="at">'+esc(f.t)+'</span>'+
+            '<span class="ad">'+esc(logDate(S.log[i].ts))+'</span></button>'+
+            (S.open[f.id]
+              ? '<div class="abadge">'+badges(f)+'</div>'+starRow(f)
+              : '')+'</div>';
     n++;
   }
   if(!n) return "";
@@ -1322,7 +1376,7 @@ function download(name, text, mime){
    to one device. */
 function exportJSON(){
   var str = JSON.stringify({app:"night-watcher", v:2, exported:new Date().toISOString(),
-    scope:S.scope, path:S.path, watched:S.watched, skipped:S.skipped, rated:S.rated, log:S.log}, null, 1);
+    path:S.path, watched:S.watched, skipped:S.skipped, rated:S.rated, log:S.log}, null, 1);
   return str;
 }
 function doRestore(text){
@@ -1463,7 +1517,6 @@ function viewHome(){
     return html;
   }
 
-  var pc = counts();
   /* The card repeated the header exactly \u2014 name, ring, percentage, done of
      total \u2014 and its only unique content was a Change button. The header carries
      all of that on every tab already. What Home needs is the switch itself. */
@@ -1476,9 +1529,12 @@ function viewHome(){
 
   if(nxt){
     html += '<div class="hero">'+
-      '<p class="kick">'+(isSkip(nxt) ? "Back to a skipped one" : fresh ? "First patrol" : "Tonight\u2019s patrol")+' \u00b7 '+nxt.gn+' \u00b7 '+esc(nxt.gname)+'</p>'+
+      '<p class="kick">'+(isSkip(nxt) ? "Back to a skipped one" : fresh ? "First patrol" : "Tonight\u2019s patrol")+'</p>'+
+      '<p class="hcont">'+nxt.gn+' \u00b7 '+esc(nxt.gname)+'</p>'+
       '<h2>'+esc(nxt.t)+'</h2>'+
-      '<p class="yr">'+esc(metaOf(nxt,false))+((nxt.b.length||nxt.o) ? ' &nbsp;'+badges(nxt) : '')+'</p>'+
+      '<p class="yr">'+esc(metaOf(nxt,false))+'</p>'+
+      ((nxt.b.length||nxt.o) ? '<div class="hbadges">'+badges(nxt)+'</div>' : '')+
+      '<p class="blurb">'+esc(nxt.d)+'</p>'+
       '<div class="heroacts"><button class="go" data-act="resume">'+(fresh ? "Begin the path" : "Resume the path")+'</button></div></div>';
   } else {
     html += '<div class="hero"><p class="kick">Case closed</p>'+
@@ -1543,9 +1599,11 @@ function viewNext(){
              : '')+'</button>';
   }).join("");
   return masterChooser()+'<div class="hero">'+
-    '<p class="kick">'+(isSkip(f) ? 'Back to a skipped one \u00b7 ' : '')+f.gn+' \u00b7 '+esc(f.gname)+'</p>'+
+    '<p class="kick">'+(isSkip(f) ? 'Back to a skipped one' : 'Up next')+'</p>'+
+    '<p class="hcont">'+f.gn+' \u00b7 '+esc(f.gname)+'</p>'+
     '<h2>'+esc(f.t)+'</h2>'+
-    '<p class="yr">'+esc(metaOf(f,false))+((f.b.length||f.o) ? ' &nbsp;'+badges(f) : '')+'</p>'+
+    '<p class="yr">'+esc(metaOf(f,false))+'</p>'+
+    ((f.b.length||f.o) ? '<div class="hbadges">'+badges(f)+'</div>' : '')+
     '<p class="blurb">'+esc(f.d)+'</p>'+
     '<div class="herorow">'+
       '<div class="herorate">'+starRow(f)+'</div>'+
@@ -1640,7 +1698,7 @@ function viewWatch(){
       rows+'</div></div>';
   });
   html = html.replace("%%COUNT%%", q
-    ? '<p class="scopenote" style="margin:-4px 2px 10px">'+shownTotal+(shownTotal===1?" match":" matches")+'</p>' : "");
+    ? '<p class="scopenote" role="status" aria-live="polite" style="margin:-4px 2px 10px">'+shownTotal+(shownTotal===1?" match":" matches")+'</p>' : "");
   if(!any){
     var hidden = 0;
     if(S.scope === "movies" && q){
@@ -1710,9 +1768,10 @@ function viewStats(){
     var fs = FILMS.filter(function(f){ return f.gi === gi && visible(f); });
     if(!fs.length) return;
     var d = fs.filter(isDone).length;
-    html += '<div class="srow"><span class="sn">'+esc(g.name)+'</span>'+
+    html += '<button class="srow" data-act="jump" data-gk="c'+gi+'" aria-label="'+
+      esc(g.name)+', '+d+' of '+fs.length+' watched"><span class="sn">'+esc(g.name)+'</span>'+
       '<span class="sb"><i style="width:'+Math.round(d/fs.length*100)+'%"></i></span>'+
-      '<span class="sc">'+d+'/'+fs.length+'</span></div>';
+      '<span class="sc">'+d+'/'+fs.length+'</span></button>';
   });
 
   html += '<p class="qhead" style="margin:26px 0 0">By era of Bruce\u2019s life</p>';
@@ -1721,9 +1780,10 @@ function viewStats(){
     if(!fs.length) return;
     var d = fs.filter(isDone).length;
     var col = era.k === 0 ? "var(--steel)" : "var(--signal)";
-    html += '<div class="srow"><span class="sn">'+esc(era.name)+'</span>'+
+    html += '<button class="srow" data-act="jump" data-gk="e'+era.k+'" aria-label="'+
+      esc(era.name)+', '+d+' of '+fs.length+' watched"><span class="sn">'+esc(era.name)+'</span>'+
       '<span class="sb"><i style="width:'+Math.round(d/fs.length*100)+'%;background:'+col+'"></i></span>'+
-      '<span class="sc">'+d+'/'+fs.length+'</span></div>';
+      '<span class="sc">'+d+'/'+fs.length+'</span></button>';
   });
 
   /* The path row here duplicated Home's Change. What is left is progress in
@@ -1822,6 +1882,15 @@ function render(){
   window.scrollTo(0, Math.min(keep, maxY));
 }
 
+/* The CSS kills transitions under prefers-reduced-motion; these two scrolls
+   were never covered by it, so the one setting that says "do not animate" was
+   half honoured. */
+function calmScroll(){
+  try{
+    return (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      ? "auto" : "smooth";
+  }catch(e){ return "auto"; }
+}
 function goToGroup(jk){
   S.tab = "watch"; S.filter = "all"; S.q = "";
   S.mode = (jk.charAt(0) === "e") ? "life" : "continuity";
@@ -1835,10 +1904,33 @@ function goToGroup(jk){
      can leave the requested group far below the fold. */
   var target = document.querySelector('.ghead[data-gk="'+jk+'"]');
   if(target && target.scrollIntoView){
-    try{ target.scrollIntoView({block:"start", behavior:"smooth"}); }
+    try{ target.scrollIntoView({block:"start", behavior:calmScroll()}); }
     catch(e){ target.scrollIntoView(); }
   }
 }
+
+/* Two tabs \u2014 or a tab and the installed app \u2014 both wrote the whole payload on
+   every tick, so whichever acted last silently erased the other's marks. No
+   sync involved; just last-write-wins on one device. Marks only ever move from
+   unset to set, so the merge is a union and never resurrects an untick made
+   here. */
+window.addEventListener("storage", function(e){
+  if(!e || e.key !== KEY || !e.newValue) return;
+  var o; try{ o = JSON.parse(e.newValue); }catch(err){ return; }
+  var moved = 0, k;
+  for(k in (o.watched || {})){ if(!S.watched[k]){ S.watched[k] = 1; moved++; } }
+  for(k in (o.skipped || {})){ if(!S.watched[k] && !S.skipped[k]){ S.skipped[k] = 1; moved++; } }
+  for(k in (o.rated || {})){ if(!S.rated[k]){ var rv = clampRating(o.rated[k]); if(rv){ S.rated[k] = rv; moved++; } } }
+  if(Array.isArray(o.log)){
+    o.log.forEach(function(en){
+      if(en && en.id && isFinite(en.ts) && !S.log.some(function(x){ return x.id === en.id; })){
+        S.log.push({id:String(en.id), ts:Number(en.ts)}); moved++;
+      }
+    });
+    S.log.sort(function(a,b){ return a.ts - b.ts; });
+  }
+  if(moved) render();
+});
 
 document.getElementById("tabs").addEventListener("click", function(e){
   var b = e.target.closest("button[data-tab]");
@@ -1850,7 +1942,7 @@ document.getElementById("tabs").addEventListener("click", function(e){
 /* The wordmark is the one element on every screen, so it is the natural
    "back to the top" \u2014 scroll lives on the document, not on <main>. */
 document.getElementById("topBtn").addEventListener("click", function(){
-  try{ window.scrollTo({top:0, behavior:"smooth"}); }
+  try{ window.scrollTo({top:0, behavior:calmScroll()}); }
   catch(e){ window.scrollTo(0, 0); }
 });
 document.getElementById("ringBtn").addEventListener("click", function(){
@@ -1908,6 +2000,11 @@ document.getElementById("view").addEventListener("click", function(e){
      nothing ahead of you gets spoiled, and the description is where that risk
      lives. Badges and the continuity name are facts about placement, not plot. */
   else if(act === "peek"){ S.open[id] = !S.open[id]; render(); }
+  /* Activity's reveal. Shares S.open with the Then rows harmlessly: Then holds
+     only unwatched entries and Activity only watched ones, so no id is ever in
+     both. */
+  else if(act === "apeek"){ S.open[id] = !S.open[id]; render(); }
+  else if(act === "jump"){ goToGroup(b.dataset.gk); }
   else if(act === "expand"){ S.open[id] = !S.open[id]; render(); }
   else if(act === "group"){ var gk = b.dataset.gk; S.groupOpen[gk] = (S.groupOpen[gk] === false); persist(); render(); }
   else if(act === "allgroups"){ setAllGroups(!anyOpen()); persist(); render(); window.scrollTo(0,0); }
