@@ -19,6 +19,33 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.5.8] — 2026-07-31
+
+### Changed
+
+- **Recent activity rows were the only rows in the app not using its own row
+  language.** The queue directly above them is set in the display face; Activity
+  inherited body text, so its titles read as plain web type among styled ones.
+
+  The alignment was two properties fighting: the row wrapped, and the stars
+  carried `margin-left:auto`. Together those put the stars on their own line
+  *and* pushed them right, so nothing lined up with anything.
+
+  It is a grid now — tick in its own column, title and date on one line, stars
+  beneath and left-aligned under the title they belong to. The tick is 24px
+  rather than the Path row's 30px; in a block this tight it was out-shouting the
+  title it belongs to.
+
+  The row had been assembled by addition: title and date in 1.3.4, stars right
+  after, the tick in 1.4.1. Nobody had looked at all four together.
+
+### Fixed
+
+- A comment on the group cache still said it was keyed on `mode|scope`. It has
+  included format since 1.5.0.
+- `sitemap.xml` had no `lastmod`, so it gave search engines nothing about
+  freshness.
+
 ## [1.5.7] — 2026-07-31
 
 ### Fixed

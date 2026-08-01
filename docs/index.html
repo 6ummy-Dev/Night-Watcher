@@ -33,7 +33,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-E7m/OR1rL6cNNxgkLdzlEzCoSWrXMZ8geqRZJ89xndc=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Wc+2Smp10krJNQspAL7sVpxH2Oj0sH+O6EXqyQ3GHTo=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -227,15 +227,26 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
    it does not read as another step in the list above it. */
 .activity{margin-top:26px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:4px 16px 8px;}
 .activity .qhead{margin:14px 0 2px;}
-.arow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 0;border-top:1px solid var(--line);}
+/* A grid, not wrapping flex. flex-wrap plus margin-left:auto on the stars put
+   them on their own line AND pushed them right, so nothing lined up with
+   anything. Two columns: the tick, then everything else \u2014 title and date on one
+   line, stars beneath, left-aligned under the title they belong to. */
+.arow{display:grid;grid-template-columns:auto 1fr;gap:4px 11px;align-items:center;
+  padding:12px 0;border-top:1px solid var(--line);}
 .arow:first-of-type{border-top:0;}
-.arow .at{flex:1;min-width:130px;font-size:14px;color:var(--bone);line-height:1.35;}
-.arow .ad{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
-.arow .stars{margin-left:auto;}
+
+.arow .atop{display:flex;align-items:baseline;gap:10px;min-width:0;}
+/* The rows above this in Next up use --disp. Activity inherited body text, which
+   is why its titles read as plain web type among styled ones. */
+.arow .at{flex:1;min-width:0;font-family:var(--disp);font-weight:400;letter-spacing:.025em;
+  text-transform:uppercase;font-size:15px;line-height:1.15;color:var(--bone);}
+.arow .ad{flex:none;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--dim);}
+.arow .stars{margin:0 0 0 -6px;}
 /* Everything in this block is watched \u2014 that is what puts it here. The tick
    inherits .film.done's filled state rather than the empty ring, which read as
    "not watched" in a list of things you had just watched. */
-.arow .tick{flex:none;background:var(--bone);border-color:var(--bone);color:var(--ink);}
+.arow .tick{width:24px;height:24px;font-size:11px;grid-row:1 / span 2;align-self:start;margin-top:2px;background:var(--bone);border-color:var(--bone);color:var(--ink);}
 /* One grid with the buttons below it: stars over Mark watched, the watch link
    over Skip. The stars used to sit 6px outside the padding edge for optical
    alignment, which put them off the button they belong to. */
@@ -802,7 +813,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.5.7";
+var BUILD = "1.5.8";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -945,7 +956,7 @@ function pathBlurb(id){
   var parts = noteFor(id).split(". ");
   return parts.length <= 2 ? parts.join(". ") : parts.slice(0, 2).join(". ") + ".";
 }
-/* Cached on mode|scope — the only two things membership depends on. Never on
+/* Cached on mode|scope|format — the three things membership depends on. Never on
    watched/skipped/rated, so nothing needs to clear it and a new key simply
    misses. If membership ever depends on progress, this cache is wrong. */
 var groupCache = null, groupCacheKey = "";
@@ -1131,8 +1142,8 @@ function activityBlock(){
     rows += '<div class="arow">'+
             '<button class="tick" data-act="watched" data-id="'+f.id+'" aria-label="Remove '+
               esc(f.t)+' from your progress" aria-pressed="true"></button>'+
-            '<span class="at">'+esc(f.t)+'</span>'+
-            '<span class="ad">'+esc(logDate(S.log[i].ts))+'</span>'+
+            '<div class="atop"><span class="at">'+esc(f.t)+'</span>'+
+            '<span class="ad">'+esc(logDate(S.log[i].ts))+'</span></div>'+
             starRow(f)+'</div>';
     n++;
   }

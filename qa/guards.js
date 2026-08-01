@@ -1771,6 +1771,38 @@ if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.t
   }
 })();
 
+/* The rows above Activity in Next up use the display face. Activity inherited
+   body text, which is why its titles read as plain web type among styled ones \u2014
+   and flex-wrap plus margin-left:auto put the stars on their own line and pushed
+   them right, so nothing lined up with anything. */
+(function(){
+  var at = (HTML.match(/\.arow \.at\{[^}]*\}/) || [""])[0];
+  if(!/var\(--disp\)/.test(at)){
+    fail("Activity titles are not set in the display face \u2014 they read as plain " +
+         "body text among the styled rows directly above them");
+  }
+  var row = (HTML.match(/\.arow\{[^}]*\}/) || [""])[0];
+  if(!/display:grid/.test(row)){
+    fail("the Activity row is wrapping flex again \u2014 the stars land on their own " +
+         "line and right-align to nothing");
+  }
+  if(/\.arow \.stars\{[^}]*margin-left:auto/.test(HTML)){
+    fail("the Activity stars are pushed right again instead of sitting under the title");
+  }
+  if(!/class="atop"/.test(HTML)) fail("the title and date are no longer grouped on one line");
+  var tick = (HTML.match(/\.arow \.tick\{[^}]*\}/) || [""])[0];
+  var tickW = parseFloat((tick.match(/width:([\d.]+)px/) || [0, 99])[1]);
+  var pathTick = parseFloat((HTML.match(/\.tick\{[^}]*width:([\d.]+)px/) || [0, 0])[1]);
+  if(!(tickW < pathTick)){
+    fail("the Activity tick is " + tickW + "px, the same as the Path row's " + pathTick +
+         "px \u2014 in this block it out-shouts the title it belongs to");
+  }
+})();
+/* A sitemap with no lastmod gives Google nothing about freshness. */
+if(!/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/.test(fs.readFileSync(path.join(PUBLIC, "sitemap.xml"), "utf8"))){
+  fail("sitemap.xml has no lastmod");
+}
+
 /* ---------- 56. Format is legible where it is ambiguous ----------- */
 /* Only in All. Under one format every row would carry the same badge, which is
    a label for the switch you already set. */

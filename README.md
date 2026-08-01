@@ -30,7 +30,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code at all** — *guarded.* Not one line, vendored or fetched. The app runs with the network off.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 150 KB raw and 50 KB gzipped; it is currently 132 KB / 42 KB. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 150 KB raw and 50 KB gzipped; it is currently 133 KB / 42 KB. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology

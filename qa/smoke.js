@@ -248,6 +248,15 @@ win.addEventListener("load", function(){
     check("the hero puts stars and the watch link in one row",
           !!doc.querySelector("#view .herorow .herorate") &&
           !!doc.querySelector("#view .herorow .linkrow"));
+    /* One row, three parts, aligned (1.5.8). */
+    var arow = doc.querySelector(".activity .arow");
+    check("the row has a tick, a header line and stars",
+          arow.children.length === 3 &&
+          arow.children[1].className === "atop" &&
+          arow.children[2].className.indexOf("stars") >= 0,
+          Array.prototype.map.call(arow.children, function(c){ return c.className; }).join("|"));
+    check("the title and date share a line",
+          !!arow.querySelector(".atop .at") && !!arow.querySelector(".atop .ad"));
     check("the tick says what it does",
           !!undo && /^Remove /.test(undo.getAttribute("aria-label")),
           undo && undo.getAttribute("aria-label"));
