@@ -250,13 +250,15 @@ win.addEventListener("load", function(){
           !!doc.querySelector("#view .herorow .linkrow"));
     /* One row, three parts, aligned (1.5.8). */
     var arow = doc.querySelector(".activity .arow");
-    check("the row has a tick, a header line and stars",
-          arow.children.length === 3 &&
+    check("the row has a tick, a header line, badges and stars",
+          arow.children.length === 4 &&
           arow.children[1].className === "atop" &&
-          arow.children[2].className.indexOf("stars") >= 0,
+          arow.children[2].className === "abadge" &&
+          arow.children[3].className.indexOf("stars") >= 0,
           Array.prototype.map.call(arow.children, function(c){ return c.className; }).join("|"));
     check("the title and date share a line",
           !!arow.querySelector(".atop .at") && !!arow.querySelector(".atop .ad"));
+    check("the row carries its badges", arow.querySelectorAll(".abadge .bd").length > 0);
     check("the tick says what it does",
           !!undo && /^Remove /.test(undo.getAttribute("aria-label")),
           undo && undo.getAttribute("aria-label"));
@@ -473,6 +475,27 @@ win.addEventListener("load", function(){
             w5.pool().every(function(f){ return f.fmt === "anim"; }));
     });
     S.format = "all"; S.scope = "movies";
+
+    /* Then rows reveal one line on request (1.5.9). */
+    S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.open = {};
+    S.tab = "next"; win.render();
+    var qi = doc.querySelector("#view .qitem");
+    check("a Then row is tappable", qi.tagName === "BUTTON", qi.tagName);
+    check("nothing is revealed until asked", !qi.querySelector(".qpeek"));
+    qi.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    var qi2 = doc.querySelector("#view .qitem");
+    check("tapping reveals one line", !!qi2.querySelector(".qpeek"));
+    check("it shows badges", qi2.querySelectorAll(".qpeek .bd").length > 0);
+    check("it names the continuity", !!qi2.querySelector(".qpeek .qg"),
+          qi2.querySelector(".qpeek .qg") && qi2.querySelector(".qpeek .qg").textContent);
+    (function(){
+      var f = win.pool().filter(function(x){ return !win.isDone(x) && !win.isSkip(x); })[1];
+      check("it never shows the description",
+            f && qi2.textContent.indexOf(f.d.slice(0, 24)) < 0);
+    })();
+    qi2.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    check("tapping again closes it", !doc.querySelector("#view .qitem .qpeek"));
+    S.open = {};
 
     /* --- The Path collapses and remembers (1.3.5) --- */
     S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.groupOpen = {};

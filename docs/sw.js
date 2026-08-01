@@ -15,11 +15,22 @@
  * 133 KB index.html, so a stale cache means a stale catalogue AND stale code
  * with no way to push a fix.
  */
-var VERSION = "1.5.8";
+var VERSION = "1.5.9";
 var CACHE   = "night-watcher-" + VERSION;
 /* icon-192.png is in the shell because index.html's <head> now references it
    directly for rel=icon and apple-touch-icon (it used to inline the bytes). */
-var SHELL   = ["./", "./index.html", "./manifest.json", "./icon.png", "./icon-192.png"];
+/* The fonts join the shell in 1.5.9. They used to rely on the runtime
+   network-first path, which works on any normal first visit \u2014 but if a font
+   request failed on that one visit, offline rendered fallback type silently
+   until the next online one. Each item installs with its own catch, so a
+   heavier shell still cannot fail the install. */
+var SHELL   = ["./", "./index.html", "./manifest.json", "./icon.png", "./icon-192.png",
+               "./fonts/limelight-latin-400-normal.woff2",
+               "./fonts/anton-latin-400-normal.woff2",
+               "./fonts/ibm-plex-sans-latin-400-normal.woff2",
+               "./fonts/ibm-plex-sans-latin-600-normal.woff2",
+               "./fonts/ibm-plex-mono-latin-400-normal.woff2",
+               "./fonts/ibm-plex-mono-latin-600-normal.woff2"];
 
 var NEVER_CACHE  = ["https://static.cloudflareinsights.com"];
 

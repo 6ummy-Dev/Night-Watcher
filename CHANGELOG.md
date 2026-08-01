@@ -19,6 +19,70 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.5.9] — 2026-08-01
+
+Clearing the deck.
+
+### Fixed
+
+- **Harley Quinn Season 5 was dated 2024.** It premiered 16 January 2025. The
+  slug keeps its `-2024` — slugs are identifiers, not facts, and changing one
+  would void saved progress.
+- **Caped Crusader Season 2 dropped its Not-out-yet badge.** All ten episodes
+  landed 31 July 2026.
+- **Knightfall Parts 2 and 3 gained the Mature badge.** Part 1 carried it; the
+  trilogy is rated R.
+
+### Changed
+
+- **The badges were nine labels sharing six colours.** Core read as Animated,
+  Optional as Short, Interactive as Live action — three exact collisions, so a
+  row of badges said less than it looked like it said.
+
+  Shape carries the kind now and colour carries the value. **Tier is filled**,
+  because there is always exactly one and it is the answer to *should I watch
+  this*. **Modifiers are outlined**, because they are footnotes. **Format is
+  dashed and dimmer**, because it is a different axis and only appears in All.
+- **Recent activity shows an entry's badges.** It was the one place in the app a
+  logged entry rendered with none.
+- **The episode count is a floor, not a figure.** *Teen Titans Go!* and
+  *Batwheels* are still running, so an exact number goes stale on somebody
+  else's schedule. The claim is 1,450+ and the guard checks the data is at least
+  that and not so far past that the floor misleads.
+- **The meta description was 164 characters**, past where search results
+  truncate. It is 147 now.
+
+### Added
+
+- **The queue reveals a line on request.** Tap anything under **Then** and it
+  shows its badges and which continuity it belongs to. Never the description —
+  the whole premise is that nothing ahead of you gets spoiled, and the
+  description is where that risk lives.
+- **The fonts join the service worker's install shell.** They relied on the
+  runtime cache, which works on any normal first visit — but a font request that
+  failed on that one visit left offline rendering fallback type silently until
+  the next online one.
+- JSON-LD gains an image and a modified date.
+
+### Removed
+
+- **32 KB from the icons.** Three PNGs of a flat two-colour silhouette were
+  carrying full-colour palettes. 43 KB to 10.5 KB, no visual change, both
+  checked by eye — transparency intact, maskable still full-bleed.
+
+### Docs
+
+- **The README described an older app in three places**: aggregator names gone
+  since 1.3.2, fonts on Google's CDN since 1.4.2, and no mention of the format
+  axis at all. All three were checkable against the code and none were checked.
+
+  They are now. A service named in the README must be one `watchUrl()` reaches, a
+  font origin claimed must be one an `@font-face` declares, and a control the app
+  renders must be described. The size figure and the file table drifted the same
+  way and have not since they were guarded.
+- **The licence preamble went from sixty lines to twelve.** The reasoning moved
+  to the README, where people read.
+
 ## [1.5.8] — 2026-07-31
 
 ### Changed

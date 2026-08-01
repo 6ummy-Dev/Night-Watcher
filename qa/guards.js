@@ -429,12 +429,25 @@ var actual = {
 };
 [["films", /\*\*(\d+) films/, actual.films],
  ["seasons", /(\d+) seasons of television/, actual.seasons],
- ["episodes", /([\d,]+) episodes/, actual.episodes],
+ /* A floor, not a figure. Teen Titans Go! and Batwheels are still running, so
+    an exact episode count goes stale on somebody else's schedule \u2014 the claim is
+    "1,450+" and the guard checks the data is at least that and not wildly past. */
+ ["episodes", /([\d,]+)\+ episodes/, null],
  ["continuities", /(\d+) continuities/, actual.continuities]
 ].forEach(function(t){
   var m = readme.match(t[1]);
   if(!m) return warn("README: could not find the " + t[0] + " count to verify");
   var claimed = parseInt(m[1].replace(/,/g, ""), 10);
+  if(t[2] === null){
+    if(actual.episodes < claimed){
+      fail("README claims " + claimed + "+ episodes, data has only " + actual.episodes);
+    }
+    if(actual.episodes >= claimed + 100){
+      fail("README claims " + claimed + "+ episodes, data has " + actual.episodes +
+           " \u2014 the floor is far enough behind to be misleading");
+    }
+    return;
+  }
   if(claimed !== t[2]) fail("README claims " + claimed + " " + t[0] + ", data has " + t[2]);
 });
 
@@ -1803,6 +1816,96 @@ if(!/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/.test(fs.readFileSync(path.join(PUBLI
   fail("sitemap.xml has no lastmod");
 }
 
+/* Nine badges, six colours, three exact collisions: Core read as Animated,
+   Optional as Short, Interactive as Live action. Colour now carries the value
+   and shape carries the kind \u2014 tier filled, modifiers outlined, format dashed. */
+(function(){
+  var rules = {}, m, re = /\.bd\.([a-z]+)(?:,\.bd\.([a-z]+))?\{([^}]*)\}/g;
+  while((m = re.exec(HTML))){
+    rules[m[1]] = m[3];
+    if(m[2]) rules[m[2]] = m[3];
+  }
+  ["e", "k", "o", "m", "u", "c", "s", "fmanim", "fmlive"].forEach(function(b){
+    if(!rules[b]) fail("badge ." + b + " has no styling");
+  });
+  /* Tier is the answer to "should I watch this" and there is always exactly
+     one, so it is the only filled kind. */
+  ["e", "k"].forEach(function(b){
+    if(!/background:var\(--/.test(rules[b] || "")) fail("tier badge ." + b + " is no longer filled");
+  });
+  ["m", "u", "c", "s"].forEach(function(b){
+    if(/background:var\(--/.test(rules[b] || "")){
+      fail("modifier badge ." + b + " is filled \u2014 filling is what marks the tier");
+    }
+  });
+  if(!/border:1px dashed/.test(rules.fmanim || "")){
+    fail("the format badges are not visually distinct from the modifiers");
+  }
+  /* No colour may carry two meanings. */
+  var seen = {};
+  Object.keys(rules).forEach(function(b){
+    var c = (rules[b].match(/(?:^|;)color:var\(--([a-z0-9]+)\)/) || [])[1];
+    var fill = (rules[b].match(/background:var\(--([a-z0-9]+)\)/) || [])[1];
+    var key = (fill || "") + "/" + (c || "");
+    if(seen[key] && !/^fm/.test(b) && !/^fm/.test(seen[key])){
+      fail('badges .' + seen[key] + ' and .' + b + ' are drawn identically \u2014 one ' +
+           'reads as the other');
+    }
+    seen[key] = b;
+  });
+})();
+
+/* An entry should carry its badges wherever it appears. Activity was the one
+   place a logged entry rendered with none. */
+if(!/class="abadge"/.test(HTML)){
+  fail("Recent activity rows carry no badges");
+}
+/* The queue reveals badges and the continuity on request \u2014 never the
+   description, which is where the spoiler risk lives. */
+if(!/data-act="peek"/.test(HTML)) fail("the Then rows are not tappable");
+if(!/act === "peek"/.test(HTML)) fail("nothing handles a Then row tap");
+(function(){
+  var peek = HTML.match(/S\.open\[x\.id\][\s\S]{0,300}?'\)/);
+  var blk = (HTML.match(/class="qpeek">'\+[^;]*/) || [""])[0];
+  if(!/badges\(x\)/.test(blk)) fail("the Then reveal shows no badges");
+  if(!/x\.gname/.test(blk)) fail("the Then reveal does not name the continuity");
+  if(/x\.d\b/.test(blk)){
+    fail("the Then reveal shows the description \u2014 nothing ahead of you may be spoiled");
+  }
+})();
+
+/* The README described an older app for three releases: aggregator names gone
+   since 1.3.2, fonts off Google's CDN since 1.4.2, and no mention of the format
+   axis at all. All three were checkable against the code and none were checked.
+   The size figure and the file table drifted the same way and have not since
+   they were guarded, which is the whole argument for these. */
+(function(){
+  /* A service named in the README must be one the app actually reaches. */
+  var SERVICES = ["JustWatch", "Prime Video", "Apple TV", "Netflix", "HBO Max",
+                  "Disney+", "Hulu", "Max"];
+  var resolver = optionalFn("watchUrl", "nothing builds the watch link");
+  SERVICES.forEach(function(name){
+    if(README.indexOf(name) >= 0 && resolver.indexOf(name) < 0){
+      fail('README names "' + name + '" but watchUrl() does not use it');
+    }
+  });
+  /* A font origin claimed must be one an @font-face actually declares. */
+  var faces = (HTML.match(/@font-face\{[^}]*\}/g) || []).join(" ");
+  if(/fonts\.google\.com|Google Fonts/.test(README) && !/fonts\.g(oogleapis|static)/.test(faces)){
+    fail("README credits Google Fonts, but the fonts are self-hosted");
+  }
+  /* Every control the app renders must be described. A reader who cannot find
+     a switch in the README does not know the app has it. */
+  [["format switch", /formatSwitch\s*\(/, /Live action/i],
+   ["scope switch", /scopeSwitch\s*\(/, /Movies \+ Series/i],
+   ["path chooser", /masterChooser\s*\(/, /By universe|three honest|one path/i]
+  ].forEach(function(t){
+    if(t[1].test(HTML) && !t[2].test(README)){
+      fail("the app renders a " + t[0] + " that the README never mentions");
+    }
+  });
+})();
+
 /* ---------- 56. Format is legible where it is ambiguous ----------- */
 /* Only in All. Under one format every row would carry the same badge, which is
    a label for the switch you already set. */
@@ -1811,8 +1914,9 @@ if(!/S\.format === "all"/.test(optionalFn("badges", "nothing would label a tier"
   fail("badges() ignores format \u2014 in All you cannot tell an animated entry from a " +
        "live-action one");
 }
-if(!/\.bd\.fmlive\{/.test(HTML) || !/\.bd\.fmanim\{/.test(HTML)){
-  fail("the format badges have no colour hooks");
+if(!/\.bd\.fmanim,\.bd\.fmlive\{/.test(HTML) &&
+   (!/\.bd\.fmlive[,{]/.test(HTML) || !/\.bd\.fmanim[,{]/.test(HTML))){
+  fail("the format badges have no styling of their own");
 }
 if(!/function legendBlock/.test(HTML) || !/Live action<\/i>/.test(HTML)){
   fail("the legend does not explain the format badges");

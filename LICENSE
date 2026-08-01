@@ -13,42 +13,21 @@ You should have received a copy of the GNU Affero General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-WHY THIS LICENCE
+WHAT THIS COVERS
 ================
 
-Night Watcher is free and stays free. AGPL-3.0 was chosen over a permissive
-licence for one reason: anyone who modifies this app and puts it in front of
-other people has to publish their source too. Fork it, change it, host it,
-charge for it if you can find someone to pay — but do not close it.
+Everything in this repository, including the catalogue descriptions and the
+continuity, era and tier judgements. They live in the same file as the code and
+one file cannot be both granted and withheld. Facts remain free: titles, years
+and episode counts belong to nobody. The reasoning is in the README.
 
-Everything in this file is covered by that licence, including the catalogue
-descriptions, the continuity groupings, and the era and tier judgements. An
-earlier version tried to reserve the writing separately, which was incoherent:
-the writing lives in the same file as the code, and one file cannot be both
-granted and withheld.
+Batman, Gotham City and all associated characters, titles and logos are
+trademarks of DC Comics and its parent companies. This project is unofficial and
+unaffiliated. No trademarked logo, symbol or lettering appears in it; the icon is
+an original silhouette drawn for this project.
 
-Facts remain free, as they always were. Titles, years, episode counts and
-running times belong to nobody.
-
-
-BATMAN
-======
-
-Batman, Gotham City, and all associated characters, titles and logos are
-trademarks of DC Comics and its parent companies. This project is not
-affiliated with, endorsed by, or connected to DC Comics or Warner Bros. in any
-way. It is an unofficial fan guide.
-
-No trademarked logo, symbol or proprietary lettering appears anywhere in it,
-and the icon is an original silhouette drawn for this project.
-
-
-THE FONTS
-=========
-
-Limelight, Anton, IBM Plex Sans and IBM Plex Mono are distributed under the SIL
-Open Font License, Version 1.1, which is a separate licence from this one.
-Their terms ship alongside them at docs/fonts/OFL.txt.
+Limelight, Anton, IBM Plex Sans and IBM Plex Mono ship under the SIL Open Font
+License, a separate licence, at docs/fonts/OFL.txt.
 
 
 ==============================================================================

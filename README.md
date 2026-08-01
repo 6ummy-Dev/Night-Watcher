@@ -2,7 +2,7 @@
 
 **One path through every Batman.**
 
-A single-file web app mapping every Batman story ever filmed — **110 films and 58 seasons of television across 33 continuities** — into watch orders that spoil nothing, with progress tracking and a where-to-watch link for every entry.
+A single-file web app mapping every Batman story ever filmed — animated and live action — **110 films and 58 seasons of television across 33 continuities** — into watch orders that spoil nothing, with progress tracking and a where-to-watch link for every entry.
 
 **Live:** https://6ummy-dev.github.io/Night-Watcher/
 
@@ -10,13 +10,13 @@ Also available on Cloudflare Workers (static assets).
 
 ## What it does
 
-- **One switch, two journeys.** Opens on **Movies** for the 110 films. Flip to **Movies + Series** and 58 seasons — 1,459 episodes, every show from *The Adventures of Batman* (1968) to *Caped Crusader* (2026) — weave into the same orders. Nothing else about the app changes.
-- **One path, chosen once.** Pick by universe (spoiler-safe), the composite chronology of Bruce's life, or straight release order from 1968 to 2028 — and the whole app follows it. No switcher to re-answer on every visit; the header carries the path name and Home leads with its completion ring. Change it whenever you like: switching re-sorts, it never clears a tick.
+- **Two switches, one catalogue.** **Animated**, **Live action** or **All** decides which kind of Batman; **Movies** or **Movies + Series** decides how much of it. 110 films and 58 seasons — 1,450+ episodes, from *Batman* (1966) to *Dynamic Duo* (2028) — weave into the same orders either way. Tiers are judged inside a format, so nothing has to be ranked against a different medium.
+- **Where to watch, without picking a side.** Every entry links to a search rather than a service, because availability rotates by country and by month and no stored answer survives that. Three attempts at an aggregator URL shipped or staged broken before this.
+- **One path, chosen once.** Pick by universe (spoiler-safe), the composite chronology of Bruce's life, or straight release order from 1966 to 2028 — and the whole app follows it. No switcher to re-answer on every visit; the header carries the path name and Home leads with its completion ring. Change it whenever you like: switching re-sorts, it never clears a tick.
 - **Shared links are views, not takeovers.** Following someone's `#life` link shows you their ordering and offers to adopt it, rather than silently rewriting yours.
 - **Three tiers.** Everything is tagged **Essential**, **Core**, or **Optional** — tiers are exclusive, with Essential outranking Optional — plus modifiers (Mature, Short, Interactive, Not out yet). Nothing is untagged.
 - **Home dashboard.** Resume card, tier meters, scoreboard, a tappable grid of every universe, and your recent watches.
 - **Progress.** Two donut charts — one for the universes, one for the eras of Bruce's life — where each slice is sized by its share of the catalogue and fills as you watch. Tap any slice to jump straight there.
-- **Live where-to-watch links.** JustWatch, Prime Video and Apple TV searches on every entry, so availability stays correct as streaming libraries rotate.
 - **Backup & transfer.** A compact code, a link that restores everything when opened on another device, and a full JSON export/import — all client-side, built on frozen IDs so backups stay valid forever. The code is versioned and read tolerantly: it carries your chosen path, and a code written by a newer build still restores everything an older one understands.
 - **Shareable views.** Link straight to a view: [`#life`](https://6ummy-dev.github.io/Night-Watcher/#life) for the chronology of Bruce's life, `#release`, `#universes`, `#progress` — combine with scope like `#life-series`.
 - **Progress that sticks.** Watched, skipped and star ratings saved in your browser (localStorage). No accounts, no server; your watch data never leaves your device — and if the browser refuses to save (Private Browsing, a full quota, some in-app webviews) the app says so in the header instead of losing your evening silently.
@@ -30,7 +30,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code at all** — *guarded.* Not one line, vendored or fetched. The app runs with the network off.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 150 KB raw and 50 KB gzipped; it is currently 133 KB / 42 KB. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 150 KB raw and 50 KB gzipped; it is currently 135 KB / 43 KB. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -145,9 +145,20 @@ The data lives in the `PATH` array near the top of the `<script>` block in `docs
 
 A whole new continuity is simply one more object in the same `PATH` array.
 
+## Licence
+
+AGPL-3.0. Night Watcher is free and stays free — fork it, change it, host it. The
+one condition is that if you put a modified version in front of other people, you
+publish your source too.
+
+That covers the writing as well as the code: the entry descriptions, the
+continuity groupings, and the era and tier judgements. They live in the same file
+as the app and one file cannot be both granted and withheld. Facts stay free, as
+they always were — titles, years and episode counts belong to nobody.
+
 ## Credits & legal
 
-- Fonts: [Limelight](https://fonts.google.com/specimen/Limelight) and [Anton](https://fonts.google.com/specimen/Anton) via Google Fonts, plus IBM Plex Sans and Mono — all under the SIL Open Font License.
+- Fonts: Limelight, Anton, IBM Plex Sans and IBM Plex Mono, self-hosted in `docs/fonts/` under the SIL Open Font License. Their licence ships with them at `docs/fonts/OFL.txt`.
 - The favicon and app icon are original bat silhouettes drawn for this project. They are not DC marks.
 - This is an unofficial fan-made tracker. It contains no trademarked logos, symbols or artwork. Batman and all related characters are property of DC / Warner Bros. Discovery; this project is not affiliated with or endorsed by them.
 - Catalogue compiled from public sources. Release dates for unreleased titles are as announced and may change.
