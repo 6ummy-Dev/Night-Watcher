@@ -19,6 +19,54 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.6.5] — 2026-08-01
+
+A restore link works on a new phone again.
+
+### Fixed
+
+- **The restore-link banner never appeared on a device with no path chosen** —
+  which is the only device a restore link is for. 1.6.4 put the ask-first banner
+  after Home's first-run branch returns, so opening a link on a new phone did
+  nothing visible at all: the hash was consumed, the code was parked, and the
+  reader saw the ordinary chooser.
+
+  Worse than silent. Picking a path to get out of that screen finally showed the
+  banner — and by then accepting it **discarded the path the link was carrying**,
+  because a code's path is only adopted when none is set.
+
+  The banner is one function now, rendered on both halves of Home, and it says
+  when a link is bringing a path with it. Accepting on a fresh device keeps it.
+- **An unanswered link no longer dies on reload.** The hash was stripped the
+  moment it was parsed, so a reader who missed the banner and refreshed lost the
+  payload with no message. It stays in the address bar until the banner is
+  answered.
+- **The header claimed 65 guard sections; there were 66.** Guarded now, against
+  both places it is written. The README's counts have been checked since 1.5.x —
+  a number in prose is a number that drifts, and this one was wrong the release
+  after it was written.
+- `.arow .tick` carried `grid-row` for two releases after the row became flex.
+- The seams the comment extraction left: two statements sharing a line, an
+  irregular run through the palette, and sixteen lines still indented for a
+  comment block that is no longer above them.
+
+### Added
+
+- **The test that would have caught this one.** The old case set a pending
+  restore with a path already chosen — the single state where the fault is
+  invisible. The new one starts cold: no path, no marks, a code carrying both,
+  and it checks the banner appears, that accepting lands the marks *and* the
+  path, and that declining leaves the device untouched.
+- A guard that the banner reaches both branches of Home.
+- Three known blind spots written into `NOTES.md`: the dead-rule sweep reads
+  selectors and not declarations, cross-tab merging only ever adds, and a parked
+  restore link is deliberately session-only.
+
+### Changed
+
+- The progress donuts tell a screen reader where the keyboard route is, rather
+  than presenting slices it cannot operate.
+
 ## [1.6.4] — 2026-08-01
 
 Last of the small ones.

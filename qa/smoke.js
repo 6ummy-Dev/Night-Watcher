@@ -856,6 +856,47 @@ win.addEventListener("load", function(){
     });
 
     function runBlocked(){
+    /* --- a restore link on a device that has never been used ------------
+       The case 1.6.4 shipped without. Its only test set S.pending with a path
+       already chosen — the one state where the bug is invisible — so the banner
+       sitting after viewHome's !S.path early return went unnoticed, and a fresh
+       phone (the only device a restore link is for) saw nothing at all. */
+    (function(){
+      S.path = S.mode = "life"; S.format = "all"; S.scope = "all";
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.pending = null;
+      FILMS.slice(0, 12).forEach(function(f){ S.watched[f.id] = 1; });
+      var code = win.exportCode();
+      check("a backup code carries the path", /P[clr]$/.test(code), code.slice(-6));
+
+      /* Cold start: nothing chosen, nothing ticked. */
+      S.path = ""; S.mode = "continuity"; S.watched = {}; S.skipped = {};
+      S.rated = {}; S.log = []; S.pending = null;
+      S.pending = win.importCode(code);
+      S.tab = "home"; win.render();
+      var banner = doc.querySelector("#view .viewing");
+      check("a restore link shows its banner on a device with no path", !!banner);
+      check("the banner says a path is coming",
+            !!banner && /path/i.test(banner.textContent), banner && banner.textContent);
+      var take = banner && banner.querySelector('[data-act="takelink"]');
+      check("the banner offers to restore", !!take);
+      if(take) take.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+      check("restoring on a fresh device keeps the path the link carried",
+            S.path === "life", "path=" + S.path);
+      check("restoring on a fresh device lands the marks",
+            Object.keys(S.watched).length === 12, Object.keys(S.watched).length + " marks");
+      check("the banner is gone once it is answered", !doc.querySelector("#view .viewing"));
+
+      /* Declining leaves everything alone. */
+      S.path = ""; S.mode = "continuity"; S.watched = {}; S.log = []; S.rated = {};
+      S.pending = win.importCode(code); S.tab = "home"; win.render();
+      var drop = doc.querySelector('#view .viewing [data-act="droplink"]');
+      check("the banner offers to decline", !!drop);
+      if(drop) drop.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+      check("declining leaves the device untouched",
+            !S.path && Object.keys(S.watched).length === 0);
+      S.pending = null; S.path = S.mode = "continuity"; win.render();
+    })();
+
     /* --- every CSS rule matches something, somewhere ---------------------
        Two releases running left a rule behind after the markup it styled was
        removed \u2014 .arow .aopen in 1.6.2, .arow .atop in 1.6.3 \u2014 and both were

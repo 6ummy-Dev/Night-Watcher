@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 65 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 66 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -749,3 +749,33 @@ up, the one view that fits a desktop screen, slides the centred column
 ### `#ringTrack`
 
 Reads the same tokens as every other track (.gbar / .ubar / .tbar / .segs).
+
+---
+
+## Known blind spots
+
+### The dead-rule sweep sees selectors, not declarations
+
+`qa/smoke.js` fails the build if a CSS rule never matches anything in any state.
+It cannot see a dead *declaration* inside a rule that does match. The first
+example: `.arow .tick` kept `grid-row:1 / -1` for two releases after `.arow`
+became flex in 1.6.3, and the sweep was happy because the selector still matched.
+
+Nothing checks this. A declaration that stops applying is found by reading.
+
+### Cross-tab merging only ever adds
+
+The `storage` listener merges another tab's marks in and never takes any out.
+Untick a film in one tab and the other — which still has it — writes it back on
+its next save.
+
+That is deliberate. Losing a tick is a worse failure than an unexpected one
+reappearing, and there is no timestamp on a mark to reconcile with. If it ever
+becomes a real complaint, the fix is a per-mark timestamp, not a smarter merge.
+
+### A restore link is held, not applied
+
+`#nw=` parks its payload in `S.pending` and waits for an answer. The hash stays
+in the URL until the banner is answered, so a reload re-parses it rather than
+losing it — that was the 1.6.5 fix. `S.pending` itself is session-only by
+design: an unanswered question should not outlive the tab.

@@ -2431,12 +2431,51 @@ if(!/function legendBlock/.test(HTML) ||
    careless delete from a codebase that looks arbitrary and undocumented. */
 
 (function(){
+  /* The pending-restore banner must reach both halves of Home. 1.6.4 emitted it
+     only after the no-path early return \u2014 so on a fresh phone, the one device a
+     restore link exists for, nothing appeared at all, and choosing a path first
+     meant the link's own path was then discarded. */
+  (function(){
+    var home = optionalFn("viewHome", "there would be no Home");
+    var cut = home.indexOf("return html;");
+    if(cut < 0){ fail("Home no longer has a first-run branch"); return; }
+    if(home.slice(0, cut).indexOf("pendingBanner()") < 0){
+      fail("the restore-link banner is not rendered before Home's first-run " +
+           "return \u2014 a device with no path chosen would see nothing, which is " +
+           "exactly the device a restore link is for");
+    }
+    if(home.slice(cut).indexOf("pendingBanner()") < 0){
+      fail("the restore-link banner is missing from Home once a path exists");
+    }
+    var pb = optionalFn("pendingBanner", "nothing would ask before restoring");
+    if(!/isPath\(p\.path\)/.test(pb)){
+      fail("the banner does not say when a link carries a path, so accepting it " +
+           "quietly drops one");
+    }
+  })();
+
   var head = (HTML.match(/<script>\s*(\/\*[\s\S]*?\*\/)/) || [])[1];
   if(!head){
     fail("the header block is gone from the top of the script — nothing in the " +
          "served file now says the reasoning lives in NOTES.md");
     return;
   }
+  /* The header states a count. Counts in prose drift \u2014 the README's have been
+     guarded since 1.5.x, and this one shipped wrong the release after it was
+     written, because 1.6.4 added a guard and the sentence did not move. */
+  (function(){
+    var real = (fs.readFileSync(__filename, "utf8").match(/\/\* -{3,} \d+\./g) || []).length;
+    [["the header block", head], ["NOTES.md", fs.existsSync(path.join(ROOT, "NOTES.md"))
+       ? fs.readFileSync(path.join(ROOT, "NOTES.md"), "utf8") : ""]].forEach(function(pair){
+      var m = pair[1].match(/(\d+)\s+(?:numbered\s+)?sections/);
+      if(!m) return;
+      if(parseInt(m[1], 10) !== real){
+        fail(pair[0] + " says " + m[1] + " guard sections; there are " + real +
+             " \u2014 a number in prose is a number that drifts, which is why the " +
+             "README's counts are guarded too");
+      }
+    });
+  })();
   ["NOTES.md", "CHANGELOG.md", "qa/guards.js"].forEach(function(doc){
     if(head.indexOf(doc) < 0){
       fail("the header block no longer names " + doc + " — it is the only pointer " +

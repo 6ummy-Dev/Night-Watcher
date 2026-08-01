@@ -36,7 +36,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-v54eU5qlN24LEGY5vfcux9Mr4thz98x6LSgZ9J0/umY=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-1LlmIFvmsm0BuRnXP6li8bhtBKLk2YpfbniRzvJ1K9M=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","image":"https://6ummy-dev.github.io/Night-Watcher/icon.png","dateModified":"2026-08-01","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -55,7 +55,7 @@
     --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
   --line:#252E42; --line2:#33405C; --staroff:#63759E;
   --bone:#E7E9F0; --dust:#93A0B8; --dim:#8B97B1;
-  --signal:#FFCF1F;        --steel:#7295CC;         --crimson:#C43A30; --crimson2:#DD7A73;       --moss:#7FA98B;          --deco:"Limelight","Big Shoulders Display",serif;
+  --signal:#FFCF1F; --steel:#7295CC;         --crimson:#C43A30; --crimson2:#DD7A73; --moss:#7FA98B;          --deco:"Limelight","Big Shoulders Display",serif;
   --disp:"Anton","Haettenschweiler","Arial Narrow",Impact,sans-serif;
   --body:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
@@ -217,7 +217,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .arow .stars{flex:none;margin:0;}
 .arow .stars button{width:20px;height:26px;font-size:13px;}
-.arow .tick{width:24px;height:24px;font-size:11px;grid-row:1 / -1;align-self:start;margin-top:2px;background:var(--bone);border-color:var(--bone);color:var(--ink);}
+.arow .tick{width:24px;height:24px;font-size:11px;align-self:start;margin-top:2px;background:var(--bone);border-color:var(--bone);color:var(--ink);}
 .herorow{display:flex;align-items:center;gap:9px;margin:13px 0 0;}
 .herorow .herorate{flex:1;min-width:0;}
 .herorow .linkrow{flex:0 0 38%;justify-content:flex-start;margin-top:0;}
@@ -388,7 +388,7 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 65 sections, each one negative-tested.
+   qa/guards.js — 66 sections, each one negative-tested.
 
    Read those before changing something that looks redundant. Most of it is
    load-bearing, and this project has a long history of rules that only make
@@ -757,7 +757,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "1.6.4";
+var BUILD = "1.6.5";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -811,7 +811,7 @@ function dedupeLog(log){
 }
 function persist(){
   if(!canSave || !store) return;
-    var payload = JSON.stringify({watched:S.watched, skipped:S.skipped, rated:S.rated,
+  var payload = JSON.stringify({watched:S.watched, skipped:S.skipped, rated:S.rated,
                                 path:S.path, mode:S.path, theme:S.theme,
                                 scope:S.scope, format:S.format, log:S.log,
                                 groupOpen:S.groupOpen});
@@ -828,11 +828,11 @@ function restore(done){
         S.watched = o.watched || {}; S.skipped = o.skipped || {};
         S.rated = o.rated || {};
         S.log = dedupeLog(Array.isArray(o.log) ? o.log : []);
-                if(isPath(o.path)) S.path = o.path;
+        if(isPath(o.path)) S.path = o.path;
         else if(isPath(o.mode)) S.path = o.mode;
         if(S.path) S.mode = S.path;
         if(o.theme === "darker" || o.theme === "dark") S.theme = o.theme;
-                if(o.scope === "movies" || o.scope === "all") S.scope = o.scope;
+        if(o.scope === "movies" || o.scope === "all") S.scope = o.scope;
                 S.format = ["anim", "live", "all"].indexOf(o.format) >= 0 ? o.format : "anim";
                 if(o.groupOpen && typeof o.groupOpen === "object"){
           var gk; for(gk in o.groupOpen){ if(o.groupOpen[gk] === false) S.groupOpen[gk] = false; }
@@ -971,7 +971,7 @@ function tierOf(f){ return f.b.indexOf("e") >= 0 ? "e" : (f.o ? "o" : "k"); }
 function badges(f){
   var tier = tierOf(f);
   var out = ['<span class="bd '+tier+'">'+BADGE[tier]+'</span>'];
-    if(S.format === "all"){
+  if(S.format === "all"){
     out.push('<span class="bd fm'+f.fmt+'">'+(f.fmt === "live" ? "LIVE ACTION" : "ANIMATED")+'</span>');
   }
   f.b.forEach(function(k){
@@ -1081,7 +1081,7 @@ function stars(n){
 function rate(id, n){
   n = clampRating(n);
   if(!n) return;
-    if(S.rated[id] === n){ delete S.rated[id]; }
+  if(S.rated[id] === n){ delete S.rated[id]; }
   else { S.rated[id] = n; markWatched(id); }
   persist(); render();
 }
@@ -1094,13 +1094,14 @@ function exportCode(){
     if(S.skipped[f.id]) k.push(h);
     if(clampRating(S.rated[f.id])) r.push(h + clampRating(S.rated[f.id]));
   });
-    return "NW2W" + w.join("") + "S" + k.join("") + "R" + r.join("") +
+  return "NW2W" + w.join("") + "S" + k.join("") + "R" + r.join("") +
          (S.path ? "P" + PATHCODE[S.path] : "");
 }
 function importCode(raw){
   var code = String(raw || "").trim().replace(/\s+/g, "");
   var hit = code.search(/NW\d+[A-Z]/);
-  if(hit > 0) code = code.slice(hit);                      if(!/^NW\d+(?:[A-Z][0-9a-z]*)+$/.test(code)) return null;
+  if(hit > 0) code = code.slice(hit);
+  if(!/^NW\d+(?:[A-Z][0-9a-z]*)+$/.test(code)) return null;
   var seg = {}, sre = /([A-Z])([0-9a-z]*)/g, sm;
   var body = code.replace(/^NW\d+/, "");
   while((sm = sre.exec(body))){ if(!(sm[1] in seg)) seg[sm[1]] = sm[2]; }
@@ -1120,7 +1121,7 @@ function importCode(raw){
   for(i = 0; i + 6 <= m[3].length; i += 6){
     id = map[m[3].substr(i,5)];
     var n = clampRating(parseInt(m[3].charAt(i+5), 10));
-        if(id && n){ res.rated[id] = n; if(!res.watched[id]) res.found++; }
+    if(id && n){ res.rated[id] = n; if(!res.watched[id]) res.found++; }
     else if(!id) res.unknown++;
   }
   return res;
@@ -1145,7 +1146,7 @@ function doRestore(text){
   if(text.charAt(0) === "{"){
     var o; try{ o = JSON.parse(text); }catch(e){ return null; }
     if(!o || typeof o !== "object" || (!o.watched && !o.skipped && !o.rated)) return null;
-        var res = {watched:Object.create(null), skipped:Object.create(null), rated:Object.create(null), found:0, unknown:0,
+    var res = {watched:Object.create(null), skipped:Object.create(null), rated:Object.create(null), found:0, unknown:0,
                path:isPath(o.path) ? o.path : ""};
     var src;
     for(src in (o.watched || {})) res.watched[src] = 1;
@@ -1181,7 +1182,7 @@ function doRestore(text){
 }
 function applyImport(res){
   var id;
-    if(!S.path && isPath(res.path)){ S.path = S.mode = res.path; }
+  if(!S.path && isPath(res.path)){ S.path = S.mode = res.path; }
   for(id in res.watched){ if(!S.watched[id]){ S.watched[id] = 1; S.log.push({id:id, ts:Date.now()}); } }
   for(id in res.skipped){ if(!S.watched[id]) S.skipped[id] = 1; }
   for(id in res.rated){ var rn = clampRating(res.rated[id]); if(rn) S.rated[id] = rn; }
@@ -1237,6 +1238,16 @@ function introBlock(){
     'to watch it. Tick them off as you go; your progress stays in this browser.</p>'+
     introStats()+'</div>';
 }
+function pendingBanner(){
+  if(!S.pending) return "";
+  var p = S.pending, bits = "<b>" + p.found + "</b> " + (p.found === 1 ? "entry" : "entries");
+  if(!S.path && isPath(p.path)) bits += " and a path";
+  return '<div class="viewing"><p>This link carries '+bits+
+    (p.unknown ? ' (and '+p.unknown+' this build does not know)' : '')+
+    '. '+(S.path ? "Add them to your progress?" : "Restore them?")+'</p>'+
+    '<button data-act="takelink">'+(S.path ? "Add them" : "Restore")+'</button>'+
+    '<button class="ghost" data-act="droplink">No thanks</button></div>';
+}
 function viewHome(){
   var c = counts();
   var nxt = upNext();
@@ -1249,8 +1260,8 @@ function viewHome(){
   var fresh = (c.done === 0);
   var html = "";
 
-    if(!S.path){
-    html += '<div class="chooser">'+introBlock()+
+  if(!S.path){
+    html += pendingBanner()+'<div class="chooser">'+introBlock()+
       '<p class="pathkick">What are you watching</p>'+formatSwitch()+
       '<p class="pathkick" style="margin-top:22px">Choose your path</p>' +
       '<p class="picknote" style="margin:8px 0 16px">Three honest answers instead of one fake one. ' +
@@ -1266,14 +1277,7 @@ function viewHome(){
   
   html += masterChooser();
 
-  if(S.pending){
-    html += '<div class="viewing"><p>This link carries <b>'+S.pending.found+
-      '</b> '+(S.pending.found === 1 ? "entry" : "entries")+
-      (S.pending.unknown ? ' (and '+S.pending.unknown+' this build does not know)' : '')+
-      '. Add them to your progress?</p>'+
-      '<button data-act="takelink">Add them</button>'+
-      '<button class="ghost" data-act="droplink">No thanks</button></div>';
-  }
+  html += pendingBanner();
 
   if(fresh){
     html += introBlock();
@@ -1375,7 +1379,7 @@ function chipSet(){
 }
 function viewWatch(){
   var q = S.q.toLowerCase();
-    var viewing = "";
+  var viewing = "";
   if(!S.path){
     viewing = '<div class="viewing"><p>You haven\u2019t chosen a path yet. This is '+
       esc(pathName(S.mode))+'.</p><button data-path="'+S.mode+'">Make this my path</button></div>';
@@ -1412,7 +1416,7 @@ function viewWatch(){
       var isOpen = !!S.open[f.id];
       var cls = "film" + (isDone(f)?" done":"") + (isSkip(f)?" skip":"") + (isOpen?" open":"");
       var meta = metaOf(f, S.mode !== "continuity");
-            var detail = "";
+      var detail = "";
       if(isOpen){
         detail = '<div class="fdetail"><p>'+esc(f.d)+'</p><div class="acts">'+
           '<button class="act'+(isDone(f)?" primary":"")+'" data-act="watched" data-id="'+f.id+'">'+
@@ -1484,7 +1488,8 @@ function donut(groups, title, sub){
   });
   var pct = Math.round(done / total * 100);
   return '<div class="pie"><p class="pietitle">'+title+'</p>'+
-    '<svg viewBox="0 0 100 100" role="img" aria-label="'+title+', '+pct+' percent complete">'+
+    '<svg viewBox="0 0 100 100" role="img" aria-label="'+title+', '+pct+' percent complete '+
+      '(tap a slice with a pointer; the same jumps are buttons in the list below)">'+
     '<g transform="rotate(-90 50 50)">'+segs+'</g>'+
     '<text class="pcent" x="50" y="52" text-anchor="middle">'+pct+'%</text>'+
     '<text class="plab" x="50" y="62" text-anchor="middle">'+done+' / '+total+'</text></svg>'+
@@ -1531,7 +1536,7 @@ function viewStats(){
       '<span class="sc">'+d+'/'+fs.length+'</span></button>';
   });
 
-    html += '<div class="bk"><h3>Your data</h3>'+
+  html += '<div class="bk"><h3>Your data</h3>'+
     '<p>Your progress lives only in this browser \u2014 a new phone, or clearing site data, starts you at zero. '+
     'Make a code and you can carry it anywhere.</p><div class="bkbtns">'+
     '<button class="bkbtn primary" data-act="mkcode">'+(S.code ? "Refresh code" : "Create backup code")+'</button>'+
@@ -1581,7 +1586,7 @@ function render(){
   var keep = window.pageYOffset || document.documentElement.scrollTop || 0;
   var qPrev = document.getElementById("q");
   var qSel = qPrev ? qPrev.selectionStart : null;
-    var qWasFocused = !!qPrev && document.activeElement === qPrev;
+  var qWasFocused = !!qPrev && document.activeElement === qPrev;
   var focus = null, ae = document.activeElement;
   if(ae && ae.tagName === "BUTTON" && v.contains(ae) && ae.dataset){
     focus = {}; ["act","id","tf","gk","mode","scope","filter","n"].forEach(function(k){
@@ -1610,7 +1615,7 @@ function render(){
     var pos = (qSel === null || qSel === undefined) ? qi.value.length : Math.min(qSel, qi.value.length);
     qi.setSelectionRange(pos, pos);
   }
-    var maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  var maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
   window.scrollTo(0, Math.min(keep, maxY));
 }
 
@@ -1627,7 +1632,7 @@ function goToGroup(jk){
   buildGroups().forEach(function(g){ S.groupOpen[g.key] = (g.key === jk); });
     persist();
   window.scrollTo(0,0); render();
-    var target = document.querySelector('.ghead[data-gk="'+jk+'"]');
+  var target = document.querySelector('.ghead[data-gk="'+jk+'"]');
   if(target && target.scrollIntoView){
     try{ target.scrollIntoView({block:"start", behavior:calmScroll()}); }
     catch(e){ target.scrollIntoView(); }
@@ -1719,9 +1724,9 @@ document.getElementById("view").addEventListener("click", function(e){
   else if(act === "takelink"){
     var pend = S.pending; S.pending = null;
     if(pend){ applyImport(pend); toast("Restored " + pend.found + " from your backup"); }
-    render();
+    clearPendingHash(); render();
   }
-  else if(act === "droplink"){ S.pending = null; render(); toast("Left as it was"); }
+  else if(act === "droplink"){ S.pending = null; clearPendingHash(); render(); toast("Left as it was"); }
   else if(act === "expand"){ S.open[id] = !S.open[id]; render(); }
   else if(act === "group"){ var gk = b.dataset.gk; S.groupOpen[gk] = (S.groupOpen[gk] === false); persist(); render(); }
   else if(act === "allgroups"){ setAllGroups(!anyOpen()); persist(); render(); window.scrollTo(0,0); }
@@ -1801,12 +1806,17 @@ restore(function(){
   render();
 });
 
+function clearPendingHash(){
+  if(location.hash.indexOf("#nw=") === 0 && history.replaceState){
+    history.replaceState(null, "", location.pathname);
+  }
+}
 function routeHash(){
   var h = location.hash || "";
   if(h.indexOf("#nw=") === 0){
     var res = importCode(decodeURIComponent(h.slice(4)));
     if(res){ S.pending = res; S.tab = "home"; }
-    if(history.replaceState) history.replaceState(null, "", location.pathname);
+    else if(history.replaceState) history.replaceState(null, "", location.pathname);
   } else if(h.length > 1){
         h.slice(1).toLowerCase().split(/[-+]/).forEach(function(tok){
       if(tok === "life"){ S.tab = "watch"; S.mode = "life"; revealHero(); }
