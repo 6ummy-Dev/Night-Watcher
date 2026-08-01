@@ -36,7 +36,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nUXdoT/je+FQgY1wa4XOuoYGff3rjkAG0NVHAd3aRb0=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-v54eU5qlN24LEGY5vfcux9Mr4thz98x6LSgZ9J0/umY=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","image":"https://6ummy-dev.github.io/Night-Watcher/icon.png","dateModified":"2026-08-01","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -75,7 +75,7 @@ body{background:var(--ink);color:var(--bone);font-family:var(--body);font-size:1
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;touch-action:manipulation;}
 :focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px;}
 
-#app{display:flex;flex-direction:column;min-height:100dvh;}
+#app{display:flex;flex-direction:column;min-height:calc(100svh + 1px);}
 #view{overflow-anchor:none;}
 header{position:sticky;top:0;z-index:30;background:var(--hdr);-webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
 .hrow{display:flex;align-items:center;gap:14px;max-width:760px;margin:0 auto;}
@@ -212,7 +212,6 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .arow{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line);}
 .arow:first-of-type{border-top:0;}
 
-.arow .atop{display:flex;align-items:baseline;gap:10px;min-width:0;}
 .arow .at{flex:1;min-width:0;font-family:var(--disp);font-weight:400;letter-spacing:.025em;
   text-transform:uppercase;font-size:15px;line-height:1.15;color:var(--dim);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -749,7 +748,7 @@ PATH.forEach(function(g, gi){
 });
 
 var S = {tab:"home", scope:"movies", format:"all", path:"", mode:"continuity", filter:"all", q:"", code:"",
-         theme:"dark", watched:{}, skipped:{}, rated:{}, open:{}, groupOpen:{}, log:[]};
+         theme:"dark", watched:{}, skipped:{}, rated:{}, open:{}, groupOpen:{}, log:[], pending:null};
 var PATHS = [["continuity","By universe"], ["life","Bruce\u2019s life"], ["release","Release order"]];
 var PATHCODE = {continuity:"c", life:"l", release:"r"};
 var CODEPATH = {c:"continuity", l:"life", r:"release"};
@@ -758,7 +757,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "1.6.3";
+var BUILD = "1.6.4";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -957,9 +956,12 @@ function groupFilms(gk){
     return visible(f) && (kind === "e" ? f.e === n : f.gi === n);
   });
 }
+function subOf(f){
+  return (f.sub && f.sub !== String(f.y)) ? f.sub : "";
+}
 function metaOf(f, withUniverse){
   var bits = [];
-  if(f.sub && f.sub !== String(f.y)) bits.push(f.sub);
+  if(subOf(f)) bits.push(subOf(f));
   bits.push(String(f.y));
   if(f.ep) bits.push(f.ep + (f.ep === 1 ? " episode" : " episodes"));
   if(withUniverse) bits.push(f.gname);
@@ -1029,7 +1031,7 @@ function activityBlock(){
     for(j = 0; j < FILMS.length; j++){ if(FILMS[j].id === S.log[i].id){ f = FILMS[j]; break; } }
     if(!f) continue;                          rows += '<div class="arow">'+
             '<button class="tick" data-act="watched" data-id="'+f.id+'" aria-label="Remove '+
-              esc(f.t)+(f.sub ? ", "+esc(f.sub) : "")+' from your progress" aria-pressed="true"></button>'+
+              esc(f.t)+(subOf(f) ? ", "+esc(subOf(f)) : "")+' from your progress" aria-pressed="true"></button>'+
             '<span class="at">'+esc(f.t)+'</span>'+
             starRow(f)+'</div>';
     n++;
@@ -1264,6 +1266,15 @@ function viewHome(){
   
   html += masterChooser();
 
+  if(S.pending){
+    html += '<div class="viewing"><p>This link carries <b>'+S.pending.found+
+      '</b> '+(S.pending.found === 1 ? "entry" : "entries")+
+      (S.pending.unknown ? ' (and '+S.pending.unknown+' this build does not know)' : '')+
+      '. Add them to your progress?</p>'+
+      '<button data-act="takelink">Add them</button>'+
+      '<button class="ghost" data-act="droplink">No thanks</button></div>';
+  }
+
   if(fresh){
     html += introBlock();
   }
@@ -1333,7 +1344,7 @@ function viewNext(){
   var qhtml = queue.map(function(x, k){
     return '<button class="qitem" data-act="peek" data-id="'+x.id+'" aria-expanded="'+
            (!!S.open[x.id])+'"><span class="qn">'+(k+2)+'</span><span class="qt">'+esc(x.t)+
-           (x.sub ? ' <span style="color:var(--dim);font-size:11px">'+esc(x.sub)+'</span>' : '')+
+           (subOf(x) ? ' <span style="color:var(--dim);font-size:11px">'+esc(subOf(x))+'</span>' : '')+
            '</span><span class="qy">'+x.y+'</span>'+
            (S.open[x.id]
              ? '<span class="qpeek">'+badges(x)+'<span class="qg">'+esc(x.gname)+'</span></span>'
@@ -1705,6 +1716,12 @@ document.getElementById("view").addEventListener("click", function(e){
   else if(act === "rate"){ rate(id, parseInt(b.dataset.n,10)); }
       else if(act === "peek"){ S.open[id] = !S.open[id]; render(); }
     else if(act === "jump"){ goToGroup(b.dataset.gk); }
+  else if(act === "takelink"){
+    var pend = S.pending; S.pending = null;
+    if(pend){ applyImport(pend); toast("Restored " + pend.found + " from your backup"); }
+    render();
+  }
+  else if(act === "droplink"){ S.pending = null; render(); toast("Left as it was"); }
   else if(act === "expand"){ S.open[id] = !S.open[id]; render(); }
   else if(act === "group"){ var gk = b.dataset.gk; S.groupOpen[gk] = (S.groupOpen[gk] === false); persist(); render(); }
   else if(act === "allgroups"){ setAllGroups(!anyOpen()); persist(); render(); window.scrollTo(0,0); }
@@ -1788,11 +1805,7 @@ function routeHash(){
   var h = location.hash || "";
   if(h.indexOf("#nw=") === 0){
     var res = importCode(decodeURIComponent(h.slice(4)));
-    if(res){
-      applyImport(res);
-      S.tab = "home";
-      setTimeout(function(){ toast("Restored " + res.found + " from your backup"); }, 400);
-    }
+    if(res){ S.pending = res; S.tab = "home"; }
     if(history.replaceState) history.replaceState(null, "", location.pathname);
   } else if(h.length > 1){
         h.slice(1).toLowerCase().split(/[-+]/).forEach(function(tok){

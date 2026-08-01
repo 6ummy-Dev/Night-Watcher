@@ -19,103 +19,90 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
-## [1.6.3] — 2026-08-01
+## [1.6.4] — 2026-08-01
 
-The comments moved out, and Recent activity came back down to one line.
-
-### Changed
-
-- **`docs/index.html` carries no explanatory comments.** They are in `NOTES.md`
-  at the repo root, which is not served. 22 KB of prose was being paid for by
-  every reader on every first visit, to explain a file they were not reading.
-
-  **145 KB → 121 KB raw, 47 → 37 KB gzipped**, against a 150 / 50 budget. That
-  is the whole reason the catalogue can grow: 1.7.0 needs about 7 KB of rows and
-  there was 5 KB left.
-
-  Two comments stay. The `i:` slug-freeze warning above `PATH`, because that one
-  is an instruction to whoever edits the line beneath it and the damage is
-  irreversible. And a header block at the top of the script pointing at
-  `NOTES.md`, `CHANGELOG.md` and `qa/guards.js` — guarded, because once it is
-  the only prose left it is one careless delete from a codebase that looks
-  arbitrary.
-
-  Nothing was rewritten on the way out. 71 of the 116 comments existed nowhere
-  else; they were moved before anything was deleted.
-- **Recent activity is one line a row again, with the stars on it.** 1.6.2 put
-  them behind a tap, which hid a control that was in use and broke the layout:
-  the tick carried `grid-row:1 / -1` with no column, so opening a row let the
-  stars auto-flow into the first track and **shoved that row's title 104px
-  right** while its neighbours stayed put. Flex has no auto-placement to get
-  wrong.
-
-  **44px a row, 262px for the block against Then's 201px.** It was 622px in
-  1.6.0 and 316px in 1.6.2. It is a card again, and small — the container was
-  never the problem, the size was.
-- **The date is gone from Activity, and so are the badges.** Four things do not
-  fit one line on a 320px phone: with five stars and a date beside them the
-  title was down to 39px, about three characters. The list is newest first, so
-  position already says when. The badges were added in 1.5.9 because Activity
-  was the one place a logged entry rendered with none — this reverses that
-  deliberately, and the guard now says so, so nobody restores them from reading
-  only the older note.
-
-  The tick's label names the season now, since two rows of the same series no
-  longer look different.
-- **Both cards say "Tonight's patrol".** Next up said "Up next" for one release,
-  because 1.6.2 emptied its kick line and I wrote a new label instead of reusing
-  Home's. Nobody asked for that.
-- **Guard 58 holds the proportion, not the container.** It used to fail if
-  Activity had a border. That was the wrong target: it would have passed the
-  layout that drew the complaint and failed the one that fixes it. It now checks
-  that a history row is not roomier than a queue row, that there are no more of
-  them than the queue shows, and that the row stays one line.
+Last of the small ones.
 
 ### Fixed
 
-- **The year printed twice on nine entries.** The Super Friends entries carry
-  the year as their `sub` label — `sub:"1973"` and so on — and `metaOf()` pushed
-  `sub` then `y`, so every line describing them read **"1973 · 1973 · 16
-  episodes"**: both heroes, the Then rows, and The Path. `metaOf()` drops a sub
-  that is only the year. Guard 64 runs the real function over all 168 entries
-  and fails on a repeat.
-- **`doRestore()` merged foreign log objects verbatim** while the `storage`
-  listener added in 1.6.2 sanitised them. Two paths into one array, two
-  standards — mine, from one release ago. Both now write `{id, ts}` and reject a
-  non-finite timestamp.
-- **The imported-progress maps were plain objects** where `dedupeLog` already
-  used a null prototype. Inert today, because every value written is a
-  primitive. Not a thing to leave depending on that.
-- Two dead CSS rules: `.pathring circle`, which nothing has ever carried, and
-  `.arow .aopen`, which 1.6.2 added and then built another way.
-- `logDate()` went with the date it formatted.
+- **The queue was still printing the year twice.** 1.6.3 fixed the function that
+  builds a description, but the Then rows do not use it — they compose their own
+  title — so the Super Friends seasons went on reading *The All-New Super
+  Friends Hour 1977 · 1977* for a release. One filter now, `subOf()`, read by
+  everything that renders a label: the two heroes, The Path, the queue, and the
+  label on a history row's tick.
+- **Next up changed the size of the screen around it.** It is the only view
+  whose content can be shorter than the display, so it was the only tab where
+  the page did not scroll — and a page that does not scroll leaves the browser
+  chrome open while every other tab collapses it. Arriving resized the visible
+  area and leaving resized it back. Every tab now clears the viewport by a
+  pixel.
+- **A restore link asks first.** Opening one applied its marks immediately, with
+  a message and no way back. Shared links are views, not takeovers; the view
+  links have always honoured that and the backup links did not. It says what the
+  link carries and waits for an answer.
+- `.arow .atop` outlived the button it styled.
 
 ### Added
 
-- **`NOTES.md`** — why the code is the way it is, keyed by function and
-  selector. Guarded both ways: the header block must name it, and it must not
-  document anything `index.html` no longer has.
-- **The installed app no longer locks to portrait.** `orientation:"portrait"`
-  in the manifest forced it on tablets and desktops where landscape is
-  perfectly reasonable. It also gains an `id`, which future-proofs installed
-  identity across the 1.8.0 domain move — exactly when that matters.
-- **The two display faces are preloaded.** Limelight and Anton draw the wordmark
-  and every heading; with `font-display:swap` and no preload the first visit
-  painted fallback type and swapped.
+- **The suite checks that no CSS rule is left behind.** Two releases running
+  removed some markup and left its rule sitting there. Both were caught by a
+  script run by hand — which was never necessary: asking whether a selector ever
+  matches is a question about the DOM, not about layout, and the smoke suite
+  already walks every path, format, scope, tab and filter. It rides along on
+  the states already being driven.
+- A guard that every tab clears the viewport, so the one that fits without
+  scrolling cannot come back.
+- A guard that nothing reads an entry's label except through `subOf()` — which
+  is exactly how the queue kept the doubled year after the first fix.
+
+## [1.6.3] — 2026-08-01
+
+Making room.
+
+### Changed
+
+- **The reasoning moved out of the app.** Twenty-two kilobytes of comments
+  explaining why the code is written the way it is, shipped to every reader on
+  every first visit, to explain a file they were never going to open. It lives
+  in `NOTES.md` now, beside this one, where it costs nothing.
+
+  Two notes stay: the slug freeze, because that one is a warning to whoever
+  edits the line beneath it, and a header saying where the rest went. 145 KB to
+  121. The catalogue has room to grow again.
+- **Recent activity is one line.** A tick, a title, five stars. It took two
+  fifths of Next up and it sits level with Then now — the block the tab exists
+  for.
+
+  The stars are back on the row. Putting them behind a tap took away the one
+  place you could rate something without leaving the page, and moved the title
+  sideways when you tried.
+- **No date on it, and no badges.** Four things do not fit on one line on a
+  small phone; with the stars and a date beside them a title had room for about
+  three characters. The list is newest first, so its order already says when.
+  The badges have been there since 1.5.9 and this takes them back out on
+  purpose.
+- **Both cards say Tonight's patrol.** Next up briefly said something else.
+
+### Fixed
+
+- **Nine entries printed their year twice.** The Super Friends seasons carry
+  the year where every other series carries "Season 2", so each line describing
+  them read *1973 · 1973 · 16 episodes* — on Home, on Next up, in the queue
+  and on The Path. A label that only repeats the year is not a label.
+- **A restore from a file kept whatever else was in the file.** Extra fields
+  from a hand-edited backup settled into the browser and stayed there. It takes
+  what it needs and drops the rest now, like every other way in.
+- **The installed app no longer locks to portrait**, which was never anyone's
+  choice on a tablet.
+- The wordmark and the headings arrive in their own faces instead of swapping a
+  moment after the page appears.
 
 ### Internal
 
-- **One search haystack.** It was written out twice — once to decide what the
-  list shows, once to decide what "N matches" calls hidden — so a field added to
-  one and not the other would have made the count stop describing the list.
-- **One definition of group membership.** `f.gi === gi && visible(f)` and its era
-  twin appeared in seven places while `buildGroups()` already computed and
-  memoised exactly that. Home's grid, both donuts and Progress's rows go through
-  it now.
-
-Eighteen new negative tests. The 1.6.0, 1.6.1 and 1.6.2 suites were re-run —
-57 cases in total. Four cases in the 1.6.0 suite were retired: they tested that
-Activity could not be a card, which is a rule this release deliberately reversed.
+- Two ways of asking "does this match the search" became one. Seven ways of
+  asking "is this entry in this group" became one. Both had drifted apart at
+  least once.
 
 ## [1.6.2] — 2026-08-01
 

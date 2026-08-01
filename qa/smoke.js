@@ -856,6 +856,86 @@ win.addEventListener("load", function(){
     });
 
     function runBlocked(){
+    /* --- every CSS rule matches something, somewhere ---------------------
+       Two releases running left a rule behind after the markup it styled was
+       removed \u2014 .arow .aopen in 1.6.2, .arow .atop in 1.6.3 \u2014 and both were
+       found by a script run by hand. This is not a layout question, which is
+       why it does not need a real browser: it asks whether a selector ever
+       matches, and querySelector works here perfectly. It rides along on the
+       states this suite already drives. */
+    (function(){
+      var css = html.match(/<style>([\s\S]*?)<\/style>/g).join("\n")
+                    .replace(/\/\*[\s\S]*?\*\//g, "");
+      var rules = css.match(/[^{}]+\{[^}]*\}/g) || [];
+      var sels = [];
+      rules.forEach(function(r){
+        var sel = r.slice(0, r.indexOf("{")).replace(/\s+/g, " ").trim();
+        if(sel.charAt(0) === "@" || !sel) return;
+        sels.push(sel);
+      });
+      var matched = Object.create(null);
+      function sweep(){
+        sels.forEach(function(sel){
+          if(matched[sel]) return;
+          var probe = sel.split(",").map(function(one){
+            return one
+              .replace(/::?(before|after|placeholder|selection|marker|backdrop|-webkit-[a-z-]+)/g, "")
+              .replace(/:(hover|active|focus-visible|focus|disabled|checked|first-of-type|last-of-type|last-child|first-child)/g, "")
+              .trim();
+          }).filter(Boolean).join(",");
+          if(!probe){ matched[sel] = 1; return; }
+          try{ if(doc.querySelector(probe)) matched[sel] = 1; }
+          catch(e){ matched[sel] = 1; }
+        });
+      }
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.open = {}; S.q = "";
+      S.path = ""; S.tab = "home"; win.render(); sweep();
+      ["continuity", "life", "release"].forEach(function(pt){
+        S.path = S.mode = pt;
+        ["anim", "live", "all"].forEach(function(fm){
+          S.format = fm;
+          ["movies", "all"].forEach(function(sc){
+            S.scope = sc;
+            ["home", "next", "watch", "stats"].forEach(function(t){
+              S.tab = t; S.filter = "all"; win.render(); sweep();
+            });
+          });
+        });
+      });
+      S.path = S.mode = "continuity"; S.format = "all"; S.scope = "all";
+      FILMS.slice(0, 40).forEach(function(f, i){
+        S.watched[f.id] = 1; if(i < 5) S.log.push({id:f.id, ts:1785000000000 + i * 86400000});
+      });
+      S.skipped[FILMS[60].id] = 1; S.rated[FILMS[0].id] = 4;
+      ["home", "next", "watch", "stats"].forEach(function(t){ S.tab = t; win.render(); sweep(); });
+      FILMS.forEach(function(f){ S.open[f.id] = true; });
+      ["next", "watch"].forEach(function(t){ S.tab = t; win.render(); sweep(); });
+      ["left", "done", "ess", "core", "opt"].forEach(function(f){
+        S.tab = "watch"; S.filter = f; win.render(); sweep();
+      });
+      S.filter = "all"; S.q = "zzzznomatch"; win.render(); sweep();
+      S.q = ""; S.tab = "stats"; S.code = win.exportCode(); win.render(); sweep();
+      /* The states a sweep cannot reach by walking the tabs. */
+      S.tab = "watch"; S.mode = "life"; win.render(); sweep();
+      S.path = ""; win.render(); sweep();
+      S.path = S.mode = "continuity";
+      S.pending = {found:3, unknown:0}; S.tab = "home"; win.render(); sweep();
+      S.pending = null;
+      win.toast("x"); sweep();
+      S.tab = "watch"; win.setAllGroups(false); win.render(); sweep();
+      win.setAllGroups(true);
+      FILMS.forEach(function(f){ S.watched[f.id] = 1; });
+      ["home", "next", "watch", "stats"].forEach(function(t){ S.tab = t; win.render(); sweep(); });
+      doc.documentElement.setAttribute("data-theme", "darker"); sweep();
+      doc.documentElement.setAttribute("data-theme", "dark");
+
+      var dead = sels.filter(function(sel){ return !matched[sel]; });
+      check("every CSS rule matches something in some state",
+            dead.length === 0, dead.join("  |  "));
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.open = {};
+      S.tab = "home"; S.path = S.mode = "continuity"; win.render();
+    })();
+
     /* --- a blocked store must SAY so --- */
     /* Only a document with localStorage throwing can observe the silent failure. */
     var blocked = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://6ummy-dev.github.io/Night-Watcher/",

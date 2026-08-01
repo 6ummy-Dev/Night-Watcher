@@ -2370,14 +2370,24 @@ if(!/function legendBlock/.test(HTML) ||
    function produces rather than the fields it reads. */
 
 (function(){
-  var mo = optionalFn("metaOf", "nothing would describe an entry");
-  if(!/f\.sub !== String\(f\.y\)/.test(mo)){
-    fail("metaOf() no longer skips a sub that is only the year — nine entries " +
+  var so = optionalFn("subOf", "nothing would filter a redundant label");
+  if(!/f\.sub !== String\(f\.y\)/.test(so)){
+    fail("subOf() no longer skips a sub that is only the year — nine entries " +
          "would print it twice on every line that describes them");
   }
-  /* Run it. The regex above says the intent is there; this says it works. */
+  /* One filter, every reader. The 1.6.3 fix lived in metaOf() alone, so the
+     queue — which composes its own title — went on doubling the year for a
+     whole release. */
+  ["metaOf", "activityBlock", "viewNext"].forEach(function(name){
+    var body = optionalFn(name);
+    if(/\.sub\b/.test(body) && !/subOf\(/.test(body)){
+      fail(name + "() reads .sub directly instead of subOf(), which is how the " +
+           "queue kept printing the year twice after metaOf() was fixed");
+    }
+  });
+  /* Run it. The regexes above say the intent is there; this says it works. */
   var sandbox2 = {};
-  vm.runInContext(fn("metaOf"), vm.createContext(sandbox2));
+  vm.runInContext(fn("subOf") + "\n" + fn("metaOf"), vm.createContext(sandbox2));
   var seen = 0;
   FILMS.forEach(function(f){
     var line = sandbox2.metaOf(f, false);
@@ -2389,6 +2399,28 @@ if(!/function legendBlock/.test(HTML) ||
   });
   if(seen > 1) fail(seen + " entries in total print their year twice");
   note("meta lines checked for a repeated year: " + FILMS.length);
+})();
+
+/* Every tab scrolls, by at least a hair. Next up is the only view whose content
+   can be shorter than the screen, and a page that does not scroll keeps the
+   browser chrome expanded while every other tab collapses it — so arriving at
+   Next up changed the height of the visible area and leaving changed it back.
+   svh is the viewport with the chrome showing; a pixel over it makes all four
+   behave the same. */
+(function(){
+  var app = (HTML.match(/#app\{[^}]*\}/) || [""])[0];
+  if(!app){ fail("#app has no styling of its own"); return; }
+  var mh = app.match(/min-height:\s*([^;}]+)/);
+  if(!mh){
+    fail("#app sets no min-height \u2014 Next up can end up shorter than the screen, " +
+         "and it is the only tab that does");
+    return;
+  }
+  if(!/calc\(\s*100svh\s*\+/.test(mh[1])){
+    fail("#app is " + mh[1].trim() + " \u2014 it has to clear the small viewport by a " +
+         "pixel, or the one tab that fits without scrolling resizes the chrome " +
+         "around it");
+  }
 })();
 
 /* ---------- 65. The file points at where its reasoning went ------ */
