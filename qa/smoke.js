@@ -49,6 +49,22 @@ win.addEventListener("load", function(){
             return b.querySelector("span") && b.querySelector("span").textContent.length > 20;
           }));
 
+    /* The only page anyone arrives on, and the only one a crawler ever sees.
+       Through 1.5.9 it rendered 803 characters of visible text carrying "Bruce"
+       twice and "Batman" not once \u2014 the word every query for this page
+       contains. The sentence that says it was already written; it just waited
+       for a path to be chosen before it rendered. */
+    var view0 = doc.getElementById("view");
+    check("the landing page says Batman", view0.textContent.indexOf("Batman") >= 0,
+          view0.textContent.slice(0, 60));
+    var intro0 = doc.querySelector("#view .intro"), deck0 = doc.querySelector("#view .deck");
+    check("the landing page carries the intro", !!intro0);
+    check("it tells before it asks",
+          !!intro0 && !!deck0 && !!(intro0.compareDocumentPosition(deck0) &
+                                    win.Node.DOCUMENT_POSITION_FOLLOWING));
+    check("the intro paragraph renders once", doc.querySelectorAll("#view .ibody").length === 1,
+          doc.querySelectorAll("#view .ibody").length + " copies");
+
     /* --- choosing one: through the real click handler, not by assignment --- */
     doc.querySelector('.pick[data-path="life"]').click();
     check("choosing sets both path and mode", S.path === "life" && S.mode === "life",
@@ -301,6 +317,22 @@ win.addEventListener("load", function(){
     check("The Path carries the legend", !!leg);
     check("the legend is the last thing on The Path",
           !!leg && leg === doc.getElementById("view").lastElementChild);
+    /* The key is drawn out of the badges themselves. It used to be nine
+       coloured words, which stopped matching the moment 1.5.9 made tier filled,
+       modifiers outlined and format dashed. */
+    var lrow = leg ? leg.children : [];
+    check("every legend entry is drawn with a real badge",
+          lrow.length > 0 && Array.prototype.every.call(lrow, function(sp){
+            return !!sp.querySelector(".bd");
+          }), lrow.length + " entries");
+    check("no legend swatch is styled text", !!leg && !leg.querySelector("i"));
+    check("the legend covers every tier and modifier",
+          !!leg && ["e", "k", "o", "m", "u", "c", "s"].every(function(k){
+            return !!leg.querySelector(".bd." + k);
+          }));
+    check("the legend badges read the same labels as the rows",
+          !!leg && leg.querySelector(".bd.e").textContent === win.BADGE.e &&
+                   leg.querySelector(".bd.o").textContent === win.BADGE.o);
     S.tab = "stats"; win.render();
     check("Progress no longer carries the legend", !doc.querySelector("#view .legend"));
     S.tab = "next"; S.watched = {}; S.rated = {}; S.log = []; win.render();
@@ -409,16 +441,20 @@ win.addEventListener("load", function(){
 
     /* Format badges only where format is ambiguous. */
     S.format = "all"; S.scope = "all"; S.tab = "watch"; S.filter = "all"; win.render();
+    /* The legend is made of real badges now, so it lands in any count of them.
+       Rows are what this is about; the legend is counted separately, on
+       purpose, because "one per row plus two in the key" is the shape and a
+       single number could hide either half going wrong. */
+    function fmCount(scope){ return doc.querySelectorAll(scope + " .bd.fmlive, " + scope + " .bd.fmanim").length; }
+    var fmLegend = fmCount("#view .legend");
     check("All labels every row with its format",
-          doc.querySelectorAll(".bd.fmlive, .bd.fmanim").length === win.pool().length,
-          doc.querySelectorAll(".bd.fmlive, .bd.fmanim").length + " of " + win.pool().length);
-    check("the legend explains them",
-          doc.querySelector(".legend").textContent.indexOf("Live action") > 0);
+          fmCount("#view") - fmLegend === win.pool().length,
+          (fmCount("#view") - fmLegend) + " of " + win.pool().length);
+    check("the legend explains them", fmLegend === 2, fmLegend + " format swatches in the key");
     S.format = "anim"; win.render();
     check("one format means no badge on any row",
-          doc.querySelectorAll(".bd.fmlive, .bd.fmanim").length === 0);
-    check("and no legend row for it",
-          doc.querySelector(".legend").textContent.indexOf("Live action") < 0);
+          fmCount("#view") - fmCount("#view .legend") === 0);
+    check("and no legend row for it", fmCount("#view .legend") === 0);
     S.format = "all"; S.tab = "home"; win.render();
 
     /* --- format is the second axis (1.5.0) --- */

@@ -102,8 +102,12 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      55   The chooser is a deck, not a list
      56   Format is legible where it is ambiguous
 
+   LAYOUT
+     57   The legend is made of badges
+     58   Then is the tab, not the gap
+
    META
-     57   The guards are navigable
+     59   The guards are navigable
 
    Sections are numbered in file order. Groups are for finding things;
    they do not affect what runs. Guard 49 enforces the numbering.
@@ -1696,11 +1700,33 @@ if(!/S\.format/.test(sn)){
 
 (function(){
   var home = optionalFn("viewHome", "there would be no Home");
+  /* Two branches, two orders. The first-run page returns before the main one
+     begins, so one indexOf sweep across the whole function reads the chooser's
+     intro as the fresh Home's and passes on the wrong evidence. */
+  var cut = home.indexOf("html += masterChooser();");
+  if(cut < 0){ fail("Home no longer renders the master chooser"); return; }
+  var first = home.slice(0, cut);
+  var main  = home.slice(cut);
+
+  /* First run is the only page a crawler ever sees, and it rendered 803
+     characters of visible text containing "Bruce" twice and "Batman" never \u2014
+     while the sentence that says it sat three branches down, waiting for a path
+     to be chosen. It tells, then it asks. */
+  var ib   = first.indexOf("introBlock()");
+  var deck = first.indexOf("class=\"deck\"");
+  if(ib < 0){
+    fail("the first-run page no longer renders the intro \u2014 the landing page goes " +
+         "back to never saying the word every search for it contains");
+  } else if(deck >= 0 && ib > deck){
+    fail("the first-run page asks before it tells \u2014 the intro renders below the " +
+         "deck");
+  }
+
   /* Controls first: they govern what every block below them shows, and reading
      them after the card meant meeting the answer before the question. */
-  var order = ["masterChooser()", "class=\"intro\"",
+  var order = ["masterChooser()", "introBlock()",
                "class=\"hero\"", "scoreboard(c)"];
-  var at = order.map(function(k){ return home.indexOf(k); });
+  var at = order.map(function(k){ return main.indexOf(k); });
   at.forEach(function(pos, n){
     if(pos < 0) fail("Home no longer renders " + order[n]);
   });
@@ -1711,6 +1737,17 @@ if(!/S\.format/.test(sn)){
            " \u2014 the order is control, then what the controls govern");
     }
   }
+})();
+
+/* Both pages render the same paragraph, so it exists once. Copied, the two
+   would drift and only one of them would be the one anybody reads. */
+(function(){
+  var n = (HTML.match(/class="ibody"/g) || []).length;
+  if(n !== 1){
+    fail("the intro paragraph is written " + n + " times \u2014 it renders on two pages " +
+         "from one function or it renders two different things");
+  }
+  if(!/function introBlock\s*\(/.test(HTML)) fail("introBlock() is gone");
 })();
 
 /* The chosen path is marked in the belt colour, not the primary-action fill.
@@ -1757,22 +1794,38 @@ if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.t
   }
 })();
 
-/* Hierarchy is carried by colour, not size. Shrinking format and scope to fit
-   one line broke "Live action" and "Movies + series" across two, so all three
-   rows are the same size now and the palette does the distinguishing. */
+/* Height and type size are separable, and 1.5.7 proved it the expensive way.
+   Shrinking the type to make format and scope read as secondary broke "Live
+   action" and "Movies + Series" across two lines on every browser. So levels 2
+   and 3 give back height and nothing else: same 9px type, same nowrap, same
+   full width, same labels \u2014 a shorter block. The palette still carries which
+   row is which; the height only says which was asked first. */
 (function(){
   var sub = (HTML.match(/\.includes \.scope button\{[^}]*\}/) || [""])[0];
   if(!sub){ fail("the include controls have no styling of their own"); return; }
   if(!/white-space:nowrap/.test(sub)){
     fail("the format and scope labels can wrap again \u2014 \"Live action\" and " +
-         "\"Movies + series\" both broke across two lines");
+         "\"Movies + Series\" both broke across two lines");
+  }
+  /* The one dimension that must not move. Every regression here started by
+     taking a pixel off the type to buy a pixel of height. */
+  var subT = parseFloat((sub.match(/font-size:([\d.]+)px/) || [0, 0])[1]);
+  if(subT !== 9){
+    fail("the include labels are set at " + subT + "px instead of 9px \u2014 shrinking " +
+         "the type is what wrapped both labels in 1.5.7; only the height gives");
   }
   var subH = parseFloat((sub.match(/min-height:([\d.]+)px/) || [0, 0])[1]);
   var pathH = parseFloat((HTML.match(/\.pathseg button\{[^}]*min-height:([\d.]+)px/) || [0, 0])[1]);
-  if(subH !== pathH){
+  if(!subH || !pathH){ fail("cannot read the chooser row heights"); return; }
+  if(subH >= pathH){
     fail("the include controls are " + subH + "px against the path control's " +
-         pathH + "px \u2014 all three rows are the same size and the palette carries " +
-         "the hierarchy");
+         pathH + "px \u2014 levels 2 and 3 are meant to sit shorter than level 1");
+  }
+  /* Shorter, not shrunk to nothing: below the tap target it stops being a
+     control you can hit. */
+  if(subH < 30){
+    fail("the include controls are " + subH + "px \u2014 under 30px they are no longer " +
+         "a thumb-sized target");
   }
   var sel = (HTML.match(/\.includes \.scope button\[aria-pressed="true"\]\{[^}]*\}/) || [""])[0];
   if(/var\(--signal\)/.test(sel)){
@@ -1918,7 +1971,8 @@ if(!/\.bd\.fmanim,\.bd\.fmlive\{/.test(HTML) &&
    (!/\.bd\.fmlive[,{]/.test(HTML) || !/\.bd\.fmanim[,{]/.test(HTML))){
   fail("the format badges have no styling of their own");
 }
-if(!/function legendBlock/.test(HTML) || !/Live action<\/i>/.test(HTML)){
+if(!/function legendBlock/.test(HTML) ||
+   !/class="bd fmanim"/.test(HTML) || !/class="bd fmlive"/.test(HTML)){
   fail("the legend does not explain the format badges");
 }
 (function(){
@@ -1929,7 +1983,73 @@ if(!/function legendBlock/.test(HTML) || !/Live action<\/i>/.test(HTML)){
   }
 })();
 
-/* ---------- 57. The guards are navigable ---------- */
+/* ---------- 57. The legend is made of badges ---------------------- */
+/* 1.5.9 rebuilt the badges into three kinds \u2014 tier filled, modifiers outlined,
+   format dashed \u2014 and guarded that no two draw alike. The legend went on
+   drawing all nine as coloured words, so the key stopped looking like the thing
+   it explains. The 1.5.9 legend audit checked the names and not the appearance:
+   the same gap that let the Activity tick read as unwatched. A swatch that is
+   not a badge is a second source for how a badge looks, and the second source
+   is the one that turns out to be wrong. */
+
+(function(){
+  var lg = optionalFn("legendBlock", "nothing would explain the badges");
+  if(/<i[ >]/.test(lg)){
+    fail("the legend still draws its swatches as styled text \u2014 it cannot follow " +
+         "the badges it explains");
+  }
+  if(/style="color:/.test(lg)){
+    fail("the legend picks its own colours instead of wearing the badge classes, " +
+         "which is how it came to describe a filled badge as an outlined one");
+  }
+  if(!/class="bd /.test(lg)){
+    fail("the legend swatches carry no .bd class \u2014 legend and rows can drift " +
+         "apart again");
+  }
+  if(!/BADGE\[/.test(lg) && !/BADGE\./.test(lg)){
+    fail("the legend spells its own labels instead of reading BADGE \u2014 a renamed " +
+         "badge would leave the key describing the old name");
+  }
+  /* The rule the old swatches were made of. Left behind, the next hand uses it. */
+  if(/\.legend i\{/.test(HTML)){
+    fail("the .legend i rule outlived the swatches it styled");
+  }
+})();
+
+/* ---------- 58. Then is the tab, not the gap --------------------- */
+/* Activity was a bordered, filled card and Then was a heading over borderless
+   rows, so Next up read as card, gap, card \u2014 and the gap was the queue the tab
+   exists for. Both are a heading and a stack of rules now. What tells them
+   apart is that Then is numbered and Activity is dated, which is the difference
+   that was actually there. */
+
+(function(){
+  var act = (HTML.match(/\.activity\{[^}]*\}/) || [""])[0];
+  if(!act){ fail("the Activity block has no styling of its own"); return; }
+  if(/border:|background:|border-radius:/.test(act)){
+    fail("Activity is a card again \u2014 the only one on the tab, which is what made " +
+         "Then read as the space between things");
+  }
+  /* Numbers are what is left saying Then is a sequence. */
+  if(!/class="qn"/.test(HTML)){
+    fail("the Then rows lost their numbers \u2014 with neither block in a container " +
+         "they are all that separates a queue from a history");
+  }
+  if(!/\.arow\{[^}]*border-top:1px solid var\(--line\)/.test(HTML)){
+    fail("the Activity rows have no rule between them, and with the card gone " +
+         "there is nothing else holding them apart");
+  }
+  if(/\.arow:first-of-type\{[^}]*border-top:0/.test(HTML)){
+    fail("the first Activity row drops its rule \u2014 that was the card's top edge " +
+         "doing the work, and there is no card");
+  }
+  /* Same treatment means the same heading, not a nudged copy of it. */
+  if(/\.activity \.qhead\{/.test(HTML)){
+    fail("Activity's heading is offset from Then's \u2014 they are the same heading");
+  }
+})();
+
+/* ---------- 59. The guards are navigable ---------- */
 /* Before 1.4.2 the numbering ran 1-19, jumped to 26, and hung eleven
    sub-sections off 30 with suffixes b through g. 12b and 12c sat before 12.
    Nothing enforced any of it, so every release made it worse. */

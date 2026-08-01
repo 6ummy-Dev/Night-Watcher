@@ -19,6 +19,46 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.6.0] — 2026-08-01
+
+Four things that were saying the wrong thing quietly.
+
+### Changed
+
+- **The chooser's second and third rows are shorter than its first.** Path,
+  format and scope were three identical 42px rows, so the screen asked three
+  questions in one voice. 1.5.7 tried to fix that by shrinking the type and
+  broke "Live action" and "Movies + Series" across two lines on every browser.
+
+  Height and type size turn out to be separable. Levels 2 and 3 give back 8px
+  of height at the same 9px type, the same nowrap and the same full width —
+  every label still on one line, and the row you answer first is now the tallest
+  one. Guarded in both directions: equal heights fail, and so does a smaller
+  type size.
+- **The legend is made of badges.** 1.5.9 rebuilt the badge system into three
+  kinds — tier filled, modifiers outlined, format dashed — and guarded that no
+  two draw alike. The legend went on drawing all nine as coloured words, so the
+  key stopped looking like the thing it explains.
+
+  Each swatch is now a real badge element reading its label out of `BADGE`. Legend
+  and rows cannot diverge, because there is only one of them. The 1.5.9 legend
+  audit checked the names and not the appearance; that gap is closed.
+- **Recent activity is no longer a card.** It was the only card on Next up, so
+  the eye read card, gap, card — and the gap was **Then**, which is what the tab
+  exists for. Both blocks are a heading over ruled rows now. What tells them
+  apart is that Then is numbered and Activity is dated, which is the difference
+  that was actually there.
+
+### Added
+
+- **The landing page says Batman.** The first page anyone arrives on — and the
+  only page a crawler ever sees — rendered 803 characters of visible text
+  carrying "Bruce" twice and never the word every search for this page contains.
+
+  The sentence that says it was already written. It just waited for a path to be
+  chosen before it rendered. It now renders above the deck on first run, from the
+  same function the Home intro uses, so the two cannot drift. No new copy.
+
 ## [1.5.9] — 2026-08-01
 
 Clearing the deck.

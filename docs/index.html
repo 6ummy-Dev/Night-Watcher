@@ -33,7 +33,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-C1lkHvuO6DKdSB+qTf2T7D74TAb1/4wHbanB5LnOOPE=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-+l41I3aqWzRqCSgJ1uqWklVAmQCejyRGP91JQu2reVk=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","image":"https://6ummy-dev.github.io/Night-Watcher/icon.png","dateModified":"2026-08-01","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
@@ -240,17 +240,18 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .qitem:active{background:var(--card2);}
 .qpeek{flex:0 0 100%;display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:8px 0 1px 24px;}
 .qpeek .qg{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
-/* Activity is history, not queue. It is a bordered surface with taller rows so
-   it does not read as another step in the list above it. */
-.activity{margin-top:26px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:4px 16px 8px;}
-.activity .qhead{margin:14px 0 2px;}
+/* Activity is history, not queue. It used to say so with a border and a fill \u2014
+   which made it the only card on the tab, so the eye read card, gap, card and
+   Then was the gap. Then is what the tab is for. Both blocks are a heading and
+   a stack of rules now; what separates them is that Then is numbered and
+   Activity is dated, which is the difference that actually exists. */
+.activity{margin-top:26px;}
 /* A grid, not wrapping flex. flex-wrap plus margin-left:auto on the stars put
    them on their own line AND pushed them right, so nothing lined up with
    anything. Two columns: the tick, then everything else \u2014 title and date on one
    line, stars beneath, left-aligned under the title they belong to. */
 .arow{display:grid;grid-template-columns:auto 1fr;gap:5px 11px;align-items:center;
   padding:12px 0;border-top:1px solid var(--line);}
-.arow:first-of-type{border-top:0;}
 
 .arow .atop{display:flex;align-items:baseline;gap:10px;min-width:0;}
 /* The rows above this in Next up use --disp. Activity inherited body text, which
@@ -305,7 +306,10 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .empty .big{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:26px;color:var(--dust);margin-bottom:8px;}
 .legend{margin-top:30px;border-top:1px solid var(--line);padding-top:18px;display:flex;flex-wrap:wrap;gap:8px 14px;margin:4px 0 18px;}
 .legend span{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);}
-.legend i{font-style:normal;font-weight:600;}
+/* The swatches are real badges, so the row has to align them against the note
+   beside them rather than sit them on a text baseline. */
+.legend > span{display:inline-flex;align-items:center;gap:6px;}
+.legend .bd{flex:none;}
 .ugrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .ucard{border:1px solid var(--line);border-radius:12px;background:var(--sunk);padding:13px 12px;text-align:left;display:flex;flex-direction:column;gap:8px;min-height:98px;}
 .ucard:active{background:var(--card);}
@@ -352,14 +356,17 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .pathseg button[aria-pressed="true"]{background:var(--signal);color:var(--ink);border-color:var(--signal);font-weight:600;}
 /* Format and scope answer the same question at two depths, so they sit in one
    block. The path control above answers a different one. */
-/* Three rows of the same size. Squeezing format and scope onto one line to make
-   them read as secondary broke both labels across two lines instead \u2014 the size
-   was doing work the palette does better. Signal marks the path you chose;
-   card2 marks the rest. Same shape, different weight of colour. */
+/* Shorter than the path row, not smaller. Squeezing format and scope onto one
+   line by shrinking the type broke both labels across two lines instead \u2014 the
+   type size was doing work the palette does better. Height and type size are
+   separable: the block gives back 8px of height at the same 9px type, so
+   "Live action" and "Movies + Series" still fit on one line and the path row
+   still reads as the question asked first. Signal marks the path you chose;
+   card2 marks the rest. */
 .includes{margin:0 0 18px;}
 .includes .scope{margin:0 0 6px;border-color:var(--line);border-radius:10px;}
 .includes .scope:last-of-type{margin-bottom:0;}
-.includes .scope button{min-height:42px;padding:10px 6px;font-size:9px;
+.includes .scope button{min-height:34px;padding:8px 6px;font-size:9px;
   letter-spacing:.05em;color:var(--dust);border-right-color:var(--line);white-space:nowrap;}
 .includes .scope button[aria-pressed="true"]{background:var(--card2);color:var(--bone);font-weight:600;}
 .scopenote{flex:1 0 100%;order:9;}
@@ -831,7 +838,7 @@ function pathName(id){
 /* Semver, mapping 1:1 onto CHANGELOG.md. Bump for every shipped change; sw.js
    VERSION and the changelog must agree or guards fail the build. KEY is
    separate: bump it ONLY for a breaking storage shape. */
-var BUILD = "1.5.9";
+var BUILD = "1.6.0";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -1137,18 +1144,26 @@ var ACTIVITYMAX = 5;
 /* The badges this defines render on The Path and nowhere else. It sat on
    Progress until 1.4.1 \u2014 a key printed on a different page. It goes last,
    because reference is something you go looking for. */
+/* Drawn with the badge classes themselves, not a colour picked to match them.
+   1.5.9 made tier filled, modifiers outlined and format dashed; the legend kept
+   describing all nine as coloured words, so the key stopped looking like the
+   thing it explains. Same one-source rule as pathSeg(): the swatch is a badge
+   or the legend can lie. */
 function legendBlock(){
+  function sw(k, note){
+    return '<span><span class="bd '+k+'">'+BADGE[k]+'</span>'+(note ? ' \u2014 '+note : '')+'</span>';
+  }
   return '<div class="legend">'+
-    '<span><i style="color:var(--signal)">Essential</i> \u2014 do not skip</span>'+
-    '<span><i style="color:var(--dust)">Core</i> \u2014 the main route</span>'+
-    '<span><i style="color:var(--dim)">Optional</i> \u2014 side material</span>'+
-    '<span><i style="color:var(--crimson2)">Mature</i> \u2014 R or close</span>'+
-    '<span><i style="color:var(--steel)">Not out yet</i></span>'+
-    '<span><i style="color:var(--moss)">Interactive</i></span>'+
+    sw("e", "do not skip")+
+    sw("k", "the main route")+
+    sw("o", "side material")+
+    sw("m", "R or close")+
+    sw("u", "")+
+    sw("c", "")+
     (S.format === "all"
-      ? '<span><i style="color:var(--dust)">Animated</i> / <i style="color:var(--moss)">Live action</i></span>'
+      ? '<span><span class="bd fmanim">ANIMATED</span> / <span class="bd fmlive">LIVE ACTION</span></span>'
       : '')+
-    '<span><i>Short</i> \u2014 under 30 min</span></div>';
+    sw("s", "under 30 min")+'</div>';
 }
 function activityBlock(){
   if(!S.log.length) return "";
@@ -1388,6 +1403,19 @@ function scopeNote(){
     ? nFilm + ' films. Switch on the series to add ' + nTv + ' seasons of television.'
     : nFilm + ' films and ' + nTv + ' seasons of television, woven into the same orders.';
 }
+/* One source. The first-run page rendered none of this, so the only page a
+   search engine ever sees contained the word "Bruce" twice and "Batman" not at
+   all \u2014 while the sentence that says it was already written, three branches
+   down, waiting for a path to be chosen. */
+function introBlock(){
+  return '<div class="intro">'+
+    '<p class="ikick">An unofficial fan guide</p>'+
+    '<h2 class="ititle">One path through every Batman</h2>'+
+    '<p class="ibody">Every Batman story ever filmed, sorted into watch orders that spoil nothing '+
+    '\u2014 by universe, by the arc of one life, or by release. Films only, or every series too. Tap anything for what it is and where '+
+    'to watch it. Tick them off as you go; your progress stays in this browser.</p>'+
+    introStats()+'</div>';
+}
 function viewHome(){
   var c = counts();
   var nxt = upNext();
@@ -1403,7 +1431,7 @@ function viewHome(){
   /* No path yet: Home is the chooser. Not a modal — nothing to dismiss, and
      deep links still route, because routing never depends on it. */
   if(!S.path){
-    html += '<div class="chooser">'+
+    html += '<div class="chooser">'+introBlock()+
       '<p class="pathkick">What are you watching</p>'+formatSwitch()+
       '<p class="pathkick" style="margin-top:22px">Choose your path</p>' +
       '<p class="picknote" style="margin:8px 0 16px">Three honest answers instead of one fake one. ' +
@@ -1427,13 +1455,7 @@ function viewHome(){
   html += masterChooser();
 
   if(fresh){
-    html += '<div class="intro">'+
-      '<p class="ikick">An unofficial fan guide</p>'+
-      '<h2 class="ititle">One path through every Batman</h2>'+
-      '<p class="ibody">Every Batman story ever filmed, sorted into watch orders that spoil nothing '+
-      '\u2014 by universe, by the arc of one life, or by release. Films only, or every series too. Tap anything for what it is and where '+
-      'to watch it. Tick them off as you go; your progress stays in this browser.</p>'+
-      introStats()+'</div>';
+    html += introBlock();
   }
 
   if(nxt){
