@@ -27,6 +27,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      2    Frozen IDs never change
      3    Backup-code hash collisions
      4    Every entry resolves to exactly one tier
+     71   Tier resolution is checked against real entries
      5    Era and decade coverage
      6    Badges all have labels
      30   Documented spoiler order holds
@@ -40,6 +41,8 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      7    Backup code round-trips losslessly
      8    The parser tolerates codes it was not written for
      9    The restore link stays reachable
+     72   Every shareable route token still routes
+     73   The worst-case restore link cannot get longer
      19   Rating writes go through the clamp
      21   A blocked store has to say so
      35   The log holds one entry per id
@@ -87,6 +90,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      12   Referenced files exist
      13   Deployment layout
      16   Every shipped version is written down
+     74   The version history runs one way
      22   No JS escapes stranded in the markup
      29   Weight budget
      31   The README describes the app that exists
@@ -193,8 +197,32 @@ FILMS.forEach(function(f){
 /* Renaming an i: silently voids saved progress and every backup code in
    circulation. Nothing else catches it. */
 
+/* An entry can be wrong enough to remove \u2014 it happened for the first time in
+   1.7.5. Blessing must not be able to launder that: a slug only leaves the
+   frozen list by being written into qa/retired-ids.json with a reason, which
+   is a diff a reviewer sees. A retired slug may never come back either, because
+   somebody's saved progress may still hold the old meaning of it. */
+var RETIRED = {}, RETIREDFILE = path.join(ROOT, "qa", "retired-ids.json");
+if(fs.existsSync(RETIREDFILE)){
+  var rl = JSON.parse(fs.readFileSync(RETIREDFILE, "utf8"));
+  Object.keys(rl).forEach(function(k){
+    if(!rl[k] || rl[k].length < 20){
+      fail("retired-ids.json gives no real reason for dropping " + k);
+    }
+    RETIRED[k] = rl[k];
+  });
+}
 var ids = FILMS.map(function(f){ return f.id; }).sort();
+ids.forEach(function(i){
+  if(RETIRED[i]) fail("retired id is back in the data: " + i +
+                      " \u2014 removal is not reversible by re-adding the slug");
+});
 if(BLESS){
+  Object.keys(RETIRED).forEach(function(k){
+    if(fs.existsSync(SNAP) && JSON.parse(fs.readFileSync(SNAP, "utf8")).indexOf(k) < 0){
+      warn("retired-ids.json lists " + k + ", which was never frozen");
+    }
+  });
   fs.writeFileSync(SNAP, JSON.stringify(ids, null, 1) + "\n");
   note("blessed frozen-ids.json with " + ids.length + " ids");
 } else if(!fs.existsSync(SNAP)){
@@ -204,7 +232,9 @@ if(BLESS){
   var now = {}; ids.forEach(function(i){ now[i] = 1; });
   var was = {}; prev.forEach(function(i){ was[i] = 1; });
   prev.forEach(function(i){
-    if(!now[i]) fail("FROZEN ID REMOVED OR RENAMED: " + i + "  (this voids saved progress)");
+    if(!now[i] && !RETIRED[i]){
+      fail("FROZEN ID REMOVED OR RENAMED: " + i + "  (this voids saved progress)");
+    }
   });
   var added = ids.filter(function(i){ return !was[i]; });
   if(added.length) note(added.length + " new id(s) added — safe. Re-bless when ready.");
@@ -524,6 +554,32 @@ var actual = {
   if(claimed !== t[2]) fail("README claims " + claimed + " " + t[0] + ", data has " + t[2]);
 });
 
+/* The README printed the era scheme as prose and went on printing the one from
+   two releases earlier, spoiler names and all, because this section only ever
+   checked numbers. Names drift exactly the same way numbers do. */
+(function(){
+  var block = (readme.match(/\*\*Bruce\u2019s life\*\*[\s\S]*?\n/) ||
+               readme.match(/\*\*Bruce's life\*\*[\s\S]*?\n/) || [""])[0];
+  if(!block){ warn("README: no Bruce\u2019s life bullet to check era names against"); return; }
+  var missing = ERAS.filter(function(e){
+    return e.k !== 0 && block.indexOf(e.name) < 0;
+  }).map(function(e){ return e.name; });
+  if(missing.length){
+    fail("README's chronology omits the era(s) " + missing.join(", ") +
+         " \u2014 it is printing a scheme the app no longer ships");
+  }
+  var eraNames = ERAS.map(function(e){ return e.name; });
+  var run = (block.match(/\*([^*]*\u2192[^*]*)\*/) || [])[1];
+  if(run){
+    var strays = run.split("\u2192").map(function(x){ return x.trim(); })
+                    .filter(function(x){ return x && eraNames.indexOf(x) < 0; });
+    if(strays.length){
+      fail("README's chronology lists " + strays.join(", ") + " \u2014 not an era " +
+           "this build ships. Renamed eras leave the old name on the front page.");
+    }
+  }
+})();
+
 /* ---------- 15. The <meta> headline counts match the data ------------- */
 /* The same numbers in meta/og descriptions are what search results and every
    shared link show, so a stale one is more visible than a stale README. */
@@ -785,7 +841,9 @@ if(!PATHS || !MODENOTE || !PATHCODE || !CODEPATH){
     optionalFn("noteFor") + "\n" +
     optionalFn("pathBlurb", "the chooser has nothing to build its cards from") +
     "\n({noteFor:noteFor, pathBlurb:pathBlurb});"
-  ).runInNewContext({MODENOTE: MODENOTE, yearSpan: function(){ return "1993 to 2028"; }});
+  ).runInNewContext({MODENOTE: MODENOTE, yearSpan: new vm.Script(
+    fn("visible") + "\n" + fn("yearSpan") + "\nyearSpan;"
+  ).runInNewContext({FILMS: FILMS, S: {format:"all", scope:"all"}})});
   ids.forEach(function(id){
     var card = pb.pathBlurb(id), full = pb.noteFor(id);
     if(!card){ fail('pathBlurb("' + id + '") is empty'); return; }
@@ -1676,13 +1734,12 @@ if(!/kept by 6ummy/.test(HTML)) fail("the credit line is gone from the footer");
 (function(){
   var src = optionalFn("rate", "nothing would record a rating");
   var box = { S:{watched:{}, skipped:{}, rated:{}, log:[]},
-              clampRating:function(n){ n = parseInt(n,10); return (n>=1 && n<=5) ? n : 0; },
-              persist:function(){}, render:function(){} };
-  box.markWatched = function(id){
-    if(box.S.watched[id]) return;
-    box.S.watched[id] = 1;
-    box.S.log.push({id:id, ts:1});
-  };
+              persist:function(){}, render:function(){}, now:function(){ return 1; } };
+  /* Hand-written copies of clampRating() and markWatched() lived here until
+     1.7.5 and quietly diverged from the app: parseInt where the page uses
+     Math.floor(Number()), and a markWatched that never cleared S.skipped. This
+     section then validated the copies. Extract, like everything else. */
+  new vm.Script(fn("clampRating") + "\n" + fn("markWatched")).runInContext(vm.createContext(box));
   var rate = new vm.Script(src + "\nrate;").runInNewContext(box);
 
   rate("x", 4);
@@ -1702,6 +1759,15 @@ if(!/kept by 6ummy/.test(HTML)) fail("the credit line is gone from the footer");
     fail("clearing a rating marked the entry watched \u2014 the exact bug 1.4.4 fixed");
   }
   if(box.S.log.length) fail("clearing a rating wrote a log entry");
+
+  /* Now that markWatched() is the real one, what it actually does can be
+     asserted. Rating something you had skipped has to clear the skip, or the
+     entry is watched and skipped at once and every denominator disagrees with
+     the next. The hand-written stub omitted that line, so this could not be
+     checked until 1.7.5. */
+  box.S.watched = {}; box.S.rated = {}; box.S.log = []; box.S.skipped = {z:1};
+  rate("z", 3);
+  if(box.S.skipped.z) fail("rating a skipped entry left it skipped as well as watched");
 })();
 
 /* The label has to hold one line inside the column it shares with Skip. */
@@ -1876,13 +1942,11 @@ if(!/class="includes"/.test(HTML)){
        "settings panel");
 }
 if(!/b\.dataset\.format/.test(HTML)) fail("nothing handles a format tap");
-/* Counts must describe the format in view, not the whole catalogue. */
-if(!/function scopeNote\s*\(/.test(HTML)) fail("scopeNote() is gone");
-var sn = optionalFn("scopeNote");
-if(!/S\.format/.test(sn)){
-  fail("scopeNote() ignores format \u2014 it would claim 57 seasons while Live action " +
-       "is selected");
-}
+/* scopeNote() was removed in 1.7.5. It had one caller, in the branch of
+   scopeSwitch() that stopped running when the switches moved into the chooser,
+   so the copy it produced had been unreachable for several releases and the
+   format bug this section found could not be seen by anybody. If the note is
+   wanted back it has to be re-sited deliberately; see NOTES.md. */
 
 /* ---------- 54. Home tells before it asks ------------------------- */
 /* The intro used to render between the path control and the include block, so
@@ -2912,6 +2976,170 @@ if(!/function legendBlock/.test(HTML) ||
   note("outside the timeline: " + Object.keys(tally).sort().map(function(k){
     return tally[k] + " " + k;
   }).join(", "));
+})();
+
+/* ---------- 71. Tier resolution is checked against real entries ---------- */
+/* Section 4 asserts that core + optional == everything, with core defined as
+   "not optional" and optional as "optional". That closes for ANY tierOf,
+   including one that never returns "o" at all — which is what a refactor
+   dropping the f.o term would produce, flooding the Core route, the Next-up
+   queue and every denominator with the whole Optional catalogue. The 1.7.2
+   independent QA mutated exactly that and all seventy sections passed. An
+   identity cannot be a test; named entries can. */
+
+(function(){
+  var CASES = [
+    ["batman-mask-of-the-phantasm-1993", "e", "an Essential film"],
+    ["the-dark-knight-rises-2012",       "k", "a Core film carrying no badges"],
+    ["batwheels-season-1-2022",          "o", "an Optional season"]
+  ];
+  CASES.forEach(function(c){
+    var f = FILMS.filter(function(x){ return x.id === c[0]; })[0];
+    if(!f){ fail("tier fixture " + c[0] + " is not in the catalogue any more"); return; }
+    var got = tierOf(f);
+    if(got !== c[1]){
+      fail("tierOf() puts " + c[2] + " (" + c[0] + ") in tier \"" + got +
+           "\", not \"" + c[1] + "\" — the tiers have stopped meaning what the app says");
+    }
+  });
+  var tally = {e:0, k:0, o:0};
+  FILMS.forEach(function(f){ tally[tierOf(f)] = (tally[tierOf(f)] || 0) + 1; });
+  /* Bands, not numbers: the catalogue grows. A tier emptying or swallowing the
+     rest is the failure being watched for. */
+  ["e", "k", "o"].forEach(function(t){
+    if(!tally[t]) fail("no entry resolves to tier \"" + t + "\" — a whole tier has collapsed");
+    if(tally[t] > FILMS.length * 0.85){
+      fail("tier \"" + t + "\" holds " + tally[t] + " of " + FILMS.length +
+           " entries — the other tiers have collapsed into it");
+    }
+  });
+  note("tiers: " + tally.e + " essential, " + tally.k + " core, " + tally.o + " optional");
+})();
+
+/* ---------- 72. Every shareable route token still routes ---------- */
+/* Section 9 checks that routeHash() exists. It does not check that it still
+   understands anything. Deleting the #life branch survived the whole harness
+   and every smoke check in the 1.7.2 QA — and #life is the link printed in the
+   README, so every copy of it ever shared would have died on a green build.
+   These tokens are a published interface; they get a frozen vocabulary. */
+
+(function(){
+  var VOCAB = [
+    ["life",      {tab:"watch", mode:"life"}],
+    ["release",   {tab:"watch", mode:"release"}],
+    ["universes", {tab:"watch", mode:"continuity"}],
+    ["path",      {tab:"watch", mode:"continuity"}],
+    ["progress",  {tab:"stats"}],
+    ["next",      {tab:"next"}],
+    ["series",    {scope:"all"}],
+    ["movies",    {scope:"movies"}]
+  ];
+  var src = fn("routeHash");
+  VOCAB.forEach(function(pair){
+    var tok = pair[0], want = pair[1];
+    var box = {
+      S: {tab:"home", mode:"continuity", scope:"movies", pending:null, path:""},
+      location: {hash:"#" + tok},
+      history: {},
+      importCode: function(){ return null; },
+      revealHero: function(){},
+      isPath: function(){ return false; }
+    };
+    vm.runInNewContext(src + "\nrouteHash();", box);
+    Object.keys(want).forEach(function(k){
+      if(box.S[k] !== want[k]){
+        fail("#" + tok + " no longer routes — expected S." + k + " = \"" + want[k] +
+             "\", got \"" + box.S[k] + "\". Every link of that shape ever shared is dead.");
+      }
+    });
+  });
+  /* Combined tokens are the documented form (#universes-series), so the split
+     has to survive too. */
+  var box2 = {
+    S: {tab:"home", mode:"continuity", scope:"movies", pending:null, path:""},
+    location: {hash:"#universes-series"}, history: {},
+    importCode: function(){ return null; }, revealHero: function(){},
+    isPath: function(){ return false; }
+  };
+  vm.runInNewContext(src + "\nrouteHash();", box2);
+  if(box2.S.mode !== "continuity" || box2.S.scope !== "all"){
+    fail("a combined route token stopped splitting — #universes-series set mode \"" +
+         box2.S.mode + "\", scope \"" + box2.S.scope + "\"");
+  }
+  note(VOCAB.length + " route tokens all still route");
+})();
+
+/* ---------- 73. The worst-case restore link cannot get longer ---------- */
+/* catalogue/restore-link-ceiling.md calls this the launch blocker, and until
+   1.7.5 nothing measured it: the payload could grow release after release and
+   no build would object. The real ceiling is about 2,000 characters, where
+   chat clients and QR readers start truncating. The catalogue is already past
+   it, and the fix ships with the URL migration — so this is a ratchet, not
+   the target. The number may fall. It may not rise. */
+
+(function(){
+  var CEILING = 2254;   /* measured at 1.7.5: every entry watched and rated.
+                           1.7.2 measured 2232; three added entries cost 22.
+                           Raising this number is allowed and is a decision:
+                           it has to appear in a diff, with a release note. */
+  var TARGET  = 2000;   /* where it has to end up, in 1.8.0 */
+  var box = {S:{watched:{}, skipped:{}, rated:{}, path:"life"},
+             location:{protocol:"https:", origin:"https://6ummy-dev.github.io",
+                       pathname:"/Night-Watcher/"},
+             SITE:"https://6ummy-dev.github.io/Night-Watcher/",
+             FILMS:FILMS, PATHCODE:sandbox.PATHCODE, idHash:idHash};
+  FILMS.forEach(function(f){ box.S.watched[f.id] = 1; box.S.rated[f.id] = 5; });
+  var out = vm.runInNewContext(
+    fn("clampRating") + "\n" + fn("exportCode") + "\n" + fn("restoreLink") + "\n" +
+    "({code:exportCode(), link:restoreLink(exportCode())});", box);
+  if(out.link.length > CEILING){
+    fail("the worst-case restore link is " + out.link.length + " characters, past the " +
+         CEILING + " this build is held to (the real target is " + TARGET +
+         "). The payload has grown; see catalogue/restore-link-ceiling.md");
+  }
+  if(out.link.length <= TARGET){
+    warn("the worst-case restore link is now " + out.link.length + " characters — " +
+         "under the " + TARGET + " target, so this ratchet can be tightened to it");
+  }
+  note("worst-case backup code " + out.code.length + " chars, link " + out.link.length +
+       " (ratchet " + CEILING + ", target " + TARGET + ")");
+})();
+
+/* ---------- 74. The version history runs one way ---------- */
+/* Section 67 checks that three dates agree. Agreeing is not the same as being
+   right: 1.7.2 shipped with all three reading three days into the future, and
+   nothing went red. Dates that only ever move forward is the property that can
+   actually be checked from inside the tree. */
+
+(function(){
+  var log = fs.existsSync(path.join(ROOT, "CHANGELOG.md"))
+            ? fs.readFileSync(path.join(ROOT, "CHANGELOG.md"), "utf8") : "";
+  var rows = [];
+  log.replace(/^##\s*\[([^\]]+)\][^\n]*?(\d{4}-\d{2}-\d{2})/gm, function(_, v, d){
+    if(v !== "Unreleased") rows.push({v:v, d:d});
+    return _;
+  });
+  if(rows.length < 2){ warn("fewer than two dated releases to compare"); return; }
+  for(var i = 1; i < rows.length; i++){
+    if(rows[i].d > rows[i - 1].d){
+      fail("CHANGELOG.md dates " + rows[i].v + " (" + rows[i].d + ") after " +
+           rows[i - 1].v + " (" + rows[i - 1].d + ") — the history runs backwards");
+    }
+  }
+  var seen = {};
+  rows.forEach(function(r){
+    if(seen[r.v]) fail("CHANGELOG.md lists " + r.v + " twice");
+    seen[r.v] = 1;
+  });
+  /* Section 67 proves the three dates agree. Nothing could prove any of them
+     was real, and 1.7.2 shipped dated three days into the future. There is no
+     clock inside the tree, so this reads the machine's — as a note, because a
+     build run on a different day must not go red for it. */
+  var today = new Date().toISOString().slice(0, 10);
+  var ahead = Math.round((Date.parse(rows[0].d) - Date.parse(today)) / 86400000);
+  note(rows.length + " dated releases, " + rows[rows.length - 1].d + " to " + rows[0].d +
+       (ahead > 0 ? " \u2014 newest is " + ahead + " day(s) ahead of this machine\u2019s clock"
+                  : ""));
 })();
 
 /* ---------- report ---------- */

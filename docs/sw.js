@@ -15,7 +15,7 @@
  * 133 KB index.html, so a stale cache means a stale catalogue AND stale code
  * with no way to push a fix.
  */
-var VERSION = "1.7.2";
+var VERSION = "1.7.5";
 var CACHE   = "night-watcher-" + VERSION;
 /* icon-192.png is in the shell because index.html's <head> now references it
    directly for rel=icon and apple-touch-icon (it used to inline the bytes). */
@@ -81,7 +81,9 @@ self.addEventListener("fetch", function(e){
     fetch(req).then(function(res){
       if(res && res.ok){
         var copy = res.clone();
-        caches.open(CACHE).then(function(c){ c.put(req, copy); }).catch(function(){});
+        /* c.put() rejects on 206s and on a full quota. Returning it puts the
+           rejection inside the chain the .catch below is actually watching. */
+        caches.open(CACHE).then(function(c){ return c.put(req, copy); }).catch(function(){});
       }
       return res;
     }).catch(function(){

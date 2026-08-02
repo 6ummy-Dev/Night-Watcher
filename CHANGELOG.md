@@ -19,6 +19,105 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.7.5] — 2026-08-05
+
+Every open item closed in one build: the 1.7.2 soak register and an independent
+QA audit, folded together. **1.7.3 and 1.7.4 do not exist** — the audit ran
+against the 1.7.2 tree rather than after the register was cleared, so the two
+rounds collapsed into this one. The gap in the numbering is deliberate.
+
+One `i:` slug was removed, the first in the project's history. Everything else
+anyone has ticked is where they left it.
+
+### Removed
+
+- ***Scooby-Doo! and Krypto, Too!* is gone from the catalogue.** No Batman, no
+  Gotham, no Gotham character — the vanished League is Superman, Wonder Woman,
+  Aquaman, Flash and Hawkman, and Mystery Inc. investigate alone. It failed the
+  README's own inclusion rule on every clause. Anyone who had ticked it loses
+  that tick, which is the cost of the catalogue matching the rule printed on its
+  front page. The slug is recorded in `qa/retired-ids.json` with the reason, and
+  guards section 2 now refuses to let `--bless` quietly drop a slug that is not
+  listed there — or to let a retired one come back.
+- `scopeNote()` and the unreachable branch of `scopeSwitch()` that called it.
+  The copy it produced stopped rendering when the switches moved into the
+  chooser, and the guard section testing it had found a real bug nobody could
+  see.
+
+### Added
+
+- **Three entries the inclusion rule always admitted.** The *Harley Quinn*
+  Valentine's Day special (2023), *Gotham Girls* (30 shorts, 2000–2002, with the
+  DCAU cast reprising) and *DC Showcase: Catwoman* (2011, continuing Selina's
+  thread from *Year One*). All three are Gotham stories with no Batman in them,
+  which is the basis *Catwoman: Hunted* is already here on. *Super Best Friends
+  Forever* was considered and declined under the same clause that removed Krypto.
+- **The Arkhamverse gets its own group.** *Assault on Arkham* is the only screen
+  entry of a real, named continuity and had been shelved with the films connected
+  to nothing.
+- **Teen Titans splits from Teen Titans Go!** Two continuities that shared a
+  shelf, and a note that admitted it. The crossover film goes to Go!, which is
+  where both halves are present.
+- Four guard sections. **71** checks tier resolution against named entries;
+  **72** freezes the eight shareable link tokens and drives every one of them;
+  **73** measures the worst-case restore link and ratchets it; **74** requires
+  the version history to run one way.
+
+### Changed
+
+- **The Adam West Universe folds into Batman '66.** One continuity that had been
+  two groups with two names, kept apart only because one half is live action.
+  Per-entry `fmt` has existed since 1.7.1, so the split bought nothing.
+- **The number on a universe means the same thing everywhere.** Home printed its
+  position in the catalogue while The Path printed the era its story starts in.
+  Home follows The Path.
+- **A deep link can no longer overwrite your saved scope.** `#universes-series`
+  set the scope without marking it a preference, and the next save — from ticking
+  anything at all — wrote it as though you had chosen it. Scope now has the saved
+  twin the path has always had.
+- **Sixteen group notes rewritten.** The DCEU note said Ben Affleck plays Batman
+  when *Birds of Prey* has none and *The Flash* has Keaton's; the Columbia
+  serials were "two wartime-era" with one made four years after the war; Batman
+  Unlimited was "a trilogy" with four entries; the Tomorrowverse claimed Jensen
+  Ackles "throughout" a run whose opening films have no Batman at all.
+- **Era 11's note comes under the spoiler rule.** "An era may say who is in it,
+  never what happens to them" had only ever been applied to names.
+- Data corrections: *Batwheels* season three is **19 episodes**, not 9, and is
+  finished; *Batman Unlimited* has 33 shorts, not 27; *Teen Titans Go!* is past
+  440, not 400; *Mechs vs. Mutants* rejoins its own trilogy in era 4; the
+  *Mad Love* accolade was an Eisner and a Harvey, for the comic, not an Emmy;
+  *Batman vs. Two-Face* was Adam West's final performance **as Batman**.
+- Eight R-rated films gain the mature badge, including two that called themselves
+  R-rated in their own descriptions. Three features stop wearing the short badge.
+- The README's chronology had been printing the pre-1.7.2 era scheme — ten eras
+  where eleven ship, under two names removed for spoiling what happens in them.
+  Guards section 14 now checks era names against `ERAS`, not just counts.
+- The README's inclusion rule grows the exception the catalogue has always
+  followed: an entry with no Batman and no Gotham is admitted when it is a link
+  in a continuity that is here for Batman, and its description has to say he is
+  not in it.
+- Guards sections 24 and 50 extract `yearSpan()`, `clampRating()` and
+  `markWatched()` instead of hand-writing them. The file's own header promises
+  every function under test is extracted; two had drifted.
+- `LICENSE` pins `AGPL-3.0-only` explicitly, names the icon in what it covers,
+  and the app footer now links to the source.
+
+### Fixed
+
+- The search-everything count ignored the format filter, so it could offer to
+  find entries the next screen would not show.
+- The focus-restore whitelist carried a key no button uses and was missing the
+  path, format and theme buttons — keyboard users lost focus to the page body
+  after activating any of them.
+- `?utm_source=…` was dropped when a restore banner was answered.
+- A restore link carrying nothing offered to restore "0 entries".
+- The service worker's cache write was outside the chain that catches it, so a
+  full quota surfaced as an unhandled rejection.
+- Group headers slid under the header for storage-blocked users, whose header is
+  a line taller.
+- The backup code box had no accessible name; the ticks had no hit area beyond
+  their drawn size.
+
 ## [1.7.2] — 2026-08-05
 
 The eras redesigned, three quarters of "outside any timeline" given a real

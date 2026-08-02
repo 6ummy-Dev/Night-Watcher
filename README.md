@@ -2,7 +2,7 @@
 
 **One path through every Batman.**
 
-A single-file web app mapping every Batman story ever filmed — animated and live action — **131 films and 67 seasons of television across 43 continuities** — into watch orders that spoil nothing, with progress tracking and a where-to-watch link for every entry.
+A single-file web app mapping every Batman story ever filmed — animated and live action — **133 films and 67 seasons of television across 44 continuities** — into watch orders that spoil nothing, with progress tracking and a where-to-watch link for every entry.
 
 **Live:** https://6ummy-dev.github.io/Night-Watcher/
 
@@ -10,7 +10,7 @@ Also available on Cloudflare Workers (static assets).
 
 ## What it does
 
-- **Two switches, one catalogue.** **Animated**, **Live action** or **All** decides which kind of Batman; **Movies** or **Movies + Series** decides how much of it. 131 films and 67 seasons — 1,900+ episodes, from *Batman* (1943) to *Dynamic Duo* (2028) — weave into the same orders either way. Tiers are judged inside a format, so nothing has to be ranked against a different medium.
+- **Two switches, one catalogue.** **Animated**, **Live action** or **All** decides which kind of Batman; **Movies** or **Movies + Series** decides how much of it. 133 films and 67 seasons — 1,900+ episodes, from *Batman* (1943) to *Dynamic Duo* (2028) — weave into the same orders either way. Tiers are judged inside a format, so nothing has to be ranked against a different medium.
 - **Where to watch, without picking a side.** Every entry links to a search rather than a service, because availability rotates by country and by month and no stored answer survives that. Three attempts at an aggregator URL shipped or staged broken before this.
 - **One path, chosen once.** Pick by universe (spoiler-safe), the composite chronology of Bruce's life, or straight release order from 1943 to 2028 — and the whole app follows it. No switcher to re-answer on every visit; the header carries the path name and Home leads with its completion ring. Change it whenever you like: switching re-sorts, it never clears a tick.
 - **Shared links are views, not takeovers.** Following someone's `#life` link shows you their ordering and offers to adopt it, rather than silently rewriting yours.
@@ -30,7 +30,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code at all** — *guarded.* Not one line, vendored or fetched. The app runs with the network off.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 150 KB raw and 50 KB gzipped; it is currently 133 KB / 40 KB. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 150 KB raw and 50 KB gzipped; it is currently 136 KB / 41 KB. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -38,7 +38,7 @@ These are the constraints the app is built around, not features nobody has got t
 Stories from different continuities can't share a real timeline — they're different Bruces in different realities. So the app gives three honest answers rather than one fake one:
 
 - **By universe** — each continuity intact, in its own story order. The safest first watch.
-- **Bruce's life** — a composite lifetime stitched across every continuity: *Before the cowl → Year one and two → The Grayson years → Losing Jason → Rebuilding → Broken and rebuilt → The League years → The Damian years → The last years → Beyond*. Anything with no place in a single life — Victorian Gotham, feudal Japan, LEGO, the parodies — is collected in a clearly labelled bucket at the end.
+- **Bruce's life** — a composite lifetime stitched across every continuity, in eleven eras: *Before Batman → The early years → The Grayson years → Rebuilding → Broken and rebuilt → The League years → The Watchtower years → The Damian years → The last years → Beyond → After the cowl*. Within an era the entries are ordered too, so the whole thing reads as one timeline rather than eleven shelves. An era may say who is in it and never what happens to them. The handful with no place in a single life — another Bruce, several at once, or none — are collected at the end with the reason given.
 - **Release order** — the only ordering that is objectively complete, decade by decade.
 
 The DC Animated Universe entry also carries the full interleave: where *Mask of the Phantasm* and *SubZero* slot into the series, which *Superman: The Animated Series* episodes to detour into, and why JLU's "Epilogue" has to come before *Batman Beyond*.
@@ -111,7 +111,7 @@ Zero dependencies, and every function under test is **extracted from `docs/index
 
 Every guard has been negative-tested: made to fail on purpose before being trusted.
 
-There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. It drives the path end to end: the chooser on first run, choosing through the real click handler, a reload returning on the same path and theme, a 1.1.0 save migrating without being asked again, a shared link that does not change what is stored, and a borrowed ordering that can always be stepped back out of. 79 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
+There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. It drives the path end to end: the chooser on first run, choosing through the real click handler, a reload returning on the same path and theme, a 1.1.0 save migrating without being asked again, a shared link that does not change what is stored, and a borrowed ordering that can always be stepped back out of, and every one of the eight shareable link tokens. 242 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
 
 ## Releasing
 
@@ -158,15 +158,18 @@ In practice that means:
 - **A story.** Advertising is out, even licensed live-action advertising with a purpose-built Batmobile — the eight OnStar commercials (2000–2002) are the case that decided this. Behind-the-scenes and cast reunions are out for the same reason: *Return to the Batcave* (2003) has Batman on screen, but as an actor playing a part, not as a character.
 - **Gotham, not just Batman.** *Joker*, *Joker: Folie à Deux* and *Birds of Prey* are here. Two of the three have no Bruce Wayne in them at all. They are stories about the city and the people Batman made, told in a continuity of their own, and a catalogue that excluded them would be answering a narrower question than the one on the front page. *Joker: Laugh Riot* — announced, undated, and premised on Batman already being dead — is in scope by this rule and will be added when it has a date.
 - **Any length, any format.** A three-minute DC Nation short counts. So does a fifteen-chapter serial from 1943, a web-shorts run made to sell toys, and a stop-motion parody special. Sets of shorts are entered as one entry each with the count in the label — a reader ticking twenty-two shorts individually is doing bookkeeping, not watching.
-- **Batman has to be in it, or it has to be his.** A DC film with no Batman and no Gotham is out no matter how good — *Krypto*, *Lanterns*, *Blue Beetle*, the Shazam! films. *Suicide Squad* (2016) is in because Batman is in three sequences of it; *The Suicide Squad* (2021) is out because he is in none.
+- **Batman has to be in it, or it has to be his.** A DC film with no Batman and no Gotham is out no matter how good — *Lanterns*, *Blue Beetle*, the Shazam! films. *Suicide Squad* (2016) is in because Batman is in three sequences of it; *The Suicide Squad* (2021) is out because he is in none.
+- **One exception, and it is written down.** An entry with no Batman and no Gotham is admitted when it is a link in a continuity that is here for Batman — *Superman: Man of Tomorrow* opens the Tomorrowverse, *Superman: The Animated Series* season one turns the DCAU into a shared universe — and its description has to say he is not in it. Seven entries qualify. *Scooby-Doo! and Krypto, Too!* did not: no Batman, no Gotham, and no continuity that needed it, so in 1.7.5 it became the first entry ever removed.
 
 When something sits on the line, the tie-breaker is the reader: would somebody working through every Batman story feel cheated to find it missing? That is what put the Columbia serials in, sixty years late.
 
 ## Licence
 
-AGPL-3.0. Night Watcher is free and stays free — fork it, change it, host it. The
-one condition is that if you put a modified version in front of other people, you
-publish your source too.
+AGPL-3.0-only (`SPDX-License-Identifier: AGPL-3.0-only`). Night Watcher is free
+and stays free — fork it, change it, host it. The one condition is that if you
+put a modified version in front of other people, you publish your source too.
+The grant is version 3 and no later version, deliberately; the app's footer links
+back to this repository so anyone running a fork can find what they owe.
 
 That covers the writing as well as the code: the entry descriptions, the
 continuity groupings, and the era and tier judgements. They live in the same file

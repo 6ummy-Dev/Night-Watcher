@@ -724,7 +724,76 @@ win.addEventListener("load", function(){
     win.location.hash = "#progress";
     win.dispatchEvent(new win.Event("hashchange"));
     check("#progress routes to the stats tab", S.tab === "stats", "tab=" + S.tab);
+
+    /* Every documented token, driven through the running app. Guard 72 proves
+       routeHash() understands them; this proves the page still listens. The
+       1.7.2 QA deleted the #life branch and nothing here noticed, because only
+       two of the eight were ever driven. */
+    [["life",      function(){ return S.tab === "watch" && S.mode === "life"; }],
+     ["release",   function(){ return S.tab === "watch" && S.mode === "release"; }],
+     ["universes", function(){ return S.tab === "watch" && S.mode === "continuity"; }],
+     ["path",      function(){ return S.tab === "watch" && S.mode === "continuity"; }],
+     ["progress",  function(){ return S.tab === "stats"; }],
+     ["next",      function(){ return S.tab === "next"; }],
+     ["series",    function(){ return S.scope === "all"; }],
+     ["movies",    function(){ return S.scope === "movies"; }]
+    ].forEach(function(t){
+      S.tab = "home"; S.mode = "continuity"; S.scope = "movies";
+      win.location.hash = "#" + t[0];
+      win.dispatchEvent(new win.Event("hashchange"));
+      check("#" + t[0] + " still routes in a running app", t[1](),
+            "tab=" + S.tab + " mode=" + S.mode + " scope=" + S.scope);
+    });
+
+    /* A deep link moves the view. It has never been allowed to move the saved
+       path, and from 1.7.5 it may not move the saved scope either. */
+    S.scope = S.scopePref = "movies"; win.persist();
+    win.location.hash = "#universes-series";
+    win.dispatchEvent(new win.Event("hashchange"));
+    check("a scope token changes the view", S.scope === "all", "scope=" + S.scope);
+    check("a scope token leaves the preference alone", S.scopePref === "movies",
+          "scopePref=" + S.scopePref);
+    win.persist();
+    check("and persisting after it stores the preference, not the view",
+          JSON.parse(win.localStorage.getItem("batwatch-v3")).scope === "movies");
+    S.scope = "movies";
+
     win.location.hash = ""; S.tab = "home"; S.mode = S.path; win.render();
+
+    /* --- the search-everything offer matches what search-everything shows (1.7.5) --- */
+    (function(){
+      var f0 = S.format, s0 = S.scope, q0 = S.q, t0 = S.tab;
+      S.tab = "watch"; S.format = "live"; S.scope = "movies";
+      S.q = "batwheels";               /* an animated series: no live-action match at all */
+      win.render();
+      var empty = doc.querySelector("#view .empty");
+      check("a search with no live-action match shows the empty state", !!empty);
+      var offer = doc.querySelector('#view [data-act="searchall"]');
+      check("and does not offer to find series the format filter would hide", !offer,
+            offer ? empty.textContent : "");
+      S.format = f0; S.scope = s0; S.q = q0; S.tab = t0; win.render();
+    })();
+
+    /* --- one number per universe, on both screens (1.7.5) --- */
+    (function(){
+      S.tab = "home"; S.mode = "continuity"; win.render();
+      var home = {};
+      Array.prototype.forEach.call(doc.querySelectorAll("#view .ucard"), function(c){
+        home[c.querySelector(".uname").textContent] = c.querySelector(".unum").textContent;
+      });
+      S.tab = "watch"; win.render();
+      var seen = 0, wrong = [];
+      Array.prototype.forEach.call(doc.querySelectorAll("#view .ghead"), function(h){
+        var name = h.querySelector(".gtitle").textContent;
+        var num  = h.querySelector(".gnum").textContent;
+        if(home[name] === undefined) return;
+        seen++;
+        if(home[name] !== num) wrong.push(name + ": home " + home[name] + ", path " + num);
+      });
+      check("home and the path number a universe the same way",
+            seen > 20 && !wrong.length, wrong.slice(0, 3).join(" / ") || (seen + " compared"));
+      S.tab = "home"; win.render();
+    })();
 
     /* --- transfer without a QR (1.2.4) --- */
     S.tab = "stats"; win.render();

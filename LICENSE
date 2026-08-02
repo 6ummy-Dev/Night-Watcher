@@ -1,9 +1,13 @@
 Night Watcher
 Copyright (C) 2026 6ummy
 
+SPDX-License-Identifier: AGPL-3.0-only
+
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU Affero General Public License as published by the Free
-Software Foundation, version 3.
+Software Foundation, version 3. Version 3 and no other: this grant deliberately
+omits "or any later version", so a future version of the licence does not apply
+to this work unless this file is changed to say it does.
 
 It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
@@ -16,10 +20,11 @@ with this program. If not, see <https://www.gnu.org/licenses/>.
 WHAT THIS COVERS
 ================
 
-Everything in this repository, including the catalogue descriptions and the
-continuity, era and tier judgements. They live in the same file as the code and
-one file cannot be both granted and withheld. Facts remain free: titles, years
-and episode counts belong to nobody. The reasoning is in the README.
+Everything in this repository, including the catalogue descriptions, the
+continuity, era and tier judgements, and the icon and favicons drawn for this
+project. They live in the same file as the code and one file cannot be both
+granted and withheld. Facts remain free: titles, years and episode counts belong
+to nobody. The reasoning is in the README.
 
 Batman, Gotham City and all associated characters, titles and logos are
 trademarks of DC Comics and its parent companies. This project is unofficial and

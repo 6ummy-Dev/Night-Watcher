@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 70 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 74 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -380,9 +380,11 @@ deep links still route, because routing never depends on it.
 
 ### `return '<button class="pick big'+(i === 0 ? ' lead' : ''…`
 
-By universe is the recommendation, and nothing said so — three equally
-weighted cards leave a newcomer guessing at the one decision the app
-actually has an opinion about.
+One card leads, and nothing said which — three equally weighted cards leave
+a newcomer guessing at the one decision the app actually has an opinion about.
+The lead was By universe until 1.7.2, on a spoiler-safety argument. It is
+Bruce's life now: that is the ordering this project made rather than inherited,
+and By universe is the completist's path rather than the newcomer's.
 
 ### `html += masterChooser();`
 
@@ -936,6 +938,117 @@ had not; it has one entry that does not sit anywhere. The check skips them.
 The LEGO Movieverse is the case: two films that assert no state at all, with *The
 LEGO Batman Movie* between them.
 
+### The number on a universe is the era it starts in
+
+Home used to print a universe's position in the catalogue — 01 to 44 — while
+The Path printed the era its story starts in, so the same universe wore two
+different numbers on two screens and this file asserted the number "is" the era.
+Home follows The Path from 1.7.5. Positions are still what the life and release
+views number, because there the number *is* a position.
+
+`eraTag()` reads the group's whole film list rather than the filtered one, so a
+universe can be chipped with an era belonging to an entry hidden under the
+current scope. That is deliberate: the chip describes the universe, not the
+selection, and a chip that moved when you switched to Movies would be describing
+the switch instead.
+
+### Scope is a view and a preference, like the path
+
+`S.path` is what you chose and `S.mode` is what you are looking at; a deep link
+moves the view and never the choice. Scope had only one variable until 1.7.5, so
+`#universes-series` set it transiently and the next `persist()` — from ticking
+anything at all — wrote it as if you had chosen it. `S.scopePref` is the saved
+half now. `persist()` writes the preference; everything that renders reads the
+view.
+
+### A slug can be retired, and only in a file that says why
+
+Frozen IDs are frozen because a rename voids saved progress. Removal is the same
+act, and it happened for the first time in 1.7.5: *Scooby-Doo! and Krypto, Too!*
+had no Batman, no Gotham and no continuity that needed it. `--bless` must not be
+able to launder that into the snapshot, so a slug only leaves `frozen-ids.json`
+by being written into `qa/retired-ids.json` with a reason, which is a diff a
+reviewer sees. A retired slug can never come back either — somebody's saved
+progress may still hold the old meaning of it.
+
+The mistyped slug `the-super-powers-team-galactic-guardians-198-1985` stays as it
+is. It dropped the "5" from 1985 and every sibling is `title-YYYY-YYYY`. It is
+format-valid, so nothing fails; the URL migration is the only amnesty window
+there will ever be, and the decision taken in 1.7.5 is to spend it on nothing.
+The contract is worth what it is because it has never been broken for
+convenience.
+
+### Two entries span more eras than one row can hold
+
+*Static Shock* is entered as seasons 1–4 and crosses into Batman's world three
+times across them; *Titans* is entered as a complete series and runs through
+eras 3, 4 and 7. Both would be more accurate split by season, and splitting
+either costs `i:` slugs — which is the one thing this project does not spend.
+They carry the era their story starts in. This is a known limit of
+season-granularity, not an oversight.
+
+### Display titles are shortened on purpose
+
+The Crisis trilogy drops "Justice League:", *The Doom That Came to Gotham* drops
+"Batman:", and *The Batman: Part II* is punctuated here although the official
+title is not. Screen titles are set for the width of a row and the reader's
+recognition, not for the copyright card. The `i:` slug always carries the full
+form, so search still finds them.
+
+`harley-quinn-season-5-2024` carries `y:2025`. The slug froze an announced date
+that moved; the year is the one that shipped. It is the only such mismatch in
+the file and it stays, because the slug is frozen and the year is true.
+
+### A backup code carries what this build knows
+
+`exportCode()` walks `FILMS`, so a slug merged in from a newer build's JSON
+survives in storage and in a JSON export but not in a code. The restore toast
+says entries are kept, and for JSON that is exactly true. Changing it means
+hashing the keys of `S.watched` instead of the catalogue, which is a code-format
+change, and the format does not move before the URL migration. Documented rather
+than fixed, deliberately.
+
+### Two rationales that would not fit in the file they belong to
+
+index.html carries at most two script comments — guard 65 counts them — so
+these live here.
+
+A restore link that carries nothing gets no banner. `routeHash()` used to raise
+the pending-restore banner for any code that parsed, including an empty one,
+which offered to restore "0 entries". A path on its own still counts as
+something, so the test is entries, unknown slugs, or a path.
+
+The group headers stick to a number written for the header at its normal height.
+When saving is blocked the header grows by a line and the stuck headings slid
+underneath it by exactly that much, for exactly the users already having the
+worst time. `flagSave()` measures the header and sets `--ghtop` when the banner
+is up.
+
+### Era 7 is not being split
+
+It holds 48 entries against the next largest at 29, and the question comes back
+every review. The answer is no. Positions order it correctly, the eras are life
+stages rather than buckets sized for a screen, and a twelfth era buys scrolling
+comfort at the cost of the scheme meaning something. Recorded so it stops being
+re-opened.
+
+### A note is part of an era, and spoils what the name would
+
+*An era may say who is in it, never what happens to them* was written for era
+names and applied only to them. Era 11's note read "three cities, three ways of
+losing him", which does the exact thing the rule forbids while the name above it
+obeys. The rule covers notes from 1.7.5.
+
+### scopeNote() was removed rather than fixed
+
+It produced the line under the scope switch — "N films. Switch on the series to
+add M seasons." — and it had one caller, in the branch of `scopeSwitch()` that
+stopped running when the switches moved into the chooser. Guards section 53
+tested it and found a real bug in it (it ignored the format filter, so it would
+have claimed 57 seasons with Live action selected) which nobody could see,
+because nobody could reach the function. Both are gone. If the note is wanted
+back it is a deliberate re-siting, not a revert.
+
 ## Known blind spots
 
 ### The dead-rule sweep sees selectors, not declarations
@@ -961,23 +1074,33 @@ in no decade at all. `qa/smoke.js` checks both positional views number 1..n.
 
 Era 0 keeps its em dash rather than a number. It is not a position in a life.
 
-### Era 0 is sorted by year
+### A blind spot can be a paragraph that stopped being true
 
-Every other era is ordered by continuity and then by position inside it, because
-that is the order those stories were meant to be watched in. Era 0 is the entries
-with no place in one Bruce's life — other Gothams, other Bruces, and jokes — so
-grouping it by continuity was ordering it by nothing. It reads by year from
-1.7.0. It is also the largest era in the catalogue, which is why it started to
-matter.
+This entry used to say era 0 was sorted by year. It was, in 1.7.0, and 1.7.2
+reverted it — the year sort scattered the LEGO line across 31 slots, which is
+recorded above under *Ordering by year is not ordering by story*. The paragraph
+survived the revert and sat here for two releases contradicting the section that
+described the shipping behaviour, and it also called era 0 the largest era in the
+catalogue when it holds 16 against era 7's 48.
+
+Nothing catches this. Guard 65 keeps the *pointer* to NOTES.md honest, guard 66
+keeps the section *count* honest, and section 14 now checks the README's era
+names — but prose that describes behaviour can say anything at all. It is
+review-only, and this entry is the standing reminder that it is: when a release
+reverts something, the revert is not finished until this file stops describing
+the thing that was reverted.
 
 ### An era is a life stage, not a label for a box set
 
 Guards section 51 required the Nolan trilogy to sit in one era, on the rule that
 "a continuous arc gets one era". No other continuity in the catalogue follows
 that: *The Batman* (2004) spans three eras and the DCAU spans five, because a
-long story moves its Bruce through them. *Rises* opens eight years later with him
-retired and his back broken, and era 6 is named *Bane, the back, and the
-replacement who did not know when to stop.*
+long story moves its Bruce through them. *Rises* opens eight years later with
+him off the roof, which is the era now called *Broken and rebuilt* — era 5 under
+the eleven-era scheme, and named for the stage rather than for what happens in
+it. The era it was written against was numbered 6 and named for the villain and
+the injury; both were replaced in 1.7.2 under the rule that an era may say who
+is in it and never what happens to them.
 
 What is worth protecting is direction, not sameness: an arc may advance through
 eras and may not go back. The guard says that now.
