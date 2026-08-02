@@ -19,7 +19,7 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
-## [1.7.6] — 2026-08-05
+## [1.7.6] — 2026-08-02
 
 Backlog. Four things 1.7.5 said it would do and did not, and one exclusion
 re-checked before the tag.
@@ -66,7 +66,7 @@ re-checked before the tag.
 - ***Lanterns*** (premiered August 2026) and ***My Adventures with Superman***
   season three both still have no Batman and no Gotham. Both exclusions hold.
 
-## [1.7.5] — 2026-08-05
+## [1.7.5] — 2026-08-02
 
 Every open item closed in one build: the 1.7.2 soak register and an independent
 QA audit, folded together. **1.7.3 and 1.7.4 do not exist** — the audit ran
@@ -165,7 +165,7 @@ anyone has ticked is where they left it.
 - The backup code box had no accessible name; the ticks had no hit area beyond
   their drawn size.
 
-## [1.7.2] — 2026-08-05
+## [1.7.2] — 2026-08-02
 
 The eras redesigned, three quarters of "outside any timeline" given a real
 place, and the universes put in the order their stories start.
@@ -250,7 +250,7 @@ The rating badges are still parked. A "kids" grouping was considered and
 rejected: it would be a fourth grouping axis competing with the rating badges
 already scoped, and the Rebuilding rewrite lands Batwheels without one.
 
-## [1.7.1] — 2026-08-04
+## [1.7.1] — 2026-08-02
 
 Bruce's life is a timeline now. Six independent audits of the ordering, and the
 worst thing they found was a live-action film wearing an ANIMATED badge.
@@ -332,7 +332,7 @@ No `i:` slug changed. Nothing anyone has ticked has moved.
 The rating badges are still parked. This release was catalogue accuracy, which
 is what the owner asked for.
 
-## [1.7.0] — 2026-08-03
+## [1.7.0] — 2026-08-02
 
 The catalogue release. **168 entries to 198**, 33 continuities to 42, and the
 catalogue no longer starts in 1966.
