@@ -19,6 +19,54 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.7.7] — 2026-08-02
+
+Home stops disagreeing with the path you chose, and the backup code stops
+carrying every rated entry's identifier twice.
+
+### Changed
+
+- **Home reflects the path you are on.** It always drew the universes, whatever
+  you had chosen — so a reader on Bruce's life got a dashboard about a different
+  ordering, and tapping a card on it moved them into By universe and raised the
+  borrowed-view banner. Nobody asked to view anything by universe; they tapped a
+  card on their own home screen. The grid is the eras for Bruce's life, the
+  universes for By universe, and the decades for Release order, built by the same
+  function The Path uses. Tapping a card now changes nothing but where you are.
+- **The grid says what it holds**, and carries the same one-line description The
+  Path shows, from the same string. No new copy was written.
+- **The scoreboard is a Progress metric and lives there.** Home already carries
+  the completion ring in the header and three tier meters under the hero;
+  Watched / To go / Skipped was a fourth statement of the same thing.
+
+### Fixed
+
+- **The worst-case restore link was 2,254 characters against a working ceiling
+  of about 2,000**, where chat clients and QR readers begin truncating. Ratings
+  were more than half the payload, and almost all of that was the watched
+  entries' identifiers written out a second time. **Backup codes are now NW3**:
+  a rating is one character, positioned against the watched list. Worst case is
+  **1,255** — room for roughly 124 more entries before the ceiling matters
+  again. A code where nothing is rated is the same size it always was.
+- **A backup code carries entries this build has never heard of.** `exportCode()`
+  walked the catalogue, so a slug merged in from a newer build's JSON survived in
+  storage and in a JSON export but vanished from a code — while the restore toast
+  said entries were kept. Codes walk your progress now, not the catalogue, so a
+  newer build can restore what an older one could only hold.
+- A rating can outlive its watch, because unticking clears the tick and leaves
+  the star. Those ratings get their own `O` segment rather than being quietly
+  dropped by the positional list.
+
+**Codes already in circulation still restore.** NW1 and NW2 are read the way
+they were written; the format version decides how the rating segment is parsed.
+A code from a version this build has never seen still restores everything it
+recognises, which is what the tolerance was built for.
+
+### Added
+
+- Guards section **76**: Home and The Path group the same way. The bug above
+  existed because nothing said the two screens had to agree.
+
 ## [1.7.6] — 2026-08-02
 
 Backlog. Four things 1.7.5 said it would do and did not, and one exclusion
@@ -60,6 +108,15 @@ re-checked before the tag.
   shipped copy had been reflowed, and the licence's own terms say changing it is
   not allowed. The `WHAT THIS COVERS` preamble above the divider is ours and
   stays.
+
+### Removed
+
+- **The source link in the home footer.** 1.7.5 added it because the AGPL's own
+  how-to *suggests* a Source link for web applications. Suggests is all it does.
+  The only links this app has ever had are the where-to-watch searches on each
+  entry — links that go where the reader asked to go. Chrome does not get to
+  send anyone anywhere. The repository URL stays in the served file's header
+  comment, where it has always been, and `LICENSE` ships whole with the page.
 
 ### Checked, unchanged
 

@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 75 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 76 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -1048,6 +1048,59 @@ tested it and found a real bug in it (it ignored the format filter, so it would
 have claimed 57 seasons with Live action selected) which nobody could see,
 because nobody could reach the function. Both are gone. If the note is wanted
 back it is a deliberate re-siting, not a revert.
+
+### Home has no opinions of its own
+
+`viewHome()` drew the universes whatever path was chosen, from its own
+`PATH.forEach`, and `goToGroup()` forced `S.mode` to match the key it was
+handed. Together that meant tapping a card on your own home screen moved you
+into an ordering you had not asked for and raised the borrowed-view banner.
+
+Home calls `buildGroups()` now — the same function The Path uses, already cached
+on mode, scope and format — so the grid is the eras, the universes or the
+decades depending on where you are, and the card number is whatever that
+grouping already computed. `goToGroup()` keeps its mode line, because Progress
+genuinely needs it: tapping an era slice while your path is By universe has to
+switch the view. From Home it is a no-op, which is the whole fix. It also gained
+a branch for decade keys, which had always fallen through to By universe and had
+only never fired because Home could not emit one.
+
+Guards section 76 exists because nothing said the two screens had to agree.
+
+### A rating costs one character, not a second copy of the hash
+
+The NW2 backup code wrote every rated entry's five-character hash twice: once in
+`W`, once again in `R` with a digit glued on. With everything watched and rated
+that was 1,201 characters of the 2,208 total, and the link was 2,254 against a
+working ceiling near 2,000.
+
+NW3 makes `R` positional against `W`: one character per watched entry, `0` for
+unrated, trailing zeros trimmed so a code with no ratings pays nothing. Worst
+case is 1,209.
+
+Two things had to be true for that to work, and only one of them was:
+
+- A rating implies a watch. `rate()` marks watched, so almost always yes — but
+  `unmarkWatched()` clears the tick and leaves the star, so a rating can outlive
+  its watch. Rather than make unticking destroy a rating, orphans get their own
+  `O` segment in the old hash-plus-digit form. It is empty for essentially
+  everyone.
+- The `R` segment means one thing. It now means two, depending on the version in
+  the header, so `importCode()` branches on it. Guards section 8 checks a
+  hand-built NW2 code restores its ratings, which it never did before: it only
+  ever compared watched entries, so the two meanings could have diverged
+  silently.
+
+### A code carries your progress, not the catalogue
+
+`exportCode()` walked `FILMS`, so a slug merged in from a newer build's JSON
+survived in storage and in a JSON export and vanished from a code — while the
+restore toast said entries were kept. It walks `S.watched` and `S.skipped` now,
+catalogue order first so the positional ratings stay deterministic, then
+anything else. The importing build still cannot resolve a hash it does not know,
+which is the point: an older build can now hand its progress to a newer one that
+does.
+
 
 ## Known blind spots
 

@@ -70,6 +70,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      47   The wordmark returns to the top
      49   The card reads what it means
      54   Home tells before it asks
+     76   Home and The Path group the same way
      55   The chooser is a deck, not a list
      56   Format is legible where it is ambiguous
      57   The legend is made of badges
@@ -327,9 +328,10 @@ else {
 /* ---------- 8. The parser tolerates codes it was not written for ------ */
 /* A code from a later build must restore what this one understands. */
 
-if(!/^NW2W/.test(code)){
-  fail("exportCode is not writing NW2 — 1.2.0 codes carry the chosen path in a " +
-       "P segment; bump deliberately and say so in CHANGELOG.md");
+if(!/^NW3W/.test(code)){
+  fail("exportCode is not writing NW3 \u2014 1.7.7 made ratings positional against the " +
+       "watched list and gave orphan ratings their own O segment; bump deliberately " +
+       "and say so in CHANGELOG.md");
 }
 
 /* The path has to survive its own round trip before anything below means much. */
@@ -351,17 +353,34 @@ else if(Object.keys(older.watched).sort().join("|") !== Object.keys(back.watched
 }
 
 /* And codes already in the wild must still restore. */
-var legacy = importCode(without.replace(/^NW2/, "NW1"));
+var legacy = importCode(without.replace(/^NW3/, "NW1"));
 if(!legacy) fail("a 1.0.0/1.1.0 NW1 code no longer imports — every saved backup just broke");
 else if(Object.keys(legacy.watched).sort().join("|") !== Object.keys(back.watched).sort().join("|")){
   fail("NW1 codes import but lose entries");
 }
+/* Ratings were only ever compared on the round trip, never on the legacy path.
+   1.7.7 made the rating segment mean two different things depending on the
+   version in the header, so an old code parsed by the new rules silently
+   restores the wrong stars — and nothing here would have said so. */
+(function(){
+  var old = "NW2W" + FILMS.slice(0, 3).map(function(f){ return idHash(f.id); }).join("") +
+            "S" + "R" + FILMS.slice(0, 2).map(function(f){ return idHash(f.id) + "4"; }).join("") + "Pl";
+  var got = importCode(old);
+  if(!got){ fail("a 1.2.0 NW2 code no longer imports at all"); return; }
+  var want = {}; FILMS.slice(0, 2).forEach(function(f){ want[f.id] = 4; });
+  if(JSON.stringify(got.rated) !== JSON.stringify(want)){
+    fail("an NW2 code's ratings do not survive: expected " + JSON.stringify(want) +
+         ", got " + JSON.stringify(got.rated) + " \u2014 the rating segment is read " +
+         "by format version, and the version branch is wrong");
+  }
+  if(Object.keys(got.watched).length !== 3) fail("an NW2 code lost watched entries");
+})();
 
 /* NW3 and an X segment: a version this build has never seen, carrying a
    segment it has no rule for. Written /^NW1/ -> "NW2" until 1.6.6, which could
    not match a code that already starts NW2 \u2014 so the unknown-version half of
    this test had never once run. */
-var future = code.replace(/^NW2/, "NW3") + "X7";
+var future = code.replace(/^NW3/, "NW9") + "X7";
 var ftr = importCode(future);
 if(!ftr) fail("parser rejected a forward-compatible code (NW2 + unknown segment) outright");
 else if(Object.keys(ftr.watched).sort().join("|") !== Object.keys(back.watched).sort().join("|")){
@@ -1458,8 +1477,9 @@ if((HTML.match(/class="bigstat"/g) || []).length !== 1){
        " places " + "\u2014" + " it is one component");
 }
 if(!/function scoreboard\s*\(/.test(HTML)) fail("scoreboard() is gone");
-if((HTML.match(/[^n] scoreboard\(c\)|\+scoreboard\(c\)/g) || []).length !== 2){
-  fail("scoreboard() is not rendered on both Home and Progress");
+if((HTML.match(/[^n] scoreboard\(c\)|\+scoreboard\(c\)/g) || []).length !== 1){
+  fail("scoreboard() is not rendered exactly once \u2014 it is a Progress metric, and " +
+       "1.7.7 took it off Home, where it was a fourth statement of the completion ring");
 }
 ["sc-done", "sc-left", "sc-skip"].forEach(function(cl){
   if(HTML.indexOf(cl) < 0) fail("the scoreboard lost its ." + cl + " colour hook");
@@ -1990,8 +2010,7 @@ if(!/b\.dataset\.format/.test(HTML)) fail("nothing handles a format tap");
 
   /* Controls first: they govern what every block below them shows, and reading
      them after the card meant meeting the answer before the question. */
-  var order = ["masterChooser()", "introBlock()",
-               "class=\"hero\"", "scoreboard(c)"];
+  var order = ["masterChooser()", "introBlock()", "class=\"hero\"", "GRIDNAME"];
   var at = order.map(function(k){ return main.indexOf(k); });
   at.forEach(function(pos, n){
     if(pos < 0) fail("Home no longer renders " + order[n]);
@@ -3089,11 +3108,12 @@ if(!/function legendBlock/.test(HTML) ||
    the target. The number may fall. It may not rise. */
 
 (function(){
-  var CEILING = 2254;   /* measured at 1.7.5: every entry watched and rated.
-                           1.7.2 measured 2232; three added entries cost 22.
-                           Raising this number is allowed and is a decision:
-                           it has to appear in a diff, with a release note. */
-  var TARGET  = 2000;   /* where it has to end up, in 1.8.0 */
+  /* Until 1.7.7 this was a ratchet, because the catalogue sat over the ceiling
+     and the fix was a code-format change nobody wanted to rush. NW3 landed it
+     near 1,255: a rating is one character against the watched list rather than
+     the whole hash a second time. This is the real ceiling again, with room for
+     the catalogue to nearly double before it bites. */
+  var CEILING = 2000;
   var box = {S:{watched:{}, skipped:{}, rated:{}, path:"life"},
              location:{protocol:"https:", origin:"https://6ummy-dev.github.io",
                        pathname:"/Night-Watcher/"},
@@ -3105,15 +3125,13 @@ if(!/function legendBlock/.test(HTML) ||
     "({code:exportCode(), link:restoreLink(exportCode())});", box);
   if(out.link.length > CEILING){
     fail("the worst-case restore link is " + out.link.length + " characters, past the " +
-         CEILING + " this build is held to (the real target is " + TARGET +
-         "). The payload has grown; see catalogue/restore-link-ceiling.md");
+         CEILING + " where chat clients and QR readers start truncating; see " +
+         "catalogue/restore-link-ceiling.md");
   }
-  if(out.link.length <= TARGET){
-    warn("the worst-case restore link is now " + out.link.length + " characters — " +
-         "under the " + TARGET + " target, so this ratchet can be tightened to it");
-  }
+  /* Every entry costs five characters in W and one in R. */
   note("worst-case backup code " + out.code.length + " chars, link " + out.link.length +
-       " (ratchet " + CEILING + ", target " + TARGET + ")");
+       " of " + CEILING + " \u2014 room for about " +
+       Math.floor((CEILING - out.link.length) / 6) + " more entries");
 })();
 
 /* ---------- 74. The version history runs one way ---------- */
@@ -3207,6 +3225,46 @@ if(!/function legendBlock/.test(HTML) ||
   note("touch targets measured: " + Object.keys(height).sort().map(function(c){
     return "." + c + " " + (height[c] + (pad[c] || 0));
   }).join(", "));
+})();
+
+/* ---------- 76. Home and The Path group the same way ---------- */
+/* Home drew the universes whatever path was chosen, and nothing said it
+   shouldn't, so a reader on Bruce's life got a dashboard about a different
+   ordering — and tapping a card on it moved them into By universe and raised
+   the borrowed-view banner they never asked for. The rule is that both screens
+   read one grouping function; this checks the source rather than the render,
+   because the render is smoke's job. */
+
+(function(){
+  var home = HTML.slice(HTML.indexOf("function viewHome()"), HTML.indexOf("function viewNext()"));
+  if(home.indexOf("buildGroups()") < 0){
+    fail("Home no longer builds its grid from buildGroups() — it has an opinion " +
+         "about grouping that The Path does not share");
+  }
+  if(/PATH\.forEach/.test(home)){
+    fail("Home iterates PATH directly, which is the universes whatever path the " +
+         "reader chose");
+  }
+  if(/data-gk="c'\s*\+/.test(home)){
+    fail("Home hard-codes continuity keys in its jump targets");
+  }
+  /* Every key shape Home can now emit has to route somewhere. */
+  var go = fn("goToGroup");
+  ["e", "d"].forEach(function(k){
+    if(go.indexOf('"' + k + '"') < 0){
+      fail("goToGroup() has no branch for a \"" + k + "\" key — Home can emit one now, " +
+           "and it would land in the wrong ordering");
+    }
+  });
+  if(!/GRIDNAME/.test(home)) fail("Home's grid heading no longer names what it holds");
+  var gn = (HTML.match(/var GRIDNAME = \{[^}]*\}/) || [""])[0];
+  sandbox.PATHS.forEach(function(p){
+    if(gn.indexOf(p[0] + ":") < 0) fail("GRIDNAME has no heading for the " + p[0] + " path");
+  });
+  if(!/pathBlurb\(S\.mode\)/.test(home)){
+    fail("Home's grid carries no description, or not the one The Path uses — " +
+         "section 24 exists so there is one string per ordering, not two");
+  }
 })();
 
 /* ---------- report ---------- */

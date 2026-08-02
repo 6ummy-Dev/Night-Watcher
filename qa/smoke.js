@@ -135,24 +135,49 @@ win.addEventListener("load", function(){
       S.path = keep.path; S.mode = keep.mode; S.watched = keep.watched; win.persist();
     })();
 
-    /* --- a view has to be reversible without a reload (1.2.1) --- */
-    /* Reported: choose a path, tap a universe card, no way back but a reload. */
+    /* --- a Home card stays inside your path (1.7.7) --- */
+    /* Until 1.7.7 Home always drew the universes, so tapping one of its cards
+       entered a view of another ordering and raised the borrowed-view banner —
+       and the test below asserted that, because it was the behaviour. It was
+       never behaviour anybody asked for. */
     S.path = S.mode = "life"; S.tab = "home"; win.persist(); win.render();
+    check("Home names the grid for the path it is on",
+          /The eras/.test(doc.querySelector("#view").textContent),
+          (doc.querySelector("#view .qhead") || {textContent:"-"}).textContent);
     doc.querySelector('#view [data-act="jump"]').click();
-    check("a Home card enters a view of another ordering",
-          S.mode === "continuity" && S.path === "life", "mode=" + S.mode);
-    check("the banner offers a way back", !!doc.querySelector('.viewing [data-act="mypath"]'));
-    check("the way back names your path",
-          /Bruce/.test((doc.querySelector('[data-act="mypath"]') || {textContent:""}).textContent));
-    doc.querySelector('.viewing [data-act="mypath"]').click();
-    check("it returns to your path with no reload", S.mode === "life", "mode=" + S.mode);
-    check("and the banner clears", !doc.querySelector(".viewing"));
-    doc.querySelector('#tabs [data-tab="home"]').click();
+    check("a Home card stays in your own ordering",
+          S.mode === "life" && S.path === "life", "mode=" + S.mode);
+    check("and raises no borrowed-view banner", !doc.querySelector(".viewing"));
+    check("it opens the group it was tapped for",
+          Object.keys(S.groupOpen).filter(function(k){ return S.groupOpen[k]; }).length === 1);
+
+    /* Release order emits decade keys, which had no branch in goToGroup() at
+       all — they fell through to By universe, and only never fired because
+       Home could not emit one. */
+    S.path = S.mode = "release"; S.tab = "home"; win.persist(); win.render();
+    check("Home names the grid in release order",
+          /The decades/.test(doc.querySelector("#view").textContent));
     doc.querySelector('#view [data-act="jump"]').click();
-    doc.querySelector('#tabs [data-tab="next"]').click();
-    doc.querySelector('#tabs [data-tab="watch"]').click();
-    check("tapping The Path tab also returns to your path", S.mode === "life", "mode=" + S.mode);
-    S.tab = "watch"; win.render();
+    check("a decade card stays in release order", S.mode === "release", "mode=" + S.mode);
+
+    /* --- and a borrowed view is still reversible without a reload (1.2.1) --- */
+    /* The banner has to keep working where it belongs: a shared link, or the
+       Progress tab jumping into an ordering that is not yours. */
+    S.path = S.mode = "life"; S.tab = "stats"; win.persist(); win.render();
+    var eraJump = doc.querySelector('#view [data-act="jump"][data-gk^="c"]');
+    if(!eraJump){ check("Progress offers a jump into another ordering", false, "none found"); }
+    else {
+      eraJump.click();
+      check("a Progress jump into another ordering borrows the view",
+            S.mode === "continuity" && S.path === "life", "mode=" + S.mode);
+      check("the banner offers a way back", !!doc.querySelector('.viewing [data-act="mypath"]'));
+      check("the way back names your path",
+            /Bruce/.test((doc.querySelector('[data-act="mypath"]') || {textContent:""}).textContent));
+      doc.querySelector('.viewing [data-act="mypath"]').click();
+      check("it returns to your path with no reload", S.mode === "life", "mode=" + S.mode);
+      check("and the banner clears", !doc.querySelector(".viewing"));
+    }
+    S.path = S.mode = "life"; S.tab = "watch"; win.persist(); win.render();
 
     /* --- switching never costs progress --- */
     var beforeSwitch = Object.keys(S.watched).length;
@@ -823,7 +848,7 @@ win.addEventListener("load", function(){
     doc.querySelector('#view [data-act="mkcode"]').click();
     check("making a code shows Copy link", !!doc.querySelector('#view [data-act="copylink"]'));
     check("the link it copies is absolute and carries the code",
-          /^https?:\/\/.+#nw=NW2W/.test(win.restoreLink(S.code)), win.restoreLink(S.code).slice(0, 46) + "…");
+          /^https?:\/\/.+#nw=NW3W/.test(win.restoreLink(S.code)), win.restoreLink(S.code).slice(0, 46) + "…");
     check("that link restores when opened",
           !!win.importCode(win.restoreLink(S.code)));
     check("no QR encoder is loaded", typeof win.qrcode === "undefined");
@@ -926,7 +951,9 @@ win.addEventListener("load", function(){
     S.rated[FILMS[0].id] = 4;
     var code = win.exportCode();
     var mine = win.importCode(code);
-    check("exportCode writes NW2", /^NW2W/.test(code), code.slice(0, 14) + "…");
+    check("exportCode writes NW3", /^NW3W/.test(code), code.slice(0, 14) + "…");
+    check("a rating costs one character, not a second copy of the hash",
+          /R\d*O/.test(code), (code.match(/R[^P]*/) || [""])[0].slice(0, 12) + "…");
     check("the code carries the chosen path", /P[clr]$/.test(code), code.slice(-2));
     check("code round-trips in the page", mine && mine.found === Object.keys(S.watched).length,
           mine ? "found " + mine.found : "null");

@@ -32,9 +32,9 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Ay6d4w+armxwc0swOk7mI71p/G46/wnKP19lb6zFLmA=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Ehexn/M+THAMMdVdavob2hegXQHoKNw7ash51TEb6SE=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","image":"https://6ummy-dev.github.io/Night-Watcher/icon.png","dateModified":"2026-08-05","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 133 films and 67 seasons of TV across 44 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","image":"https://6ummy-dev.github.io/Night-Watcher/icon.png","dateModified":"2026-08-02","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 133 films and 67 seasons of TV across 44 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- No trademarked logos, symbols, or proprietary lettering are used anywhere in
      this file. The favicon is an original bat-animal silhouette drawn for this
      project; it is not a DC mark. Fonts and palette: see NOTES.md. -->
@@ -251,6 +251,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .legend span{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);}
 .legend > span{display:inline-flex;align-items:center;gap:6px;}
 .legend .bd{flex:none;}
+.gridnote{font-size:12px;color:var(--dim);margin:6px 2px 12px;line-height:1.5;}
 .ugrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
 .ucard{border:1px solid var(--line);border-radius:12px;background:var(--sunk);padding:13px 12px;text-align:left;display:flex;flex-direction:column;gap:8px;min-height:98px;overflow-wrap:anywhere;}
 .ucard:active{background:var(--card);}
@@ -382,7 +383,7 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 75 sections, each one negative-tested.
+   qa/guards.js — 76 sections, each one negative-tested.
 
    Read those before changing something that looks redundant. Most of it is
    load-bearing, and this project has a long history of rules that only make
@@ -821,6 +822,7 @@ PATH.forEach(function(g, gi){
 var S = {tab:"home", scope:"movies", scopePref:"movies", format:"all", path:"", mode:"continuity", filter:"all", q:"", code:"",
          theme:"dark", watched:{}, skipped:{}, rated:{}, open:{}, groupOpen:{}, log:[], pending:null};
 var PATHS = [["life","Bruce\u2019s life"], ["continuity","By universe"], ["release","Release order"]];
+var GRIDNAME = {life:"The eras", continuity:"The universes", release:"The decades"};
 var PATHCODE = {continuity:"c", life:"l", release:"r"};
 var CODEPATH = {c:"continuity", l:"life", r:"release"};
 function isPath(id){ return !!PATHCODE[id]; }
@@ -828,7 +830,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "1.7.6";
+var BUILD = "1.7.7";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -1181,15 +1183,27 @@ function rate(id, n){
 }
 
 function exportCode(){
-  var w = [], k = [], r = [];
+  var w = [], k = [], pos = [], orphan = [], inW = {}, inK = {};
   FILMS.forEach(function(f){
-    var h = idHash(f.id);
-    if(S.watched[f.id]) w.push(h);
-    if(S.skipped[f.id]) k.push(h);
-    if(clampRating(S.rated[f.id])) r.push(h + clampRating(S.rated[f.id]));
+    if(S.watched[f.id]){ w.push(idHash(f.id)); pos.push(String(clampRating(S.rated[f.id]))); inW[f.id] = 1; }
+    if(S.skipped[f.id]){ k.push(idHash(f.id)); inK[f.id] = 1; }
   });
-  return "NW2W" + w.join("") + "S" + k.join("") + "R" + r.join("") +
-         (S.path ? "P" + PATHCODE[S.path] : "");
+  Object.keys(S.watched).forEach(function(id){
+    if(inW[id] || !S.watched[id]) return;
+    w.push(idHash(id)); pos.push(String(clampRating(S.rated[id]))); inW[id] = 1;
+  });
+  Object.keys(S.skipped).forEach(function(id){
+    if(inK[id] || !S.skipped[id]) return;
+    k.push(idHash(id)); inK[id] = 1;
+  });
+  Object.keys(S.rated).forEach(function(id){
+    if(inW[id]) return;
+    var n = clampRating(S.rated[id]);
+    if(n) orphan.push(idHash(id) + n);
+  });
+  while(pos.length && pos[pos.length - 1] === "0") pos.pop();
+  return "NW3W" + w.join("") + "S" + k.join("") + "R" + pos.join("") +
+         "O" + orphan.join("") + (S.path ? "P" + PATHCODE[S.path] : "");
 }
 function importCode(raw){
   var code = String(raw || "").trim().replace(/\s+/g, "");
@@ -1199,24 +1213,39 @@ function importCode(raw){
   var seg = {}, sre = /([A-Z])([0-9a-z]*)/g, sm;
   var body = code.replace(/^NW\d+/, "");
   while((sm = sre.exec(body))){ if(!(sm[1] in seg)) seg[sm[1]] = sm[2]; }
-  var m = [null, seg.W || "", seg.S || "", seg.R || ""];
-  var map = {}, i, id;
+  var ver = parseInt((code.match(/^NW(\d+)/) || [0,"1"])[1], 10) || 1;
+  var W = seg.W || "", K = seg.S || "", R = seg.R || "", O = seg.O || "";
+  var map = {}, i, id, n, order = [];
   FILMS.forEach(function(f){ map[idHash(f.id)] = f.id; });
   var res = {watched:{}, skipped:{}, rated:{}, found:0, unknown:0,
              path:CODEPATH[(seg.P || "").charAt(0)] || ""};
-  for(i = 0; i + 5 <= m[1].length; i += 5){
-    id = map[m[1].substr(i,5)];
+  for(i = 0; i + 5 <= W.length; i += 5){
+    id = map[W.substr(i,5)];
+    order.push(id || null);
     if(id){ res.watched[id] = 1; res.found++; } else res.unknown++;
   }
-  for(i = 0; i + 5 <= m[2].length; i += 5){
-    id = map[m[2].substr(i,5)];
+  for(i = 0; i + 5 <= K.length; i += 5){
+    id = map[K.substr(i,5)];
     if(id){ res.skipped[id] = 1; res.found++; } else res.unknown++;
   }
-  for(i = 0; i + 6 <= m[3].length; i += 6){
-    id = map[m[3].substr(i,5)];
-    var n = clampRating(parseInt(m[3].charAt(i+5), 10));
-    if(id && n){ res.rated[id] = n; if(!res.watched[id]) res.found++; }
-    else if(!id) res.unknown++;
+  if(ver >= 3){
+    for(i = 0; i < R.length && i < order.length; i++){
+      n = clampRating(parseInt(R.charAt(i), 36));
+      if(n && order[i]) res.rated[order[i]] = n;
+    }
+    for(i = 0; i + 6 <= O.length; i += 6){
+      id = map[O.substr(i,5)];
+      n = clampRating(parseInt(O.charAt(i+5), 10));
+      if(id && n){ res.rated[id] = n; if(!res.watched[id]) res.found++; }
+      else if(!id) res.unknown++;
+    }
+  } else {
+    for(i = 0; i + 6 <= R.length; i += 6){
+      id = map[R.substr(i,5)];
+      n = clampRating(parseInt(R.charAt(i+5), 10));
+      if(id && n){ res.rated[id] = n; if(!res.watched[id]) res.found++; }
+      else if(!id) res.unknown++;
+    }
   }
   return res;
 }
@@ -1398,25 +1427,22 @@ function viewHome(){
       '<span class="tcount">'+optDone+'/'+optFs.length+'</span><span class="tchev">\u203A</span></button>'+
     '</div>';
 
-  html += '<p class="qhead">Scoreboard</p>'+scoreboard(c);
-
-  html += '<p class="qhead" style="margin-top:6px">The universes</p><div class="ugrid">';
-  PATH.forEach(function(g, gi){
-    var fs = groupFilms("c" + gi);
-    if(!fs.length) return;
-    var d = fs.filter(isDone).length;
-    var pct = Math.round(d / fs.length * 100);
-    html += '<button class="ucard'+(pct === 100 ? " full" : "")+'" data-act="jump" data-gk="c'+gi+'">'+
-      '<span class="unum">'+eraTag(g)+'</span>'+
+  html += '<p class="qhead" style="margin-top:6px">'+esc(GRIDNAME[S.mode] || "The universes")+'</p>'+
+          '<p class="gridnote">'+esc(pathBlurb(S.mode))+'</p><div class="ugrid">';
+  buildGroups().forEach(function(g){
+    var done = g.films.filter(isDone).length;
+    var pct = Math.round(done / g.films.length * 100);
+    html += '<button class="ucard'+(pct === 100 ? " full" : "")+'" data-act="jump" data-gk="'+g.key+'">'+
+      '<span class="unum">'+esc(g.tag)+'</span>'+
       '<span class="uname">'+esc(g.name)+'</span>'+
       '<span class="ubar"><i style="width:'+pct+'%"></i></span>'+
-      '<span class="ucount">'+d+' of '+fs.length+'</span></button>';
+      '<span class="ucount">'+done+' of '+g.films.length+'</span></button>';
   });
   html += '</div>';
 
   html += '<p class="homefoot">Night Watcher \u00b7 an unofficial fan guide \u00b7 ' +
     'progress saves in this browser only \u00b7 Cloudflare counts visits, never what ' +
-    'you watch \u00b7 <a href="https://github.com/6ummy-Dev/Night-Watcher" rel="noopener">free software under the AGPL</a> \u00b7 kept by 6ummy, with Claude on the night shift</p>';
+    'you watch \u00b7 free software under the AGPL \u00b7 kept by 6ummy, with Claude on the night shift</p>';
   return html;
 }
 
@@ -1710,7 +1736,7 @@ function calmScroll(){
 }
 function goToGroup(jk){
   S.tab = "watch"; S.filter = "all"; S.q = "";
-  S.mode = (jk.charAt(0) === "e") ? "life" : "continuity";
+  S.mode = (jk.charAt(0) === "e") ? "life" : (jk.charAt(0) === "d") ? "release" : "continuity";
   S.groupOpen = {};
   buildGroups().forEach(function(g){ S.groupOpen[g.key] = (g.key === jk); });
   persist();

@@ -69,16 +69,16 @@ run_case "combined tokens stop splitting" \
   "${P}a='h.slice(1).toLowerCase().split(/[-+]/)';assert a in s
 s=s.replace(a,'[h.slice(1).toLowerCase()]',1);${W}"
 
-echo "--- 73: the ceiling that had never been measured"
-run_case "the backup payload grows by one character per entry" \
-  "past the 2254 this build is held to" \
-  "${P}a='return (\"0000\" + (h >>> 0).toString(36)).slice(-5);'
-assert a in s;s=s.replace(a,'return (\"00000\" + (h >>> 0).toString(36)).slice(-6);',1);${W}"
+# NOT TESTED here any more. This widened idHash to push the link past a 2254
+# ratchet. 1.7.7 replaced the ratchet with the real 2000 ceiling and made
+# ratings positional, so widening a hash no longer reaches it — and the honest
+# mutation is to undo the positional encoding, which negtest177.sh does.
 
 echo "--- 74: a history that runs both ways"
 run_case "two releases are dated out of order" \
   "the history runs backwards" \
-  "${C}a='## [1.7.1] \u2014 2026-08-04';assert a in s;s=s.replace(a,'## [1.7.1] \u2014 2026-09-04',1);${W}"
+  "${C}import re;m=re.search(r'## \\[1\\.7\\.1\\] \\u2014 (\\d{4}-\\d{2}-\\d{2})',s);assert m
+s=s[:m.start(1)]+'2026-09-04'+s[m.end(1):];${W}"
 
 run_case "a version is written down twice" \
   "lists 1.7.0 twice" \
@@ -129,8 +129,7 @@ run_case "persist writes the view instead of the preference" \
 echo "--- one number per universe"
 run_case "home goes back to numbering by catalogue position" \
   "home and the path number a universe the same way" \
-  "${P}a=\"'<span class=\\\"unum\\\">'+eraTag(g)+'</span>'\";assert a in s
-s=s.replace(a,\"'<span class=\\\"unum\\\">'+g.n+'</span>'\",1);${W}" \
+  "${P}a='+esc(g.tag)+';assert a in s;s=s.replace(a,'+\"?\"+',1);${W}" \
   "smoke"
 
 echo "--- the search count that offered what it could not show"

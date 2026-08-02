@@ -76,8 +76,10 @@ echo "--- 67: the dates say when the page actually changed"
 run_case "the build ships and the dates do not move" \
   "the build shipped and its dates did not move" \
   "import io
-for p,a,b in [('docs/sitemap.xml','<lastmod>2026-08-05</lastmod>','<lastmod>2026-07-30</lastmod>'),('docs/index.html','\"dateModified\":\"2026-08-05\"','\"dateModified\":\"2026-07-30\"')]:
-    s=io.open(p,encoding='utf-8').read();assert a in s;io.open(p,'w',encoding='utf-8').write(s.replace(a,b))"
+import re
+for p,pat in [('docs/sitemap.xml',r'<lastmod>(\\d{4}-\\d{2}-\\d{2})</lastmod>'),('docs/index.html',r'\"dateModified\":\"(\\d{4}-\\d{2}-\\d{2})\"')]:
+    s=io.open(p,encoding='utf-8').read();m=re.search(pat,s);assert m
+    io.open(p,'w',encoding='utf-8').write(s[:m.start(1)]+'2026-07-30'+s[m.end(1):])"
 
 run_case "the sitemap and the structured data disagree" \
   "one of them is wrong" \
