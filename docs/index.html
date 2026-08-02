@@ -2,8 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<!-- No maximum-scale: capping it blocks pinch-zoom, failing WCAG 1.4.4 on a
-     screen this dense in 9-10px mono. -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -31,18 +29,15 @@
 <meta property="og:image:height" content="512">
 <meta property="og:image:alt" content="The Night Watcher bat mark">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E %3Crect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22#0C111C%22/%3E %3Cg fill=%22#FFCF1F%22 transform=%22translate%280,5%29%22%3E %3Cpath d=%22M50 36 C 44 25, 29 21, 12 30 C 21 34, 25 41, 24 50 C 31 45, 37 47, 39 55 C 43 50, 47 51, 49 58 L 50 61 L 51 58 C 53 51, 57 50, 61 55 C 63 47, 69 45, 76 50 C 75 41, 79 34, 88 30 C 71 21, 56 25, 50 36 Z%22/%3E %3Cpath d=%22M42 32 L38 17 L49 29 Z%22/%3E %3Cpath d=%22M58 32 L62 17 L51 29 Z%22/%3E %3Cellipse cx=%2250%22 cy=%2242%22 rx=%2210%22 ry=%2211%22/%3E %3Cpath d=%22M50 51 C 45 60, 45 69, 50 78 C 55 69, 55 60, 50 51 Z%22/%3E %3C/g%3E %3C/svg%3E">
-<!-- Points at icon-192.png rather than inlining base64 twice (~11% of this
-     file). Relative, so a file:// open still resolves it. -->
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-1LlmIFvmsm0BuRnXP6li8bhtBKLk2YpfbniRzvJ1K9M=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ed+puOuBKzArocIpFiUsl5dZI8NAGJecxL9cZdsys+k=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","image":"https://6ummy-dev.github.io/Night-Watcher/icon.png","dateModified":"2026-08-01","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
-<!-- Fonts: Limelight, Anton and IBM Plex, all SIL Open Font License, served from fonts/.
-     Palette: original hex values styled after the classic black / blue-grey / belt-yellow scheme.
-     No trademarked logos, symbols, or proprietary lettering are used anywhere in this file.
-     The favicon is an original bat-animal silhouette drawn for this project; it is not a DC mark. -->
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","image":"https://6ummy-dev.github.io/Night-Watcher/icon.png","dateModified":"2026-08-02","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 110 films and 58 seasons of TV across 33 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
+<!-- No trademarked logos, symbols, or proprietary lettering are used anywhere in
+     this file. The favicon is an original bat-animal silhouette drawn for this
+     project; it is not a DC mark. Fonts and palette: see NOTES.md. -->
 <style>
 @font-face{font-family:"Limelight";src:url("fonts/limelight-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;}
 @font-face{font-family:"Anton";src:url("fonts/anton-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;}
@@ -52,10 +47,11 @@
 @font-face{font-family:"IBM Plex Mono";src:url("fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap;}
 
 :root{
-    --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
+  --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
   --line:#252E42; --line2:#33405C; --staroff:#63759E;
   --bone:#E7E9F0; --dust:#93A0B8; --dim:#8B97B1;
-  --signal:#FFCF1F; --steel:#7295CC;         --crimson:#C43A30; --crimson2:#DD7A73; --moss:#7FA98B;          --deco:"Limelight","Big Shoulders Display",serif;
+  --signal:#FFCF1F; --steel:#7295CC; --crimson:#C43A30; --crimson2:#DD7A73; --moss:#7FA98B;
+  --deco:"Limelight","Big Shoulders Display",serif;
   --disp:"Anton","Haettenschweiler","Arial Narrow",Impact,sans-serif;
   --body:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
@@ -65,7 +61,7 @@
 }
 :root[data-theme="darker"]{
   --ink:#000000; --sunk:#05070C; --card:#0B101B; --card2:#111826;
-  --line:#1B2233; --line2:#2C3853; --staroff:#63759E;
+  --line:#1B2233; --line2:#2C3853;
   --hdr:rgba(0,0,0,.92);
   --tabbg:rgba(4,6,10,.95);
 }
@@ -248,7 +244,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .note{font-size:12.5px;color:var(--dim);margin-top:16px;line-height:1.5;}
 .empty{text-align:center;padding:60px 20px;color:var(--dim);}
 .empty .big{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:26px;color:var(--dust);margin-bottom:8px;}
-.legend{margin-top:30px;border-top:1px solid var(--line);padding-top:18px;display:flex;flex-wrap:wrap;gap:8px 14px;margin:4px 0 18px;}
+.legend{border-top:1px solid var(--line);padding-top:18px;display:flex;flex-wrap:wrap;gap:8px 14px;margin:4px 0 18px;}
 .legend span{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);}
 .legend > span{display:inline-flex;align-items:center;gap:6px;}
 .legend .bd{flex:none;}
@@ -365,10 +361,6 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
     <p id="nosave" role="status" hidden>Storage is blocked here — progress will be gone when you reload. Back up your code from Progress.</p>
   </header>
   <main id="view"></main>
-  <!-- Inline SVG on a shared 24x24 grid, NOT unicode glyphs: the old set came
-       from four font fallbacks with four advance widths, and U+25B6 has an emoji
-       presentation that ignored the selected-state colour. Fixed geometry is the
-       only way to guarantee four identical optical centres. -->
   <nav id="tabs" aria-label="Views">
     <button data-tab="home" aria-current="page">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.1 10.9 12 4.4l7.9 6.5v8.7H4.1Z"/></svg>Home</button>
@@ -388,7 +380,7 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 66 sections, each one negative-tested.
+   qa/guards.js — 67 sections, each one negative-tested.
 
    Read those before changing something that looks redundant. Most of it is
    load-bearing, and this project has a long history of rules that only make
@@ -757,7 +749,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "1.6.5";
+var BUILD = "1.6.6";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;
@@ -833,8 +825,8 @@ function restore(done){
         if(S.path) S.mode = S.path;
         if(o.theme === "darker" || o.theme === "dark") S.theme = o.theme;
         if(o.scope === "movies" || o.scope === "all") S.scope = o.scope;
-                S.format = ["anim", "live", "all"].indexOf(o.format) >= 0 ? o.format : "anim";
-                if(o.groupOpen && typeof o.groupOpen === "object"){
+        S.format = ["anim", "live", "all"].indexOf(o.format) >= 0 ? o.format : "anim";
+        if(o.groupOpen && typeof o.groupOpen === "object"){
           var gk; for(gk in o.groupOpen){ if(o.groupOpen[gk] === false) S.groupOpen[gk] = false; }
         }
       }catch(e){}
@@ -942,7 +934,7 @@ function counts(){
   return {total:p.length, done:done, skip:skip, left:p.length - done - skip};
 }
 function upNext(){
-    var p = pool(), i;
+  var p = pool(), i;
   for(i=0;i<p.length;i++){ if(!isDone(p[i]) && !isSkip(p[i])) return p[i]; }
   for(i=0;i<p.length;i++){ if(!isDone(p[i])) return p[i]; }
   return null;
@@ -1006,7 +998,7 @@ function starRow(f){
   }
   return '<div class="stars" role="group" aria-label="Rating for '+esc(f.t)+'">'+out+'</div>';
 }
-var ACTIVITYMAX = 5;
+var ACTIVITYMAX = 3;
 function legendBlock(){
   function sw(k, note){
     return '<span><span class="bd '+k+'">'+BADGE[k]+'</span>'+(note ? ' \u2014 '+note : '')+'</span>';
@@ -1029,7 +1021,8 @@ function activityBlock(){
   for(i = S.log.length - 1; i >= 0 && n < ACTIVITYMAX; i--){
     f = null;
     for(j = 0; j < FILMS.length; j++){ if(FILMS[j].id === S.log[i].id){ f = FILMS[j]; break; } }
-    if(!f) continue;                          rows += '<div class="arow">'+
+    if(!f) continue;
+    rows += '<div class="arow">'+
             '<button class="tick" data-act="watched" data-id="'+f.id+'" aria-label="Remove '+
               esc(f.t)+(subOf(f) ? ", "+esc(subOf(f)) : "")+' from your progress" aria-pressed="true"></button>'+
             '<span class="at">'+esc(f.t)+'</span>'+
@@ -1268,13 +1261,12 @@ function viewHome(){
       (c.done ? 'Switching re-sorts what you see \u2014 nothing you have ticked is lost.' : 'You can change it whenever you like.') + '</p>' +
       '<div class="deck">'+PATHS.map(function(m, i){
                 return '<button class="pick big'+(i === 0 ? ' lead' : '')+'" data-path="'+m[0]+'">'+
-               (i === 0 ? '<em class="leadkick">Start here</em>' : '')+
-               '<b>'+m[1]+'</b><span>'+esc(pathBlurb(m[0]))+'</span></button>';
+             (i === 0 ? '<em class="leadkick">Start here</em>' : '')+
+             '<b>'+m[1]+'</b><span>'+esc(pathBlurb(m[0]))+'</span></button>';
       }).join("")+'</div>' + '</div>';
     return html;
   }
 
-  
   html += masterChooser();
 
   html += pendingBanner();
@@ -1295,7 +1287,7 @@ function viewHome(){
   } else {
     html += '<div class="hero"><p class="kick">Case closed</p>'+
       '<h2>All '+c.total+' logged</h2>'+
-      '<p class="blurb">Gotham sleeps. All '+c.total+' logged — every'+(S.scope==="all"?' film and every season':' film')+', every side story.</p></div>';
+      '<p class="blurb">Gotham sleeps. Every'+(S.scope==="all"?' film and every season':' film')+', every side story.</p></div>';
   }
 
   var segs = "";
@@ -1384,7 +1376,7 @@ function viewWatch(){
     viewing = '<div class="viewing"><p>You haven\u2019t chosen a path yet. This is '+
       esc(pathName(S.mode))+'.</p><button data-path="'+S.mode+'">Make this my path</button></div>';
   } else if(S.mode !== S.path){
-        viewing = '<div class="viewing"><p>Viewing <b>'+esc(pathName(S.mode))+'</b>. Your path is '+
+    viewing = '<div class="viewing"><p>Viewing <b>'+esc(pathName(S.mode))+'</b>. Your path is '+
       esc(pathName(S.path))+'.</p>'+
       '<button data-act="mypath">Back to '+esc(pathName(S.path))+'</button>'+
       '<button class="ghost" data-path="'+S.mode+'">Make this my path</button></div>';
@@ -1568,7 +1560,7 @@ function viewStats(){
     : "Saving is unavailable here, so progress lasts for this session only.")+'</p>'+
     '<p class="note">Availability changes constantly and differs by country, so \u201cWhere to watch\u201d '+
       'runs a fresh search each time rather than trusting a stored answer.</p>'+
-        '<p class="note">Announced dates can move. \u00b7 Build '+BUILD+'</p>';
+    '<p class="note">Announced dates can move. \u00b7 Build '+BUILD+'</p>';
   return html;
 }
 
@@ -1582,7 +1574,7 @@ function render(){
   document.getElementById("hsub").textContent = S.path
     ? pathName(S.path) + " \u00b7 " + c.done + " of " + c.total
     : c.done + " of " + c.total + " logged \u00b7 " + buildGroups().length + " " + gWord;
-    var v = document.getElementById("view");
+  var v = document.getElementById("view");
   var keep = window.pageYOffset || document.documentElement.scrollTop || 0;
   var qPrev = document.getElementById("q");
   var qSel = qPrev ? qPrev.selectionStart : null;
@@ -1597,7 +1589,7 @@ function render(){
   v.innerHTML = S.tab === "home" ? viewHome()
               : S.tab === "next" ? viewNext()
               : S.tab === "watch" ? viewWatch() : viewStats();
-    Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function(b){
+  Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function(b){
     if(b.dataset.tab === S.tab) b.setAttribute("aria-current", "page");
     else b.removeAttribute("aria-current");
   });
@@ -1630,7 +1622,7 @@ function goToGroup(jk){
   S.mode = (jk.charAt(0) === "e") ? "life" : "continuity";
   S.groupOpen = {};
   buildGroups().forEach(function(g){ S.groupOpen[g.key] = (g.key === jk); });
-    persist();
+  persist();
   window.scrollTo(0,0); render();
   var target = document.querySelector('.ghead[data-gk="'+jk+'"]');
   if(target && target.scrollIntoView){
@@ -1707,7 +1699,6 @@ document.getElementById("view").addEventListener("click", function(e){
   if(b.dataset.filter){ S.filter = b.dataset.filter; render(); return; }
   var act = b.dataset.act, id = b.dataset.id;
   if(act === "mypath"){ S.mode = S.path; S.groupOpen = {}; persist(); window.scrollTo(0,0); render(); }
-  else if(act === "repath"){ S.path = ""; window.scrollTo(0,0); persist(); render(); }
   else if(act === "resume"){ S.tab = "next"; window.scrollTo(0,0); render(); }
   else if(act === "tier"){
     S.tab = "watch"; S.filter = b.dataset.tf; S.q = ""; S.groupOpen = {};
@@ -1719,8 +1710,7 @@ document.getElementById("view").addEventListener("click", function(e){
   else if(act === "watched"){ var w = !!S.watched[id]; toggleWatched(id); toast(w ? "Unmarked" : "Logged"); }
   else if(act === "skip"){ var k = !!S.skipped[id]; toggleSkip(id); toast(k ? "Back in the queue" : "Skipped"); }
   else if(act === "rate"){ rate(id, parseInt(b.dataset.n,10)); }
-      else if(act === "peek"){ S.open[id] = !S.open[id]; render(); }
-    else if(act === "jump"){ goToGroup(b.dataset.gk); }
+  else if(act === "peek"){ S.open[id] = !S.open[id]; render(); }
   else if(act === "takelink"){
     var pend = S.pending; S.pending = null;
     if(pend){ applyImport(pend); toast("Restored " + pend.found + " from your backup"); }
@@ -1818,7 +1808,7 @@ function routeHash(){
     if(res){ S.pending = res; S.tab = "home"; }
     else if(history.replaceState) history.replaceState(null, "", location.pathname);
   } else if(h.length > 1){
-        h.slice(1).toLowerCase().split(/[-+]/).forEach(function(tok){
+    h.slice(1).toLowerCase().split(/[-+]/).forEach(function(tok){
       if(tok === "life"){ S.tab = "watch"; S.mode = "life"; revealHero(); }
       else if(tok === "release"){ S.tab = "watch"; S.mode = "release"; revealHero(); }
       else if(tok === "universes" || tok === "path"){ S.tab = "watch"; S.mode = "continuity"; revealHero(); }

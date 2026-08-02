@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 66 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 67 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -21,6 +21,46 @@ history of rules that only make sense once you know what they were written after
 
 ---
 
+
+## Head
+
+These four sat in `docs/index.html` as HTML comments until 1.6.6. The
+no-comments policy had only ever been enforced against `/* */`, so about 950
+bytes of explanation lived in the head for three releases after the file was
+supposed to have none. Guard 65 counts both syntaxes now, against a named
+allowlist.
+
+### The viewport carries no `maximum-scale`
+
+Capping it blocks pinch-zoom, which fails WCAG 1.4.4 on a screen this dense in
+9–10px mono. The zoom is the accommodation; taking it away to stop iOS
+auto-zooming a text field would be trading an accessibility failure for a
+cosmetic one. Guards section 62 solves the auto-zoom the other way, by holding
+every focusable field at 16px or more.
+
+### `rel=icon` points at a file, not at base64
+
+`icon-192.png` used to be inlined, twice, at about 11% of the file. It is a
+`<link>` now. The path is relative so a `file://` open still resolves it, which
+is how most of this project gets looked at before it is deployed.
+
+### The tab icons are inline SVG on a shared 24×24 grid
+
+Not unicode glyphs. The old set came from four font fallbacks with four
+different advance widths, and U+25B6 has an emoji presentation that ignored the
+selected-state colour entirely. Fixed geometry is the only way to guarantee four
+identical optical centres.
+
+### Fonts and palette
+
+Limelight, Anton and IBM Plex, all under the SIL Open Font License, served from
+`fonts/` rather than a CDN — the app makes a promise about asking nothing of
+anyone else, and guards section 42 enforces it. The palette is original hex,
+styled after the classic black / blue-grey / belt-yellow scheme.
+
+The one head comment that stayed is the notice about marks and lettering. It is
+not an explanation of the code; it is a statement about the file, and it belongs
+in the file it is about.
 
 ## Script
 
@@ -206,8 +246,22 @@ site, so there is no reason it was ever absent.
 
 ### `ACTIVITYMAX`
 
-The last five ticks, newest first, with the stars you gave them and a tick to
-take them back. Stars never move the hero — rate() calls markWatched(), a
+The last three ticks, newest first, with the stars you gave them and a tick to
+take them back.
+
+Three, not five, since 1.6.6. Measured at 390px with eight entries watched:
+at five, Recent activity was 262px against the queue's 191px — history
+outweighing the queue on the tab that exists for the queue. Four was still 26px
+ahead. Three is the first value where the queue wins, 172 against 191.
+
+What that costs, because it is a real cost and not a free tidy: the window in
+which a tick can still be rated *in place* is now three deep. Tick four things
+in one sitting without rating them and the first is only rateable on The Path.
+Three covers a trilogy in a night, which is the sitting this tab is for, and
+bulk-marking a backlog happens on The Path, where every row already carries its
+own stars. If a soak ever finds someone losing ratings this way, the number is
+the thing to move — it is pinned in guards section 34 and read from the page by
+`qa/smoke.js`, so it moves in one place. Stars never move the hero — rate() calls markWatched(), a
 no-op on something already watched. The tick is the one control here that
 does move it, and that is its whole purpose: 1.4.1 put stars on the hero, and
 a 34px star beside a full-width button needs an undo within reach of the
@@ -763,6 +817,28 @@ became flex in 1.6.3, and the sweep was happy because the selector still matched
 
 Nothing checks this. A declaration that stops applying is found by reading.
 
+### A policy is only as wide as the syntax it was written against
+
+Guard 65 enforced "no explanatory comments in `index.html`" by counting `/* */`.
+Four HTML comments sat in the head the whole time, invisible to it — the policy
+said one thing, the guard checked another, and the file did a third. Fixed in
+1.6.6 by counting `<!-- -->` too, against an allowlist that names each survivor.
+
+The general shape is worth keeping in mind when a rule is written: a check that
+matches one spelling of a thing is a check that will be right until somebody
+uses the other spelling, and it will keep passing when they do.
+
+### A `var` in a bare block is visible from anywhere below it
+
+`qa/guards.js` section 55 read `ab` — `activityBlock`'s source — from a `var`
+declared inside a bare `{ }` block in section 34, roughly 780 lines above.
+`var` is not block-scoped, so it worked. Scoping or deleting section 34's block
+would have crashed section 55 with a `ReferenceError` rather than failing a
+guard, and a crashing suite says nothing about the app.
+
+Each section extracts what it needs now. Extraction is a regex over a 122 KB
+string; doing it twice costs nothing worth this kind of coupling.
+
 ### Cross-tab merging only ever adds
 
 The `storage` listener merges another tab's marks in and never takes any out.
@@ -779,3 +855,16 @@ becomes a real complaint, the fix is a per-mark timestamp, not a smarter merge.
 in the URL until the banner is answered, so a reload re-parses it rather than
 losing it — that was the 1.6.5 fix. `S.pending` itself is session-only by
 design: an unanswered question should not outlive the tab.
+
+### `wrangler` stays a dev dependency
+
+It is the large majority of a 130-package lockfile and CI installs it on every
+push, while the tests need only jsdom. It stays because the Workers path is a
+live option for the domain migration, and `wrangler.jsonc` is guarded — section
+13 checks its assets directory against `docs/` and rejects SPA fallback, both of
+which are real rules about how this site is served.
+
+Reviewed in 1.6.6 and kept deliberately. If the migration lands on GitHub Pages
+alone, dropping `wrangler`, its two scripts and the jsonc takes `npm ci` to a
+fraction of its size, and that is the moment to do it — not before, and not
+without deciding the serving question first.

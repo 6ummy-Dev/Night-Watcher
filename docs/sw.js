@@ -15,7 +15,7 @@
  * 133 KB index.html, so a stale cache means a stale catalogue AND stale code
  * with no way to push a fix.
  */
-var VERSION = "1.6.5";
+var VERSION = "1.6.6";
 var CACHE   = "night-watcher-" + VERSION;
 /* icon-192.png is in the shell because index.html's <head> now references it
    directly for rel=icon and apple-touch-icon (it used to inline the bytes). */
@@ -23,8 +23,14 @@ var CACHE   = "night-watcher-" + VERSION;
    network-first path, which works on any normal first visit \u2014 but if a font
    request failed on that one visit, offline rendered fallback type silently
    until the next online one. Each item installs with its own catch, so a
-   heavier shell still cannot fail the install. */
+   heavier shell still cannot fail the install.
+   icon-maskable-512.png joined in 1.6.6. It had been served and referenced by
+   manifest.json since 1.5.x and never listed here, so an Android icon refresh
+   while offline fell back silently \u2014 and only for people who installed before
+   the icon existed. Section 13 of the guards now diffs this list against what
+   docs/ actually serves, with the crawler-facing files named as exclusions. */
 var SHELL   = ["./", "./index.html", "./manifest.json", "./icon.png", "./icon-192.png",
+               "./icon-maskable-512.png",
                "./fonts/limelight-latin-400-normal.woff2",
                "./fonts/anton-latin-400-normal.woff2",
                "./fonts/ibm-plex-sans-latin-400-normal.woff2",
@@ -68,7 +74,6 @@ self.addEventListener("fetch", function(e){
   try { url = new URL(req.url); } catch(err){ return; }
 
   if(inList(url.origin, NEVER_CACHE)) return;
-
 
   if(url.origin !== location.origin) return;
 

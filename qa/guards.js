@@ -31,6 +31,10 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      6    Badges all have labels
      30   Documented spoiler order holds
      32   No brand names in the catalogue or the UI
+     51   Format is the second axis
+     52   Nobody's world changes overnight
+     53   Two questions, two control groups
+     64   The year is not printed twice
 
    STORAGE
      7    Backup code round-trips losslessly
@@ -39,6 +43,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      19   Rating writes go through the clamp
      21   A blocked store has to say so
      35   The log holds one entry per id
+     50   Rating and progress stay separate
 
    COPY
      14   README headline counts match the data
@@ -60,10 +65,21 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      36   The Path collapses, and remembers
      40   One scoreboard
      47   The wordmark returns to the top
+     49   The card reads what it means
+     54   Home tells before it asks
+     55   The chooser is a deck, not a list
+     56   Format is legible where it is ambiguous
+     57   The legend is made of badges
+     58   Then is the tab, not the gap
+     59   Every badge is the same box
+     60   One left edge for the group chips
+     63   The grid columns have a floor
 
-   ACCESS
+   ACCESSIBILITY
      20   Text contrast against the surface it sits on
      41   The restore box has a real label
+     61   Contrast is measured on the ink that renders
+     62   Nothing focusable is small enough to zoom
 
    DEPLOY
      10   No vendored third-party code
@@ -83,47 +99,16 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      42   The page asks nothing of anyone else
      43   Content-Security-Policy
      44   Every watch link carries a year
-
-   META
-     49   The card reads what it means
-
-   META
-     50   Rating and progress stay separate
-
-   META
-   CATALOGUE
-     51   Format is the second axis
-     52   Nobody's world changes overnight
-     53   Two questions, two control groups
-
-   META
-   LAYOUT
-     54   Home tells before it asks
-     55   The chooser is a deck, not a list
-     56   Format is legible where it is ambiguous
-
-   LAYOUT
-     57   The legend is made of badges
-     58   Then is the tab, not the gap
-     59   Every badge is the same box
-     60   One left edge for the group chips
-
-   ACCESSIBILITY
-     61   Contrast is measured on the ink that renders
-     62   Nothing focusable is small enough to zoom
-
-   LAYOUT
-     63   The grid columns have a floor
-
-   CATALOGUE
-     64   The year is not printed twice
+     67   The dates say when the page actually changed
 
    META
      65   The file points at where its reasoning went
      66   The guards are navigable
 
    Sections are numbered in file order. Groups are for finding things;
-   they do not affect what runs. Guard 49 enforces the numbering.
+   they do not affect what runs. Guard 66 enforces the numbering, that every
+   section listed here has an assertion under it, and that no group is empty
+   or named twice.
 */
 
 
@@ -275,7 +260,9 @@ Object.keys(used).forEach(function(k){
 /* Extracted, not reimplemented: the copies here had already drifted. */
 
 sandbox.FILMS = FILMS;
-sandbox.S = {watched:{}, skipped:{}, rated:{}};
+/* A path has to be set, or exportCode() emits no P segment at all \u2014 which made
+   every P-segment test below assert against a code that had none. */
+sandbox.S = {watched:{}, skipped:{}, rated:{}, path:"life"};
 vm.runInContext(fn("exportCode") + "\n" + fn("importCode") + "\n", sandbox);
 var exportCode = sandbox.exportCode, importCode = sandbox.importCode;
 
@@ -304,8 +291,17 @@ if(!/^NW2W/.test(code)){
        "P segment; bump deliberately and say so in CHANGELOG.md");
 }
 
+/* The path has to survive its own round trip before anything below means much. */
+if(back && back.path !== "life"){
+  fail("the P segment does not restore the path \u2014 a link carries the ordering " +
+       "it was made in, and a fresh device would land on the wrong one");
+}
+
 /* Stripping P is what a 1.1.0 reader sees. */
+if(!/P[0-9a-z]+$/.test(code)) fail("exportCode wrote no P segment for a chosen path");
 var without = code.replace(/P[0-9a-z]*$/, "");
+if(without === code) fail("stripping the P segment changed nothing \u2014 the older-reader " +
+                          "test below would re-parse the code guard 7 already checked");
 var older = importCode(without);
 if(!older) fail("a 1.1.0 reader (P segment skipped) cannot parse a 1.2.0 code");
 else if(Object.keys(older.watched).sort().join("|") !== Object.keys(back.watched).sort().join("|")){
@@ -320,7 +316,11 @@ else if(Object.keys(legacy.watched).sort().join("|") !== Object.keys(back.watche
   fail("NW1 codes import but lose entries");
 }
 
-var future = code.replace(/^NW1/, "NW2") + "P3" ;          /* unknown segment, unknown version */
+/* NW3 and an X segment: a version this build has never seen, carrying a
+   segment it has no rule for. Written /^NW1/ -> "NW2" until 1.6.6, which could
+   not match a code that already starts NW2 \u2014 so the unknown-version half of
+   this test had never once run. */
+var future = code.replace(/^NW2/, "NW3") + "X7";
 var ftr = importCode(future);
 if(!ftr) fail("parser rejected a forward-compatible code (NW2 + unknown segment) outright");
 else if(Object.keys(ftr.watched).sort().join("|") !== Object.keys(back.watched).sort().join("|")){
@@ -407,6 +407,52 @@ if(PUBLIC !== ROOT){
       }
     });
 }
+
+/* The offline shell against what docs/ actually serves. icon-maskable-512.png
+   was added to the directory and to manifest.json in 1.5.x and never added to
+   SHELL, so it was missing from every install for a year with nothing to say
+   so \u2014 an Android icon refresh while offline fell back silently. A shell is a
+   list somebody maintains by hand, which is the definition of a list that
+   drifts. The exclusions below are decisions, written down: crawler-facing
+   files and a licence have no business in an app cache, and sw.js is cached by
+   the machinery that runs it. */
+(function(){
+  var swPath2 = path.join(PUBLIC, "sw.js");
+  if(!fs.existsSync(swPath2)) return;
+  var shell = (fs.readFileSync(swPath2, "utf8").match(/var SHELL\s*=\s*\[([\s\S]*?)\]/) || [0,""])[1]
+                .match(/"\.\/([^"]*)"/g) || [];
+  shell = shell.map(function(q){ return q.slice(3, -1); });
+  var NOT_SHELLED = ["sw.js", "robots.txt", "sitemap.xml", "fonts/OFL.txt"];
+  var served = [];
+  (function walk(dir, pre){
+    fs.readdirSync(dir).forEach(function(name){
+      var full = path.join(dir, name);
+      if(fs.statSync(full).isDirectory()) return walk(full, pre + name + "/");
+      served.push(pre + name);
+    });
+  })(PUBLIC, "");
+  served = served.filter(function(f){ return !/^google[0-9a-f]+\.html$/.test(f); });
+
+  shell.forEach(function(f){
+    if(f === "") return;                                   /* "./" is the page itself */
+    if(served.indexOf(f) < 0){
+      fail("sw.js caches \"" + f + "\" on install and docs/ does not serve it \u2014 the " +
+           "install swallows the 404 and offline is quietly missing a file");
+    }
+  });
+  var unshelled = served.filter(function(f){
+    return shell.indexOf(f) < 0 && NOT_SHELLED.indexOf(f) < 0;
+  });
+  if(unshelled.length){
+    fail("docs/ serves " + unshelled.join(", ") + " and sw.js does not cache " +
+         (unshelled.length > 1 ? "them" : "it") + " \u2014 either add " +
+         (unshelled.length > 1 ? "them" : "it") + " to SHELL or name " +
+         (unshelled.length > 1 ? "them" : "it") + " in this guard's exclusions, " +
+         "so the omission is a decision instead of an oversight");
+  }
+  note("offline shell: " + shell.length + " entries, " + served.length +
+       " files served, " + NOT_SHELLED.length + " deliberately not cached");
+})();
 
 var wranglerPath = path.join(ROOT, "wrangler.jsonc");
 if(fs.existsSync(wranglerPath)){
@@ -868,7 +914,14 @@ if(!barM){
     }
   });
 }
-if(HTML.indexOf("applyTheme()") < 0) fail("applyTheme() is never called");
+/* The definition line contains the string "applyTheme()" too, so asking whether
+   the file mentions it was answered by the function existing. Delete every call
+   site and the old check still passed. Count the mentions instead: one is the
+   declaration, so a live call site means more than one. */
+if(HTML.split("applyTheme()").length - 1 < 2){
+  fail("applyTheme() is defined and never called \u2014 the theme would never reach " +
+       "the chrome on load");
+}
 if(!/background:var\(--hdr\)/.test(HTML) || !/background:var\(--tabbg\)/.test(HTML)){
   fail("the header or tab bar is back on a hardcoded rgba — a theme cannot reach it");
 }
@@ -883,8 +936,10 @@ note("index.html " + rawKB.toFixed(1) + " KB raw, " + gzipKB.toFixed(1) + " KB g
 if(rawKB > 150) fail("index.html is " + rawKB.toFixed(1) + " KB raw, over the 150 KB budget");
 if(gzipKB > 50) fail("index.html is " + gzipKB.toFixed(1) + " KB gzipped, over the 50 KB budget");
 
-/* Zero runtime dependencies is a promise in the README. The only third-party
-   code is the vendored QR encoder; nothing may be fetched at runtime. */
+/* Zero runtime dependencies is a promise in the README. There is no
+   third-party code in index.html at all \u2014 the vendored QR encoder was the last
+   of it and came out in 1.2.4; guard 10 fails if it returns. Nothing may be
+   fetched at runtime either. */
 var ext = HTML.match(/<script[^>]+src="https?:\/\/[^"]+"/g) || [];
 ext.forEach(function(tag){
   if(tag.indexOf("cloudflareinsights") < 0){
@@ -962,8 +1017,7 @@ BRANDS.forEach(function(b){
    ISO-derived country (the UK is /uk, not /gb). Extract the function and run
    it; grepping missed both of those. */
 
-var watchSrc = fn("watchUrl");
-if(!watchSrc) fail("watchUrl() is gone \u2014 nothing builds the watch link");
+var watchSrc = optionalFn("watchUrl", "nothing would build the watch link");
 /* watchUrl() reads titleYear(), which reads FILMS. Loading it alone used to
    work and silently stopped in 1.3.7; the sandbox now carries the whole chain. */
 sandbox.FILMS = FILMS;
@@ -1063,7 +1117,7 @@ if(titleTag.indexOf(TAGLINE) >= 0){
 /* ---------- 34. Activity is reachable from Next up -------------------- */
 /* Next up is where things get ticked, and the card advances the instant you
    tick one \u2014 so rating meant hunting the title down on The Path. Activity
-   keeps the last five ticks rateable in place. */
+   keeps the last three ticks rateable in place. */
 
 if(/ratePrompt/.test(HTML)){
   fail("ratePrompt survives \u2014 1.3.4 replaced it with Activity and left no " +
@@ -1106,14 +1160,18 @@ if(!/function legendBlock\s*\(/.test(HTML)) fail("legendBlock() is gone");
 if(!/return html \+ legendBlock\(\);/.test(HTML)){
   fail("The Path does not end with the legend");
 }
-if(/legendBlock\(\)/.test(fn("viewStats"))){
+if(/legendBlock\(\)/.test(optionalFn("viewStats"))){
   fail("the legend is back on Progress, where none of its badges render");
 }
 
-/* Five. A longer list turns Next up into a history page. */
+/* Three. Measured at 390px with eight entries watched: at five, Recent
+   activity is 262px against the queue's 191px \u2014 history outweighing the queue
+   on the tab that exists for the queue. At four it is still 26px ahead. Three
+   is the first value where the queue wins (172 against 191). */
 var amax = HTML.match(/var ACTIVITYMAX = (\d+);/);
-if(!amax || amax[1] !== "5"){
-  fail("ACTIVITYMAX is " + (amax ? amax[1] : "missing") + ", expected 5");
+if(!amax || amax[1] !== "3"){
+  fail("ACTIVITYMAX is " + (amax ? amax[1] : "missing") + ", expected 3 \u2014 above " +
+       "three, Recent activity is taller than the queue it sits under");
 }
 {
   var ab = optionalFn("activityBlock", "marking something watched on Next up would " +
@@ -1511,21 +1569,6 @@ if(!/titleYear\(/.test(wu)){
   }
 })();
 
-/* The sitemap and the structured data both claim a last-modified date, both
-   are written by hand, and they drifted a day apart before 1.6.0 with nothing
-   to catch it. One is a lie either way. */
-(function(){
-  var sm = fs.readFileSync(path.join(PUBLIC, "sitemap.xml"), "utf8");
-  var last = (sm.match(/<lastmod>([\d-]+)<\/lastmod>/) || [])[1];
-  var mod = (HTML.match(/"dateModified"\s*:\s*"([\d-]+)"/) || [])[1];
-  if(!last){ fail("sitemap.xml states no lastmod"); return; }
-  if(!mod){ fail("the JSON-LD states no dateModified"); return; }
-  if(last !== mod){
-    fail("sitemap.xml says the page changed on " + last + " and the JSON-LD says " +
-         mod + " \u2014 both are hand-written and one of them is wrong");
-  }
-})();
-
 /* ---------- 46. The README states the real weight --------------------- */
 /* It drifts every release, and it is the first number anyone reads. */
 
@@ -1534,7 +1577,9 @@ if(!rmSize){
   warn("README no longer states the current size");
 } else {
   var realRaw = Math.round(Buffer.byteLength(HTML) / 1024);
-  var realGz  = Math.round(require("zlib").gzipSync(Buffer.from(HTML), {level:9}).length / 1024);
+  /* Same level as the weight budget in section 29, or the README quotes a
+     number the budget is not measuring. */
+  var realGz  = Math.round(require("zlib").gzipSync(Buffer.from(HTML)).length / 1024);
   if(parseInt(rmSize[1], 10) !== realRaw || parseInt(rmSize[2], 10) !== realGz){
     fail("README says " + rmSize[1] + " KB / " + rmSize[2] + " KB, actual is " +
          realRaw + " KB / " + realGz + " KB");
@@ -1551,6 +1596,18 @@ if(!/<h1><button id="topBtn">/.test(HTML)){
 }
 
 /* ---------- 48. The footer describes the link that exists ------------- */
+/* It described "Streaming now" for two releases after that link was replaced.
+   From 1.6.5 until 1.6.6 this header stood here with nothing under it and its
+   checks sat a thousand lines below, past the guard that validates numbering \u2014
+   so the INDEX pointed at an empty room and guard 66 was satisfied by the sign
+   on the door. The empty-section check added to 66 in 1.6.6 is the fix; this is
+   the repair. */
+
+["Streaming now", "Streaming rows"].forEach(function(dead){
+  if(HTML.indexOf(dead) >= 0){
+    fail('the Progress footer still mentions "' + dead + '" \u2014 the link is a search now');
+  }
+});
 
 /* ---------- 49. The card reads what it means ---------- */
 /* Every row in Recent activity is watched \u2014 that is what puts it there. The
@@ -1576,10 +1633,8 @@ if(!/<div class="herorow">/.test(HTML)){
          "% \u2014 they are meant to share an edge");
   }
 })();
-/* The detail panel on The Path shares .linkrow and still wants flex-end. */
-if(!/\.linkrow\{[^}]*justify-content:flex-end/.test(HTML)){
-  fail(".linkrow lost flex-end \u2014 the panel on The Path right-aligns its links");
-}
+/* .linkrow's flex-end is guarded once, in section 32. It renders in both the
+   hero and the detail panel, and one rule serves both. */
 /* Credit where it is due, in the one place the app talks about itself. */
 if(!/kept by 6ummy/.test(HTML)) fail("the credit line is gone from the footer");
 
@@ -1808,9 +1863,12 @@ if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.t
     fail("the recommended card is not filled with signal \u2014 an outline does not " +
          "read as \"this one\"");
   }
-  if(!/\.pick\.big\.lead\{[^}]*var\(--signal\)/.test(HTML)){
-    fail("the recommended path is not marked \u2014 three equal cards leave a newcomer " +
-         "guessing at the one decision the app has an opinion about");
+  /* The fill check above is strictly stronger \u2014 anything passing it passes a
+     bare "mentions signal" test, so that second check could never fire. What it
+     was reaching for is that the LABEL says so too, which nothing tested. */
+  if(HTML.indexOf('class="leadkick"') < 0){
+    fail("the recommended path is not named \u2014 a fill says \u201cthis one\u201d only to " +
+         "someone already looking for it; the lead card says it in words");
   }
   var leads = (HTML.match(/i === 0 \? ' lead' : ''/g) || []).length;
   if(!leads) fail("nothing assigns the lead card");
@@ -1860,9 +1918,7 @@ if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.t
     fail("the include controls mark their selection in signal \u2014 that is what " +
          "distinguishes the path row from them");
   }
-  if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.test(HTML)){
-    fail("the chosen path is no longer marked in signal");
-  }
+  /* The pressed-state fill is guarded once, in section 54. */
 })();
 
 /* The rows above Activity in Next up use the display face. Activity inherited
@@ -1894,7 +1950,12 @@ if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.t
          "row taller than every other");
   }
   /* The stars are on the line and reachable. Hiding them behind a tap in 1.6.2
-     removed a control that was being used. */
+     removed a control that was being used.
+     Extracted here rather than reaching for guard 34's `ab`, which is what this
+     line did until 1.6.6: a var declared in a bare block 780 lines above,
+     visible only through hoisting. Scoping or deleting that block would have
+     crashed this section with a ReferenceError instead of failing a guard. */
+  var ab = optionalFn("activityBlock", "there would be no Activity block to check");
   if(!/starRow\(f\)/.test(ab)){
     fail("the Activity rows no longer carry their stars \u2014 hiding them in 1.6.2 " +
          "took away a control that was in use");
@@ -1911,11 +1972,6 @@ if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.t
          "px \u2014 in this block it out-shouts the title it belongs to");
   }
 })();
-/* A sitemap with no lastmod gives Google nothing about freshness. */
-if(!/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/.test(fs.readFileSync(path.join(PUBLIC, "sitemap.xml"), "utf8"))){
-  fail("sitemap.xml has no lastmod");
-}
-
 /* Nine badges, six colours, three exact collisions: Core read as Animated,
    Optional as Short, Interactive as Live action. Colour now carries the value
    and shape carries the kind \u2014 tier filled, modifiers outlined, format dashed. */
@@ -1969,7 +2025,6 @@ if(/class="abadge"/.test(HTML)){
 if(!/data-act="peek"/.test(HTML)) fail("the Then rows are not tappable");
 if(!/act === "peek"/.test(HTML)) fail("nothing handles a Then row tap");
 (function(){
-  var peek = HTML.match(/S\.open\[x\.id\][\s\S]{0,300}?'\)/);
   var blk = (HTML.match(/class="qpeek">'\+[^;]*/) || [""])[0];
   if(!/badges\(x\)/.test(blk)) fail("the Then reveal shows no badges");
   if(!/x\.gname/.test(blk)) fail("the Then reveal does not name the continuity");
@@ -2090,7 +2145,6 @@ if(!/function legendBlock/.test(HTML) ||
   }
   /* Five entries, one line each, against a queue of four. If a row can grow,
      this ratio is what notices. */
-  var amax = parseInt((HTML.match(/var ACTIVITYMAX = (\d+);/) || [0, 0])[1], 10);
   var arowPad = parseFloat((HTML.match(/\.arow\{[^}]*padding:([\d.]+)px/) || [0, 0])[1]);
   var qitemPad = parseFloat((HTML.match(/\.qitem\{[^}]*padding:([\d.]+)px/) || [0, 0])[1]);
   if(!arowPad || !qitemPad){ fail("cannot read the row padding on both blocks"); return; }
@@ -2098,10 +2152,9 @@ if(!/function legendBlock/.test(HTML) ||
     fail("an Activity row is padded " + arowPad + "px against a queue row's " +
          qitemPad + "px \u2014 history must not be roomier than the queue it sits under");
   }
-  if(amax > 5){
-    fail("ACTIVITYMAX is " + amax + " \u2014 more rows than the queue shows, and the tab " +
-         "tips back toward history");
-  }
+  /* The row count itself is pinned exactly in section 34, so a ceiling here
+     could never fire. What this section owns is the proportion: the padding
+     comparison above, which is what notices if a row grows. */
   /* Numbers are what says Then is a sequence rather than another history. */
   if(!/class="qn"/.test(HTML)){
     fail("the Then rows lost their numbers \u2014 they are what separates a queue from " +
@@ -2315,14 +2368,14 @@ if(!/function legendBlock/.test(HTML) ||
   rules.forEach(function(rule){
     var sel = rule.slice(0, rule.indexOf("{")).trim();
     var body = rule.slice(rule.indexOf("{"));
-    var fs = body.match(/(?:^|[;{\s])font-size:\s*([\d.]+)px/);
-    if(!fs) return;
+    var fsize = body.match(/(?:^|[;{\s])font-size:\s*([\d.]+)px/);
+    if(!fsize) return;
     FIELDS.forEach(function(f){
       if(!new RegExp("\\." + f + "\\b").test(sel)) return;
       if(/::/.test(sel)) return;
       seen[f] = 1;
-      if(parseFloat(fs[1]) < 16){
-        fail("." + f + " is " + fs[1] + "px — iOS zooms the page on any focused " +
+      if(parseFloat(fsize[1]) < 16){
+        fail("." + f + " is " + fsize[1] + "px — iOS zooms the page on any focused " +
              "input under 16px, and the viewport does not cap zoom on purpose");
       }
     });
@@ -2387,7 +2440,8 @@ if(!/function legendBlock/.test(HTML) ||
   });
   /* Run it. The regexes above say the intent is there; this says it works. */
   var sandbox2 = {};
-  vm.runInContext(fn("subOf") + "\n" + fn("metaOf"), vm.createContext(sandbox2));
+  vm.runInContext(so + "\n" + optionalFn("metaOf", "nothing would build the meta line"),
+                  vm.createContext(sandbox2));
   var seen = 0;
   FILMS.forEach(function(f){
     var line = sandbox2.metaOf(f, false);
@@ -2490,9 +2544,30 @@ if(!/function legendBlock/.test(HTML) ||
      be there in the first place. */
   var all = (HTML.match(/\/\*[\s\S]*?\*\//g) || []);
   if(all.length > 2){
-    fail(all.length + " comments in index.html — the file carries the header " +
-         "block and the slug freeze, and explanations go to NOTES.md");
+    fail(all.length + " script comments in index.html — the file carries the " +
+         "header block and the slug freeze, and explanations go to NOTES.md");
   }
+  /* This counter only ever saw script comments, so four explanatory HTML
+     comments sat in the head from before 1.6.3 until 1.6.6 — about 950 bytes
+     the policy said were not there. What is left is not explanation: an
+     identity line, the notice about marks and lettering, and the two markers
+     that bound a vendor snippet. Each is allowed by name, so a fifth cannot
+     arrive quietly. */
+  var ALLOWED_HTML_COMMENTS = [
+    "Night Watcher \u00b7 https://github.com/6ummy-Dev/Night-Watcher",
+    "No trademarked logos",
+    "Cloudflare Web Analytics",
+    "End Cloudflare Web Analytics"
+  ];
+  (HTML.match(/<!--[\s\S]*?-->/g) || []).forEach(function(c){
+    var ok = ALLOWED_HTML_COMMENTS.some(function(a){ return c.indexOf(a) >= 0; });
+    if(!ok){
+      fail("an explanatory HTML comment is back in index.html (" +
+           c.replace(/\s+/g, " ").slice(4, 60).trim() + "\u2026) \u2014 the no-comments " +
+           "policy is about the file a reader downloads, not about which syntax " +
+           "the comment is written in");
+    }
+  });
   if(!/IDs in i:"\.\.\." are FROZEN/.test(HTML)){
     fail("the slug-freeze warning is gone from above PATH — it is the one note " +
          "that has to sit where the temptation is");
@@ -2544,15 +2619,65 @@ if(!/function legendBlock/.test(HTML) ||
       fail("section " + n + " is missing from the INDEX at the top of guards.js");
     }
   });
+  /* A header with no assertions under it. Section 48 stood empty from 1.6.5,
+     its checks stranded after the last section, and every check in this block
+     passed: the numbering ran clean and the INDEX listed 48. A heading is a
+     promise that something is being checked. */
+  var bodies = src.split(/\/\* -{3,} \d+\./).slice(1);
+  bodies.forEach(function(body, i){
+    var end = body.search(/\/\* -{3,} report/);
+    if(end >= 0) body = body.slice(0, end);
+    if(!/\bfail\(/.test(body)){
+      fail("section " + nums[i] + " has a header and no assertion under it \u2014 the " +
+           "INDEX promises a check that is not there");
+    }
+  });
+  /* The INDEX groups rot the same way the numbering used to: every appended
+     section brought its own heading, so META appeared three times, twice with
+     nothing under it. */
+  var heads = (idx.match(/\n   [A-Z][A-Z ]+\n/g) || []).map(function(h){ return h.trim(); });
+  var dupe = heads.filter(function(h, i){ return heads.indexOf(h) !== i; });
+  if(dupe.length){
+    fail("the INDEX repeats the group heading(s) " + dupe.join(", ") + " \u2014 groups " +
+         "are for finding things, and a name that appears twice finds nothing");
+  }
+  (idx.match(/\n   [A-Z][A-Z ]+\n(?=   [A-Z])/g) || []).forEach(function(empty){
+    fail("the INDEX group " + empty.trim() + " has no sections under it");
+  });
   note("guard sections: " + nums.length + ", numbered 1.." + nums[nums.length - 1]);
 })();
 
-/* It described "Streaming now" for two releases after that link was replaced. */
-["Streaming now", "Streaming rows", "justwatch"].forEach(function(dead){
-  if(HTML.indexOf(dead) >= 0){
-    fail('the Progress footer still mentions "' + dead + '" \u2014 the link is a search now');
+/* ---------- 67. The dates say when the page actually changed ---------- */
+/* sitemap.xml's lastmod and the JSON-LD dateModified drifted a day apart before
+   1.6.0, and 1.6.2 guarded them \u2014 against each other. That catches a typo and
+   nothing else: leave both untouched through a release and they agree perfectly
+   and are both wrong, which is precisely what shipping does to a hand-written
+   date. The CHANGELOG's newest date is the one that cannot be forgotten,
+   because guard 16 already fails the build when that section does not match
+   BUILD. Anchor the other two to it and the release date carries itself.
+   Two unnumbered copies of the weaker check lived at opposite ends of this file
+   until 1.6.6; this section is both of them. */
+
+(function(){
+  var sm   = fs.readFileSync(path.join(PUBLIC, "sitemap.xml"), "utf8");
+  var last = (sm.match(/<lastmod>(\d{4}-\d{2}-\d{2})<\/lastmod>/) || [])[1];
+  var mod  = (HTML.match(/"dateModified"\s*:\s*"(\d{4}-\d{2}-\d{2})"/) || [])[1];
+  var log  = fs.existsSync(path.join(ROOT, "CHANGELOG.md"))
+             ? fs.readFileSync(path.join(ROOT, "CHANGELOG.md"), "utf8") : "";
+  var rel  = (log.match(/^##\s*\[(?!Unreleased)[^\]]+\][^\n]*?(\d{4}-\d{2}-\d{2})/m) || [])[1];
+  if(!last){ fail("sitemap.xml has no lastmod \u2014 it tells a crawler nothing about freshness"); return; }
+  if(!mod){ fail("the JSON-LD states no dateModified"); return; }
+  if(!rel){ fail("CHANGELOG.md's newest release section carries no date"); return; }
+  if(last !== mod){
+    fail("sitemap.xml says the page changed on " + last + " and the JSON-LD says " +
+         mod + " \u2014 both are hand-written and one of them is wrong");
   }
-});
+  if(last !== rel){
+    fail("the served files date this page " + last + " and the newest CHANGELOG " +
+         "release is " + rel + " \u2014 the build shipped and its dates did not move");
+  }
+  note("page date " + rel + ", agreed in sitemap.xml, the JSON-LD and CHANGELOG.md");
+})();
 
 /* ---------- report ---------- */
 

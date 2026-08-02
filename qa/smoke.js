@@ -281,18 +281,19 @@ win.addEventListener("load", function(){
           arow.children[1].className === "at" &&
           arow.children[2].className.indexOf("stars") >= 0,
           Array.prototype.map.call(arow.children, function(c){ return c.className; }).join("|"));
+    /* No `|| /text-overflow:ellipsis/.test(html)` fallback: three unrelated
+       rules carry that declaration, so the fallback matched whatever happened
+       and could not fail. The computed style is the real answer, and guards
+       section 55 pins the rule itself. */
     check("the title truncates rather than wrapping",
-          win.getComputedStyle(arow.querySelector(".at")).textOverflow === "ellipsis" ||
-          /text-overflow:ellipsis/.test(html));
+          win.getComputedStyle(arow.querySelector(".at")).textOverflow === "ellipsis",
+          win.getComputedStyle(arow.querySelector(".at")).textOverflow);
     /* Then holds only unwatched entries and Activity only watched ones, so the
        two reveals can share S.open without ever colliding on an id. */
     check("no id is in the queue and the history at once",
           Array.prototype.every.call(doc.querySelectorAll("#view .qitem"), function(q){
             return !S.watched[q.dataset.id];
           }));
-    /* Opening the row re-rendered #view, so the node captured before it is
-       detached and clicking it would do nothing. Re-read it. */
-    undo = doc.querySelector(".activity .arow .tick");
     check("the tick says what it does",
           !!undo && /^Remove /.test(undo.getAttribute("aria-label")),
           undo && undo.getAttribute("aria-label"));
@@ -355,13 +356,18 @@ win.addEventListener("load", function(){
     check("Progress no longer carries the legend", !doc.querySelector("#view .legend"));
     S.tab = "next"; S.watched = {}; S.rated = {}; S.log = []; win.render();
 
-    /* Five, newest first, no matter how long the log gets. */
+    /* ACTIVITYMAX rows, newest first, no matter how long the log gets. The
+       number was written out as "five" here until 1.6.6, so cutting it to three
+       failed a test that was only ever asserting the page had not changed.
+       Read it from the page: guards section 34 is what says what it should be. */
     S.rated = {}; S.log = [];
     var mark8 = win.FILMS.slice(0, 8);
     mark8.forEach(function(f, i){ S.watched[f.id] = 1; S.log.push({id:f.id, ts:1000 + i}); });
     win.render();
     var rows = doc.querySelectorAll(".activity .arow");
-    check("Activity shows at most five", rows.length === 5, "got " + rows.length);
+    check("Activity shows at most ACTIVITYMAX rows out of a longer log",
+          rows.length === win.ACTIVITYMAX && win.ACTIVITYMAX < mark8.length,
+          "got " + rows.length + " of " + mark8.length + " logged, ACTIVITYMAX " + win.ACTIVITYMAX);
     check("newest first", rows[0].querySelector(".at").textContent === mark8[7].t,
           rows[0].querySelector(".at").textContent);
 
@@ -598,10 +604,9 @@ win.addEventListener("load", function(){
           doc.querySelectorAll("#view .group.open").length + " reopened");
 
     /* ...but it does open the hero's group when something is open. */
-    var firstKey = win.buildGroups()[0].key;
-    S.groupOpen = {}; win.buildGroups().forEach(function(g){ S.groupOpen[g.key] = (g.key !== firstKey) ? false : false; });
-    S.groupOpen[win.buildGroups()[1].key] = undefined;   /* one group left open */
-    delete S.groupOpen[win.buildGroups()[1].key];
+    /* Every group shut, then one deleted back out: absent means open. */
+    S.groupOpen = {}; win.buildGroups().forEach(function(g){ S.groupOpen[g.key] = false; });
+    delete S.groupOpen[win.buildGroups()[1].key];   /* one group left open */
     S.tab = "home"; win.render();
     doc.querySelector('#tabs button[data-tab="watch"]')
        .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
@@ -643,8 +648,13 @@ win.addEventListener("load", function(){
     check("every season of a show asks the same question",
           win.FILMS.filter(function(f){ return f.t === tvShow.t; })
                    .every(function(f){ return win.watchUrl(f.t) === win.watchUrl(tvShow.t); }));
-    check("an unknown title degrades cleanly",
-          win.watchUrl("Batman").indexOf("undefined") < 0, win.watchUrl("Batman"));
+    /* "Batman" was the title used here until 1.6.6 — and it is in the catalogue
+       twice, so titleYear() returned 1966 and the no-year branch this check is
+       named after never ran once. Remove the guard from watchUrl() and the old
+       version still passed. */
+    check("a title the catalogue has never heard of degrades cleanly",
+          win.titleYear("Zorro") === undefined &&
+          win.watchUrl("Zorro").indexOf("undefined") < 0, win.watchUrl("Zorro"));
     check("every rendered link comes from the builder", (function(){
       S.tab = "next"; win.render();
       var a = doc.querySelector("#view .linkrow .lnk");
@@ -682,8 +692,12 @@ win.addEventListener("load", function(){
     check("no QR encoder is loaded", typeof win.qrcode === "undefined");
     S.tab = "home"; win.render();
 
-    /* --- the restore link is absolute and reachable --- */
-    check("restore link is absolute", /^https:\/\//.test(win.restoreLink("NW1WSR")));
+    /* Absoluteness is asserted above, on a real code. What this line adds is
+       that a code with nothing in it still produces a usable link rather than a
+       bare hash — the state a reader is in before they have ticked anything. */
+    check("even an empty code makes a whole link",
+          /^https:\/\/[^#]+#nw=NW1WSR$/.test(win.restoreLink("NW1WSR")),
+          win.restoreLink("NW1WSR"));
 
     /* --- detail panels are built on demand, not for all 151 entries --- */
     S.tab = "watch"; S.scope = "all"; S.filter = "all"; S.q = ""; S.open = {};
@@ -745,14 +759,21 @@ win.addEventListener("load", function(){
     /* same again once the catalogue is complete — the "Case closed" variant */
     var savedWatched = S.watched;
     S.watched = {}; FILMS.forEach(function(f){ S.watched[f.id] = 1; });
+    /* Home only. This looped ["home","next"] until 1.6.6, but a completed Next
+       up renders .empty .big, not .hero h2 — so half the loop asserted over an
+       empty set and read as coverage. The Case-closed card is checked on its
+       own terms below. */
     var sized = 0;
-    ["home","next"].forEach(function(t){
-      S.tab = t; win.render();
-      Array.prototype.forEach.call(win.document.querySelectorAll("#view .hero h2"), function(el){
-        if(/font-size/.test(el.getAttribute("style") || "")) sized++;
-      });
+    S.tab = "home"; win.render();
+    Array.prototype.forEach.call(win.document.querySelectorAll("#view .hero h2"), function(el){
+      if(/font-size/.test(el.getAttribute("style") || "")) sized++;
     });
-    check("completed-catalogue heroes are unsized too", sized === 0, sized + " sized");
+    check("the completed-catalogue hero on Home is unsized too", sized === 0, sized + " sized");
+    S.tab = "next"; win.render();
+    var closed = win.document.querySelector("#view .empty .big");
+    check("a finished Next up says so in the shared display size",
+          !!closed && !/font-size/.test(closed.getAttribute("style") || ""),
+          closed ? (closed.getAttribute("style") || "(no inline style)") : "(no .empty .big)");
     S.watched = savedWatched;
 
     /* --- tabs still switch without throwing --- */
@@ -793,16 +814,26 @@ win.addEventListener("load", function(){
 
     /* --- the choice has to survive a reload, which is the entire point --- */
     /* A fresh document with storage pre-seeded is a reload. */
+    /* Every call site passed a label and reboot() ignored it, so five useful
+       names went nowhere and a failure inside a rebooted document did not say
+       which reload it came from. It says now. */
     function reboot(seed, label, then){
       var d = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://6ummy-dev.github.io/Night-Watcher/",
         pretendToBeVisual:true, beforeParse:function(w){
-        w.scrollTo = function(){};
+          w.scrollTo = function(){};
           w.localStorage.setItem("batwatch-v3", seed);
         }});
       /* restore() is synchronous once the store answers, and the app renders
          before "load" fires. The 200ms was padding, at five reboots a run. */
       d.window.addEventListener("load", function(){
-        setTimeout(function(){ then(d.window, d.window.document); }, 0);
+        setTimeout(function(){
+          var before = fails.length;
+          then(d.window, d.window.document);
+          if(fails.length > before){
+            console.log("       (above " + (fails.length - before) + " from the \"" +
+                        label + "\" reload)");
+          }
+        }, 0);
       });
     }
 

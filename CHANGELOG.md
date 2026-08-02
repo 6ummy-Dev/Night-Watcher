@@ -19,6 +19,79 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.6.6] — 2026-08-02
+
+House-keeping, from an independent audit of everything except the page.
+
+### Changed
+
+- **Recent activity holds three rows, not five.** Measured at 390px with eight
+  entries watched: at five it was 262px against the queue's 191px — history
+  outweighing the queue on the tab that exists for the queue. Four was still
+  26px ahead. Three is the first value where the queue wins. The rateable window
+  shrinks with it, which `NOTES.md` now says out loud.
+- **The four explanatory HTML comments in the head moved to `NOTES.md`.** The
+  no-comments policy had only ever been enforced against `/* */`, so about 950
+  bytes of explanation shipped in a file that claimed to carry none. The notice
+  about marks and lettering stayed — it is a statement about the file, not an
+  explanation of the code.
+- **The reformat pass the 1.6.4 audit asked for is finished.** Its flagship
+  example — a statement joined onto `if(!f) continue;` by 26 spaces — and eleven
+  more lines of stranded indentation left by the 1.6.3 comment strip.
+- `wrangler` reviewed and deliberately kept; the reasoning is in `NOTES.md` so
+  the question does not come back without an answer.
+
+### Fixed
+
+- **`sw.js` never cached `icon-maskable-512.png`.** It has been served and named
+  in `manifest.json` since 1.5.x. An Android icon refresh while offline fell
+  back silently, and only for people who installed before the icon existed.
+- **Two guards could not fail as named.** Section 28 asked whether the file
+  mentioned `applyTheme()` — which the definition line does, so deleting every
+  call site still passed. Section 8's forward-compatibility tests ran against a
+  code with no path segment in it, because the sandbox never chose a path: the
+  strip was a no-op, the older-reader test re-parsed what section 7 had already
+  checked, and the unknown-version half had never once run.
+- **The smoke test for unknown titles used a title in the catalogue.** "Batman"
+  is in it twice, so the branch the check is named after was never exercised.
+- **Guards section 48 was an empty header.** Its checks sat a thousand lines
+  below, past the guard that validates the numbering — so the INDEX pointed at
+  an empty room and section 66 was satisfied by the sign on the door.
+- The Case closed card said the same number twice, in the heading and again in
+  the line under it.
+- A dead `repath` handler, an unreachable second `jump` branch, and two CSS
+  declarations that nothing could reach.
+
+### Added
+
+- **Section 67 — the dates say when the page actually changed.** `sitemap.xml`
+  and the JSON-LD were guarded against each other from 1.6.2, which catches a
+  typo and nothing else: leave both alone through a release and they agree
+  perfectly and are both wrong. Both are now anchored to the newest CHANGELOG
+  date, which section 16 already ties to `BUILD`. Two unnumbered copies of the
+  weaker check lived at opposite ends of the file; this section is both of them.
+- **Section 13 now diffs the offline shell against what `docs/` serves**, with
+  the crawler-facing exclusions named, so an omission is a decision rather than
+  an oversight.
+- **Section 66 fails an empty section and a rotted INDEX** — a header with no
+  assertion under it, a group heading used twice, a group with nothing in it.
+  The INDEX had `META` three times, twice with nothing under it.
+- **Guard 65 counts HTML comments**, against an allowlist that names each
+  survivor, so a fifth cannot arrive quietly.
+- Section 8 now checks that a code's path segment actually restores the path.
+  Nothing had ever asserted that.
+
+### Note
+
+Eight negative tests, and two retired: guards section 58's row ceiling and the
+duplicate `.linkrow` and `.pathseg` assertions were subsumed by checks that
+already ran, and a check that cannot fail is not coverage. Both suites green,
+all seven negative suites re-run.
+
+The one thing this release does not do is the mutation run for the negative
+fixtures retired in 1.6.3 and 1.6.4. That is deliberate: it belongs before the
+catalogue release, not inside a release that is also changing the harness.
+
 ## [1.6.5] — 2026-08-01
 
 A restore link works on a new phone again.
