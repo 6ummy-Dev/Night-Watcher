@@ -100,6 +100,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      43   Content-Security-Policy
      44   Every watch link carries a year
      67   The dates say when the page actually changed
+     68   The life path is a timeline, not a filing order
 
    META
      65   The file points at where its reasoning went
@@ -157,15 +158,21 @@ vm.runInContext(
 );
 
 var PATH = sandbox.PATH, ERAS = sandbox.ERAS, DECADES = sandbox.DECADES, BADGE = sandbox.BADGE;
+/* Eras render 1..10 and then 0, so era 0 is LAST, not first. Comparing e: values
+   numerically would read "outside any timeline" as earlier than "before the cowl". */
+function eraRank(k){
+  var i = ERAS.map(function(e){ return e.k; }).indexOf(k);
+  return i < 0 ? 999 : i;
+}
 var idHash = sandbox.idHash, tierOf = sandbox.tierOf, clampRating = sandbox.clampRating;
 
 /* Flatten exactly as index.html does. */
 var FILMS = [];
 PATH.forEach(function(g, gi){
   g.films.forEach(function(f, fx){
-    FILMS.push({id:f.i, gi:gi, ix:fx, gn:g.n, gname:g.name, fmt:(g.fmt || "anim"),
+    FILMS.push({id:f.i, gi:gi, ix:fx, gn:g.n, gname:g.name, fmt:(f.fmt || g.fmt || "anim"),
                 t:f.t, sub:f.sub||"", ep:f.ep||0,
-                tv:(f.k === "tv"), y:f.y, e:(f.e||0), b:f.b||[], o:!!f.o});
+                tv:(f.k === "tv"), y:f.y, e:(f.e||0), lo:(f.lo||0), b:f.b||[], o:!!f.o});
   });
 });
 
@@ -1729,8 +1736,26 @@ if(!/@media \(max-width:360px\)/.test(HTML)){
     return gr.fmt && gr.fmt !== "live" && gr.fmt !== "anim";
   });
   if(mixed.length) fail("group " + mixed[0].n + ' has an unknown fmt "' + mixed[0].fmt + '"');
-  if(!/fmt:\(g\.fmt \|\| "anim"\)/.test(HTML)){
-    fail("entries no longer inherit format from their group");
+  /* Format was group-only until 1.7.1, which is how Clayface \u2014 a live-action
+     film in a group whose other entry is animated \u2014 shipped with an ANIMATED
+     badge and vanished under the Live action filter. The DCU is the catalogue's
+     first mixed-format continuity and the model could not express one. An entry
+     may now override its group; the group is still the default, so nothing that
+     does not need the override carries it. */
+  var badEntry = [];
+  PATH.forEach(function(gr){
+    gr.films.forEach(function(f){
+      if(f.fmt && f.fmt !== "live" && f.fmt !== "anim") badEntry.push(f.i);
+      if(f.fmt && f.fmt === (gr.fmt || "anim")) badEntry.push(f.i + " (overrides its group with the group's own value)");
+    });
+  });
+  if(badEntry.length){
+    fail("entry format override is wrong on: " + badEntry.slice(0, 4).join(", "));
+  }
+  if(!/fmt:\(f\.fmt \|\| g\.fmt \|\| "anim"\)/.test(HTML)){
+    fail("an entry can no longer state its own format \u2014 a live-action film in " +
+         "an animated group is invisible under the Live action filter, which is " +
+         "exactly how Clayface shipped in 1.7.0");
   }
   /* Scoped to visible(). Testing the whole file passed on scopeNote()'s copy of
      the same expression, which is how a guard says one thing and checks another. */
@@ -1745,11 +1770,52 @@ if(!/@media \(max-width:360px\)/.test(HTML)){
     fail("the group cache key omits format \u2014 switching format would serve stale groups");
   }
   var live = FILMS.filter(function(f){ return f.fmt === "live"; });
-  if(live.length < 12) fail("live-action entries dropped to " + live.length + ", expected at least 12");
+  /* Set to 12 when 1.5.0 shipped twelve. There are 30, so the old floor would
+     have needed nineteen entries to disappear before it noticed. */
+  if(live.length < 28) fail("live-action entries dropped to " + live.length + ", expected at least 28");
   live.forEach(function(f){
     if(f.e === undefined) fail(f.id + " has no era");
     if(!tierOf(f)) fail(f.id + " resolves to no tier");
   });
+  /* Every continuity, not one. Written for the Dark Knight Saga in 1.7.0 and
+     scoped to it, which meant the rule was enforced on one continuity in 42 while
+     five others ran backwards \u2014 the DC Animated Movie Universe oscillated seven
+     times across sixteen films, rendering Apokolips War, in which Damian dies in
+     Batman's arms, before the film that introduces Damian.
+
+     Two kinds of group are exempt, for two different reasons:
+     - a BAG has no arc at all, so it has no direction to run backwards in. The
+       flag is in the data because the reader is told the same thing.
+     - a WEAVE interleaves several arcs on purpose. The DCAU's by-universe order
+       is a watch order across five shows, and its group note prescribes it; the
+       era is a position in one life. Those are different axes, and requiring
+       them to agree would force the note to lie. Named here rather than flagged
+       in the data because it is a fact about the guard, not about the reader. */
+  var WEAVES = {
+    "DC Animated Universe": "five shows interleaved; the group note prescribes the weave",
+    "Tomorrowverse": "Superman and Batman arcs alternating; Long Halloween is year two",
+    "The Comic Canon": "seven unrelated adaptations arranged as one life, and a " +
+                       "derivative work has to follow its source whatever era it sits in"
+  };
+  PATH.forEach(function(gr){
+    if(gr.bag || WEAVES[gr.name]) return;
+    var prev = null;
+    gr.films.forEach(function(f){
+      var here = eraRank(f.e || 0);
+      if(prev !== null && here < prev){
+        fail(gr.name + " runs backwards through the eras at " + f.i + " \u2014 a " +
+             "continuous story can age, but it cannot un-age. If this group is not " +
+             "one arc, flag it bag:1 or name it in WEAVES with the reason.");
+      }
+      prev = Math.max(prev === null ? here : prev, here);
+    });
+  });
+  Object.keys(WEAVES).forEach(function(n){
+    if(!PATH.some(function(gr){ return gr.name === n; })){
+      fail('WEAVES names "' + n + '", which is not a continuity any more');
+    }
+  });
+
   /* Written until 1.7.0 as "one continuous arc, one era", which pinned all three
      Nolan films to era 2. That was never the rule the rest of the catalogue
      follows \u2014 The Batman (2004) spans three eras and the DCAU spans five, because
@@ -2711,6 +2777,65 @@ if(!/function legendBlock/.test(HTML) ||
          "release is " + rel + " \u2014 the build shipped and its dates did not move");
   }
   note("page date " + rel + ", agreed in sitemap.xml, the JSON-LD and CHANGELOG.md");
+})();
+
+/* ---------- 68. The life path is a timeline, not a filing order --------- */
+/* Until 1.7.1 an era rendered its entries in the order their continuity appeared
+   in PATH \u2014 which is the order somebody typed things in, not a chronology. With
+   62 entries in one era that read as noise. Every entry in a life era now carries
+   lo:, its position within that era, and the whole point is that continuities
+   blend: Year One, Batman Begins and Gotham Knight are three continuities and
+   three consecutive rows.
+
+   A hand-maintained position on 150 entries is a hand-maintained list, so: every
+   era is either fully positioned or not positioned at all, positions run 1..n
+   with no gaps, and no two entries in an era share one. Era 0 carries none by
+   design \u2014 it is the entries with no position in a life, and giving them one
+   would be inventing the thing this section exists to make honest. */
+
+(function(){
+  var byEra = {};
+  FILMS.forEach(function(f){ (byEra[f.e] = byEra[f.e] || []).push(f); });
+  var positioned = 0;
+  Object.keys(byEra).forEach(function(k){
+    var era = byEra[k], withLo = era.filter(function(f){ return f.lo; });
+    if(String(k) === "0"){
+      if(withLo.length){
+        fail(withLo.length + " entries in \u201cOutside any timeline\u201d carry a life " +
+             "position \u2014 the era exists for the entries that have none");
+      }
+      return;
+    }
+    if(!withLo.length){
+      fail("era " + k + " has no life positions at all \u2014 it would render in the " +
+           "order its continuities happen to be typed in, which is what 1.7.1 fixed");
+      return;
+    }
+    if(withLo.length !== era.length){
+      var missing = era.filter(function(f){ return !f.lo; }).map(function(f){ return f.id; });
+      fail("era " + k + " is half-positioned; no lo on " + missing.slice(0, 3).join(", ") +
+           " \u2014 they would fall to the end of the era in typing order");
+      return;
+    }
+    var seen = {}, dupe = null, max = 0;
+    era.forEach(function(f){
+      if(seen[f.lo]) dupe = f.lo;
+      seen[f.lo] = 1;
+      if(f.lo > max) max = f.lo;
+    });
+    if(dupe){
+      fail("era " + k + " gives position " + dupe + " to two entries \u2014 the tie is " +
+           "then broken by typing order, silently");
+    }
+    if(max !== era.length){
+      fail("era " + k + " has " + era.length + " entries and its highest position is " +
+           max + " \u2014 positions run 1..n or the numbering means nothing");
+    }
+    positioned += era.length;
+  });
+  note("life path: " + positioned + " entries positioned across " +
+       (Object.keys(byEra).length - 1) + " eras, " +
+       (byEra["0"] ? byEra["0"].length : 0) + " outside any timeline");
 })();
 
 /* ---------- report ---------- */

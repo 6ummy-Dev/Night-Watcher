@@ -186,6 +186,30 @@ win.addEventListener("load", function(){
     });
     S.mode = "life";
 
+    /* The life path is a timeline: an era renders in life order, and continuities
+       blend. Year One, Batman Begins and Gotham Knight are three continuities and
+       three consecutive rows. If the sort loses its lo: term this falls back to
+       the order the file happens to be typed in, which is what 1.7.1 fixed. */
+    S.mode = "life"; S.tab = "watch"; S.format = "all"; S.scope = "all";
+    S.watched = {}; S.log = {}; S.log = []; win.render();
+    (function(){
+      var rows = Array.prototype.map.call(doc.querySelectorAll("#view .grow, #view .qitem, #view [data-id]"),
+                                          function(e){ return e.dataset.id; }).filter(Boolean);
+      var seen = [], want = ["batman-year-one-2011", "batman-begins-2005", "batman-gotham-knight-2008"];
+      want.forEach(function(id){ seen.push(rows.indexOf(id)); });
+      check("an era renders in life order, blending continuities",
+            seen[0] >= 0 && seen[0] < seen[1] && seen[1] < seen[2],
+            want.map(function(w, i){ return w + "@" + seen[i]; }).join(" "));
+      /* Pennyworth is released five years after Gotham and set decades before it,
+         so this is the pair that proves the order is not a year sort. */
+      check("Pennyworth precedes Gotham",
+            rows.indexOf("pennyworth-complete-series-2019") >= 0 &&
+            rows.indexOf("pennyworth-complete-series-2019") < rows.indexOf("gotham-complete-series-2014"),
+            rows.indexOf("pennyworth-complete-series-2019") + " vs " +
+            rows.indexOf("gotham-complete-series-2014"));
+    })();
+    S.mode = "life";
+
     /* --- release note tracks format and scope (1.5.0) --- */
     S.mode = "release"; S.format = "anim";
     S.scope = "movies"; var mNote = win.modeNote();

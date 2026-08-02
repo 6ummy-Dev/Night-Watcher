@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 67 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 68 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -805,6 +805,67 @@ up, the one view that fits a desktop screen, slides the centred column
 Reads the same tokens as every other track (.gbar / .ubar / .tbar / .segs).
 
 ---
+
+### `lo` — where an entry sits in a life
+
+The eras say which stage; `lo` says where inside it. Without it an era rendered
+in the order its continuities happened to be typed into `PATH`, which is not a
+chronology — and with 62 entries in one era it read as noise.
+
+The whole point is that continuities **blend**. *Year One*, *Batman Begins* and
+*Gotham Knight* are three continuities and three consecutive rows, because that
+is the order those nights happen. That is what separates this path from By
+universe, which keeps each continuity intact, and from Release order, which is
+the only one of the three that is not chronological.
+
+Positions are per era and run 1..n. Guard 68 rejects a half-positioned era,
+because an entry with no `lo` falls to the end of its era in typing order and
+nothing would say so.
+
+**Era 0 carries no positions, deliberately.** It is the entries with no place in
+a life; giving them one would invent the thing the era exists to be honest about.
+1.7.0 sorted era 0 by release year and that was worse than doing nothing — it
+scattered the ten-film LEGO line across 31 slots. Era 0 falls back to continuity
+order, which at least keeps a set together.
+
+### Ordering by year is not ordering by story
+
+Three times now a year sort has looked like a chronology and not been one:
+
+- **Era 0**, above.
+- **Pennyworth and Gotham.** Pennyworth releases in 2019 and is set decades
+  before Gotham, which releases in 2014. Sorting era 1 by year gets it backwards.
+- **The Tomorrowverse.** *The Long Halloween* is Batman's second year and came out
+  after four films set later.
+
+`y:` is a release date. It belongs to the Release path and nowhere else.
+
+### A group's order and a group's eras are different axes
+
+Guard 51 requires a continuity's eras to advance and never go back. That is right
+for one arc following one character, and wrong for two other shapes, both of
+which exist here:
+
+- A **bag** — films sharing a shelf, not a world. No arc, so no direction. Six
+  groups carry `bag:1` and say so in their own notes.
+- A **weave** — several arcs interleaved on purpose. The DCAU's by-universe order
+  is a watch order across five shows and its note prescribes it; the era is a
+  position in one life. Forcing them to agree would make the note lie. Three are
+  named in the guard, each with its reason.
+
+The failure this prevents is not hypothetical: 1.7.0 wrote the rule and scoped it
+to a single continuity, and five others were running backwards at the time.
+
+### Format belongs to the group until an entry disagrees
+
+`fmt` is a group property because continuities are almost always one medium. The
+DCU is not: Creature Commandos is animated and Clayface is live action. Until
+1.7.1 that meant Clayface rendered an ANIMATED badge and disappeared under the
+Live action filter — a theatrical film invisible to the reader looking for
+theatrical films.
+
+An entry may now override its group. The guard rejects an override that restates
+the group's own value, so the exception stays rare enough to notice.
 
 ## Known blind spots
 

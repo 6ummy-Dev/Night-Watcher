@@ -19,6 +19,88 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.7.1] — 2026-08-04
+
+Bruce's life is a timeline now. Six independent audits of the ordering, and the
+worst thing they found was a live-action film wearing an ANIMATED badge.
+
+No `i:` slug changed. Nothing anyone has ticked has moved.
+
+### Fixed
+
+- **Clayface was served as animated and vanished under the Live action filter.**
+  It shipped that way in 1.7.0. Format was a property of the *group*, and The DCU
+  holds Creature Commandos (animated) and Clayface (live action) — the catalogue's
+  first mixed-format continuity, which the data model could not express. An entry
+  may now state its own format, and guard 51's neighbour checks the override.
+- **The Comic Canon spoiled its own biggest twist.** *Death in the Family*
+  rendered before *Under the Red Hood* — and it reuses that film's animation as
+  stock footage, replaying the Jason-is-the-Red-Hood reveal that the earlier
+  film's title exists to withhold. On the path whose promise is that nothing
+  spoils anything ahead of it.
+- **An unrelated Constantine film sat between the two halves of one adaptation** —
+  *The Death of Superman* and *Reign of the Supermen*.
+- **The DC Animated Universe's note described an order the array did not
+  implement.** It says to run The New Batman Adventures and then detour into two
+  Superman episodes; the array put three Superman entries first. *Mask of the
+  Phantasm* now drops in around season two, which the note has always claimed.
+- **Kite Man rendered after the season its own description says it sets up.**
+- **The Batman Unlimited shorts sat inside the trilogy**, between films two and
+  three. Added there in 1.7.0.
+- **Birds of Prey sat two films from Suicide Squad**, which it directly
+  continues — the placement 1.7.0's release note argued for and did not make.
+- ***The Batman vs. Dracula* moved behind season three**, which is where the
+  Ventriloquist gets committed to the Arkham the film shows him in.
+- **Darwyn Cooke's Batman Beyond short was the last row of the entire life
+  path**, after the film the catalogue calls the end of Bruce's story.
+- **Teen Titans: Trouble in Tokyo was orphaned from its own series** by 1.7.0.
+
+### Changed
+
+- **The life path is chronological within an era, not just between eras.** Every
+  entry in a life era carries its position, and continuities blend: *Year One*,
+  *Batman Begins* and *Gotham Knight* are three continuities and three
+  consecutive rows. Until now an era rendered in the order its continuities were
+  typed into the file, which with 62 entries in one era read as noise.
+- **Era 0 no longer sorts by release year.** That shipped in 1.7.0 and it smeared
+  the ten-film LEGO line across 31 slots, putting *The LEGO Movie 2* twenty-one
+  rows after *The LEGO Movie*. Its entries have no position in a life — what they
+  have is a watch order inside their own continuity, and year-sorting was the one
+  operation guaranteed to destroy it.
+- **Twenty-six entries changed era.** *Aztec Batman* went back outside the
+  timeline — its protagonist is Yohualli Coatl, not Bruce Wayne, which is the same
+  test that already puts *Gods and Monsters* there. *The Doom That Came to Gotham*
+  followed it. The DC Animated Movie Universe's later films moved to the Damian
+  years, where their own published order puts them. Harley Quinn's Gotham moved
+  there too: its Robin is Damian, and Tim Drake — half of what the Rebuilding era
+  is named for — never appears in it.
+- **Three live-action shows left "The last years."** Batwoman, Birds of Prey
+  (2002) and Gotham Knights are Gothams after Bruce, ending him three
+  incompatible ways. A shared absence is not a life stage.
+- **Six continuities are marked as having no order at all**, and say so in their
+  own notes. There is no story order between *Gotham by Gaslight* and *Assault on
+  Arkham* because there is no shared story, and the by-universe path had been
+  claiming one.
+
+### Added
+
+- **Guard 51 covers every continuity.** Written in 1.7.0 as *an arc may advance
+  through eras and may not go back*, and pointed at one continuity out of 42 —
+  while five others ran backwards, including the sixteen-film run that rendered
+  Damian's death before his introduction. Bags are exempt because they have no
+  arc; three weaves are exempt by name, with the reason written next to each,
+  because they interleave several arcs on purpose.
+- **Section 68 — the life path is a timeline.** An era is fully positioned or not
+  positioned at all, positions run 1..n, and no two entries share one. Era 0
+  carries none by design.
+- The live-action floor was set to twelve when 1.5.0 shipped twelve. There are
+  thirty.
+
+### Note
+
+The rating badges are still parked. This release was catalogue accuracy, which
+is what the owner asked for.
+
 ## [1.7.0] — 2026-08-03
 
 The catalogue release. **168 entries to 198**, 33 continuities to 42, and the
