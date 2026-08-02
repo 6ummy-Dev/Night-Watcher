@@ -990,6 +990,25 @@ note("spoiler rules checked: " + SPOILERS.length);
    until a reader trips on it, so the check is mechanical. */
 
 var README = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
+/* 1.7.0 added 30 entries, two of which have no Bruce Wayne in them at all. The
+   line for what belongs here stopped being obvious the moment the catalogue
+   held the Joker films, so it is written down \u2014 and a written rule that can be
+   deleted without anything noticing is a rule that lasts one refactor. The
+   hard cases are named because they are what the rule is FOR: a rule that only
+   answers the easy ones is a sentence, not a rule. */
+if(README.indexOf("## What belongs in the catalogue") < 0){
+  fail("README no longer describes what belongs in the catalogue \u2014 the landing " +
+       "page claims every Batman story ever filmed, and the line that makes that " +
+       "claim checkable has to be somewhere a reader can find it");
+} else {
+  ["Joker", "OnStar", "Return to the Batcave"].forEach(function(hard){
+    if(README.indexOf(hard) < 0){
+      fail("the inclusion rule no longer answers " + hard + " \u2014 it was written to " +
+           "settle the cases on the line, and those are the cases");
+    }
+  });
+}
+
 var readmeStale = ["QR", "qrcode", "scannable", "Kazuhiko"];
 readmeStale.forEach(function(term){
   if(README.indexOf(term) >= 0){
@@ -1731,12 +1750,27 @@ if(!/@media \(max-width:360px\)/.test(HTML)){
     if(f.e === undefined) fail(f.id + " has no era");
     if(!tierOf(f)) fail(f.id + " resolves to no tier");
   });
-  /* A continuous arc gets one era; a shared world splits by story. Knightfall
-     set that precedent and the Nolan trilogy follows it. */
-  var nolan = live.filter(function(f){ return f.gn === "29"; });
+  /* Written until 1.7.0 as "one continuous arc, one era", which pinned all three
+     Nolan films to era 2. That was never the rule the rest of the catalogue
+     follows \u2014 The Batman (2004) spans three eras and the DCAU spans five, because
+     an era is a life stage and a long story moves through them. Rises opens eight
+     years later with Bruce retired and his back broken, and era 6 is named for
+     exactly that. What is actually worth protecting is direction: a continuous
+     arc may advance through eras, never back up.
+     Identified by name, not by group number \u2014 the number moved in 1.7.0 and this
+     check silently found zero films. */
+  var nolan = FILMS.filter(function(f){ return f.gname === "The Dark Knight Saga"; });
   if(nolan.length !== 3) fail("the Dark Knight Saga should hold 3 films, found " + nolan.length);
-  if(nolan.some(function(f){ return f.e !== nolan[0].e; })){
-    fail("the Nolan trilogy is split across eras \u2014 it is one continuous story");
+  nolan.slice(1).forEach(function(f, i){
+    if(f.e < nolan[i].e){
+      fail("the Dark Knight Saga runs backwards through the eras at " + f.id +
+           " (era " + f.e + " after era " + nolan[i].e + ") \u2014 a continuous story " +
+           "can age, but it cannot un-age");
+    }
+  });
+  if(nolan.every(function(f){ return f.e === nolan[0].e; }) === false &&
+     nolan[nolan.length - 1].e === nolan[0].e){
+    fail("the Dark Knight Saga leaves and returns to the same era");
   }
 })();
 

@@ -170,6 +170,22 @@ win.addEventListener("load", function(){
     var btas = FILMS.filter(function(f){ return f.id === "batman-the-animated-series-season-1-1992"; })[0];
     check("B:TAS S1 is on the Core route", btas && tierOf(btas) !== "o", btas ? "tier " + tierOf(btas) : "not found");
 
+    /* The eras and the decades are numbered by position, and an empty bucket is
+       dropped before rendering \u2014 so the numbers have to be assigned after the
+       drop, not before. 1.7.0 added a fifties decade with nothing in it (the
+       serials stopped in 1949 and television did not arrive until 1966) and the
+       release view read 1, 3, 4, 5. */
+    ["life", "release"].forEach(function(m){
+      S.mode = m; S.tab = "watch"; S.format = "all"; S.scope = "all"; win.render();
+      var tags = Array.prototype.map.call(doc.querySelectorAll("#view .gnum"), function(e){
+        return e.textContent.trim();
+      }).filter(function(t){ return t !== "\u2014"; });
+      var gaps = tags.filter(function(t, i){ return t !== String(i + 1); });
+      check("the " + m + " view numbers its groups 1..n with no gaps",
+            !gaps.length, tags.join(","));
+    });
+    S.mode = "life";
+
     /* --- release note tracks format and scope (1.5.0) --- */
     S.mode = "release"; S.format = "anim";
     S.scope = "movies"; var mNote = win.modeNote();
@@ -177,9 +193,11 @@ win.addEventListener("load", function(){
     check("animated films start at 1993", /1993 to 2028/.test(mNote), mNote.slice(0, 46));
     check("animated series reach back to 1968", /1968 to 2028/.test(aNote), aNote.slice(0, 46));
     S.format = "live"; S.scope = "movies";
-    check("live action reaches back to 1966", /1966 to /.test(win.modeNote()), win.modeNote().slice(0, 46));
+    /* 1943, not 1966, since 1.7.0 added the two Columbia serials \u2014 which are
+       the earliest thing in the catalogue in any format. */
+    check("live action reaches back to the serials", /1943 to /.test(win.modeNote()), win.modeNote().slice(0, 46));
     S.format = "all";
-    check("all formats span the whole catalogue", /1966 to 2028/.test(win.modeNote()), win.modeNote().slice(0, 46));
+    check("all formats span the whole catalogue", /1943 to 2028/.test(win.modeNote()), win.modeNote().slice(0, 46));
     S.format = "anim";
 
     /* --- hostile import must not blank the app --- */

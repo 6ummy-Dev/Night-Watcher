@@ -817,6 +817,47 @@ became flex in 1.6.3, and the sweep was happy because the selector still matched
 
 Nothing checks this. A declaration that stops applying is found by reading.
 
+### Positional group numbers are assigned after the empty ones are dropped
+
+`buildGroups()` builds every era or decade, then drops the ones with no visible
+films, then numbers what is left. The numbering used to happen first, which was
+invisible for as long as every bucket had something in it.
+
+1.7.0 added a fifties decade holding nothing — Columbia stopped in 1949 and
+television did not arrive until 1966, so there is genuinely no Batman between
+them — and the release view read 1, 3, 4, 5. The bucket stays, because without
+it a 1950s entry would pass the range check in guards section 5 and then render
+in no decade at all. `qa/smoke.js` checks both positional views number 1..n.
+
+Era 0 keeps its em dash rather than a number. It is not a position in a life.
+
+### Era 0 is sorted by year
+
+Every other era is ordered by continuity and then by position inside it, because
+that is the order those stories were meant to be watched in. Era 0 is the entries
+with no place in one Bruce's life — other Gothams, other Bruces, and jokes — so
+grouping it by continuity was ordering it by nothing. It reads by year from
+1.7.0. It is also the largest era in the catalogue, which is why it started to
+matter.
+
+### An era is a life stage, not a label for a box set
+
+Guards section 51 required the Nolan trilogy to sit in one era, on the rule that
+"a continuous arc gets one era". No other continuity in the catalogue follows
+that: *The Batman* (2004) spans three eras and the DCAU spans five, because a
+long story moves its Bruce through them. *Rises* opens eight years later with him
+retired and his back broken, and era 6 is named *Bane, the back, and the
+replacement who did not know when to stop.*
+
+What is worth protecting is direction, not sameness: an arc may advance through
+eras and may not go back. The guard says that now.
+
+It also identified the trilogy by group number, which moved in 1.7.0 when two
+animated continuities were inserted ahead of it — and a check looking for group
+"29" found zero films and reported the wrong thing. Groups are identified by name
+in that guard now. Group numbers are display, not identity; only `i:` is
+identity.
+
 ### A policy is only as wide as the syntax it was written against
 
 Guard 65 enforced "no explanatory comments in `index.html`" by counting `/* */`.

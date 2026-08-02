@@ -19,6 +19,92 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.7.0] — 2026-08-03
+
+The catalogue release. **168 entries to 198**, 33 continuities to 42, and the
+catalogue no longer starts in 1966.
+
+A MINOR bump by this file's own rule: additions only. Not one `i:` slug changed,
+so no saved progress moves and every backup code ever issued still restores.
+
+### Added
+
+**Nine new continuities.** The Columbia Serials, Gotham, Pennyworth, Titans,
+Batwoman, Live-Action One-Offs, The Joker Films, Robot Chicken DC Comics, and
+DC Super Hero Girls.
+
+**The first two Batmans anyone ever filmed.** *Batman* (1943) and *Batman and
+Robin* (1949) — Columbia, fifteen chapters each, Lewis Wilson and Robert Lowery.
+The catalogue started in 1966 because nobody had revisited the start date, not
+because a line had been drawn there. The release view gains a forties and a
+fifties to hold them.
+
+**Live-action television, which the catalogue had almost none of.** Gotham (100
+episodes), Batwoman (51), Titans (49), Pennyworth (30), Birds of Prey (2002,
+13), Gotham Knights (2023, 13), and the 1966 Adam West series itself (120) —
+which had somehow never been in a catalogue that carried its film.
+
+**Films with Batman in them that were not here.** *Suicide Squad* (2016), where
+he is in three sequences; *Zack Snyder's Justice League*; *Birds of Prey*
+(2020); *Joker* and *Joker: Folie à Deux*; *Clayface* (23 October 2026) and
+*The Batman: Part II* (18 February 2028).
+
+**Six sets of shorts, and the inconsistency they close.** The catalogue already
+carried *Batman: Strange Days*, a three-minute DC Nation short — and excluded
+Darwyn Cooke's *Batman Beyond*, made the same year for the same anniversary
+slot. Both are here now, with Batman of Shanghai, the Justice League Action
+shorts, the Batman Unlimited web shorts, the Gods and Monsters Chronicles and
+the LEGO Batman bonus shorts. One entry per set.
+
+**Also:** Batwheels Season 3, DC Super Hero Girls and its Teen Titans Go!
+crossover, and the three Robot Chicken DC specials.
+
+**A written rule for what belongs here.** `README.md` now carries it: Gotham's
+stories, whether or not the cowl is in them — licensed, released, and a story.
+It has to answer the Joker films, the OnStar commercials and *Return to the
+Batcave*, and it does.
+
+### Fixed
+
+- **Batwheels Season 2 was recorded as 20 episodes. It is 37.** Episodes 21–37
+  landed in December 2024, after the entry was written.
+- **The Dark Knight Rises sat in "Year one and two."** It opens eight years
+  later with Bruce retired and his back broken, and era 6 is named *Bane, the
+  back, and the replacement who did not know when to stop.* Moved to era 6,
+  where it joins the Knightfall trilogy.
+- **Soul of the Dragon was the only entry in "Before the cowl,"** and does not
+  belong there — its present day has Bruce already operating; the training is
+  flashback. Moved to era 2. Era 1 is now Gotham and Pennyworth, which is what
+  that era was always for.
+
+### Changed
+
+- **Twenty-five entries left era 0 for the life path.** Super Friends and The
+  Brave and the Bold to the League years; Harley Quinn to Rebuilding; Filmation,
+  the 1966 material and Teen Titans (2003) to the Grayson years; Gotham by
+  Gaslight to Year one and two; The Doom That Came to Gotham and Aztec Batman to
+  Before the cowl; both Ninjaverse films to the League years.
+- **Era 0 now reads by year.** It is the one era with no life to be ordered by,
+  so grouping it by continuity was ordering it by nothing.
+- **Guard 51 no longer requires the Nolan trilogy to sit in one era.** The rule
+  was "a continuous arc gets one era", which no other continuity in the
+  catalogue follows — *The Batman* (2004) spans three and the DCAU spans five,
+  because an era is a life stage and a long story moves through them. It now
+  requires direction instead: an arc may advance through eras and may not go
+  back. It also identifies the trilogy by name rather than by group number,
+  which moved in this release and would have left the check finding zero films.
+
+### Note
+
+The rating badges are **not** in this release. Replacing Mature and Kids with
+MPA ratings for films and TV Parental Guidelines for series needs a sourced
+rating for all 198 entries and a badge whose width varies for the first time.
+That is 1.7.1, with its own pass. Doing it here would have meant designing badge
+shapes against a catalogue that was changing underneath them.
+
+`docs/index.html` is now 130 KB raw / 39 KB gzipped, against a budget of 150 /
+50. Thirty more entries fit; a hundred do not.
+
 ## [1.6.6] — 2026-08-02
 
 House-keeping, from an independent audit of everything except the page.

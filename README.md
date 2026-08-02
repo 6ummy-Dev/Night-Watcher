@@ -2,7 +2,7 @@
 
 **One path through every Batman.**
 
-A single-file web app mapping every Batman story ever filmed — animated and live action — **110 films and 58 seasons of television across 33 continuities** — into watch orders that spoil nothing, with progress tracking and a where-to-watch link for every entry.
+A single-file web app mapping every Batman story ever filmed — animated and live action — **131 films and 67 seasons of television across 42 continuities** — into watch orders that spoil nothing, with progress tracking and a where-to-watch link for every entry.
 
 **Live:** https://6ummy-dev.github.io/Night-Watcher/
 
@@ -10,9 +10,9 @@ Also available on Cloudflare Workers (static assets).
 
 ## What it does
 
-- **Two switches, one catalogue.** **Animated**, **Live action** or **All** decides which kind of Batman; **Movies** or **Movies + Series** decides how much of it. 110 films and 58 seasons — 1,450+ episodes, from *Batman* (1966) to *Dynamic Duo* (2028) — weave into the same orders either way. Tiers are judged inside a format, so nothing has to be ranked against a different medium.
+- **Two switches, one catalogue.** **Animated**, **Live action** or **All** decides which kind of Batman; **Movies** or **Movies + Series** decides how much of it. 131 films and 67 seasons — 1,900+ episodes, from *Batman* (1943) to *Dynamic Duo* (2028) — weave into the same orders either way. Tiers are judged inside a format, so nothing has to be ranked against a different medium.
 - **Where to watch, without picking a side.** Every entry links to a search rather than a service, because availability rotates by country and by month and no stored answer survives that. Three attempts at an aggregator URL shipped or staged broken before this.
-- **One path, chosen once.** Pick by universe (spoiler-safe), the composite chronology of Bruce's life, or straight release order from 1966 to 2028 — and the whole app follows it. No switcher to re-answer on every visit; the header carries the path name and Home leads with its completion ring. Change it whenever you like: switching re-sorts, it never clears a tick.
+- **One path, chosen once.** Pick by universe (spoiler-safe), the composite chronology of Bruce's life, or straight release order from 1943 to 2028 — and the whole app follows it. No switcher to re-answer on every visit; the header carries the path name and Home leads with its completion ring. Change it whenever you like: switching re-sorts, it never clears a tick.
 - **Shared links are views, not takeovers.** Following someone's `#life` link shows you their ordering and offers to adopt it, rather than silently rewriting yours.
 - **Three tiers.** Everything is tagged **Essential**, **Core**, or **Optional** — tiers are exclusive, with Essential outranking Optional — plus modifiers (Mature, Short, Interactive, Not out yet). Nothing is untagged.
 - **Home dashboard.** Resume card, tier meters, scoreboard, a tappable grid of every universe, and your recent watches.
@@ -30,7 +30,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code at all** — *guarded.* Not one line, vendored or fetched. The app runs with the network off.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 150 KB raw and 50 KB gzipped; it is currently 121 KB / 36 KB. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 150 KB raw and 50 KB gzipped; it is currently 130 KB / 39 KB. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -145,6 +145,22 @@ The data lives in the `PATH` array near the top of the `<script>` block in `docs
 **Important:** Always give every entry a unique, permanent `i:` slug. **Never change an existing `i:`** — it is the frozen key that preserves user progress across updates. Adding new entries is always safe; renaming or deleting an `i:` will break saved progress for anyone who already marked that title. `qa/guards.js` enforces this against `qa/frozen-ids.json`; run it before committing.
 
 A whole new continuity is simply one more object in the same `PATH` array.
+
+## What belongs in the catalogue
+
+"Every Batman story ever filmed" is the claim on the landing page, so the line has to be somewhere other than in one person's head.
+
+**The rule: Gotham's stories, whether or not the cowl is in them.** Licensed, released, and a story.
+
+In practice that means:
+
+- **Licensed.** Made or authorised by DC and Warner Bros. Fan films are out, however good, and so are the unlicensed foreign productions — the 1964 Warhol *Batman Dracula*, *James Batman* (1966), *Alyas Batman en Robin* (1991).
+- **A story.** Advertising is out, even licensed live-action advertising with a purpose-built Batmobile — the eight OnStar commercials (2000–2002) are the case that decided this. Behind-the-scenes and cast reunions are out for the same reason: *Return to the Batcave* (2003) has Batman on screen, but as an actor playing a part, not as a character.
+- **Gotham, not just Batman.** *Joker*, *Joker: Folie à Deux* and *Birds of Prey* are here. Two of the three have no Bruce Wayne in them at all. They are stories about the city and the people Batman made, told in a continuity of their own, and a catalogue that excluded them would be answering a narrower question than the one on the front page. *Joker: Laugh Riot* — announced, undated, and premised on Batman already being dead — is in scope by this rule and will be added when it has a date.
+- **Any length, any format.** A three-minute DC Nation short counts. So does a fifteen-chapter serial from 1943, a web-shorts run made to sell toys, and a stop-motion parody special. Sets of shorts are entered as one entry each with the count in the label — a reader ticking twenty-two shorts individually is doing bookkeeping, not watching.
+- **Batman has to be in it, or it has to be his.** A DC film with no Batman and no Gotham is out no matter how good — *Krypto*, *Lanterns*, *Blue Beetle*, the Shazam! films. *Suicide Squad* (2016) is in because Batman is in three sequences of it; *The Suicide Squad* (2021) is out because he is in none.
+
+When something sits on the line, the tie-breaker is the reader: would somebody working through every Batman story feel cheated to find it missing? That is what put the Columbia serials in, sixty years late.
 
 ## Licence
 
