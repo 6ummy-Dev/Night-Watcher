@@ -34,3 +34,23 @@ jobs:
       - run: npm ci
 
       - run: npm test
+
+  # The negative suites. Each fixture breaks one thing on purpose in a throwaway
+  # copy of the tree and asserts the guards go red for the right reason — the
+  # only evidence that any of them protects anything. They are slower than the
+  # suites above because every fixture re-runs the whole harness, so they run on
+  # pull requests rather than on every push.
+  negative:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: bash qa/negative/run-all.sh
