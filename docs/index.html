@@ -16,14 +16,14 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Night Watcher · One path through every Batman">
 <meta property="og:description" content="Every Batman story — 133 films and 67 seasons of TV across 44 continuities — in watch orders that spoil nothing. Choose a path once and track what you have seen.">
-<meta property="og:url" content="https://6ummy-dev.github.io/Night-Watcher/">
+<meta property="og:url" content="https://nightwatcher.life/">
 <meta property="og:site_name" content="Night Watcher">
-<link rel="canonical" href="https://6ummy-dev.github.io/Night-Watcher/">
-<meta property="og:image" content="https://6ummy-dev.github.io/Night-Watcher/icon.png">
+<link rel="canonical" href="https://nightwatcher.life/">
+<meta property="og:image" content="https://nightwatcher.life/icon.png">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Night Watcher · One path through every Batman">
 <meta name="twitter:description" content="Every Batman story — 133 films and 67 seasons of TV across 44 continuities — in watch orders that spoil nothing.">
-<meta name="twitter:image" content="https://6ummy-dev.github.io/Night-Watcher/icon.png">
+<meta name="twitter:image" content="https://nightwatcher.life/icon.png">
 <meta property="og:locale" content="en_US">
 <meta property="og:image:width" content="512">
 <meta property="og:image:height" content="512">
@@ -32,9 +32,9 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Ehexn/M+THAMMdVdavob2hegXQHoKNw7ash51TEb6SE=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-u/0LnYSWOJbhRKC8J5OLMq07EbH3wKp0IoZWfcRYfOc=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","image":"https://6ummy-dev.github.io/Night-Watcher/icon.png","dateModified":"2026-08-02","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 133 films and 67 seasons of TV across 44 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://nightwatcher.life/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://nightwatcher.life/","applicationCategory":"EntertainmentApplication","image":"https://nightwatcher.life/icon.png","dateModified":"2026-08-02","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 133 films and 67 seasons of TV across 44 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- No trademarked logos, symbols, or proprietary lettering are used anywhere in
      this file. The favicon is an original bat-animal silhouette drawn for this
      project; it is not a DC mark. Fonts and palette: see NOTES.md. -->
@@ -111,6 +111,11 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .pick span{display:block;font-size:13.5px;color:var(--dust);margin-top:6px;line-height:1.45;}
 .picknote{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--dim);margin:2px 0 0;line-height:1.6;}
 .viewing{border:1px solid var(--steel);border-radius:10px;padding:10px 13px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.moved{border:1px solid var(--signal);border-radius:10px;padding:12px 14px;margin:0 0 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.moved p{margin:0;flex:1 0 100%;font-size:13px;color:var(--bone);line-height:1.5;}
+.moved b{color:var(--signal);}
+.movego{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);background:var(--signal);border-radius:8px;padding:9px 14px;min-height:44px;font-weight:600;display:inline-flex;align-items:center;text-decoration:none;}
+.moved button.ghost{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;background:none;color:var(--dust);border:1px solid var(--line2);border-radius:8px;padding:9px 12px;min-height:44px;}
 .viewing p{margin:0;flex:1;min-width:150px;font-size:13px;color:var(--dust);line-height:1.4;}
 .viewing button{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);background:var(--signal);border-radius:8px;padding:9px 12px;min-height:40px;font-weight:600;}
 .viewing button.ghost{background:none;color:var(--steel);border:1px solid var(--line2);font-weight:400;}
@@ -383,7 +388,7 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 76 sections, each one negative-tested.
+   qa/guards.js — 77 sections, each one negative-tested.
 
    Read those before changing something that looks redundant. Most of it is
    load-bearing, and this project has a long history of rules that only make
@@ -830,9 +835,9 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "1.7.7";
+var BUILD = "1.8.0";
 var KEY = "batwatch-v3";
-var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
+var SITE = "https://nightwatcher.life/";
 var canSave = true;
 
 function restoreLink(code){
@@ -1351,6 +1356,25 @@ function introBlock(){
     'to watch it. Tick them off as you go; your progress stays in this browser.</p>'+
     introStats()+'</div>';
 }
+var moveHid = false;
+function offCanonical(){
+  var http = (location.protocol === "http:" || location.protocol === "https:");
+  if(!http) return false;
+  return (location.origin + location.pathname).replace(/\/+$/, "") !==
+         SITE.replace(/\/+$/, "");
+}
+function moveBanner(){
+  if(moveHid || !offCanonical()) return "";
+  var n = Object.keys(S.watched).length + Object.keys(S.skipped).length;
+  var host = SITE.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  return '<div class="moved"><p><b>Night Watcher lives at ' + esc(host) + ' now.</b> ' +
+    'This address still works and always will, but the app is kept up to date there' +
+    (n ? '. Your ' + n + ' ' + (n === 1 ? 'entry' : 'entries') +
+         ' can come with you \u2014 the link below carries them.' : '.') + '</p>' +
+    '<a class="movego" href="' + esc(n ? SITE + "#nw=" + exportCode() : SITE) + '">' +
+    (n ? 'Take my progress across' : 'Go to ' + esc(host)) + '</a>' +
+    '<button class="ghost" data-act="movelater">Not now</button></div>';
+}
 function pendingBanner(){
   if(!S.pending) return "";
   var p = S.pending, bits = "<b>" + p.found + "</b> " + (p.found === 1 ? "entry" : "entries");
@@ -1703,9 +1727,9 @@ function render(){
     });
     if(!Object.keys(focus).length) focus = null;
   }
-  v.innerHTML = S.tab === "home" ? viewHome()
+  v.innerHTML = moveBanner() + (S.tab === "home" ? viewHome()
               : S.tab === "next" ? viewNext()
-              : S.tab === "watch" ? viewWatch() : viewStats();
+              : S.tab === "watch" ? viewWatch() : viewStats());
   Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function(b){
     if(b.dataset.tab === S.tab) b.setAttribute("aria-current", "page");
     else b.removeAttribute("aria-current");
@@ -1834,6 +1858,7 @@ document.getElementById("view").addEventListener("click", function(e){
     clearPendingHash(); render();
   }
   else if(act === "droplink"){ S.pending = null; clearPendingHash(); render(); toast("Left as it was"); }
+  else if(act === "movelater"){ moveHid = true; render(); }
   else if(act === "expand"){ S.open[id] = !S.open[id]; render(); }
   else if(act === "group"){ var gk = b.dataset.gk; S.groupOpen[gk] = (S.groupOpen[gk] === false); persist(); render(); }
   else if(act === "allgroups"){ setAllGroups(!anyOpen()); persist(); render(); window.scrollTo(0,0); }
@@ -1948,6 +1973,6 @@ if("serviceWorker" in navigator &&
   });
 }
 </script>
-<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "56234d8ef9da41639508bb60f7ef72d3"}'></script><!-- End Cloudflare Web Analytics -->
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "eead206c91994c18a937255f45686cad"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

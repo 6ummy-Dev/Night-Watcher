@@ -19,6 +19,57 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.8.0] — 2026-08-02
+
+**Night Watcher lives at [nightwatcher.life](https://nightwatcher.life/).**
+
+The old GitHub Pages address still works and always will. That is not
+sentiment: progress is stored per-origin, so only JavaScript running on that
+origin can ever read what is saved there. Opened at the old address, the app
+offers to carry your progress across.
+
+### Changed
+
+- **The canonical origin is `nightwatcher.life`**, served by Cloudflare Workers.
+  Canonical URL, `og:url`, both images, all three JSON-LD nodes, `SITE`,
+  `robots.txt`'s sitemap line and `sitemap.xml`'s `<loc>` all name it.
+- **The manifest's `id` deliberately does not move.** It reads
+  `/Night-Watcher/` and will keep reading that. It is an identity key rather
+  than a path that has to resolve, and changing it makes a browser treat the
+  updated manifest as a different app — which would orphan every PWA already
+  installed from the old address, in exchange for nothing.
+- **The old address is not given a custom domain, deliberately.** Configuring
+  one on GitHub Pages replaces the site with a 301 to the custom domain and
+  cannot be switched off. A redirect runs no JavaScript, and JavaScript on that
+  origin is the only thing that can read the progress stored there — so every
+  reader who had not already moved would have been permanently separated from
+  their own data, still on their disk, unreachable. Both addresses serve this
+  same tree instead.
+- Cloudflare Web Analytics now counts the canonical hostname. Visits to the old
+  address are not counted; it is a waiting room rather than a destination.
+- `SECURITY.md` no longer says security headers are impossible. Workers can set
+  them; Pages cannot, and that address is out of scope for header reports.
+
+### Added
+
+- **The move offer.** On any origin that is not the canonical one, the app shows
+  a banner naming the new address, and — when there is progress to carry — a
+  link that carries it. The link is built from `SITE`, not from
+  `restoreLink()`, which uses `location.origin` and would have pointed back at
+  the address being left: a link that looks right and does nothing.
+
+  It renders above every tab, because a shared `#life` link lands on The Path
+  and a reader who never opens Home would never be told. It is conditioned on
+  where the page is running rather than on a date somebody has to remember, so
+  it still works for whoever returns in three years. Dismissing it lasts the
+  session.
+- Guards section **77**, which holds all of that. The offer is invisible on the
+  canonical origin and therefore invisible in every screenshot anyone will ever
+  take of this app, so it is checked rather than looked at: the link comes from
+  `SITE`, it carries a code, the condition is the origin and not a date, and
+  `offCanonical()` is executed against four real origins. `qa/smoke.js` boots a
+  document on the old address and reads what a returning reader would see.
+
 ## [1.7.7] — 2026-08-02
 
 Home stops disagreeing with the path you chose, and the backup code stops

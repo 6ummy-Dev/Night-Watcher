@@ -22,8 +22,11 @@ it's fixed.
 
 - The Cloudflare Web Analytics beacon. It is deliberate, disclosed in the
   footer, sets no cookies and never sees which entries you watch.
-- Missing HTTP security headers. The site is served by GitHub Pages, which
-  does not allow custom headers. What can be set in a meta tag, is.
+- Missing HTTP security headers. What can be set in a meta tag, is. The
+  canonical site is served by Cloudflare Workers, which can set headers; the
+  old GitHub Pages address, which is kept alive so returning readers can carry
+  their progress across, cannot. Reports about headers on the Pages address are
+  known and out of scope.
 - Content disputes about watch order. Those are issues, not vulnerabilities.
 
 ## What to expect

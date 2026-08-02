@@ -3,6 +3,13 @@
   "name": "night-watcher",
   "compatibility_date": "2026-07-27",
   "compatibility_flags": ["nodejs_compat"],
+  /* The apex, bound as a custom domain rather than a route: Cloudflare then
+     owns the DNS record and the certificate, and there is one place to look
+     when either is wrong. GitHub Pages keeps serving the same tree at its own
+     address on purpose \u2014 see the move offer in docs/index.html. */
+  "routes": [
+    { "pattern": "nightwatcher.life", "custom_domain": true }
+  ],
   "observability": {
     "enabled": true
   },

@@ -41,6 +41,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      7    Backup code round-trips losslessly
      8    The parser tolerates codes it was not written for
      9    The restore link stays reachable
+     77   The way back across is only visible from the far side
      72   Every shareable route token still routes
      73   The worst-case restore link cannot get longer
      19   Rating writes go through the clamp
@@ -388,7 +389,7 @@ else if(Object.keys(ftr.watched).sort().join("|") !== Object.keys(back.watched).
 }
 
 /* A pasted restore URL still has to work, and real junk still has to fail. */
-if(!importCode("https://6ummy-dev.github.io/Night-Watcher/#nw=" + code)) fail("parser rejected a pasted restore URL");
+if(!importCode("https://nightwatcher.life/#nw=" + code)) fail("parser rejected a pasted restore URL");
 ["", "hello", "NW1", "NW1W!!!", "NW1W-----"].forEach(function(bad){
   if(importCode(bad)) fail("parser accepted junk it should reject: \"" + bad + "\"");
 });
@@ -1510,7 +1511,7 @@ if(!/<label class="bklab" for="restorebox">/.test(HTML)){
 
 (function(){
   var ALLOWED = ["static.cloudflareinsights.com", "cloudflareinsights.com",
-                 "6ummy-dev.github.io", "search.brave.com",
+                 "nightwatcher.life", "search.brave.com",
                  "schema.org", "www.w3.org", "www.sitemaps.org", "github.com"];
   /* Every file that ships, not just index.html. sw.js kept Google's font
      origins in a dead cache branch from 1.4.2 to 1.5.0 because this scan only
@@ -3115,9 +3116,9 @@ if(!/function legendBlock/.test(HTML) ||
      the catalogue to nearly double before it bites. */
   var CEILING = 2000;
   var box = {S:{watched:{}, skipped:{}, rated:{}, path:"life"},
-             location:{protocol:"https:", origin:"https://6ummy-dev.github.io",
-                       pathname:"/Night-Watcher/"},
-             SITE:"https://6ummy-dev.github.io/Night-Watcher/",
+             location:{protocol:"https:", origin:"https://nightwatcher.life",
+                       pathname:"/"},
+             SITE:"https://nightwatcher.life/",
              FILMS:FILMS, PATHCODE:sandbox.PATHCODE, idHash:idHash};
   FILMS.forEach(function(f){ box.S.watched[f.id] = 1; box.S.rated[f.id] = 5; });
   var out = vm.runInNewContext(
@@ -3265,6 +3266,78 @@ if(!/function legendBlock/.test(HTML) ||
     fail("Home's grid carries no description, or not the one The Path uses — " +
          "section 24 exists so there is one string per ordering, not two");
   }
+})();
+
+/* ---------- 77. The way back across is only visible from the far side ---------- */
+/* Progress lives in localStorage, which is per-origin, so only JavaScript
+   running on the old origin can ever read what is stored there. A GitHub Pages
+   custom domain would have turned that origin into a 301 and no JavaScript
+   would run on it again — which is why Pages keeps no custom domain and the
+   apex is served by Workers instead.
+
+   The offer that carries progress across therefore renders only on the origin
+   being left, which means it is invisible on the canonical one and invisible
+   in every screenshot anybody will ever take of this app. It gets a guard for
+   exactly that reason. */
+
+(function(){
+  if(!/function moveBanner\s*\(/.test(HTML)){
+    fail("moveBanner() is gone — nothing on the old origin offers to carry " +
+         "progress to the new one, and nothing else can reach that storage");
+    return;
+  }
+  var src = fn("moveBanner");
+
+  /* The link has to be built from SITE. restoreLink() uses location.origin on
+     purpose, so using it here would mint a link back to the origin the reader
+     is trying to leave: it would look right and do nothing. */
+  if(/restoreLink\s*\(/.test(src)){
+    fail("the move offer builds its link with restoreLink(), which uses " +
+         "location.origin — that is a link back to the origin being left");
+  }
+  if(src.indexOf("SITE") < 0){
+    fail("the move offer does not build its link from SITE, so it cannot be " +
+         "pointing at the canonical origin");
+  }
+  if(src.indexOf("exportCode()") < 0){
+    fail("the move offer carries no code — it is a link to the new address that " +
+         "leaves every tick behind");
+  }
+
+  /* Conditioned on where it is running, not on a date somebody has to remember. */
+  if(!/offCanonical\s*\(\)/.test(src)) fail("the move offer is not conditioned on the origin");
+  var cond = fn("offCanonical");
+  if(/\d{4}-\d{2}-\d{2}/.test(cond) || /Date\b/.test(cond)){
+    fail("offCanonical() decides by date — it has to decide by where the page is " +
+         "running, or it stops working for the person who returns after it expires");
+  }
+  if(cond.indexOf("SITE") < 0) fail("offCanonical() does not compare against SITE");
+
+  /* Run it. A guard that only greps cannot tell a working test from a typo. */
+  var box = {SITE: (HTML.match(/var SITE = "([^"]+)"/) || [])[1], location: {}};
+  vm.createContext(box);
+  vm.runInContext(cond, box);
+  [["https:", "https://nightwatcher.life", "/",                  false, "the canonical origin"],
+   ["https:", "https://6ummy-dev.github.io", "/Night-Watcher/",  true,  "GitHub Pages"],
+   ["https:", "https://nightwatcher.life", "",                   false, "the canonical origin with no trailing slash"],
+   ["file:",  "null", "/index.html",                             false, "a copy opened from disk"]
+  ].forEach(function(t){
+    box.location.protocol = t[0]; box.location.origin = t[1]; box.location.pathname = t[2];
+    var got = box.offCanonical();
+    if(got !== t[3]){
+      fail("offCanonical() returns " + got + " on " + t[4] + " — the move offer would " +
+           (t[3] ? "never appear where it is needed" : "appear where there is nothing to move"));
+    }
+  });
+
+  /* It has to be reachable from wherever the reader landed. A shared #life link
+     opens The Path, and somebody who never opens Home would never be told. */
+  var render = fn("render");
+  if(render.indexOf("moveBanner()") < 0){
+    fail("the move offer renders only inside one view — a shared link lands on " +
+         "The Path, and that reader would never see it");
+  }
+  note("the move offer is conditioned on the origin and carries a code");
 })();
 
 /* ---------- report ---------- */

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://6ummy-dev.github.io/Night-Watcher/sitemap.xml
+Sitemap: https://nightwatcher.life/sitemap.xml

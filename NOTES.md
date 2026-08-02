@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 76 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 77 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -1100,6 +1100,49 @@ catalogue order first so the positional ratings stay deterministic, then
 anything else. The importing build still cannot resolve a hash it does not know,
 which is the point: an older build can now hand its progress to a newer one that
 does.
+
+
+### Two origins, on purpose, forever
+
+`nightwatcher.life` is canonical and served by Cloudflare Workers. The old
+GitHub Pages address serves the same tree and is never given a custom domain.
+
+That is not tidiness, it is the only arrangement that works. Configuring a
+custom domain on GitHub Pages writes a `CNAME` file and turns the old address
+into a 301 to the new one, and it cannot be switched off — delete the `CNAME`
+and the custom domain stops working. A redirect runs no JavaScript. Progress
+lives in `localStorage`, which is per-origin, so JavaScript on that origin is
+the only thing that can ever read it. The moment Pages starts redirecting,
+every reader who has not already moved is permanently separated from data that
+is still sitting on their own disk.
+
+So both addresses serve, the canonical link on both points at the apex, and the
+app knows which one it is running on.
+
+### The offer is conditioned on where it is, not on when it is
+
+`offCanonical()` compares `location.origin + location.pathname` against `SITE`.
+It could have been a date — show the banner until the end of the year — and
+that would have been simpler and wrong, because the person it is written for is
+precisely the one who comes back long after anybody stopped thinking about the
+move.
+
+The link is built from `SITE` and not from `restoreLink()`. `restoreLink()`
+uses `location.origin` deliberately, so on the old address it would produce a
+link back to the address the reader is trying to leave: correct-looking, and
+useless. Guards section 77 checks that specifically, because it is the mistake
+that would not look like one.
+
+The banner renders above every tab rather than inside Home, because a shared
+`#life` link lands on The Path.
+
+### Analytics counts one hostname
+
+Cloudflare Web Analytics is per-hostname and the free plan takes one hostname
+per site, so the token in the page is registered to `nightwatcher.life`. Visits
+to the old address are not counted. That is the right way round: it is a
+waiting room, not a destination, and a beacon that gets dropped costs a request
+and tells nobody anything.
 
 
 ## Known blind spots
