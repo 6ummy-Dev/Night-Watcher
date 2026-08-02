@@ -19,6 +19,49 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.8.1] — 2026-08-02
+
+Launch tidying: one address in search, something for a crawler to read, and the
+one frozen slug that was wrong.
+
+### Changed
+
+- **A slug was renamed, for the first and only time.**
+  `the-super-powers-team-galactic-guardians-198-1985` dropped the 5 from 1985;
+  every sibling is `title-YYYY-YYYY`. It is now
+  `the-super-powers-team-galactic-guardians-1985-1985`.
+
+  Renaming a slug voids whatever was ticked against it and breaks that entry in
+  every backup code already written — which is the entire reason the frozen-ID
+  rule exists. It was done now because the app is not yet publicly launched, so
+  the population that loses anything is small enough to name, and this was the
+  last moment it cost almost nothing. **The window is closed.** The rename is
+  recorded in `qa/renamed-ids.json` with its reason, `--bless` cannot launder
+  it, and guards section 2 fails if the old name ever reappears or the new one
+  is not there.
+- **`workers.dev` no longer serves.** The preview hostname carried the whole app
+  and was indexable, so the site competed with itself in search. There is
+  nothing to consolidate if there is nothing there.
+- `SECURITY.md`, `README.md` and the weight figure follow.
+
+### Added
+
+- **A crawlable catalogue.** Everything this app renders is written by
+  JavaScript into an empty `<main>`, so a crawler that does not run it saw the
+  shell and nothing else. A `<noscript>` block above that `<main>` now names all
+  eleven eras and all forty-four continuities, with the headline counts.
+
+  It is generated from the data rather than typed, and guards section 78
+  rebuilds it on every run and compares — a hand-written list of fifty-five
+  names would be stale within a release and nobody would notice, because nobody
+  reads it. `npm run bless` writes it.
+- **An off-canonical origin asks not to be indexed.** The canonical link already
+  points every origin at the apex, which is how search consolidates. GitHub
+  Pages has to keep serving — it is the only place old progress can be read —
+  and it cannot send headers, so the app injects
+  `<meta name="robots" content="noindex, follow">` when it notices it is not on
+  the canonical origin. `follow`, so the links out of it still count.
+
 ## [1.8.0] — 2026-08-02
 
 **Night Watcher lives at [nightwatcher.life](https://nightwatcher.life/).**

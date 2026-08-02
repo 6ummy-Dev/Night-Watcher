@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 77 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 78 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -1143,6 +1143,56 @@ per site, so the token in the page is registered to `nightwatcher.life`. Visits
 to the old address are not counted. That is the right way round: it is a
 waiting room, not a destination, and a beacon that gets dropped costs a request
 and tells nobody anything.
+
+
+### The frozen-slug rule has exactly one exception
+
+`the-super-powers-team-galactic-guardians-198-1985` was renamed in 1.8.1. This
+is not precedent and it is worth being blunt about why, because the next person
+to find an ugly slug will point at this entry.
+
+A slug is the key progress is stored under and the string every backup code
+hashes. Renaming one voids whatever was ticked against it and breaks that entry
+in every code already written. That is the whole reason the rule exists, and
+nothing about the rule has softened.
+
+What made this one possible was timing, not merit. The app was not publicly
+launched; the population with saved progress was the owner and a handful of
+soakers, and the cost of the break was one tick each. That was true for a few
+hours and is not true now. `qa/renamed-ids.json` carries the reason, and guards
+section 2 fails if the old name reappears in the data or the new one is missing.
+
+The alternative was an alias map — keep the old slug in the file forever,
+rewrite the storage key on restore and the hash on import, lose nothing. It was
+rejected because it costs roughly 400 bytes and a permanent guard to correct a
+string that appears in no URL and no part of the interface. Paying forever to
+fix something invisible is the wrong trade; paying once, before anybody was
+watching, was not.
+
+### The crawlable block is generated, not written
+
+A `<noscript>` list of eleven eras and forty-four continuities is exactly the
+kind of thing that goes stale in one release and is never noticed, because the
+only people who read it are crawlers. Guards section 78 rebuilds it from `PATH`
+and `ERAS` on every run and compares byte for byte; `npm run bless` writes it.
+
+It sits above the empty `<main>` on purpose. That is also checked, because a
+correct block rendered after the thing it substitutes for is worth less.
+
+### Two signals, because one of them is a request
+
+The canonical link points every origin at the apex. That is the mechanism search
+engines use to consolidate, and it is the primary signal.
+
+The injected `noindex` is the second, and it exists because GitHub Pages cannot
+send a header and has to keep serving. It says `follow` as well, so the links
+out of that page — the canonical one among them — still count. It is injected
+rather than static: a static robots meta in the markup would apply to the
+canonical origin too and take the whole site out of search, which section 78
+also checks for.
+
+`workers.dev` needed neither. It was turned off, and nothing that does not exist
+competes with anything.
 
 
 ## Known blind spots

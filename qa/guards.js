@@ -102,6 +102,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
 
    DISCOVERY
      38   What a crawler and a shared link see
+     78   A crawler sees a catalogue, not an empty page
      39   What the app refuses to do is a feature
      42   The page asks nothing of anyone else
      43   Content-Security-Policy
@@ -205,6 +206,21 @@ FILMS.forEach(function(f){
    frozen list by being written into qa/retired-ids.json with a reason, which
    is a diff a reviewer sees. A retired slug may never come back either, because
    somebody's saved progress may still hold the old meaning of it. */
+/* A rename is the same act as a removal plus an addition, and just as
+   destructive: the old key is what progress was saved under and what every
+   backup code hashed. It is allowed the same way \u2014 written down, in a file, with
+   a reason a reviewer reads in the diff. */
+var RENAMED = {}, RENAMEDFILE = path.join(ROOT, "qa", "renamed-ids.json");
+if(fs.existsSync(RENAMEDFILE)){
+  var rn = JSON.parse(fs.readFileSync(RENAMEDFILE, "utf8"));
+  Object.keys(rn).forEach(function(k){
+    if(!rn[k] || !rn[k].to) return fail("renamed-ids.json gives no new id for " + k);
+    if(!rn[k].why || rn[k].why.length < 40){
+      fail("renamed-ids.json gives no real reason for renaming " + k);
+    }
+    RENAMED[k] = rn[k].to;
+  });
+}
 var RETIRED = {}, RETIREDFILE = path.join(ROOT, "qa", "retired-ids.json");
 if(fs.existsSync(RETIREDFILE)){
   var rl = JSON.parse(fs.readFileSync(RETIREDFILE, "utf8"));
@@ -219,6 +235,14 @@ var ids = FILMS.map(function(f){ return f.id; }).sort();
 ids.forEach(function(i){
   if(RETIRED[i]) fail("retired id is back in the data: " + i +
                       " \u2014 removal is not reversible by re-adding the slug");
+  if(RENAMED[i]) fail("renamed id is back in the data: " + i + " \u2014 it was renamed to " +
+                      RENAMED[i] + ", and having both is worse than having either");
+});
+Object.keys(RENAMED).forEach(function(k){
+  if(ids.indexOf(RENAMED[k]) < 0){
+    fail("renamed-ids.json says " + k + " became " + RENAMED[k] +
+         ", which is not in the catalogue");
+  }
 });
 if(BLESS){
   Object.keys(RETIRED).forEach(function(k){
@@ -235,9 +259,10 @@ if(BLESS){
   var now = {}; ids.forEach(function(i){ now[i] = 1; });
   var was = {}; prev.forEach(function(i){ was[i] = 1; });
   prev.forEach(function(i){
-    if(!now[i] && !RETIRED[i]){
+    if(!now[i] && !RETIRED[i] && !RENAMED[i]){
       fail("FROZEN ID REMOVED OR RENAMED: " + i + "  (this voids saved progress)");
     }
+    if(!now[i] && RENAMED[i]) note("renamed since the last bless: " + i + " -> " + RENAMED[i]);
   });
   var added = ids.filter(function(i){ return !was[i]; });
   if(added.length) note(added.length + " new id(s) added — safe. Re-bless when ready.");
@@ -3338,6 +3363,87 @@ if(!/function legendBlock/.test(HTML) ||
          "The Path, and that reader would never see it");
   }
   note("the move offer is conditioned on the origin and carries a code");
+})();
+
+/* ---------- 78. A crawler sees a catalogue, not an empty page ---------- */
+/* Everything this app renders is written by JavaScript into an empty <main>,
+   so a crawler that does not run it saw the shell and nothing else. That
+   mattered less on a Pages subdirectory than it does on a domain whose whole
+   job is to be found.
+
+   The block is generated from the data rather than typed. A hand-written list
+   of fifty-five names would be stale within a release and nobody would notice,
+   because nobody reads it — which is exactly the failure this file exists to
+   prevent. Rebuilt here on every run and compared; npm run bless writes it. */
+
+(function(){
+  var films = 0, seasons = 0;
+  PATH.forEach(function(g){ g.films.forEach(function(f){ f.k === "tv" ? seasons++ : films++; }); });
+  function e(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  var want = [
+    "<noscript>",
+    "<h2>Every Batman story ever filmed</h2>",
+    "<p>Night Watcher lists " + films + " films and " + seasons +
+      " seasons of television across " + PATH.length + " continuities, in three orders: " +
+      "by universe, by the arc of one life, or by release. The app needs JavaScript; " +
+      "what follows is what it covers.</p>",
+    "<h3>The eras of Bruce’s life</h3>",
+    "<ol>",
+    ERAS.filter(function(x){ return x.k !== 0; })
+        .map(function(x){ return "  <li>" + e(x.name) + "</li>"; }).join("\n"),
+    "</ol>",
+    "<h3>The continuities</h3>",
+    "<ol>",
+    PATH.map(function(g){ return "  <li>" + e(g.name) + "</li>"; }).join("\n"),
+    "</ol>",
+    "</noscript>"
+  ].join("\n");
+
+  var got = (HTML.match(/<noscript>[\s\S]*?<\/noscript>/) || [""])[0];
+  if(!got){
+    fail("there is no <noscript> block — a crawler that does not run JavaScript " +
+         "sees an empty <main> and nothing else");
+    return;
+  }
+  if(got !== want){
+    if(BLESS){
+      fs.writeFileSync(path.join(PUBLIC, "index.html"),
+                       HTML.replace(got, want), "utf8");
+      note("rewrote the <noscript> catalogue");
+    } else {
+      fail("the <noscript> catalogue no longer matches the data — it lists names " +
+           "that have changed. Fix with: npm run bless");
+    }
+  }
+  if(HTML.indexOf("<noscript>") > HTML.indexOf('<main id="view">')){
+    fail("the <noscript> catalogue renders after the empty <main> — it should be " +
+         "the first content on the page, not the last");
+  }
+  note("crawlable catalogue: " + ERAS.filter(function(x){ return x.k !== 0; }).length +
+       " eras, " + PATH.length + " continuities, " + got.length + " bytes");
+
+  /* The old origin has to keep serving and cannot send a header, so the only
+     way it can ask to be left out of an index is to say so in the page. The
+     canonical link is the primary signal; this is the one that does not depend
+     on a crawler choosing to honour a preference. */
+  var ni = (HTML.match(/if\(offCanonical\(\)\)\{[\s\S]{0,400}?\n\}/) || [""])[0];
+  if(!ni || ni.indexOf("robots") < 0){
+    fail("nothing marks an off-canonical origin as noindex \u2014 GitHub Pages keeps " +
+         "serving the whole app and would compete with the canonical address");
+    return;
+  }
+  if(!/["']noindex/.test(ni)){
+    fail("the off-canonical origin asks to be indexed \u2014 the robots meta it injects " +
+         "does not say noindex");
+  }
+  if(!/follow/.test(ni)){
+    warn("the off-canonical robots meta does not say follow, so the links out of " +
+         "that page \u2014 including the one to the canonical address \u2014 stop counting");
+  }
+  if(HTML.indexOf('name="robots"') >= 0 && HTML.indexOf('content="noindex') >= 0){
+    fail("a static robots noindex is in the markup \u2014 that would apply to the " +
+         "canonical origin too, and take the whole site out of search");
+  }
 })();
 
 /* ---------- report ---------- */

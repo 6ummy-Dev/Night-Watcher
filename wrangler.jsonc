@@ -10,6 +10,10 @@
   "routes": [
     { "pattern": "nightwatcher.life", "custom_domain": true }
   ],
+  /* The workers.dev preview hostname served the whole app and was indexable,
+     so the site competed with itself in search. There is nothing to
+     consolidate if there is nothing there. The apex is the preview now. */
+  "workers_dev": false,
   "observability": {
     "enabled": true
   },

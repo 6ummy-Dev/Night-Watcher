@@ -32,7 +32,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-u/0LnYSWOJbhRKC8J5OLMq07EbH3wKp0IoZWfcRYfOc=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-g4hgbvPEgkec76c3mRd8qZoTb/1EpkxoTKcQRAaWoFM=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://nightwatcher.life/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://nightwatcher.life/","applicationCategory":"EntertainmentApplication","image":"https://nightwatcher.life/icon.png","dateModified":"2026-08-02","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 133 films and 67 seasons of TV across 44 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- No trademarked logos, symbols, or proprietary lettering are used anywhere in
@@ -368,6 +368,71 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
     </div>
     <p id="nosave" role="status" hidden>Storage is blocked here — progress will be gone when you reload. Back up your code from Progress.</p>
   </header>
+<noscript>
+<h2>Every Batman story ever filmed</h2>
+<p>Night Watcher lists 133 films and 67 seasons of television across 44 continuities, in three orders: by universe, by the arc of one life, or by release. The app needs JavaScript; what follows is what it covers.</p>
+<h3>The eras of Bruce’s life</h3>
+<ol>
+  <li>Before Batman</li>
+  <li>The early years</li>
+  <li>The Grayson years</li>
+  <li>Rebuilding</li>
+  <li>Broken and rebuilt</li>
+  <li>The League years</li>
+  <li>The Watchtower years</li>
+  <li>The Damian years</li>
+  <li>The last years</li>
+  <li>Beyond</li>
+  <li>After the cowl</li>
+</ol>
+<h3>The continuities</h3>
+<ol>
+  <li>Pennyworth</li>
+  <li>The Joker Films</li>
+  <li>Gotham</li>
+  <li>DC Animated Universe</li>
+  <li>The Comic Adaptations</li>
+  <li>Tomorrowverse</li>
+  <li>Standalone Films</li>
+  <li>The Batman (2004)</li>
+  <li>Beware the Batman</li>
+  <li>Caped Crusader</li>
+  <li>The Dark Knight Trilogy</li>
+  <li>The Batman Epic Crime Saga</li>
+  <li>The Burton / Schumacher Films</li>
+  <li>The New Scooby-Doo Movies</li>
+  <li>The LEGO Movieverse</li>
+  <li>The Filmation Years</li>
+  <li>Teen Titans</li>
+  <li>Teen Titans Go!</li>
+  <li>DC Super Hero Girls</li>
+  <li>The Columbia Serials</li>
+  <li>Batman '66</li>
+  <li>Batman Unlimited</li>
+  <li>Batwheels</li>
+  <li>Titans</li>
+  <li>Arkhamverse</li>
+  <li>Knightfall Trilogy</li>
+  <li>Standalone Justice League Films</li>
+  <li>LEGO Batman: DC Super Heroes</li>
+  <li>Batman in Supporting Roles</li>
+  <li>Super Friends</li>
+  <li>The Brave and the Bold (2008)</li>
+  <li>Robot Chicken DC Comics</li>
+  <li>Superman/Batman Duology</li>
+  <li>DC Animated Movie Universe</li>
+  <li>LEGO DC Direct-to-Video</li>
+  <li>Young Justice</li>
+  <li>Justice League Action</li>
+  <li>The DC Extended Universe</li>
+  <li>Ninjaverse</li>
+  <li>Harley Quinn’s Gotham</li>
+  <li>Merry Little Universe</li>
+  <li>Batwoman</li>
+  <li>Single-Season Gotham Shows</li>
+  <li>The DCU</li>
+</ol>
+</noscript>
   <main id="view"></main>
   <nav id="tabs" aria-label="Views">
     <button data-tab="home" aria-current="page">
@@ -388,7 +453,7 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 77 sections, each one negative-tested.
+   qa/guards.js — 78 sections, each one negative-tested.
 
    Read those before changing something that looks redundant. Most of it is
    load-bearing, and this project has a long history of rules that only make
@@ -652,7 +717,7 @@ var PATH = [
  {i:"super-friends-1981-1981",t:"Super Friends",sub:"1981",y:1981,ep:6,k:"tv",e:6,lo:7,d:"A six-episode season.",o:1},
  {i:"super-friends-1983-1983",t:"Super Friends",sub:"1983",y:1983,ep:8,k:"tv",e:6,lo:8,d:"Often called the lost episodes \u2014 some went unaired in the US for years.",o:1},
  {i:"the-legendary-super-powers-show-1984-1984",t:"The Legendary Super Powers Show",sub:"1984",y:1984,ep:8,k:"tv",e:6,lo:9,d:"Toyline tie-in era. Darkseid becomes the recurring threat.",o:1},
- {i:"the-super-powers-team-galactic-guardians-198-1985",t:"The Super Powers Team: Galactic Guardians",sub:"1985",y:1985,ep:8,k:"tv",e:6,lo:10,d:"The final season, and the one that finally animates Batman\u2019s origin.",o:1}]},
+ {i:"the-super-powers-team-galactic-guardians-1985-1985",t:"The Super Powers Team: Galactic Guardians",sub:"1985",y:1985,ep:8,k:"tv",e:6,lo:10,d:"The final season, and the one that finally animates Batman\u2019s origin.",o:1}]},
 
 {n:"31",name:"The Brave and the Bold (2008)",
  note:"Diedrich Bader\u2019s Batman in a bright silver-age world, teaming up with a different obscure hero every week. Wildly different in tone from everything around it, and beloved for exactly that.",
@@ -835,7 +900,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "1.8.0";
+var BUILD = "1.8.1";
 var KEY = "batwatch-v3";
 var SITE = "https://nightwatcher.life/";
 var canSave = true;
@@ -1933,6 +1998,12 @@ document.getElementById("view").addEventListener("input", function(e){
   qTimer = setTimeout(function(){ S.q = v; render(); }, 180);
 });
 
+if(offCanonical()){
+  var noix = document.createElement("meta");
+  noix.setAttribute("name", "robots");
+  noix.setAttribute("content", "noindex, follow");
+  document.head.appendChild(noix);
+}
 restore(function(){
   try{ routeHash(); }catch(e){}
   render();
