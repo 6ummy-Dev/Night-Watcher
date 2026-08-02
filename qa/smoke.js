@@ -469,7 +469,10 @@ win.addEventListener("load", function(){
     check("they sit in a deck", !!doc.querySelector("#view .deck"));
     check("the first card leads", blocks[0].classList.contains("lead"));
     check("only one card leads", doc.querySelectorAll("#view .pick.big.lead").length === 1);
-    check("the lead is the spoiler-safe path", blocks[0].dataset.path === "continuity",
+    /* 1.7.2 moved the lead to Bruce's life. By universe is the completist's path
+       \u2014 it opens on Alfred in 1960s London, which is correct for the reader who
+       chose it and a strange front door for the reader who has not chosen yet. */
+    check("the lead is the one life", blocks[0].dataset.path === "life",
           blocks[0].dataset.path);
     check("and it says why", !!doc.querySelector("#view .lead .leadkick"),
           doc.querySelector("#view .leadkick") ? doc.querySelector("#view .leadkick").textContent : "(none)");

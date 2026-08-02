@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 68 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 70 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -866,6 +866,75 @@ theatrical films.
 
 An entry may now override its group. The guard rejects an override that restates
 the group's own value, so the exception stays rare enough to notice.
+
+### An era may say who is in it, never what happens to them
+
+*The Grayson years* and *The Damian years* name a person. *Losing Jason* named an
+event, and it sat as a header above a list of films a reader had not watched yet.
+*Broken and rebuilt* did the same in its note — "Bane, the back, and the
+replacement who did not know when to stop" spoils two continuities in one line.
+
+The rule that came out of it: an era may describe the situation it opens in,
+never the turn that gets you there. *Beyond* — "an old man in a chair, and a kid
+in a new suit" — is the pitch on the box and stays.
+
+### An era is a stage, not a cast list
+
+*Rebuilding* used to read "Tim and Barbara around", which is a roster. Batwheels
+has **Duke Thomas as Robin and Cassandra Cain as Batgirl** — Dick grown to
+Nightwing, a later Robin in the car, a Batgirl who is not Barbara. That is
+Rebuilding's shape exactly and it matched none of Rebuilding's names.
+
+Two eras were written as people and nine as configurations. Both were rewritten
+as stages, with the familiar names demoted to examples. Any future family that is
+not Dick, Jason, Tim or Damian now has somewhere to go.
+
+### Outside any timeline is a place, not a verdict on quality
+
+It held a quarter of the catalogue before 1.7.2 because it had quietly become
+where things went when nobody wanted to judge them. Three quarters of it turned
+out to be placeable: *The LEGO Batman Movie* adopts Dick Grayson and makes him
+Robin on screen; *Gotham City Breakout* has Damian as Robin with Nightwing and
+Batgirl both working.
+
+**Tone is not a reason.** The five that are:
+
+| `out:` | means |
+|---|---|
+| `who` | the Batman is not Bruce — Kirk Langstrom, Yohualli Coatl, an unnamed Soviet dissident |
+| `many` | more than one Batman on screen |
+| `none` | no Batman in the film at all |
+| `flat` | a Batman, but the story asserts no state anywhere |
+| `tbd` | a real continuity whose place is not decided yet |
+
+`tbd` is the DCU, whose Batman is uncast. Guard 70 requires every era-0 entry to
+carry one, because an undifferentiated bucket is what let the tone-filings hide.
+
+### The universes run in the order their stories start
+
+By universe had no stated ordering principle until 1.7.2, so every continuity
+added landed wherever it was typed. Gotham — five seasons of Bruce before the
+cowl — rendered 37th of 42, and the first Batman ever filmed rendered 35th, while
+a continuity beginning in the League years rendered 5th.
+
+A universe now sits where its story starts. **Within a band the curated order
+stands**, which is why the DC Animated Universe still leads the universes that
+begin in the early years: among universes starting in the same place, the best
+one goes first. Guard 69 does not force a total order — only that the list never
+goes backwards.
+
+The number on each universe is that era. It used to be the universe's position in
+the list, which told a reader nothing they could not already see and renumbered
+every time the catalogue grew.
+
+### Era 0 is the absence of a position, not a late one
+
+The era-direction guard compares by render order, and era 0 renders last — so a
+continuity running era 3 → era 0 → era 3 looked like it had aged backwards. It
+had not; it has one entry that does not sit anywhere. The check skips them.
+
+The LEGO Movieverse is the case: two films that assert no state at all, with *The
+LEGO Batman Movie* between them.
 
 ## Known blind spots
 

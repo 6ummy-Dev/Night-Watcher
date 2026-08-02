@@ -19,6 +19,91 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.7.2] — 2026-08-05
+
+The eras redesigned, three quarters of "outside any timeline" given a real
+place, and the universes put in the order their stories start.
+
+No `i:` slug changed. Nothing anyone has ticked has moved.
+
+### Changed
+
+- **Outside any timeline goes from 49 entries to 14** — a quarter of the
+  catalogue to seven per cent. It had been doing three jobs: the entries with no
+  place, the ones not decided yet, and — the bulk of it — entries filed there
+  because they were jokes rather than because their place was unreadable. *The
+  LEGO Batman Movie* has Dick Grayson adopted and made Robin on screen; that is
+  the Grayson years whatever else the film is doing.
+- **The era scheme is redesigned, not extended.** Eleven eras instead of ten.
+  *Before the cowl* becomes **Before Batman** — no entry was ever about training,
+  and it now holds Alfred, the night the Waynes die, and a boy. *Year one and
+  two* becomes **The early years**, which closes the year-three gap without
+  adding an era. *Losing Jason* merges into **Rebuilding**. The League years
+  split into **The League years** and **The Watchtower years** on one checkable
+  line: is a Robin or a Batgirl on screen as his working partner. And a terminal
+  **After the cowl** holds the three Gothams where Bruce is gone.
+- **An era name may say who is in it, never what happens to them.** *Losing
+  Jason* spoiled the death in its own header, and *Broken and rebuilt* spoiled
+  Bane in its note. Both are gone. The rule is written down.
+- **Rebuilding describes a stage rather than a cast list.** It read "Tim and
+  Barbara around", which left Batwheels — Duke Thomas as Robin, Cassandra Cain
+  as Batgirl — matching no era in the scheme despite showing its shape exactly.
+- ***Joker* and *Folie à Deux* enter the life.** *Joker* is set in 1981 and the
+  Waynes are murdered at its climax; *Gotham* opens on that murder. Pennyworth,
+  Joker, Gotham is the cleanest hand-off in the catalogue.
+- **The universes run in the order their stories start.** Gotham rendered 37th
+  of 42 and the first Batman ever filmed rendered 35th, while a continuity
+  beginning in the League years rendered 5th. Within a band the curated order
+  stands, so the DC Animated Universe still leads the universes that begin in
+  the early years.
+- **The by-universe number now means something.** It was the universe's position
+  in a list you were already looking at, and it renumbered every time the
+  catalogue grew. It is the era the universe starts in — the same number the
+  life path uses, and the reason the list is in the order it is.
+- **Bruce's life is the first card.** By universe is the completist's path: it
+  opens on Alfred in 1960s London, which is right for the reader who chose it
+  and strange for the reader who has not chosen yet. Both path descriptions
+  rewritten.
+
+### Fixed
+
+- **Names that were not the names.** *Elseworlds & One-Offs* collided with DC
+  Studios' own Elseworlds banner and is now **Standalone Films**. *The Dark
+  Knight Saga* is **The Dark Knight Trilogy**, *Superman / Batman* is the
+  **Superman/Batman Duology**, *The Epic Crime Saga* gets the word that
+  identifies it. Four shelves stopped posing as universes. *The Brave and the
+  Bold* is disambiguated by year before the DCU film of that title arrives.
+- **Copy that described things that are not in the film.** *Suicide Squad
+  Isekai* said Batman appears; he never does — Katana takes Harley down in the
+  Gotham prologue. *Creature Commandos* said Batman apprehends Doctor
+  Phosphorus; he is a silhouette over a skylight and the arrest is never shown.
+  The LEGO Batman home release carried four bonus shorts, not three.
+- **The LEGO direct-to-video line was two continuities.** The 2013 film adapts
+  the video game, shares no cast with the nine that follow, and is the only one
+  whose Robin is Tim Drake rather than Damian.
+- *The Doom That Came to Gotham* and *Legends of the Superheroes* return to the
+  timeline. Both were filed outside on tone in 1.7.1 — one has Dick Grayson as
+  Bruce's ward, the other has Adam West and Burt Ward in a Hall of Heroes.
+
+### Added
+
+- **Section 69 — the universes run in the order their stories start.** The
+  by-universe order has never had a stated principle, which is why every
+  continuity added landed wherever it was typed.
+- **Section 70 — an entry outside the timeline says why.** Fourteen entries, five
+  reasons: the Batman is not Bruce, more than one Batman, no Batman at all, no
+  state asserted, or a continuity whose place is not decided yet. An
+  undifferentiated bucket is what let the tone-filings hide in the first place.
+- **The era-direction guard skips entries with no position.** Era 0 is the
+  absence of a place, not a late one; a continuity running era 3 → era 0 → era 3
+  has not aged backwards.
+
+### Note
+
+The rating badges are still parked. A "kids" grouping was considered and
+rejected: it would be a fourth grouping axis competing with the rating badges
+already scoped, and the Rebuilding rewrite lands Batwheels without one.
+
 ## [1.7.1] — 2026-08-04
 
 Bruce's life is a timeline now. Six independent audits of the ordering, and the

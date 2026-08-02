@@ -101,6 +101,8 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      44   Every watch link carries a year
      67   The dates say when the page actually changed
      68   The life path is a timeline, not a filing order
+     69   The universes run in the order their stories start
+     70   An entry outside the timeline says why
 
    META
      65   The file points at where its reasoning went
@@ -172,7 +174,8 @@ PATH.forEach(function(g, gi){
   g.films.forEach(function(f, fx){
     FILMS.push({id:f.i, gi:gi, ix:fx, gn:g.n, gname:g.name, fmt:(f.fmt || g.fmt || "anim"),
                 t:f.t, sub:f.sub||"", ep:f.ep||0,
-                tv:(f.k === "tv"), y:f.y, e:(f.e||0), lo:(f.lo||0), b:f.b||[], o:!!f.o});
+                tv:(f.k === "tv"), y:f.y, e:(f.e||0), lo:(f.lo||0), out:(f.out||""),
+                b:f.b||[], o:!!f.o});
   });
 });
 
@@ -1794,13 +1797,18 @@ if(!/@media \(max-width:360px\)/.test(HTML)){
   var WEAVES = {
     "DC Animated Universe": "five shows interleaved; the group note prescribes the weave",
     "Tomorrowverse": "Superman and Batman arcs alternating; Long Halloween is year two",
-    "The Comic Canon": "seven unrelated adaptations arranged as one life, and a " +
+    "The Comic Adaptations": "seven unrelated adaptations arranged as one life, and a " +
                        "derivative work has to follow its source whatever era it sits in"
   };
   PATH.forEach(function(gr){
     if(gr.bag || WEAVES[gr.name]) return;
     var prev = null;
     gr.films.forEach(function(f){
+      /* Era 0 is the absence of a position, not a late one. A continuity that
+         runs era 3 -> era 0 -> era 3 has not aged backwards; it has one entry
+         that does not sit anywhere. Skipping them is what lets The LEGO
+         Movieverse hold a placed film between two unplaceable ones. */
+      if(!(f.e || 0)) return;
       var here = eraRank(f.e || 0);
       if(prev !== null && here < prev){
         fail(gr.name + " runs backwards through the eras at " + f.i + " \u2014 a " +
@@ -1825,18 +1833,18 @@ if(!/@media \(max-width:360px\)/.test(HTML)){
      arc may advance through eras, never back up.
      Identified by name, not by group number \u2014 the number moved in 1.7.0 and this
      check silently found zero films. */
-  var nolan = FILMS.filter(function(f){ return f.gname === "The Dark Knight Saga"; });
-  if(nolan.length !== 3) fail("the Dark Knight Saga should hold 3 films, found " + nolan.length);
+  var nolan = FILMS.filter(function(f){ return f.gname === "The Dark Knight Trilogy"; });
+  if(nolan.length !== 3) fail("the Dark Knight Trilogy should hold 3 films, found " + nolan.length);
   nolan.slice(1).forEach(function(f, i){
     if(f.e < nolan[i].e){
-      fail("the Dark Knight Saga runs backwards through the eras at " + f.id +
+      fail("the Dark Knight Trilogy runs backwards through the eras at " + f.id +
            " (era " + f.e + " after era " + nolan[i].e + ") \u2014 a continuous story " +
            "can age, but it cannot un-age");
     }
   });
   if(nolan.every(function(f){ return f.e === nolan[0].e; }) === false &&
      nolan[nolan.length - 1].e === nolan[0].e){
-    fail("the Dark Knight Saga leaves and returns to the same era");
+    fail("the Dark Knight Trilogy leaves and returns to the same era");
   }
 })();
 
@@ -2836,6 +2844,74 @@ if(!/function legendBlock/.test(HTML) ||
   note("life path: " + positioned + " entries positioned across " +
        (Object.keys(byEra).length - 1) + " eras, " +
        (byEra["0"] ? byEra["0"].length : 0) + " outside any timeline");
+})();
+
+/* ---------- 69. The universes run in the order their stories start ----- */
+/* By universe had no stated ordering principle until 1.7.2, so every continuity
+   added landed wherever it was typed: Gotham \u2014 five seasons of Bruce before the
+   cowl \u2014 rendered 37th of 42, and the first Batman ever filmed rendered 35th,
+   while a continuity that starts in the League years rendered 5th.
+
+   The rule now: a universe sits where its story starts. Within a band the
+   curated order stands, which is why the DC Animated Universe still leads the
+   universes that begin in the early years. This check does not force a total
+   order \u2014 only that the list never goes backwards through the eras. */
+
+(function(){
+  var prev = null, prevName = "";
+  PATH.forEach(function(gr){
+    var best = -1;
+    gr.films.forEach(function(f){
+      if(!f.e) return;
+      var r = ERAS.map(function(e){ return e.k; }).indexOf(f.e);
+      if(r >= 0 && (best < 0 || r < best)) best = r;
+    });
+    if(best < 0) best = ERAS.length;     /* nothing placed: sorts to the end */
+    if(prev !== null && best < prev){
+      fail('"' + gr.name + '" starts earlier than "' + prevName + '" and renders ' +
+           "after it \u2014 the universes run in the order their stories start");
+    }
+    prev = best; prevName = gr.name;
+  });
+})();
+
+/* ---------- 70. An entry outside the timeline says why -------------- */
+/* Era 0 held a quarter of the catalogue before 1.7.2, because "outside any
+   timeline" had become the place things went when nobody wanted to judge them.
+   Three quarters of it turned out to be placeable and filed on tone. What is
+   left is fourteen entries and five distinct reasons, and an undifferentiated
+   bucket is exactly what let the tone-filings hide. */
+
+(function(){
+  var WHY = {
+    who:  "the Batman in it is not Bruce",
+    many: "more than one Batman on screen",
+    none: "no Batman in it at all",
+    flat: "a Batman, but no state asserted anywhere",
+    tbd:  "a real continuity whose place is not decided yet"
+  };
+  var missing = [], stray = [], bad = [];
+  FILMS.forEach(function(f){
+    var why = f.out;
+    if(f.e === 0 && !why) missing.push(f.id);
+    if(f.e !== 0 && why) stray.push(f.id);
+    if(why && !WHY[why]) bad.push(f.id + ' says out:"' + why + '"');
+  });
+  if(missing.length){
+    fail(missing.length + " entries sit outside the timeline without saying why (" +
+         missing.slice(0, 3).join(", ") + ") \u2014 the reasons are " +
+         Object.keys(WHY).join(", "));
+  }
+  if(stray.length){
+    fail(stray.slice(0, 3).join(", ") + " has a life position and still claims a " +
+         "reason for having none");
+  }
+  if(bad.length) fail(bad.slice(0, 3).join("; "));
+  var tally = {};
+  FILMS.forEach(function(f){ if(f.out) tally[f.out] = (tally[f.out] || 0) + 1; });
+  note("outside the timeline: " + Object.keys(tally).sort().map(function(k){
+    return tally[k] + " " + k;
+  }).join(", "));
 })();
 
 /* ---------- report ---------- */
