@@ -1195,6 +1195,54 @@ also checks for.
 competes with anything.
 
 
+### A clamp that is allowed to flex is not a clamp
+
+`.udesc` is a `-webkit-box` with `-webkit-line-clamp:2`. It also had `flex:1`,
+because every other child of the card did, and the clamp silently stopped
+clamping: the box stretched to whatever the flex line gave it and rendered three
+lines with an ellipsis in the middle of the second. It looked like a truncation
+bug in the text, and the text was fine.
+
+Nothing flexes in a card now. `.ubar` takes `margin-top:auto` instead, which
+pins the bar and the count to the bottom whatever the description does. Guards
+section 76 fails if `flex` comes back on `.udesc`, because the symptom points at
+the wrong file.
+
+### A card description is the note, shortened, not a second string
+
+`cardBlurb()` takes the first sentence of the group's own note and caps it. The
+alternative was a `blurb:` field per group, which is 55 more strings to keep
+true and 55 more chances for a card to say something the page below it
+contradicts. Section 24's rule — one string per ordering, not two — is the same
+rule one level down.
+
+The one thing it has to strip is the bag suffix. *"Nine LEGO films sharing a
+style rather than a story — no order between these; start anywhere"* is one
+sentence, and the half after the dash is about ordering rather than about what
+the shelf is. Worth knowing that the guard for this first checked for the whole
+phrase and missed, because the cap truncates it to *"— no order…"*: the leak
+survives in fewer characters than the check was looking for.
+
+### A cut code and a short code look identical
+
+A backup code chopped by a message length limit still matches the format, still
+parses, and restores a fraction of itself without complaint. That is the failure
+the restore-link ceiling exists to prevent, and it was the one thing a restore
+could not report.
+
+Chunk arithmetic alone does not find it: `W` is five characters an entry, so a
+cut that happens to land on a boundary leaves a valid-looking segment. The surer
+signal is that `exportCode()` always writes `S`, `R` and `O`, so a cut anywhere
+inside `W` takes all three letters with it. Both checks together caught every
+truncation that lost an entry across the code's whole length; the modulo alone
+missed fourteen of them.
+
+Guards section 8 sweeps the whole code rather than its tail. The first version
+of that sweep only tried the last seventy characters — which is ratings and the
+path, where losing everything loses no entries — and passed against a build with
+the reporting removed.
+
+
 ## Known blind spots
 
 ### The dead-rule sweep sees selectors, not declarations

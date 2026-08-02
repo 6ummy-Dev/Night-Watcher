@@ -413,6 +413,26 @@ else if(Object.keys(ftr.watched).sort().join("|") !== Object.keys(back.watched).
   fail("parser dropped watched entries from a code carrying an unknown segment");
 }
 
+/* A code chopped in half by a chat client parses cleanly and restores most of
+   itself. That is the failure the link ceiling exists to prevent, and until
+   1.8.2 a restore could not tell you it had happened. */
+(function(){
+  if(back.cut) fail("a whole code is being reported as cut short");
+  /* Across the whole length, not just the tail: the last ninety characters are
+     ratings and the path, and losing those loses no entries. A cut only starts
+     costing something once it reaches the watched list, which is at the front. */
+  var lost = 0, tried = 0;
+  for(var n = 2; n < code.length - 8; n += 7){
+    var r = importCode(code.slice(0, code.length - n));
+    if(!r) continue;
+    tried++;
+    if(Object.keys(r.watched).length < Object.keys(back.watched).length && !r.cut) lost++;
+  }
+  if(tried < 50) fail("the truncation sweep only tried " + tried + " cuts");
+  if(lost) fail(lost + " truncations lost entries without the restore saying so — " +
+                "a cut link looks exactly like a short one");
+})();
+
 /* A pasted restore URL still has to work, and real junk still has to fail. */
 if(!importCode("https://nightwatcher.life/#nw=" + code)) fail("parser rejected a pasted restore URL");
 ["", "hello", "NW1", "NW1W!!!", "NW1W-----"].forEach(function(bad){
@@ -3291,6 +3311,42 @@ if(!/function legendBlock/.test(HTML) ||
     fail("Home's grid carries no description, or not the one The Path uses — " +
          "section 24 exists so there is one string per ordering, not two");
   }
+
+  /* A card carried a name and a number and said nothing about what it was.
+     The note is the description; cardBlurb() is the one-line form of it, so
+     there is still one string per group rather than two to keep in step. */
+  if(!/cardBlurb\(g\.note\)/.test(home)){
+    fail("Home's cards carry no description, or not one derived from the group " +
+         "note — a second string would be a second thing to keep true");
+  }
+  if(!/-webkit-line-clamp/.test(HTML)){
+    fail("nothing clamps the card description, so one long note sets the height " +
+         "of every card in its row");
+  }
+  (function(){
+    var css = (HTML.match(/\.udesc\{[^}]*\}/) || [""])[0];
+    if(/flex:\s*1/.test(css)){
+      fail(".udesc flexes, which lets a -webkit-box grow past its own clamp — " +
+           "the clamp then silently stops clamping");
+    }
+    var blurb = new vm.Script(fn("cardBlurb") + "\ncardBlurb;").runInNewContext({});
+    PATH.concat(ERAS.map(function(e){ return {name:e.name, note:e.note}; }))
+        .forEach(function(x){
+      var t = blurb(x.note);
+      if(!t) return fail("no card description for " + x.name);
+      if(t.length > 90) fail("the card description for " + x.name + " is " + t.length +
+                             " characters — cards stop being cards");
+      /* Matching the whole phrase missed it: the cap truncates the suffix to
+         "\u2014 no order\u2026", which is the leak still, in fewer characters. */
+      if(/no order/.test(t)){
+        fail("the card description for " + x.name + " carries the bag suffix, which " +
+             "is about ordering rather than about what the shelf is");
+      }
+    });
+    note("card descriptions: longest is " +
+         Math.max.apply(null, PATH.map(function(x){ return blurb(x.note).length; })) +
+         " characters");
+  })();
 })();
 
 /* ---------- 77. The way back across is only visible from the far side ---------- */

@@ -19,6 +19,32 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.8.2] — 2026-08-02
+
+### Changed
+
+- **Home's cards say what each one is.** A card carried a name, a number and a
+  progress bar, which told you how far through something you were without
+  telling you what it was. Every card now carries the first line of the group's
+  own note — the same string The Path shows, shortened, so there is still one
+  description per group rather than two to keep in step.
+
+  Clamped to two lines, so one long note cannot set the height of every card in
+  its row. Cards go from 98px to about 129px: a description is not free, and
+  three lines was a third more scrolling than this catalogue can afford.
+
+### Fixed
+
+- **A restore now says when the code it was given was cut short.** A code
+  chopped by a chat client or a message length limit still parses, still looks
+  like a code, and quietly restores a fraction of what was sent — which is the
+  exact failure the restore-link ceiling exists to prevent, and the one thing a
+  restore could not tell you about. Every truncation that loses an entry is
+  reported now, and the banner says the link looks cut rather than short.
+
+  Guards section 8 chops the code sixty-eight different ways and fails if any of
+  them loses an entry silently.
+
 ## [1.8.1] — 2026-08-02
 
 Launch tidying: one address in search, something for a crawler to read, and the

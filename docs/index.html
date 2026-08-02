@@ -32,7 +32,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-g4hgbvPEgkec76c3mRd8qZoTb/1EpkxoTKcQRAaWoFM=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-R8EPMfvmFpGeEFd9xc3PfikGfwx3y1ypz7sGSs7y/c8=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://nightwatcher.life/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://nightwatcher.life/","applicationCategory":"EntertainmentApplication","image":"https://nightwatcher.life/icon.png","dateModified":"2026-08-02","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 133 films and 67 seasons of TV across 44 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- No trademarked logos, symbols, or proprietary lettering are used anywhere in
@@ -258,13 +258,14 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .legend .bd{flex:none;}
 .gridnote{font-size:12px;color:var(--dim);margin:6px 2px 12px;line-height:1.5;}
 .ugrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
-.ucard{border:1px solid var(--line);border-radius:12px;background:var(--sunk);padding:13px 12px;text-align:left;display:flex;flex-direction:column;gap:8px;min-height:98px;overflow-wrap:anywhere;}
+.ucard{border:1px solid var(--line);border-radius:12px;background:var(--sunk);padding:13px 12px;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:98px;overflow-wrap:anywhere;}
 .ucard:active{background:var(--card);}
 .ucard.full{border-color:var(--signaledge);}
 .unum{font-family:var(--mono);font-size:9.5px;color:var(--signal);letter-spacing:.08em;}
 .ucard.full .unum::after{content:" \2713";}
-.uname{font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:14.5px;line-height:1.05;flex:1;}
-.ubar{height:3px;border-radius:2px;background:var(--line2);overflow:hidden;}
+.uname{font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:14.5px;line-height:1.05;}
+.udesc{font-size:11.5px;line-height:1.35;color:var(--dust);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;}
+.ubar{height:3px;border-radius:2px;background:var(--line2);overflow:hidden;margin-top:auto;}
 .ubar i{display:block;height:100%;background:var(--signal);}
 .ucount{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.08em;}
 .deck{position:relative;margin-top:4px;}
@@ -900,7 +901,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "1.8.1";
+var BUILD = "1.8.2";
 var KEY = "batwatch-v3";
 var SITE = "https://nightwatcher.life/";
 var canSave = true;
@@ -1019,6 +1020,13 @@ function pathBlurb(id){
 }
 var groupCache = null, groupCacheKey = "";
 function groupsKey(){ return S.mode + "|" + S.scope + "|" + S.format; }
+function cardBlurb(s){
+  var t = String(s || "").split(/\.\s/)[0]
+          .replace(/\s*\u2014\s*no order between these.*$/, "")
+          .replace(/[.,;:\s]+$/, "");
+  if(t.length > 72) t = t.slice(0, 70).replace(/[\s,;:\u2014-]+\S*$/, "") + "\u2026";
+  return t;
+}
 function eraTag(g){
   var best = -1, i, r;
   for(i = 0; i < g.films.length; i++){
@@ -1288,6 +1296,9 @@ function importCode(raw){
   var map = {}, i, id, n, order = [];
   FILMS.forEach(function(f){ map[idHash(f.id)] = f.id; });
   var res = {watched:{}, skipped:{}, rated:{}, found:0, unknown:0,
+             cut:(!(("S" in seg) && ("R" in seg) && (ver < 3 || ("O" in seg))) ||
+                  ((W.length % 5) + (K.length % 5) +
+                   (ver >= 3 ? (O.length % 6) : (R.length % 6))) > 0),
              path:CODEPATH[(seg.P || "").charAt(0)] || ""};
   for(i = 0; i + 5 <= W.length; i += 5){
     id = map[W.substr(i,5)];
@@ -1446,7 +1457,9 @@ function pendingBanner(){
   if(!S.path && isPath(p.path)) bits += " and a path";
   return '<div class="viewing"><p>This link carries '+bits+
     (p.unknown ? ' (and '+p.unknown+' this build does not know)' : '')+
-    '. '+(S.path ? "Add them to your progress?" : "Restore them?")+'</p>'+
+    '. '+(p.cut ? 'It looks cut short \u2014 some of it did not arrive, so this is '+
+                  'less than was sent. ' : '')+
+    (S.path ? "Add them to your progress?" : "Restore them?")+'</p>'+
     '<button data-act="takelink">'+(S.path ? "Add them" : "Restore")+'</button>'+
     '<button class="ghost" data-act="droplink">No thanks</button></div>';
 }
@@ -1524,6 +1537,7 @@ function viewHome(){
     html += '<button class="ucard'+(pct === 100 ? " full" : "")+'" data-act="jump" data-gk="'+g.key+'">'+
       '<span class="unum">'+esc(g.tag)+'</span>'+
       '<span class="uname">'+esc(g.name)+'</span>'+
+      '<span class="udesc">'+esc(cardBlurb(g.note))+'</span>'+
       '<span class="ubar"><i style="width:'+pct+'%"></i></span>'+
       '<span class="ucount">'+done+' of '+g.films.length+'</span></button>';
   });

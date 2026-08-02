@@ -829,6 +829,15 @@ win.addEventListener("load", function(){
       Array.prototype.forEach.call(doc.querySelectorAll("#view .ucard"), function(c){
         home[c.querySelector(".uname").textContent] = c.querySelector(".unum").textContent;
       });
+      var descs = Array.prototype.map.call(doc.querySelectorAll("#view .ucard .udesc"),
+        function(d){ return d.textContent.trim(); });
+      check("every home card carries a description",
+            descs.length === Object.keys(home).length && descs.every(function(t){ return t.length > 5; }),
+            descs.length + " of " + Object.keys(home).length);
+      check("no card description runs past a line and a half of prose",
+            descs.every(function(t){ return t.length <= 90; }),
+            (descs.filter(function(t){ return t.length > 90; })[0] || "").slice(0, 40));
+
       S.tab = "watch"; win.render();
       var seen = 0, wrong = [];
       Array.prototype.forEach.call(doc.querySelectorAll("#view .ghead"), function(h){
