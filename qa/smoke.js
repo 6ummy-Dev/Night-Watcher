@@ -18,6 +18,29 @@ var html = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8")
   .replace(/<script[^>]*cloudflareinsights[^>]*><\/script>/g, "");
 
 var fails = [];
+/* The exit code used to be set inside the third jsdom document's load handler.
+   If that event never fired \u2014 a parse error, a jsdom change, a hang \u2014 the run
+   printed its failures and exited 0, which is the one outcome a test suite must
+   never produce. One place decides it now, with a watchdog behind it and a last
+   check on the way out. */
+var finished = false;
+function finish(){
+  if(finished) return;
+  finished = true;
+  clearTimeout(watchdog);
+  console.log(fails.length ? "\n" + fails.length + " smoke failure(s)\n" : "\n  ✓ smoke passed\n");
+  process.exit(fails.length ? 1 : 0);
+}
+var watchdog = setTimeout(function(){
+  fails.push("the run never finished \u2014 a document load handler did not fire");
+  finish();
+}, 180000);
+process.on("exit", function(code){
+  if(!finished && code === 0){
+    console.log("\n  smoke did not reach the end of its run\n");
+    process.exitCode = 1;
+  }
+});
 function check(name, cond, detail){
   if(cond) console.log("  ok   " + name);
   else { console.log("  FAIL " + name + (detail ? "  — " + detail : "")); fails.push(name); }
@@ -1143,8 +1166,7 @@ win.addEventListener("load", function(){
         check("app still renders and stays usable", w.document.getElementById("app").textContent.length > 500);
         check("warning is hidden when storage works", win.document.getElementById("nosave").hidden === true);
 
-        console.log(fails.length ? "\n" + fails.length + " smoke failure(s)\n" : "\n  ✓ smoke passed\n");
-        process.exit(fails.length ? 1 : 0);
+        finish();
       }, 200);
     });
     }

@@ -32,7 +32,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-+lMhppzvVQLzVG3QGD1M8qfl4w0GfuFAWt4Mn9TyVs0=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Ay6d4w+armxwc0swOk7mI71p/G46/wnKP19lb6zFLmA=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://6ummy-dev.github.io/Night-Watcher/","applicationCategory":"EntertainmentApplication","image":"https://6ummy-dev.github.io/Night-Watcher/icon.png","dateModified":"2026-08-05","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 133 films and 67 seasons of TV across 44 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- No trademarked logos, symbols, or proprietary lettering are used anywhere in
@@ -125,11 +125,11 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .chips{display:flex;gap:7px;overflow-x:auto;padding:2px 0 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .chips::-webkit-scrollbar{display:none;}
 .allrow{display:flex;justify-content:flex-end;margin:0 0 12px;}
-.allbtn{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 14px;border:1px solid var(--signal);border-radius:100px;color:var(--signal);min-height:34px;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;}
+.allbtn{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 14px;border:1px solid var(--signal);border-radius:100px;color:var(--signal);min-height:44px;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;}
 .allbtn::after{content:"\25B6";font-size:8px;transform:rotate(90deg);}
 .allbtn.shut::after{transform:none;}
 .allbtn:active{background:var(--card2);}
-.chip{flex:none;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 13px;border:1px solid var(--line2);border-radius:100px;color:var(--dust);min-height:34px;white-space:nowrap;}
+.chip{flex:none;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 13px;border:1px solid var(--line2);border-radius:100px;color:var(--dust);min-height:44px;display:inline-flex;align-items:center;white-space:nowrap;}
 .chip[aria-pressed="true"]{background:var(--bone);color:var(--ink);border-color:var(--bone);font-weight:600;}
 .search{width:100%;background:var(--card);border:1px solid var(--line);color:var(--bone);border-radius:10px;padding:12px 14px;font-family:var(--body);font-size:16px;margin-bottom:12px;-webkit-appearance:none;appearance:none;}
 .search::placeholder{color:var(--dim);}
@@ -155,7 +155,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .film{border-top:1px solid var(--line);}
 .frow{display:flex;align-items:flex-start;gap:12px;padding:12px 0;}
 .tick{width:30px;height:30px;flex:none;margin-top:1px;border-radius:50%;border:1.5px solid var(--dim);display:grid;place-items:center;font-size:13px;color:transparent;transition:.18s;position:relative;}
-.tick::before{content:"";position:absolute;top:-7px;left:-7px;right:-7px;bottom:-7px;}
+.tick::before{content:"";position:absolute;top:-10px;left:-10px;right:-10px;bottom:-10px;}
 .tick::after{content:"\2713";font-weight:600;}
 .film.done .tick{background:var(--bone);border-color:var(--bone);color:var(--ink);}
 .film.skip .tick{border-color:var(--line2);color:var(--dim);}
@@ -382,7 +382,7 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 74 sections, each one negative-tested.
+   qa/guards.js — 75 sections, each one negative-tested.
 
    Read those before changing something that looks redundant. Most of it is
    load-bearing, and this project has a long history of rules that only make
@@ -442,8 +442,8 @@ var PATH = [
  {i:"batman-year-one-2011",t:"Batman: Year One",y:2011,e:2,lo:1,d:"Frank Miller's origin, adapted almost panel for panel. Half of it is Jim Gordon's story.",b:["e"]},
  {i:"dc-showcase-catwoman-2011",t:"DC Showcase: Catwoman",y:2011,e:0,out:"none",d:"A fifteen-minute Paul Dini short packaged with Year One, picking Selina\u2019s thread back up with Eliza Dushku returning to the role. Batman sits it out entirely.",b:["s"],o:1},
  {i:"batman-the-killing-joke-2016",t:"Batman: The Killing Joke",y:2016,e:3,lo:28,d:"Alan Moore's Joker origin. The 25-minute Batgirl prologue is divisive; the adaptation proper starts after it.",b:["m"]},
- {i:"batman-under-the-red-hood-2010",t:"Batman: Under the Red Hood",y:2010,e:4,lo:2,d:"The best of the standalones. A dead Robin, a new player in Gotham, and the one question Bruce cannot answer.",b:["e"]},
  {i:"batman-death-in-the-family-2020",t:"Batman: Death in the Family",y:2020,e:4,lo:1,d:"An interactive branching film that rewinds to Jason Todd's death and lets you choose what happens instead. A direct companion to Under the Red Hood.",b:["c"]},
+ {i:"batman-under-the-red-hood-2010",t:"Batman: Under the Red Hood",y:2010,e:4,lo:2,d:"The best of the standalones. A dead Robin, a new player in Gotham, and the one question Bruce cannot answer.",b:["e"]},
  {i:"the-dark-knight-returns-part-one-2012",t:"The Dark Knight Returns \u2014 Part One",y:2012,e:9,lo:1,d:"Bruce at fifty-five, retired a decade, pulling the cowl back on for a Gotham that has rotted through.",b:["e"]},
  {i:"the-dark-knight-returns-part-two-2013",t:"The Dark Knight Returns \u2014 Part Two",y:2013,e:9,lo:2,d:"The Joker wakes up and Superman comes to Gotham. One film in two halves \u2014 watch them back to back.",b:["e","m"]},
  {i:"the-dark-knight-returns-deluxe-edition-2013",t:"The Dark Knight Returns \u2014 Deluxe Edition",y:2013,e:9,lo:3,d:"Both parts recut into one R-rated feature. Only worth it on a rewatch.",b:["m"],o:1}]},
@@ -828,7 +828,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "1.7.5";
+var BUILD = "1.7.6";
 var KEY = "batwatch-v3";
 var SITE = "https://6ummy-dev.github.io/Night-Watcher/";
 var canSave = true;

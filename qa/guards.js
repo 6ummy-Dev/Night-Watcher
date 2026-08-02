@@ -83,6 +83,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      41   The restore box has a real label
      61   Contrast is measured on the ink that renders
      62   Nothing focusable is small enough to zoom
+     75   A control is as big as a finger
 
    DEPLOY
      10   No vendored third-party code
@@ -586,7 +587,11 @@ var actual = {
 
 [["meta description", /<meta name="description" content="([^"]+)"/],
  ["og:description",   /<meta property="og:description" content="([^"]+)"/],
- ["JSON-LD description", /"description":"([^"]+)"/]
+ /* The JSON-LD carries two descriptions \u2014 a short one on the WebSite node and
+    the counted one on the WebApplication node. This matched the first, which
+    states no counts, so it had been checking nothing at all and passing. The
+    warn below is what surfaced it. Match the one with the numbers in it. */
+ ["JSON-LD description", /"description":"([^"]*\d+ films[^"]*)"/]
 ].forEach(function(t){
   var m = HTML.match(t[1]);
   if(!m) return warn(t[0] + " is missing");
@@ -596,7 +601,13 @@ var actual = {
    [/(\d+)\s+continuities/, actual.continuities, "continuities"]
   ].forEach(function(c){
     var got = txt.match(c[0]);
-    if(got && parseInt(got[1], 10) !== c[1]){
+    /* Silence used to read as success here: reword the sentence so a count no
+       longer matches and this section went green having checked nothing. It is
+       the counts-in-prose failure one level up, in the thing that watches for
+       counts in prose. */
+    if(!got) return warn(t[0] + " no longer states a " + c[2] + " count \u2014 " +
+                         "nothing is checking that number any more");
+    if(parseInt(got[1], 10) !== c[1]){
       fail(t[0] + " claims " + got[1] + " " + c[2] + ", data has " + c[1]);
     }
   });
@@ -3140,6 +3151,62 @@ if(!/function legendBlock/.test(HTML) ||
   note(rows.length + " dated releases, " + rows[rows.length - 1].d + " to " + rows[0].d +
        (ahead > 0 ? " \u2014 newest is " + ahead + " day(s) ahead of this machine\u2019s clock"
                   : ""));
+})();
+
+/* ---------- 75. A control is as big as a finger ---------- */
+/* The stars were given a 36-44px treatment in 1.4.x and it was written down;
+   nothing enforced it, so the filter chips and the All button shipped at 34
+   and the ticks at 30 and 24 with no hit area, and stayed there through two
+   audits. WCAG 2.5.5 asks for 44. A control reaches it either by being that
+   tall or by carrying an inset ::before that pads it out — both are counted
+   here, because the tick is 30px on purpose and the target around it is not. */
+
+(function(){
+  var css = (HTML.match(/<style>([\s\S]*?)<\/style>/g) || []).join("\n")
+              .replace(/\/\*[\s\S]*?\*\//g, "");
+  var rules = css.match(/[^{}]+\{[^}]*\}/g) || [];
+  var CONTROLS = ["chip", "allbtn", "tick", "trow", "bkbtn", "ucard", "srow"];
+  var height = {}, pad = {};
+  rules.forEach(function(rule){
+    var sel  = rule.slice(0, rule.indexOf("{")).trim();
+    var body = rule.slice(rule.indexOf("{"));
+    /* The class has to be the subject of the selector, not an ancestor in it:
+       ".srow .sb{height:5px}" is a progress bar inside a 46px row, and reading
+       it as the row's height made this section fail on its first run. */
+    var subject = sel.split(",")[0].trim().split(/[\s>+~]+/).pop();
+    CONTROLS.forEach(function(c){
+      if(!new RegExp("\\." + c + "(\\b|::)").test(subject)) return;
+      var mh = body.match(/(?:min-height|height):\s*([\d.]+)px/);
+      if(mh && !/::/.test(sel)){
+        var v = parseFloat(mh[1]);
+        if(height[c] === undefined || v < height[c]) height[c] = v;
+      }
+      /* An inset ::before is a hit area, not decoration, when every edge is
+         negative. */
+      if(/::before/.test(sel) && /position:absolute/.test(body)){
+        var ins = body.match(/top:(-?[\d.]+)px;left:(-?[\d.]+)px;right:(-?[\d.]+)px;bottom:(-?[\d.]+)px/);
+        if(ins && parseFloat(ins[1]) < 0){
+          pad[c] = Math.max(pad[c] || 0, -parseFloat(ins[1]) * 2);
+        }
+      }
+    });
+  });
+  var missing = CONTROLS.filter(function(c){ return height[c] === undefined; });
+  if(missing.length){
+    warn("no declared height for the control(s) " + missing.join(", ") +
+         " — their target cannot be measured from the CSS");
+  }
+  Object.keys(height).forEach(function(c){
+    var eff = height[c] + (pad[c] || 0);
+    if(eff < 44){
+      fail("." + c + " gives a " + eff + "px touch target (" + height[c] + "px drawn" +
+           (pad[c] ? " plus a " + pad[c] + "px hit area" : ", no hit area") +
+           ") — 44 is the floor, reached by height or by an inset ::before");
+    }
+  });
+  note("touch targets measured: " + Object.keys(height).sort().map(function(c){
+    return "." + c + " " + (height[c] + (pad[c] || 0));
+  }).join(", "));
 })();
 
 /* ---------- report ---------- */

@@ -19,6 +19,53 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.7.6] — 2026-08-05
+
+Backlog. Four things 1.7.5 said it would do and did not, and one exclusion
+re-checked before the tag.
+
+### Fixed
+
+- ***The Comic Adaptations* lists its one real pair the right way round.**
+  *Death in the Family* comes before *Under the Red Hood*, which is what their
+  life positions have always said and the order the two were made to be watched
+  in. The group is exempted from the era-direction guard as a weave, on the
+  recorded ground that its order is deliberately the life order; that one pair
+  made the reason untrue.
+- **The filter chips and the All button are 44px tall**, not 34. The stars have
+  carried a 36–44px target since 1.4.x and the ticks were given a hit area in
+  1.7.5; these were on the same list and were missed.
+- **Guards section 15 warns when a `<meta>` count stops being stated at all.**
+  Every sub-check was `if(got)`, so rewording a count out of the sentence left
+  the section verifying nothing and reporting success — the counts-in-prose
+  failure, inside the thing that watches for counts in prose.
+- **`qa/smoke.js` decides its exit code in one place.** It was set inside the
+  third document's load handler, so a run that printed failures could still exit
+  0 if that event never fired. A watchdog and an exit hook now report the same
+  way if the run never reaches the end.
+
+### Added
+
+- **The negative test suites are in the repository.** Twelve suites, 155
+  fixtures, at `qa/negative/`, with `run-all.sh` to drive them. Each one breaks a
+  guard on purpose in a throwaway copy of the tree and asserts it goes red for
+  the right reason — including the two that kill the mutations the independent QA
+  of 1.7.2 got past every guard and every smoke check. They had only ever existed
+  outside the project, which meant nobody could review them and CI could not run
+  them. A pull-request-only CI job runs them now; pushes to `main` stay fast.
+
+### Changed
+
+- **`LICENSE` carries the canonical AGPL text**, verbatim from gnu.org. The
+  shipped copy had been reflowed, and the licence's own terms say changing it is
+  not allowed. The `WHAT THIS COVERS` preamble above the divider is ours and
+  stays.
+
+### Checked, unchanged
+
+- ***Lanterns*** (premiered August 2026) and ***My Adventures with Superman***
+  season three both still have no Batman and no Gotham. Both exclusions hold.
+
 ## [1.7.5] — 2026-08-05
 
 Every open item closed in one build: the 1.7.2 soak register and an independent

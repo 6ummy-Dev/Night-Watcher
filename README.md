@@ -86,6 +86,7 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `qa/guards.js` | Build guards — run before every commit (see below) |
 | `qa/frozen-ids.json` | Snapshot of every `i:` slug, so a rename can't slip through |
 | `qa/smoke.js` | Optional headless render test (requires jsdom) |
+| `qa/negative/` | One suite per release: each fixture breaks a guard on purpose and asserts it fails |
 | `CHANGELOG.md` | Every shipped change, newest first. Enforced by the guards |
 | `LICENSE` | AGPL-3.0 for the code, with the writing, DC's marks and the fonts set out separately |
 | `SECURITY.md` | How to report something privately |
@@ -169,7 +170,9 @@ AGPL-3.0-only (`SPDX-License-Identifier: AGPL-3.0-only`). Night Watcher is free
 and stays free — fork it, change it, host it. The one condition is that if you
 put a modified version in front of other people, you publish your source too.
 The grant is version 3 and no later version, deliberately; the app's footer links
-back to this repository so anyone running a fork can find what they owe.
+back to this repository so anyone running a fork can find what they owe. The
+licence text below the divider in `LICENSE` is the canonical one from gnu.org,
+verbatim \u2014 its own terms say changing it is not allowed.
 
 That covers the writing as well as the code: the entry descriptions, the
 continuity groupings, and the era and tier judgements. They live in the same file
