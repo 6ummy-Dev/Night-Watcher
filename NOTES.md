@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 89 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 90 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -1171,13 +1171,26 @@ watching, was not.
 
 ### The crawlable block is generated, not written
 
-A `<noscript>` list of eleven eras and forty-four continuities is exactly the
-kind of thing that goes stale in one release and is never noticed, because the
-only people who read it are crawlers. Guards section 78 rebuilds it from `PATH`
-and `ERAS` on every run and compares byte for byte; `npm run bless` writes it.
+A list of eleven eras, forty-four continuities and the seventy-four curated
+titles is exactly the kind of thing that goes stale in one release and is never
+noticed, because the only people who read it are crawlers. Guards section 78
+rebuilds it from the data on every run and compares byte for byte; `npm run
+bless` writes it. The title list makes the same cut the app's tier filter makes,
+through the extracted `tierOf()` — never a copy of it.
 
-It sits above the empty `<main>` on purpose. That is also checked, because a
-correct block rendered after the thing it substitutes for is worth less.
+It lived in `<noscript>` above the empty `<main>` until 1.8.6, and both SEO
+analyzers skipped that element entirely, because `noscript` is a fallback most
+parsers treat as inactive — the block reached nobody it was written for. It is
+the initial content of `<main id="view">` now: the app's first render replaces
+it wholesale, so there is no removal code and nothing is hidden from anyone,
+and a reader without JavaScript simply gets the page. The position check
+inverted with the move — the block must sit inside `#view`, because a copy
+anywhere else stays on the page underneath the app.
+
+Its links are the page's only anchors, and guards section 90 ties every one of
+them to section 72's frozen route vocabulary — the seed is the one part of the
+page a non-rendering crawler reads, so a dead link there is dead precisely
+where nobody watches.
 
 ### Two signals, because one of them is a request
 

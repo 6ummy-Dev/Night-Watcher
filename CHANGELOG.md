@@ -19,6 +19,77 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.8.6] — 2026-08-03
+
+What a crawler that does not run JavaScript sees. Nothing a reader with
+JavaScript sees changes at all.
+
+### Changed
+
+- **The crawlable catalogue moved out of `<noscript>` and into
+  `<main id="view">`.** Both SEO analyzers skipped the fallback element entirely
+  — one reported "no H2 headings" against a page carrying seven headings, the
+  other counted nine words against 1,957 characters — because most parsers treat
+  `<noscript>` as inactive. The block is the initial content of `#view` now: the
+  app's first render replaces it wholesale, so there is no removal code, no
+  class machinery and no CSS, and for a reader without JavaScript it is not a
+  fallback, it is simply the page. Guard 78's position assertion inverted — the
+  block must sit *inside* `#view`, a copy anywhere else fails the build, and so
+  does any `<noscript>` returning to the file.
+- **The seed now lists the curated route: the 74 entries the app marks
+  Essentials or Core**, flat `Title (Year)`, in universe order. Generated from
+  the data by the same generator that builds the rest of the block, with the
+  tier cut running through the extracted `tierOf()` rather than a copy of it.
+  The two 1966 *Batman*s legitimately share a title and a year, so a collision
+  carries its sub-title and nothing else does. Optional's 126 entries stay out:
+  that long tail is the thing the app exists to make skippable, and all 200
+  would put the file 802 bytes over the raw budget — a budget conversation, not
+  a seed decision.
+- **The seed's one paragraph now says what the page is and links where it
+  goes.** The `<title>`'s own words — *Batman watch orders that spoil nothing* —
+  appear in the body, and the page's first real anchors carry the three
+  orderings and the two other tabs: `#universes`, `#life`, `#release`, `#next`,
+  `#progress`. The page had zero anchors before this.
+
+### Added
+
+- **Guard 90 — the seed links carry only known tokens.** Guard 72 froze the
+  route vocabulary in 1.7.6 after a deleted `#life` branch survived the entire
+  harness; the vocabulary now sits at file scope and both sections read the one
+  list. A token renamed in the app cannot quietly leave dead links in the one
+  part of the page a non-rendering crawler reads — which is the reason the seed
+  got real links instead of five hand-written anchors.
+- **The credit, in structured data only.** The JSON-LD `WebApplication` node
+  carries `author` and `creator` as the public GitHub handle and `sameAs`
+  pointing at the repository. Nothing visible changed — the no-footer-credit
+  decision from 1.7.5 stands — and the `application/ld+json` block is not
+  executable script, so the CSP hash still covers exactly the one script it
+  always did.
+- **Smoke +3**: the seed is gone after the first render, its links carry the
+  five route tokens, and the titles render before boot — that last one parsed
+  with scripts off, which is the entire audience the block exists for.
+- `qa/negative/negtest186.sh` — the seed block's guards made to fail for the
+  right reasons: a title the data does not have, an emptied `#view`, the block
+  escaping `<main>`, a `<noscript>` return, an unknown link token, an external
+  link, stripped links, and a boot that never replaces the seed.
+
+### Ops — outside the tree, recorded so QA stops asking
+
+- **Cloudflare Crawler Hints enabled for `nightwatcher.life`, 3 Aug 2026.** The
+  IndexNow route: no key file, no served file, nothing for the guards to police.
+  Google does not participate; this reaches Bing, Yandex, Seznam and Naver, and
+  for a single URL that changes on release it captures the value available. The
+  dashboard labels the feature Beta, and enabling it accepts Cloudflare's
+  Supplemental Terms for it — both accepted deliberately.
+- **GitHub security settings hardened, 3 Aug 2026 — dashboard-side, so this
+  entry is the only thing in the tree that can say so.** Now on: private
+  vulnerability reporting, the dependency graph, Dependabot alerts with malware
+  alerts, grouped Dependabot security updates, and CodeQL default setup on both
+  detected languages; fork pull-request workflow approval tightened to all
+  external contributors. All additive. Deliberately not enabled, each for its
+  cost: required PRs on `main`, signed commits, action SHA-pinning, release
+  immutability, AI findings (preview), and Dependabot version updates.
+
 ## [1.8.5] — 2026-08-03
 
 The standing decisions stop being prose. 1.8.4 skipped.

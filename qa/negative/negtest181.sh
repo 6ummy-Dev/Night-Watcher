@@ -50,19 +50,23 @@ k=list(d)[0];d[k]['why']='typo'
 io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=1))"
 
 echo "--- 78: what a crawler reads"
+# 1.8.6 moved the block out of <noscript> and into <main id="view">, and the
+# position assertion inverted with it. Same intent, current mechanism — the
+# fixtures moved with the guard, because a fixture for a shape that no longer
+# exists protects nothing (the 1.7.2 QA's own finding).
 run_case "the crawlable block is deleted" \
-  "there is no <noscript> block" \
-  "${P}import re;s=re.sub(r'<noscript>[\\s\\S]*?</noscript>\\n','',s,count=1);${W}"
+  "the crawlable catalogue is gone" \
+  "${P}import re;m=re.search(r'<main id=\"view\">[\\s\\S]*?</main>',s);assert m
+s=s[:m.start()]+'<main id=\"view\"></main>'+s[m.end():];${W}"
 
 run_case "a continuity is renamed and the block is not rebuilt" \
   "no longer matches the data" \
   "${P}a='name:\"Arkhamverse\"';assert a in s;s=s.replace(a,'name:\"The Arkham Games\"',1);${W}"
 
-run_case "the block sinks below the empty main" \
-  "renders after the empty" \
-  "${P}import re;m=re.search(r'<noscript>[\\s\\S]*?</noscript>\\n',s);assert m
-blk=m.group(0);s=s[:m.start()]+s[m.end():]
-a='  <main id=\"view\"></main>\n';assert a in s;s=s.replace(a,a+blk,1);${W}"
+run_case "the block sinks below the app, outside #view" \
+  'sits outside <main id="view">' \
+  "${P}import re;m=re.search(r'<main id=\"view\">([\\s\\S]*?)</main>',s);assert m
+s=s[:m.start()]+'<main id=\"view\"></main>\\n'+m.group(1)+s[m.end():];${W}"
 
 echo "--- the noindex an old origin asks for"
 run_case "the off-canonical origin stops asking not to be indexed" \

@@ -122,6 +122,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      68   The life path is a timeline, not a filing order
      69   The universes run in the order their stories start
      70   An entry outside the timeline says why
+     90   The seed links carry only known tokens
 
    META
      65   The file points at where its reasoning went
@@ -3169,19 +3170,25 @@ if(!/function legendBlock/.test(HTML) ||
    understands anything. Deleting the #life branch survived the whole harness
    and every smoke check in the 1.7.2 QA — and #life is the link printed in the
    README, so every copy of it ever shared would have died on a green build.
-   These tokens are a published interface; they get a frozen vocabulary. */
+   These tokens are a published interface; they get a frozen vocabulary.
+
+   ROUTE_VOCAB sits at file scope because section 90 reads it too: the seed
+   block's anchors must come from this list and no other, and a second copy of
+   the vocabulary would drift from this one the way every copy drifts. */
+
+var ROUTE_VOCAB = [
+  ["life",      {tab:"watch", mode:"life"}],
+  ["release",   {tab:"watch", mode:"release"}],
+  ["universes", {tab:"watch", mode:"continuity"}],
+  ["path",      {tab:"watch", mode:"continuity"}],
+  ["progress",  {tab:"stats"}],
+  ["next",      {tab:"next"}],
+  ["series",    {scope:"all"}],
+  ["movies",    {scope:"movies"}]
+];
 
 (function(){
-  var VOCAB = [
-    ["life",      {tab:"watch", mode:"life"}],
-    ["release",   {tab:"watch", mode:"release"}],
-    ["universes", {tab:"watch", mode:"continuity"}],
-    ["path",      {tab:"watch", mode:"continuity"}],
-    ["progress",  {tab:"stats"}],
-    ["next",      {tab:"next"}],
-    ["series",    {scope:"all"}],
-    ["movies",    {scope:"movies"}]
-  ];
+  var VOCAB = ROUTE_VOCAB;
   var src = fn("routeHash");
   VOCAB.forEach(function(pair){
     var tok = pair[0], want = pair[1];
@@ -3518,26 +3525,45 @@ if(!/function legendBlock/.test(HTML) ||
 })();
 
 /* ---------- 78. A crawler sees a catalogue, not an empty page ---------- */
-/* Everything this app renders is written by JavaScript into an empty <main>,
-   so a crawler that does not run it saw the shell and nothing else. That
-   mattered less on a Pages subdirectory than it does on a domain whose whole
-   job is to be found.
+/* Everything this app renders is written by JavaScript into <main id="view">,
+   so a crawler that does not run it saw the shell and nothing else. The block
+   lived in <noscript> until 1.8.6, and both SEO analyzers skipped that element
+   entirely — one reported "no H2 headings" against a page with seven, the other
+   counted nine words in 1,957 characters — because noscript is a fallback
+   element most parsers treat as inactive. It is the initial content of #view
+   now: the app's first render replaces it wholesale, a reader without
+   JavaScript simply gets the page, and nothing is hidden from anyone.
 
    The block is generated from the data rather than typed. A hand-written list
-   of fifty-five names would be stale within a release and nobody would notice,
-   because nobody reads it — which is exactly the failure this file exists to
-   prevent. Rebuilt here on every run and compared; npm run bless writes it. */
+   of a hundred and twenty-nine names would be stale within a release and nobody
+   would notice, because nobody reads it — which is exactly the failure this
+   file exists to prevent. Rebuilt here on every run and compared; npm run bless
+   writes it. The curated titles make the same cut the app's tier filter makes,
+   through the extracted tierOf(), never a copy of it. */
 
 (function(){
   var films = 0, seasons = 0;
   PATH.forEach(function(g){ g.films.forEach(function(f){ f.k === "tv" ? seasons++ : films++; }); });
   function e(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  var picked = FILMS.filter(function(f){ return tierOf(f) !== "o"; });
+  /* Two entries may legitimately share a title and a year — the 1966 series and
+     the 1966 film do. Two identical lines read as a mistake, so a collision
+     carries its sub-title and nothing else does. */
+  var twice = {};
+  picked.forEach(function(f){ var k = f.t + "|" + f.y; twice[k] = (twice[k] || 0) + 1; });
+  var titles = picked.map(function(f){
+    var dis = twice[f.t + "|" + f.y] > 1 && f.sub ? " — " + e(f.sub) : "";
+    return "  <li>" + e(f.t) + dis + " (" + f.y + ")</li>";
+  });
   var want = [
-    "<noscript>",
+    '<main id="view">',
     "<h2>Every Batman story ever filmed</h2>",
     "<p>Night Watcher lists " + films + " films and " + seasons +
-      " seasons of television across " + PATH.length + " continuities, in three orders: " +
-      "by universe, by the arc of one life, or by release. The app needs JavaScript; " +
+      " seasons of television across " + PATH.length + " continuities, in Batman " +
+      'watch orders that spoil nothing: <a href="#universes">by universe</a>, ' +
+      '<a href="#life">by the arc of one life</a>, or <a href="#release">by release</a>. ' +
+      '<a href="#next">Next up</a> names the next unwatched entry, and ' +
+      '<a href="#progress">Progress</a> keeps the tally. The app needs JavaScript; ' +
       "what follows is what it covers.</p>",
     "<h3>The eras of Bruce’s life</h3>",
     "<ol>",
@@ -3548,31 +3574,53 @@ if(!/function legendBlock/.test(HTML) ||
     "<ol>",
     PATH.map(function(g){ return "  <li>" + e(g.name) + "</li>"; }).join("\n"),
     "</ol>",
-    "</noscript>"
+    "<h3>The essentials and the core route</h3>",
+    "<ol>",
+    titles.join("\n"),
+    "</ol>",
+    "</main>"
   ].join("\n");
 
-  var got = (HTML.match(/<noscript>[\s\S]*?<\/noscript>/) || [""])[0];
+  if(HTML.indexOf("<noscript") >= 0){
+    fail("the crawlable catalogue went back into <noscript> — both analyzers " +
+         "treated that element as inactive, which is why 1.8.6 moved it inside " +
+         '<main id="view"> where the first render replaces it');
+  }
+  var got = (HTML.match(/<main id="view">[\s\S]*?<\/main>/) || [""])[0];
   if(!got){
-    fail("there is no <noscript> block — a crawler that does not run JavaScript " +
-         "sees an empty <main> and nothing else");
+    fail('there is no <main id="view"> block — the app has nowhere to render ' +
+         "and a crawler sees nothing at all");
     return;
   }
   if(got !== want){
     if(BLESS){
       fs.writeFileSync(path.join(PUBLIC, "index.html"),
                        HTML.replace(got, want), "utf8");
-      note("rewrote the <noscript> catalogue");
+      note("rewrote the crawlable catalogue inside #view");
+    } else if(got === '<main id="view"></main>'){
+      fail('the crawlable catalogue is gone — <main id="view"> is empty, so a ' +
+           "crawler that does not run JavaScript sees an empty page. " +
+           "Fix with: npm run bless");
     } else {
-      fail("the <noscript> catalogue no longer matches the data — it lists names " +
+      fail("the crawlable catalogue no longer matches the data — it lists names " +
            "that have changed. Fix with: npm run bless");
     }
   }
-  if(HTML.indexOf("<noscript>") > HTML.indexOf('<main id="view">')){
-    fail("the <noscript> catalogue renders after the empty <main> — it should be " +
-         "the first content on the page, not the last");
+  /* Inverted in 1.8.6: the block used to sit above <main> and had to; it must
+     now be INSIDE #view, where the first render replaces it. A copy anywhere
+     else stays on the page underneath the app for every reader. */
+  var mainAt = HTML.indexOf('<main id="view">');
+  var mark = "<h2>Every Batman story ever filmed</h2>";
+  var first = HTML.indexOf(mark);
+  if(first >= 0 && (first < mainAt || first > mainAt + got.length ||
+                    HTML.indexOf(mark, first + 1) >= 0)){
+    fail('the crawlable catalogue sits outside <main id="view"> — the first ' +
+         "render only replaces what is inside #view, so a copy anywhere else " +
+         "stays on the page under the app");
   }
   note("crawlable catalogue: " + ERAS.filter(function(x){ return x.k !== 0; }).length +
-       " eras, " + PATH.length + " continuities, " + got.length + " bytes");
+       " eras, " + PATH.length + " continuities, " + picked.length +
+       " curated titles, " + got.length + " bytes");
 
   /* The old origin has to keep serving and cannot send a header, so the only
      way it can ask to be left out of an index is to say so in the page. The
@@ -3955,6 +4003,41 @@ if(!/function legendBlock/.test(HTML) ||
   } else {
     note("frozen-ID exceptions: 1, recorded, window closed");
   }
+})();
+
+/* ---------- 90. The seed links carry only known tokens ---------- */
+/* 1.8.6 put real anchors in the crawlable seed — the one part of the page a
+   non-rendering crawler reads. Guard 72 froze the route vocabulary in 1.7.6
+   after a deleted #life branch survived the entire harness, so the two are tied
+   here: a token renamed in the app cannot quietly leave dead links in the one
+   place nobody would ever notice them. */
+
+(function(){
+  var seed = (HTML.match(/<main id="view">[\s\S]*?<\/main>/) || [""])[0];
+  if(!seed) return; /* section 78 has already failed the build for this */
+  var known = ROUTE_VOCAB.map(function(p){ return p[0]; });
+  var hrefs = seed.match(/href="[^"]*"/g) || [];
+  if(!hrefs.length){
+    fail("the seed block carries no links at all — 1.8.6 put the three orderings " +
+         "and the two other tabs one tap away for a reader without JavaScript, " +
+         "and they are gone");
+  }
+  hrefs.forEach(function(a){
+    var h = a.slice(6, -1);
+    if(h.charAt(0) !== "#"){
+      fail("the seed links out to " + h + " — everything in the seed is this page, " +
+           "and the one crawlable block must not hand its readers to another origin");
+      return;
+    }
+    h.slice(1).toLowerCase().split(/[-+]/).forEach(function(tok){
+      if(known.indexOf(tok) < 0){
+        fail('the seed links to "' + h + '" but "' + tok + '" is not in guard ' +
+             "72's frozen vocabulary — routeHash() would do nothing with it, and " +
+             "a dead link in the seed is dead precisely where nobody watches");
+      }
+    });
+  });
+  note("seed links: " + hrefs.length + ", every token known to guard 72");
 })();
 
 /* ---------- report ---------- */

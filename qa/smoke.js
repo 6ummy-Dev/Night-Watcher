@@ -105,6 +105,31 @@ win.addEventListener("load", function(){
     check("the intro paragraph renders once", doc.querySelectorAll("#view .ibody").length === 1,
           doc.querySelectorAll("#view .ibody").length + " copies");
 
+    /* --- 1.8.6: the crawlable seed boots away, and stands in before boot --- */
+    /* The seed is the initial content of #view; the first render must replace
+       it. Its marker phrase exists nowhere in the app's own views. */
+    check("the seed catalogue is gone after boot",
+          view0.textContent.indexOf("what follows is what it covers") < 0,
+          "the first render left the seed in place");
+    (function(){
+      /* A second document, scripts off — the reader this block exists for. */
+      var inert = new jsdom.JSDOM(html);
+      var sv = inert.window.document.getElementById("view");
+      var lis = sv ? sv.querySelectorAll("ol li").length : 0;
+      var expect = win.ERAS.filter(function(x){ return x.k !== 0; }).length +
+                   win.PATH.length +
+                   FILMS.filter(function(f){ return tierOf(f) !== "o"; }).length;
+      check("the titles render before boot", lis === expect,
+            lis + " list items with scripts off, expected " + expect);
+      var hrefs = sv ? Array.prototype.map.call(sv.querySelectorAll("a"), function(a){
+        return a.getAttribute("href"); }) : [];
+      check("the seed links carry the five route tokens",
+            hrefs.length === 5 &&
+            ["#universes", "#life", "#release", "#progress", "#next"].every(function(t){
+              return hrefs.indexOf(t) >= 0; }),
+            hrefs.join(" ") || "no links");
+    })();
+
     /* --- choosing one: through the real click handler, not by assignment --- */
     doc.querySelector('.pick[data-path="life"]').click();
     check("choosing sets both path and mode", S.path === "life" && S.mode === "life",
