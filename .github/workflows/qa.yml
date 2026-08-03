@@ -64,7 +64,7 @@ jobs:
   # guards work was produced only on the release machine, by hand — which is the
   # exact situation this workflow was created to end.
   #
-  # Cost, measured rather than averaged: 243 fixtures, of which 218 run guards.js
+  # Cost, measured rather than averaged: 264 fixtures, of which 239 run guards.js
   # at about 0.5s each and 25 run smoke.js at about 21s each. The smoke fixtures
   # are 84% of the wall clock and 11% of the fixtures, which is not what the
   # per-fixture average suggests. run-all.sh runs the suites concurrently, one
