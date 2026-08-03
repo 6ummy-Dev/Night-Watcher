@@ -20,6 +20,66 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [2.1.0] — 2026-08-03
+
+Housekeeping, from three directions at once: the SEO/AEO/GEO audits' short
+list, the 2.0.0 soak's two Belt notes, and the buckle the owner locked by
+mock (26 / 26 / 26 / 22, full words). Still no Knightfall — the trigger is
+the trigger.
+
+### Changed
+
+- **The buckle, locked.** Equal 26% path segments, the buckle at ~22% with
+  the two-line hierarchy — format over types, full words in every state,
+  the chevron tucked in the corner. No abbreviations survived the mock
+  round. Guard 96 holds the split and the hierarchy.
+- **The close mirrors the open.** The pouches animated out but vanished
+  shut — the soak note. Closing now stages: the belt handler marks the
+  pouches closing, the types row tucks first, format follows, and the
+  re-render lands after the exit plays. Reduced motion closes instantly,
+  no timeout. Guard 96 holds the exit keyframes, the staged handler, and
+  the reduced-motion opt-out.
+- **The crawlable seed grew its answer surface.** The section headings are
+  H2 now (the H1 → H3 jump Yoast flagged is closed), and a **Straight
+  answers** FAQ closes the seed: five real questions — which order, the
+  animated series, do I have to watch everything, is it spoiler-safe,
+  where can I watch — answered in 2–3 sentences each, the first one
+  derived from MODENOTE so the method answer cannot drift from the app's
+  own copy. Planned as seven; trimmed to five when the weight said so
+  (the privacy answer lives in the featureList already, and the Joker
+  shelf explains itself in the app).
+- **A visible freshness date.** `BUILT` beside `BUILD` in the Progress
+  footer — "updated 2026-08-03" — and guard 67 fails the build if it ever
+  disagrees with the newest CHANGELOG date. The audits scored freshness
+  down for dates only machines could see.
+
+### Added
+
+- **FAQPage in the JSON-LD** — the same five questions, from the same
+  single source (`buildFAQ()` in the guards), blessed like the ItemList;
+  guard 100 fails if seed and schema ever answer differently.
+- **`docs/llms.txt`** — the site described in plain text for generative
+  engines: the claim, the three orderings, the counts (guarded against
+  the data like the README's), the privacy stance, the canonical URL.
+  Costs no page weight; out of the offline shell.
+- **`docs/404.html`** — the wrong-alley page. One sentence and a door,
+  self-contained, noindexed, and served with a real 404 status:
+  wrangler's `not_found_handling` moved `"none"` → `"404-page"`, which
+  keeps the original rule (no SPA fallback, no cached-as-HTML 200s) and
+  loses only the default shrug. Guard 101 holds all of it.
+- **`qa/negative/negtest210.sh`** — fixtures for the locked buckle, the
+  staged close, the freshness date, the FAQ sync, llms.txt and the 404.
+
+### Ops — outside the tree, recorded so QA stops asking
+
+- The owner's panel batch, done 3–4 Aug: **SPF added** (DMARC was already
+  live at `p=quarantine`), **HSTS on** (Always-Use-HTTPS had soaked),
+  **redirect chain checked**, **favicon flag confirmed a false
+  positive**, Bing/GSC rechecks run.
+- The audits' remaining findings are triaged in the project
+  (`releases/audit-triage-2.1.0.md`): declined items recorded so they are
+  not relitigated; authority/backlink work handed to the promotion plan.
+
 ## [2.0.0] — 2026-08-03
 
 The Belt. The app's three stacked control rows become one strip with pouches

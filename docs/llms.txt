@@ -1,0 +1,27 @@
+# Night Watcher
+
+> One path through every Batman. An unofficial fan guide that maps every
+> Batman story ever filmed — 133 films and 67 seasons of television across
+> 44 continuities — into watch orders that spoil nothing.
+
+Canonical URL: https://nightwatcher.life/
+Source (AGPL, free software): the Night-Watcher repository on GitHub, user 6ummy-Dev
+
+## The three orderings
+
+- By universe — every continuity kept whole, in its own story order; nothing spoils anything ahead of it. The completist's way through.
+- Bruce's life — every continuity blended into one chronology, from before there is a Batman to after there is not.
+- Release order — 1943 to 2028, the only objectively complete ordering.
+
+## What it is
+
+- A single-page, single-file web app. 74 titles are curated as the essentials and the core route; the rest is labeled optional side material.
+- Progress, ratings and skips stay in the visitor's browser. No accounts, no advertising, nothing tracks what anyone watches, works offline.
+- Content ratings shown are the certified MPA / TV Parental Guidelines values — sourced or absent, never guessed.
+- Availability is never stored; every entry links a fresh where-to-watch search instead.
+
+## For engines
+
+- The full crawlable catalogue — the eras of Bruce's life, all 44 continuities, the 74 curated titles, and a FAQ — is in the root page's initial HTML, no JavaScript required.
+- Schema.org on the root: WebSite, WebApplication, ItemList (the 74 curated titles), FAQPage.
+- The catalogue is maintained continuously; sitemap lastmod reflects the latest release.

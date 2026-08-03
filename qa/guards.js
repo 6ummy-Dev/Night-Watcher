@@ -132,6 +132,8 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      90   The seed links carry only known tokens
      91   The card the metas promise is the card that ships
      95   The curated list is machine-readable
+     100  The straight answers are machine-readable
+     101  The site answers off the app too
 
    META
      65   The file points at where its reasoning went
@@ -189,6 +191,36 @@ vm.runInContext(
 );
 
 var PATH = sandbox.PATH, ERAS = sandbox.ERAS, DECADES = sandbox.DECADES, BADGE = sandbox.BADGE;
+/* The FAQ: one source. Guard 78 renders it into the crawlable seed, guard
+   100 mirrors it into the FAQPage schema node, and the two can only move
+   together. Q1 derives from MODENOTE so the method answer cannot drift from
+   the copy the app itself shows. */
+function buildFAQ(FILMS, MODENOTE, tierOf){
+  var yrs = FILMS.map(function(f){ return f.y; });
+  var span = Math.min.apply(null, yrs) + "\u2013" + Math.max.apply(null, yrs);
+  function first(k){ return MODENOTE[k].split(". ")[0].replace("{span}", span) + "."; }
+  var films = 0, seasons = 0;
+  FILMS.forEach(function(f){ f.tv ? seasons++ : films++; });
+  var curated = FILMS.filter(function(f){ return tierOf(f) !== "o"; }).length;
+  return [
+    ["Which order should I watch Batman in?",
+     "Three honest answers instead of one fake one. By universe: " + first("continuity") +
+     " Bruce\u2019s life: " + first("life") + " Release order: " + first("release")],
+    ["Does this include the animated series?",
+     "Yes \u2014 all of it. " + seasons + " seasons of television ride alongside the " + films +
+     " films, animated and live action both, and a switch narrows the shelf whenever you want it narrower."],
+    ["Do I have to watch everything?",
+     "No. " + curated + " titles are marked as the essentials and the core route \u2014 the spine of " +
+     "the thing. Everything else is optional side material, labeled as exactly that."],
+    ["Is it really spoiler-safe?",
+     "That is the whole premise. Universes stay whole, and every ordering is built so nothing " +
+     "renders ahead of an entry it would give away."],
+    ["Where can I watch all of these?",
+     "Availability changes constantly and differs by country, so nothing here stores an answer " +
+     "that would rot \u2014 every entry carries a fresh where-to-watch search instead."]
+  ];
+}
+
 /* Eras render 1..10 and then 0, so era 0 is LAST, not first. Comparing e: values
    numerically would read "outside any timeline" as earlier than "before the cowl". */
 function eraRank(k){
@@ -207,6 +239,7 @@ PATH.forEach(function(g, gi){
                 r:f.r||"", b:f.b||[], o:!!f.o});
   });
 });
+var FAQDATA = buildFAQ(FILMS, sandbox.MODENOTE, tierOf);
 
 /* ---------- 1. IDs present, unique, well formed ----------------------- */
 
@@ -551,7 +584,7 @@ if(PUBLIC !== ROOT){
   var shell = (fs.readFileSync(swPath2, "utf8").match(/var SHELL\s*=\s*\[([\s\S]*?)\]/) || [0,""])[1]
                 .match(/"\.\/([^"]*)"/g) || [];
   shell = shell.map(function(q){ return q.slice(3, -1); });
-  var NOT_SHELLED = ["sw.js", "robots.txt", "sitemap.xml", "fonts/OFL.txt", "share.png"];
+  var NOT_SHELLED = ["sw.js", "robots.txt", "sitemap.xml", "fonts/OFL.txt", "share.png", "llms.txt", "404.html"];
   var served = [];
   (function walk(dir, pre){
     fs.readdirSync(dir).forEach(function(name){
@@ -3011,7 +3044,17 @@ if(!/function legendBlock/.test(HTML) ||
     fail("the served files date this page " + last + " and the newest CHANGELOG " +
          "release is " + rel + " \u2014 the build shipped and its dates did not move");
   }
-  note("page date " + rel + ", agreed in sitemap.xml, the JSON-LD and CHANGELOG.md");
+  var built = (HTML.match(/var BUILT = "(\d{4}-\d{2}-\d{2})"/) || [])[1];
+  if(!built){
+    fail("the BUILT date is gone \u2014 the visible updated line has nothing to show");
+  } else if(built !== rel){
+    fail("the page says it was updated " + built + " but the newest CHANGELOG " +
+         "release is " + rel + " \u2014 a freshness signal that lies is worse than none");
+  }
+  if(HTML.indexOf("updated '+BUILT") < 0){
+    fail("the updated date is no longer rendered beside the Build line");
+  }
+  note("page date " + rel + ", agreed in sitemap.xml, the JSON-LD, CHANGELOG.md and the BUILT line");
 })();
 
 /* ---------- 68. The life path is a timeline, not a filing order --------- */
@@ -3584,19 +3627,27 @@ var ROUTE_VOCAB = [
       '<a href="#next">Next up</a> names the next unwatched entry, and ' +
       '<a href="#progress">Progress</a> keeps the tally. The app needs JavaScript; ' +
       "what follows is what it covers.</p>",
-    "<h3>The eras of Bruce’s life</h3>",
+    "<h2>The eras of Bruce’s life</h2>",
     "<ol>",
     ERAS.filter(function(x){ return x.k !== 0; })
         .map(function(x){ return "  <li>" + e(x.name) + "</li>"; }).join("\n"),
     "</ol>",
-    "<h3>The continuities</h3>",
+    "<h2>The continuities</h2>",
     "<ol>",
     PATH.map(function(g){ return "  <li>" + e(g.name) + "</li>"; }).join("\n"),
     "</ol>",
-    "<h3>The essentials and the core route</h3>",
+    "<h2>The essentials and the core route</h2>",
     "<ol>",
     titles.join("\n"),
     "</ol>",
+    /* The audits' answer surface (2.1.0): the FAQ renders where a crawler
+       that runs no JavaScript actually reads, from the same source the
+       FAQPage schema mirrors. H2 sections, H3 questions \u2014 the depth Yoast
+       flagged (H1 \u2192 H3) closes here too. */
+    "<h2>Straight answers</h2>",
+    FAQDATA.map(function(q){
+      return "<h3>" + e(q[0]) + "</h3>\n<p>" + e(q[1]) + "</p>";
+    }).join("\n"),
     "</main>"
   ].join("\n");
 
@@ -4376,16 +4427,51 @@ var ROUTE_VOCAB = [
     fail("the pouches cast no inset shadow \u2014 nothing says they come from " +
          "behind the belt");
   }
-  if(!/@keyframes pouch/.test(HTML) || !/animation-delay/.test(HTML)){
+  if(!/@keyframes pouch/.test(HTML) ||
+     !/\.includes \.scope:last-of-type\{[^}]*animation-delay/.test(HTML)){
     fail("the pouches do not stagger \u2014 format first, then the types, is the " +
          "owner's 'then' made visible");
   }
-  if(!/prefers-reduced-motion: reduce\)\{\.includes \.scope\{animation:none/.test(HTML)){
+  if(!/prefers-reduced-motion: reduce\)\{\.includes \.scope,\.includes\.closing \.scope\{animation:none/.test(HTML)){
     fail("the pouch animation ignores prefers-reduced-motion");
   }
   if(!/aria-expanded/.test(mc)){
     fail("the buckle states no aria-expanded \u2014 a screen reader cannot tell a " +
          "closed belt from a beltless page");
+  }
+  /* 2.1.0, owner-locked at the mock round: equal paths, ~22% buckle, two
+     lines with hierarchy, chevron in the corner \u2014 full words, no codes. */
+  if(!/\.pathseg button\{flex:0 0 26%/.test(HTML)){
+    fail("the belt's paths are not the locked 26% \u2014 the owner picked " +
+         "26/26/26/22 by mock, full words in every state");
+  }
+  if(!/class="bst"/.test(mc) || !/class="bs2"/.test(mc)){
+    fail("the buckle lost its two-line hierarchy \u2014 format over types is the " +
+         "locked variant");
+  }
+  if(!/\.pathseg \.buckle \.caret\{position:absolute/.test(HTML)){
+    fail("the buckle's chevron left its corner \u2014 the locked variant tucks it " +
+         "at the right edge");
+  }
+  /* The close mirrors the open \u2014 the 2.0.0 soak note. Types tucks first,
+     then format; reduced motion closes instantly. */
+  if(!/@keyframes pouchout/.test(HTML) ||
+     !/\.includes\.closing \.scope\{animation:pouchout/.test(HTML)){
+    fail("the pouches have no exit \u2014 they animate open and vanish shut, " +
+         "which is the exact soak note");
+  }
+  var bhAt = HTML.indexOf('act === "belt"');
+  var bh = HTML.slice(bhAt, bhAt + 700);
+  if(!/includes closing/.test(bh) || !/setTimeout/.test(bh)){
+    fail("the belt handler does not stage the close \u2014 the closing class plus " +
+         "a delayed re-render is what lets the exit play");
+  }
+  if(!/prefers-reduced-motion/.test(bh)){
+    fail("the close ignores prefers-reduced-motion \u2014 reduced motion closes " +
+         "instantly, no timeout");
+  }
+  if(!/\.includes \.scope,\.includes\.closing \.scope\{animation:none/.test(HTML)){
+    fail("the reduced-motion block does not cover the closing animation");
   }
 })();
 
@@ -4536,6 +4622,99 @@ var ROUTE_VOCAB = [
   if(!/class="qhead big" style="margin:0"/.test(HTML)){
     fail("the Progress fold headings lost the variant \u2014 one of the three named " +
          "seats");
+  }
+})();
+
+/* ---------- 100. The straight answers are machine-readable ---------- */
+/* The seed's FAQ (guard 78) and the FAQPage schema render from ONE source \u2014
+   buildFAQ() \u2014 so a reworded answer moves both or fails the build. Blessed
+   exactly like the ItemList. */
+
+(function(){
+  var ldm = HTML.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  if(!ldm) return;
+  var o; try{ o = JSON.parse(ldm[1]); }catch(e){ return; }
+  var graph = o["@graph"];
+  if(!graph){ fail("the JSON-LD lost its @graph \u2014 the FAQPage has nowhere to live"); return; }
+  var want = {"@type": "FAQPage", "mainEntity": FAQDATA.map(function(q){
+    return {"@type": "Question", "name": q[0],
+            "acceptedAnswer": {"@type": "Answer", "text": q[1]}};
+  })};
+  var got = graph.filter(function(n){ return n["@type"] === "FAQPage"; })[0];
+  if(got && JSON.stringify(got) === JSON.stringify(want)){
+    note("FAQPage: " + want.mainEntity.length + " questions, in step with the seed");
+    return;
+  }
+  if(BLESS){
+    o["@graph"] = graph.filter(function(n){ return n["@type"] !== "FAQPage"; });
+    o["@graph"].push(want);
+    fs.writeFileSync(path.join(PUBLIC, "index.html"),
+                     HTML.replace(ldm[1], JSON.stringify(o)), "utf8");
+    note("rewrote the FAQPage in the JSON-LD");
+  } else if(!got){
+    fail("the JSON-LD has no FAQPage \u2014 the seed answers the questions and the " +
+         "schema must answer them identically. Fix with: npm run bless");
+  } else {
+    fail("the FAQPage no longer matches the seed's straight answers \u2014 one " +
+         "source or two claims. Fix with: npm run bless");
+  }
+})();
+
+/* ---------- 101. The site answers off the app too ---------- */
+/* 2.1.0's crawler assets: llms.txt for generative engines, a 404 that speaks
+   the house's language, and the Workers config that actually serves it. All
+   three are outside the app, which is exactly how they would rot unseen. */
+
+(function(){
+  var lp = path.join(PUBLIC, "llms.txt");
+  if(!fs.existsSync(lp)){
+    fail("docs/llms.txt is missing \u2014 the one generative-engine asset that " +
+         "costs no page weight");
+  } else {
+    var lt = fs.readFileSync(lp, "utf8");
+    [[/(\d+)\s+films/, actual.films, "films"],
+     [/(\d+)\s+seasons/, actual.seasons, "seasons"],
+     [/(\d+)\s+continuities/, actual.continuities, "continuities"]
+    ].forEach(function(c){
+      var m2 = lt.match(c[0]);
+      if(!m2){ fail("llms.txt no longer states a " + c[2] + " count"); }
+      else if(parseInt(m2[1], 10) !== c[1]){
+        fail("llms.txt says " + m2[1] + " " + c[2] + ", data has " + c[1] +
+             " \u2014 a count in prose drifts here exactly like it did in the README");
+      }
+    });
+    if(lt.indexOf("https://nightwatcher.life/") < 0){
+      fail("llms.txt does not name the canonical URL");
+    }
+  }
+  var swTxt = fs.readFileSync(path.join(PUBLIC, "sw.js"), "utf8");
+  var shell2 = (swTxt.match(/var SHELL\s*=\s*\[[\s\S]*?\]/) || [""])[0];
+  ["llms.txt", "404.html"].forEach(function(f2){
+    if(shell2.indexOf(f2) >= 0){
+      fail(f2 + " is in the offline shell \u2014 crawler assets, the app never " +
+           "fetches them");
+    }
+  });
+  var fp = path.join(PUBLIC, "404.html");
+  if(!fs.existsSync(fp)){
+    fail("docs/404.html is missing \u2014 a wrong URL gets the host's default shrug");
+  } else {
+    var ft = fs.readFileSync(fp, "utf8");
+    if(!/noindex/.test(ft)) fail("404.html does not ask to stay out of the index");
+    if(!/href="\/"/.test(ft)) fail("404.html does not link home");
+    if(/https?:\/\//.test(ft)){
+      fail("404.html reaches off the page \u2014 it is self-contained or it is " +
+           "another thing that can break");
+    }
+    if(Buffer.byteLength(ft) > 4096){
+      fail("404.html is " + Buffer.byteLength(ft) + " bytes \u2014 it is one " +
+           "sentence and a door, not a page");
+    }
+  }
+  var wtxt = fs.readFileSync(path.join(ROOT, "wrangler.jsonc"), "utf8");
+  if(!/"not_found_handling":\s*"404-page"/.test(wtxt)){
+    fail('wrangler not_found_handling is not "404-page" \u2014 the 404 exists to ' +
+         "be served, with a 404 status");
   }
 })();
 

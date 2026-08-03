@@ -1280,7 +1280,12 @@ win.addEventListener("load", function(){
       S.filter = "all"; S.q = "zzzznomatch"; win.render(); sweep();
       S.q = ""; S.tab = "stats"; S.code = win.exportCode();
       S.progOpen = {uni:true, era:true}; win.render(); sweep();
-      S.tab = "watch"; S.beltOpen = true; win.render(); sweep(); S.beltOpen = false;
+      S.tab = "watch"; S.beltOpen = true; win.render(); sweep();
+      /* The closing state is set imperatively by the belt handler, so the
+         sweep stages it the way it stages data-theme. */
+      doc.querySelector(".includes").className = "includes closing"; sweep();
+      doc.querySelector(".includes").className = "includes";
+      S.beltOpen = false;
       /* The states a sweep cannot reach by walking the tabs. */
       S.tab = "watch"; S.mode = "life"; win.render(); sweep();
       S.path = ""; win.render(); sweep();
