@@ -27,8 +27,12 @@ permissions:
 # Two uploads in quick succession used to queue, so the second waited out the
 # first run of a suite whose result it was about to supersede. The newest commit
 # on a ref is the only one whose answer matters.
+#
+# event_name is in the group because the nightly run exists to fire when nobody
+# is pushing. Without it a 03:17 run and a late push share a group and can cancel
+# each other, which costs the one run that was not triggered by a human.
 concurrency:
-  group: qa-${{ github.ref }}
+  group: qa-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -58,13 +62,18 @@ jobs:
   # direct commit to main, so pull requests essentially never happen and this
   # job had almost certainly never run in CI at all. The evidence that the
   # guards work was produced only on the release machine, by hand — which is the
-  # exact situation this workflow was created to end. Measured cost of running
-  # it here instead: about eight minutes for 194 fixtures.
+  # exact situation this workflow was created to end.
+  #
+  # Cost, measured rather than averaged: 210 fixtures, of which 188 run guards.js
+  # at about 0.5s each and 22 run smoke.js at about 21s each. The smoke fixtures
+  # are 84% of the wall clock and 10% of the fixtures, which is not what the
+  # per-fixture average suggests. run-all.sh runs the suites concurrently, one
+  # per core; the floor is the slowest single suite, which is whichever one holds
+  # the most smoke fixtures.
   negative:
     runs-on: ubuntu-latest
-    # Long enough for 194 fixtures at roughly 2.5s each with room to spare, short
-    # enough that a fixture wedged in an infinite loop fails instead of burning
-    # the six-hour default.
+    # Room for the serial worst case, short enough that a fixture wedged in an
+    # infinite loop fails instead of burning the six-hour default.
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
