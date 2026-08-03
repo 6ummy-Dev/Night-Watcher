@@ -123,6 +123,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      69   The universes run in the order their stories start
      70   An entry outside the timeline says why
      90   The seed links carry only known tokens
+     91   The card the metas promise is the card that ships
 
    META
      65   The file points at where its reasoning went
@@ -533,14 +534,16 @@ if(PUBLIC !== ROOT){
    list somebody maintains by hand, which is the definition of a list that
    drifts. The exclusions below are decisions, written down: crawler-facing
    files and a licence have no business in an app cache, and sw.js is cached by
-   the machinery that runs it. */
+   the machinery that runs it. share.png joined the list in 1.9.0 — it exists
+   for link scrapers, which never run the service worker, and section 91 fails
+   the build if it ever sneaks INTO the shell. */
 (function(){
   var swPath2 = path.join(PUBLIC, "sw.js");
   if(!fs.existsSync(swPath2)) return;
   var shell = (fs.readFileSync(swPath2, "utf8").match(/var SHELL\s*=\s*\[([\s\S]*?)\]/) || [0,""])[1]
                 .match(/"\.\/([^"]*)"/g) || [];
   shell = shell.map(function(q){ return q.slice(3, -1); });
-  var NOT_SHELLED = ["sw.js", "robots.txt", "sitemap.xml", "fonts/OFL.txt"];
+  var NOT_SHELLED = ["sw.js", "robots.txt", "sitemap.xml", "fonts/OFL.txt", "share.png"];
   var served = [];
   (function walk(dir, pre){
     fs.readdirSync(dir).forEach(function(name){
@@ -4038,6 +4041,70 @@ var ROUTE_VOCAB = [
     });
   });
   note("seed links: " + hrefs.length + ", every token known to guard 72");
+})();
+
+/* ---------- 91. The card the metas promise is the card that ships ---------- */
+/* 1.9.0 gave the page a real share card — docs/share.png, generated from the
+   tree by qa/make-share-card.mjs so it cannot drift from the catalogue. Three
+   references promise it (og:image, twitter:image, the JSON-LD image), a card
+   type unlocks it (summary_large_image), and one decision keeps it out of the
+   offline shell: it is a crawler asset, and the app never fetches it. Each of
+   those is one careless edit from quietly breaking every embed, so they are
+   checked here rather than remembered. */
+
+(function(){
+  var CARD = "https://nightwatcher.life/share.png";
+  var p = path.join(PUBLIC, "share.png");
+  if(!fs.existsSync(p)){
+    fail("docs/share.png is missing — three metas promise it, and every " +
+         "embed of the page would show a broken card. Regenerate with: " +
+         "node qa/make-share-card.mjs");
+    return;
+  }
+  var buf = fs.readFileSync(p);
+  var isPng = buf.length > 24 && buf[0] === 0x89 && buf[1] === 0x50 &&
+              buf[2] === 0x4E && buf[3] === 0x47;
+  if(!isPng){
+    fail("docs/share.png is not a PNG — whatever it is, platforms will not " +
+         "render it as the card");
+  } else {
+    var w = buf.readUInt32BE(16), h = buf.readUInt32BE(20);
+    if(w !== 1200 || h !== 630){
+      fail("docs/share.png is " + w + "×" + h + " — the card is 1200×630, " +
+           "the size every platform crops toward. Regenerate with: " +
+           "node qa/make-share-card.mjs");
+    }
+  }
+  var og = (HTML.match(/<meta property="og:image" content="([^"]+)"/) || [])[1];
+  var tw = (HTML.match(/<meta name="twitter:image" content="([^"]+)"/) || [])[1];
+  var ld = (HTML.match(/"image"\s*:\s*"([^"]+)"/) || [])[1];
+  [["og:image", og], ["twitter:image", tw], ["the JSON-LD image", ld]].forEach(function(pair){
+    if(pair[1] !== CARD){
+      fail(pair[0] + " points at " + pair[1] + " — the three card references " +
+           "must all agree on " + CARD + ", or embeds disagree by platform");
+    }
+  });
+  var wd = (HTML.match(/<meta property="og:image:width" content="([^"]+)"/) || [])[1];
+  var ht = (HTML.match(/<meta property="og:image:height" content="([^"]+)"/) || [])[1];
+  if(wd !== "1200" || ht !== "630"){
+    fail("og:image:width/height read " + wd + "×" + ht + " — they describe a " +
+         "1200×630 card, and a wrong hint makes platforms re-fetch or crop");
+  }
+  var cardType = (HTML.match(/<meta name="twitter:card" content="([^"]+)"/) || [])[1];
+  if(cardType !== "summary_large_image"){
+    fail('twitter:card is "' + cardType + '" — without summary_large_image the ' +
+         "card renders as a thumbnail and the 1200×630 asset bought nothing");
+  }
+  /* Out of the offline shell, enforced rather than remembered. */
+  var sw = fs.readFileSync(path.join(PUBLIC, "sw.js"), "utf8");
+  var shell = (sw.match(/var SHELL\s*=\s*\[[\s\S]*?\]/) || [""])[0];
+  if(shell.indexOf("share.png") >= 0){
+    fail("share.png is in sw.js's SHELL precache — it is a crawler asset the " +
+         "app never fetches, and caching it spends every installer's storage " +
+         "on an image no view renders");
+  }
+  note("share card: 1200×630 PNG, " + buf.length.toLocaleString("en-US") +
+       " bytes, three references agree, out of the shell");
 })();
 
 /* ---------- report ---------- */

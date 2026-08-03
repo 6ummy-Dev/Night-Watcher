@@ -19,6 +19,63 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.9.0] — 2026-08-03
+
+The page's face when it travels. Nothing a reader inside the app sees changes.
+
+### Added
+
+- **`docs/share.png` — the share card.** 1200×630: the bat mark and wordmark
+  over three numbers in signal yellow — *133 films · 67 seasons · 44
+  continuities* — the tagline, the domain, and a strip of 44 ticks. One asset,
+  three jobs: social embeds, the repository's social preview, and the Batman
+  Day graphic. Three numbers on purpose: *87 years* is Batman's age as a
+  character, and this catalogue's claim is every Batman story ever **filmed**,
+  which starts in 1943 — the card does not borrow comics history. That figure
+  goes to post copy, where character history is fair game.
+- **The card is generated, not drawn.** `qa/share-card.html` +
+  `qa/make-share-card.mjs`: the counts are extracted from `PATH` the way the
+  guards extract it, the bat silhouette is chroma-keyed out of
+  `docs/icon.png` at run time, the fonts are the app's own, and the render is
+  2× downscaled in-browser. The card cannot say something the catalogue does
+  not. Playwright is deliberately **not** in `package.json` — the generator
+  is release tooling on the `qa/smoke.js` optional-dependency pattern, and
+  the lockfile and both CI jobs are untouched. Quantization was declined:
+  the shipped file is the generator's exact output, so a regeneration
+  reproduces it.
+- **Guard 91 — the card the metas promise is the card that ships.** The file
+  exists and its PNG header reads exactly 1200×630; `og:image`,
+  `twitter:image` and the JSON-LD `image` agree on it; the size hints match;
+  `twitter:card` is `summary_large_image`; and `share.png` appears nowhere in
+  the service worker's precache — it is a crawler asset, and keeping it out
+  of the offline shell is now enforced rather than remembered.
+- `qa/negative/negtest190.sh` — five fixtures: the card deleted, the card
+  replaced at the wrong size, the card type reverted to a thumbnail, one
+  reference drifting back to the icon, and the card smuggled into the
+  precache.
+
+### Changed
+
+- **The page's embed identity moved off the icon.** `og:image` and
+  `twitter:image` → the card; `og:image:width/height` 512×512 → 1200×630;
+  `og:image:alt` now states the three numbers; `twitter:card` `summary` →
+  `summary_large_image`; the JSON-LD `image` follows — the note left for this
+  release in the 1.8.6 plan.
+
+### Ops — outside the tree, recorded so QA stops asking
+
+- **Bing Webmaster Tools, 3 Aug 2026**: site verified (Search Console
+  import), `sitemap.xml` submitted, and the edge checked — Bot Fight Mode
+  off, AI bot policies all Allow, so Bingbot is not turned away from the door
+  IndexNow knocks on. Bing's live URL test passes clean; its index-side "DNS
+  failure" is a cached artifact from the domain's first days and clears with
+  crawling.
+- **Cloudflare, 3 Aug 2026**: Always Use HTTPS on (234 plain-HTTP requests
+  had been served in the prior day), minimum TLS raised to 1.2, Web Analytics
+  reduced to the one JS-snippet counter per the canonical-hostname-only
+  decision, and a certificate alert ("night-watcher certificates") now
+  emails on Advanced-certificate events.
+
 ## [1.8.7] — 2026-08-03
 
 The catalogue's dated facts, and half of a 1.7.5 decision reversed on purpose.
