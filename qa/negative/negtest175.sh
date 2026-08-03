@@ -129,9 +129,13 @@ run_case "persist writes the view instead of the preference" \
   "smoke"
 
 echo "--- one number per universe"
-run_case "home goes back to numbering by catalogue position" \
-  "home and the path number a universe the same way" \
-  "${P}a='+esc(g.tag)+';assert a in s;s=s.replace(a,'+\"?\"+',1);${W}" \
+# 1.8.7 took the number off the Home cards, so the home half of this fixture
+# moved to negtest187 (the number coming back) and the real-not-invented half
+# moved to The Path, which is the screen that still carries one.
+run_case "the path numbers by invention instead of the tag" \
+  "FAIL a path number is the universe's real tag" \
+  "${P}a='<span class=\"gnum\">'+\"'\"+'+g.tag+'+\"'\";assert a in s
+s=s.replace(a,'<span class=\"gnum\">'+\"'\"+'+\"?\"+'+\"'\",1);${W}" \
   "smoke"
 
 echo "--- the search count that offered what it could not show"

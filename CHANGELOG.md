@@ -19,6 +19,43 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.8.7] — 2026-08-03
+
+The catalogue's dated facts, and half of a 1.7.5 decision reversed on purpose.
+
+### Changed
+
+- **The Home cards lost their number.** The 1.8.5 soak found the tag crowded
+  the description inside its two-line clamp, and Home never needed it — the
+  cards are named, and tapping one jumps to the ordering where the number
+  means something. 1.7.5's "one number per universe, on both screens" is
+  thereby half-reversed, deliberately: **The Path keeps its numbers**, where
+  the ordering is load-bearing and the chip is guard 88's subject. The
+  completed-universe ✓ moved from the number to the name. The smoke block
+  that held both screens to the same number now holds Home to none and The
+  Path to all of them.
+- ***Clayface* carries its release date** — in theaters 23 October 2026,
+  moved from 11 September. The entry had carried no date at all.
+- ***The Batman: Part II* carries its release date** — 18 February 2028, the
+  July 2026 delay. The slug and year already said 2028; only the prose was
+  silent.
+
+### Unchanged, verified against the promotion plan's findings
+
+- ***Caped Crusader* S2 was already right.** The plan flagged it
+  conditionally — "if the entry still carries Not out yet" — and the
+  condition was false: the entry has read "All ten episodes landed 31 July
+  2026", badge-free, since 1 August. Nothing to fix; recorded so the flag
+  stops circulating.
+- ***Knightfall Part 1*** already carries digital 25 August / disc
+  8 September in its entry; the `u` badge drops on the QA 2 watch-list
+  trigger, not before.
+
+### Added
+
+- `qa/negative/negtest187.sh` — the two halves of the reversed decision made
+  to fail: the number returning to Home, and The Path's numbers going blank.
+
 ## [1.8.6] — 2026-08-03
 
 What a crawler that does not run JavaScript sees. Nothing a reader with

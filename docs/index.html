@@ -32,7 +32,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-9vnc5YQ+7k2VcIuFeXbftFQjEf+JkBroJ+0/ansFANE=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-1Py1IZsOVufxxPsU0iq1EHIT2mMAorCFFMudacNnD+s=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://nightwatcher.life/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://nightwatcher.life/","applicationCategory":"EntertainmentApplication","image":"https://nightwatcher.life/icon.png","dateModified":"2026-08-03","author":{"@type":"Person","name":"6ummy-Dev","url":"https://github.com/6ummy-Dev"},"creator":{"@type":"Person","name":"6ummy-Dev","url":"https://github.com/6ummy-Dev"},"sameAs":["https://github.com/6ummy-Dev/Night-Watcher"],"operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 133 films and 67 seasons of TV across 44 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- No trademarked logos, symbols, or proprietary lettering are used anywhere in
@@ -261,8 +261,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .ucard{border:1px solid var(--line);border-radius:12px;background:var(--sunk);padding:13px 12px;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:98px;overflow-wrap:anywhere;}
 .ucard:active{background:var(--card);}
 .ucard.full{border-color:var(--signaledge);}
-.unum{font-family:var(--mono);font-size:9.5px;color:var(--signal);letter-spacing:.08em;}
-.ucard.full .unum::after{content:" \2713";}
+.ucard.full .uname::after{content:" \2713";color:var(--signal);}
 .uname{font-family:var(--disp);font-weight:400;letter-spacing:.025em;text-transform:uppercase;font-size:14.5px;line-height:1.05;}
 .udesc{font-size:11.5px;line-height:1.35;color:var(--dust);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;}
 .ubar{height:3px;border-radius:2px;background:var(--line2);overflow:hidden;margin-top:auto;}
@@ -665,7 +664,7 @@ var PATH = [
  films:[
  {i:"the-batman-2022",t:"The Batman",y:2022,e:2,lo:10,d:"Year two, and he still signs his name Vengeance. Gotham as a rain-soaked crime scene, worked by a detective who is barely holding.",b:["e","m"]},
  {i:"the-penguin-season-1-2024",t:"The Penguin",sub:"Season 1",y:2024,ep:8,k:"tv",e:2,lo:11,d:"One week after the flood, and the underworld has a vacancy. Batman is barely in it \u2014 this is the city's story, told from the bottom of it.",b:["m"]},
- {i:"the-batman-part-ii-2028",t:"The Batman: Part II",y:2028,e:2,lo:12,d:"Year three. Nothing more is known, and nothing more should be.",b:["u"]}]},
+ {i:"the-batman-part-ii-2028",t:"The Batman: Part II",y:2028,e:2,lo:12,d:"Year three, 18 February 2028. Nothing more is known, and nothing more should be.",b:["u"]}]},
 
 {n:"13",name:"The Burton / Schumacher Films",fmt:"live",
  note:"Four films, two directors, one continuity  \u2014  and the tone changes completely halfway through. Keaton's Batman returns thirty years later in The Flash, which is filed under The DC Extended Universe.",
@@ -912,7 +911,7 @@ var PATH = [
  note:"James Gunn\u2019s rebooted continuity, shared with the live-action films. Batman is a single passing appearance so far \u2014 the group is here because this is where the rest of it will land.",
  films:[
  {i:"creature-commandos-season-1-2024",t:"Creature Commandos",sub:"Season 1",y:2024,ep:7,k:"tv",e:0,out:"tbd",d:"The first thing made in Gunn\u2019s DCU. Batman is a lightning-lit silhouette over a skylight in one flashback and never speaks \u2014 which is the only reason it is here, and all this continuity has shown of him.",b:["m"],o:1},
- {i:"clayface-2026",t:"Clayface",fmt:"live",y:2026,e:0,out:"tbd",d:"A horror film inside the DC Universe, about a body that will not stay one shape. Gotham with no Batman in it yet.",b:["u","m"],o:1}]}];
+ {i:"clayface-2026",t:"Clayface",fmt:"live",y:2026,e:0,out:"tbd",d:"A horror film inside the DC Universe, about a body that will not stay one shape. Gotham with no Batman in it yet. In theaters 23 October 2026.",b:["u","m"],o:1}]}];
 
 var ERAS = [
  {k:1,  name:"Before Batman",        note:"Gotham before there is anyone to answer it. Alfred, the Waynes, and a boy."},
@@ -978,7 +977,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "1.8.6";
+var BUILD = "1.8.7";
 var KEY = "batwatch-v3";
 var SITE = "https://nightwatcher.life/";
 var canSave = true;
@@ -1615,7 +1614,6 @@ function viewHome(){
     var done = g.films.filter(isDone).length;
     var pct = Math.round(done / g.films.length * 100);
     html += '<button class="ucard'+(pct === 100 ? " full" : "")+'" data-act="jump" data-gk="'+g.key+'">'+
-      '<span class="unum">'+esc(g.tag)+'</span>'+
       '<span class="uname">'+esc(g.name)+'</span>'+
       '<span class="udesc">'+esc(cardBlurb(g.note))+'</span>'+
       '<span class="ubar"><i style="width:'+pct+'%"></i></span>'+

@@ -908,33 +908,46 @@ win.addEventListener("load", function(){
       S.q = q0; S.tab = t0; win.render();
     })();
 
-    /* --- one number per universe, on both screens (1.7.5) --- */
+    /* --- the number left Home, and stayed on The Path (1.8.7) --- */
+    /* 1.7.5 put one number per universe on both screens. The 1.8.5 soak found
+       Home did not need it — the tag crowded the description in a two-line
+       clamp — so Home dropped it and The Path kept it, where the ordering is
+       load-bearing and the chip is guard 88's subject. Half a decision
+       reversed on purpose; this block is the record that it was on purpose. */
     (function(){
       S.tab = "home"; S.mode = "continuity"; win.render();
-      var home = {};
-      Array.prototype.forEach.call(doc.querySelectorAll("#view .ucard"), function(c){
-        home[c.querySelector(".uname").textContent] = c.querySelector(".unum").textContent;
-      });
+      var cards = doc.querySelectorAll("#view .ucard");
+      check("home cards carry no number", cards.length > 20 &&
+            !doc.querySelector("#view .ucard .unum"),
+            doc.querySelectorAll("#view .ucard .unum").length + " numbered of " + cards.length);
       var descs = Array.prototype.map.call(doc.querySelectorAll("#view .ucard .udesc"),
         function(d){ return d.textContent.trim(); });
       check("every home card carries a description",
-            descs.length === Object.keys(home).length && descs.every(function(t){ return t.length > 5; }),
-            descs.length + " of " + Object.keys(home).length);
+            descs.length === cards.length && descs.every(function(t){ return t.length > 5; }),
+            descs.length + " of " + cards.length);
       check("no card description runs past a line and a half of prose",
             descs.every(function(t){ return t.length <= 90; }),
             (descs.filter(function(t){ return t.length > 90; })[0] || "").slice(0, 40));
 
       S.tab = "watch"; win.render();
-      var seen = 0, wrong = [];
-      Array.prototype.forEach.call(doc.querySelectorAll("#view .ghead"), function(h){
-        var name = h.querySelector(".gtitle").textContent;
-        var num  = h.querySelector(".gnum").textContent;
-        if(home[name] === undefined) return;
-        seen++;
-        if(home[name] !== num) wrong.push(name + ": home " + home[name] + ", path " + num);
+      var numbered = 0;
+      Array.prototype.forEach.call(doc.querySelectorAll("#view .ghead .gnum"), function(n){
+        if(n.textContent.trim()) numbered++;
       });
-      check("home and the path number a universe the same way",
-            seen > 20 && !wrong.length, wrong.slice(0, 3).join(" / ") || (seen + " compared"));
+      check("the path still numbers every universe", numbered > 20, numbered + " numbered");
+      /* 1.7.5's cross-check — home and path derive one number — died when the
+         number left home, so the real-not-invented half lands here instead:
+         the rendered chip must be eraTag()'s own answer. */
+      var dcau = null;
+      Array.prototype.forEach.call(doc.querySelectorAll("#view .ghead"), function(h){
+        if(h.querySelector(".gtitle").textContent === "DC Animated Universe"){
+          dcau = h.querySelector(".gnum").textContent;
+        }
+      });
+      var dg = win.PATH.filter(function(x){ return x.name === "DC Animated Universe"; })[0];
+      check("a path number is the universe's real tag",
+            !!dg && dcau === String(win.eraTag(dg)),
+            "rendered " + dcau + ", eraTag " + (dg ? win.eraTag(dg) : "?"));
       S.tab = "home"; win.render();
     })();
 
