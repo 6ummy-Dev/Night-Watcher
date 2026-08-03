@@ -64,17 +64,33 @@ jobs:
   # guards work was produced only on the release machine, by hand — which is the
   # exact situation this workflow was created to end.
   #
-  # Cost, measured rather than averaged: 283 fixtures, of which 258 run guards.js
-  # at about 0.5s each and 25 run smoke.js at about 21s each. The smoke fixtures
-  # are 84% of the wall clock and 11% of the fixtures, which is not what the
-  # per-fixture average suggests. run-all.sh runs the suites concurrently, one
-  # per core; the floor is the slowest single suite, which is whichever one holds
-  # the most smoke fixtures.
+  # Cost, measured rather than averaged: 290 fixtures, of which 264 run guards.js
+  # at about 0.5s each and 26 run smoke.js — most of those scoped to one phase
+  # by SMOKE_ONLY (2.2.0, report §5.4) at 2–10s instead of the full run's ~14s.
+  # run-all.sh runs the suites concurrently and dispatches longest-first
+  # (report §5.1); this job shards them 4-way on top (report §5.2), balanced by
+  # smoke-fixture weight, so the wall clock is a quarter-shard, not the tail of
+  # one runner. The fixture-count guard runs per shard off the full checkout,
+  # so every shard still verifies the totals against all suites on disk.
   negative:
     runs-on: ubuntu-latest
-    # Room for the serial worst case, short enough that a fixture wedged in an
-    # infinite loop fails instead of burning the six-hour default.
-    timeout-minutes: 30
+    # Room for a shard's serial worst case, short enough that a fixture wedged
+    # in an infinite loop fails instead of burning the six-hour default.
+    timeout-minutes: 15
+    strategy:
+      # One shard failing is one answer; the other three finishing is three
+      # more. A red run should show every red suite, not the first.
+      fail-fast: false
+      matrix:
+        include:
+          - shard: "1"
+            pick: 'negtest(175|164|190|195|200)\.sh'
+          - shard: "2"
+            pick: 'negtest(183|171|166|161|162)\.sh'
+          - shard: "3"
+            pick: 'negtest(165|170|172|187|163|210)\.sh'
+          - shard: "4"
+            pick: 'negtest(185|182|186|180|176|177|181|220)\.sh|negtest\.sh'
     steps:
       - uses: actions/checkout@v4
 
@@ -85,4 +101,18 @@ jobs:
 
       - run: npm ci
 
-      - run: bash qa/negative/run-all.sh
+      # The union check. The shard lists above are prose, and prose drifts —
+      # a suite added to qa/negative/ but not to a pick pattern would silently
+      # never run in CI. Every shard asserts the union covers every suite on
+      # disk, so the drift fails the build the same day it happens. Keep the
+      # pattern here the concatenation of the four above.
+      - name: every suite lands in some shard
+        run: |
+          MISSED=0
+          for f in qa/negative/negtest*.sh; do
+            echo "$f" | grep -Eq 'negtest(175|164|190|195|200|183|171|166|161|162|165|170|172|187|163|210|185|182|186|180|176|177|181|220)\.sh|negtest\.sh' \
+              || { echo "no shard runs $f"; MISSED=1; }
+          done
+          exit $MISSED
+
+      - run: bash qa/negative/run-all.sh '${{ matrix.pick }}'
