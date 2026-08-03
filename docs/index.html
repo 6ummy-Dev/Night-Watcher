@@ -32,7 +32,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0C111C">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-uN2a0EcdI/uf0LAL/tAatU6+8zSjH9YQoMWTycbpr2k=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-S1SW1ghhSvdr//NUTWCjHFzFVO4ar4eK/UY0ybwPoJ8=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://cloudflareinsights.com; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Night Watcher","url":"https://nightwatcher.life/","description":"Batman watch orders that spoil nothing."},{"@type":"WebApplication","name":"Night Watcher","url":"https://nightwatcher.life/","applicationCategory":"EntertainmentApplication","image":"https://nightwatcher.life/icon.png","dateModified":"2026-08-03","operatingSystem":"Any","browserRequirements":"Requires JavaScript","isAccessibleForFree":true,"featureList":["No account and no sign-in","No advertising and nothing tracking what you watch","Progress stays in your browser and is never sent anywhere","Works offline","Spoiler-safe ordering by continuity"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Every Batman story \u2014 133 films and 67 seasons of TV across 44 continuities \u2014 in watch orders that spoil nothing. By universe, by the arc of one life, or by release."}]}</script>
 <!-- No trademarked logos, symbols, or proprietary lettering are used anywhere in
@@ -454,7 +454,7 @@ html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:stable;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 81 sections, each one negative-tested.
+   qa/guards.js — 89 sections, each one negative-tested.
 
    Read those before changing something that looks redundant. Most of it is
    load-bearing, and this project has a long history of rules that only make
@@ -902,7 +902,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "1.8.3";
+var BUILD = "1.8.5";
 var KEY = "batwatch-v3";
 var SITE = "https://nightwatcher.life/";
 var canSave = true;

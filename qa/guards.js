@@ -37,6 +37,10 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      52   Nobody's world changes overnight
      53   Two questions, two control groups
      64   The year is not printed twice
+     84   The one slug whose year is deliberately wrong
+     85   Static Shock and Titans keep one row each
+     86   The era scheme is eleven stages, plus outside
+     89   The amnesty window is closed
 
    STORAGE
      7    Backup code round-trips losslessly
@@ -49,6 +53,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      21   A blocked store has to say so
      35   The log holds one entry per id
      50   Rating and progress stay separate
+     87   A backup carries progress, not settings
 
    COPY
      14   README headline counts match the data
@@ -72,6 +77,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      40   One scoreboard
      47   The wordmark returns to the top
      49   The card reads what it means
+     88   The universe chip describes the universe
      54   Home tells before it asks
      76   Home and The Path group the same way
      55   The chooser is a deck, not a list
@@ -101,6 +107,8 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      29   Weight budget
      31   The README describes the app that exists
      45   The README lists every served file
+     82   GitHub Pages never gets a custom domain
+     83   The manifest id is an identity, not a path
      46   The README states the real weight
 
    DISCOVERY
@@ -1148,7 +1156,7 @@ if(README.indexOf("## What belongs in the catalogue") < 0){
        "page claims every Batman story ever filmed, and the line that makes that " +
        "claim checkable has to be somewhere a reader can find it");
 } else {
-  ["Joker", "OnStar", "Return to the Batcave"].forEach(function(hard){
+  ["Joker", "OnStar", "Return to the Batcave", "Super Best Friends Forever"].forEach(function(hard){
     if(README.indexOf(hard) < 0){
       fail("the inclusion rule no longer answers " + hard + " \u2014 it was written to " +
            "settle the cases on the line, and those are the cases");
@@ -2793,16 +2801,36 @@ if(!/function legendBlock/.test(HTML) ||
       counts.push(["negative fixtures", fixtures, /(\d+)\s+fixtures\b/]);
     }
 
-    counts.forEach(function(c){
-      var m = readmeTxt.match(c[2]);
-      if(!m) return warn("README: no " + c[0] + " count to check");
-      if(parseInt(m[1], 10) !== c[1]){
-        fail("README says " + m[1] + " " + c[0] + "; there are " + c[1] +
-             " \u2014 this is the third release in which a suite count in prose has " +
-             "drifted from the suite");
-      }
+    /* Every place a live count is stated, not only the README. 1.8.3 fixed the
+       README's fixture count and wrote the new number into two qa.yml comments
+       as 194 anyway \u2014 the count that had drifted in prose for six releases
+       drifting once more inside the fix for the drift.
+
+       CHANGELOG.md and NOTES.md are swept for nothing, on purpose. Both are
+       records. The 1.8.3 entry says 192 fixtures and must still say that in a
+       year; NOTES.md's account of the drift says "194 when it was 178", and both
+       numbers are the point of the sentence. A history that updates itself is
+       not a history. */
+    var SWEEP = [["README.md", readmeTxt]];
+    var wf = path.join(ROOT, ".github", "workflows", "qa.yml");
+    if(fs.existsSync(wf)){
+      SWEEP.push([".github/workflows/qa.yml", fs.readFileSync(wf, "utf8")]);
+    }
+    SWEEP.forEach(function(src){
+      counts.forEach(function(c){
+        var re = new RegExp(c[2].source, "g"), m, seen = 0;
+        while((m = re.exec(src[1]))){
+          seen++;
+          if(parseInt(m[1], 10) !== c[1]){
+            fail(src[0] + " says " + m[1] + " " + c[0] + "; there are " + c[1] +
+                 " \u2014 a live count stated in prose has drifted from the thing " +
+                 "it counts, which has now happened in three separate files");
+          }
+        }
+        if(!seen && src[0] === "README.md") warn("README: no " + c[0] + " count to check");
+      });
     });
-    note("README suite counts verified: " + counts.map(function(c){
+    note("suite counts verified in " + SWEEP.length + " files: " + counts.map(function(c){
       return c[1] + " " + c[0]; }).join(", "));
   })();
 
@@ -3695,6 +3723,238 @@ if(!/function legendBlock/.test(HTML) ||
   });
   note("era notes: " + ERAS.length + " checked against " + names.length +
        " multi-word entry titles, none named");
+})();
+
+/* ---------- 82. GitHub Pages never gets a custom domain --------------- */
+/* The reasoning has been written down since 1.8.0 and nothing enforced it, which
+   made it the highest-stakes decision in the project defended only by memory.
+
+   Configuring a custom domain on GitHub Pages writes a CNAME file into the
+   published directory and turns the old address into a 301 to the new one, and
+   it cannot be switched off — delete the CNAME and the custom domain stops
+   working. A redirect runs no JavaScript. Progress lives in localStorage, which
+   is per-origin, so JavaScript on that origin is the only thing that can ever
+   read it. The moment Pages starts redirecting, every reader who has not
+   already moved is permanently separated from data still sitting on their own
+   disk. Both origins serve, forever; that is what this file's absence means. */
+
+(function(){
+  [PUBLIC, ROOT].forEach(function(dir){
+    var f = path.join(dir, "CNAME");
+    if(fs.existsSync(f)){
+      fail("a CNAME file exists at " + path.relative(ROOT, f) + " — that is a " +
+           "GitHub Pages custom domain, which turns the old origin into a 301 " +
+           "that cannot be disabled. A redirect runs no JavaScript, and only " +
+           "JavaScript on that origin can read the progress stored there. Every " +
+           "reader who has not already moved would be cut off from their own " +
+           "data permanently. See NOTES.md");
+    }
+  });
+  note("no CNAME: both origins still serve, which is the only arrangement that works");
+})();
+
+/* ---------- 83. The manifest id is an identity, not a path ------------ */
+/* A browser keys an installed app on manifest.id. Change it and every install
+   already on a home screen is orphaned: the old app keeps running the old cached
+   build forever and the new one installs beside it. It looks like a path and it
+   is not one, which is exactly why it gets "tidied" during a domain move — this
+   one was changed from /Night-Watcher/ to / during 1.8.0 and reverted before
+   shipping, caught by chance rather than by anything here. */
+
+(function(){
+  var WANT = "/Night-Watcher/";
+  var mf = JSON.parse(fs.readFileSync(path.join(PUBLIC, "manifest.json"), "utf8"));
+  if(!("id" in mf)){
+    fail("manifest.json has no id — without it the browser derives one from " +
+         "start_url, so the app's identity moves whenever the URL does");
+  } else if(mf.id !== WANT){
+    fail("manifest id is \"" + mf.id + "\", not \"" + WANT + "\" — it is an " +
+         "identity key, not a path. Changing it makes every browser treat this " +
+         "as a different app: existing installs are orphaned on the build they " +
+         "last cached. It stays at the original value forever, including after " +
+         "the domain move. See NOTES.md");
+  }
+  note("manifest id " + mf.id + ", unchanged since first install");
+})();
+
+/* ---------- 84. The one slug whose year is deliberately wrong --------- */
+/* harley-quinn-season-5-2024 carries y:2025. The slug froze an announced date
+   that moved; the year is the one that shipped. Every other slug in the file
+   ends in the year its entry carries, so this reads as a typo and invites a fix
+   — and fixing it renames a frozen id, which voids whatever was ticked against
+   it and breaks that entry in every backup code already written.
+
+   The guard is the count, not the name alone: exactly one mismatch, and it is
+   this one. A second appearing means a real typo shipped. */
+
+(function(){
+  var EXPECT = "harley-quinn-season-5-2024";
+  var off = [];
+  FILMS.forEach(function(f){
+    var m = String(f.id).match(/-(\d{4})(?:-(\d{4}))?$/);
+    if(!m) return;
+    var slugYear = parseInt(m[2] || m[1], 10);
+    if(slugYear !== f.y) off.push(f.id + " (slug " + slugYear + ", y:" + f.y + ")");
+  });
+  if(off.length === 1 && off[0].indexOf(EXPECT) === 0){
+    note("slug/year: the one recorded mismatch, " + EXPECT + ", still stands");
+    return;
+  }
+  if(!off.length){
+    fail("no slug/year mismatch found, but " + EXPECT + " is supposed to carry " +
+         "one — either the slug was renamed, which voids saved progress, or " +
+         "the year was changed to match it, which makes the catalogue wrong. " +
+         "See NOTES.md");
+    return;
+  }
+  off.forEach(function(o){
+    if(o.indexOf(EXPECT) !== 0){
+      fail("slug and year disagree on " + o + " — only " + EXPECT + " is " +
+           "allowed to, and that is recorded. Fix the year, never the slug");
+    }
+  });
+  if(!off.some(function(o){ return o.indexOf(EXPECT) === 0; })){
+    fail(EXPECT + " no longer carries its recorded slug/year mismatch");
+  }
+})();
+
+/* ---------- 85. Static Shock and Titans keep one row each ------------- */
+/* Both would be more accurate split by season, and splitting either spends i:
+   slugs, which is the one thing this project does not spend. They carry the era
+   their story starts in. A known limit, chosen, and the question comes back
+   every review — so the answer is a build failure now. */
+
+(function(){
+  var SINGLE = ["static-shock-seasons-1-4-2000", "titans-complete-series-2018"];
+  var SPLIT  = /^(static-shock|titans)-season-\d/;
+  SINGLE.forEach(function(id){
+    if(!seen[id]){
+      fail(id + " is gone — it is entered as one row on purpose, and replacing " +
+           "it with seasons spends frozen slugs to buy accuracy nobody asked for");
+    }
+  });
+  FILMS.forEach(function(f){
+    if(SPLIT.test(f.id)){
+      fail(f.id + " splits a series that is entered as one row by decision — " +
+           "Static Shock crosses into Batman's world three times across four " +
+           "seasons and Titans runs through three eras; both carry the era their " +
+           "story starts in. See NOTES.md");
+    }
+  });
+  note("single-row series intact: " + SINGLE.length + " of " + SINGLE.length);
+})();
+
+/* ---------- 86. The era scheme is eleven stages, plus outside --------- */
+/* Era 7 holds 48 entries against the next largest at 29 and the question comes
+   back every review. The answer is no: positions order it correctly, the eras
+   are life stages rather than buckets sized for a screen, and a twelfth era buys
+   scrolling comfort at the cost of the scheme meaning something. Splitting it
+   also moves every e: below it, which is a catalogue-wide edit for a cosmetic
+   gain. Recorded so it stops being reopened; guarded so reopening it is a
+   deliberate act. */
+
+(function(){
+  var WANT = 11;
+  var numbered = ERAS.filter(function(e){ return e.k !== 0; });
+  var zero = ERAS.filter(function(e){ return e.k === 0; });
+  if(numbered.length !== WANT){
+    fail("there are " + numbered.length + " numbered eras, not " + WANT +
+         " — the era scheme is eleven stages of one life plus \"outside any " +
+         "timeline\". Adding or splitting one is a decision, not a tidy-up; era " +
+         "7 in particular is not being split. See NOTES.md");
+  }
+  if(zero.length !== 1) fail("era 0 (outside any timeline) is missing or doubled");
+  if(numbered.length === WANT){
+    var ks = numbered.map(function(e){ return e.k; }).join(",");
+    if(ks !== "1,2,3,4,5,6,7,8,9,10,11"){
+      fail("the numbered eras run " + ks + " — they are 1 through 11, in order");
+    }
+  }
+  note("era scheme: " + numbered.length + " life stages plus era 0, unsplit");
+})();
+
+/* ---------- 87. A backup carries progress, not settings --------------- */
+/* exportJSON() is what a reader hands to another device. It restores what they
+   watched onto whatever they are holding; it does not reach over and change that
+   device's format, scope or theme. The local payload carries those because it
+   belongs to that browser — the export does not, and the two are one keystroke
+   apart in the source. */
+
+(function(){
+  var src;
+  try { src = fn("exportJSON"); }
+  catch(e){ return fail("there is no exportJSON() — the JSON backup is gone"); }
+  ["format", "scope", "theme", "scopePref"].forEach(function(k){
+    if(new RegExp("\\b" + k + "\\b").test(src)){
+      fail("exportJSON() carries \"" + k + "\" — a backup restores progress onto " +
+           "the device that receives it and may not change that device's " +
+           "settings. See NOTES.md");
+    }
+  });
+  ["watched", "skipped", "rated", "path", "log"].forEach(function(k){
+    if(src.indexOf(k) < 0) fail("exportJSON() no longer carries " + k);
+  });
+  note("JSON backup: progress and path only, no device settings");
+})();
+
+/* ---------- 88. The universe chip describes the universe -------------- */
+/* eraTag() reads the group's whole film list rather than the filtered one, so a
+   universe can be chipped with an era belonging to an entry hidden under the
+   current scope. That is deliberate: the chip describes the universe, not the
+   selection, and a chip that moved when you switched to Movies would be
+   describing the switch. The Batman (2004) is the visible case — chip 2 with
+   series shown, and it would read 3 if the tag came off the filtered list.
+
+   Structural here; smoke drives the scope switch and reads the rendered chip. */
+
+(function(){
+  var src;
+  try { src = fn("buildGroups"); }
+  catch(e){ return fail("there is no buildGroups()"); }
+  var calls = src.match(/eraTag\(([^)]*)\)/g) || [];
+  if(!calls.length){
+    fail("buildGroups() no longer tags a group with its era — the universe " +
+         "chips lose their number");
+    return;
+  }
+  calls.forEach(function(c){
+    var arg = c.slice(7, -1).trim();
+    if(!/^[A-Za-z_$][\w$]*$/.test(arg)){
+      fail("buildGroups() calls " + c + " — eraTag() takes the unfiltered group, " +
+           "so its argument is a plain group. Passing a filtered list makes the " +
+           "chip describe the current scope instead of the universe. See NOTES.md");
+    }
+  });
+  note("universe chip: eraTag() reads " + calls.length + " unfiltered group(s)");
+})();
+
+/* ---------- 89. The amnesty window is closed -------------------------- */
+/* Guard 2 enforces the one recorded rename and nothing stopped a second being
+   added beside it. renamed-ids.json is not a mechanism for renaming slugs; it is
+   the record of a single exception taken before the app was publicly launched,
+   when the population with saved progress was the owner and a handful of
+   soakers. That is the whole reason it was allowed, and that condition can never
+   be true again. */
+
+(function(){
+  if(!fs.existsSync(RENAMEDFILE)){
+    fail("qa/renamed-ids.json is gone — it is the record of the frozen-ID rule's " +
+         "one exception, and deleting the record does not undo the rename");
+    return;
+  }
+  var keys = Object.keys(RENAMED);
+  if(keys.length > 1){
+    fail("renamed-ids.json holds " + keys.length + " renames — there is exactly " +
+         "one, taken before public launch, and the window it depended on is " +
+         "closed. A slug rename now voids saved progress for real readers and " +
+         "breaks that entry in every backup code already written. Add the new " +
+         "entry to retired-ids.json and mint a fresh slug instead. See NOTES.md");
+  } else if(keys.length === 0){
+    fail("renamed-ids.json is empty — the Galactic Guardians rename happened and " +
+         "guard 2 needs the record to tell it apart from a slug going missing");
+  } else {
+    note("frozen-ID exceptions: 1, recorded, window closed");
+  }
 })();
 
 /* ---------- report ---------- */

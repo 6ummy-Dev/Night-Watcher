@@ -839,6 +839,32 @@ win.addEventListener("load", function(){
       S.format = f0; S.scope = s0; S.q = q0; S.tab = t0; win.render();
     })();
 
+    /* --- the universe chip describes the universe, not the scope (1.8.5) --- */
+    (function(){
+      var s0 = S.scope, m0 = S.mode, t0 = S.tab;
+      function chipFor(name){
+        var out = "";
+        Array.prototype.forEach.call(doc.querySelectorAll("#view .ghead"), function(h){
+          if(h.querySelector(".gtitle").textContent === name){
+            out = h.querySelector(".gnum").textContent;
+          }
+        });
+        return out;
+      }
+      /* The Batman (2004) is the visible case: its earliest era comes from a TV
+         season, so a chip taken off the filtered list would read 3 under Movies
+         where it reads 2 with series shown. */
+      S.tab = "watch"; S.mode = "continuity"; S.scope = "all"; win.render();
+      var withSeries = chipFor("The Batman (2004)");
+      S.scope = "movies"; win.render();
+      var moviesOnly = chipFor("The Batman (2004)");
+      check("a universe chip is found on both scopes", !!withSeries && !!moviesOnly,
+            "all=" + withSeries + " movies=" + moviesOnly);
+      check("the universe chip does not move when the scope does",
+            withSeries === moviesOnly, "all=" + withSeries + " movies=" + moviesOnly);
+      S.scope = s0; S.mode = m0; S.tab = t0; win.render();
+    })();
+
     /* --- a marker typed into the search box stays typed (1.8.3) --- */
     (function(){
       var q0 = S.q, t0 = S.tab;

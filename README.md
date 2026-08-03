@@ -115,20 +115,28 @@ Zero dependencies, and every function under test is **extracted from `docs/index
 **Deployment and bookkeeping.** Nothing deployable strays to the repo root, `wrangler.jsonc` points at the served directory with SPA fallback off, and `sw.js`, `index.html` and `CHANGELOG.md` all agree on the version. The four headline counts in this README — and the counts baked into the `<meta>` and `og:` description tags — match the data.
 
 Every guard has been negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 17 negative suites, 192
+trusted. That evidence lives in `qa/negative/` — 18 negative suites, 210
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
-runs them all, and CI runs them on every push and again nightly. All three
+runs them all — concurrently, one suite per core, since the suites are
+independent — and CI runs them on every push and again nightly. All three
 counts in this paragraph and the one above are themselves guarded, because they
 have drifted twice.
 
-There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. It drives the path end to end: the chooser on first run, choosing through the real click handler, a reload returning on the same path and theme, a 1.1.0 save migrating without being asked again, a shared link that does not change what is stored, and a borrowed ordering that can always be stepped back out of, and every one of the eight shareable link tokens. 266 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
+There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. It drives the path end to end: the chooser on first run, choosing through the real click handler, a reload returning on the same path and theme, a 1.1.0 save migrating without being asked again, a shared link that does not change what is stored, and a borrowed ordering that can always be stepped back out of, and every one of the eight shareable link tokens. 268 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
 
 ## Releasing
 
 `BUILD` in `docs/index.html`, `VERSION` in `docs/sw.js` and the newest `## [x.y.z]`
 heading in `CHANGELOG.md` are one version string in three places. Change all
 three together, or `qa/guards.js` fails the build.
+
+**Verify a new state from a cold start, never from the state that produced it.**
+Three releases in a row were checked by driving the app into the new condition
+and looking at it, which confirms the transition and says nothing about what a
+reader who arrives fresh sees. 1.6.5 was the third and the last: reload, or boot
+a clean document, and look again. `qa/smoke.js` boots several documents for
+exactly this reason.
 
 Write the changelog entry in the same commit as the change. Catalogue additions
 are a MINOR bump, fixes and copy are PATCH, and MAJOR is reserved for a breaking
@@ -168,6 +176,7 @@ In practice that means:
 - **Licensed.** Made or authorised by DC and Warner Bros. Fan films are out, however good, and so are the unlicensed foreign productions — the 1964 Warhol *Batman Dracula*, *James Batman* (1966), *Alyas Batman en Robin* (1991).
 - **A story.** Advertising is out, even licensed live-action advertising with a purpose-built Batmobile — the eight OnStar commercials (2000–2002) are the case that decided this. Behind-the-scenes and cast reunions are out for the same reason: *Return to the Batcave* (2003) has Batman on screen, but as an actor playing a part, not as a character.
 - **Gotham, not just Batman.** *Joker*, *Joker: Folie à Deux* and *Birds of Prey* are here. Two of the three have no Bruce Wayne in them at all. They are stories about the city and the people Batman made, told in a continuity of their own, and a catalogue that excluded them would be answering a narrower question than the one on the front page. *Joker: Laugh Riot* — announced, undated, and premised on Batman already being dead — is in scope by this rule and will be added when it has a date.
+- **A story, not a sketch.** *Super Best Friends Forever* (2012) is licensed, released, and Batman is in it — three DC Nation shorts, and still out. They are a gag reel about Supergirl, Batgirl and Wonder Woman as children, with no continuity, no arc and nothing that reads as a story once it stops being a joke. The line is not length, which the next bullet settles; it is whether anything happens. Recorded because it is the closest call in the file and it has been asked twice.
 - **Any length, any format.** A three-minute DC Nation short counts. So does a fifteen-chapter serial from 1943, a web-shorts run made to sell toys, and a stop-motion parody special. Sets of shorts are entered as one entry each with the count in the label — a reader ticking twenty-two shorts individually is doing bookkeeping, not watching.
 - **Batman has to be in it, or it has to be his.** A DC film with no Batman and no Gotham is out no matter how good — *Lanterns*, *Blue Beetle*, the Shazam! films. *Suicide Squad* (2016) is in because Batman is in three sequences of it; *The Suicide Squad* (2021) is out because he is in none.
 - **One exception, and it is written down.** An entry with no Batman and no Gotham is admitted when it is a link in a continuity that is here for Batman — *Superman: Man of Tomorrow* opens the Tomorrowverse, *Superman: The Animated Series* season one turns the DCAU into a shared universe — and its description has to say he is not in it. Seven entries qualify. *Scooby-Doo! and Krypto, Too!* did not: no Batman, no Gotham, and no continuity that needed it, so in 1.7.5 it became the first entry ever removed.

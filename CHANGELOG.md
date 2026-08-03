@@ -19,6 +19,85 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.8.5] — 2026-08-03
+
+The standing decisions stop being prose. 1.8.4 skipped.
+
+### Added
+
+- **Eight decisions that had only ever been written down can now fail.** Each had
+  been settled, most of them explained at length in `NOTES.md`, and none of them
+  could break a build — which is how they came back up every review.
+  - **82** — no `CNAME` in the published directory. Configuring a GitHub Pages
+    custom domain writes that file and turns the old origin into a 301 that
+    cannot be switched off. A redirect runs no JavaScript, and only JavaScript on
+    that origin can read the progress stored there. This was the highest-stakes
+    decision in the project and its entire enforcement was memory.
+  - **83** — the manifest `id` stays `/Night-Watcher/`. It was in no file
+    anywhere. It looks like a path and is an identity key: change it and every
+    installed copy is orphaned on the build it last cached. It was changed by
+    mistake during 1.8.0 and reverted by luck.
+  - **84** — `harley-quinn-season-5-2024` carries `y:2025`, and it is the only
+    slug/year mismatch in the catalogue. Guarded as a count, so a real typo in
+    some future entry fails too, and so that "fixing" this one trips a build
+    instead of renaming a frozen id.
+  - **85** — *Static Shock* and *Titans* keep one row each. Splitting either
+    spends `i:` slugs, which is the one thing this project does not spend.
+  - **86** — eleven numbered eras plus era 0. Era 7 is not being split.
+  - **87** — `exportJSON()` carries progress, not settings. A backup restores
+    what you watched onto whatever device receives it; it does not reach over and
+    change that device's format, scope or theme.
+  - **88** — `eraTag()` reads the unfiltered group, so a universe chip describes
+    the universe rather than the current scope. Smoke drives the scope switch and
+    reads the rendered chip.
+  - **89** — `renamed-ids.json` holds exactly one entry. It is the record of a
+    single exception taken before public launch, not a mechanism for renaming
+    slugs, and the condition it depended on can never be true again.
+- **Three decisions that cannot be guarded are written where they will be read.**
+  The analytics hostname is a Cloudflare-side setting, recorded in `NOTES.md` as
+  unenforceable rather than given a guard that checks a proxy for it. *Super Best
+  Friends Forever* joins Joker, OnStar and *Return to the Batcave* as a named
+  hard case in the README's inclusion rule — licensed, released, Batman is in it,
+  and out because nothing happens in it — where guard 31 already fails if a named
+  case vanishes. And "verify a new state from a cold start, never from the state
+  that produced it", the rule 1.6.5 earned, goes in the README's release section.
+- **The parked work is recorded as parked**, with what a future attempt would
+  need: the share card (1.9.0), rating badges, the master chooser.
+- `qa/negative/negtest185.sh` — 18 fixtures, one per new guard and per branch of
+  the ones that count.
+
+### Fixed
+
+- **The fixture count in `.github/workflows/qa.yml` said 194 in two comments** —
+  written during the release that established the number is 192. The count that
+  had drifted in prose for six releases drifted once more inside the fix for the
+  drift. Both corrected, and the guard that counts fixtures off disk now sweeps
+  the workflow as well as the README. `CHANGELOG.md` and `NOTES.md` are swept for
+  nothing on purpose: both are records, and a history that updates itself is not
+  a history.
+- **The negative suites run concurrently**, one per core, instead of one after
+  another. 456s serial to 354s on two cores here; the floor is the slowest single
+  suite, so a four-core runner lands near two and a half minutes.
+
+  The loop was the easy half. Every suite computes its scratch tree as
+  `$NEGDIR/tree` and `run-all.sh` exported one `NEGDIR` for all of them — fine
+  and invisible while serial, and eighteen suites unpacking eighteen
+  differently-mutated trees over each other the moment it was not. Each suite now
+  gets its own directory. `NEGJOBS=1` forces the old serial behaviour.
+
+  A `--only <section>` flag for `guards.js` was measured and not built. It looked
+  like the bigger win and is not: a whole guards run is 0.40s, of which 0.13s is
+  node starting and parsing two large files and only 0.27s is the 89 sections
+  themselves. 188 of the 210 fixtures target guards and 22 target smoke, and
+  smoke costs 21s a run — so the smoke fixtures are 10% of the fixtures and 84%
+  of the clock. A perfect `--only` saves about 9%, in exchange for restructuring
+  a 170 KB script whose sections are not uniformly wrapped. The numbers are in
+  NOTES.md; if the suites ever need to be faster, the lever is smoke.js.
+- **The nightly run and push runs no longer cancel each other.** They shared a
+  concurrency group, so a 03:17 UTC run and a late upload could each kill the
+  other. The nightly exists to fire when nobody is pushing, so `event_name` is
+  now part of the group.
+
 ## [1.8.3] — 2026-08-03
 
 The first independent QA round against the launch tree, worked through.

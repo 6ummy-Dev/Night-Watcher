@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 81 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 89 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -1440,3 +1440,102 @@ label a real call always has, and each suite's own end-of-run tally confirms it.
 None of these numbers matter. What matters is that a number in prose is a claim
 nobody re-checks, and this project puts a lot of numbers in prose. The general
 rule: if a file can count itself, it is the thing that owns the count.
+
+## The decisions that can fail
+
+Ten standing decisions had accumulated in release plans and QA reports — the sort
+of thing that gets re-litigated every review because nobody can point at where it
+was settled. Most of them were already explained in this file at length. Almost
+none of them could **fail**.
+
+That is the gap 1.8.5 closes. A rule that can be deleted without anything
+noticing is a rule that lasts one refactor — this project's own sentence, written
+in `qa/guards.js` about something else entirely. The era-note rule in 1.8.3 was
+the first one taken the whole way: decided, written here, and given a guard. The
+rest follow.
+
+Guarded from 1.8.5: no `CNAME` in the published directory (82), the manifest `id`
+(83), the one deliberate slug/year mismatch (84), the single-row series (85), the
+eleven-era scheme (86), settings staying out of the JSON backup (87), the
+universe chip reading the unfiltered group (88), and exactly one frozen-ID
+exception (89).
+
+Three could not be:
+
+**Analytics counts the canonical hostname only.** A Cloudflare-side setting. No
+file in this repo can observe it, and pretending otherwise would produce a guard
+that checks a proxy for the thing and passes while the thing is wrong — the
+failure mode of guard 15 before 1.7.6. Recorded here as unenforceable so a future
+round does not spend an afternoon looking for the guard that should exist.
+
+**What belongs in the catalogue** lives in the README rather than here, because
+the inclusion rule is for readers as much as for us. Guard 31 fails if the
+section or its named hard cases vanish. *Super Best Friends Forever* joined Joker,
+OnStar and *Return to the Batcave* in 1.8.5 as the fourth: licensed, released,
+Batman is in it, and still out, because nothing happens in it.
+
+**Verify from a cold start.** A workflow rule, so it goes in the README's
+release section where it is read before the next build, not into a file that only
+runs after one.
+
+## Parked by decision, not by neglect
+
+Recorded so they stop reading as things nobody got to.
+
+- **The 1200×630 share card** — moved to 1.9.0. `og:image` points at the square
+  icon until then, so shares render cropped. The work is small and known: the
+  asset, four meta tags, a README row, and it stays out of the offline shell
+  because it is a crawler asset.
+- **Rating badges** — MPA for films, TV Parental Guidelines for series. The
+  blocker is not the code, it is sourcing a rating for 200 entries and keeping
+  them true across regions. Its own release when it happens.
+- **Master chooser and header magic** — deferred nine times, and the last several
+  were decisions rather than postponements. It still wants a picture before
+  anyone builds it; every attempt so far has started from the mechanism.
+
+## Where the negative suites' eight minutes actually went
+
+The suites are independent and were running one after another, so the obvious
+move was to run them concurrently. The second obvious move — the one that looked
+like the bigger win — was to stop every fixture re-running all 89 guard sections
+just to watch one of them fail. A `--only <section>` flag, roughly 0.4s down to
+0.1s, 188 times over.
+
+Measured first, and it is not where the time is:
+
+| | |
+|---|---|
+| `node qa/guards.js`, whole file | **0.40 s** |
+| — of which node startup | 0.05 s |
+| — of which parsing guards.js | 0.06 s |
+| — of which reading index.html + building the sandbox | 0.02 s |
+| — leaving 89 sections of assertions | **0.27 s**, about 3 ms each |
+| `node qa/smoke.js` | **21 s** |
+| copying the tree per fixture | 0.013 s |
+
+210 fixtures: 188 target `guards.js`, 22 target `smoke.js`. So the smoke fixtures
+are **10% of the fixtures and about 84% of the wall clock** — 22 × 21s against
+188 × 0.5s. The per-fixture average of ~2.5s that suggested otherwise is an
+average over two populations that differ by a factor of forty.
+
+A perfect `--only` therefore saves 188 × 0.27s ≈ 50 seconds of a ~550-second run,
+call it 9%, because the fixed cost of starting node and parsing two large files
+dominates the 0.4s and no flag can avoid it. It would also mean restructuring a
+170 KB script whose sections are not uniformly wrapped — some are IIFEs, some are
+top-level statements sharing setup — into something a flag can index. Not worth
+it for 9%, and not worth it at all the night of a tag.
+
+Concurrency was worth it: 456s serial → 354s on two cores, and the floor is the
+slowest single suite (the one holding five smoke fixtures, about 110s), so a
+four-core runner lands near two and a half minutes.
+
+The one thing that had to change first was not the loop. Every suite computes its
+scratch tree as `$NEGDIR/tree`, and `run-all.sh` exported a single `NEGDIR` for
+all of them. Serial, that is fine and invisible. Concurrent, it is eighteen
+suites unpacking eighteen differently-mutated trees over each other — and the
+failures would have read as flaky guards rather than as a broken harness, which
+is the worst shape a bug can take in a file whose whole job is to be trusted.
+
+**If the negative suites ever need to be faster, the lever is smoke.js**, not the
+guards: four jsdom documents built from a 142 KB page, about 5s each. Nothing
+else on the list is worth measuring twice.

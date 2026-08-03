@@ -73,13 +73,13 @@ s=s[:m.start(1)]+str(int(m.group(1))-7)+s[m.end(1):];io.open(p,'w',encoding='utf
   "smoke"
 
 run_case "the README's negative-fixture count drifts" \
-  "README says" \
+  "README.md says" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read()
 m=re.search(r'(\d+)\s+fixtures',s);assert m
 s=s[:m.start(1)]+str(int(m.group(1))+9)+s[m.end(1):];io.open(p,'w',encoding='utf-8').write(s)"
 
 run_case "the README's suite count drifts" \
-  "README says" \
+  "README.md says" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read()
 m=re.search(r'(\d+) negative suites',s);assert m
 s=s[:m.start(1)]+str(int(m.group(1))-1)+s[m.end(1):];io.open(p,'w',encoding='utf-8').write(s)"
