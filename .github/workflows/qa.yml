@@ -1,4 +1,4 @@
-# Runs both suites on every push and pull request.
+# Runs every suite on every push and pull request, and again nightly.
 #
 # This is the tamper detector. index.html carries several independent tripwires —
 # the CSP script hash, the frozen-ID snapshot, the changelog/BUILD/sw.js version
@@ -13,10 +13,23 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Nightly, 03:17 UTC. Not for the tree, which does not change on its own, but
+  # for everything around it: a runner image that moves, a Node 22 patch, an npm
+  # registry that resolves differently. A suite that only runs when someone
+  # pushes cannot tell you it broke while you were not looking.
+  schedule:
+    - cron: "17 3 * * *"
 
 # Read-only. Nothing here needs to write to the repository.
 permissions:
   contents: read
+
+# Two uploads in quick succession used to queue, so the second waited out the
+# first run of a suite whose result it was about to supersede. The newest commit
+# on a ref is the only one whose answer matters.
+concurrency:
+  group: qa-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -37,12 +50,22 @@ jobs:
 
   # The negative suites. Each fixture breaks one thing on purpose in a throwaway
   # copy of the tree and asserts the guards go red for the right reason — the
-  # only evidence that any of them protects anything. They are slower than the
-  # suites above because every fixture re-runs the whole harness, so they run on
-  # pull requests rather than on every push.
+  # only evidence that any of them protects anything.
+  #
+  # These were gated behind `if: github.event_name == 'pull_request'` until
+  # 1.8.3, on the reasoning that they are slow. The reasoning was sound and the
+  # conclusion was wrong: releases here ship by uploading the tree, which is a
+  # direct commit to main, so pull requests essentially never happen and this
+  # job had almost certainly never run in CI at all. The evidence that the
+  # guards work was produced only on the release machine, by hand — which is the
+  # exact situation this workflow was created to end. Measured cost of running
+  # it here instead: about eight minutes for 194 fixtures.
   negative:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    # Long enough for 194 fixtures at roughly 2.5s each with room to spare, short
+    # enough that a fixture wedged in an infinite loop fails instead of burning
+    # the six-hour default.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
