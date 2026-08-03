@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 78 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 81 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -1356,3 +1356,87 @@ Reviewed in 1.6.6 and kept deliberately. If the migration lands on GitHub Pages
 alone, dropping `wrangler`, its two scripts and the jsonc takes `npm ci` to a
 fraction of its size, and that is the moment to do it — not before, and not
 without deciding the serving question first.
+
+## The sentinel that the search box could type
+
+`viewWatch()` builds its head, then its groups, and the match count belongs
+between them — but the count is not known until the groups have been counted.
+The head therefore ended with a `%%COUNT%%` marker, replaced once the total was
+in hand.
+
+Someone types `%%COUNT%%` into the search box. The input echoes what you typed
+into its own `value` attribute, and that attribute renders *above* the group
+list, so it is the first occurrence in the string. `String.replace()` with a
+string argument replaces the first occurrence. The count paragraph landed inside
+the attribute; its quotes closed `value="` early, its remaining attributes were
+parsed onto the search input itself, and the real marker stayed visible at the
+bottom of the page:
+
+    value="<p class=" scopenote"="" role="status" aria-live="polite" ...>0 matches<p></p>"&gt;
+
+Not an injection — the string being inserted is app-static, and `esc()` still
+runs on everything user-supplied. It is worse than that in one narrow sense and
+better in another: no attacker is involved, but no attacker is needed either,
+and the app corrupts its own DOM in response to ordinary typing.
+
+The rule that came out of it: **a sentinel that can appear in user input is not
+a sentinel.** There is no escaping scheme that fixes this, because the marker
+has to survive `esc()` to be findable and has to not survive it to be safe. The
+fix is to stop needing a marker — keep the head and the body as separate
+strings and concatenate them in order once both are known. Two strings joined
+cannot collide with anything.
+
+Guard section 79 fails if any `%%`-delimited marker reappears in a rendered
+string, and `qa/negative/negtest183.sh` types the old marker into the search box
+and asserts the input survives.
+
+## What an era note is allowed to say
+
+Entry descriptions follow one rule: **who is in it, never what happens to them.**
+Twice now a QA round has asked whether *era* notes are inside that rule, and
+twice the answer has been a shrug, which is how a rule stops being one. Era 10's
+note — "An old man in a chair, and a kid in a new suit" — is the case that keeps
+raising it.
+
+**The rule, decided in 1.8.3:** an era note may state the premise of the period
+— what kind of Batman this is, who is beside him, what the city is like — but it
+may never name an event from inside a specific entry.
+
+The reasoning. An era is a span of a life, not a story, and it is named on Home
+before anything under it has been opened; a note that cannot describe the shape
+of a period cannot do its job at all. "An old man in a chair, and a kid in a new
+suit" is *Batman Beyond*'s premise, stated in its own marketing and visible in
+the first four minutes — the same standing as "a partner in the car" for the
+Grayson years. Holding era notes to the entry rule would make eras nearly
+undescribable and would buy nothing, because the thing being protected is what
+happens *in* a story, and an era is not one.
+
+The boundary is where it can be checked: an entry title or a quoted episode name
+inside an era note means the note has stopped describing a period and started
+describing a story. Guard section 81 fails on either.
+
+## Counting the suites
+
+Three numbers describe the test suites, and all three had drifted.
+
+The README said **242 smoke checks** where the suite ran 262 — and before that
+**79** where the real figure was 231. Two rounds of QA found it, once each. The
+fix people reach for is to correct the number, which is what was done both
+times, which is why it happened twice.
+
+`guards.js` cannot count the smoke checks. Many of them run inside loops, so the
+`check()` call sites in `smoke.js` are not the checks that run: 247 call sites,
+266 checks. The only thing that knows the real number is the run. So the run
+asserts it — the last thing `smoke.js` does is compare its own tally against the
+README, counting itself.
+
+The fixture count was worse, because nothing had ever found it. Every negative
+suite defines its own `run_case ()` helper at the top of the file, and a naive
+`^run_case ` count includes that definition — one phantom fixture per suite. The
+total had been reported as **194** across sixteen suites when it was **178**;
+the guard that now counts them off disk matches `^run_case\s+"`, on the quoted
+label a real call always has, and each suite's own end-of-run tally confirms it.
+
+None of these numbers matter. What matters is that a number in prose is a claim
+nobody re-checks, and this project puts a lot of numbers in prose. The general
+rule: if a file can count itself, it is the thing that owns the count.

@@ -19,6 +19,76 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.8.3] — 2026-08-03
+
+The first independent QA round against the launch tree, worked through.
+
+### Fixed
+
+- **Searching for `%%COUNT%%` no longer breaks the search box.** The match count
+  is rendered above the group list but cannot be built until the groups have
+  been counted, so the head carried a `%%COUNT%%` marker that was replaced once
+  the total was known. The search input echoes what you typed and renders above
+  the groups, so typing that literal made the input's own `value` attribute the
+  first occurrence: the count paragraph closed the attribute early and hung its
+  own attributes on the search box. The head and the body are now separate
+  strings, joined in order. No marker, nothing to collide with.
+- **A deep link's scope is applied before the ordering that reads it.**
+  `#life-series` ran `revealHero()` under the persisted scope and only then
+  switched to series, so it could clear the collapsed flag on the wrong group.
+  Scope tokens now run in their own pass first, and `#life-series` and
+  `#series-life` do the same thing.
+- **`S.confirmReset` is declared in the state literal** instead of relying on
+  undefined being falsy, like every other key.
+
+### Changed
+
+- **The negative suites run in CI.** They were gated behind
+  `if: github.event_name == 'pull_request'`, and releases here ship by uploading
+  the tree — a direct commit to `main` — so pull requests essentially never
+  happen and the job had almost certainly never run. They now run on every push
+  and again nightly, with a concurrency group so a second upload cancels the
+  first. Measured cost: about eight minutes for 192 fixtures.
+- **The suite counts in the README are counted by the suites.** `smoke.js`
+  asserts its own total against the README at the end of its run — call sites
+  cannot be counted statically, because many checks run inside loops — and
+  `guards.js` counts the negative suites and fixtures off disk. The stated
+  smoke count had drifted twice (79 where it was 231, then 242 where it was
+  262), and the fixture total turns out to have been reported as 194 when it
+  was 178, because the `run_case()` definition at the top of each suite was
+  being counted as one of its own fixtures.
+- **Two descriptions stop saying what happens.** Justice League season 2 no
+  longer says the Starcrossed finale "breaks and remakes the team"; Justice
+  League Unlimited season 2 describes the Cadmus arc instead of resolving it.
+- **The Clayface entry no longer says the part is uncast** — true today, and
+  dead the day an announcement lands. "Gotham with no Batman in it yet" already
+  carries it.
+- **The no-third-party-code promise carves out the analytics beacon** it already
+  discloses two sections earlier, and which `guards.js` already allowlists by
+  name.
+- **One hero header, not two.** `viewHome()` and `viewNext()` built the same
+  seven lines separately.
+- **`NEVER_CACHE` in `sw.js` says why it looks dead.** It is unreachable only
+  because the beacon is cross-origin and the fetch handler returns on that
+  first; serve the beacon same-origin and the list becomes load-bearing again.
+
+### Added
+
+- **The era-note spoiler rule, written down.** Two QA rounds asked whether era
+  notes are held to the entry rule — who is in it, never what happens to them.
+  They are not, and now that is a sentence: an era note may state the premise of
+  the period but may never name an event from inside a specific entry. Guard
+  section 81 fails on a quoted episode title or an entry title inside an era
+  note.
+- **Guard section 79** — no marker of the `%%NAME%%` shape may exist, and no
+  view builder may call `replace()` with a string literal on markup it
+  assembled. Smoke drives the old marker through the search box.
+- **Guard section 80** — the progress ring's circumference is read back against
+  its own radius, in the markup and in the script that animates it. 119.4 is
+  2πr for r=19 and it lived in two places with nothing tying them to the circle.
+- **Guard section 72** now observes the order route tokens are applied in,
+  rather than only that each one routes.
+
 ## [1.8.2] — 2026-08-02
 
 ### Changed

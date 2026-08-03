@@ -62,7 +62,9 @@ assert a in s;s=s.replace(a,'if(false){ S.tab = \"watch\"; S.mode = \"life\"; re
 
 run_case "a scope token stops being understood" \
   "#series no longer routes" \
-  "${P}a='      else if(tok === \"series\"){ S.scope = \"all\"; }\n';assert a in s;s=s.replace(a,'',1);${W}"
+  "${P}import re
+m=re.search(r'((?:else )?if)\\(tok === .series.\\)\\{', s);assert m
+s=s[:m.start()]+m.group(1)+'(false){'+s[m.end():];${W}"
 
 run_case "combined tokens stop splitting" \
   "a combined route token stopped splitting" \
@@ -117,8 +119,8 @@ run_case "marking watched stops clearing a skip" \
 echo "--- the scope preference"
 run_case "a deep link writes the scope preference again" \
   "a scope token leaves the preference alone" \
-  "${P}a='else if(tok === \"series\"){ S.scope = \"all\"; }'
-assert a in s;s=s.replace(a,'else if(tok === \"series\"){ S.scope = S.scopePref = \"all\"; }',1);${W}" \
+  "${P}a='S.scope = \"all\";'
+assert s.count(a)==1;s=s.replace(a,'S.scope = S.scopePref = \"all\";',1);${W}" \
   "smoke"
 
 run_case "persist writes the view instead of the preference" \

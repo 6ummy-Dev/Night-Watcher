@@ -31,6 +31,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      5    Era and decade coverage
      6    Badges all have labels
      30   Documented spoiler order holds
+     81   An era note describes a period, not a story
      32   No brand names in the catalogue or the UI
      51   Format is the second axis
      52   Nobody's world changes overnight
@@ -62,6 +63,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
 
    LAYOUT
      17   One hero size, declared once
+     80   The ring is drawn with its own circumference
      18   Short views must not shift the centred column
      27   The path is actually load-bearing
      28   Theme reaches the chrome, not just the CSS
@@ -95,6 +97,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      16   Every shipped version is written down
      74   The version history runs one way
      22   No JS escapes stranded in the markup
+     79   No marker a user could type
      29   Weight budget
      31   The README describes the app that exists
      45   The README lists every served file
@@ -2762,6 +2765,47 @@ if(!/function legendBlock/.test(HTML) ||
          "served file now says the reasoning lives in NOTES.md");
     return;
   }
+  /* Three counts describe the suites themselves, and the suites are the one
+     thing that can count itself. The README said 242 smoke checks while smoke
+     ran 262; before that it said 79 where the real figure was 231. Twice is a
+     pattern and the third time would be a joke, so the numbers now come from
+     the files. */
+  (function(){
+    var readmeTxt = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
+    var negDir    = path.join(ROOT, "qa", "negative");
+    var counts = [];
+
+    /* The smoke count is not here on purpose. Many of its checks run inside
+       loops, so counting call sites in that file gives a number that is not the
+       number of checks that run. smoke.js asserts its own total against the
+       README at the end of its run, where the real figure exists. */
+    if(fs.existsSync(negDir)){
+      var suites = fs.readdirSync(negDir).filter(function(f){ return /^negtest.*\.sh$/.test(f); });
+      var fixtures = 0;
+      suites.forEach(function(f){
+        /* A quoted label, so the run_case() definition at the top of every
+           suite is not counted as one of its own fixtures. Counting it was how
+           the fixture total came to be reported as 194 when it was 178. */
+        fixtures += (fs.readFileSync(path.join(negDir, f), "utf8")
+                       .match(/^run_case\s+"/gm) || []).length;
+      });
+      counts.push(["negative suites", suites.length, /(\d+)\s+negative suites\b/]);
+      counts.push(["negative fixtures", fixtures, /(\d+)\s+fixtures\b/]);
+    }
+
+    counts.forEach(function(c){
+      var m = readmeTxt.match(c[2]);
+      if(!m) return warn("README: no " + c[0] + " count to check");
+      if(parseInt(m[1], 10) !== c[1]){
+        fail("README says " + m[1] + " " + c[0] + "; there are " + c[1] +
+             " \u2014 this is the third release in which a suite count in prose has " +
+             "drifted from the suite");
+      }
+    });
+    note("README suite counts verified: " + counts.map(function(c){
+      return c[1] + " " + c[0]; }).join(", "));
+  })();
+
   /* The header states a count. Counts in prose drift \u2014 the README's have been
      guarded since 1.5.x, and this one shipped wrong the release after it was
      written, because 1.6.4 added a guard and the sentence did not move. */
@@ -3142,7 +3186,31 @@ if(!/function legendBlock/.test(HTML) ||
     fail("a combined route token stopped splitting — #universes-series set mode \"" +
          box2.S.mode + "\", scope \"" + box2.S.scope + "\"");
   }
-  note(VOCAB.length + " route tokens all still route");
+  /* Order inside a combined token. revealHero() opens the group holding the
+     next unwatched entry, and which group that is depends on the scope — so a
+     path token processed before the scope token in the same link reads a scope
+     the link has already asked to change, and clears the collapsed flag on the
+     wrong group. The tokens were applied in whatever order the link listed
+     them, so #life-series and #series-life did different things. Scope now
+     runs in its own pass first; this observes it rather than reading the
+     source, because the source can be reordered a dozen ways. */
+  var sawScope = null;
+  var box3 = {
+    S: {tab:"home", mode:"continuity", scope:"movies", pending:null, path:""},
+    location: {hash:"#life-series"}, history: {},
+    importCode: function(){ return null; },
+    isPath: function(){ return false; }
+  };
+  box3.revealHero = function(){ sawScope = box3.S.scope; };
+  vm.runInNewContext(src + "\nrouteHash();", box3);
+  if(sawScope === null){
+    fail("#life-series no longer reveals anything — the path token stopped routing");
+  } else if(sawScope !== "all"){
+    fail("#life-series applies its path token before its scope token — revealHero() " +
+         "ran under scope \"" + sawScope + "\" when the link had already asked for " +
+         "\"all\", so it can open the wrong group. Scope tokens go in the first pass");
+  }
+  note(VOCAB.length + " route tokens all still route, scope before path");
 })();
 
 /* ---------- 73. The worst-case restore link cannot get longer ---------- */
@@ -3500,6 +3568,133 @@ if(!/function legendBlock/.test(HTML) ||
     fail("a static robots noindex is in the markup \u2014 that would apply to the " +
          "canonical origin too, and take the whole site out of search");
   }
+})();
+
+/* ---------- 79. No marker a user could type ---------------------------- */
+/* viewWatch() ended its head with a %%COUNT%% marker and replaced it once the
+   groups had been counted. Typing that literal into the search box put the
+   replacement inside the input's own value attribute — the input echoes what
+   you typed, it renders above the group list, and String.replace() with a
+   string argument takes the first occurrence. The count paragraph closed the
+   attribute early and hung its own attributes on the search box.
+
+   No escaping fixes it: the marker has to survive esc() to be findable, and has
+   to not survive it to be safe. The fix is to need no marker. The full account
+   is in NOTES.md.
+
+   Two checks. Markers of that shape may not exist at all, and the view builders
+   — the functions that assemble markup around esc(S.q) — may not call replace()
+   with a string literal. A literal-marker replace against a static constant is
+   fine and one exists (MODENOTE's {span}); the haystack there cannot contain
+   user input. Assembled markup can. */
+
+(function(){
+  var markers = HTML.match(/%%[A-Za-z0-9_]+%%/g) || [];
+  var inCode = markers.filter(function(m){
+    /* NOTES.md is prose about this bug and index.html is not, but the header
+       block and the section above both name the old marker. Only count the ones
+       outside comments. */
+    var at = HTML.indexOf(m);
+    var openC = HTML.lastIndexOf("/*", at), closeC = HTML.lastIndexOf("*/", at);
+    return !(openC > closeC);
+  });
+  if(inCode.length){
+    fail("index.html carries the marker(s) " + inCode.join(", ") + " — a sentinel " +
+         "that a user can type into the search box is not a sentinel; build the " +
+         "string in order instead. See NOTES.md");
+  }
+
+  var BUILDERS = ["viewWatch", "viewHome", "viewNext", "viewStats"];
+  BUILDERS.forEach(function(name){
+    var src;
+    try { src = fn(name); } catch(e){ return warn("guard 79: no " + name + "() to check"); }
+    var bad = src.match(/\.replace\(\s*["'][^"']*["']\s*,/g) || [];
+    if(bad.length){
+      fail(name + "() calls " + bad[0].trim() + " on markup it assembled — that " +
+           "markup carries esc(S.q), so the first occurrence of any literal is " +
+           "whatever the user typed. Concatenate in order instead");
+    }
+  });
+  note("marker sweep: " + BUILDERS.length + " view builders, no literal replace on assembled markup");
+})();
+
+/* ---------- 80. The ring is drawn with its own circumference ----------- */
+/* 119.4 is 2πr for r=19, and it lives twice: once in the static markup as the
+   dasharray and dashoffset of #ringArc, once in the script that sets the offset
+   as progress moves. Change the radius and the ring keeps drawing to the old
+   circumference — it fills to 97% or overshoots, and nothing says so, because
+   both numbers are still internally consistent with each other and only wrong
+   about the circle. The donut hoists its own constant and needs no guard; this
+   one cannot, because half of it is static HTML. */
+
+(function(){
+  var arc = (HTML.match(/<circle id="ringArc"[\s\S]*?\/?>/) || [""])[0];
+  if(!arc) return fail("there is no #ringArc in the markup — the progress ring is gone");
+  var r = parseFloat((arc.match(/\br="([\d.]+)"/) || [])[1]);
+  var da = parseFloat((arc.match(/stroke-dasharray="([\d.]+)"/) || [])[1]);
+  var doff = parseFloat((arc.match(/stroke-dashoffset="([\d.]+)"/) || [])[1]);
+  if(!(r > 0)) return fail("#ringArc has no radius to check its circumference against");
+  var C = 2 * Math.PI * r;
+  var TOL = 0.05;   /* the markup is written to one decimal place */
+
+  [["stroke-dasharray", da], ["stroke-dashoffset", doff]].forEach(function(p){
+    if(!(p[1] > 0)) return fail("#ringArc has no " + p[0] + " — it will render as a full ring");
+    if(Math.abs(p[1] - C) > TOL){
+      fail("#ringArc " + p[0] + " is " + p[1] + ", which does not match 2πr for r=" +
+           r + " (" + C.toFixed(2) + ") — the ring will not close");
+    }
+  });
+
+  var setter = (HTML.match(/setAttribute\("stroke-dashoffset",\s*\(([\d.]+)\s*\*/) || [])[1];
+  if(!setter){
+    fail("nothing in the script sets #ringArc's stroke-dashoffset from progress — " +
+         "the ring is static");
+  } else if(Math.abs(parseFloat(setter) - C) > TOL){
+    fail("the script draws the ring with " + setter + " but the markup and the radius " +
+         "say " + C.toFixed(2) + " — one of the two was changed alone");
+  }
+  note("progress ring: r=" + r + ", circumference " + C.toFixed(2) + " in markup and script");
+})();
+
+/* ---------- 81. An era note describes a period, not a story ------------ */
+/* Entry descriptions say who is in it, never what happens to them. Whether era
+   notes are held to the same rule went unanswered across two QA rounds, so it
+   is answered in NOTES.md: an era note may state the premise of the period, but
+   may never name an event from inside a specific entry.
+
+   The half of that which can be checked is the naming. An entry title or a
+   quoted episode name inside an era note means it has stopped describing a span
+   of a life and started describing a story. Single-word titles are not counted
+   — "Batman" is a title and also the subject of every note here. */
+
+(function(){
+  var titles = {};
+  PATH.forEach(function(g){
+    g.films.forEach(function(f){
+      if(String(f.t).split(/\s+/).length >= 2) titles[f.t] = 1;
+    });
+  });
+  var names = Object.keys(titles);
+
+  ERAS.forEach(function(e){
+    var n = String(e.note || "");
+    if(!n) return fail("era " + e.k + " (" + e.name + ") has no note — every era is " +
+                       "named on Home before anything under it has been opened");
+    var quoted = n.match(/[‘'"“][A-Z][^’'"”]{2,}[’'"”]/);
+    if(quoted){
+      fail("era " + e.k + "'s note quotes " + quoted[0] + " — a quoted title is an " +
+           "episode, and an era note describes a period, not a story. See NOTES.md");
+    }
+    names.forEach(function(t){
+      if(n.indexOf(t) >= 0){
+        fail("era " + e.k + "'s note names the entry \"" + t + "\" — an era note " +
+             "states the premise of the period, not what happens in one of its " +
+             "stories. See NOTES.md");
+      }
+    });
+  });
+  note("era notes: " + ERAS.length + " checked against " + names.length +
+       " multi-word entry titles, none named");
 })();
 
 /* ---------- report ---------- */

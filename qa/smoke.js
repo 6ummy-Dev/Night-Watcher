@@ -41,9 +41,26 @@ process.on("exit", function(code){
     process.exitCode = 1;
   }
 });
+var ran = 0;
 function check(name, cond, detail){
+  ran++;
   if(cond) console.log("  ok   " + name);
   else { console.log("  FAIL " + name + (detail ? "  — " + detail : "")); fails.push(name); }
+}
+
+/* The README states how many checks this is. That number drifted twice — 79
+   where the real figure was 231, then 242 where it was 262 — because prose
+   cannot count. guards.js cannot count it either: many checks run inside loops,
+   so the call sites in this file are not the checks that run. Only the run
+   knows, so the run is what asserts it. Counted including this one. */
+function checkReadmeCount(){
+  var p = path.join(__dirname, "..", "README.md");
+  if(!fs.existsSync(p)) return;
+  var m = fs.readFileSync(p, "utf8").match(/(\d+)\s+checks\b/);
+  if(!m) return check("the README states how many checks this suite runs", false,
+                      "no count found in README.md");
+  check("the README states how many checks this suite runs",
+        parseInt(m[1], 10) === ran + 1, "README says " + m[1] + ", this run is " + (ran + 1));
 }
 
 /* jsdom has no scrollTo and throws on every call, catching it internally and
@@ -822,6 +839,24 @@ win.addEventListener("load", function(){
       S.format = f0; S.scope = s0; S.q = q0; S.tab = t0; win.render();
     })();
 
+    /* --- a marker typed into the search box stays typed (1.8.3) --- */
+    (function(){
+      var q0 = S.q, t0 = S.tab;
+      S.tab = "watch";
+      S.q = "%%COUNT%%";
+      win.render();
+      var box = doc.getElementById("q");
+      check("a search for the old count marker leaves the search box intact",
+            !!box && box.value === "%%COUNT%%", box ? box.value : "no #q");
+      check("and hangs nothing of the app's own markup on it",
+            !!box && box.getAttributeNames().every(function(a){
+              return ["class","id","type","enterkeyhint","aria-label","placeholder","value"].indexOf(a) >= 0;
+            }), box ? box.getAttributeNames().join(",") : "");
+      check("and leaves no marker showing in the page",
+            doc.getElementById("view").textContent.indexOf("%%COUNT%%") < 0);
+      S.q = q0; S.tab = t0; win.render();
+    })();
+
     /* --- one number per universe, on both screens (1.7.5) --- */
     (function(){
       S.tab = "home"; S.mode = "continuity"; win.render();
@@ -1255,6 +1290,7 @@ function blockedStore(){
         check("app still renders and stays usable", w.document.getElementById("app").textContent.length > 500);
         check("warning is hidden when storage works", win.document.getElementById("nosave").hidden === true);
 
+        checkReadmeCount();
         finish();
       }, 200);
     });

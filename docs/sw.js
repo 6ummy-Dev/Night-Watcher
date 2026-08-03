@@ -15,7 +15,7 @@
  * 133 KB index.html, so a stale cache means a stale catalogue AND stale code
  * with no way to push a fix.
  */
-var VERSION = "1.8.2";
+var VERSION = "1.8.3";
 var CACHE   = "night-watcher-" + VERSION;
 /* icon-192.png is in the shell because index.html's <head> now references it
    directly for rel=icon and apple-touch-icon (it used to inline the bytes). */
@@ -38,6 +38,13 @@ var SHELL   = ["./", "./index.html", "./manifest.json", "./icon.png", "./icon-19
                "./fonts/ibm-plex-mono-latin-400-normal.woff2",
                "./fonts/ibm-plex-mono-latin-600-normal.woff2"];
 
+/* Reads as dead code, and is, today: the fetch handler returns on any
+   cross-origin request a few lines below, and every origin that could be listed
+   here is cross-origin by definition. It stays because that is a fact about
+   where the beacon is served from, not about what this list means. Serve the
+   beacon through a same-origin path \u2014 Cloudflare offers exactly that \u2014 and the
+   cross-origin return stops catching it while this list still does. One line to
+   make a mistake impossible is cheaper than the mistake. */
 var NEVER_CACHE  = ["https://static.cloudflareinsights.com"];
 
 self.addEventListener("install", function(e){
