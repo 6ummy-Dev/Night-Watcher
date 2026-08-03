@@ -110,7 +110,7 @@ s=s.replace(a,'<h2>Every Batman story ever filmed</h2>',1);${W}"
 
 echo "--- 29: the raised ceiling still exists"
 run_case "the file grows past the new budget" \
-  "over the 160 KB budget" \
+  "over the 165 KB budget" \
   "${P}a='\"use strict\";';assert a in s
 s=s.replace(a,'\"use strict\"; var PAD_1_9_5 = \"'+('x'*8000)+'\";',1);${W}"
 

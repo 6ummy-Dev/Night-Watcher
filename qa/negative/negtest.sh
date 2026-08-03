@@ -8,7 +8,7 @@ G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
 echo "--- guard 53: levels 2-3 are shorter, at unchanged type size"
 run_case "rows the same height again" \
   "levels 2 and 3 are meant to sit shorter than level 1" \
-  "${P}a='.includes .scope button{min-height:34px';assert a in s;s=s.replace(a,'.includes .scope button{min-height:42px');${W}"
+  "${P}a='.includes .scope button{min-height:34px';assert a in s;s=s.replace(a,'.includes .scope button{min-height:44px');${W}"
 
 run_case "type shrunk to buy height" \
   "shrinking the type is what wrapped both labels in 1.5.7" \

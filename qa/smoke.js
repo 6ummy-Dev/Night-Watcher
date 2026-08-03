@@ -245,7 +245,8 @@ win.addEventListener("load", function(){
     var bar = function(){ return doc.querySelector('meta[name="theme-color"]').getAttribute("content"); };
     check("default theme is dark", S.theme === "dark" &&
           doc.documentElement.getAttribute("data-theme") === "dark", bar());
-    S.tab = "stats"; win.render();
+    S.tab = "home"; win.render();
+    check("the theme selector lives on Home now", !!doc.querySelector('#view .themerow'));
     doc.querySelector('#view [data-theme="darker"]').click();
     check("darker sets the document attribute",
           doc.documentElement.getAttribute("data-theme") === "darker");
@@ -253,6 +254,9 @@ win.addEventListener("load", function(){
     check("darker is persisted", /"theme":"darker"/.test(win.localStorage.getItem("batwatch-v3") || ""));
     doc.querySelector('#view [data-theme="dark"]').click();
     check("switching back restores the bar", bar() === "#0C111C", bar());
+    S.tab = "stats"; win.render();
+    check("Progress no longer carries the theme selector",
+          !doc.querySelector('#view [data-theme]'));
     S.tab = "home"; win.render();
 
     /* --- tier partition closes in BOTH scopes (the 9-season gap) --- */
@@ -582,14 +586,18 @@ win.addEventListener("load", function(){
     function posOf(sel){ var n = v.querySelector(sel); return n ? Array.prototype.indexOf.call(v.children, n.closest("#view > *")) : -1; }
     /* The master chooser opens every tab (1.5.6). */
     ["home", "next", "watch", "stats"].forEach(function(tab){
-      S.tab = tab; win.render();
+      S.tab = tab; S.beltOpen = false; win.render();
       var first = doc.getElementById("view").children[0];
-      check(tab + " opens with the master chooser",
+      check(tab + " opens with the belt",
             !!first && first.className.indexOf("pathseg") >= 0, first && first.className);
-      check(tab + " carries the format and scope row",
-            !!doc.querySelector("#view .includes"));
+      check(tab + " keeps the pouches closed until asked",
+            !doc.querySelector("#view .includes"));
+      doc.querySelector('#view [data-act="belt"]').click();
+      check(tab + " opens the pouches from the buckle",
+            !!doc.querySelector("#view .includes") && S.beltOpen === true);
       check(tab + " has no lone scope switch left",
             !doc.querySelector("#view > .scope"));
+      S.beltOpen = false;
     });
     S.tab = "watch"; win.render();
     doc.querySelector('#view .pathseg button[data-path="release"]')
@@ -597,6 +605,7 @@ win.addEventListener("load", function(){
     check("switching path from another tab works", S.path === "release", S.path);
     S.path = "continuity"; S.mode = "continuity"; S.tab = "home"; win.render();
 
+    doc.querySelector('#view [data-act="belt"]').click();
     var iSeg = posOf(".pathseg"), iInc = posOf(".includes"), iHero = posOf(".hero");
     check("the controls come first", iSeg === 0, "pathseg at " + iSeg);
     check("the two control groups are adjacent", iInc === iSeg + 1,
@@ -607,6 +616,7 @@ win.addEventListener("load", function(){
           /background:var\(--signal\)/.test(
             (win.document.documentElement.innerHTML.match(
               /\.pathseg button\[aria-pressed="true"\]\{[^}]*\}/) || [""])[0]));
+    S.beltOpen = false;
 
     /* Format badges only where format is ambiguous. */
     S.format = "all"; S.scope = "all"; S.tab = "watch"; S.filter = "all"; win.render();
@@ -628,7 +638,7 @@ win.addEventListener("load", function(){
 
     /* --- format is the second axis (1.5.0) --- */
     S.path = "continuity"; S.mode = "continuity"; S.format = "all"; S.scope = "all";
-    S.tab = "home"; win.render();
+    S.tab = "home"; S.beltOpen = true; win.render();
     check("Home groups format with scope",
           !!doc.querySelector(".includes .fmt") && !!doc.querySelector(".includes .scope:not(.fmt)"));
     check("the path control sits outside that group",
@@ -653,7 +663,7 @@ win.addEventListener("load", function(){
     S.scope = "movies"; win.render();
     check("Movies hides the live-action series too",
           win.pool().every(function(f){ return !f.tv; }));
-    S.scope = "all"; win.render();
+    S.scope = "all"; S.beltOpen = true; win.render();
     doc.querySelector('[data-format="anim"]').dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("Animated hides every live-action entry",
           win.pool().every(function(f){ return f.fmt === "anim"; }));
@@ -1270,6 +1280,7 @@ win.addEventListener("load", function(){
       S.filter = "all"; S.q = "zzzznomatch"; win.render(); sweep();
       S.q = ""; S.tab = "stats"; S.code = win.exportCode();
       S.progOpen = {uni:true, era:true}; win.render(); sweep();
+      S.tab = "watch"; S.beltOpen = true; win.render(); sweep(); S.beltOpen = false;
       /* The states a sweep cannot reach by walking the tabs. */
       S.tab = "watch"; S.mode = "life"; win.render(); sweep();
       S.path = ""; win.render(); sweep();

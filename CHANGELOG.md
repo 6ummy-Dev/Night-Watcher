@@ -12,12 +12,101 @@ is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
 Adding catalogue entries is a MINOR bump. Fixes and copy changes are PATCH.
-MAJOR is reserved for a breaking change to saved progress — which should never
-happen, because every `i:` slug is frozen (see the README).
+MAJOR marks a change to the app's shape — 2.0.0 is the Belt. A breaking change
+to saved progress would also be MAJOR, and should never happen, because every
+`i:` slug is frozen (see the README).
 
 ## [Unreleased]
 
 Nothing yet.
+
+## [2.0.0] — 2026-08-03
+
+The Belt. The app's three stacked control rows become one strip with pouches
+that open from behind it — the first time the utility-belt name is literal —
+plus the progress card, theme in its new home, and the four soak notes
+against 1.9.5. The first tag since v1.9.0; it covers 1.9.5's untagged
+changes by pointing here.
+
+**What 2.0.0 does not carry: the Knightfall trigger edit.** Part 1 is not
+out until 25 Aug, and guard 92's rule — an unreleased entry carries no
+certificate — is the truth today. Dropping NOT OUT YET three weeks early
+would ship a false claim; the `u` drop and the `r:"R"` ride the trigger as
+their own small data patch, as the road plan always said.
+
+### Changed
+
+- **The master chooser is the Belt.** One continuous strip — the three
+  orderings joined, no gaps, the chosen path filled in signal — with a
+  buckle as its last cell. The buckle carries what the closed pouches hold
+  ("All / Movies + Series") read from the real state, so a narrowing filter
+  can never hide behind a collapsed row. One tap opens: the format row
+  toasts out from behind the belt, the types row follows a beat later —
+  "then" as animation order. The pouches hang flush-aligned beneath the
+  strip — one inset, both rows on the same edges — with the belt's shadow
+  on them; `prefers-reduced-motion` gets instant
+  show/hide. The belt always starts closed and its open state is never
+  persisted — it is a control tray, not content. Guard 96 holds the strip
+  construction, the buckle honesty, the stagger, the reduced-motion
+  opt-out, and the never-persisted rule.
+- **1.5.3's overlap law, amended on purpose.** "Only the deck overlaps"
+  gains its second surface: the deck overlaps statically, the Belt
+  kinetically. Collapsed, every tab now opens with one control row where
+  there were three.
+- **Theme moved to Home — exactly once.** The Dark deco / Darker pair
+  leaves the bottom of Progress for the bottom of Home, compact (230px,
+  34px rows), on both the pre-choice and chosen pages. It never entered
+  the Belt. Guard 97: Home renders it, no other view does, and the Belt
+  must not.
+- **The weight ceiling: 160 → 165 KB raw.** The progress card's drawing
+  code, tightened first (dead code out, one path string, shared download
+  path), still left the file at 161 KB. Owner's call, third raise in the
+  budget's history, each recorded; the gzip budget has never moved (48 of
+  50 KB).
+
+### Added
+
+- **The progress card.** "Share your progress", seated right under the
+  scoreboard on Progress: a 1080×1920 story card drawn on a canvas in the
+  browser — wordmark, patrol kicker, the fraction huge in signal, films /
+  seasons / universes-closed row, the honest pool line naming exactly what
+  it counts, the bat in clear sky over a skyline of every universe's bar,
+  filled to its completion. At 100%: CASE CLOSED, the bat solid signal
+  with a glow, "All 200 logged · every Batman there is." One look
+  regardless of theme — the darker variant was considered and declined.
+  Download + `navigator.share` where present; the filename carries the
+  brag (`night-watcher-87-of-200.png`); nothing leaves the browser, and
+  the UI says so. **No preview** — the card draws on a canvas created at
+  the moment of the tap, and **"Share the night" leads** in the primary
+  fill with download second (owner's respin call: share is what people
+  want; where the share sheet does not exist, download takes the lead).
+  Guard 98 holds the seat, the share-first ordering, the on-demand
+  canvas, the one-source counts, the local-only line, and the theme
+  independence. Design record: `releases/design-progress-card.md` in
+  the project.
+- **`qa/negative/negtest200.sh`** — fixtures for every new guard: the
+  belt's construction, buckle, stagger, reduced-motion and no-persist
+  rules; theme's one home; the card's seat, source, privacy line and
+  filename; and each of the four soak holds.
+
+### Fixed
+
+The four soak notes against 1.9.5, called in from the live site:
+
+- **The rating badge rode the top of the link row.** `.linkrow` had never
+  declared an alignment; the badge stretched to the watch link's height.
+  `align-items:center`, and guard 99 holds it.
+- **ANIMATED and LIVE ACTION looked identical.** One shared rule became
+  two: LIVE ACTION in steel, ANIMATED in dim, both still dashed. Guard 99
+  fails if the two rules ever collapse back into one.
+- **The ratings legend line sat misaligned.** The swatches and the
+  two-systems sentence now centre on one line of their own (`.rleg`,
+  full-width in the legend's flex row). Guard 99.
+- **Three headings read too small.** A `.qhead.big` variant (13px) at
+  exactly the three seats the owner named — the grid heading on Home,
+  "Then" on Next up, the fold headings on Progress — and nowhere else;
+  guard 99 counts the seats both ways. No by-eye round: the variant was
+  the owner's call.
 
 ## [1.9.5] — 2026-08-03
 

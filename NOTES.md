@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 95 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 99 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -560,9 +560,12 @@ A blocked store used to fail silently. Signal, not crimson: crimson on
 Fixed box, fixed grid: every icon occupies exactly 20x20 regardless of the
 shape inside it, so all four labels and all four icons share one baseline.
 
-### `.prefrow`
+### `.themerow`
 
-The only preference. No heading, no card, last row on the last screen.
+The only preference. It lived at the bottom of Progress as `.prefrow` until
+2.0.0 moved it to the bottom of Home, compact — the owner's call at the Belt
+design round, and the Belt was never allowed to hold it. Still no heading,
+no card, last row on the first screen.
 
 ### `.allbtn`
 

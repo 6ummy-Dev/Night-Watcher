@@ -38,7 +38,7 @@ run_case "the chip is narrowed below two characters" \
 echo "--- 61: contrast measured on the ink that renders"
 run_case "the format-badge fade comes back (the bug this release fixed)" \
   "renders --dim at opacity 0.8" \
-  "${P}a='.bd.fmanim,.bd.fmlive{color:var(--dim);border:1px dashed currentColor;}';assert a in s;s=s.replace(a,'.bd.fmanim,.bd.fmlive{color:var(--dim);border:1px dashed currentColor;opacity:.8;}');${W}"
+  "${P}a='.bd.fmanim{color:var(--dim);border:1px dashed currentColor;}';assert a in s;s=s.replace(a,'.bd.fmanim{color:var(--dim);border:1px dashed currentColor;opacity:.8;}');${W}"
 
 run_case "Short is faded one step further" \
   "renders --bone at opacity 0.5" \

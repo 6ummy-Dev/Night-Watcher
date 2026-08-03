@@ -29,7 +29,7 @@ run_case "a path loses its grid heading" \
 echo "--- 40 and 54: the scoreboard belongs to Progress"
 run_case "the scoreboard comes back to Home" \
   "not rendered exactly once" \
-  "${P}a=\"  html += '<p class=\\\"qhead\\\" style=\\\"margin-top:6px\\\">'\";assert a in s
+  "${P}a=\"  html += '<p class=\\\"qhead big\\\" style=\\\"margin-top:6px\\\">'\";assert a in s
 s=s.replace(a,\"  html += '<p class=\\\"qhead\\\">Scoreboard</p>'+scoreboard(c);\\n\"+a,1);${W}"
 
 echo "--- 73: the ceiling is a ceiling"

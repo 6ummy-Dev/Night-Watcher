@@ -81,6 +81,10 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      88   The universe chip describes the universe
      93   The Progress lists fold, and remember
      94   The path is Bruce, for a fresh visitor
+     96   The Belt is one strip, and its pouches open from behind
+     97   Theme lives on Home, compact, and nowhere else
+     98   The progress card is drawn here, from the real counts
+     99   The soak notes hold
      54   Home tells before it asks
      76   Home and The Path group the same way
      55   The chooser is a deck, not a list
@@ -1096,10 +1100,10 @@ var zlib = require("zlib");
 var rawKB  = Buffer.byteLength(HTML) / 1024;
 var gzipKB = zlib.gzipSync(Buffer.from(HTML)).length / 1024;
 note("index.html " + rawKB.toFixed(1) + " KB raw, " + gzipKB.toFixed(1) + " KB gzipped");
-/* Raised 150 -> 160 in 1.9.5: the ratings data (~2 KB across 200 entries) and
-   the machine-readable curated list rode in together, exactly the case the
-   road-to-2.0.0 plan budgeted for. The gzip budget did not move. */
-if(rawKB > 160) fail("index.html is " + rawKB.toFixed(1) + " KB raw, over the 160 KB budget");
+/* Raised 150 -> 160 in 1.9.5 (ratings data + the machine-readable curated
+   list), and 160 -> 165 in 2.0.0 (the progress card's drawing code, tightened
+   first, owner's call on the record). The gzip budget has never moved. */
+if(rawKB > 165) fail("index.html is " + rawKB.toFixed(1) + " KB raw, over the 165 KB budget");
 if(gzipKB > 50) fail("index.html is " + gzipKB.toFixed(1) + " KB gzipped, over the 50 KB budget");
 
 /* Zero runtime dependencies is a promise in the README. There is no
@@ -4319,6 +4323,219 @@ var ROUTE_VOCAB = [
   } else {
     fail("the JSON-LD ItemList no longer matches the curated titles \u2014 the two " +
          "lists are one list or they are two claims. Fix with: npm run bless");
+  }
+})();
+
+/* ---------- 96. The Belt is one strip, and its pouches open from behind ---------- */
+/* 2.0.0's headline. The three stacked control rows became one joined strip \u2014
+   paths plus a buckle \u2014 with the include rows rendered only while the belt is
+   open, sliding out from behind it. Design locked in the project's
+   releases/design-belt.md; this section is the locked picture, enforced. */
+
+(function(){
+  var strip = (HTML.match(/\.pathseg\{[^}]*\}/) || [""])[0];
+  if(!strip){ fail("the belt strip has no rule of its own"); return; }
+  if(!/overflow:hidden/.test(strip) || !/border-radius/.test(strip)){
+    fail("the belt is not one strip \u2014 without its own border and overflow:hidden " +
+         "the segments read as separate cards again, which the owner rejected at " +
+         "the mock round");
+  }
+  var seg = (HTML.match(/\.pathseg button\{[^}]*\}/) || [""])[0];
+  if(/border-radius:(?!0)/.test(seg)){
+    fail("the belt's segments carry their own corners \u2014 rounded segments inside " +
+         "a rounded strip is the gapped look coming back one property at a time");
+  }
+  if(!/class="buckle"/.test(HTML) || !/data-act="belt"/.test(HTML)){
+    fail("the belt has no buckle \u2014 nothing opens the pouches");
+  }
+  if(!/act === "belt"/.test(HTML)){
+    fail("the buckle has no handler \u2014 a button that does nothing");
+  }
+  var mc = optionalFn("masterChooser", "there is no belt at all");
+  if(!/S\.beltOpen \? includeBlock\(\) : ""/.test(mc)){
+    fail("the pouches are not gated on the belt being open \u2014 either they always " +
+         "render (three rows again) or they never do");
+  }
+  /* The buckle says what the closed pouches hold, from the real state. */
+  if(!/class="bst"/.test(mc) || !/S\.format/.test(mc) || !/S\.scope/.test(mc)){
+    fail("the buckle does not summarise the hidden state from S.format and " +
+         "S.scope \u2014 a closed pouch that keeps secrets is mystery meat");
+  }
+  /* Always starts closed: the open state must never persist. */
+  if(/beltOpen/.test(fn("persist"))){
+    fail("beltOpen is written to the saved payload \u2014 the belt is a control " +
+         "tray, not content; it always starts closed");
+  }
+  if(!/beltOpen:false/.test(HTML)){
+    fail("the S declaration does not start the belt closed");
+  }
+  /* The pouches come from behind: inset shadow, stagger, and a reduced-motion
+     opt-out. The shadow is what sells "from behind". */
+  var pouch = (HTML.match(/\.includes \.scope\{[^}]*\}/) || [""])[0];
+  if(!/inset 0/.test(pouch)){
+    fail("the pouches cast no inset shadow \u2014 nothing says they come from " +
+         "behind the belt");
+  }
+  if(!/@keyframes pouch/.test(HTML) || !/animation-delay/.test(HTML)){
+    fail("the pouches do not stagger \u2014 format first, then the types, is the " +
+         "owner's 'then' made visible");
+  }
+  if(!/prefers-reduced-motion: reduce\)\{\.includes \.scope\{animation:none/.test(HTML)){
+    fail("the pouch animation ignores prefers-reduced-motion");
+  }
+  if(!/aria-expanded/.test(mc)){
+    fail("the buckle states no aria-expanded \u2014 a screen reader cannot tell a " +
+         "closed belt from a beltless page");
+  }
+})();
+
+/* ---------- 97. Theme lives on Home, compact, and nowhere else ---------- */
+/* Owner's call at the 2.0.0 design round: the darker toggle moves exactly
+   once \u2014 from the bottom of Progress to the bottom of Home \u2014 and it never
+   enters the Belt. */
+
+(function(){
+  if(!/function themeRow\s*\(/.test(HTML)){
+    fail("themeRow() is gone \u2014 nothing renders the theme control");
+    return;
+  }
+  if(/themeRow\(\)|data-theme=/.test(optionalFn("viewStats"))){
+    fail("the theme selector is back on Progress \u2014 it moved to Home exactly " +
+         "once, and twice is a setting with two homes");
+  }
+  ["viewNext", "viewWatch"].forEach(function(v){
+    if(/themeRow\(\)|data-theme=/.test(optionalFn(v))){
+      fail(v + "() renders the theme control \u2014 it lives on Home only");
+    }
+  });
+  if(!/themeRow\(\)/.test(optionalFn("viewHome"))){
+    fail("Home does not render the theme control \u2014 the toggle would exist " +
+         "nowhere at all");
+  }
+  if(/themeRow\(\)|data-theme=/.test(optionalFn("masterChooser"))){
+    fail("the theme control is in the Belt \u2014 the one thing the owner said the " +
+         "Belt must never hold");
+  }
+  /* Compact: narrower and shorter than the full-width rows it used to be. */
+  var tr = (HTML.match(/\.themerow\{[^}]*\}/) || [""])[0];
+  if(!/max-width/.test(tr)){
+    fail("the theme row is full-width \u2014 'a bit more compact' was the whole " +
+         "point of the move");
+  }
+})();
+
+/* ---------- 98. The progress card is drawn here, from the real counts ---------- */
+/* Design locked in releases/design-progress-card.md: story-format canvas,
+   seated right under the scoreboard on Progress, local-only, one look
+   regardless of theme. */
+
+(function(){
+  if(!/function drawShareCard\s*\(/.test(HTML) || !/function shareCardBlock\s*\(/.test(HTML)){
+    fail("the progress card is gone \u2014 nothing to share");
+    return;
+  }
+  /* Share leads, in the house voice; download rides second. No preview \u2014
+     the card renders on demand, at the moment of the tap (owner's call at
+     the 2.0.0 respin: share is what people want). */
+  if(!/primary" data-act="cardshare">Share the night</.test(HTML)){
+    fail('"Share the night" is not the primary action \u2014 the owner\'s words, ' +
+         "and the owner's ordering: share first, download second");
+  }
+  if(/id="pcard"/.test(HTML)){
+    fail("the card preview is back \u2014 it was removed on the owner's word; the " +
+         "canvas is created at the moment of the tap");
+  }
+  if(!/document\.createElement\("canvas"\)/.test(fn("cardFile"))){
+    fail("cardFile() does not create its canvas on demand \u2014 with no preview " +
+         "in the view there is nothing else to draw on");
+  }
+  var vs = optionalFn("viewStats");
+  var sb = vs.indexOf("scoreboard(c)");
+  var sc = vs.indexOf("shareCardBlock()");
+  var uf = vs.indexOf('progFold("uni"');
+  if(sc < 0){ fail("Progress does not render the share card"); }
+  else if(sb >= 0 && sc < sb){
+    fail("the share card renders above the scoreboard \u2014 the owner seated it " +
+         "right under the numbers it draws");
+  } else if(uf >= 0 && sc > uf){
+    fail("the share card sank below the folds \u2014 its seat is right under the " +
+         "scoreboard");
+  }
+  var dc = fn("drawShareCard");
+  if(/S\.theme/.test(dc)){
+    fail("drawShareCard() reads the theme \u2014 the card has one look; the darker " +
+         "variant was considered and declined, on the record");
+  }
+  ["counts\\(\\)", "pool\\(\\)", "groupFilms\\("].forEach(function(fnName){
+    if(!new RegExp(fnName).test(dc)){
+      fail("the card does not draw from " + fnName.replace(/\\+/g, "") +
+           " \u2014 its numbers must be the app's numbers, one source");
+    }
+  });
+  if(!/Drawn in your browser, nothing uploaded\./.test(HTML)){
+    fail("the local-only line is gone \u2014 the card's privacy promise is stated " +
+         "where the card is made");
+  }
+  if(!/night-watcher-" \+ c\.done \+ "-of-" \+ c\.total \+ "\.png/.test(HTML)){
+    fail("the filename no longer carries the brag \u2014 night-watcher-N-of-M.png " +
+         "is the card's name");
+  }
+  if(!/act === "cardsave"/.test(HTML)){
+    fail("the download button has no handler");
+  }
+})();
+
+/* ---------- 99. The soak notes hold ---------- */
+/* Four cosmetic findings against 1.9.5, called in by the owner from the live
+   site and packed into 2.0.0. Each held here so it cannot quietly regress. */
+
+(function(){
+  /* 1: the rating badge sat at the top of a stretched box. */
+  if(!/\.linkrow\{[^}]*align-items:center/.test(HTML)){
+    fail("the link row does not centre its items \u2014 the rating badge stretches " +
+         "to the watch link's height and its text rides the top of the box");
+  }
+  /* 2: ANIMATED and LIVE ACTION were the same rule, so the same look. */
+  var fa = (HTML.match(/\.bd\.fmanim\{[^}]*\}/) || [""])[0];
+  var fl = (HTML.match(/\.bd\.fmlive\{[^}]*\}/) || [""])[0];
+  if(!fa || !fl){
+    fail("the format badges lost their own rules \u2014 they can only differ if " +
+         "each has one");
+  } else if(fa.replace(/fmanim/, "") === fl.replace(/fmlive/, "")){
+    fail("ANIMATED and LIVE ACTION are styled identically again \u2014 the soak " +
+         "note was that nobody can tell them apart without reading");
+  }
+  /* 3: the ratings legend line sat misaligned among the legend entries. */
+  if(!/class="rleg"/.test(HTML) || !/\.legend \.rleg\{[^}]*align-items:center/.test(HTML)){
+    fail("the ratings legend line lost its alignment \u2014 the swatches and the " +
+         "sentence drift apart again");
+  }
+  /* 4: three headings read too small; the fix is a variant, owner's call,
+     applied at exactly the three named seats and nowhere else. */
+  if(!/\.qhead\.big\{/.test(HTML)){
+    fail("the .qhead.big variant is gone \u2014 the three named headings fall back " +
+         "to 10px");
+  }
+  var seats = (HTML.match(/qhead big/g) || []).length;
+  if(seats !== 3){
+    fail(seats + ' seats carry "qhead big", the owner named exactly 3: the grid ' +
+         "heading on Home, Then on Next up, and the Progress fold headings");
+  }
+  ["GRIDNAME[S.mode]", '<p class="qhead big">Then</p>'].forEach(function(mark){
+    var at = HTML.indexOf(mark);
+    if(at < 0 || HTML.lastIndexOf("qhead big", at + 60) < 0){
+      /* soft anchor: each named seat must sit next to the variant */
+    }
+  });
+  if(!/class="qhead big" style="margin-top:6px"/.test(HTML)){
+    fail("the Home grid heading lost the variant \u2014 one of the three named seats");
+  }
+  if(!/<p class="qhead big">Then<\/p>/.test(HTML)){
+    fail('"Then" on Next up lost the variant \u2014 one of the three named seats');
+  }
+  if(!/class="qhead big" style="margin:0"/.test(HTML)){
+    fail("the Progress fold headings lost the variant \u2014 one of the three named " +
+         "seats");
   }
 })();
 
