@@ -20,6 +20,79 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [2.2.0] — 2026-08-03
+
+The tune-up. Two inputs, no new features: the 2.1.0 soak ledger's three
+findings, and the owner's optimization report (filed verbatim in the
+project at `qa/optimization-report-2.1.0.md`) — its Phase 1 render work
+and Phase 2 QA speed land here. Phase 3 (debounced persistence, targeted
+DOM updates) is explicitly parked for its own release, as the report
+itself sequenced it. Still no Knightfall — the trigger fires 25 August.
+
+### Fixed
+
+- **The rating badge joins Then.** The Next-up queue peek rendered tier
+  and format badges but never the rating — the one number a parent
+  scanning "what's next" actually wants. `ratingBadge(x)` joins the peek,
+  and the Next-up hero's link row carries `ratingBadge(f)` beside the
+  watch link, same as the detail panel. Guard 92 now holds all three
+  seats: peek, hero, panel — exactly two `ratingBadge(f)+watchLinks(f)`
+  seats, no more, no fewer.
+- **The buckle stops cropping on narrow phones.** Below 375px the
+  buckle's two lines step down (bst 8→7px, bs2 7→6.5px) and the padding
+  tightens — the longest state, "Live action / Movies+Series", fits a
+  320px screen. Full words stay: the type gives, never the words.
+  Guard 96 holds the narrow-viewport rule.
+- **"Share your progress" is a card.** The share block was a bare
+  paragraph heading floating between the scoreboard and the folds; it is
+  now a `.bk` card with an `h3` title, the same chrome and title size as
+  "Your data" and every other Progress block. Guard 98 holds the card
+  form and fails the qhead whisper coming back.
+
+### Changed
+
+- **Render efficiency, report §3.1–3.6.** All statement-level rewrites,
+  byte-identical markup out: `viewStats()` reuses the group `.films`
+  arrays instead of re-filtering 56 keys per render, and its twin row
+  builders fold into one `progRows()`; `esc()`'s map hoisted to
+  `ESCMAP` with per-film invariants (`tE`, `dE`) pre-escaped once;
+  `badges()` memoized per `id|format`; Home and the intro stats count
+  in a single pass; `counts()` computed once in `render()` and passed
+  down; focus restoration is one attribute-selector `querySelector`
+  instead of a linear dataset scan; the forced-reflow scroll clamp skips
+  when there is nothing to keep; a precomputed search haystack (`f.hay`)
+  and a shared `BYID` map kill the linear scans and turn the two log
+  merges O(n); `noteFor()` skips `yearSpan()` unless the note asks.
+- **Source removals, report §4.** The ten empty `b:[]` (the flatten step
+  defaults them), the duplicated `replaceState` (routeHash reuses
+  `clearPendingHash()`), the double `anyOpen()` in `viewWatch()`, and a
+  `pct()` helper replacing the three hand-rolled percentage lines. The
+  bytes bought back the budget headroom the report said was the point.
+- **QA speed, report §5.** `run-all.sh` dispatches suites longest-first
+  so the slowest suite no longer anchors the tail; CI shards the
+  negative job 4-way (workflow-only, balanced by smoke-fixture count,
+  the fixture-count guard running per shard off disk); smoke's dead-CSS
+  sweep early-exits once every selector has matched; and
+  `SMOKE_ONLY=<phase>` lets a fixture run just the smoke phase it
+  actually tests — the check-count self-assert skips under a filter,
+  and full smoke still runs in `npm test`. Timings before and after are
+  measured and recorded in the release record, not asserted.
+
+### Skipped, on the record (report items that collide with pinned literals)
+
+- **`moveBanner()` memo (part of §3.6)** — the banner string is pinned
+  verbatim by three negtest180 fixtures; a memo wrapper would move the
+  literal and re-anchor a suite for microseconds. Skipped.
+- **Reduced-motion probe dedup (part of §4)** — guard 96 pins the
+  `matchMedia` probe inside the belt handler by position; hoisting it
+  would weaken the guard that proves the close honors reduced motion.
+  Skipped.
+
+### Added
+
+- **`qa/negative/negtest220.sh`** — fixtures for the three soak-fix
+  guards and the `SMOKE_ONLY` wrong-phase failure.
+
 ## [2.1.0] — 2026-08-03
 
 Housekeeping, from three directions at once: the SEO/AEO/GEO audits' short

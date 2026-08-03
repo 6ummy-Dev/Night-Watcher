@@ -3442,7 +3442,7 @@ var ROUTE_VOCAB = [
    because the render is smoke's job. */
 
 (function(){
-  var home = HTML.slice(HTML.indexOf("function viewHome()"), HTML.indexOf("function viewNext()"));
+  var home = HTML.slice(HTML.indexOf("function viewHome("), HTML.indexOf("function viewNext("));
   if(home.indexOf("buildGroups()") < 0){
     fail("Home no longer builds its grid from buildGroups() — it has an opinion " +
          "about grouping that The Path does not share");
@@ -4233,6 +4233,18 @@ var ROUTE_VOCAB = [
     fail("the detail panel no longer carries the rating badge \u2014 the one place " +
          "a reader deciding what to watch actually looks");
   }
+  /* 2.2.0 soak note: "then not showing rating badges". The Then peek and the
+     Next-up hero are where a reader actually decides what to press play on;
+     both carry the badge now, from the same ratingBadge() the panel uses. */
+  if(!/qpeek">'\+badges\(x\)\+ratingBadge\(x\)\+'/.test(HTML)){
+    fail("the Then peek dropped its rating badge \u2014 the 2.2.0 soak note was " +
+         "exactly this absence");
+  }
+  if((HTML.match(/ratingBadge\(f\)\+watchLinks\(f\)/g) || []).length !== 2){
+    fail("ratingBadge(f)+watchLinks(f) must appear exactly twice \u2014 the detail " +
+         "panel and the Next-up hero; fewer is the soak note back, more is a " +
+         "seat nobody named");
+  }
   if(!/\.bd\.rt\{[^}]*currentColor/.test(HTML)){
     fail("the .bd.rt badge has no style of its own \u2014 it would render as bare text " +
          "in a row of boxes");
@@ -4473,6 +4485,13 @@ var ROUTE_VOCAB = [
   if(!/\.includes \.scope,\.includes\.closing \.scope\{animation:none/.test(HTML)){
     fail("the reduced-motion block does not cover the closing animation");
   }
+  /* 2.2.0 soak note: the buckle crops on narrow phones. Below 375px the two
+     lines shrink and the padding tightens so "Live action / Movies+Series"
+     — the longest state — fits without clipping. */
+  if(!/@media \(max-width:375px\)\{\.pathseg \.bst\{font-size:[^}]*\}\.pathseg \.bs2\{font-size:[^}]*\}\.pathseg \.buckle\{padding:[^}]*\}\}/.test(HTML)){
+    fail("the buckle has no narrow-viewport rule — on a 320–375px phone the " +
+         "longest state clips at the buckle's edge, the 2.2.0 soak note verbatim");
+  }
 })();
 
 /* ---------- 97. Theme lives on Home, compact, and nowhere else ---------- */
@@ -4568,6 +4587,17 @@ var ROUTE_VOCAB = [
   }
   if(!/act === "cardsave"/.test(HTML)){
     fail("the download button has no handler");
+  }
+  /* 2.2.0 soak note: "make it a card, borders and title should be bigger
+     same as all others". The block is a .bk card like every other block on
+     Progress, and its title is an h3 like theirs — not a qhead whisper. */
+  if(!/<div class="bk sharecard"><h3>Share your progress<\/h3>/.test(HTML)){
+    fail("the share block is not a card — .bk with an h3 title is what every " +
+         "other Progress block gets, and the owner asked for the same");
+  }
+  if(/class="qhead"[^>]*>Share your progress/.test(HTML)){
+    fail("the share block's title is a qhead again — the 2.2.0 soak note " +
+         "asked for a real title, same as all others");
   }
 })();
 

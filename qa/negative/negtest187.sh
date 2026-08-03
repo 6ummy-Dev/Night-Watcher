@@ -15,7 +15,7 @@ assert a in s
 b=t+'<span class='+q+'unum'+q+'>'+t+'+esc(g.tag)+'+t+'</span>'+t+'+'+a
 s=s.replace(a,b,1)
 io.open(p,'w',encoding='utf-8').write(s)" \
-  "smoke"
+  "smoke" "main"
 
 echo "--- The Path keeps its numbers"
 run_case "the path's universe numbers go blank" \
@@ -28,6 +28,6 @@ assert a in s
 b='gnum'+q+'>'+t+'+'+t+t+'+'+t
 s=s.replace(a,b,1)
 io.open(p,'w',encoding='utf-8').write(s)" \
-  "smoke"
+  "smoke" "main"
 
 finish "  negtest187"

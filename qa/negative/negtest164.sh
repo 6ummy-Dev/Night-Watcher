@@ -24,7 +24,7 @@ echo "--- smoke: no CSS rule is left behind"
 run_case "a rule outlives the markup it styled" \
   "every CSS rule matches something in some state" \
   "${P}a='.arow .at{';assert a in s;s=s.replace(a,'.arow .ghostrule{color:red;}\n.arow .at{');${W}" \
-  "smoke"
+  "smoke" "css"
 
 rm -rf "$NEG"
 finish "1.6.4 negative tests"

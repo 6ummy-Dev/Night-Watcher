@@ -22,17 +22,21 @@ SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 NEG="${NEGDIR:-$(mktemp -d)}/tree"
 PASS=0; FAILED=0
 
-# run_case <label> <expected-failure-substring> <python-mutation> [suite]
+# run_case <label> <expected-failure-substring> <python-mutation> [suite] [phase]
 # Unpacks a pristine copy of the tree, applies one mutation, runs qa/<suite>.js
 # (guards by default) and requires the exact expected message in its output.
+# The optional fifth argument scopes a smoke run via SMOKE_ONLY (2.2.0, report
+# §5.4): a fixture that trips one check names the phase that check lives in and
+# skips the rest of the 14-second run. Fixtures whose expected message only
+# exists in a full run — the README check-count — pass no phase.
 run_case () {
-  local label="$1"; local expect="$2"; local pyscript="$3"; local suite="${4:-guards}"
+  local label="$1"; local expect="$2"; local pyscript="$3"; local suite="${4:-guards}"; local phase="${5:-}"
   rm -rf "$NEG"; mkdir -p "$NEG"
   tar -cf - -C "$SRC" --exclude=node_modules --exclude=.git . | tar -xf - -C "$NEG"
   [ -d "$SRC/node_modules" ] && ln -s "$SRC/node_modules" "$NEG/node_modules"
   ( cd "$NEG" && python3 -c "$pyscript" ) || { echo "  SETUP BROKE  $label"; FAILED=$((FAILED+1)); return; }
   local out
-  out=$(cd "$NEG" && node qa/$suite.js 2>&1)
+  out=$(cd "$NEG" && SMOKE_ONLY="$phase" node qa/$suite.js 2>&1)
   if printf '%s' "$out" | grep -qF "$expect"; then
     echo "  PASS  $label"; PASS=$((PASS+1))
   else

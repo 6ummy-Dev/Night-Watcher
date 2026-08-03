@@ -30,12 +30,12 @@ echo "--- 68: the sort actually uses the position"
 run_case "the timeline sort falls back to typing order" \
   "an era renders in life order, blending continuities" \
   "${P}a='((a.lo || 9999) - (b.lo || 9999)) || ';assert a in s;s=s.replace(a,'');${W}" \
-  "smoke"
+  "smoke" "main"
 
 run_case "an era orders by release year again" \
   "Pennyworth precedes Gotham" \
   "${P}a='((a.lo || 9999) - (b.lo || 9999)) || (a.gi - b.gi)';assert a in s;s=s.replace(a,'(a.y - b.y) || (a.gi - b.gi)');${W}" \
-  "smoke"
+  "smoke" "main"
 
 echo "--- 51: every continuity, not one"
 run_case "a continuity runs backwards through the eras" \

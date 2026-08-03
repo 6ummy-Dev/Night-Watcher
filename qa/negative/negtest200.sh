@@ -74,7 +74,7 @@ s=s.replace(a,'\" data-act=\"cardshare\">Share the night',1);${W}"
 
 run_case "the preview creeps back" \
   "the card preview is back" \
-  "${P}b='<p class=\"qhead\" style=\"margin:26px 0 8px\">Share your progress</p>'
+  "${P}b='<div class=\"bk sharecard\"><h3>Share your progress</h3>'
 assert b in s
 s=s.replace(b,b+'<canvas id=\"pcard\" width=\"1080\" height=\"1920\"></canvas>',1);${W}"
 run_case "the card floats above the scoreboard" \

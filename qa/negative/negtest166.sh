@@ -76,12 +76,12 @@ echo "--- smoke: the unknown-title branch, and the row count read from the page"
 run_case "watchUrl stops guarding an unknown year" \
   "a title the catalogue has never heard of degrades cleanly" \
   "${P}a=\"(y ? \\\" \\\" + y : \\\"\\\")\";assert a in s;s=s.replace(a,'(\\\" \\\" + y)');${W}" \
-  "smoke"
+  "smoke" "main"
 
 run_case "Activity renders the whole log instead of ACTIVITYMAX rows" \
   "Activity shows at most ACTIVITYMAX rows" \
   "${P}a='i >= 0 && n < ACTIVITYMAX';assert a in s;s=s.replace(a,'i >= 0');${W}" \
-  "smoke"
+  "smoke" "main"
 
 rm -rf "$NEG"
 finish "1.6.6 negative tests"

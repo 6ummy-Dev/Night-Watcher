@@ -26,7 +26,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-PICK="${1:-}"
+PICK="${1:-}"   # a grep -E pattern: one suite number, or an alternation (CI shards)
 
 JOBS="${NEGJOBS:-}"
 if [ -z "$JOBS" ]; then
@@ -38,7 +38,7 @@ case "$JOBS" in ''|*[!0-9]*) JOBS=1 ;; esac
 SUITES=()
 for f in "$HERE"/negtest*.sh; do
   [ "$(basename "$f")" = "run-all.sh" ] && continue
-  if [ -n "$PICK" ] && ! echo "$f" | grep -q "$PICK"; then continue; fi
+  if [ -n "$PICK" ] && ! echo "$f" | grep -Eq "$PICK"; then continue; fi
   SUITES+=("$f")
 done
 
@@ -63,8 +63,19 @@ run_one () {
 export -f run_one
 export WORK
 
-echo "  ${#SUITES[@]} suites, $JOBS at a time"
-printf '%s\n' "${SUITES[@]}" | xargs -P "$JOBS" -I{} bash -c 'run_one "$@"' _ {}
+# 2.2.0, optimization report §5.1: dispatch longest-first. The wall clock of a
+# concurrent run is whatever suite finishes last, and a smoke fixture costs ~40×
+# a guards fixture — so a heavy suite picked up late by xargs used to run alone
+# after everything else had drained. Sorting the dispatch by smoke-fixture count
+# (descending; name as tiebreak, so the order is deterministic) starts the heavy
+# suites first and packs the cheap ones behind them. The report below still
+# prints in file order — only the dispatch moves.
+DISPATCH="$(for f in "${SUITES[@]}"; do
+  printf '%03d %s\n' "$(grep -c '"smoke"' "$f")" "$f"
+done | sort -k1,1r -k2,2 | cut -d' ' -f2-)"
+
+echo "  ${#SUITES[@]} suites, $JOBS at a time, longest first"
+printf '%s\n' "$DISPATCH" | xargs -P "$JOBS" -I{} bash -c 'run_one "$@"' _ {}
 
 TOTAL=0; BROKE=0
 for f in "${SUITES[@]}"; do

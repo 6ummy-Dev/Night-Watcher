@@ -59,13 +59,13 @@ echo "--- the by-universe chip"
 run_case "the chip goes back to counting positions" \
   "an era renders in life order" \
   "${P}a='tag:eraTag(g)';assert a in s;s=s.replace(a,'tag:g.n');${W}" \
-  "smoke"
+  "smoke" "main"
 
 echo "--- the lead card"
 run_case "By universe takes the lead back" \
   "the lead is the one life" \
   "${P}a='var PATHS = [[\"life\",\"Bruce\\\\u2019s life\"], [\"continuity\",\"By universe\"]';assert a in s;s=s.replace(a,'var PATHS = [[\"continuity\",\"By universe\"], [\"life\",\"Bruce\\\\u2019s life\"]');${W}" \
-  "smoke"
+  "smoke" "main"
 
 rm -rf "$NEG"
 finish "1.7.2 negative tests"

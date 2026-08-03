@@ -17,7 +17,7 @@ run_case "the Nolan trilogy runs backwards through the eras" \
 
 run_case "a film is lifted out of the Dark Knight Saga" \
   "should hold 3 films, found 2" \
-  "${P}import re;a=re.search(r',\n \{i:\"the-dark-knight-rises-2012\".*?,b:\[\]\}',s,re.S);assert a;s=s[:a.start()]+s[a.end():];${W}"
+  "${P}import re;a=re.search(r',\n \{i:\"the-dark-knight-rises-2012\".*?\}',s,re.S);assert a;s=s[:a.start()]+s[a.end():];${W}"
 
 run_case "the guard is pointed at a group number again" \
   "should hold 3 films, found 0" \
@@ -45,13 +45,13 @@ echo "--- smoke: positional numbering survives an empty bucket"
 run_case "the group numbers are assigned before the empty ones are dropped" \
   "numbers its groups 1..n with no gaps" \
   "${P}a='  if(S.mode !== \"continuity\"){\n    var seq = 0;\n    out.forEach(function(g){ if(g.tag !== \"\\\\u2014\") g.tag = String(++seq); });\n  }\n';assert a in s;s=s.replace(a,'');${W}" \
-  "smoke"
+  "smoke" "main"
 
 echo "--- smoke: the catalogue starts where it says it starts"
 run_case "the earliest entry moves and the span copy does not" \
   "reaches back to the serials" \
   "${P}a='sub:\"15 chapters\",y:1943';assert a in s;s=s.replace(a,'sub:\"15 chapters\",y:1963');${W}" \
-  "smoke"
+  "smoke" "main"
 
 rm -rf "$NEG"
 finish "1.7.0 negative tests"

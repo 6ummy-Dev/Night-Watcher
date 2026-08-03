@@ -78,7 +78,7 @@ run_case "and the rendered chip moves when the scope does" \
   "the universe chip does not move when the scope does" \
   "${P}a='tag:eraTag(g),';assert a in s
 s=s.replace(a,'tag:eraTag({films:g.films.filter(function(f){return f.k!==\"tv\";})}),',1);${W}" \
-  "smoke"
+  "smoke" "main"
 
 echo "--- 89: the amnesty window is closed"
 run_case "a second rename is added beside the first" \

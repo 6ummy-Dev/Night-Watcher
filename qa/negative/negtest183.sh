@@ -5,9 +5,9 @@
 
 # The whole bug, restored: the head carries a marker again and the count is
 # replaced into it afterwards. This is verbatim what 1.8.2 shipped.
-REGRESS="${P}a='''      (anyOpen() ? \"Collapse all\" : \"Expand all\")+'</button></div>';'''
+REGRESS="${P}a='''      (ao ? \"Collapse all\" : \"Expand all\")+'</button></div>';'''
 assert a in s
-s=s.replace(a,'''      (anyOpen() ? \"Collapse all\" : \"Expand all\")+'</button></div>%%COUNT%%';''',1)
+s=s.replace(a,'''      (ao ? \"Collapse all\" : \"Expand all\")+'</button></div>%%COUNT%%';''',1)
 b='''  var html = head + (q
     ? '<p class=\"scopenote\" role=\"status\" aria-live=\"polite\" style=\"margin:-4px 2px 10px\">'+shownTotal+(shownTotal===1?\" match\":\" matches\")+'</p>'
     : \"\") + body;'''
@@ -25,7 +25,7 @@ run_case "the whole sentinel comes back" \
 run_case "and the rendered search box is corrupted by it" \
   "a search for the old count marker leaves the search box intact" \
   "$REGRESS" \
-  "smoke"
+  "smoke" "main"
 
 run_case "a marker is added under another name" \
   "index.html carries the marker(s) %%TOTAL%%" \
@@ -68,7 +68,7 @@ s=s.replace(a,'stroke-dasharray=\"120\" stroke-dashoffset=\"120\"',1);${W}"
 
 run_case "the script circumference drifts from the markup" \
   "the script draws the ring with" \
-  "${P}a='(119.4 * (1 - pct))';assert a in s;s=s.replace(a,'(118.9 * (1 - pct))',1);${W}"
+  "${P}a='(119.4 * (1 - frac))';assert a in s;s=s.replace(a,'(118.9 * (1 - frac))',1);${W}"
 
 echo "--- 81: an era note describes a period, not a story"
 run_case "an era note quotes an episode" \

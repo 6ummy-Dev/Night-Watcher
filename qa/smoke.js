@@ -18,6 +18,25 @@ var html = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8")
   .replace(/<script[^>]*cloudflareinsights[^>]*><\/script>/g, "");
 
 var fails = [];
+/* 2.2.0, optimization report §5.4: a negative fixture that exists to trip one
+   check does not need the whole run — 21 seconds to observe one message. A
+   scoped run boots the same first document, then runs only the phase named:
+     main    — the primary document, its reboots, and the restore-link block
+     css     — the dead-rule sweep
+     origin  — the old-origin move offer (its own document)
+     blocked — the throwing-store document
+   The README check-count self-assert only runs unscoped, because a scoped
+   run's count is meaningless by design. npm test never sets this; the full
+   run is still the bar, and a fixture naming a phase that does not exist is
+   a broken fixture, not a shorter one — the run refuses. */
+var ONLY = process.env.SMOKE_ONLY || "";
+var PHASES = ["main", "css", "origin", "blocked"];
+if(ONLY && PHASES.indexOf(ONLY) < 0){
+  console.log("unknown SMOKE_ONLY phase \"" + ONLY + "\" — one of: " +
+              PHASES.join(", ") + ", or unset for the full run");
+  process.exit(1);
+}
+function wants(p){ return !ONLY || ONLY === p; }
 /* The exit code used to be set inside the third jsdom document's load handler.
    If that event never fired \u2014 a parse error, a jsdom change, a hang \u2014 the run
    printed its failures and exited 0, which is the one outcome a test suite must
@@ -77,9 +96,15 @@ win.addEventListener("load", function(){
           app ? app.textContent.length + " chars" : "no #app");
 
     var S = win.S, FILMS = win.FILMS, tierOf = win.tierOf;
+    var doc = win.document;
+
+    /* A scoped run keeps the boot sanity check above, skips the main phase,
+       and goes straight to the tail — whose own gates run just the phase
+       asked for. tailPhases() is declared below runBlocked(); function
+       declarations hoist. */
+    if(ONLY && ONLY !== "main"){ tailPhases(); return; }
 
     /* --- first run: Home IS the chooser, and nothing else --- */
-    var doc = win.document;
     check("no path is set on a fresh device", S.path === "", 'path="' + S.path + '"');
     check("Home shows the three path cards", doc.querySelectorAll(".pick").length === 3,
           doc.querySelectorAll(".pick").length + " cards");
@@ -1219,6 +1244,13 @@ win.addEventListener("load", function(){
             !S.path && Object.keys(S.watched).length === 0);
       S.pending = null; S.path = S.mode = "continuity"; win.render();
     })();
+    tailPhases();
+    }
+
+    /* The tail: the css sweep, the old-origin document, the blocked store.
+       Each behind its own phase gate; an unscoped run walks all three in
+       the same order it always did. */
+    function tailPhases(){
 
     /* --- every CSS rule matches something, somewhere ---------------------
        Two releases running left a rule behind after the markup it styled was
@@ -1227,7 +1259,7 @@ win.addEventListener("load", function(){
        why it does not need a real browser: it asks whether a selector ever
        matches, and querySelector works here perfectly. It rides along on the
        states this suite already drives. */
-    (function(){
+    if(wants("css")) (function(){
       var css = html.match(/<style>([\s\S]*?)<\/style>/g).join("\n")
                     .replace(/\/\*[\s\S]*?\*\//g, "");
       var rules = css.match(/[^{}]+\{[^}]*\}/g) || [];
@@ -1238,7 +1270,14 @@ win.addEventListener("load", function(){
         sels.push(sel);
       });
       var matched = Object.create(null);
+      /* 2.2.0, report §5.5: most rules match within the first few states, so
+         once every selector has matched there is nothing left to learn — the
+         remaining sweeps would probe an empty worklist ~80 times. The early
+         exit cannot change the verdict: matched only ever grows, and the
+         dead list at the end reads matched, not the sweep count. */
+      var unmatched = sels.length;
       function sweep(){
+        if(unmatched === 0) return;
         sels.forEach(function(sel){
           if(matched[sel]) return;
           var probe = sel.split(",").map(function(one){
@@ -1247,9 +1286,9 @@ win.addEventListener("load", function(){
               .replace(/:(hover|active|focus-visible|focus|disabled|checked|first-of-type|last-of-type|last-child|first-child)/g, "")
               .trim();
           }).filter(Boolean).join(",");
-          if(!probe){ matched[sel] = 1; return; }
-          try{ if(doc.querySelector(probe)) matched[sel] = 1; }
-          catch(e){ matched[sel] = 1; }
+          if(!probe){ matched[sel] = 1; unmatched--; return; }
+          try{ if(doc.querySelector(probe)){ matched[sel] = 1; unmatched--; } }
+          catch(e){ matched[sel] = 1; unmatched--; }
         });
       }
       S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.open = {}; S.q = "";
@@ -1315,6 +1354,8 @@ win.addEventListener("load", function(){
       S.tab = "home"; S.path = S.mode = "continuity"; win.render();
     })();
 
+    if(!wants("origin")){ afterOrigin(); return; }
+
     /* --- the move offer, from the origin being left (1.8.0) --- */
     /* Progress is per-origin, so only a document actually on the old origin can
        show what a returning reader there would see. */
@@ -1352,9 +1393,14 @@ win.addEventListener("load", function(){
         check("it shows on The Path as well as Home", !!d2.querySelector("#view .moved"));
         check("the canonical origin shows no such offer", !doc.querySelector("#view .moved"));
 
-        blockedStore();
+        afterOrigin();
       }, 200);
     });
+    }
+
+    function afterOrigin(){
+      if(wants("blocked")) blockedStore();
+      else finish();
     }
   }, 200);
 });
@@ -1381,7 +1427,7 @@ function blockedStore(){
         check("app still renders and stays usable", w.document.getElementById("app").textContent.length > 500);
         check("warning is hidden when storage works", win.document.getElementById("nosave").hidden === true);
 
-        checkReadmeCount();
+        if(!ONLY) checkReadmeCount();
         finish();
       }, 200);
     });

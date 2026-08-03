@@ -46,7 +46,7 @@ run_case "the cards render without their descriptions" \
   "every home card carries a description" \
   "${P}a=\"'<span class=\\\"udesc\\\">'+esc(cardBlurb(g.note))+'</span>'+\";assert a in s
 s=s.replace(a,'',1);${W}" \
-  "smoke"
+  "smoke" "main"
 
 rm -rf "$NEG"
 finish "1.8.2 negative tests"

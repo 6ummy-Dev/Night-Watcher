@@ -10,7 +10,7 @@ s=s.replace(a,'  PATH.forEach(function(g, gi){',1);${W}"
 
 run_case "Home stops building its grid from buildGroups()" \
   "no longer builds its grid from buildGroups()" \
-  "${P}i=s.index('function viewHome()');j=s.index('function viewNext()')
+  "${P}i=s.index('function viewHome(');j=s.index('function viewNext(')
 blk=s[i:j];assert 'buildGroups()' in blk
 s=s[:i]+blk.replace('buildGroups()','GROUPS_CACHE')+s[j:];${W}"
 

@@ -37,21 +37,21 @@ s=s.replace(a,'  return true || (location.origin + location.pathname).replace(/\
 
 run_case "the offer renders inside one view only" \
   "a shared link lands on" \
-  "${P}a='  v.innerHTML = moveBanner() + (S.tab === \"home\" ? viewHome()';assert a in s
-s=s.replace(a,'  v.innerHTML = (S.tab === \"home\" ? viewHome()',1);${W}"
+  "${P}a='  v.innerHTML = moveBanner() + (S.tab === \"home\" ? viewHome(c)';assert a in s
+s=s.replace(a,'  v.innerHTML = (S.tab === \"home\" ? viewHome(c)',1);${W}"
 
 echo "--- smoke: what a returning reader actually sees"
 run_case "the offer never reaches the old origin" \
   "the old origin offers the way across" \
   "${P}a='if(moveHid || !offCanonical()) return \"\";';assert a in s
 s=s.replace(a,'if(true) return \"\";',1);${W}" \
-  "smoke"
+  "smoke" "origin"
 
 run_case "the link points back at the origin being left" \
   "it points at the canonical origin, not this one" \
   "${P}a='esc(n ? SITE + \"#nw=\" + exportCode() : SITE)';assert a in s
 s=s.replace(a,'esc(location.origin + location.pathname + \"#nw=\" + exportCode())',1);${W}" \
-  "smoke"
+  "smoke" "origin"
 
 echo "--- the addresses themselves"
 run_case "the canonical link is left pointing at the old home" \

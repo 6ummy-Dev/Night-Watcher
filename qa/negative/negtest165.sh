@@ -32,12 +32,12 @@ echo "--- smoke: a restore link works from a cold start"
 run_case "restoring on a fresh device loses the path" \
   "restoring on a fresh device keeps the path the link carried" \
   "${P}a='if(!S.path && isPath(res.path)){ S.path = S.mode = res.path; }';assert a in s;s=s.replace(a,'');${W}" \
-  "smoke"
+  "smoke" "main"
 
 run_case "the link is consumed before it is answered" \
   "a restore link shows its banner on a device with no path" \
   "${P}a='html += pendingBanner()+';assert a in s;s=s.replace(a,'html += ');${W}" \
-  "smoke"
+  "smoke" "main"
 
 rm -rf "$NEG"
 finish "1.6.5 negative tests"

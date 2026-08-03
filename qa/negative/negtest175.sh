@@ -35,7 +35,7 @@ run_case "the #life branch stops matching, seen from the running app" \
   "#life still routes in a running app" \
   "${P}a='if(tok === \"life\"){ S.tab = \"watch\"; S.mode = \"life\"; revealHero(); }'
 assert a in s;s=s.replace(a,'if(false){ S.tab = \"watch\"; S.mode = \"life\"; revealHero(); }',1);${W}" \
-  "smoke"
+  "smoke" "main"
 
 run_case "a scope token stops being understood" \
   "#series no longer routes" \
@@ -98,12 +98,12 @@ run_case "a deep link writes the scope preference again" \
   "a scope token leaves the preference alone" \
   "${P}a='S.scope = \"all\";'
 assert s.count(a)==1;s=s.replace(a,'S.scope = S.scopePref = \"all\";',1);${W}" \
-  "smoke"
+  "smoke" "main"
 
 run_case "persist writes the view instead of the preference" \
   "and persisting after it stores the preference, not the view" \
   "${P}a='scope:S.scopePref,';assert a in s;s=s.replace(a,'scope:S.scope,',1);${W}" \
-  "smoke"
+  "smoke" "main"
 
 echo "--- one number per universe"
 # 1.8.7 took the number off the Home cards, so the home half of this fixture
@@ -113,14 +113,14 @@ run_case "the path numbers by invention instead of the tag" \
   "FAIL a path number is the universe's real tag" \
   "${P}a='<span class=\"gnum\">'+\"'\"+'+g.tag+'+\"'\";assert a in s
 s=s.replace(a,'<span class=\"gnum\">'+\"'\"+'+\"?\"+'+\"'\",1);${W}" \
-  "smoke"
+  "smoke" "main"
 
 echo "--- the search count that offered what it could not show"
 run_case "the search-everything count ignores the format filter again" \
   "does not offer to find series the format filter would hide" \
   "${P}a='if(f.tv && (S.format === \"all\" || f.fmt === S.format) && matches(f, q)) hidden++;'
 assert a in s;s=s.replace(a,'if(f.tv && matches(f, q)) hidden++;',1);${W}" \
-  "smoke"
+  "smoke" "main"
 
 rm -rf "$NEG"
 finish "1.7.5 negative tests"

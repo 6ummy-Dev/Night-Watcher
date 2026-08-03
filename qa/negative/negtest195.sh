@@ -27,7 +27,7 @@ run_case "a rating drifts with no source behind it" \
   "${P}b=s.replace('r:\"TV-Y\",','r:\"TV-Y7\",',1);assert b!=s;s=b;${W}"
 
 run_case "the badge leaves the detail panel" \
-  "the detail panel no longer carries the rating badge" \
+  "must appear exactly twice" \
   "${P}a='ratingBadge(f)+watchLinks(f)';assert a in s
 s=s.replace(a,'watchLinks(f)',1);${W}"
 

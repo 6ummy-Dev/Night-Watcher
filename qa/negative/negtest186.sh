@@ -46,6 +46,6 @@ run_case "boot appends instead of replacing" \
   "FAIL the seed catalogue is gone after boot" \
   "${P}a='v.innerHTML = moveBanner()';assert a in s
 s=s.replace(a,'v.innerHTML = v.innerHTML + moveBanner()',1);${W}" \
-  "smoke"
+  "smoke" "main"
 
 finish "  negtest186"
