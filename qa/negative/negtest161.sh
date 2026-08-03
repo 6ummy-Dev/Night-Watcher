@@ -1,32 +1,9 @@
 #!/bin/bash
 # Negative-test every guard added or changed in 1.6.1. Each case mutates a
 # pristine copy and requires the EXACT expected message to appear.
-set -u
-SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-NEG="${NEGDIR:-$(mktemp -d)}/tree"
-PASS=0; FAILED=0
+. "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-run_case () {
-  local label="$1"; local expect="$2"; local pyscript="$3"
-  rm -rf "$NEG"; mkdir -p "$NEG"
-  tar -cf - -C "$SRC" --exclude=node_modules --exclude=.git . | tar -xf - -C "$NEG"
-  [ -d "$SRC/node_modules" ] && ln -s "$SRC/node_modules" "$NEG/node_modules"
-  ( cd "$NEG" && python3 -c "$pyscript" ) || { echo "  SETUP BROKE  $label"; FAILED=$((FAILED+1)); return; }
-  local out
-  out=$(cd "$NEG" && node qa/guards.js 2>&1)
-  if printf '%s' "$out" | grep -qF "$expect"; then
-    echo "  PASS  $label"; PASS=$((PASS+1))
-  else
-    echo "  FAIL  $label"
-    echo "        expected: $expect"
-    printf '%s\n' "$out" | grep -E '✗' | sed 's/^/        got: /'
-    FAILED=$((FAILED+1))
-  fi
-}
-
-P="import io;p='docs/index.html';s=io.open(p,encoding='utf-8').read();"
 G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
-W="io.open(p,'w',encoding='utf-8').write(s)"
 
 echo "--- 59: every badge is the same box"
 run_case "the base .bd border is removed" \
@@ -81,6 +58,4 @@ run_case "a new section is missing from the INDEX" \
   "${G}a='     60   One left edge for the group chips\n';assert a in s;s=s.replace(a,'');${W}"
 
 rm -rf "$NEG"
-echo
-echo "1.6.1 negative tests: $PASS passed, $FAILED failed"
-[ "$FAILED" -eq 0 ]
+finish "1.6.1 negative tests"

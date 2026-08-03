@@ -1,30 +1,6 @@
 #!/bin/bash
 # Negative-test 1.7.7 — Home agreeing with the path, and the NW3 code format.
-set -u
-SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-NEG="${NEGDIR:-$(mktemp -d)}/tree"
-PASS=0; FAILED=0
-
-run_case () {
-  local label="$1"; local expect="$2"; local pyscript="$3"; local suite="${4:-guards}"
-  rm -rf "$NEG"; mkdir -p "$NEG"
-  tar -cf - -C "$SRC" --exclude=node_modules --exclude=.git . | tar -xf - -C "$NEG"
-  [ -d "$SRC/node_modules" ] && ln -s "$SRC/node_modules" "$NEG/node_modules"
-  ( cd "$NEG" && python3 -c "$pyscript" ) || { echo "  SETUP BROKE  $label"; FAILED=$((FAILED+1)); return; }
-  local out
-  out=$(cd "$NEG" && node qa/$suite.js 2>&1)
-  if printf '%s' "$out" | grep -qF "$expect"; then
-    echo "  PASS  $label"; PASS=$((PASS+1))
-  else
-    echo "  FAIL  $label"
-    echo "        expected: $expect"
-    printf '%s\n' "$out" | grep -E '✗|!' | sed 's/^/        got: /' | head -3
-    FAILED=$((FAILED+1))
-  fi
-}
-
-P="import io;p='docs/index.html';s=io.open(p,encoding='utf-8').read();"
-W="io.open(p,'w',encoding='utf-8').write(s)"
+. "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 echo "--- 76: Home and The Path group the same way"
 run_case "Home goes back to always drawing the universes" \
@@ -74,6 +50,4 @@ run_case "an old NW2 code stops restoring its ratings" \
   "${P}a='  if(ver >= 3){';assert a in s;s=s.replace(a,'  if(ver >= 1){',1);${W}"
 
 rm -rf "$NEG"
-echo
-echo "1.7.7 negative tests: $PASS passed, $FAILED failed"
-[ "$FAILED" -eq 0 ]
+finish "1.7.7 negative tests"

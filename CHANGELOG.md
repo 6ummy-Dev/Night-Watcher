@@ -19,6 +19,106 @@ happen, because every `i:` slug is frozen (see the README).
 
 Nothing yet.
 
+## [1.9.5] — 2026-08-03
+
+The pack. Everything that did not have to wait for 2.0.0, shipped while The
+Belt is designed: the rating every entry earned in the sourcing pass, a
+Progress tab that folds, one answer for a fresh visitor, and the independent
+audit's short list. 2.0.0 stays what it was — the Belt, and the Knightfall
+trigger.
+
+### Added
+
+- **A rating on every released entry.** `r:` on all 194 — 90 MPA ratings,
+  78 TV Parental Guidelines ratings, 26 honest NRs for the web shorts, disc
+  extras, unaired pilots and the two 1940s serials that predate the rating
+  system entirely. Two systems live on one shelf on purpose: eleven
+  film-shelf entries are TV specials and TV-rated DTVs, and the badge renders
+  what the source system says, never a translation. The six unreleased
+  entries carry none — a certificate rides a release, so Knightfall Part 1's
+  announced R enters with 2.0.0's trigger edit, the same edit that drops its
+  NOT OUT YET badge. Sourced or absent, never guessed: the sourcing pass
+  covered all 200 with a source per value, and the nine rows it flagged were
+  re-verified before any of this shipped. Three moved — the 1983, 1984 and
+  1985 Super Friends seasons are **TV-G** by Apple TV's unified show page
+  and TV Guide's season badge, not the aggregator's TV-Y7; the other six
+  held (Fatal Five PG-13 by Movies Anywhere, Brave and the Bold TV-Y7 by
+  Tubi, Young Justice S4 TV-14 by Apple's own season page).
+- **The badge is text, in the app's own type**, in the detail panel beside
+  the watch link, with a legend line naming the two systems. The MPA
+  certification marks and the TV Parental Guidelines logos are certification
+  marks and are not reproduced.
+- **Guard 92** holds the vocabulary (nothing outside the two systems), the
+  released-carries-one / unreleased-carries-none rule, and the exact
+  distribution from the findings doc — a rating cannot change without a
+  source, and the findings doc cannot silently disagree with the shipped data.
+- **The Progress lists fold.** By universe (44 rows) and By era (12 rows)
+  collapse behind their headings, closed by default — they stood between the
+  donuts and the backup tools, the longest scroll in the app to reach the
+  controls that keep progress alive. `progOpen` is `groupOpen`'s mirror
+  image: groupOpen persists only `false` because absent means open, progOpen
+  persists only `true` because absent means closed, and persisting anything
+  else would flip a default the next time a build adds a fold. Guard 93
+  enforces the mirror the way guard 36 enforces the original.
+- **The curated list is machine-readable.** An `ItemList` of the 74
+  essential-and-core titles joins the JSON-LD `@graph` — the same list the
+  crawlable seed already hands to crawlers that read HTML, now for the ones
+  that read schema.org. One cut feeds both, through the extracted
+  `tierOf()`, generated and blessed exactly like the seed; guard 95 keeps
+  the two in step. From the independent audit's list.
+- **An H1 in the seed.** The crawlable block opened with an H2 — a fragment,
+  to a crawler that runs no JavaScript. Its first heading is the page's
+  content H1 now; the wordmark in the header stays the site's. Also the
+  audit's list.
+- **`qa/negative/_lib.sh`.** The harness every negative suite carried as its
+  own copy — scratch-tree setup, `run_case`, the summary — is one sourced
+  library now, ~500 duplicated lines gone. The failure-report grep is the
+  newest superset (`✗|!|FAIL`) in all 22 suites, where three vintages of it
+  had drifted. The suites prove the refactor themselves: every fixture still
+  fails its guard for the stated reason.
+- **`qa/negative/negtest195.sh`** — fixtures for everything above: ratings
+  vocabulary, counts, the unreleased rule, the badge and legend, the folds
+  and their persistence, the fresh-visitor default, the ItemList, the seed's
+  H1, and the raised ceiling.
+
+### Changed
+
+- **The path is Bruce, for a fresh visitor.** Owner's call, recorded in the
+  1.9.5 plan. The chooser's lead card has been Bruce's life since 1.7.2;
+  what remained was the reader who had not chosen yet — The Path opened on
+  By universe for them, a different answer than the card the chooser
+  recommends. The pre-choice default is `life` now, and guard 94 keeps the
+  two recommendations one recommendation. Nothing moves for anyone who has
+  chosen a path.
+- **`docs/share.png`: 325 KB → 20 KB.** 1.9.0 declined quantization so the
+  shipped file would be the generator's exact output; the independent audit
+  put a number on what that cost — the card was the heaviest file in the
+  tree, on every social embed. Reversed: 256-colour palette quantization,
+  RMSE 1.4%, invisible at card size. The card stays generated — the exact
+  reproduction step is recorded in `qa/make-share-card.mjs`, so a
+  regeneration still lands on the shipped bytes.
+- **The weight ceiling: 150 → 160 KB raw.** The road-to-2.0.0 plan budgeted
+  this raise for the release the ratings data rode in; with the `r:` field
+  on 194 entries and the ItemList, the file is over 150 and comfortably
+  under 160. The gzip budget did not move, and the README's weight prose
+  moved with the numbers.
+
+### Ops — outside the tree, recorded so QA stops asking
+
+- **The AGPL `LICENSE` is verbatim, verified 3 Aug.** A fresh gnu.org
+  download, normalized from the browser's CRLF save (34,523 bytes), hashes
+  byte-identical to the text below the divider in the tree. The parked
+  "byte-exact AGPL copy" item was stale — the README's "canonical, verbatim"
+  claim was already true, and the first-FOSS-submission gate is open.
+- **Bing / IndexNow, completed 3 Aug**: verification via Search Console
+  import, sitemap submitted (*Processing*, 0 errors), Bingbot clear at the
+  edge, and the index tab's 2006-dated DNS error proven stale by a clean
+  live test, indexing requested. Still owed on the watch list: the sitemap
+  recheck once processed, and the IndexNow attribution panel after its
+  ~48-hour window.
+- **1.9.0 shipped the same day this was built** — the soak runs while 2.0.0
+  is designed; anything it surfaces lands on the 2.0.0 plan, not here.
+
 ## [1.9.0] — 2026-08-03
 
 The page's face when it travels. Nothing a reader inside the app sees changes.

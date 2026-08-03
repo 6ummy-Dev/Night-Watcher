@@ -41,6 +41,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      85   Static Shock and Titans keep one row each
      86   The era scheme is eleven stages, plus outside
      89   The amnesty window is closed
+     92   A rating is certified or absent
 
    STORAGE
      7    Backup code round-trips losslessly
@@ -78,6 +79,8 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      47   The wordmark returns to the top
      49   The card reads what it means
      88   The universe chip describes the universe
+     93   The Progress lists fold, and remember
+     94   The path is Bruce, for a fresh visitor
      54   Home tells before it asks
      76   Home and The Path group the same way
      55   The chooser is a deck, not a list
@@ -124,6 +127,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      70   An entry outside the timeline says why
      90   The seed links carry only known tokens
      91   The card the metas promise is the card that ships
+     95   The curated list is machine-readable
 
    META
      65   The file points at where its reasoning went
@@ -196,7 +200,7 @@ PATH.forEach(function(g, gi){
     FILMS.push({id:f.i, gi:gi, ix:fx, gn:g.n, gname:g.name, fmt:(f.fmt || g.fmt || "anim"),
                 t:f.t, sub:f.sub||"", ep:f.ep||0,
                 tv:(f.k === "tv"), y:f.y, e:(f.e||0), lo:(f.lo||0), out:(f.out||""),
-                b:f.b||[], o:!!f.o});
+                r:f.r||"", b:f.b||[], o:!!f.o});
   });
 });
 
@@ -1092,7 +1096,10 @@ var zlib = require("zlib");
 var rawKB  = Buffer.byteLength(HTML) / 1024;
 var gzipKB = zlib.gzipSync(Buffer.from(HTML)).length / 1024;
 note("index.html " + rawKB.toFixed(1) + " KB raw, " + gzipKB.toFixed(1) + " KB gzipped");
-if(rawKB > 150) fail("index.html is " + rawKB.toFixed(1) + " KB raw, over the 150 KB budget");
+/* Raised 150 -> 160 in 1.9.5: the ratings data (~2 KB across 200 entries) and
+   the machine-readable curated list rode in together, exactly the case the
+   road-to-2.0.0 plan budgeted for. The gzip budget did not move. */
+if(rawKB > 160) fail("index.html is " + rawKB.toFixed(1) + " KB raw, over the 160 KB budget");
 if(gzipKB > 50) fail("index.html is " + gzipKB.toFixed(1) + " KB gzipped, over the 50 KB budget");
 
 /* Zero runtime dependencies is a promise in the README. There is no
@@ -3335,7 +3342,7 @@ var ROUTE_VOCAB = [
   var css = (HTML.match(/<style>([\s\S]*?)<\/style>/g) || []).join("\n")
               .replace(/\/\*[\s\S]*?\*\//g, "");
   var rules = css.match(/[^{}]+\{[^}]*\}/g) || [];
-  var CONTROLS = ["chip", "allbtn", "tick", "trow", "bkbtn", "ucard", "srow"];
+  var CONTROLS = ["chip", "allbtn", "tick", "trow", "bkbtn", "ucard", "srow", "sfhead"];
   var height = {}, pad = {};
   rules.forEach(function(rule){
     var sel  = rule.slice(0, rule.indexOf("{")).trim();
@@ -3560,7 +3567,12 @@ var ROUTE_VOCAB = [
   });
   var want = [
     '<main id="view">',
-    "<h2>Every Batman story ever filmed</h2>",
+    /* An H1 since 1.9.5: the seed is the whole page to a crawler that runs no
+       JavaScript, and a page whose first heading is an H2 reads as a fragment.
+       The app's own H1 is the wordmark in the header, which the crawler also
+       sees; two H1s on the pre-render page is the honest structure — one names
+       the site, one names the content. */
+    "<h1>Every Batman story ever filmed</h1>",
     "<p>Night Watcher lists " + films + " films and " + seasons +
       " seasons of television across " + PATH.length + " continuities, in Batman " +
       'watch orders that spoil nothing: <a href="#universes">by universe</a>, ' +
@@ -3613,7 +3625,7 @@ var ROUTE_VOCAB = [
      now be INSIDE #view, where the first render replaces it. A copy anywhere
      else stays on the page underneath the app for every reader. */
   var mainAt = HTML.indexOf('<main id="view">');
-  var mark = "<h2>Every Batman story ever filmed</h2>";
+  var mark = "<h1>Every Batman story ever filmed</h1>";
   var first = HTML.indexOf(mark);
   if(first >= 0 && (first < mainAt || first > mainAt + got.length ||
                     HTML.indexOf(mark, first + 1) >= 0)){
@@ -4105,6 +4117,209 @@ var ROUTE_VOCAB = [
   }
   note("share card: 1200×630 PNG, " + buf.length.toLocaleString("en-US") +
        " bytes, three references agree, out of the shell");
+})();
+
+/* ---------- 92. A rating is certified or absent ---------- */
+/* The sourcing pass over all 200 entries lives in the project's
+   catalogue/ratings-findings.md — every value there carries its source, and
+   the catalogue rule applies unchanged: sourced or absent, never guessed.
+   Two systems live on one shelf on purpose (11 film-shelf entries are TV
+   specials and TV-rated DTVs); the badge renders what the source system says
+   and never translates. An unreleased entry has no certificate by definition
+   — Knightfall Part 1's announced R enters as the 2.0.0 trigger edit, the
+   same edit that drops its NOT OUT YET badge. */
+
+(function(){
+  var MPA = ["G", "PG", "PG-13", "R", "NR"];
+  var TVG = ["TV-Y", "TV-Y7", "TV-Y7-FV", "TV-G", "TV-PG", "TV-14", "TV-MA"];
+  /* The distribution the findings doc landed on, rechecks resolved: 90 MPA
+     ratings + 26 honest no-rating-exists NR + 78 TV-system = 194, and the six
+     unreleased entries carry none. A drifted count here means an entry gained,
+     lost or changed a rating nobody sourced. */
+  var EXPECT = {"PG-13":53, "PG":19, "R":17, "G":1, "NR":26,
+                "TV-PG":18, "TV-G":15, "TV-Y7":14, "TV-MA":13, "TV-14":10,
+                "TV-Y7-FV":6, "TV-Y":2};
+  var got = {}, rated = 0;
+  FILMS.forEach(function(f){
+    if(f.b.indexOf("u") >= 0){
+      if(f.r) fail(f.id + ' is not out yet and carries r:"' + f.r + '" \u2014 an ' +
+                   "unreleased entry has no certificate; its rating rides its release");
+      return;
+    }
+    if(!f.r){
+      fail(f.id + " is released and carries no r: \u2014 the sourcing pass covered " +
+           "all 200 entries, so an absent value on a released entry is a hole, not a TBD");
+      return;
+    }
+    if(MPA.indexOf(f.r) < 0 && TVG.indexOf(f.r) < 0){
+      fail(f.id + ' carries r:"' + f.r + '" \u2014 not a value in either system, and ' +
+           "the badge renders only what a certificate can actually say");
+      return;
+    }
+    got[f.r] = (got[f.r] || 0) + 1; rated++;
+  });
+  Object.keys(EXPECT).forEach(function(k){
+    if((got[k] || 0) !== EXPECT[k]){
+      fail((got[k] || 0) + " entries rated " + k + ", the findings doc says " + EXPECT[k] +
+           " \u2014 a rating changed without a source, or the findings doc was not updated");
+    }
+  });
+  Object.keys(got).forEach(function(k){
+    if(!(k in EXPECT)) fail(got[k] + ' entr' + (got[k] === 1 ? "y" : "ies") +
+                            ' rated "' + k + '" \u2014 a value the findings doc never recorded');
+  });
+  /* The badge is text in the app's own type. The MPA certification marks and
+     the TV Parental Guidelines logos are certification marks and are never
+     reproduced \u2014 that decision is recorded in the findings doc and holds. */
+  if(!/function ratingBadge\s*\(/.test(HTML)){
+    fail("ratingBadge() is gone \u2014 the rating data renders nowhere");
+  }
+  if(!/ratingBadge\(f\)\+watchLinks\(f\)/.test(HTML)){
+    fail("the detail panel no longer carries the rating badge \u2014 the one place " +
+         "a reader deciding what to watch actually looks");
+  }
+  if(!/\.bd\.rt\{[^}]*currentColor/.test(HTML)){
+    fail("the .bd.rt badge has no style of its own \u2014 it would render as bare text " +
+         "in a row of boxes");
+  }
+  if(!/MPA for films, TV Parental Guidelines for television/.test(HTML)){
+    fail("the legend no longer explains the two systems \u2014 TV-14 next to PG-13 " +
+         "reads as a typo to anyone who has not met both");
+  }
+  if((HTML.match(/class="bd rt"/g) || []).length < 3){
+    fail("the legend no longer shows the rating badge \u2014 one swatch per system, " +
+         "or the box appears on rows unexplained");
+  }
+  note("ratings: " + rated + " entries carry one \u2014 " +
+       Object.keys(EXPECT).map(function(k){ return EXPECT[k] + " " + k; }).join(", ") +
+       "; 6 unreleased carry none");
+})();
+
+/* ---------- 93. The Progress lists fold, and remember ---------- */
+/* 44 universe rows and 12 era rows stood between the donuts and the backup
+   tools \u2014 the longest scroll in the app to reach the controls that keep a
+   user's progress alive. Both lists now fold behind their headings, closed by
+   default, in the groupOpen pattern with the default inverted: groupOpen
+   persists only false because absent means open, progOpen persists only true
+   because absent means closed. Persisting anything else would flip a
+   default the next time a build adds a fold. */
+
+(function(){
+  if(!/function progFold\s*\(/.test(HTML)){
+    fail("progFold() is gone \u2014 the two Progress lists render as an endless " +
+         "scroll again"); return;
+  }
+  ["uni", "era"].forEach(function(pk){
+    if(HTML.indexOf('progFold("' + pk + '"') < 0){
+      fail('the "' + pk + '" list no longer folds \u2014 half the fix is no fix');
+    }
+  });
+  if(!/S\.progOpen\[pk\] === true/.test(HTML)){
+    fail("progFold() opens on anything but an explicit true \u2014 the lists must " +
+         "stay closed for a visitor who never touched them");
+  }
+  if(!/progOpen:S\.progOpen/.test(HTML)){
+    fail("progOpen is not written to the saved payload \u2014 fold state dies on reload");
+  }
+  if(!/if\(o\.progOpen && typeof o\.progOpen === "object"\)/.test(HTML)){
+    fail("restore() does not read progOpen back \u2014 the state would be written " +
+         "and never used");
+  } else {
+    var psave = HTML.slice(HTML.indexOf("if(o.progOpen"),
+                           HTML.indexOf("if(o.progOpen") + 300);
+    if(!/=== true/.test(psave)){
+      fail("restore() accepts non-true progOpen values \u2014 only true is " +
+           "meaningful; anything else inverts the closed default");
+    }
+  }
+  if(!/act === "progfold"/.test(HTML)){
+    fail("the fold heading has no handler \u2014 a button that does nothing");
+  } else {
+    var phAt = HTML.indexOf('act === "progfold"');
+    var ph = HTML.slice(phAt, HTML.indexOf("}", phAt));
+    if(!/persist\(\)/.test(ph)){
+      fail("the fold handler does not persist what it just set \u2014 the state is " +
+           "half-remembered, which guard 36 exists to prevent for groupOpen");
+    }
+  }
+  if(!/\.sfold\.open \.caret\{transform:rotate\(90deg\)/.test(HTML)){
+    fail("the fold caret does not turn \u2014 open and closed look identical, and " +
+         "the affordance is the caret");
+  }
+  if(!/aria-expanded="'\+open\+'"/.test(HTML)){
+    fail("the fold heading states no aria-expanded \u2014 a screen reader cannot " +
+         "tell a closed list from a missing one");
+  }
+})();
+
+/* ---------- 94. The path is Bruce, for a fresh visitor ---------- */
+/* The owner's words, recorded in the 1.9.5 plan. The chooser's lead card has
+   been Bruce's life since 1.7.2; what remained was the reader who has not
+   chosen yet \u2014 The Path opened on By universe for them, a different answer
+   than the card the chooser recommends. The pre-choice default and the lead
+   card must agree, or the recommendation is two recommendations. */
+
+(function(){
+  if(!sandbox.PATHS || sandbox.PATHS[0][0] !== "life"){
+    fail("the chooser's first card is not Bruce's life \u2014 1.7.2 made it the " +
+         "lead on purpose: By universe opens on Alfred in 1960s London, which " +
+         "is right for the reader who chose it and strange for one who has not");
+  }
+  var sdecl = (HTML.match(/\nvar S = \{[\s\S]*?\};/) || [""])[0];
+  if(!sdecl){ fail("the S state declaration cannot be found"); return; }
+  if(!/mode:"life"/.test(sdecl)){
+    fail('the pre-choice default mode is not "life" \u2014 a fresh visitor on The ' +
+         "Path sees a different ordering than the one the chooser leads with");
+  }
+})();
+
+/* ---------- 95. The curated list is machine-readable ---------- */
+/* The seed hands the 74 curated titles to crawlers that read HTML; this is
+   the same list for the ones that read schema.org. One cut \u2014 the extracted
+   tierOf(), the same call guard 78 makes \u2014 feeds both, so the two can only
+   drift together, which is to say not at all. Generated, compared, and
+   blessed exactly like the seed. */
+
+(function(){
+  var ldm = HTML.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  if(!ldm) return; /* section 38 has already failed the build */
+  var o; try{ o = JSON.parse(ldm[1]); }catch(e){ return; }
+  var graph = o["@graph"];
+  if(!graph){ fail("the JSON-LD lost its @graph \u2014 the ItemList has nowhere to live"); return; }
+  var picked = FILMS.filter(function(f){ return tierOf(f) !== "o"; });
+  var twice = {};
+  picked.forEach(function(f){ var k = f.t + "|" + f.y; twice[k] = (twice[k] || 0) + 1; });
+  var want = {
+    "@type": "ItemList",
+    "name": "The essentials and the core route",
+    "description": "The " + picked.length + " curated Batman titles \u2014 every " +
+                   "essential and the whole core route \u2014 in spoiler-safe order.",
+    "numberOfItems": picked.length,
+    "itemListOrder": "https://schema.org/ItemListOrderAscending",
+    "itemListElement": picked.map(function(f, i){
+      var dis = twice[f.t + "|" + f.y] > 1 && f.sub ? " \u2014 " + f.sub : "";
+      return {"@type": "ListItem", "position": i + 1, "name": f.t + dis + " (" + f.y + ")"};
+    })
+  };
+  var got = graph.filter(function(n){ return n["@type"] === "ItemList"; })[0];
+  if(got && JSON.stringify(got) === JSON.stringify(want)){
+    note("JSON-LD ItemList: " + want.numberOfItems + " curated titles, in step with the seed");
+    return;
+  }
+  if(BLESS){
+    o["@graph"] = graph.filter(function(n){ return n["@type"] !== "ItemList"; });
+    o["@graph"].push(want);
+    fs.writeFileSync(path.join(PUBLIC, "index.html"),
+                     HTML.replace(ldm[1], JSON.stringify(o)), "utf8");
+    note("rewrote the JSON-LD ItemList");
+  } else if(!got){
+    fail("the JSON-LD has no ItemList \u2014 the curated titles are in the seed for " +
+         "crawlers that read HTML, and the ones that read schema deserve the same " +
+         "list. Fix with: npm run bless");
+  } else {
+    fail("the JSON-LD ItemList no longer matches the curated titles \u2014 the two " +
+         "lists are one list or they are two claims. Fix with: npm run bless");
+  }
 })();
 
 /* ---------- report ---------- */

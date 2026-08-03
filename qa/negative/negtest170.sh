@@ -1,32 +1,9 @@
 #!/bin/bash
 # Negative-test what 1.7.0 changed: the era rules, the decade buckets, the
 # positional numbering, and every headline count that moved with 30 entries.
-set -u
-SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-NEG="${NEGDIR:-$(mktemp -d)}/tree"
-PASS=0; FAILED=0
+. "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-run_case () {
-  local label="$1"; local expect="$2"; local pyscript="$3"; local suite="${4:-guards}"
-  rm -rf "$NEG"; mkdir -p "$NEG"
-  tar -cf - -C "$SRC" --exclude=node_modules --exclude=.git . | tar -xf - -C "$NEG"
-  [ -d "$SRC/node_modules" ] && ln -s "$SRC/node_modules" "$NEG/node_modules"
-  ( cd "$NEG" && python3 -c "$pyscript" ) || { echo "  SETUP BROKE  $label"; FAILED=$((FAILED+1)); return; }
-  local out
-  out=$(cd "$NEG" && node qa/$suite.js 2>&1)
-  if printf '%s' "$out" | grep -qF "$expect"; then
-    echo "  PASS  $label"; PASS=$((PASS+1))
-  else
-    echo "  FAIL  $label"
-    echo "        expected: $expect"
-    printf '%s\n' "$out" | grep -E '✗|FAIL' | sed 's/^/        got: /' | head -3
-    FAILED=$((FAILED+1))
-  fi
-}
-
-P="import io;p='docs/index.html';s=io.open(p,encoding='utf-8').read();"
 R="import io;p='README.md';s=io.open(p,encoding='utf-8').read();"
-W="io.open(p,'w',encoding='utf-8').write(s)"
 
 echo "--- 5: the serials need decades to live in"
 run_case "the forties bucket is removed under an entry that needs it" \
@@ -77,6 +54,4 @@ run_case "the earliest entry moves and the span copy does not" \
   "smoke"
 
 rm -rf "$NEG"
-echo
-echo "1.7.0 negative tests: $PASS passed, $FAILED failed"
-[ "$FAILED" -eq 0 ]
+finish "1.7.0 negative tests"

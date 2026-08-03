@@ -1,32 +1,9 @@
 #!/bin/bash
 # Negative-test what 1.7.2 added: the universe ordering, the era-0 reason codes,
 # the era-direction fix, and the renamed scheme.
-set -u
-SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-NEG="${NEGDIR:-$(mktemp -d)}/tree"
-PASS=0; FAILED=0
+. "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-run_case () {
-  local label="$1"; local expect="$2"; local pyscript="$3"; local suite="${4:-guards}"
-  rm -rf "$NEG"; mkdir -p "$NEG"
-  tar -cf - -C "$SRC" --exclude=node_modules --exclude=.git . | tar -xf - -C "$NEG"
-  [ -d "$SRC/node_modules" ] && ln -s "$SRC/node_modules" "$NEG/node_modules"
-  ( cd "$NEG" && python3 -c "$pyscript" ) || { echo "  SETUP BROKE  $label"; FAILED=$((FAILED+1)); return; }
-  local out
-  out=$(cd "$NEG" && node qa/$suite.js 2>&1)
-  if printf '%s' "$out" | grep -qF "$expect"; then
-    echo "  PASS  $label"; PASS=$((PASS+1))
-  else
-    echo "  FAIL  $label"
-    echo "        expected: $expect"
-    printf '%s\n' "$out" | grep -E '✗|FAIL' | sed 's/^/        got: /' | head -3
-    FAILED=$((FAILED+1))
-  fi
-}
-
-P="import io;p='docs/index.html';s=io.open(p,encoding='utf-8').read();"
 G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
-W="io.open(p,'w',encoding='utf-8').write(s)"
 
 echo "--- 69: the universes run in the order their stories start"
 run_case "a late-starting universe is moved to the front" \
@@ -91,6 +68,4 @@ run_case "By universe takes the lead back" \
   "smoke"
 
 rm -rf "$NEG"
-echo
-echo "1.7.2 negative tests: $PASS passed, $FAILED failed"
-[ "$FAILED" -eq 0 ]
+finish "1.7.2 negative tests"

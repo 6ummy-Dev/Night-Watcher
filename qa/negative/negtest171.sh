@@ -1,32 +1,9 @@
 #!/bin/bash
 # Negative-test everything 1.7.1 added or changed: the timeline, the widened
 # era-direction rule, the bag exemption, and the per-entry format override.
-set -u
-SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-NEG="${NEGDIR:-$(mktemp -d)}/tree"
-PASS=0; FAILED=0
+. "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-run_case () {
-  local label="$1"; local expect="$2"; local pyscript="$3"; local suite="${4:-guards}"
-  rm -rf "$NEG"; mkdir -p "$NEG"
-  tar -cf - -C "$SRC" --exclude=node_modules --exclude=.git . | tar -xf - -C "$NEG"
-  [ -d "$SRC/node_modules" ] && ln -s "$SRC/node_modules" "$NEG/node_modules"
-  ( cd "$NEG" && python3 -c "$pyscript" ) || { echo "  SETUP BROKE  $label"; FAILED=$((FAILED+1)); return; }
-  local out
-  out=$(cd "$NEG" && node qa/$suite.js 2>&1)
-  if printf '%s' "$out" | grep -qF "$expect"; then
-    echo "  PASS  $label"; PASS=$((PASS+1))
-  else
-    echo "  FAIL  $label"
-    echo "        expected: $expect"
-    printf '%s\n' "$out" | grep -E '✗|FAIL' | sed 's/^/        got: /' | head -3
-    FAILED=$((FAILED+1))
-  fi
-}
-
-P="import io;p='docs/index.html';s=io.open(p,encoding='utf-8').read();"
 G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
-W="io.open(p,'w',encoding='utf-8').write(s)"
 
 echo "--- 68: an era is fully positioned or not positioned at all"
 run_case "one entry loses its position" \
@@ -105,6 +82,4 @@ run_case "the live-action catalogue collapses" \
   "${P}import re;s=re.sub(r'fmt:\"live\",\n','',s);s=s.replace('fmt:\"live\",','');${W}"
 
 rm -rf "$NEG"
-echo
-echo "1.7.1 negative tests: $PASS passed, $FAILED failed"
-[ "$FAILED" -eq 0 ]
+finish "1.7.1 negative tests"

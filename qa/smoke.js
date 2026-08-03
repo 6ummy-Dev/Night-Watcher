@@ -206,6 +206,16 @@ win.addEventListener("load", function(){
     /* The banner has to keep working where it belongs: a shared link, or the
        Progress tab jumping into an ordering that is not yours. */
     S.path = S.mode = "life"; S.tab = "stats"; win.persist(); win.render();
+    /* 1.9.5: the two lists fold, closed by default. The jump rows exist only
+       behind an opened fold, so open it the way a reader would. */
+    check("the Progress lists are closed for a fresh eye",
+          !doc.querySelector('#view [data-act="jump"][data-gk^="c"]'));
+    var uniFold = doc.querySelector('.sfhead[data-pk="uni"]');
+    check("the By-universe fold is there to open", !!uniFold);
+    if(uniFold){ uniFold.click(); }
+    check("opening the fold renders the rows and remembers it",
+          !!doc.querySelector('#view [data-act="jump"][data-gk^="c"]') &&
+          S.progOpen.uni === true);
     var eraJump = doc.querySelector('#view [data-act="jump"][data-gk^="c"]');
     if(!eraJump){ check("Progress offers a jump into another ordering", false, "none found"); }
     else {
@@ -1258,7 +1268,8 @@ win.addEventListener("load", function(){
         S.tab = "watch"; S.filter = f; win.render(); sweep();
       });
       S.filter = "all"; S.q = "zzzznomatch"; win.render(); sweep();
-      S.q = ""; S.tab = "stats"; S.code = win.exportCode(); win.render(); sweep();
+      S.q = ""; S.tab = "stats"; S.code = win.exportCode();
+      S.progOpen = {uni:true, era:true}; win.render(); sweep();
       /* The states a sweep cannot reach by walking the tabs. */
       S.tab = "watch"; S.mode = "life"; win.render(); sweep();
       S.path = ""; win.render(); sweep();

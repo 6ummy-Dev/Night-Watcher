@@ -17,7 +17,18 @@
 
    Renders at 2× and downscales in-browser (canvas, high quality) so the type
    stays crisp; guard 91 verifies the shipped file is a 1200×630 PNG that the
-   page's own metas agree on. */
+   page's own metas agree on.
+
+   The shipped file is additionally palette-quantized (1.9.5, on the
+   independent audit's numbers: 325 KB -> ~20 KB, RMSE 1.4%, invisible at
+   card size). To reproduce the shipped bytes after regenerating:
+
+       python3 -c "from PIL import Image; i=Image.open('docs/share.png').convert('RGBA'); \
+         i.quantize(colors=256, method=Image.Quantize.FASTOCTREE, \
+         dither=Image.Dither.FLOYDSTEINBERG).save('docs/share.png', optimize=True)"
+
+   The card stays generated, never hand-drawn — quantization is a wire
+   format, not an edit. */
 "use strict";
 import fs from "node:fs";
 import os from "node:os";

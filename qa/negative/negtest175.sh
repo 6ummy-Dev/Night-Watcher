@@ -2,34 +2,11 @@
 # Negative-test 1.7.5. The first two cases are the mutations that survived the
 # independent QA of 1.7.2 with all seventy sections green; everything after
 # them covers the four new sections and the retired-slug contract.
-set -u
-SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-NEG="${NEGDIR:-$(mktemp -d)}/tree"
-PASS=0; FAILED=0
+. "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-run_case () {
-  local label="$1"; local expect="$2"; local pyscript="$3"; local suite="${4:-guards}"
-  rm -rf "$NEG"; mkdir -p "$NEG"
-  tar -cf - -C "$SRC" --exclude=node_modules --exclude=.git . | tar -xf - -C "$NEG"
-  [ -d "$SRC/node_modules" ] && ln -s "$SRC/node_modules" "$NEG/node_modules"
-  ( cd "$NEG" && python3 -c "$pyscript" ) || { echo "  SETUP BROKE  $label"; FAILED=$((FAILED+1)); return; }
-  local out
-  out=$(cd "$NEG" && node qa/$suite.js 2>&1)
-  if printf '%s' "$out" | grep -qF "$expect"; then
-    echo "  PASS  $label"; PASS=$((PASS+1))
-  else
-    echo "  FAIL  $label"
-    echo "        expected: $expect"
-    printf '%s\n' "$out" | grep -E '✗|FAIL' | sed 's/^/        got: /' | head -3
-    FAILED=$((FAILED+1))
-  fi
-}
-
-P="import io;p='docs/index.html';s=io.open(p,encoding='utf-8').read();"
 G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
 C="import io;p='CHANGELOG.md';s=io.open(p,encoding='utf-8').read();"
 R="import io;p='README.md';s=io.open(p,encoding='utf-8').read();"
-W="io.open(p,'w',encoding='utf-8').write(s)"
 
 echo "--- 71: the two tier mutations the 1.7.2 QA got past every guard"
 run_case "tierOf never returns Optional (survived the whole harness in 1.7.2)" \
@@ -146,6 +123,4 @@ assert a in s;s=s.replace(a,'if(f.tv && matches(f, q)) hidden++;',1);${W}" \
   "smoke"
 
 rm -rf "$NEG"
-echo
-echo "1.7.5 negative tests: $PASS passed, $FAILED failed"
-[ "$FAILED" -eq 0 ]
+finish "1.7.5 negative tests"
