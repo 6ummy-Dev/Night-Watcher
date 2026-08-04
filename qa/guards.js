@@ -137,6 +137,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      100  The straight answers are machine-readable
      101  The site answers off the app too
      104  The security headers the edge cannot set
+     105  The catalogue answers in plain text
 
    META
      65   The file points at where its reasoning went
@@ -597,14 +598,18 @@ if(PUBLIC !== ROOT){
    for link scrapers, which never run the service worker, and section 91 fails
    the build if it ever sneaks INTO the shell.
    _headers joined in 2.5.1: it is read by the edge before a response is ever
-   sent, never fetched by the page, and caching it would be meaningless. */
+   sent, never fetched by the page, and caching it would be meaningless.
+   orders.txt joined in 2.6.0 for the same reason as llms.txt: it is written for
+   readers and engines that never run the app, the app itself never fetches it,
+   and section 105 fails the build if it ever sneaks INTO the shell. */
 (function(){
   var swPath2 = path.join(PUBLIC, "sw.js");
   if(!fs.existsSync(swPath2)) return;
   var shell = (fs.readFileSync(swPath2, "utf8").match(/var SHELL\s*=\s*\[([\s\S]*?)\]/) || [0,""])[1]
                 .match(/"\.\/([^"]*)"/g) || [];
   shell = shell.map(function(q){ return q.slice(3, -1); });
-  var NOT_SHELLED = ["sw.js", "robots.txt", "sitemap.xml", "fonts/OFL.txt", "share.png", "llms.txt", "404.html", "_headers"];
+  var NOT_SHELLED = ["sw.js", "robots.txt", "sitemap.xml", "fonts/OFL.txt", "share.png", "llms.txt", "404.html", "_headers",
+                     "orders.txt"];
   var served = [];
   (function walk(dir, pre){
     fs.readdirSync(dir).forEach(function(name){
@@ -4981,6 +4986,119 @@ var ROUTE_VOCAB = [
   }
 
   note("_headers sets Referrer-Policy, X-Frame-Options and Permissions-Policy");
+})();
+
+/* ---------- 105. The catalogue answers in plain text ------------------ */
+/* B4, approved 4 Aug: a flat text export of the catalogue for anything that
+   reads text rather than HTML — the same audience llms.txt talks to, given the
+   data instead of a description. Separate file, so it costs the page nothing.
+
+   IT CARRIES ONE ORDERING, AND THE REASON IS WORTH READING BEFORE ANYONE
+   "COMPLETES" IT. By universe needs no sort: each continuity's array IS its
+   spoiler-safe order, exactly as guard 78 relies on for the seed. Bruce's life
+   and Release order are produced by two anonymous comparators inside
+   buildGroups() in index.html, and fn() can only extract NAMED functions —
+   so writing them here would be a second implementation of the app's ordering,
+   which is the one thing this file exists to prevent. Naming them in
+   index.html so both sides share one source is a refactor of buildGroups(),
+   which is app logic and therefore 2.5.3 by the standing split rule.
+
+   The loss is smaller than it sounds. Release order is derivable from this
+   file — every entry states its year. Bruce's life is not, and it is also the
+   one the app itself calls "an interpretation rather than a canon", so the
+   app is the honest place for it. The file says so in its own words rather
+   than quietly shipping two thirds of a promise.
+
+   Generated and blessed like the seed and the ItemList: rebuilt on every run
+   and compared, npm run bless writes it. A hand-maintained copy of 200 entries
+   would be stale within a release and nobody would read it closely enough to
+   notice. */
+
+(function(){
+  var TXT = path.join(PUBLIC, "orders.txt");
+  var lines = [
+    "Night Watcher — every Batman story ever filmed, in order",
+    "https://nightwatcher.life/",
+    "",
+    "An unofficial fan guide. " + actual.films + " films and " + actual.seasons +
+      " seasons of television across " + PATH.length + " continuities.",
+    "Content ratings are the certified MPA / TV Parental Guidelines values —",
+    "sourced or absent, never guessed. Announced titles are included and marked",
+    "NOT OUT YET; nothing is claimed before it exists.",
+    "",
+    "This file is generated from the same data the app renders, and the build",
+    "fails if the two disagree.",
+    "",
+    "THE ORDERING BELOW is by universe: every continuity kept whole, each in its",
+    "own story order, and the continuities in the order their stories start.",
+    "Nothing spoils anything ahead of it.",
+    "",
+    "Release order is derivable from this file — every entry states its year.",
+    "Bruce's life — all " + PATH.length + " continuities blended into one",
+    "chronology — is an interpretation rather than a canon, and lives in the app",
+    "at https://nightwatcher.life/#life",
+    "",
+    "No account, no advertising, nothing tracking what you watch. Progress stays",
+    "in the reader's browser. Free software under the AGPL.",
+    "",
+    "=========================================================================",
+    ""
+  ];
+  PATH.forEach(function(g, gi){
+    lines.push(g.n + ". " + g.name);
+    lines.push("-".repeat((g.n + ". " + g.name).length));
+    FILMS.filter(function(f){ return f.gi === gi; }).forEach(function(f, i){
+      var bits = [f.fmt === "live" ? "live action" : "animated"];
+      if(f.tv) bits.push("series");
+      var tier = tierOf(f);
+      if(tier === "e") bits.push("essential");
+      else if(tier === "k") bits.push("core");
+      else bits.push("optional");
+      if(f.r) bits.push(f.r);
+      if(f.b.indexOf("u") >= 0) bits.push("NOT OUT YET");
+      lines.push("  " + (i + 1) + ". " + f.t + (f.sub ? " — " + f.sub : "") +
+                 " (" + f.y + ") · " + bits.join(" · "));
+    });
+    lines.push("");
+  });
+  var want = lines.join("\n");
+
+  /* A plain-text export nothing points at is a file nothing reads. llms.txt is
+     the one page written for the audience this file is for, so that is where
+     the pointer lives, and it is guarded rather than trusted. */
+  var lt2 = path.join(PUBLIC, "llms.txt");
+  if(fs.existsSync(lt2) && fs.readFileSync(lt2, "utf8").indexOf("/orders.txt") < 0){
+    fail("llms.txt does not point at orders.txt — the plain-text catalogue " +
+         "ships, and the one file written for engines never mentions it");
+  }
+
+  /* Kept here rather than in 101 so one section owns this file end to end.
+     A crawler asset in the app cache is dead weight on every install: the app
+     never fetches it, so it would be downloaded once and never read. */
+  var swT = path.join(PUBLIC, "sw.js");
+  if(fs.existsSync(swT)){
+    var sh105 = (fs.readFileSync(swT, "utf8").match(/var SHELL\s*=\s*\[[\s\S]*?\]/) || [""])[0];
+    if(sh105.indexOf("orders.txt") >= 0){
+      fail("orders.txt is in the offline shell — it is written for readers and " +
+           "engines that never run the app, and the app never fetches it");
+    }
+  }
+
+  var got = fs.existsSync(TXT) ? fs.readFileSync(TXT, "utf8") : null;
+  if(got === want){
+    note("orders.txt: " + PATH.length + " continuities, " + FILMS.length +
+         " entries, in step with the data");
+  } else if(BLESS){
+    fs.writeFileSync(TXT, want, "utf8");
+    note(got === null ? "wrote docs/orders.txt" : "rewrote docs/orders.txt");
+  } else if(got === null){
+    fail("docs/orders.txt is missing — the catalogue's plain-text answer. " +
+         "Fix with: npm run bless");
+  } else {
+    fail("docs/orders.txt no longer matches the catalogue — a title, a year, a " +
+         "rating or an ordering has moved and the export did not. " +
+         "Fix with: npm run bless");
+  }
 })();
 
 /* ---------- report ---------- */

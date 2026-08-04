@@ -20,6 +20,59 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [2.6.0] — 2026-08-04
+
+The catalogue answers in plain text.
+
+### Added
+
+- **`docs/orders.txt` — the whole catalogue as a text file.** All 200 entries,
+  grouped by continuity, each with its year, format, tier and content rating,
+  plus the announced titles marked *NOT OUT YET*. It is served at
+  `/orders.txt`, it is 18 KB, and it costs the page nothing: it is a separate
+  file that the app never fetches and the service worker never caches.
+
+  The audience is the one `llms.txt` was written for — anything that reads text
+  rather than HTML. `llms.txt` describes the site; this hands over the data.
+  `llms.txt` now points at it, and guard 105 fails the build if that pointer
+  ever goes missing, because an export nothing links to is an export nothing
+  reads.
+
+  **It carries one ordering, and the reason is written down so nobody
+  "completes" it by accident.** By universe needs no sort — each continuity's
+  array *is* its spoiler-safe order, the same fact the crawlable seed relies
+  on. Bruce's life and Release order are produced by two anonymous comparators
+  inside `buildGroups()`, and the guards can only extract *named* functions
+  from `docs/index.html`. Reproducing those two sorts in `qa/guards.js` would
+  be a second implementation of the app's ordering — precisely the thing this
+  project refuses to have. Naming them in `index.html` so both sides share one
+  source is a `buildGroups()` refactor, which is app logic, and app logic does
+  not ride a safe release.
+
+  The loss is smaller than it reads. Release order is derivable from the file —
+  every entry states its year. Bruce's life is not, and it is also the ordering
+  the app itself calls *an interpretation rather than a canon*, so the app is
+  the honest place for it. The file says as much in its own header rather than
+  quietly shipping two thirds of a promise.
+
+  It is **generated and blessed**, like the crawlable seed and the ItemList:
+  rebuilt from `PATH`, `FILMS` and `tierOf()` on every run and compared byte
+  for byte, with `npm run bless` as the only way to update it. A hand-kept copy
+  of 200 entries would be stale within one release and nobody would read it
+  closely enough to notice.
+
+- **Guard 105.** Regenerates the export and fails on any drift — a title, a
+  year, a rating or an ordering that moved while the file did not. It also
+  fails if `orders.txt` is ever added to the offline shell, for the same reason
+  `llms.txt` and `404.html` are excluded: crawler assets have no business in an
+  app cache.
+
+### Why MINOR
+
+A new file is served that was not served before. `docs/llms.txt` and
+`docs/404.html` arrived the same way in 2.1.0, and that was a MINOR. Nothing in
+the app changed — no markup, no behaviour, no saved progress.
+
 ## [2.5.2] — 2026-08-04
 
 The progress ring says its own number out loud, and two answers come back.
