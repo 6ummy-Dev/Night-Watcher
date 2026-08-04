@@ -1824,3 +1824,55 @@ goals and only the first one is wanted here.
 
 **What the guard should have asserted** was not "a pointer exists" but "the
 surfaces a reader or a crawler actually lands on mention it". It does now.
+
+## The header was never misaligned, and that is why it stayed wrong
+
+The 2.7.2 soak note said *"header realignment, fix."* Every box in that header
+was exactly where it claimed to be.
+
+The row is three flex columns with `align-items:center`. `.mark` is 46px wide,
+`.ring` is 46 × 46, and `.wordmark` is `flex:1` between them — so the title is
+mathematically centred and all three share a vertical centre line. Any check
+that measured the layout would have passed, and none was ever written because
+there was nothing to catch.
+
+**The lopsidedness was the mass inside the boxes.** `.mark svg` drew at 32px
+inside its 46px column — seven pixels of air on each side — while the ring
+filled its box edge to edge. Vertically the bat covered **26.7px** (32 × 70/84,
+from its `viewBox`) against the ring's 46: **58%**. The left flank was a small
+solid glyph floating in space, the right flank a large hollow ring pinned to the
+edge. The eye reads that as crooked; the box model insists it is fine.
+
+The bat went to 40px and the wordmark from 21 to 24 in the same change, because
+enlarging the title alone moves mass to the centre and re-breaks the balance
+from the other side. They are one decision, so they are guarded as one.
+
+**The ceiling is a narrow phone, and it fails silently.** At 375px the row
+leaves ~219px between the flankers; *NIGHT WATCHER* in uppercase Limelight is
+~187px at 24px and does not fit at 28. `.wordmark` is `flex:1; min-width:0`, so
+it **shrinks rather than overflowing** — nothing goes red, the title just starts
+wrapping on somebody's phone. The guard holds a floor and a ceiling for that
+reason: the floor is the fix, the ceiling is the failure nothing else would
+report.
+
+## Removing a button leaves a handler nobody can reach, and the build stays green
+
+2.7.3 cut the share block to one button on the owner's word. The first full run
+afterwards was **green** — guards, smoke, every negative suite. The `cardsave`
+handler was still there, still correct, and no longer reachable by any control
+in the app.
+
+That is the same shape as the Mature badge two releases earlier: **nothing fails
+over something that is merely unreachable.** A guard existed asserting the
+handler was present — written when the button was — and it passed for exactly
+the reason it should have failed.
+
+It is now a two-sided check: `data-act="cardsave"` and `act === "cardsave"` must
+either both be present or both be absent. A button with no handler does nothing;
+a handler with no button is code no reader can reach. **The pairing is the
+invariant, not either half.**
+
+There is a general rule here worth taking to the next removal. When a control
+comes out, three things have to go with it: the handler, the guard that asserted
+the handler, and any fixture anchored to either. Miss the middle one and the
+suite keeps proving something true about code that no longer runs.

@@ -20,6 +20,85 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [2.7.3] — 2026-08-04
+
+One button, a header that balances, and a link to the source.
+
+### Changed
+
+- **The share block is one button: *Share the night*.** It was two, and the
+  wrong way round — a browser that could share got *Share the night* **and**
+  *Download the card*, while a browser that could not got *Download the card*
+  alone. The two-button state was the capable one, which read as the app
+  hedging about its own primary action.
+
+  **The second button was doing more work than it looked.** `navigator.share`
+  existing does not mean **file** sharing works, and the old handler answered
+  that case by saying so:
+
+  ```js
+  if(navigator.canShare && !navigator.canShare({files:[f]})) toast("Sharing files is not available here");
+  ```
+
+  That was survivable only because Download sat beside it. Cutting to one button
+  and leaving the handler alone would have left a reader on such a browser
+  pressing the only control on the block and being told no, with nowhere to go.
+
+  **So the button falls back to downloading instead of reporting failure.**
+  Share where sharing works; download everywhere else; the existing *Card
+  downloaded* toast tells the truth after the fact. The label is honest in all
+  three cases, because *share the night* is the intent and the mechanism is the
+  browser's problem. The app cannot know which case it is in until it has the
+  file, so one label plus a truthful toast beats a label that tries to predict.
+
+  The fallback is guarded. It is the entire reason one button is safe.
+
+- **The header balances.** The bat went from 32px to 40px and the wordmark from
+  21px to 24px.
+
+  **Nothing was ever misaligned**, which is why this lasted eleven releases. The
+  row is three flex columns, both flankers boxed at 46px, wordmark centred
+  between them — every box exactly where it claims to be. What was lopsided was
+  the *mass inside the boxes*: the bat drew at 32px with seven pixels of air on
+  each side, against a ring that fills its 46px edge to edge, and covered
+  **26.7px vertically against the ring's 46**. Light on the left, heavy on the
+  right, and the eye reads that as crooked while every measurement says it is
+  not.
+
+  The two numbers moved together because enlarging the title alone shifts mass
+  to the centre and re-breaks the balance. They are guarded together for the
+  same reason: one decision, not two.
+
+  **The ceiling is the narrow phone.** At 375px the row leaves about 219px
+  between the flankers. *NIGHT WATCHER* in uppercase Limelight measures roughly
+  187px at 24px, so it fits with room — and would not at 28. `.wordmark` is
+  `flex:1` with `min-width:0`, so it shrinks silently rather than pushing back:
+  nothing would go red, the title would just start wrapping on somebody's
+  phone. The guard holds both ends.
+
+### Added
+
+- **The footer links the source.** Five audits recommended it: the JSON-LD has
+  always claimed the repository under `sameAs`, so machines were told and
+  readers were not. Minimal, on the owner's word — the words *free software
+  under the AGPL* became the link rather than a new line arriving.
+
+### Removed
+
+- **The `cardsave` handler**, which the missing button left unreachable. Guarded
+  now from both sides: a button with no handler does nothing, and a handler with
+  no button is code no reader can reach. They come back together or not at all.
+
+  Worth recording that **the first run after removing the button was fully
+  green.** A dead handler is not a failure any existing check could see, which
+  is the same shape as the Mature badge in 2.7.2: nothing fails over something
+  that is merely unreachable.
+
+### Why PATCH
+
+Two CSS values, one button, one link, one dead handler removed. No new files, no
+catalogue change, no behaviour change to saved progress.
+
 ## [2.7.2] — 2026-08-04
 
 Three things that were already true in the data and missing from where they

@@ -1842,6 +1842,44 @@ if(!rmSize){
 }
 
 /* ---------- 47. The wordmark returns to the top ----------------------- */
+/* 2.7.3, the header's optical balance. The row is three flex columns with both
+   flankers boxed at 46px, so the wordmark was always mathematically centred and
+   nothing was ever misaligned in the box model \u2014 which is exactly why this
+   went unnoticed for eleven releases. What was lopsided was the mass inside the
+   boxes: the bat drew at 32px with 7px of air each side, against a ring that
+   fills its 46px edge to edge, and vertically covered 26.7px against the ring's
+   46. Light on the left, heavy on the right, and the eye reads that as crooked.
+
+   The bat went to 40px and the wordmark from 21 to 24px in the same change,
+   because enlarging the title alone moves mass to the centre and re-breaks the
+   balance. Guarded together for the same reason: they are one decision.
+
+   THE CEILING IS THE NARROW PHONE. At 375px the row leaves ~219px for the
+   wordmark once the two 46px flankers and two 14px gaps are taken. NIGHT
+   WATCHER in uppercase Limelight measures ~187px at 24px, so it fits with
+   room; it does not at 28. .wordmark is flex:1 with min-width:0, so it shrinks
+   silently rather than pushing back \u2014 nothing would go red, the title would
+   just start wrapping on somebody's phone. */
+(function(){
+  var bat = (HTML.match(/\.mark svg\{[^}]*width:(\d+)px/) || [])[1];
+  var word = (HTML.match(/\.wordmark h1\{[^}]*font-size:(\d+(?:\.\d+)?)px/) || [])[1];
+  if(!bat || !word){ fail("cannot read the header's bat width or wordmark size"); return; }
+  if(parseInt(bat, 10) < 38){
+    fail("the header bat is " + bat + "px against a 46px ring \u2014 that gap is " +
+         "what made the header read as crooked in the 2.7.2 soak");
+  }
+  if(parseFloat(word) < 23){
+    fail("the wordmark is " + word + "px \u2014 2.7.3 set it to 24 on the owner's " +
+         "word, alongside the bat, because the two balance each other");
+  }
+  if(parseFloat(word) > 26){
+    fail("the wordmark is " + word + "px \u2014 above ~26 it stops fitting the " +
+         "~219px a 375px phone leaves between the flankers, and .wordmark " +
+         "shrinks silently rather than failing");
+  }
+  note("header: bat " + bat + "px, wordmark " + word + "px, ring 46px");
+})();
+
 if(!/id="topBtn"/.test(HTML)) fail("the wordmark is no longer a control");
 if(HTML.indexOf('getElementById("topBtn")') < 0){
   fail("the wordmark has no click handler \u2014 tapping the title would do nothing");
@@ -4740,12 +4778,39 @@ var ROUTE_VOCAB = [
     fail("the progress card is gone \u2014 nothing to share");
     return;
   }
-  /* Share leads, in the house voice; download rides second. No preview \u2014
-     the card renders on demand, at the moment of the tap (owner's call at
-     the 2.0.0 respin: share is what people want). */
+  /* One button, in the house voice. Share led and download rode second until
+     2.7.3, when the owner cut it to one: "share progress should be only one
+     button, share the night." No preview \u2014 the card renders on demand, at
+     the moment of the tap (owner's call at the 2.0.0 respin).
+
+     THE SECOND BUTTON WAS DOING MORE THAN IT LOOKED. navigator.share existing
+     does not mean FILE sharing works, and the old handler answered that case
+     with a toast saying so \u2014 survivable only because Download sat beside it.
+     Cutting to one button without changing the handler would have left a
+     reader on such a browser pressing the only control and being told no.
+     So the button falls back to downloading rather than reporting failure, and
+     that fallback is guarded: it is the whole reason one button is safe. */
   if(!/primary" data-act="cardshare">Share the night</.test(HTML)){
-    fail('"Share the night" is not the primary action \u2014 the owner\'s words, ' +
-         "and the owner's ordering: share first, download second");
+    fail('"Share the night" is not the primary action \u2014 the owner\'s words');
+  }
+  var sbBlock = (HTML.match(/<div class="bk sharecard">[\s\S]*?<\/div><\/div>/) || [""])[0] ||
+                (HTML.match(/sharecard"><h3>[\s\S]{0,600}?bkbtns[\s\S]{0,400}?<\/div>/) || [""])[0];
+  var btnCount = (sbBlock.match(/data-act="card/g) || []).length;
+  if(btnCount !== 1){
+    fail("the share block offers " + btnCount + " card buttons \u2014 2.7.3 cut it " +
+         "to one on the owner's word. A second control is the old two-button " +
+         "shape coming back");
+  }
+  var shareH = (HTML.match(/act === "cardshare"\)\{[\s\S]*?\n  \}/) || [""])[0];
+  if(!/download\(f\.name, f\)/.test(shareH)){
+    fail("the share action has no download fallback \u2014 navigator.share can " +
+         "exist while file sharing does not, and with one button that is a " +
+         "dead end with no way out. Fall back to downloading, do not report " +
+         "failure");
+  }
+  if(/toast\("Sharing files is not available here"\)/.test(HTML)){
+    fail("the share action still reports that sharing is unavailable \u2014 with " +
+         "one button there is nowhere for that reader to go. Download instead");
   }
   if(/id="pcard"/.test(HTML)){
     fail("the card preview is back \u2014 it was removed on the owner's word; the " +
@@ -4778,6 +4843,14 @@ var ROUTE_VOCAB = [
            " \u2014 its numbers must be the app's numbers, one source");
     }
   });
+  /* 2.7.3: the footer names the source. Five audits recommended a visible link
+     to the repository \u2014 the JSON-LD claims it under sameAs, so machines were
+     told and readers were not. Minimal by the owner's word: existing words
+     became the link rather than a new line arriving. */
+  if(!/<a href="https:\/\/github\.com\/6ummy-Dev\/Night-Watcher"[^>]*>free software under the AGPL<\/a>/.test(HTML)){
+    fail("the footer no longer links the source \u2014 the schema claims the " +
+         "repository under sameAs and a reader has no way to click through");
+  }
   if(!/Drawn in your browser, nothing uploaded\./.test(HTML)){
     fail("the local-only line is gone \u2014 the card's privacy promise is stated " +
          "where the card is made");
@@ -4786,8 +4859,10 @@ var ROUTE_VOCAB = [
     fail("the filename no longer carries the brag \u2014 night-watcher-N-of-M.png " +
          "is the card's name");
   }
-  if(!/act === "cardsave"/.test(HTML)){
-    fail("the download button has no handler");
+  if(/data-act="cardsave"/.test(HTML) !== /act === "cardsave"/.test(HTML)){
+    fail("cardsave exists on only one side \u2014 a button with no handler does " +
+         "nothing, and a handler with no button is code no reader can reach. " +
+         "2.7.3 removed both; they come back together or not at all");
   }
   /* 2.2.0 soak note: "make it a card, borders and title should be bigger
      same as all others". The block is a .bk card like every other block on
