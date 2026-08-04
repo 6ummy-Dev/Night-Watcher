@@ -39,9 +39,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -64,7 +64,7 @@ jobs:
   # guards work was produced only on the release machine, by hand — which is the
   # exact situation this workflow was created to end.
   #
-  # Cost, measured rather than averaged: 343 fixtures, of which 314 run guards.js
+  # Cost, measured rather than averaged: 362 fixtures, of which 333 run guards.js
   # at about 0.5s each and 28 run smoke.js — most of those scoped to one phase
   # by SMOKE_ONLY (2.2.0, report §5.4) at 2–10s instead of the full run's ~14s.
   # run-all.sh runs the suites concurrently and dispatches longest-first
@@ -86,15 +86,15 @@ jobs:
           - shard: "1"
             pick: 'negtest(175|164|190|195|200|250|251)\.sh'
           - shard: "2"
-            pick: 'negtest(183|171|166|161|162|252)\.sh'
+            pick: 'negtest(183|171|166|161|162|252|270)\.sh'
           - shard: "3"
             pick: 'negtest(165|170|172|187|163|210|260)\.sh'
           - shard: "4"
             pick: 'negtest(185|182|186|180|176|177|181|220)\.sh|negtest\.sh'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
