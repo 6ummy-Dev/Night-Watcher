@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 101 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 103 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -1252,6 +1252,15 @@ signal is that `exportCode()` always writes `S`, `R` and `O`, so a cut anywhere
 inside `W` takes all three letters with it. Both checks together caught every
 truncation that lost an entry across the code's whole length; the modulo alone
 missed fourteen of them.
+
+What the import tolerates on purpose, and silently: a trailing partial
+`W`/`S`/`R` chunk and junk characters inside the ratings segment are ignored
+rather than reported. That is a decision, not an accident — a pasted code
+should restore everything it verifiably carries instead of refusing over
+residue — but it was never written down until 2.2.1, and an undocumented
+tolerance reads like a bug to the next person who traces it. It is this
+paragraph now, and writing it retired the last open line of the pre-1.8.0
+backlog.
 
 Guards section 8 sweeps the whole code rather than its tail. The first version
 of that sweep only tried the last seventy characters — which is ratings and the

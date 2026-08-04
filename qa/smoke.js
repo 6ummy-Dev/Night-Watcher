@@ -141,8 +141,10 @@ win.addEventListener("load", function(){
       var inert = new jsdom.JSDOM(html);
       var sv = inert.window.document.getElementById("view");
       var lis = sv ? sv.querySelectorAll("ol li").length : 0;
+      /* seed-200 (2.5.0): the continuities section lists every entry, so the
+         expectation is eras + the whole catalogue + the curated list. */
       var expect = win.ERAS.filter(function(x){ return x.k !== 0; }).length +
-                   win.PATH.length +
+                   FILMS.length +
                    FILMS.filter(function(f){ return tierOf(f) !== "o"; }).length;
       check("the titles render before boot", lis === expect,
             lis + " list items with scripts off, expected " + expect);
@@ -167,6 +169,7 @@ win.addEventListener("load", function(){
     check("the header sub-line carries the path name",
           /Bruce/.test(doc.getElementById("hsub").textContent),
           doc.getElementById("hsub").textContent);
+    win.flushPersist();
     check("the choice was written to storage",
           /"path":"life"/.test(win.localStorage.getItem("batwatch-v3") || ""));
 
@@ -182,11 +185,12 @@ win.addEventListener("load", function(){
     S.mode = "release"; win.render();
     check("a foreign ordering offers to be adopted", !!doc.querySelector(".viewing"));
     check("viewing does not change the stored path", S.path === "life");
+    win.flushPersist();
     check("stored payload still says life after viewing",
           /"path":"life"/.test(win.localStorage.getItem("batwatch-v3") || ""));
     doc.querySelector('.viewing button[data-path="release"]').click();
     check("adopting the view sets the path", S.path === "release" && S.mode === "release");
-    S.tab = "watch"; S.path = S.mode = "life"; win.persist(); win.render();
+    S.tab = "watch"; S.path = S.mode = "life"; win.persist(); win.flushPersist(); win.render();
 
     /* --- ticking before choosing must not invent a path (1.2.2) --- */
     /* Ticking before choosing used to write a real ordering, which the next load
@@ -194,12 +198,93 @@ win.addEventListener("load", function(){
     (function(){
       var keep = {path:S.path, mode:S.mode, watched:S.watched};
       S.path = ""; S.mode = "continuity"; S.watched = {};
-      S.watched[FILMS[0].id] = 1; win.persist();
+      S.watched[FILMS[0].id] = 1; win.persist(); win.flushPersist();
       var raw = win.localStorage.getItem("batwatch-v3") || "";
       check("persisting with no path chosen writes no ordering",
             /"path":"","mode":""/.test(raw),
             (raw.match(/"path":"[^"]*","mode":"[^"]*"/) || [""])[0]);
-      S.path = keep.path; S.mode = keep.mode; S.watched = keep.watched; win.persist();
+      S.path = keep.path; S.mode = keep.mode; S.watched = keep.watched; win.persist(); win.flushPersist();
+    })();
+
+    /* --- a tick burst writes once, and only when flushed (2.5.0, §3.7) --- */
+    /* persist() became a trailing debounce; the contract smoke owns is the
+       behavior: N calls, zero synchronous writes, one write at the flush,
+       and a flush with nothing pending stays silent. The suite's own
+       persist-then-read sites all flush through the same door the app's
+       pagehide handler uses, so this is not a test-only path. */
+    (function(){
+      var writes = 0, realSet = win.store.set;
+      win.store.set = function(k, v){ writes++; return realSet(k, v); };
+      win.persist(); win.persist(); win.persist();
+      check("a tick burst does not write synchronously", writes === 0,
+            writes + " writes before any flush");
+      win.flushPersist();
+      check("the flush writes exactly once", writes === 1, writes + " writes");
+      win.flushPersist();
+      check("a flush with nothing pending writes nothing", writes === 1,
+            writes + " writes after a second flush");
+      win.store.set = realSet;
+    })();
+
+    /* --- the tick path is byte-identical to a full render (2.5.0, §3.8) --- */
+    /* toggleWatched/toggleSkip repaint one group through groupBlock() — the
+       same builder the full render uses — plus the header through
+       renderHead(). The gate is not a review, it is arithmetic: after every
+       targeted tick, a forced full render must serialize to the SAME bytes.
+       Any divergence — a count missed, a class dropped, an aria left stale —
+       fails here by construction. States outside the targeted condition
+       (filters, search, other tabs) take the full-render door and are
+       trivially identical; one is driven below to prove the fallback fires. */
+    (function(){
+      var v = doc.getElementById("view");
+      var mismatches = [], drove = 0;
+      ["continuity", "life", "release"].forEach(function(pt){
+        S.path = S.mode = pt;
+        [["all", "all"], ["anim", "movies"]].forEach(function(fs){
+          S.format = fs[0]; S.scope = fs[1];
+          S.tab = "watch"; S.filter = "all"; S.q = "";
+          win.setAllGroups(true); win.render();
+          var ids = Array.prototype.slice.call(v.querySelectorAll('.tick[data-id]'), 0, 3)
+                    .map(function(b){ return b.dataset.id; });
+          ids.forEach(function(id){
+            [0, 1].forEach(function(){
+              var btn = v.querySelector('.tick[data-id="' + id + '"]');
+              if(btn) btn.click();
+              var after = v.innerHTML;
+              win.render();
+              if(v.innerHTML !== after) mismatches.push(pt + "/" + fs[0] + "/" + id);
+              drove++;
+            });
+          });
+          var first = v.querySelector('.tick[data-id]');
+          if(first){
+            var id2 = first.dataset.id;
+            S.open[id2] = true; win.render();
+            var sk = v.querySelector('.act[data-act="skip"][data-id="' + id2 + '"]');
+            [0, 1].forEach(function(){
+              if(sk) sk.click();
+              var after2 = v.innerHTML;
+              win.render();
+              if(v.innerHTML !== after2) mismatches.push("skip:" + pt + "/" + id2);
+              drove++;
+              sk = v.querySelector('.act[data-act="skip"][data-id="' + id2 + '"]');
+            });
+            delete S.open[id2];
+          }
+        });
+      });
+      check("the tick path is byte-identical to a full render (" + drove + " driven)",
+            mismatches.length === 0 && drove >= 36, mismatches.slice(0, 3).join("  |  ") ||
+            (drove + " driven"));
+      S.filter = "left"; win.render();
+      var t2 = v.querySelector('.tick[data-id]');
+      if(t2) t2.click();
+      check("a filtered view ticks through the full render (the fallback)",
+            !!v.querySelector(".group") || !!v.querySelector(".empty"),
+            "the filtered view rendered nothing at all");
+      S.filter = "all"; S.watched = {}; S.skipped = {}; S.log = []; S.open = {};
+      S.path = S.mode = "continuity"; S.format = "all"; S.scope = "all";
+      win.render(); win.flushPersist();
     })();
 
     /* --- a Home card stays inside your path (1.7.7) --- */
@@ -207,7 +292,7 @@ win.addEventListener("load", function(){
        entered a view of another ordering and raised the borrowed-view banner —
        and the test below asserted that, because it was the behaviour. It was
        never behaviour anybody asked for. */
-    S.path = S.mode = "life"; S.tab = "home"; win.persist(); win.render();
+    S.path = S.mode = "life"; S.tab = "home"; win.persist(); win.flushPersist(); win.render();
     check("Home names the grid for the path it is on",
           /The eras/.test(doc.querySelector("#view").textContent),
           (doc.querySelector("#view .qhead") || {textContent:"-"}).textContent);
@@ -221,7 +306,7 @@ win.addEventListener("load", function(){
     /* Release order emits decade keys, which had no branch in goToGroup() at
        all — they fell through to By universe, and only never fired because
        Home could not emit one. */
-    S.path = S.mode = "release"; S.tab = "home"; win.persist(); win.render();
+    S.path = S.mode = "release"; S.tab = "home"; win.persist(); win.flushPersist(); win.render();
     check("Home names the grid in release order",
           /The decades/.test(doc.querySelector("#view").textContent));
     doc.querySelector('#view [data-act="jump"]').click();
@@ -230,7 +315,7 @@ win.addEventListener("load", function(){
     /* --- and a borrowed view is still reversible without a reload (1.2.1) --- */
     /* The banner has to keep working where it belongs: a shared link, or the
        Progress tab jumping into an ordering that is not yours. */
-    S.path = S.mode = "life"; S.tab = "stats"; win.persist(); win.render();
+    S.path = S.mode = "life"; S.tab = "stats"; win.persist(); win.flushPersist(); win.render();
     /* 1.9.5: the two lists fold, closed by default. The jump rows exist only
        behind an opened fold, so open it the way a reader would. */
     check("the Progress lists are closed for a fresh eye",
@@ -254,17 +339,17 @@ win.addEventListener("load", function(){
       check("it returns to your path with no reload", S.mode === "life", "mode=" + S.mode);
       check("and the banner clears", !doc.querySelector(".viewing"));
     }
-    S.path = S.mode = "life"; S.tab = "watch"; win.persist(); win.render();
+    S.path = S.mode = "life"; S.tab = "watch"; win.persist(); win.flushPersist(); win.render();
 
     /* --- switching never costs progress --- */
     var beforeSwitch = Object.keys(S.watched).length;
-    S.watched[FILMS[3].id] = 1; win.persist();
-    S.path = S.mode = "release"; win.persist(); win.render();
+    S.watched[FILMS[3].id] = 1; win.persist(); win.flushPersist();
+    S.path = S.mode = "release"; win.persist(); win.flushPersist(); win.render();
     check("switching path keeps every tick",
           Object.keys(S.watched).length === beforeSwitch + 1,
           Object.keys(S.watched).length + " watched");
     delete S.watched[FILMS[3].id];
-    S.path = S.mode = "life"; win.persist(); win.render();
+    S.path = S.mode = "life"; win.persist(); win.flushPersist(); win.render();
 
     /* --- darker --- */
     var bar = function(){ return doc.querySelector('meta[name="theme-color"]').getAttribute("content"); };
@@ -276,6 +361,7 @@ win.addEventListener("load", function(){
     check("darker sets the document attribute",
           doc.documentElement.getAttribute("data-theme") === "darker");
     check("darker repaints the status bar", bar() === "#000000", bar());
+    win.flushPersist();
     check("darker is persisted", /"theme":"darker"/.test(win.localStorage.getItem("batwatch-v3") || ""));
     doc.querySelector('#view [data-theme="dark"]').click();
     check("switching back restores the bar", bar() === "#0C111C", bar());
@@ -706,7 +792,7 @@ win.addEventListener("load", function(){
     S.watched = {}; S.log = [];
 
     /* An old save has no format and must land in Animated. */
-    S.path = "continuity"; S.mode = "continuity"; win.persist();
+    S.path = "continuity"; S.mode = "continuity"; win.persist(); win.flushPersist();
     var raw = JSON.parse(win.localStorage.getItem("batwatch-v3"));
     delete raw.format;
     reboot(JSON.stringify(raw), "no-format", function(w5, d5){
@@ -764,6 +850,7 @@ win.addEventListener("load", function(){
           doc.querySelector("#view .ghead").getAttribute("aria-expanded") === "false");
 
     /* Persistence: the whole reason the state stopped being session-only. */
+    win.flushPersist();
     var savedRaw = win.localStorage.getItem("batwatch-v3") || "";
     check("collapse state reached storage",
           !!savedRaw && JSON.parse(savedRaw).groupOpen &&
@@ -882,13 +969,13 @@ win.addEventListener("load", function(){
 
     /* A deep link moves the view. It has never been allowed to move the saved
        path, and from 1.7.5 it may not move the saved scope either. */
-    S.scope = S.scopePref = "movies"; win.persist();
+    S.scope = S.scopePref = "movies"; win.persist(); win.flushPersist();
     win.location.hash = "#universes-series";
     win.dispatchEvent(new win.Event("hashchange"));
     check("a scope token changes the view", S.scope === "all", "scope=" + S.scope);
     check("a scope token leaves the preference alone", S.scopePref === "movies",
           "scopePref=" + S.scopePref);
-    win.persist();
+    win.persist(); win.flushPersist();
     check("and persisting after it stores the preference, not the view",
           JSON.parse(win.localStorage.getItem("batwatch-v3")).scope === "movies");
     S.scope = "movies";
@@ -1158,7 +1245,7 @@ win.addEventListener("load", function(){
        treating it as session state. */
     S.path = S.mode = "continuity"; S.groupOpen = {};
     win.buildGroups().forEach(function(g){ S.groupOpen[g.key] = false; });
-    win.persist();
+    win.persist(); win.flushPersist();
     reboot(win.localStorage.getItem("batwatch-v3"), "collapse", function(w3, d3){
       w3.S.tab = "watch"; w3.render();
       check("a reload comes back collapsed",
@@ -1169,7 +1256,7 @@ win.addEventListener("load", function(){
     });
     S.groupOpen = {};
 
-    S.path = S.mode = "release"; S.theme = "darker"; win.persist();
+    S.path = S.mode = "release"; S.theme = "darker"; win.persist(); win.flushPersist();
     var saved = win.localStorage.getItem("batwatch-v3");
 
     reboot(saved, "1.2.0", function(w2, d2){
@@ -1320,8 +1407,10 @@ win.addEventListener("load", function(){
       S.q = ""; S.tab = "stats"; S.code = win.exportCode();
       S.progOpen = {uni:true, era:true}; win.render(); sweep();
       S.tab = "watch"; S.beltOpen = true; win.render(); sweep();
-      /* The closing state is set imperatively by the belt handler, so the
-         sweep stages it the way it stages data-theme. */
+      /* The opening render is one flag-scoped render (2.2.1) and the closing
+         state is set imperatively by the belt handler, so the sweep stages
+         both the way it stages data-theme. */
+      S.beltOpening = true; win.render(); sweep(); S.beltOpening = false;
       doc.querySelector(".includes").className = "includes closing"; sweep();
       doc.querySelector(".includes").className = "includes";
       S.beltOpen = false;

@@ -37,13 +37,13 @@ s=s.replace(a,'false;',1);${W}"
 
 run_case "the reduced-motion block forgets the exit" \
   "reduced-motion block does not cover the closing animation" \
-  "${P}a='.includes .scope,.includes.closing .scope{animation:none;}';assert a in s
+  "${P}a='.includes.opening .scope,.includes.closing .scope{animation:none;}';assert a in s
 s=s.replace(a,'.includes .scope{animation:none;}',1);${W}"
 
 echo "--- 67: the freshness date tells the truth"
 run_case "the updated date drifts from the changelog" \
   "but the newest CHANGELOG" \
-  "${P}a='var BUILT = \"2026-08-03\";';assert a in s
+  "${P}a='var BUILT = \"2026-08-04\";';assert a in s
 s=s.replace(a,'var BUILT = \"2026-08-01\";',1);${W}"
 
 run_case "the updated line is dropped from Progress" \

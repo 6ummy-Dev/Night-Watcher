@@ -20,6 +20,89 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [2.5.0] — 2026-08-04
+
+The release that emptied the backlog. Tagged `v2.5.0` — the first tag since
+v2.0.0, on the owner's word. Everything that was open went in, became a
+recorded decision, or became a dated trigger; the morning after this
+release, the backlog is the trigger table and nothing else. Still no
+Knightfall — the trigger fires 25 August, and will number itself 2.5.1.
+
+### Fixed
+
+- **The belt stops "reloading."** Three soak sightings, one defect: picking
+  a format, picking a type, or changing tabs with the belt open replayed
+  the pouch entry animation, because the base rule carried it. The
+  animation is scoped to an `opening` class now, rendered exactly once —
+  the belt handler's flag lives for the one render that opens. Re-renders
+  with the belt open update content with no theater. Reduced-motion
+  unchanged. Guard 96 holds the scoped rule, the flag's one-render life,
+  and that the base rule stays bare.
+- **The ratings description flows beside its badges.** The Path's footer
+  legend rendered `PG-13 / TV-14` alone with the whole sentence dropped
+  below — the sentence was one indivisible flex item. `.rleg` is inline
+  flow now: text wraps word-by-word beside vertically-aligned badges, like
+  every other legend row. Guard 99 #3 re-anchored to the new mechanism.
+
+### Added
+
+- **seed-200.** The crawlable seed's continuities section carries **all
+  200 entries**, each under its universe in spoiler-safe order — year,
+  format, series marked as such, the curated 74 keeping their essential/
+  core distinction, and NOT OUT YET honest in the seed exactly as in the
+  app. Generated from the data and blessed (guard 78); the JSON-LD
+  ItemList stays the curated 74 — the recommendation is a list, the seed
+  is a catalogue.
+- **`qa/negative/negtest250.sh`** — 16 fixtures across every guard this
+  release touched, including one that deletes a file to prove the
+  harness's heal step brings it back.
+
+### Changed
+
+- **The ceilings — the owner's numbers, 4 Aug.** Raw **165 → 200 KB**
+  (the fourth raise) and gzip **50 → 80 KB** (the FIRST gzip raise ever),
+  authorizing seed-200 and honest growth after it. The file ships at
+  179.7 KB raw / 52.2 gzip. The discipline is unchanged: arithmetic still
+  fails the build, and every raise is a recorded decision.
+- **Persistence is a trailing debounce (report §3.7).** persist() used to
+  serialize the whole state per call — a write per tick. Calls now
+  coalesce (200 ms); `flushPersist()` writes immediately; **pagehide and
+  visibilitychange-to-hidden flush**, so a closed tab inside the window
+  loses nothing. Guard 102 holds the three-legged contract; smoke proves
+  the coalescing behaviorally (a burst writes zero, the flush writes one).
+- **The tick path repaints one group (report §3.8).** toggleWatched and
+  toggleSkip rebuild the row's group through `groupBlock()` — the same
+  builder the full render composes from — plus the header through
+  `renderHead()`, instead of innerHTML-ing the world. Filters, search,
+  and other tabs fall back to the full render. **The gate:** smoke drives
+  48 ticks across paths, formats and scopes, and after each one a forced
+  full render must serialize byte-for-byte identical — it does. Guard 103
+  holds the shape; the report's bail-out clause was not needed.
+- **The guard-fixture harness heals instead of re-tarring (report §5.3).**
+  `_lib.sh` unpacks the tree once per suite and restores between fixtures
+  — created files removed, deleted files brought back, rewritten files
+  re-copied (mtime + manifest). Measured honestly: the unpack it removes
+  cost ~11 ms per fixture against ~5 ms of heal, so the win is small —
+  it rides because it was the last backlog line, and the suite proves it
+  by deleting a file mid-run.
+
+### Decisions closed by the owner, 4 Aug — recorded here, never relitigated
+
+- **Backup-codes kept-for-newer edge case: CLOSED** — and in fact already
+  fixed: exportCode() has walked S.watched since the NOTES entry "A code
+  carries your progress, not the catalogue." Doubly dead.
+- **The mistyped slug** (`...-galactic-guardians-198-1985`): **CLOSED.**
+  The migration window shut at 1.8.x; it is what that slug is.
+- **`const` conversion: CLOSED.** The harness enforces the ES5 style; the
+  optimization report's rejected list re-affirms it.
+- **Devlog: handed to marketing** (post–Batman Day material).
+- **Landscape progress card: a trigger** — built only if embeds demand it.
+- **The pre-1.8.0 backlog document is retired.** Audited against the
+  tree: every remaining line was already shipped, already fixed, or is
+  closed above. The import-tolerance note — its last open line — is now
+  a NOTES.md paragraph, and the retired-ids bless warning learned its one
+  recorded exception so it stops training people to skim warnings.
+
 ## [2.2.0] — 2026-08-03
 
 The tune-up. Two inputs, no new features: the 2.1.0 soak ledger's three

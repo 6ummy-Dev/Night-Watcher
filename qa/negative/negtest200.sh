@@ -46,7 +46,7 @@ s=s.replace(a,'',1);${W}"
 
 run_case "the animation ignores reduced motion" \
   "ignores prefers-reduced-motion" \
-  "${P}a='@media (prefers-reduced-motion: reduce){.includes .scope,.includes.closing .scope{animation:none;}}';assert a in s
+  "${P}a='@media (prefers-reduced-motion: reduce){.includes.opening .scope,.includes.closing .scope{animation:none;}}';assert a in s
 s=s.replace(a,'@media (prefers-reduced-motion: reduce){}',1);${W}"
 
 echo "--- 97: theme lives on Home, compact, and nowhere else"
@@ -112,9 +112,9 @@ run_case "the format badges collapse back into one look" \
 s=s.replace(a,'.bd.fmlive{color:var(--dim);border:1px dashed currentColor;}',1);${W}"
 
 run_case "the ratings legend line drifts apart" \
-  "the ratings legend line lost its alignment" \
-  "${P}a='.legend .rleg{display:flex;align-items:center;';assert a in s
-s=s.replace(a,'.legend .rleg{display:flex;',1);${W}"
+  "lost their vertical alignment" \
+  "${P}a='.legend .rleg .bd{vertical-align:middle;';assert a in s
+s=s.replace(a,'.legend .rleg .bd{',1);${W}"
 
 run_case "a named heading loses the variant" \
   "the owner named exactly 3" \

@@ -55,6 +55,8 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      35   The log holds one entry per id
      50   Rating and progress stay separate
      87   A backup carries progress, not settings
+     102  A tick burst writes once, and leaving flushes
+     103  The tick repaints one group, and cannot drift
 
    COPY
      14   README headline counts match the data
@@ -299,7 +301,14 @@ Object.keys(RENAMED).forEach(function(k){
   }
 });
 if(BLESS){
+  /* One retirement predates the surviving snapshot: the Scooby crossover
+     left in 1.7.5, before the current frozen-ids.json was cut. Warning
+     about it on every bless taught nobody anything and trained everyone to
+     skim warnings — recorded here as the known exception (2.2.1). A NEW
+     retirement that was never frozen still warns, which is the point. */
+  var PREFREEZE = ["scooby-doo-and-krypto-too-2023"];
   Object.keys(RETIRED).forEach(function(k){
+    if(PREFREEZE.indexOf(k) >= 0) return;
     if(fs.existsSync(SNAP) && JSON.parse(fs.readFileSync(SNAP, "utf8")).indexOf(k) < 0){
       warn("retired-ids.json lists " + k + ", which was never frozen");
     }
@@ -1134,10 +1143,14 @@ var rawKB  = Buffer.byteLength(HTML) / 1024;
 var gzipKB = zlib.gzipSync(Buffer.from(HTML)).length / 1024;
 note("index.html " + rawKB.toFixed(1) + " KB raw, " + gzipKB.toFixed(1) + " KB gzipped");
 /* Raised 150 -> 160 in 1.9.5 (ratings data + the machine-readable curated
-   list), and 160 -> 165 in 2.0.0 (the progress card's drawing code, tightened
-   first, owner's call on the record). The gzip budget has never moved. */
-if(rawKB > 165) fail("index.html is " + rawKB.toFixed(1) + " KB raw, over the 165 KB budget");
-if(gzipKB > 50) fail("index.html is " + gzipKB.toFixed(1) + " KB gzipped, over the 50 KB budget");
+   list), 160 -> 165 in 2.0.0 (the progress card's drawing code, tightened
+   first), and 165 -> 200 in 2.5.0 alongside the FIRST gzip raise, 50 -> 80 —
+   both the owner's explicit numbers, on the record 4 Aug 2026, authorizing
+   seed-200 and whatever honest growth follows. The ceilings moved; the
+   discipline did not: arithmetic still fails the build, and every raise is
+   still a recorded owner decision, never a drift. */
+if(rawKB > 200) fail("index.html is " + rawKB.toFixed(1) + " KB raw, over the 200 KB budget");
+if(gzipKB > 80) fail("index.html is " + gzipKB.toFixed(1) + " KB gzipped, over the 80 KB budget");
 
 /* Zero runtime dependencies is a promise in the README. There is no
    third-party code in index.html at all \u2014 the vendored QR encoder was the last
@@ -2073,7 +2086,7 @@ if(!/format:S\.format/.test(HTML)){
 
 if(!/function formatSwitch\s*\(/.test(HTML)) fail("formatSwitch() is gone");
 if(!/function includeBlock\s*\(/.test(HTML)) fail("includeBlock() is gone");
-if(!/class="includes"/.test(HTML)){
+if(!/class="includes'\+/.test(HTML)){
   fail("format and scope are no longer grouped \u2014 three loose selectors read as a " +
        "settings panel");
 }
@@ -3632,10 +3645,31 @@ var ROUTE_VOCAB = [
     ERAS.filter(function(x){ return x.k !== 0; })
         .map(function(x){ return "  <li>" + e(x.name) + "</li>"; }).join("\n"),
     "</ol>",
+    /* seed-200 (2.5.0, owner's word with the ceiling raise): the continuities
+       section carries every entry, not just the universe names — the full
+       catalogue is the thin-content answer the audits asked for. Each
+       continuity keeps its own spoiler-safe order (the array IS the order),
+       every entry states its year and format, a season says it is a series,
+       the curated 74 keep their distinction, and an unreleased entry says
+       NOT OUT YET here exactly as it does in the app — announced titles are
+       included, honestly marked, never claimed early. */
     "<h2>The continuities</h2>",
-    "<ol>",
-    PATH.map(function(g){ return "  <li>" + e(g.name) + "</li>"; }).join("\n"),
-    "</ol>",
+    "<p>Every entry, in each continuity’s own spoiler-safe order. The " +
+      "essentials and the core route are marked; everything else is optional " +
+      "side material.</p>",
+    PATH.map(function(g, gi){
+      var rows = FILMS.filter(function(f){ return f.gi === gi; }).map(function(f){
+        var bits = [f.fmt === "live" ? "live action" : "animated"];
+        if(f.tv) bits.push("series");
+        var tier = tierOf(f);
+        if(tier === "e") bits.push("essential");
+        else if(tier === "k") bits.push("core");
+        if(f.b.indexOf("u") >= 0) bits.push("not out yet");
+        return "  <li>" + e(f.t) + (f.sub ? " — " + e(f.sub) : "") +
+               " (" + f.y + ") · " + bits.join(" · ") + "</li>";
+      });
+      return "<h3>" + e(g.name) + "</h3>\n<ol>\n" + rows.join("\n") + "\n</ol>";
+    }).join("\n"),
     "<h2>The essentials and the core route</h2>",
     "<ol>",
     titles.join("\n"),
@@ -3689,8 +3723,8 @@ var ROUTE_VOCAB = [
          "stays on the page under the app");
   }
   note("crawlable catalogue: " + ERAS.filter(function(x){ return x.k !== 0; }).length +
-       " eras, " + PATH.length + " continuities, " + picked.length +
-       " curated titles, " + got.length + " bytes");
+       " eras, " + PATH.length + " continuities carrying all " + FILMS.length +
+       " entries, " + picked.length + " curated titles, " + got.length + " bytes");
 
   /* The old origin has to keep serving and cannot send a header, so the only
      way it can ask to be left out of an index is to say so in the page. The
@@ -4181,7 +4215,7 @@ var ROUTE_VOCAB = [
    Two systems live on one shelf on purpose (11 film-shelf entries are TV
    specials and TV-rated DTVs); the badge renders what the source system says
    and never translates. An unreleased entry has no certificate by definition
-   — Knightfall Part 1's announced R enters as the 2.0.0 trigger edit, the
+   — Knightfall Part 1's announced R rides the 25 Aug trigger patch, the
    same edit that drops its NOT OUT YET badge. */
 
 (function(){
@@ -4425,7 +4459,7 @@ var ROUTE_VOCAB = [
          "S.scope \u2014 a closed pouch that keeps secrets is mystery meat");
   }
   /* Always starts closed: the open state must never persist. */
-  if(/beltOpen/.test(fn("persist"))){
+  if(/beltOpen/.test(fn("persistNow"))){
     fail("beltOpen is written to the saved payload \u2014 the belt is a control " +
          "tray, not content; it always starts closed");
   }
@@ -4440,12 +4474,42 @@ var ROUTE_VOCAB = [
          "behind the belt");
   }
   if(!/@keyframes pouch/.test(HTML) ||
-     !/\.includes \.scope:last-of-type\{[^}]*animation-delay/.test(HTML)){
+     !/\.includes\.opening \.scope:last-of-type\{[^}]*animation-delay/.test(HTML)){
     fail("the pouches do not stagger \u2014 format first, then the types, is the " +
          "owner's 'then' made visible");
   }
-  if(!/prefers-reduced-motion: reduce\)\{\.includes \.scope,\.includes\.closing \.scope\{animation:none/.test(HTML)){
+  if(!/prefers-reduced-motion: reduce\)\{\.includes\.opening \.scope,\.includes\.closing \.scope\{animation:none/.test(HTML)){
     fail("the pouch animation ignores prefers-reduced-motion");
+  }
+  /* 2.2.1 soak fix: the entry animation plays once, on the closed\u2192open
+     transition \u2014 not on every render that happens to find the belt open.
+     Three sightings of the same defect (a format pick, a type pick, a tab
+     change) were the pouches replaying because the base rule carried the
+     animation. The base rule now carries none; only the opening render does,
+     and the handler's flag lives for exactly that one render. */
+  if(!/\.includes\.opening \.scope\{animation:pouch/.test(HTML)){
+    fail("the pouch entry animation lost its .opening scope \u2014 either it " +
+         "animates on every render again (the 2.2.1 soak note, three times " +
+         "over) or it never animates at all");
+  }
+  var basePouch = (HTML.match(/\.includes \.scope\{[^}]*\}/) || [""])[0];
+  if(/animation:/.test(basePouch)){
+    fail("the base .includes .scope rule carries an animation \u2014 every " +
+         "re-render with the belt open replays it: the belt 'reloads' on a " +
+         "format pick, a type pick, and a tab change, which is the soak note " +
+         "verbatim");
+  }
+  if(!/S\.beltOpen = true; S\.beltOpening = true; render\(\); S\.beltOpening = false;/.test(HTML)){
+    fail("the belt handler does not scope the opening flag to the one render " +
+         "that opens \u2014 the flag leaking past render() is the replay coming back");
+  }
+  if(!/class="includes'\+\(S\.beltOpening \? " opening" : ""\)\+'"/.test(HTML)){
+    fail("includeBlock() does not read the opening flag \u2014 the class would " +
+         "never render and the pouches would never animate");
+  }
+  if(/beltOpening/.test(fn("persistNow"))){
+    fail("beltOpening is written to the saved payload \u2014 it is one render long " +
+         "by definition");
   }
   if(!/aria-expanded/.test(mc)){
     fail("the buckle states no aria-expanded \u2014 a screen reader cannot tell a " +
@@ -4482,7 +4546,7 @@ var ROUTE_VOCAB = [
     fail("the close ignores prefers-reduced-motion \u2014 reduced motion closes " +
          "instantly, no timeout");
   }
-  if(!/\.includes \.scope,\.includes\.closing \.scope\{animation:none/.test(HTML)){
+  if(!/\.includes\.opening \.scope,\.includes\.closing \.scope\{animation:none/.test(HTML)){
     fail("the reduced-motion block does not cover the closing animation");
   }
   /* 2.2.0 soak note: the buckle crops on narrow phones. Below 375px the two
@@ -4621,10 +4685,18 @@ var ROUTE_VOCAB = [
     fail("ANIMATED and LIVE ACTION are styled identically again \u2014 the soak " +
          "note was that nobody can tell them apart without reading");
   }
-  /* 3: the ratings legend line sat misaligned among the legend entries. */
-  if(!/class="rleg"/.test(HTML) || !/\.legend \.rleg\{[^}]*align-items:center/.test(HTML)){
-    fail("the ratings legend line lost its alignment \u2014 the swatches and the " +
-         "sentence drift apart again");
+  /* 3: the ratings legend line sat misaligned among the legend entries \u2014
+     then (2.2.1 soak) its flex layout dropped the whole sentence below the
+     badges as one indivisible block. The mechanism is inline flow now: the
+     sentence wraps word-by-word beside the badges, and vertical-align keeps
+     the swatches seated in the line. Both halves are the alignment. */
+  if(!/class="rleg"/.test(HTML) || !/\.legend \.rleg\{[^}]*display:block/.test(HTML)){
+    fail("the ratings legend line lost its inline flow \u2014 the sentence drops " +
+         "below the badges as one block again, the 2.2.1 soak note");
+  }
+  if(!/\.legend \.rleg \.bd\{[^}]*vertical-align:middle/.test(HTML)){
+    fail("the ratings legend badges lost their vertical alignment \u2014 the " +
+         "swatches and the sentence drift apart again");
   }
   /* 4: three headings read too small; the fix is a variant, owner's call,
      applied at exactly the three named seats and nowhere else. */
@@ -4745,6 +4817,92 @@ var ROUTE_VOCAB = [
   if(!/"not_found_handling":\s*"404-page"/.test(wtxt)){
     fail('wrangler not_found_handling is not "404-page" \u2014 the 404 exists to ' +
          "be served, with a 404 status");
+  }
+})();
+
+/* ---------- 102. A tick burst writes once, and leaving flushes ---------- */
+/* 2.5.0, optimization report \u00a73.7 \u2014 shipped on the owner's word after being
+   deferred as its own release. persist() used to serialize the whole state
+   and hit the store on every call: marking a season of television watched
+   was a write per tick. It is a trailing debounce now (200 ms), and the
+   contract has three legs that all have to hold together: calls coalesce,
+   flushPersist() writes NOW, and the page flushes when it is being left \u2014
+   pagehide plus visibilitychange-to-hidden \u2014 so there is no window where a
+   closed tab loses ticks. Smoke proves the coalescing behaviorally; this
+   section holds the shape so a refactor cannot quietly drop a leg. */
+
+(function(){
+  var pd = fn("persist");
+  if(!/setTimeout/.test(pd) || /JSON\.stringify/.test(pd)){
+    fail("persist() is not a trailing debounce \u2014 either it writes inline again " +
+         "(a write per tick, the thing \u00a73.7 exists to end) or the payload moved " +
+         "back into it");
+  }
+  if(!/clearTimeout\(persistTimer\)/.test(pd)){
+    fail("persist() does not clear the pending timer \u2014 a burst would schedule " +
+         "a write per call, which is the old cost on a delay");
+  }
+  var pn = fn("persistNow");
+  if(!/JSON\.stringify/.test(pn) || !/store\.set/.test(pn)){
+    fail("persistNow() does not carry the serialize-and-write \u2014 the debounce " +
+         "has nothing to fire");
+  }
+  var fl = fn("flushPersist");
+  if(!/persistNow\(\)/.test(fl) || !/clearTimeout/.test(fl)){
+    fail("flushPersist() does not cancel the timer and write now \u2014 leaving the " +
+         "page would race a 200 ms window");
+  }
+  if(!/if\(!persistTimer\) return;/.test(fl)){
+    fail("flushPersist() writes even with nothing pending \u2014 every pagehide " +
+         "would serialize the world for no reason");
+  }
+  if(!/window\.addEventListener\("pagehide", flushPersist\)/.test(HTML)){
+    fail("nothing flushes on pagehide \u2014 closing the tab inside the debounce " +
+         "window loses the last ticks, which is the one failure this contract " +
+         "must never have");
+  }
+  if(!/visibilitychange/.test(HTML) || !/if\(document\.hidden\) flushPersist\(\);/.test(HTML)){
+    fail("nothing flushes when the page hides \u2014 mobile browsers fire no " +
+         "reliable pagehide on app-switch; visibilitychange is the flush that " +
+         "actually runs there");
+  }
+})();
+
+/* ---------- 103. The tick repaints one group, and cannot drift ---------- */
+/* 2.5.0, optimization report \u00a73.8 \u2014 the one the report called genuinely
+   risky, shipped behind arithmetic instead of nerve. The tick path
+   (toggleWatched/toggleSkip) repaints the row's group through groupBlock()
+   \u2014 the same builder viewWatch() composes from, so the two cannot disagree
+   by construction \u2014 plus the header through renderHead(). Everything
+   outside the targeted condition (another tab, a filter, a search) falls
+   back to the full render. The real gate lives in smoke: after every driven
+   tick, a forced full render must serialize byte-for-byte identical. This
+   section holds the shape so the gate always has something to gate. */
+
+(function(){
+  var tw = fn("toggleWatched"), ts = fn("toggleSkip");
+  if(!/tickUpdate\(id\)/.test(tw) || !/tickUpdate\(id\)/.test(ts)){
+    fail("a toggle does not go through tickUpdate() \u2014 either the targeted " +
+         "path is dead code or one toggle repaints the world again");
+  }
+  var tu = fn("tickUpdate");
+  if(!/S\.tab !== "watch" \|\| S\.filter !== "all" \|\| S\.q/.test(tu)){
+    fail("tickUpdate() lost its fallback condition \u2014 a filtered or searched " +
+         "view patched in place WILL drift from the full render; the gate " +
+         "exists because this line exists");
+  }
+  if(!/groupBlock\(g, S\.q\.toLowerCase\(\)\)/.test(tu) || !/renderHead\(counts\(\)\)/.test(tu)){
+    fail("tickUpdate() does not rebuild through groupBlock() and renderHead() " +
+         "\u2014 a second copy of either is a drift waiting for a release");
+  }
+  if(!/groupBlock\(g, q\)/.test(optionalFn("viewWatch",
+       "the tick path would have nothing to compose from"))){
+    fail("viewWatch() no longer composes from groupBlock() \u2014 the tick path " +
+         "and the full render just became two implementations");
+  }
+  if(!/replaceChild/.test(tu)){
+    fail("tickUpdate() does not replace the group element \u2014 whatever it does " +
+         "instead is not the targeted repaint the gate verifies");
   }
 })();
 
