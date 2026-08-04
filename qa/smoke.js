@@ -603,7 +603,7 @@ win.addEventListener("load", function(){
           }), lrow.length + " entries");
     check("no legend swatch is styled text", !!leg && !leg.querySelector("i"));
     check("the legend covers every tier and modifier",
-          !!leg && ["e", "k", "o", "m", "u", "c", "s"].every(function(k){
+          !!leg && ["e", "k", "o", "u", "c", "s"].every(function(k){
             return !!leg.querySelector(".bd." + k);
           }));
     check("the legend badges read the same labels as the rows",

@@ -16,7 +16,7 @@ run_case "the base border is made visible" \
 
 run_case "a variant draws a thicker border" \
   "draws a 2px border against the base rule" \
-  "${P}a='.bd.m{color:var(--crimson2);border:1px solid currentColor;}';assert a in s;s=s.replace(a,'.bd.m{color:var(--crimson2);border:2px solid currentColor;}');${W}"
+  "${P}a='.bd.u{color:var(--steel);border:1px solid currentColor;}';assert a in s;s=s.replace(a,'.bd.u{color:var(--steel);border:2px solid currentColor;}');${W}"
 
 run_case "a variant re-pads itself" \
   "sets its own padding" \

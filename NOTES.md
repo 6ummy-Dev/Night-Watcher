@@ -1774,3 +1774,53 @@ Reverted in 2.7.1 and held by guard 108, because the argument for the move is
 still on the record and reads as unfinished work. **If it is revisited, the
 answer is not to shift the block again — it is to keep the composition and
 shorten the canvas, and that still wants the Story test first.**
+
+## A badge that outlived its replacement, and why nothing caught it
+
+The decision is dated 1 August 2026: replace Mature and Kids with the film
+rating itself, because *"PG-13 and R were both Mature before, and G and PG were
+both nothing."* Kids went — it was designed, scheduled, and correctly dropped
+when the ratings superseded it. **Mature stayed for four releases**, on 39
+entries, eleven of them rated PG-13 or TV-14. The legend said the quiet part
+out loud: the swatch read *"R or close."*
+
+**The mechanism is worth naming because it generalises.** 1.7.0's changelog
+said the rating badges were not in that release and that *replacing* Mature and
+Kids was the next round's job. The ratings arrived on schedule. The replacement
+did not, and what shipped was an addition — which passes every test an addition
+can be given. **No guard fails over redundancy.** Guard 92 checked that the
+ratings were right; nothing checked that the thing they replaced was gone,
+because "gone" is not a property anything was watching.
+
+The badge-kind guard made it easier to miss: its list of kinds was hand-kept, so
+`BADGE` and the list could disagree without anything noticing. That is fixed —
+the map and the list now have to agree in both directions — but the general
+lesson is the one to keep: **a replacement is two changes, and only one of them
+has a natural failure mode.** When a decision says *replace*, the removal wants
+its own guard on the day, or it becomes an addition and lives forever.
+
+## The export nobody could find
+
+`docs/orders.txt` shipped in 2.6.0 with guard 105 holding it, and the guard was
+built around the right sentence: *an export nothing points at is an export
+nothing reads.* It checks that `llms.txt` names the file, and it has passed
+every run since.
+
+In August 2026 a six-agent SEO/GEO/AEO audit crawled the live site and
+recommended, as new work, *"a machine-readable catalogue export for secondary
+citations."*
+
+`llms.txt` was the **only** thing pointing at the file. Nothing in
+`index.html`, nothing in `robots.txt`, nothing in `sitemap.xml`. The guard was
+true and the claim underneath it was not: one pointer, in a file most crawlers
+never request, is indistinguishable from none.
+
+The page now declares it — `<link rel="alternate" type="text/plain">` — which is
+what the file actually is. **It stays out of `sitemap.xml` deliberately:** the
+crawlable seed already carries all 200 entries and so does the export, so
+submitting both for indexing asks a search engine to choose between two
+near-identical bodies on one domain. Discoverable and indexed are different
+goals and only the first one is wanted here.
+
+**What the guard should have asserted** was not "a pointer exists" but "the
+surfaces a reader or a crawler actually lands on mention it". It does now.

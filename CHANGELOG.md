@@ -20,6 +20,84 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [2.7.2] — 2026-08-04
+
+Three things that were already true in the data and missing from where they
+mattered.
+
+### Removed
+
+- **The Mature badge, four releases after the thing that replaced it shipped.**
+  The decision is dated 1 August 2026: *replace both Mature and Kids with the
+  film rating itself*, because *"PG-13 and R were both Mature before, and G and
+  PG were both nothing."* Kids went. Mature stayed, on **39 entries** — 12 of
+  them rated R, 13 TV-MA, and **eleven rated PG-13 or TV-14**, which is the
+  exact imprecision the ratings were adopted to end. The legend admitted it: the
+  swatch read *"R or close."*
+
+  It survived because nothing was ever going to fail over a badge that was
+  merely redundant. 1.7.0's note said the rating badges were not in that release
+  and that *replacing* Mature and Kids was the next round's job; the ratings
+  arrived, the replacement did not, and what shipped was an addition.
+
+  **The accepted cost, decided by the owner:** the three unreleased Knightfall
+  entries now carry **no maturity signal at all** until they release. Not a
+  softer one — none. Part 1 gains its `R` when it goes digital on 25 August;
+  Parts 2 and 3 are undated. The alternative was keeping a badge that means
+  *mature* on entries where it would have started to mean *we do not have a
+  rating yet* — a different sentence in the same box.
+
+  No saved progress is touched. Badges were never frozen; only `i:` slugs are.
+
+### Added
+
+- **The era notes reach the crawlable seed.** Anyone arriving without
+  JavaScript — and any text-only crawler, which is how several AI indexers read
+  a page — saw eleven bare labels where the app shows a sentence each. The notes
+  were already written, already one source in `ERAS`, already guarded by
+  section 81 for what an era note may say: *a period, not a story.* So this is
+  existing data reaching the surface engines read, not new copy, and nothing is
+  now written twice.
+
+  Era 0 stays out of the list, here as in the app. It is not a stage of a life;
+  it collects the entries that have no place in one.
+
+- **The page points at `orders.txt`.** One `<link rel="alternate"
+  type="text/plain">`, and the reason it is worth a line in a changelog is how
+  it was found: a six-agent SEO/GEO/AEO audit crawled the live site and
+  recommended, as new work, *"a machine-readable catalogue export for secondary
+  citations."* That export has been served since 2.6.0.
+
+  Checked afterwards: `orders.txt` was referenced from `llms.txt` and nowhere
+  else. Section 105 was written around the sentence *an export nothing points at
+  is an export nothing reads*, and it faithfully held the one pointer that
+  existed — it could not know the page itself was silent.
+
+  **It stays out of `sitemap.xml` on purpose.** The crawlable seed already
+  carries all 200 entries and so does `orders.txt`; submitting both for indexing
+  asks a search engine to choose between two near-identical bodies on one
+  domain. Discoverable is not the same as indexed.
+
+### Changed
+
+- **The badge-kind guard checks the `BADGE` map instead of trusting it.** Its
+  list of kinds was hand-kept, so a kind present in the map and nowhere else was
+  invisible to it — which is close to how Mature lasted four releases. The map
+  and the list now have to agree in both directions.
+
+### Not done
+
+- **A footer link to the source repository.** The page's JSON-LD claims the repo
+  under `sameAs` and there is no clickable link to it anywhere: machines are
+  told, readers are not. It is one `<a>`, and it is held to ride with the
+  September page update rather than arriving alone.
+
+### Why PATCH
+
+Data and copy. A badge removed from 39 entries, existing notes reaching an
+existing surface, one `<link>`. No new files, no new catalogue entries, no
+behaviour change, no change to saved progress.
+
 ## [2.7.1] — 2026-08-04
 
 Four cosmetics from 2.7.0's soak. One of them is a retraction.

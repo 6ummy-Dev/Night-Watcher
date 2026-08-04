@@ -2320,15 +2320,33 @@ if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.t
     rules[m[1]] = m[3];
     if(m[2]) rules[m[2]] = m[3];
   }
-  ["e", "k", "o", "m", "u", "c", "s", "fmanim", "fmlive"].forEach(function(b){
+  ["e", "k", "o", "u", "c", "s", "fmanim", "fmlive"].forEach(function(b){
     if(!rules[b]) fail("badge ." + b + " has no styling");
+  });
+  /* 2.7.2: the list above is hand-kept, so a kind added to BADGE and to nothing
+     else was invisible here — which is close to how the Mature badge survived
+     four releases after the ratings replaced it. The map is now checked against
+     the list rather than trusted to agree with it. */
+  var KINDS = ["e", "k", "o", "u", "c", "s"];
+  Object.keys(sandbox.BADGE || {}).forEach(function(b){
+    if(KINDS.indexOf(b) < 0){
+      fail('BADGE carries "' + b + '", which this guard does not know about \u2014 ' +
+           "a badge kind nobody listed is a badge kind nobody styled, sized or " +
+           "explained in the legend");
+    }
+  });
+  KINDS.forEach(function(b){
+    if(!(sandbox.BADGE || {})[b]){
+      fail('BADGE has lost "' + b + '" \u2014 entries carrying it would render an ' +
+           "empty box");
+    }
   });
   /* Tier is the answer to "should I watch this" and there is always exactly
      one, so it is the only filled kind. */
   ["e", "k"].forEach(function(b){
     if(!/background:var\(--/.test(rules[b] || "")) fail("tier badge ." + b + " is no longer filled");
   });
-  ["m", "u", "c", "s"].forEach(function(b){
+  ["u", "c", "s"].forEach(function(b){
     if(/background:var\(--/.test(rules[b] || "")){
       fail("modifier badge ." + b + " is filled \u2014 filling is what marks the tier");
     }
@@ -3634,9 +3652,22 @@ var ROUTE_VOCAB = [
       '<a href="#progress">Progress</a> keeps the tally. The app needs JavaScript; ' +
       "what follows is what it covers.</p>",
     "<h2>The eras of Bruce’s life</h2>",
+    /* 2.7.2: the notes joined the names. The fifth audit asked for "a compact
+       list of the eras with one-sentence definitions" and the seed carried the
+       names alone — eleven bare labels that say nothing to a reader arriving
+       without JavaScript, or to a text crawler that only ever sees this
+       surface. The notes were already written, already one source in ERAS, and
+       already rendered in the app. This is existing data reaching the surface
+       engines read, not new copy: nothing here is written twice, and guard 81
+       already holds what an era note is allowed to say — a period, not a
+       story — so the seeded text is spoiler-safe by construction.
+
+       Era 0 stays out, here as in the app. It is not a stage of a life; it
+       collects the entries that have no place in one. */
     "<ol>",
     ERAS.filter(function(x){ return x.k !== 0; })
-        .map(function(x){ return "  <li>" + e(x.name) + "</li>"; }).join("\n"),
+        .map(function(x){ return "  <li><strong>" + e(x.name) + "</strong> \u2014 " +
+                                 e(x.note) + "</li>"; }).join("\n"),
     "</ol>",
     /* seed-200 (2.5.0, owner's word with the ceiling raise): the continuities
        section carries every entry, not just the universe names — the full
@@ -5154,6 +5185,30 @@ var ROUTE_VOCAB = [
   if(fs.existsSync(lt2) && fs.readFileSync(lt2, "utf8").indexOf("/orders.txt") < 0){
     fail("llms.txt does not point at orders.txt — the plain-text catalogue " +
          "ships, and the one file written for engines never mentions it");
+  }
+
+  /* 2.7.2. llms.txt was the ONLY thing pointing at this file, and that was
+     enough to satisfy the check above while being nowhere near enough in
+     practice: a six-agent SEO/GEO/AEO audit crawled the live site and
+     recommended, as new work, building the export that had been serving since
+     2.6.0. The guard held the one pointer that existed and could not know the
+     page itself was silent.
+
+     The page now declares it as what it is — an alternate representation of
+     the same catalogue. It stays OUT of sitemap.xml on purpose: the crawlable
+     seed already carries all 200 entries and so does orders.txt, so submitting
+     both for indexing asks a search engine to choose between two
+     near-identical bodies on one domain. Discoverable is not indexed. */
+  if(!/<link rel="alternate" type="text\/plain" href="orders\.txt"/.test(HTML)){
+    fail("index.html does not point at orders.txt — the plain-text catalogue " +
+         "is served and the page says nothing about it, which is how an audit " +
+         "came to recommend building a file that already existed");
+  }
+  var smPath = path.join(PUBLIC, "sitemap.xml");
+  if(fs.existsSync(smPath) && fs.readFileSync(smPath, "utf8").indexOf("orders.txt") >= 0){
+    fail("orders.txt is in sitemap.xml — it carries the same 200 entries as " +
+         "the crawlable seed, so indexing both asks a search engine to choose " +
+         "between two near-identical bodies on one domain");
   }
 
   /* Kept here rather than in 101 so one section owns this file end to end.
