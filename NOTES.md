@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 107 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 108 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -1736,3 +1736,41 @@ is that it takes data patches. Guard 106 holds what remains: every character in
 the page and in `orders.txt` must be inside the blessed range, and the font
 files must match the hashes recorded beside them, so the fonts and the record of
 what they contain can only move together.
+
+## Two guards in one month that pinned a layout instead of a decision
+
+2.7.0 widened guard 96's reduced-motion check from a literal selector pair to a
+membership test, because the fix to soak finding 1 added a third selector and
+the guard failed on the fix. 2.7.1 did the same to section 92: it had pinned
+`ratingBadge(f)+watchLinks(f)`, twice, exactly — so moving the rating onto the
+badge line failed the build for the layout rather than for a defect.
+
+Both guards were correct when written. Both were written to hold a *soak note's
+fix* rather than the decision underneath it, and a fix is a shape while a
+decision is a rule. Section 92's rule was never "the rating sits beside the
+link"; it was **every surface a reader decides from says what a thing is rated,
+and it says it in the same place as everything else about that thing.** Written
+that way it survives the layout changing, which it now has, twice.
+
+**The test when writing a guard from a soak note:** if the note were fixed a
+different but equally good way tomorrow, would this guard go red? If yes, it is
+holding the arrangement, not the reason for it.
+
+## A release that shipped a change its own plan had gated
+
+2.7.0's plan listed the share card's bottom block as **F4 · GATED** — one
+Instagram Story post, one look, and only then move the coordinates. The owner
+chose "ship the fix" over "do the test", the coordinates moved, and on a real
+card the composition was worse: a third of the canvas empty under the domain
+line, because 145px of content had been lifted out of a fixed-height frame.
+
+The safe-zone reasoning was not wrong. The gate existed because the reasoning
+was *unverified*, and the specific figure it rested on — 250 to 310px reserved
+at the bottom — was described in the plan itself as widely repeated guidance
+rather than a published spec. Skipping the gate did not make the guidance
+wrong; it removed the only step that would have shown the cost of acting on it.
+
+Reverted in 2.7.1 and held by guard 108, because the argument for the move is
+still on the record and reads as unfinished work. **If it is revisited, the
+answer is not to shift the block again — it is to keep the composition and
+shorten the canvas, and that still wants the Story test first.**

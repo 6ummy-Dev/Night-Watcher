@@ -20,6 +20,63 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [2.7.1] — 2026-08-04
+
+Four cosmetics from 2.7.0's soak. One of them is a retraction.
+
+### Fixed
+
+- **The era note touched the line above it.** An open group draws a 1px rule
+  under its header, and the note's first line sat directly on it — close enough
+  to read as a rendering fault rather than as spacing. The space is on
+  `.gbody`'s padding rather than the note's own margin, deliberately: with a
+  zero-padding parent the child's top margin collapses straight out of the box
+  and nothing moves.
+
+- **The content rating sat beside the Where-to-watch link.** That placement was
+  2.2.0's answer to its own soak note, and it made the rating read as part of
+  the link instead of as what it is. It is a badge, and it now sits with the
+  other badges on every surface a reader decides from — the entry row, the
+  Next-up hero, and the Then peek.
+
+  Section 92 had pinned the old arrangement as a literal string, twice, so it
+  failed on the fix rather than on a regression. It now holds the rule instead:
+  every deciding surface carries the rating immediately after its badges, and
+  none carries it next to the link. **That is the second guard this month that
+  had to be widened from a layout it was never meant to defend** — the first
+  was the reduced-motion block in 2.7.0. A guard that pins punctuation stops
+  protecting the decision and starts protecting the wording.
+
+- **The share block reads like every other block on the page.** Title,
+  description, then buttons — left aligned. It had been title, buttons, then a
+  centred note, which made the description read as a footnote to the buttons
+  rather than as the thing the block is.
+
+### Reverted
+
+- **The share card's bottom block is back at 1590 / 1700 / 1750.** 2.7.0 lifted
+  the bars, the rule, the strapline and the domain up by 145px to clear the
+  strip Instagram reserves for its reply bar, and moved the bat and its glow up
+  with them.
+
+  The reasoning held. The release shipped it **without the one-minute Story
+  test that was written into the plan specifically to gate it** — and on a real
+  card it left a third of the canvas empty under the domain. The balance the
+  card already had was worth more than the risk it was avoiding.
+
+  Reverted, and guarded, because the argument for moving it is still true and
+  still on the record, so it will read as unfinished work to whoever finds it
+  next. It is not. **If it is ever revisited, the answer is not to shift the
+  block again — it is to keep the composition and shorten the canvas, and that
+  wants the Story test first.**
+
+### Added
+
+- **Guard 108**, holding all three of the fixes above. They are one value
+  each — a padding, a coordinate, the order of two elements — which is exactly
+  the shape that gets tidied back. The first draft of this release's negative
+  suite failed on three fixtures for the right reason: nothing was holding them.
+
 ## [2.7.0] — 2026-08-04
 
 The last release before the freeze. Lighter, quieter, and honest about its own edges.

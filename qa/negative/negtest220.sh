@@ -8,19 +8,21 @@
 
 echo "--- 92: the rating badge reaches every deciding seat"
 run_case "the Then peek drops its rating badge" \
-  "the Then peek dropped its rating badge" \
+  "the Then peek does not carry the rating on its badge line" \
   "${P}a='badges(x)+ratingBadge(x)';assert s.count(a)==1
 s=s.replace(a,'badges(x)',1);${W}"
 
-run_case "the hero loses the badge beside its watch link" \
-  "must appear exactly twice" \
-  "${P}a='ratingBadge(f)+watchLinks(f)';assert s.count(a)==2
-s=s.replace(a,'watchLinks(f)',1);${W}"
+# Both rewritten in 2.7.1, when the rating moved off the link row and onto the
+# badge lines. The seats are the same three; only where they sit changed.
+run_case "the hero drops the rating from its badge line" \
+  "the Next-up hero does not carry the rating" \
+  "${P}a='<div class=\"hbadges\">'+chr(39)+'+badges(f)+ratingBadge(f)';assert a in s
+s=s.replace(a,'<div class=\"hbadges\">'+chr(39)+'+badges(f)',1);${W}"
 
-run_case "a third seat appears that nobody named" \
-  "must appear exactly twice" \
-  "${P}a='ratingBadge(f)+watchLinks(f)';assert s.count(a)==2
-s=s.replace(a,a+\"+' '+ratingBadge(f)+watchLinks(f)\",1);${W}"
+run_case "a fourth seat appears that nobody named" \
+  "ratingBadge() is called" \
+  "${P}a='function watchUrl(title){';assert a in s
+s=s.replace(a,'function spare(f){ return ratingBadge(f); }\n'+a,1);${W}"
 
 echo "--- 96: the buckle fits the narrowest phone"
 run_case "the narrow-viewport rule is dropped" \

@@ -26,10 +26,13 @@ run_case "a rating drifts with no source behind it" \
   "the findings doc says" \
   "${P}b=s.replace('r:\"TV-Y\",','r:\"TV-Y7\",',1);assert b!=s;s=b;${W}"
 
-run_case "the badge leaves the detail panel" \
-  "must appear exactly twice" \
-  "${P}a='ratingBadge(f)+watchLinks(f)';assert a in s
-s=s.replace(a,'watchLinks(f)',1);${W}"
+# Rewritten in 2.7.1. The badge left the detail panel's link row on purpose —
+# it reads as part of the link there. It lives on the badge lines now, and the
+# count is what holds the seats: three, plus the definition.
+run_case "a deciding surface quietly stops naming the rating" \
+  "ratingBadge() is called" \
+  "${P}a='+badges(f)+ratingBadge(f)+';assert a in s
+s=s.replace(a,'+badges(f)+',1);${W}"
 
 run_case "the legend stops explaining the two systems" \
   "the legend no longer explains the two systems" \

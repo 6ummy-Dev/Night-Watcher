@@ -140,6 +140,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      105  The catalogue answers in plain text
      106  The fonts carry every letter the catalogue uses
      107  Every section can fail, and every section runs
+     108  The 2.7.1 soak notes stay fixed
 
    META
      65   The file points at where its reasoning went
@@ -4309,21 +4310,36 @@ var ROUTE_VOCAB = [
   if(!/function ratingBadge\s*\(/.test(HTML)){
     fail("ratingBadge() is gone \u2014 the rating data renders nowhere");
   }
-  if(!/ratingBadge\(f\)\+watchLinks\(f\)/.test(HTML)){
-    fail("the detail panel no longer carries the rating badge \u2014 the one place " +
-         "a reader deciding what to watch actually looks");
+  /* 2.2.0's soak note was "then not showing rating badges", and the fix sat the
+     rating beside the Where-to-watch link \u2014 which this guard then pinned as
+     the literal string ratingBadge(f)+watchLinks(f), twice. 2.7.1's soak note
+     was that the rating reads as part of the link rather than as what it is,
+     a badge. It belongs on the badge line with the others.
+
+     So the rule is now the invariant rather than the arrangement: every surface
+     a reader decides from carries the rating, immediately after that surface's
+     badges, and no surface carries it next to the link. Pinning the old
+     adjacency meant the guard failed on the fix instead of on a regression,
+     which is a guard defending a layout nobody chose twice. */
+  var SEATS = [["the entry row", /<\/span>'\+badges\(f\)\+ratingBadge\(f\)/],
+               ["the Next-up hero", /hbadges">'\+badges\(f\)\+ratingBadge\(f\)/],
+               ["the Then peek", /qpeek">'\+badges\(x\)\+ratingBadge\(x\)/]];
+  SEATS.forEach(function(seat){
+    if(!seat[1].test(HTML)){
+      fail(seat[0] + " does not carry the rating on its badge line \u2014 the " +
+           "rating is a badge, and a reader deciding what to press play on " +
+           "looks at the badges");
+    }
+  });
+  if(/ratingBadge\([fx]\)\+watchLinks/.test(HTML)){
+    fail("a rating badge sits next to the Where-to-watch link again \u2014 that " +
+         "was the 2.7.1 soak note. It reads as part of the link instead of as " +
+         "a rating");
   }
-  /* 2.2.0 soak note: "then not showing rating badges". The Then peek and the
-     Next-up hero are where a reader actually decides what to press play on;
-     both carry the badge now, from the same ratingBadge() the panel uses. */
-  if(!/qpeek">'\+badges\(x\)\+ratingBadge\(x\)\+'/.test(HTML)){
-    fail("the Then peek dropped its rating badge \u2014 the 2.2.0 soak note was " +
-         "exactly this absence");
-  }
-  if((HTML.match(/ratingBadge\(f\)\+watchLinks\(f\)/g) || []).length !== 2){
-    fail("ratingBadge(f)+watchLinks(f) must appear exactly twice \u2014 the detail " +
-         "panel and the Next-up hero; fewer is the soak note back, more is a " +
-         "seat nobody named");
+  if((HTML.match(/ratingBadge\([fx]\)/g) || []).length !== 4){
+    fail("ratingBadge() is called " + (HTML.match(/ratingBadge\([fx]\)/g) || []).length +
+         " times \u2014 three seats plus its own definition. Fewer is a surface " +
+         "that stopped saying what a thing is rated; more is a seat nobody named");
   }
   if(!/\.bd\.rt\{[^}]*currentColor/.test(HTML)){
     fail("the .bd.rt badge has no style of its own \u2014 it would render as bare text " +
@@ -5399,6 +5415,97 @@ var ROUTE_VOCAB = [
   note("section census: " + marks.length + " sections, all can fail, " +
        (nested.length ? nested.length + " nested by recorded exception (" + nested.join(", ") + ")"
                       : "all at file scope"));
+})();
+
+/* ---------- 108. The 2.7.1 soak notes stay fixed ---------------------- */
+/* Three cosmetics, reported by the owner against live 2.7.0. They are here
+   rather than left to the CSS because a cosmetic with no guard is a cosmetic
+   that comes back: each one is a single value that reads like tidying, and one
+   of them is a value THIS PROJECT ITSELF moved in the release before.
+
+   The era note touched the line above it. .gbody carried no top padding, and
+   .group.open .ghead draws a 1px rule underneath itself, so the first line of
+   the note sat directly on it. The space goes on the parent's padding rather
+   than the note's margin: with a zero-padding parent the child's top margin
+   collapses straight out of the box and nothing moves.
+
+   The rating badge sat beside the Where-to-watch link. That was 2.2.0's fix
+   for its own soak note, and it made the rating read as part of the link
+   rather than as what it is. It now sits with the other badges everywhere,
+   which section 92 holds seat by seat.
+
+   THE SHARE CARD'S BOTTOM BLOCK IS BACK WHERE IT WAS, AND THIS IS THE ONE TO
+   READ BEFORE CHANGING ANYTHING. 2.7.0 moved the bars, the rule, the strapline
+   and the domain up by 145px to clear the strip Instagram reserves for its
+   reply bar, and moved the bat and its glow up with them. The reasoning was
+   sound and it was shipped without the one-minute Story test that was written
+   into the plan to gate it. On a real card it left a third of the canvas empty
+   below the domain, and the balance the card had was worth more than the risk
+   it was avoiding. Reverted in 2.7.1.
+
+   The argument for moving it is still true and still on the record, so it will
+   read as unfinished work to whoever finds it next. It is not. If it is ever
+   revisited, the answer is not to shift the block again — it is to keep the
+   composition and shorten the canvas, and that wants the Story test first. */
+
+(function(){
+  /* The note must not touch the rule the open header draws under itself. */
+  var gb = (HTML.match(/\.gbody\{[^}]*\}/) || [""])[0];
+  var pad = (gb.match(/padding:\s*(\d+)px/) || [])[1];
+  if(!gb){ fail(".gbody has no rule — the group body is unstyled"); }
+  else if(!pad || parseInt(pad, 10) < 8){
+    fail(".gbody's top padding is " + (pad || "0") + "px — the era note sits " +
+         "against the 1px rule the open header draws under itself. It reads as " +
+         "a rendering fault rather than as spacing. The space belongs on this " +
+         "padding, not on .gnote's margin, which would collapse out of a " +
+         "zero-padding parent");
+  }
+
+  /* The share card's lower band, restored. */
+  var card = slice("function drawShareCard", "\nfunction shareCardBlock") ||
+             HTML.slice(HTML.indexOf("function drawShareCard"));
+  var domain = (card.match(/"nightwatcher\.life",\s*(\d+)\)/) || [])[1];
+  var strap  = (card.match(/"One path through every Batman",\s*(\d+)\)/) || [])[1];
+  var rule   = (card.match(/x\.fillRect\(16,\s*(\d+),\s*1048,\s*4\)/) || [])[1];
+  if(!domain || !strap || !rule){
+    fail("cannot read the share card's bottom block — the domain line, the " +
+         "strapline and the rule under the bars");
+  } else {
+    if(parseInt(domain, 10) !== 1750 || parseInt(strap, 10) !== 1700 ||
+       parseInt(rule, 10) !== 1590){
+      fail("the share card's bottom block has moved — rule " + rule + ", " +
+           "strapline " + strap + ", domain " + domain + "; 2.7.1 restored " +
+           "1590 / 1700 / 1750. 2.7.0 lifted them 145px to clear Instagram's " +
+           "reply bar and left a third of the canvas empty. If the safe zone " +
+           "is the problem, shorten the canvas rather than shifting the block, " +
+           "and run the Story test first");
+    }
+    if(!/x\.translate\(260,\s*734\)/.test(card)){
+      fail("the bat has moved off the restored composition — it travels with " +
+           "the bottom block or the card stops balancing");
+    }
+  }
+
+  /* The share block reads like every other block: title, description, buttons. */
+  var blk = slice("function shareCardBlock", "\nfunction cardFile") || "";
+  if(!blk){ fail("shareCardBlock() is gone"); }
+  else {
+    var iP = blk.indexOf("<p>A story card"), iB = blk.indexOf('class="bkbtns"');
+    if(iP < 0){
+      fail("the share block's description is not a plain <p> — every other " +
+           "block on the page states what it does directly under its title");
+    } else if(iB < 0 || iP > iB){
+      fail("the share block's description sits after its buttons — it reads " +
+           "as a footnote to them rather than as what the block is");
+    }
+    if(/\.sharecard\s+\.note\{/.test(HTML)){
+      fail(".sharecard .note is back — that rule centred the description " +
+           "under the buttons, which is the layout 2.7.1 removed");
+    }
+  }
+
+  note("2.7.1 cosmetics: era note clear of the rule, card block at 1590/1700/1750, " +
+       "share block reads title → description → buttons");
 })();
 
 /* ---------- report ---------- */
