@@ -45,8 +45,8 @@ run_case "the pouches stop staggering" \
 s=s.replace(a,'',1);${W}"
 
 run_case "the animation ignores reduced motion" \
-  "ignores prefers-reduced-motion" \
-  "${P}a='@media (prefers-reduced-motion: reduce){.includes.opening .scope,.includes.closing .scope{animation:none;}}';assert a in s
+  "does not cut .includes.opening .scope" \
+  "${P}a='@media (prefers-reduced-motion: reduce){.includes.opening .scope,.includes.closing .scope,.includes.closing{animation:none;}}';assert a in s
 s=s.replace(a,'@media (prefers-reduced-motion: reduce){}',1);${W}"
 
 echo "--- 97: theme lives on Home, compact, and nowhere else"

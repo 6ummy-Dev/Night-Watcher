@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 105 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 107 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -1618,3 +1618,121 @@ Guard 105 owns the file end to end: the drift check, the pointer in `llms.txt`
 the offline shell, which is the rule `llms.txt` and `404.html` already live
 under — a crawler asset in the app cache is downloaded on every install and read
 by nothing.
+
+## The belt's snap was a layout problem wearing an animation costume
+
+The staged close shipped in 2.0.0 and looked right in isolation: add
+`.closing`, the pouches fade and lift on a stagger, re-render at 240 ms. What a
+reader actually saw was the pouches leaving gracefully and then the entire page
+below them jumping up in one frame.
+
+**The exit animated. The reset did not.** `pouchout` animates `transform` and
+`opacity`, and neither affects layout — so the belt held its full height for the
+whole 240 ms and gave it all back at once when `render()` replaced `#view`.
+
+The finding was first read as unfixable in CSS: an `innerHTML` replacement
+cannot be transitioned. That is true and it is the wrong frame. **You do not
+need to transition the swap. You need the swap to have nothing left to do.**
+Collapsing the belt's own box — `max-height`, margins, opacity — over the same
+240 ms means the page has already arrived at its post-close layout by the time
+the view is rebuilt, so the rebuild changes nothing anyone can see.
+
+The re-render is not retimed, the close handler is untouched, and guard 96's
+staged-close checks still hold. The cost is two CSS rules.
+
+**Reduced motion had to widen with it.** The media block now cuts three
+selectors rather than two, and guard 96 was changed from pinning the exact
+selector string to testing membership — the old form failed on the fix rather
+than on a regression, which is a guard testing its own punctuation. Under
+reduced motion the belt closes instantly, box and all. A "smooth reset" that
+smooths the reduced-motion path is a regression wearing a fix's clothes.
+
+## Reading layout after writing it, 216 ms at a time
+
+`render()` ended with:
+
+```js
+var maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+window.scrollTo(0, Math.min(keep, maxY));
+```
+
+`scrollHeight` is a layout read. Immediately after `v.innerHTML = …`, it forces
+the browser to lay out the entire document synchronously before the next line
+runs — about 216 ms on a 200-entry list, on every render, including every tick
+of a checkbox.
+
+It was computing something the platform already does: `window.scrollTo` clamps
+to the scrollable range on its own. The clamp was defensive code paying full
+price for nothing.
+
+**It is guarded, and the reason is the interesting part.** jsdom has no layout,
+so `scrollHeight` returns 0 and every smoke test passes with the reflow present
+or absent. Nothing in the harness could ever have caught this by running the
+app. The only way to hold it is to refuse the shape — so guard 96 fails if
+`scrollHeight` appears in `index.html` at all. It is exactly the line somebody
+reasoning about scroll restoration from first principles would add back.
+
+## The favicon that every browser drew and no crawler could see
+
+The SVG icon shipped inline as a `data:` URI from the beginning. One fewer
+request, no extra file, perfect in every browser — which is precisely why it
+took months to notice that the site had no favicon in search results.
+
+Google's favicon pipeline **crawls the icon**. Its documentation requires a
+stable favicon URL, and SVG is supported only as a served file with a content
+type. A `data:` URI has no URL to fetch, no MIME type on the wire, and nothing
+to re-crawl. The browser-facing behaviour was flawless and the machine-facing
+behaviour did not exist.
+
+Now `docs/icon.svg`, precached with the other app assets, and guarded — an icon
+link with a `data:` href fails the build. Inlining it again is a defensible
+optimisation on every ground except the one that matters, which is exactly the
+kind of decision that needs writing down rather than remembering.
+
+## Section 24 does not run at file scope, and that is allowed once
+
+Guard 107 — the section census, carried on the backlog from 2.2.0 and built in
+2.7.0 — holds two properties that both fail silently: a section containing no
+`fail()` protects nothing, and a section that never runs passes for the same
+reason an empty file does. Guard 66 held the numbering; nothing held these.
+
+It found one case on its first run. **Section 24 sits inside section 23's `else`
+branch**, because it reads the path tables section 23 extracts. Its checks can
+be skipped entirely, which is the exact shape the census exists to catch.
+
+It is kept, on a condition that is now asserted rather than assumed: **the only
+branch that skips 24 is the branch that already calls `fail()`**, so a skipped
+section 24 cannot coexist with a green build. That is what makes the nesting
+acceptable rather than merely convenient.
+
+Lifting it out was considered and rejected. Section 24 reads `ids`, assigned
+only in the branch that would have failed — so at file scope it would throw on
+`undefined` and turn a clean red build into a stack trace, on the release meant
+to be the calm one. One nested section, named in the guard with its reason. A
+second one fails the build until somebody makes the same argument for it.
+
+## Why the fonts were 39% of the payload and nobody noticed
+
+The weight budget guards `docs/index.html` — 200 KB raw, 80 KB gzipped — and it
+has been the project's most-cited discipline. It also could not see the fonts.
+
+Six faces at 118,860 bytes against a page that compresses to 52 KB: the
+typography was more than twice the weight of the app, and every arithmetic
+argument the project ever made about weight was about the smaller half. None of
+it was dead files — all six are referenced and precached. It was glyph coverage
+for languages the catalogue does not contain.
+
+Subsetting five of them to Latin-1 plus punctuation takes 55,864 bytes off,
+turning a 296 KB first visit into 241 KB. **Limelight is left whole because its
+OFL header names a Reserved Font Name**, so a subset would have to be renamed
+in the font, in `@font-face` and in `--deco` — real churn and a licensing
+judgement, for the last 10.3 KB. Anton's and IBM Plex's headers carry no such
+name.
+
+**The range is deliberately wider than the catalogue.** Cutting to exactly the
+99 characters present today saved another 21 KB and would have put an accented
+title one data patch away from blank boxes, on a catalogue whose entire design
+is that it takes data patches. Guard 106 holds what remains: every character in
+the page and in `orders.txt` must be inside the blessed range, and the font
+files must match the hashes recorded beside them, so the fonts and the record of
+what they contain can only move together.

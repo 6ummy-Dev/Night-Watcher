@@ -20,6 +20,130 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [2.7.0] — 2026-08-04
+
+The last release before the freeze. Lighter, quieter, and honest about its own edges.
+
+### Changed
+
+- **The webfonts are subset. The first visit is 55,864 bytes lighter.** Six
+  faces shipped at 118,860 bytes — 39% of everything a new reader downloads,
+  and more than the page itself compresses to. None of it was dead files: all
+  six are referenced and all six are precached. It was glyph coverage nobody
+  was ever going to use. Five are now cut to Basic Latin, Latin-1 and
+  punctuation, and the payload for a first visit falls from 302,514 bytes to
+  246,650.
+
+  **The range is wider than the catalogue on purpose.** Subsetting to exactly
+  the 99 characters the catalogue contained today would have saved another
+  21 KB and put an accented title one data patch away from rendering as blank
+  boxes, on a catalogue whose whole design is that it takes data patches.
+  **Guard 106** closes what is left: every character in the page and in
+  `orders.txt` must be inside the blessed range, so an unusual letter fails the
+  build on the day it is added rather than turning up in somebody's screenshot
+  three weeks later.
+
+  **Limelight is left whole**, and the reason is legal. Its OFL header reads
+  *"with Reserved Font Name Limelight"*; Anton's and IBM Plex's do not. A
+  Modified Version may not carry a reserved name as presented to users, so
+  subsetting it means renaming the family in the font, in `@font-face` and in
+  `--deco` — real churn and a licensing judgement, for 10.3 KB. It keeps 84% of
+  the saving and none of the question. `qa/subset-fonts.py` regenerates the
+  rest and blesses a manifest of sizes and hashes, so the fonts and the record
+  of what they contain can only move together.
+
+- **The favicon is a file now, and search engines can finally see it.** The SVG
+  icon shipped inline as a `data:` URI: one fewer request, renders perfectly
+  everywhere, and invisible to Google — whose favicon pipeline **crawls** the
+  icon and needs a stable URL with a content type. A `data:` URI has neither.
+  It is now `docs/icon.svg`, precached like every other app asset. Guard 106's
+  neighbour fails the build if any icon link goes back to `data:`, because
+  inlining it is a defensible optimisation on every ground except the one that
+  matters.
+
+- **`manifest.json`'s `id` was wrong, and 2.7.0 is the last cheap moment to fix
+  it.** It read `/Night-Watcher/` — the GitHub Pages *project page* identity,
+  which on the apex resolves to a path that does not exist. Changing a PWA's
+  `id` orphans existing installs, which is why the standing decision was to
+  leave it. That decision assumed a fixed install base. The measured base was
+  near zero and Batman Day was five weeks out, so the cost of this change fell
+  to roughly nothing today and rises with every install after. Paid once,
+  deliberately. Guard 83 now pins `/` with the same force it pinned the old
+  value, and there is no second exception coming.
+
+### Fixed
+
+- **The belt closes without the page snapping.** The staged exit always played
+  — the pouches fading and lifting — and then the whole view was rebuilt at
+  240 ms and everything below jumped up in one frame. The exit animated; the
+  reset did not.
+
+  The earlier reading was that this could not be fixed in CSS, because an
+  `innerHTML` replacement cannot be transitioned. True, and beside the point:
+  the pouches animate on `transform` and `opacity`, neither of which affects
+  layout, so the belt kept its full height right up until the swap. Collapsing
+  the belt's own box over the same 240 ms means the page has already settled by
+  the time the swap lands, and there is nothing left to snap. **The re-render is
+  not retimed and the handler is untouched.** Reduced motion still gets the
+  honest instant close, box and all, and that is guarded rather than assumed.
+
+- **A forced reflow on every render.** `render()` finished by clamping the
+  restored scroll position against `document.documentElement.scrollHeight` —
+  reading layout immediately after writing `innerHTML`, which forces a
+  synchronous layout of the entire document. Around 216 ms on a 200-entry list,
+  every time anything re-rendered, to compute a number the platform already
+  applies: `window.scrollTo` clamps to the scrollable range by itself. The read
+  is gone and guarded, because it is the kind of line anybody reasoning about
+  scroll restoration from first principles would add back, and jsdom has no
+  layout, so nothing in the harness would ever have caught it.
+
+- **The share card's link sat where Instagram covers it.** The card has been
+  1080×1920 at 9:16 since 2.0.0, so the size was never the problem — the
+  placement was. `nightwatcher.life` sat at y=1750, 91% down, inside the strip
+  the reply bar reserves. The one element that turns a Story view into a visit
+  was under the interface. The bars, the rule and both text lines moved up, and
+  the bat and its glow moved with them so nothing collides.
+
+### Added
+
+- **Guard 107 — the section census.** Carried on the backlog since 2.2.0. Guard
+  66 already held the numbering; this holds the two properties underneath it,
+  both of which break silently: a section that contains no `fail()` protects
+  nothing, and a section that never runs passes for the same reason an empty
+  file does.
+
+  **It found one immediately.** Section 24 is not at file scope — it sits inside
+  section 23's `else` branch, because it needs the path tables section 23
+  extracts. It is kept, on a condition that is now asserted rather than assumed:
+  the only branch that skips it is the branch that already calls `fail()`, so a
+  skipped section 24 can never coexist with a green build. Lifting it out would
+  leave it reading variables the failing branch never assigned — a stack trace
+  in place of a clean red. One nested section, named, with its reason. A second
+  one fails the build until somebody argues for it too.
+
+- **CI runs on `actions/checkout@v5` and `setup-node@v5.`** Every job was
+  warning that Node 20 is deprecated and being forced onto Node 24. Noise now, a
+  red run whenever the runners stop forcing it — in a repository that is about
+  to go quiet for a month.
+
+### Not done, on purpose
+
+- **Stage B, the QA trim menu, drops.** `GUARD_ONLY` needs the guard file
+  scoped, and the sections that are bare top-level statements share module
+  scope. That is a restructure of the file holding every guarantee, on the last
+  release before the year's largest day. The drop condition was written into
+  the plan before the build rather than argued during it. The census — the part
+  that was actually worth having — shipped without it.
+
+- **Stage D was already done.** `SMOKE_ONLY` has scoped smoke runs by phase
+  since 2.2.0. It stayed on the backlog for four releases as a thing to build
+  after it had been built.
+
+### Why MINOR
+
+Six replaced font assets, a new served file, two new guards. No new catalogue
+entries and no change to saved progress.
+
 ## [2.6.0] — 2026-08-04
 
 The catalogue answers in plain text.

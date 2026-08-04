@@ -13,10 +13,19 @@ run_case "a CNAME appears at the repo root" \
   "import io;io.open('CNAME','w').write('nightwatcher.life\n')"
 
 echo "--- 83: the manifest id is an identity"
-run_case "the id is tidied to the new site root" \
+# Inverted in 2.7.0. This fixture used to mutate the id TO "/" and require a
+# failure, because "/Night-Watcher/" was the blessed value. 2.7.0 changed the
+# blessed value once, deliberately, while the install base was near zero — so
+# the mutation that must now fail is the revert, not the fix.
+run_case "the id is reverted to the old project-page path" \
   "it is an identity key, not a path" \
   "import io,json;p='docs/manifest.json';d=json.load(io.open(p,encoding='utf-8'))
-d['id']='/';io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2))"
+d['id']='/Night-Watcher/';io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2))"
+
+run_case "the id drifts to something plausible" \
+  "it is an identity key, not a path" \
+  "import io,json;p='docs/manifest.json';d=json.load(io.open(p,encoding='utf-8'))
+d['id']='https://nightwatcher.life/';io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2))"
 
 run_case "the id is dropped entirely" \
   "manifest.json has no id" \

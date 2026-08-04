@@ -138,6 +138,8 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      101  The site answers off the app too
      104  The security headers the edge cannot set
      105  The catalogue answers in plain text
+     106  The fonts carry every letter the catalogue uses
+     107  Every section can fail, and every section runs
 
    META
      65   The file points at where its reasoning went
@@ -3933,10 +3935,31 @@ var ROUTE_VOCAB = [
    build forever and the new one installs beside it. It looks like a path and it
    is not one, which is exactly why it gets "tidied" during a domain move — this
    one was changed from /Night-Watcher/ to / during 1.8.0 and reverted before
-   shipping, caught by chance rather than by anything here. */
+   shipping, caught by chance rather than by anything here.
+
+   IT WAS CHANGED ON PURPOSE IN 2.7.0, ONCE, AND THE REASONING MATTERS BECAUSE
+   THE RULE ABOVE IS STILL RIGHT. The old value was the GitHub Pages *project
+   page* identity, and on the apex it resolves to
+   https://nightwatcher.life/Night-Watcher/ — a path that does not exist. The
+   2.5.1 retirement round missed it because guard 77's inverted check greps for
+   the retired host, not the path.
+
+   The standing decision was to leave it, on the grounds that orphaning installs
+   costs more than a cosmetic wrong. That decision was taken while treating the
+   install base as fixed. It was not: the measured base was near zero — 100 apex
+   visits total, with the analytics beacon only live since 2 Aug 2026 — and
+   Batman Day was five weeks out. The cost of this change is proportional to the
+   install base, so it fell to roughly nothing on 4 Aug and rises with every
+   install afterwards. Leaving it would have meant every install made from
+   19 Sep onward keyed to an identity pointing at a path that does not exist,
+   permanently.
+
+   So: paid once, deliberately, at the last moment it was cheap. The rule does
+   not relax — this guard now pins the new value with the same force, and there
+   is no second exception coming. */
 
 (function(){
-  var WANT = "/Night-Watcher/";
+  var WANT = "/";
   var mf = JSON.parse(fs.readFileSync(path.join(PUBLIC, "manifest.json"), "utf8"));
   if(!("id" in mf)){
     fail("manifest.json has no id — without it the browser derives one from " +
@@ -3945,10 +3968,11 @@ var ROUTE_VOCAB = [
     fail("manifest id is \"" + mf.id + "\", not \"" + WANT + "\" — it is an " +
          "identity key, not a path. Changing it makes every browser treat this " +
          "as a different app: existing installs are orphaned on the build they " +
-         "last cached. It stays at the original value forever, including after " +
-         "the domain move. See NOTES.md");
+         "last cached. It was set deliberately in 2.7.0 and does not move " +
+         "again \u2014 the one-time cost was paid while the install base was " +
+         "near zero, and it will not be near zero twice. See NOTES.md");
   }
-  note("manifest id " + mf.id + ", unchanged since first install");
+  note("manifest id " + mf.id + ", fixed in 2.7.0 and pinned since");
 })();
 
 /* ---------- 84. The one slug whose year is deliberately wrong --------- */
@@ -4500,8 +4524,27 @@ var ROUTE_VOCAB = [
     fail("the pouches do not stagger \u2014 format first, then the types, is the " +
          "owner's 'then' made visible");
   }
-  if(!/prefers-reduced-motion: reduce\)\{\.includes\.opening \.scope,\.includes\.closing \.scope\{animation:none/.test(HTML)){
-    fail("the pouch animation ignores prefers-reduced-motion");
+  /* 2.7.0 widened this from a literal selector pair to a membership test. The
+     belt now collapses its own box on close as well as animating the pouches,
+     and reduced motion has to cut BOTH \u2014 an honest instant close, not a
+     shorter theatrical one. Pinning the exact selector string meant the guard
+     failed on the fix rather than on a regression, which is a guard testing its
+     own punctuation. */
+  var rmBlock = (HTML.match(/@media \(prefers-reduced-motion: reduce\)\{([^}]*\{[^}]*\})*[^}]*\}/g) || [])
+    .filter(function(b2){ return /\.includes/.test(b2); })[0] || "";
+  [[".includes.opening .scope", /\.includes\.opening \.scope/],
+   [".includes.closing .scope",  /\.includes\.closing \.scope/],
+   [".includes.closing",         /\.includes\.closing[,{]/]]
+    .forEach(function(pair){
+      var sel = pair[0];
+      if(!pair[1].test(rmBlock)){
+        fail("the reduced-motion block does not cut " + sel +
+             " \u2014 reduced motion closes the belt instantly, box and all, or it " +
+             "is not reduced motion");
+      }
+    });
+  if(!/animation:none/.test(rmBlock)){
+    fail("the reduced-motion block names the belt but does not set animation:none");
   }
   /* 2.2.1 soak fix: the entry animation plays once, on the closed\u2192open
      transition \u2014 not on every render that happens to find the belt open.
@@ -4568,8 +4611,33 @@ var ROUTE_VOCAB = [
     fail("the close ignores prefers-reduced-motion \u2014 reduced motion closes " +
          "instantly, no timeout");
   }
-  if(!/\.includes\.opening \.scope,\.includes\.closing \.scope\{animation:none/.test(HTML)){
-    fail("the reduced-motion block does not cover the closing animation");
+  /* The box collapse is what actually removes the snap, so it is guarded beside
+     the staged close rather than left to the CSS section alone. */
+  if(!/@keyframes beltclose\{to\{max-height:0/.test(HTML) ||
+     !/\.includes\.closing\{overflow:hidden;max-height:\d+px;animation:beltclose/.test(HTML)){
+    fail("the belt no longer collapses its own box on close \u2014 the pouches " +
+         "animate on transform and opacity, which do not affect layout, so " +
+         "without this the page keeps the belt's full height until the " +
+         "re-render and then jumps in one frame. That was soak finding 1");
+  }
+
+  /* 2.7.0. render() ended by clamping the restored scroll position against
+     documentElement.scrollHeight. Reading scrollHeight immediately after
+     writing #view.innerHTML forces a synchronous layout of the whole document
+     \u2014 measured at ~216ms on a 200-entry list, on every single render, to
+     compute a number the platform already applies: window.scrollTo clamps to
+     the scrollable range on its own. The clamp was defensive code paying full
+     price for nothing.
+
+     Guarded because it is the kind of line that gets added back by anyone
+     reasoning about scroll restoration from first principles, and it is
+     invisible in the harness \u2014 jsdom has no layout, so nothing here would
+     ever have caught it. */
+  if(/scrollHeight/.test(HTML)){
+    fail("index.html reads scrollHeight \u2014 reading layout straight after " +
+         "writing innerHTML forces a synchronous reflow of the document. " +
+         "window.scrollTo already clamps to the scrollable range; the read " +
+         "buys nothing and cost ~216ms per render before 2.7.0");
   }
   /* 2.2.0 soak note: the buckle crops on narrow phones. Below 375px the two
      lines shrink and the padding tightens so "Live action / Movies+Series"
@@ -5099,6 +5167,238 @@ var ROUTE_VOCAB = [
          "rating or an ordering has moved and the export did not. " +
          "Fix with: npm run bless");
   }
+})();
+
+/* The favicon is a file, not a data: URI. 2.7.0: the SVG icon shipped inline as
+   a data: URI from the start \u2014 one fewer request, and it renders perfectly in
+   every browser, which is exactly why nothing caught it. Google's favicon
+   pipeline CRAWLS the icon: its documentation requires a stable favicon URL,
+   and SVG is supported only as a served file with a content type. A data: URI
+   has no URL to fetch, no MIME type on the wire, and nothing to re-crawl, so
+   the site had no favicon in search results months after launch.
+
+   Inlining it again would be a defensible optimisation on every ground except
+   the one that matters, so the rule is written down rather than remembered. */
+(function(){
+  var links = HTML.match(/<link[^>]*rel="(?:shortcut )?icon"[^>]*>/g) || [];
+  if(!links.length){ fail("no <link rel=\"icon\"> in the head"); return; }
+  links.forEach(function(l){
+    if(/href="data:/.test(l)){
+      fail("a favicon ships as a data: URI \u2014 browsers render it and search " +
+           "engines cannot crawl it, because there is no URL to fetch and no " +
+           "content type on the wire. Serve it as a file");
+    }
+  });
+  if(!fs.existsSync(path.join(PUBLIC, "icon.svg"))){
+    fail("docs/icon.svg is missing \u2014 the head points at it");
+  }
+  note("favicon: " + links.length + " icon link(s), all served as files");
+})();
+
+/* ---------- 106. The fonts carry every letter the catalogue uses ------ */
+/* 2.7.0 subset five of the six faces from 118,860 bytes to 62,996 — 39% of the
+   first-visit payload down to 26%. The weight was never dead files: all six are
+   referenced by @font-face and all six are precached. The weight was glyph
+   coverage nobody was ever going to use.
+
+   THE FAILURE MODE A SUBSET INTRODUCES IS SILENT. Cut a glyph the catalogue
+   later needs and the browser draws a blank box, on one entry, on one row,
+   probably on somebody else's device. Nothing throws. That is why the subset is
+   Latin-1 plus punctuation rather than the 99 characters the catalogue happened
+   to contain on the day — the tighter cut saved another 21 KB and would have
+   put an accented title one data patch away from tofu, on a catalogue whose
+   whole design is that it takes data patches.
+
+   This guard closes the gap the range leaves. Every character in the served
+   page and in the plain-text export must be inside the blessed range, so a new
+   title with an unusual letter fails the build on the day it is added rather
+   than turning up in a screenshot three weeks later. It keeps a trigger patch
+   honest too: one data row stays one data row, unless it needs a glyph the
+   fonts do not have, and then the build says so.
+
+   It does not regenerate the fonts. Doing that would put fonttools and a Python
+   toolchain in CI to re-derive bytes that are already committed. Instead
+   qa/subset-fonts.py blesses a manifest carrying each file's size and SHA-256,
+   and this guard holds the files against it — so the fonts and the record of
+   what they contain can only move together, which is the same bargain the seed,
+   the ItemList and orders.txt already make.
+
+   Limelight is in the manifest but marked unsubset. Its OFL header reads "with
+   Reserved Font Name Limelight"; Anton's and IBM Plex's do not. Under OFL 1.1 a
+   Modified Version may not carry the reserved name as presented to users, so
+   subsetting it means renaming the family in the name table, in @font-face and
+   in --deco — real CSS churn and a licensing judgement, for 10.3 KB. Left
+   whole on purpose, and the manifest says so rather than leaving it looking
+   like an oversight. */
+
+(function(){
+  var MAN = path.join(__dirname, "font-subset.json");
+  if(!fs.existsSync(MAN)){
+    fail("qa/font-subset.json is missing — the fonts ship subset and nothing " +
+         "records what they still contain. Fix with: python3 qa/subset-fonts.py");
+    return;
+  }
+  var man = JSON.parse(fs.readFileSync(MAN, "utf8"));
+
+  /* The range, expanded once. */
+  var ok = {};
+  (man.ranges || []).forEach(function(r){
+    r = String(r).replace(/U\+/g, "");
+    var a, b;
+    if(r.indexOf("-") >= 0){ a = parseInt(r.split("-")[0], 16); b = parseInt(r.split("-")[1], 16); }
+    else { a = b = parseInt(r, 16); }
+    for(var i = a; i <= b; i++) ok[i] = 1;
+  });
+  if(!Object.keys(ok).length){ fail("qa/font-subset.json declares no ranges"); return; }
+
+  /* Every character the reader can be shown, from both places it comes from. */
+  var text = HTML;
+  var ordersPath = path.join(PUBLIC, "orders.txt");
+  if(fs.existsSync(ordersPath)) text += fs.readFileSync(ordersPath, "utf8");
+
+  var outside = {}, n = 0;
+  for(var i = 0; i < text.length; i++){
+    var cp = text.codePointAt(i);
+    if(cp > 0xFFFF) i++;
+    if(cp < 0x20) continue;
+    if(!ok[cp] && !outside[cp]){ outside[cp] = 1; n++; }
+  }
+  if(n){
+    var list = Object.keys(outside).slice(0, 8).map(function(cp){
+      return "U+" + ("0000" + Number(cp).toString(16).toUpperCase()).slice(-4) +
+             " (" + String.fromCodePoint(Number(cp)) + ")"; }).join(", ");
+    fail(n + " character(s) in the page or the export fall outside the font " +
+         "subset: " + list + (n > 8 ? ", …" : "") + " — they would render " +
+         "as blank boxes. Widen the range in qa/subset-fonts.py and re-run it, " +
+         "or use a character the fonts carry");
+  }
+
+  /* The files on disk against the record of what was subset. */
+  var dir = path.join(PUBLIC, "fonts");
+  var onDisk = fs.readdirSync(dir).filter(function(f){ return /\.woff2$/.test(f); }).sort();
+  var named = Object.keys(man.files || {}).sort();
+  onDisk.forEach(function(f){
+    if(named.indexOf(f) < 0){
+      fail("docs/fonts/" + f + " ships but qa/font-subset.json does not name it " +
+           "— a face nobody blessed is a face nobody checked");
+    }
+  });
+  named.forEach(function(f){
+    if(onDisk.indexOf(f) < 0){ fail("qa/font-subset.json names " + f + ", which is not in docs/fonts"); return; }
+    var buf = fs.readFileSync(path.join(dir, f));
+    var rec = man.files[f];
+    if(buf.length !== rec.bytes){
+      fail(f + " is " + buf.length + " bytes; qa/font-subset.json says " + rec.bytes +
+           " — the font moved and the record of what it contains did not. " +
+           "Fix with: python3 qa/subset-fonts.py");
+      return;
+    }
+    var got = require("crypto").createHash("sha256").update(buf).digest("hex");
+    if(got !== rec.sha256){
+      fail(f + " does not match its blessed hash — same size, different bytes. " +
+           "Fix with: python3 qa/subset-fonts.py");
+    }
+  });
+
+  var total = onDisk.reduce(function(a, f){ return a + fs.statSync(path.join(dir, f)).size; }, 0);
+  var sub = named.filter(function(f){ return man.files[f].subset; }).length;
+  note("fonts: " + onDisk.length + " faces, " + sub + " subset, " + total +
+       " bytes, " + Object.keys(ok).length + " codepoints in range");
+})();
+
+/* ---------- 107. Every section can fail, and every section runs -------- */
+/* Stage C, carried since 2.2.0 and finally built in 2.7.0. Guard 66 already
+   holds the numbering and the INDEX. This holds the two properties underneath
+   it, both of which fail SILENTLY when they break, which is the worst way for
+   a guarantee to break: a section that cannot fail protects nothing, and a
+   section that never runs passes for the same reason an empty file does.
+
+   IT FOUND SOMETHING. Section 24 is not at file scope — it sits inside section
+   23's else branch, because it needs the path tables section 23 extracts. That
+   is a section whose checks can be skipped entirely, which is exactly the shape
+   this guard exists to catch.
+
+   It is kept, on one condition, and the condition is the interesting part. The
+   only way to skip 24 is for the extraction to fail, and that same branch calls
+   fail() — so a skipped 24 can never coexist with a green build. That is what
+   makes the nesting acceptable rather than merely convenient, and it is
+   asserted below rather than assumed. Lifting 24 out would leave it reading
+   variables the failing branch never assigned, turning a clean red build into a
+   stack trace: worse, on the release that is supposed to be the calm one.
+
+   So: one nested section, named, with the reason and the safety condition
+   written down. Any second one fails the build until somebody makes the same
+   argument for it. */
+
+(function(){
+  var SRC = fs.readFileSync(__filename, "utf8");
+  var lines = SRC.split("\n");
+
+  /* Nested on purpose: name => the enclosing section it depends on. */
+  var NESTED = {"24": "23"};
+
+  var marks = [];
+  lines.forEach(function(l, i){
+    var m = l.match(/^(\s*)\/\* -{3,} (\d+)\./);
+    if(m) marks.push({n: m[2], indent: m[1].length, line: i});
+  });
+  if(marks.length < 100){
+    fail("section census read only " + marks.length + " sections out of guards.js " +
+         "— the marker format changed and this guard is now measuring nothing");
+    return;
+  }
+
+  var nested = [];
+  marks.forEach(function(mk, i){
+    var end = (i + 1 < marks.length) ? marks[i + 1].line : lines.length;
+    var body = lines.slice(mk.line, end);
+
+    if(body.join("\n").indexOf("fail(") < 0){
+      fail("guard section " + mk.n + " contains no fail() — a section that " +
+           "cannot fail is documentation, not a guard");
+    }
+
+    var topLevel = body.some(function(l){
+      return l && !/^\s/.test(l) && !/^(\/\*|\*|\/\/|\*\/)/.test(l);
+    });
+
+    if(mk.indent > 0 || !topLevel){
+      nested.push(mk.n);
+      if(!NESTED[mk.n]){
+        fail("guard section " + mk.n + " is not at file scope, so it only runs " +
+             "if whatever encloses it reaches it — a section that can be " +
+             "skipped fails by not running, which is a pass that is not a pass. " +
+             "Either lift it out, or name it in this guard with the reason and " +
+             "the condition that makes skipping it safe");
+      }
+    }
+  });
+
+  Object.keys(NESTED).forEach(function(n){
+    if(nested.indexOf(n) < 0){
+      fail("section " + n + " is recorded here as nested inside section " +
+           NESTED[n] + ", and it is not — the exception outlived the thing " +
+           "it excused. Remove it from NESTED");
+    }
+  });
+
+  /* The safety condition, asserted rather than trusted: the branch that skips
+     the nested section must itself fail, or the skip is silent. */
+  Object.keys(NESTED).forEach(function(n){
+    var host = NESTED[n];
+    var a = SRC.indexOf("/* ---------- " + host + ".");
+    var b = SRC.search(new RegExp("^\\s*/\\* -{3,} " + n + "\\.", "m"));
+    if(a < 0 || b < 0 || b < a){ fail("cannot locate sections " + host + " and " + n); return; }
+    if(SRC.slice(a, b).indexOf("fail(") < 0){
+      fail("section " + host + " encloses section " + n + " but never calls " +
+           "fail() before it — so the path that skips " + n + " is silent, " +
+           "and " + n + " could be missing from a green build");
+    }
+  });
+
+  note("section census: " + marks.length + " sections, all can fail, " +
+       (nested.length ? nested.length + " nested by recorded exception (" + nested.join(", ") + ")"
+                      : "all at file scope"));
 })();
 
 /* ---------- report ---------- */

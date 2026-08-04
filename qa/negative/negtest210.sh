@@ -36,9 +36,9 @@ run_case "the close stops asking about reduced motion" \
 s=s.replace(a,'false;',1);${W}"
 
 run_case "the reduced-motion block forgets the exit" \
-  "reduced-motion block does not cover the closing animation" \
-  "${P}a='.includes.opening .scope,.includes.closing .scope{animation:none;}';assert a in s
-s=s.replace(a,'.includes .scope{animation:none;}',1);${W}"
+  "does not cut .includes.closing .scope" \
+  "${P}a='.includes.opening .scope,.includes.closing .scope,.includes.closing{animation:none;}';assert a in s
+s=s.replace(a,'.includes.opening .scope,.includes.closing{animation:none;}',1);${W}"
 
 echo "--- 67: the freshness date tells the truth"
 run_case "the updated date drifts from the changelog" \

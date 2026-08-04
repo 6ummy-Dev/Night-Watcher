@@ -1,0 +1,45 @@
+{
+  "files": {
+    "anton-latin-400-normal.woff2": {
+      "bytes": 8156,
+      "sha256": "077f4b9cee155a601f56ab61d472f6c838172606b62e4ca20992190a7015f9ce",
+      "subset": true
+    },
+    "ibm-plex-mono-latin-400-normal.woff2": {
+      "bytes": 7696,
+      "sha256": "bf4c3cffb6f4fd407234ca548bd9a34737ae3d7af61f33605e7cf0891c4d1fd5",
+      "subset": true
+    },
+    "ibm-plex-mono-latin-600-normal.woff2": {
+      "bytes": 7724,
+      "sha256": "e2d298fb1d4ac78d5d968a09748331b25613c20dbbaf386b5f637dd564ac21dc",
+      "subset": true
+    },
+    "ibm-plex-sans-latin-400-normal.woff2": {
+      "bytes": 7980,
+      "sha256": "8a02db426665b634c454a597b05d299a8817a72609ae126196d1bed01fc0bb86",
+      "subset": true
+    },
+    "ibm-plex-sans-latin-600-normal.woff2": {
+      "bytes": 8360,
+      "sha256": "3731c0fd0bfd9a6ae27e1470efa2574ef15c0698a747cce8087836705b702020",
+      "subset": true
+    },
+    "limelight-latin-400-normal.woff2": {
+      "bytes": 23080,
+      "sha256": "ba3e86ecc0e1ce145784f4eb7fb593af683e88568336ea2ae9c26a486ffe0dfc",
+      "subset": false
+    }
+  },
+  "note": "Blessed by qa/subset-fonts.py. Guard 106 holds it against the files on disk and against the catalogue's own characters. Fonts and this record can only move together.",
+  "ranges": [
+    "U+0020-007E",
+    "U+00A0-00FF",
+    "U+2010-2015",
+    "U+2018-201F",
+    "U+2026",
+    "U+2032-2033",
+    "U+20AC",
+    "U+2122"
+  ]
+}
