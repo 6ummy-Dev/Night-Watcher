@@ -20,6 +20,53 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [2.7.4] — 2026-08-04
+
+The source link finds its seat, and the page checks that it parses.
+
+### Changed
+
+- **The source link moved to Progress's build line, and it is legible now.**
+  2.7.3 put it inside Home's colophon by wrapping the words *free software under
+  the AGPL* — and shipped it with **no styling at all**, so it rendered in the
+  browser's default blue inside a line of dim uppercase mono. Reported in the
+  soak within the hour, which is the correct speed for a defect that loud.
+
+  Two fixes, and the second is the better one. It now sits beside `BUILD` and
+  `BUILT` at the bottom of Progress, reading *read the source* — the app's own
+  meta line, where a reader who wants the version is the same reader who wants
+  the code. Home's colophon says *free software under the AGPL* in plain words
+  again, which is a statement rather than a control.
+
+  **It inherits its line's colour and carries a thin underline.** Colour alone
+  is not an affordance for everyone, so the underline does the work; hover
+  brightens it. Both the seat and the underline are guarded — the first because
+  it was chosen, the second because shipping it unstyled is exactly what
+  happened once.
+
+### Added
+
+- **A guard that the page's own script parses.** This release wrote
+  `...+BUILT+ \u00b7 <a href=...` — one dropped quote in a concatenated string —
+  which is a syntax error that would have stopped the app running **at all, on
+  every browser**.
+
+  The harness did catch it. `smoke.js` builds the page in jsdom, so it died —
+  but it died throwing a raw stack trace with a line number, which is not the
+  same as being told the file will not parse. On a 180 KB single file that is
+  the difference between a minute and an hour.
+
+  The whole script block is now compiled with `new vm.Script()` before anything
+  else forms an opinion, and the failure says what happened. It guards the one
+  class of mistake this project is most exposed to by construction: **every
+  release edits string-concatenated markup by hand, and a dropped quote looks
+  like nothing in a diff.**
+
+### Why PATCH
+
+One link moved, one CSS rule, one guard. No catalogue change, no behaviour
+change, nothing touched in saved progress.
+
 ## [2.7.3] — 2026-08-04
 
 One button, a header that balances, and a link to the source.

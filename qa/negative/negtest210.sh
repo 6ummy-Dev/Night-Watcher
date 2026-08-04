@@ -48,8 +48,8 @@ s=s.replace(a,'var BUILT = \"2026-08-01\";',1);${W}"
 
 run_case "the updated line is dropped from Progress" \
   "no longer rendered beside the Build line" \
-  "${P}a=\"updated '+BUILT+'</p>\";assert a in s
-s=s.replace(a,'</p>',1);${W}"
+  "${P}a=\"updated '+BUILT+'\";assert a in s
+s=s.replace(a,'',1);${W}"
 
 echo "--- 100: seed and schema answer identically"
 run_case "the FAQPage vanishes" \

@@ -55,15 +55,32 @@ run_case "the wordmark is pushed past what a 375px phone fits" \
   "it stops fitting the" \
   "${P}s=s.replace('text-transform:uppercase;font-size:24px;line-height:.95;','text-transform:uppercase;font-size:30px;line-height:.95;',1);${W}"
 
-echo "--- the footer names the source"
+echo "--- the source stays linked, and stays legible"
 
 run_case "the link is unwrapped back to plain words" \
-  "the footer no longer links the source" \
-  "${P}import re;s=re.sub(r'<a href=\"https://github.com/6ummy-Dev/Night-Watcher\"[^>]*>(free software under the AGPL)</a>',r'\\\\1',s);${W}"
+  "nothing links the source" \
+  "${P}import re;s=re.sub(r'<a href=\"https://github.com/6ummy-Dev/Night-Watcher\"[^>]*>read the source</a>','read the source',s);${W}"
 
 run_case "the link points at something else" \
-  "the footer no longer links the source" \
+  "nothing links the source" \
   "${P}s=s.replace('href=\"https://github.com/6ummy-Dev/Night-Watcher\" target','href=\"https://www.gnu.org/licenses/agpl-3.0.html\" target',1);${W}"
+
+run_case "the link leaves the build line for the Home colophon" \
+  "not on Progress" \
+  "${P}import re;m=re.search(r' .{0,10}<a href=\"https://github.com/6ummy-Dev/Night-Watcher\"[^>]*>read the source</a>',s)
+assert m;s=s.replace(m.group(0),'',1)
+s=s.replace('you watch ','you watch <a href=\"https://github.com/6ummy-Dev/Night-Watcher\" target=\"_blank\" rel=\"noopener noreferrer\">read the source</a> ',1);${W}"
+
+run_case "the underline goes and only colour is left to mark it" \
+  "the source link is not underlined" \
+  "${P}s=s.replace('.homefoot a,.note a{color:inherit;text-decoration:underline;','.homefoot a,.note a{color:var(--steel);',1);${W}"
+
+
+echo "--- the page's own script parses"
+
+run_case "a quote is dropped from a concatenated string" \
+  "does not parse" \
+  "${P}a=\"+BUILT+'\";assert a in s;s=s.replace(a,'+BUILT+',1);${W}"
 
 rm -rf "$NEG"
 finish "2.7.3 negative tests"

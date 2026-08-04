@@ -1876,3 +1876,38 @@ There is a general rule here worth taking to the next removal. When a control
 comes out, three things have to go with it: the handler, the guard that asserted
 the handler, and any fixture anchored to either. Miss the middle one and the
 suite keeps proving something true about code that no longer runs.
+
+## A dropped quote, and what the harness did about it
+
+2.7.4 edited a concatenated string and lost a single quote:
+
+```js
+'... updated '+BUILT+ · <a href="...">read the source</a></p>';
+```
+
+That is a syntax error. Not a rendering bug, not a degraded path — **the script
+would not have parsed, so the app would not have run at all, on every browser.**
+The whole thing: no catalogue, no progress, a blank page.
+
+**The harness caught it.** `smoke.js` builds the page in jsdom, so it died on
+the spot. What it did not do is say so. It threw a raw stack trace with a line
+number into a 180 KB single file, which is the difference between a minute and
+an hour at the wrong end of an evening.
+
+`guards.js` did not catch it, and could not have. It extracts *named functions*
+with `vm.Script` and evaluates those; a broken string between two functions is
+outside everything it looks at. Every check it ran passed.
+
+**Section 47's neighbour now compiles the whole script block** with
+`new vm.Script()` — compiling without executing, which is exactly the question
+being asked — and fails with the parser's own message. It runs before anything
+else forms an opinion, because every later guard is reasoning about a file that
+might not be a program.
+
+**Why this class of mistake deserves its own guard here specifically:** the app
+is one file that builds its markup by string concatenation, and every release
+edits those strings by hand. A dropped quote looks like nothing in a diff — the
+line is long, the change is one character, and the eye reads the sentence rather
+than the syntax. This is the project's most-exposed failure mode by
+construction, and until 2.7.4 the only thing standing under it was a stack
+trace.

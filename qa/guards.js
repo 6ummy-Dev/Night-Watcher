@@ -1841,6 +1841,39 @@ if(!rmSize){
   }
 }
 
+/* The page's own script parses. 2.7.4: an edit to a string concatenation
+   dropped a single quote, leaving `...+BUILT+ \u00b7 <a href=...` \u2014 a syntax
+   error that would have stopped the app from running at all, on every browser.
+
+   The harness did catch it: smoke.js builds the page in jsdom, so it died. But
+   it died by throwing a raw stack trace with a line number, which is not the
+   same as being told the file will not parse. On a 180 KB single file that is
+   the difference between a minute and an hour.
+
+   So the whole script block is parsed here, before anything else in this run
+   has an opinion about it, and the failure says what happened. new vm.Script()
+   compiles without executing, which is exactly the question being asked.
+
+   It is cheap and it guards the one class of mistake this project is most
+   exposed to: every release edits string-concatenated markup by hand. */
+(function(){
+  var blocks = HTML.match(/<script>([\s\S]*?)<\/script>/g) || [];
+  var app = blocks.map(function(b){ return b.replace(/^<script>|<\/script>$/g, ""); })
+                  .sort(function(a, b){ return b.length - a.length; })[0];
+  if(!app || app.length < 1000){
+    fail("cannot find the app's script block \u2014 this guard is measuring nothing");
+    return;
+  }
+  try {
+    new vm.Script(app, {filename: "docs/index.html <script>"});
+  } catch(e){
+    fail("the app's script does not parse: " + e.message + " \u2014 the page would " +
+         "not run at all. Every release edits string-concatenated markup by " +
+         "hand, and a dropped quote looks like nothing in a diff");
+  }
+  note("script block parses: " + app.length + " bytes");
+})();
+
 /* ---------- 47. The wordmark returns to the top ----------------------- */
 /* 2.7.3, the header's optical balance. The row is three flex columns with both
    flankers boxed at 46px, so the wordmark was always mathematically centred and
@@ -4843,13 +4876,35 @@ var ROUTE_VOCAB = [
            " \u2014 its numbers must be the app's numbers, one source");
     }
   });
-  /* 2.7.3: the footer names the source. Five audits recommended a visible link
-     to the repository \u2014 the JSON-LD claims it under sameAs, so machines were
-     told and readers were not. Minimal by the owner's word: existing words
-     became the link rather than a new line arriving. */
-  if(!/<a href="https:\/\/github\.com\/6ummy-Dev\/Night-Watcher"[^>]*>free software under the AGPL<\/a>/.test(HTML)){
-    fail("the footer no longer links the source \u2014 the schema claims the " +
-         "repository under sameAs and a reader has no way to click through");
+  /* The source is one tap away. Five audits recommended a visible link to the
+     repository \u2014 the JSON-LD claims it under sameAs, so machines were told and
+     readers were not.
+
+     It moved in 2.7.4, on the owner's soak note, and the seat is the better
+     one. It first landed inside Home's colophon by wrapping the words "free
+     software under the AGPL", which read as a footnote to a disclosure. It now
+     sits on Progress's build line, beside BUILD and BUILT \u2014 the app's own meta
+     line, where a reader who wants the version is the same reader who wants the
+     code. Home's colophon says "free software under the AGPL" in plain words
+     again, which is a statement rather than a control.
+
+     The link is deliberately NOT styled by colour alone: it inherits its line's
+     colour and carries a thin underline, so the affordance survives for anyone
+     who cannot separate it by hue. 2.7.3 shipped it with no styling at all and
+     the browser default blue landed in a dim mono line \u2014 reported in the soak
+     within the hour. */
+  if(!/<a href="https:\/\/github\.com\/6ummy-Dev\/Night-Watcher"[^>]*>read the source<\/a>/.test(HTML)){
+    fail("nothing links the source \u2014 the schema claims the repository under " +
+         "sameAs and a reader has no way to click through");
+  }
+  if(!/updated '\+BUILT\+'[^<]*<a href="https:\/\/github\.com\/6ummy-Dev\/Night-Watcher"/.test(HTML)){
+    fail("the source link is not on Progress's build line \u2014 that is its seat: " +
+         "a reader who wants the version is the reader who wants the code");
+  }
+  if(!/\.homefoot a,\.note a\{[^}]*text-decoration:underline/.test(HTML)){
+    fail("the source link is not underlined \u2014 it inherits its line's colour on " +
+         "purpose, so the underline is the only thing marking it as a control. " +
+         "2.7.3 shipped it unstyled and it came back as browser-default blue");
   }
   if(!/Drawn in your browser, nothing uploaded\./.test(HTML)){
     fail("the local-only line is gone \u2014 the card's privacy promise is stated " +
