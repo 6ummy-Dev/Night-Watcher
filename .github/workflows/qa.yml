@@ -104,14 +104,38 @@ jobs:
       # The union check. The shard lists above are prose, and prose drifts —
       # a suite added to qa/negative/ but not to a pick pattern would silently
       # never run in CI. Every shard asserts the union covers every suite on
-      # disk, so the drift fails the build the same day it happens. Keep the
-      # pattern here the concatenation of the four above.
+      # disk, so the drift fails the build the same day it happens.
+      #
+      # It used to carry a FIFTH copy of the shard lists, hand-maintained, with
+      # a comment asking whoever edited the matrix to keep the two in step.
+      # Nobody did: negtest252 was added to shard 2 in the 2.5.2 round and
+      # negtest260 to shard 3 in 2.6.0, and neither reached the copy. Both
+      # uploads went red on this step — and because it runs BEFORE run-all.sh,
+      # the negative suites did not run in CI at all for two releases. The
+      # check written to catch pick-pattern drift drifted, and it failed loudly
+      # about the wrong thing while quietly skipping the work.
+      #
+      # It now reads the patterns out of this file instead of restating them,
+      # so there is one source and no copy to forget. It also asserts it read
+      # four of them, because a check that silently reads zero patterns would
+      # call every suite uncovered, and one that reads three would wave a whole
+      # missing shard through.
       - name: every suite lands in some shard
         run: |
+          PATTERNS=$(sed -n "s/^ *pick: '\(.*\)'$/\1/p" .github/workflows/qa.yml)
+          COUNT=$(printf '%s\n' "$PATTERNS" | grep -c .)
+          if [ "$COUNT" -ne 4 ]; then
+            echo "read $COUNT shard patterns out of qa.yml, expected 4 —"
+            echo "the matrix changed shape, or the pick lines stopped being readable"
+            exit 1
+          fi
           MISSED=0
           for f in qa/negative/negtest*.sh; do
-            echo "$f" | grep -Eq 'negtest(175|164|190|195|200|250|251|183|171|166|161|162|165|170|172|187|163|210|185|182|186|180|176|177|181|220)\.sh|negtest\.sh' \
-              || { echo "no shard runs $f"; MISSED=1; }
+            HIT=0
+            while IFS= read -r p; do
+              [ -n "$p" ] && echo "$f" | grep -Eq "$p" && HIT=1
+            done <<< "$PATTERNS"
+            [ "$HIT" -eq 1 ] || { echo "no shard runs $f"; MISSED=1; }
           done
           exit $MISSED
 
