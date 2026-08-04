@@ -30,7 +30,7 @@ var fails = [];
    run is still the bar, and a fixture naming a phase that does not exist is
    a broken fixture, not a shorter one — the run refuses. */
 var ONLY = process.env.SMOKE_ONLY || "";
-var PHASES = ["main", "css", "origin", "blocked"];
+var PHASES = ["main", "css", "blocked"];
 if(ONLY && PHASES.indexOf(ONLY) < 0){
   console.log("unknown SMOKE_ONLY phase \"" + ONLY + "\" — one of: " +
               PHASES.join(", ") + ", or unset for the full run");
@@ -1427,15 +1427,6 @@ win.addEventListener("load", function(){
       ["home", "next", "watch", "stats"].forEach(function(t){ S.tab = t; win.render(); sweep(); });
       doc.documentElement.setAttribute("data-theme", "darker"); sweep();
       doc.documentElement.setAttribute("data-theme", "dark");
-      /* The move offer never renders here on purpose \u2014 this document is the
-         canonical origin. Forcing the condition is the only way the sweep can
-         see its rules; whether it actually appears on the far side is tested
-         against a real old-origin document below. */
-      var realOff = win.offCanonical;
-      win.offCanonical = function(){ return true; };
-      S.tab = "home"; win.render(); sweep();
-      win.offCanonical = realOff;
-
       var dead = sels.filter(function(sel){ return !matched[sel]; });
       check("every CSS rule matches something in some state",
             dead.length === 0, dead.join("  |  "));
@@ -1443,48 +1434,7 @@ win.addEventListener("load", function(){
       S.tab = "home"; S.path = S.mode = "continuity"; win.render();
     })();
 
-    if(!wants("origin")){ afterOrigin(); return; }
-
-    /* --- the move offer, from the origin being left (1.8.0) --- */
-    /* Progress is per-origin, so only a document actually on the old origin can
-       show what a returning reader there would see. */
-    var oldOrigin = new jsdom.JSDOM(html, {runScripts:"dangerously",
-      url:"https://6ummy-dev.github.io/Night-Watcher/",
-      pretendToBeVisual:true, beforeParse:function(w){
-        w.scrollTo = function(){};
-        w.localStorage.setItem("batwatch-v3", JSON.stringify({
-          watched:{"batman-1989":1, "batman-returns-1992":1}, skipped:{}, rated:{},
-          path:"life", mode:"life", theme:"dark", scope:"movies", format:"all",
-          log:[], groupOpen:{}}));
-      }});
-    oldOrigin.window.addEventListener("load", function(){
-      setTimeout(function(){
-        var w = oldOrigin.window, d2 = w.document;
-        var banner = d2.querySelector("#view .moved");
-        check("the old origin offers the way across", !!banner);
-        if(banner){
-          var a = banner.querySelector("a.movego");
-          check("the offer carries a link", !!a, banner.textContent.slice(0, 60));
-          check("it points at the canonical origin, not this one",
-                !!a && a.getAttribute("href").indexOf(w.SITE) === 0,
-                a ? a.getAttribute("href").slice(0, 40) : "-");
-          check("and the link carries the progress stored here",
-                !!a && /#nw=NW3W/.test(a.getAttribute("href")),
-                a ? a.getAttribute("href").slice(-40) : "-");
-          check("the offer names the new address in words too",
-                /nightwatcher\.life/.test(banner.textContent));
-          check("it is dismissible", !!banner.querySelector('[data-act="movelater"]'));
-          banner.querySelector('[data-act="movelater"]').click();
-          check("dismissing it clears it", !d2.querySelector("#view .moved"));
-        }
-        /* And it must reach someone who lands anywhere, not only on Home. */
-        w.moveHid = false; w.S.tab = "watch"; w.render();
-        check("it shows on The Path as well as Home", !!d2.querySelector("#view .moved"));
-        check("the canonical origin shows no such offer", !doc.querySelector("#view .moved"));
-
-        afterOrigin();
-      }, 200);
-    });
+    afterOrigin();
     }
 
     function afterOrigin(){

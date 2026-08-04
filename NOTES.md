@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 103 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 104 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -1107,6 +1107,15 @@ does.
 
 ### Two origins, on purpose, forever
 
+**Amended 2.5.1 — the offer is retired; the arrangement is not.** Stage 0 of
+2.5.1 measured what this section assumed: 100 visits on the apex and none on
+the beta address, over the whole life of the analytics beacon. The move offer
+came out. Both addresses still serve, the canonical link on both still points
+at the apex, and `offCanonical()` still exists — it just does one job now
+instead of two: it marks the mirror `noindex`. The reasoning below is kept
+because it is why the beta address is still *serving* rather than redirecting,
+and that part has not changed.
+
 `nightwatcher.life` is canonical and served by Cloudflare Workers. The old
 GitHub Pages address serves the same tree and is never given a custom domain.
 
@@ -1123,6 +1132,12 @@ So both addresses serve, the canonical link on both points at the apex, and the
 app knows which one it is running on.
 
 ### The offer is conditioned on where it is, not on when it is
+
+**Amended 2.5.1 — retired.** There is no banner to condition. `offCanonical()`
+survives for the `noindex` injection alone, and guards section 77 inverted: it
+used to prove the offer was there and now fails if any part of it comes back.
+The reasoning below is the record of why it was built the way it was, which is
+worth more than a deleted section.
 
 `offCanonical()` compares `location.origin + location.pathname` against `SITE`.
 It could have been a date — show the banner until the end of the year — and

@@ -136,6 +136,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      95   The curated list is machine-readable
      100  The straight answers are machine-readable
      101  The site answers off the app too
+     104  The security headers the edge cannot set
 
    META
      65   The file points at where its reasoning went
@@ -586,14 +587,16 @@ if(PUBLIC !== ROOT){
    files and a licence have no business in an app cache, and sw.js is cached by
    the machinery that runs it. share.png joined the list in 1.9.0 — it exists
    for link scrapers, which never run the service worker, and section 91 fails
-   the build if it ever sneaks INTO the shell. */
+   the build if it ever sneaks INTO the shell.
+   _headers joined in 2.5.1: it is read by the edge before a response is ever
+   sent, never fetched by the page, and caching it would be meaningless. */
 (function(){
   var swPath2 = path.join(PUBLIC, "sw.js");
   if(!fs.existsSync(swPath2)) return;
   var shell = (fs.readFileSync(swPath2, "utf8").match(/var SHELL\s*=\s*\[([\s\S]*?)\]/) || [0,""])[1]
                 .match(/"\.\/([^"]*)"/g) || [];
   shell = shell.map(function(q){ return q.slice(3, -1); });
-  var NOT_SHELLED = ["sw.js", "robots.txt", "sitemap.xml", "fonts/OFL.txt", "share.png", "llms.txt", "404.html"];
+  var NOT_SHELLED = ["sw.js", "robots.txt", "sitemap.xml", "fonts/OFL.txt", "share.png", "llms.txt", "404.html", "_headers"];
   var served = [];
   (function walk(dir, pre){
     fs.readdirSync(dir).forEach(function(name){
@@ -3522,76 +3525,50 @@ var ROUTE_VOCAB = [
   })();
 })();
 
-/* ---------- 77. The way back across is only visible from the far side ---------- */
-/* Progress lives in localStorage, which is per-origin, so only JavaScript
-   running on the old origin can ever read what is stored there. A GitHub Pages
-   custom domain would have turned that origin into a 301 and no JavaScript
-   would run on it again — which is why Pages keeps no custom domain and the
-   apex is served by Workers instead.
+/* ---------- 77. The move offer stays retired ---------- */
+/* Until 2.5.1 this section proved the opposite: that the old GitHub Pages
+   address offered to carry a reader's progress across to the apex, because
+   progress lives in localStorage and only JavaScript running on that origin
+   could ever read it.
 
-   The offer that carries progress across therefore renders only on the origin
-   being left, which means it is invisible on the canonical one and invisible
-   in every screenshot anybody will ever take of this app. It gets a guard for
-   exactly that reason. */
+   Stage 0 of 2.5.1 measured the traffic instead of assuming it — 100 visits
+   on the apex, none on the beta address — and the offer was retired. The
+   section is not deleted, because sections run 1..n with no gaps and the
+   history is worth keeping. It inverts, which is the established pattern for
+   retired things: it now fails if the machinery ever comes back.
+
+   offCanonical() deliberately survives. It is no longer what decides whether
+   an offer renders; it is the only thing that marks the still-serving mirror
+   noindex, which section 78 checks. */
 
 (function(){
-  if(!/function moveBanner\s*\(/.test(HTML)){
-    fail("moveBanner() is gone — nothing on the old origin offers to carry " +
-         "progress to the new one, and nothing else can reach that storage");
-    return;
-  }
-  var src = fn("moveBanner");
-
-  /* The link has to be built from SITE. restoreLink() uses location.origin on
-     purpose, so using it here would mint a link back to the origin the reader
-     is trying to leave: it would look right and do nothing. */
-  if(/restoreLink\s*\(/.test(src)){
-    fail("the move offer builds its link with restoreLink(), which uses " +
-         "location.origin — that is a link back to the origin being left");
-  }
-  if(src.indexOf("SITE") < 0){
-    fail("the move offer does not build its link from SITE, so it cannot be " +
-         "pointing at the canonical origin");
-  }
-  if(src.indexOf("exportCode()") < 0){
-    fail("the move offer carries no code — it is a link to the new address that " +
-         "leaves every tick behind");
-  }
-
-  /* Conditioned on where it is running, not on a date somebody has to remember. */
-  if(!/offCanonical\s*\(\)/.test(src)) fail("the move offer is not conditioned on the origin");
-  var cond = fn("offCanonical");
-  if(/\d{4}-\d{2}-\d{2}/.test(cond) || /Date\b/.test(cond)){
-    fail("offCanonical() decides by date — it has to decide by where the page is " +
-         "running, or it stops working for the person who returns after it expires");
-  }
-  if(cond.indexOf("SITE") < 0) fail("offCanonical() does not compare against SITE");
-
-  /* Run it. A guard that only greps cannot tell a working test from a typo. */
-  var box = {SITE: (HTML.match(/var SITE = "([^"]+)"/) || [])[1], location: {}};
-  vm.createContext(box);
-  vm.runInContext(cond, box);
-  [["https:", "https://nightwatcher.life", "/",                  false, "the canonical origin"],
-   ["https:", "https://6ummy-dev.github.io", "/Night-Watcher/",  true,  "GitHub Pages"],
-   ["https:", "https://nightwatcher.life", "",                   false, "the canonical origin with no trailing slash"],
-   ["file:",  "null", "/index.html",                             false, "a copy opened from disk"]
+  [["function moveBanner", "moveBanner()"],
+   ["moveHid",             "the moveHid dismissal flag"],
+   ["class=\"moved\"",     "the .moved banner markup"],
+   ["movelater",           "the movelater action"],
+   ["movego",              "the .movego link class"]
   ].forEach(function(t){
-    box.location.protocol = t[0]; box.location.origin = t[1]; box.location.pathname = t[2];
-    var got = box.offCanonical();
-    if(got !== t[3]){
-      fail("offCanonical() returns " + got + " on " + t[4] + " — the move offer would " +
-           (t[3] ? "never appear where it is needed" : "appear where there is nothing to move"));
+    if(HTML.indexOf(t[0]) >= 0){
+      fail("the move offer is back \u2014 " + t[1] + " returned to the app after " +
+           "2.5.1 retired it. The beta address is a dumb mirror now");
     }
   });
 
-  /* It has to be reachable from wherever the reader landed. A shared #life link
-     opens The Path, and somebody who never opens Home would never be told. */
-  var render = fn("render");
-  if(render.indexOf("moveBanner()") < 0){
-    fail("the move offer renders only inside one view — a shared link lands on " +
-         "The Path, and that reader would never see it");
+  if(/\.moved\b/.test(HTML)){
+    fail("the .moved CSS is back \u2014 the dead-CSS sweep should have caught it");
   }
-  note("the move offer is conditioned on the origin and carries a code");
+
+  /* The app must not link to the retired address in any form. */
+  if(/6ummy-dev\.github\.io/.test(HTML)){
+    fail("the retired beta address is referenced in the app again");
+  }
+
+  /* What DID survive, and why, so a future reader does not delete it as dead. */
+  if(!/function offCanonical\s*\(/.test(HTML)){
+    fail("offCanonical() is gone \u2014 nothing marks the still-serving mirror " +
+         "noindex, and it would compete with the canonical address in search");
+  }
+  note("the move offer stays retired; offCanonical() survives for the noindex only");
 })();
 
 /* ---------- 78. A crawler sees a catalogue, not an empty page ---------- */
@@ -4904,6 +4881,66 @@ var ROUTE_VOCAB = [
     fail("tickUpdate() does not replace the group element \u2014 whatever it does " +
          "instead is not the targeted repaint the gate verifies");
   }
+})();
+
+/* ---------- 104. The security headers the edge cannot set ------------- */
+/* Cloudflare Response Header Transform Rules do not apply to responses a
+   Worker generates, and every route here is Worker-served. A rule was created
+   in the dashboard on 4 Aug 2026, showed "Active", and set nothing — verified
+   against a cache HIT, a cache MISS and a 404. docs/_headers is the mechanism
+   that does work, so it is the mechanism that gets a guard.
+
+   HSTS and X-Content-Type-Options are deliberately NOT here: those are set at
+   the edge (SSL/TLS panel and Managed Transforms), which does survive a Worker
+   response, and setting them twice would mean two places to be wrong.
+
+   CSP is deliberately not here either. It lives in the <meta> tag whose hash
+   section 10 blesses against the one inline script; splitting one rule across
+   two files is how the hash goes stale without anything noticing. */
+
+(function(){
+  var hp = path.join(PUBLIC, "_headers");
+  if(!fs.existsSync(hp)){
+    fail("docs/_headers is missing \u2014 the app would serve no Referrer-Policy, " +
+         "no X-Frame-Options and no Permissions-Policy, and a Transform Rule " +
+         "cannot put them back on a Worker response");
+    return;
+  }
+  var H = fs.readFileSync(hp, "utf8");
+  /* Directives only. The file explains itself in # comments, and a comment
+     naming a header is not the file setting one. */
+  var D = H.split("\n").filter(function(l){ return !/^\s*#/.test(l); }).join("\n");
+
+  if(!/^\/\*\s*$/m.test(D)){
+    fail("docs/_headers has no /* rule \u2014 whatever it declares applies to " +
+         "nothing");
+  }
+
+  [["Referrer-Policy",   /^\s+Referrer-Policy:\s*strict-origin-when-cross-origin\s*$/m,
+    "strict-origin-when-cross-origin"],
+   ["X-Frame-Options",   /^\s+X-Frame-Options:\s*DENY\s*$/m, "DENY"],
+   ["Permissions-Policy", /^\s+Permissions-Policy:\s*.*geolocation=\(\)/m,
+    "a policy that at least denies geolocation"]
+  ].forEach(function(t){
+    if(!t[1].test(D)){
+      fail("docs/_headers no longer sets " + t[0] + " to " + t[2]);
+    }
+  });
+
+  /* The two the edge owns must not be duplicated here. Two sources for one
+     header is the drift this file exists to avoid. */
+  ["Strict-Transport-Security", "X-Content-Type-Options"].forEach(function(k){
+    if(new RegExp("^\\s+" + k + ":", "mi").test(D)){
+      fail("docs/_headers sets " + k + ", which the edge already sets \u2014 " +
+           "one header, one place");
+    }
+  });
+  if(/Content-Security-Policy/i.test(D)){
+    fail("docs/_headers sets a CSP \u2014 the CSP lives in the <meta> tag whose " +
+         "hash section 10 blesses, and two of them will disagree");
+  }
+
+  note("_headers sets Referrer-Policy, X-Frame-Options and Permissions-Policy");
 })();
 
 /* ---------- report ---------- */

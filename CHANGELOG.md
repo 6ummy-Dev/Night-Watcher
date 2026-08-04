@@ -20,6 +20,94 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [2.5.1] — 2026-08-04
+
+The beta address stops being offered a way out. Nothing a reader on
+nightwatcher.life has ever seen changes.
+
+### Removed
+
+- **The move offer, retired.** `moveBanner()`, `moveHid`, the `.moved` banner
+  with its `movego` link and `movelater` dismissal, and the `.moved`/`.movego`
+  CSS are gone from the app. It shipped in 1.8.0 to carry a returning reader's
+  progress from the GitHub Pages address to the apex, because progress lives in
+  `localStorage` and only JavaScript on that origin could ever read it. It was
+  right to build and it is right to retire: **it was measured before it was
+  removed** — over the whole life of the analytics beacon, 100 visits on the
+  apex and none on the beta address, with one referral from it to the repository
+  in fourteen days. The recorded reason it was kept alive was beta readers'
+  per-origin progress, and that reason is now a checked fact instead of an
+  assumption.
+- **The `origin` smoke phase**, and with it the old-origin document the suite
+  built to observe a banner that no longer exists. `SMOKE_ONLY` now takes
+  `main`, `css`, `blocked`. Smoke drops from 287 checks to 278.
+
+### Kept, deliberately
+
+- **`offCanonical()` survives**, doing one job instead of two. It no longer
+  decides whether an offer renders; it is the only thing that marks the
+  still-serving mirror `noindex`, and the canonical link is a hint a crawler may
+  decline. Retiring the offer was never a reason to start competing with
+  ourselves in search a month before Batman Day.
+- **Both addresses still serve.** Pages still has no custom domain, because a
+  custom domain writes a `CNAME`, turns the old address into a 301, and a
+  redirect runs no JavaScript — which would strand anyone who never moved,
+  permanently, from data still on their own disk. That has not changed and is
+  not what was retired.
+
+### Added
+
+- **`docs/_headers`** — `Referrer-Policy: strict-origin-when-cross-origin`,
+  `X-Frame-Options: DENY`, and a `Permissions-Policy` denying geolocation,
+  camera, microphone, payment and USB. The site had **no security headers at
+  all** before today beyond what a meta tag can carry.
+  **Why a file and not a dashboard rule:** a Cloudflare Response Header
+  Transform Rule was created for exactly this, deployed, showed *Active*, and
+  set nothing — verified against a cache HIT, a cache MISS and a 404. Custom
+  response-header transforms do not apply to responses a Worker generates, and
+  every route here is Worker-served. Managed Transforms are applied at a
+  different stage and do survive, which is why HSTS (`max-age=2592000`, no
+  preload) and `X-Content-Type-Options: nosniff` are set at the edge and
+  deliberately **not** duplicated in this file. The CSP stays in its meta tag,
+  where section 10 blesses its hash against the one inline script.
+- **Guard 104** holds all of that: the file exists, its `/*` rule applies to
+  everything, each of the three headers is present with its value, and the two
+  the edge owns are *absent* here — one header, one place.
+
+### Changed
+
+- **Guard 77 inverted.** It used to prove the move offer was there; it now fails
+  if `moveBanner`, `moveHid`, the `.moved` markup, `movelater`, `movego`, the
+  `.moved` CSS or a reference to the retired address ever returns, and it fails
+  if `offCanonical()` is deleted as apparently-dead code. Sections run 1..n with
+  no gaps and retired things invert rather than vanish, which is the established
+  pattern.
+- **`negtest180` retires its origin wing** and gains the inverse fixtures: the
+  machinery creeping back must fail the build. **The 2.2.0 §3.6 memo skip closes
+  on its own** — it existed because the suite pinned the `moveBanner` literal,
+  and there is no literal to pin.
+- `NOTES.md`'s "Two origins, on purpose, forever" and "The offer is conditioned
+  on where it is" carry open amendments rather than edits; `SECURITY.md`'s
+  header caveat now describes what the canonical site actually sets.
+- Weight: **178.1 KB raw / 51.4 KB gzip** against 200 / 80 — one and a half
+  kilobytes lighter than 2.5.0.
+
+### Ops — outside the tree, recorded here because the repo cannot show it
+
+- **SPF added** to `nightwatcher.life`: `v=spf1 -all`. The domain has no MX and
+  sends no mail, so `-all` is the complete statement. DMARC was already live at
+  `p=quarantine`. An RFC 7505 null MX was attempted and **rejected by
+  Cloudflare's dashboard validator** — recorded so it is not retried there.
+- **HSTS enabled**, `max-age=2592000`, `includeSubDomains` off, **preload off** —
+  the reversible configuration, on purpose.
+- **A second Cloudflare Web Analytics property was deleted.** It was set to
+  *"Enable — the JS Snippet will be automatically injected"*, meaning edge
+  injection was switched on. Had it fired, the page would have carried
+  third-party JavaScript that is **not in `docs/index.html`**, which
+  `qa/guards.js` reads — so the "no third-party code" claim could have broken
+  entirely outside the guards' field of view. Zero recorded views; nothing lost.
+- The obsolete `Add Cloudflare Workers configuration` bot PR was closed.
+
 ## [2.5.0] — 2026-08-04
 
 The release that emptied the backlog. Tagged `v2.5.0` — the first tag since

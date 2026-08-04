@@ -1,0 +1,15 @@
+# Response headers for every path served by the Worker's static assets.
+#
+# Cloudflare Response Header Transform Rules do NOT apply to responses a
+# Worker generates, which is why these live here and not in the dashboard.
+# HSTS and X-Content-Type-Options are set at the edge instead (SSL/TLS panel
+# and Managed Transforms) and are deliberately not duplicated here.
+#
+# Content-Security-Policy stays in the <meta> tag in index.html: the guards
+# bless its hash against the one inline script, and moving it to a header
+# would split one rule across two files.
+
+/*
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=(), interest-cohort=()

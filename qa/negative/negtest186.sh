@@ -44,8 +44,8 @@ s=s[:m.start()]+seed+s[m.end():];${W}"
 echo "--- smoke: the first render replaces the seed"
 run_case "boot appends instead of replacing" \
   "FAIL the seed catalogue is gone after boot" \
-  "${P}a='v.innerHTML = moveBanner()';assert a in s
-s=s.replace(a,'v.innerHTML = v.innerHTML + moveBanner()',1);${W}" \
+  "${P}a='v.innerHTML = (S.tab === \"home\"';assert a in s
+s=s.replace(a,'if(!window.__seed) window.__seed = v.innerHTML;\n  v.innerHTML = window.__seed + (S.tab === \"home\"',1);${W}" \
   "smoke" "main"
 
 finish "  negtest186"

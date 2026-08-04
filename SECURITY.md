@@ -22,11 +22,13 @@ it's fixed.
 
 - The Cloudflare Web Analytics beacon. It is deliberate, disclosed in the
   footer, sets no cookies and never sees which entries you watch.
-- Missing HTTP security headers. What can be set in a meta tag, is. The
-  canonical site is served by Cloudflare Workers, which can set headers; the
-  old GitHub Pages address, which is kept alive so returning readers can carry
-  their progress across, cannot. Reports about headers on the Pages address are
-  known and out of scope.
+- Missing HTTP security headers **on the beta GitHub Pages address**. The
+  canonical site sets `Referrer-Policy`, `X-Frame-Options` and
+  `Permissions-Policy` from `docs/_headers`, and HSTS and
+  `X-Content-Type-Options` at the Cloudflare edge; the CSP is in a meta tag so
+  that both addresses carry it. GitHub Pages can set no headers at all, and
+  since 2.5.1 that address is an unadvertised mirror marked `noindex`. Reports
+  about headers there are known and out of scope.
 - Content disputes about watch order. Those are issues, not vulnerabilities.
 
 ## What to expect
