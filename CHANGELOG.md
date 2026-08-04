@@ -24,6 +24,14 @@ Nothing yet.
 
 The source link finds its seat, and the page checks that it parses.
 
+
+  **The note breaks after its first sentence.** It read *Announced dates can
+  move. · Build 2.7.4 · updated 2026-08-04 · read the source* — a middot placed
+  after a full stop, joining a caveat about the catalogue to a run of build
+  provenance as though they were one list. They are two different statements and
+  they now sit on two lines. Not guarded: nothing depends on it, and a line
+  break that carries no decision is exactly the sort of thing that should not
+  acquire a rule.
 ### Changed
 
 - **The source link moved to Progress's build line, and it is legible now.**
