@@ -220,7 +220,15 @@ function buildFAQ(FILMS, MODENOTE, tierOf){
      "renders ahead of an entry it would give away."],
     ["Where can I watch all of these?",
      "Availability changes constantly and differs by country, so nothing here stores an answer " +
-     "that would rot \u2014 every entry carries a fresh where-to-watch search instead."]
+     "that would rot \u2014 every entry carries a fresh where-to-watch search instead."],
+    ["Does it track what I watch?",
+     "No. There is no account and no sign-in, no advertising, and nothing tracking what you " +
+     "watch. What you tick stays in your browser and is never sent anywhere. It works offline, " +
+     "and it is free software under the AGPL."],
+    ["Where do the Joker films fit?",
+     "In their own continuity, and nowhere near the rest. They are Gotham stories with no " +
+     "Batman in them, so they sit in a universe of their own, marked optional \u2014 nothing " +
+     "else in the catalogue depends on having seen them."]
   ];
 }
 
@@ -3811,6 +3819,38 @@ var ROUTE_VOCAB = [
          "say " + C.toFixed(2) + " — one of the two was changed alone");
   }
   note("progress ring: r=" + r + ", circumference " + C.toFixed(2) + " in markup and script");
+
+  /* The ring's visible label IS the percentage, so its accessible name has to
+     contain that number. It did not: the name was a fixed "Open progress", so a
+     screen reader announced the verb and never the value, and a voice-control
+     user could not say the thing they could see. Lighthouse calls this
+     label-content-name-mismatch and scores it below the threshold, which is why
+     four releases of 100/100 Accessibility went by without it surfacing.
+     Held here rather than in its own section because the number, the ring and
+     the label are one object: change the radius, the percentage or the name
+     alone and this section is the one that notices. */
+  var ringBtn = (HTML.match(/<button class="ring" id="ringBtn"[^>]*>/) || [""])[0];
+  var ringLab = (ringBtn.match(/aria-label="([^"]*)"/) || [])[1] || "";
+  var ringSeed = (HTML.match(/<b id="ringPct">([^<]*)<\/b>/) || [])[1] || "";
+  if(!ringBtn){
+    fail("#ringBtn is gone — the ring is no longer a control");
+  } else if(!ringSeed){
+    fail("#ringPct renders no starting percentage — there is nothing for the " +
+         "accessible name to agree with");
+  } else if(ringLab.indexOf(ringSeed) < 0){
+    fail('the ring button\'s accessible name ("' + ringLab + '") does not contain its ' +
+         'visible text ("' + ringSeed + '") — a screen reader would announce the ' +
+         "action and never the number");
+  }
+  var rh = fn("renderHead");
+  if(!/setAttribute\("aria-label"/.test(rh)){
+    fail("renderHead() does not update the ring's accessible name — it would freeze " +
+         "at the first render's percentage while the visible number moved");
+  }
+  if((rh.match(/Math\.round\(frac\s*\*\s*100\)/g) || []).length > 1){
+    fail("renderHead() computes the ring percentage more than once — the visible " +
+         "text and the accessible name must come from one value or they drift");
+  }
 })();
 
 /* ---------- 81. An era note describes a period, not a story ------------ */

@@ -20,6 +20,54 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [2.5.2] — 2026-08-04
+
+The progress ring says its own number out loud, and two answers come back.
+
+### Fixed
+
+- **The progress ring's accessible name contained everything except the
+  number.** Its visible text is the percentage; its `aria-label` was a fixed
+  *Open progress*. A screen reader announced the verb and never the value, and
+  a voice-control user could not say the one thing they could see. The name is
+  now built from the same string as the visible text, in `renderHead()`, so the
+  two cannot drift: one value, written twice, computed once.
+
+  It is worth recording **why this survived four releases**: Lighthouse scores
+  Accessibility 100/100 with it present, because `label-content-name-mismatch`
+  sits below the scoring threshold. Two independent audits said "some
+  interactive elements" without naming any; the third named it. A perfect score
+  is not the same as no findings, and this is the evidence.
+
+### Added
+
+- **Two straight answers, restored.** *Does it track what I watch?* and *Where
+  do the Joker films fit?* 2.1.0 planned seven questions and shipped five,
+  cutting these two when the file hit 165.1 KB against a 165 KB ceiling — the
+  plan's own "FAQ trims first" rule, applied under duress. 2.5.0 raised the
+  ceiling to 200 KB, so the constraint that made the trim correct no longer
+  exists. Both render into the seed and mirror into the `FAQPage` schema from
+  the same `buildFAQ()` source, blessed, so a reworded answer moves both or
+  fails the build.
+
+- **`qa/negative/negtest252.sh`** — 11 fixtures: the accessible name losing the
+  number, losing it while keeping the words, the ring rendering no starting
+  percentage, the button ceasing to be a button, `renderHead()` no longer
+  updating the name, the percentage computed twice instead of shared, each
+  restored answer cut from the seed, an answer reworded on one side only, and
+  the `FAQPage` dropping or rewording a question the seed still answers.
+
+### Changed
+
+- Guard **80** now holds the ring's accessible name alongside its
+  circumference. Same section on purpose: the radius, the percentage and the
+  name are one object, and changing any of them alone is the failure it exists
+  to catch.
+- The `docs/_headers` entry above listed five `Permissions-Policy` directives;
+  the file has six. `interest-cohort` was missing from the prose only. Recorded
+  because the omission made the live header look like it was coming from the
+  inert dashboard rule rather than the file, and cost an hour proving otherwise.
+
 ## [2.5.1] — 2026-08-04
 
 The beta address stops being offered a way out. Nothing a reader on
@@ -59,7 +107,7 @@ nightwatcher.life has ever seen changes.
 
 - **`docs/_headers`** — `Referrer-Policy: strict-origin-when-cross-origin`,
   `X-Frame-Options: DENY`, and a `Permissions-Policy` denying geolocation,
-  camera, microphone, payment and USB. The site had **no security headers at
+  camera, microphone, payment, USB and `interest-cohort`. The site had **no security headers at
   all** before today beyond what a meta tag can carry.
   **Why a file and not a dashboard rule:** a Cloudflare Response Header
   Transform Rule was created for exactly this, deployed, showed *Active*, and

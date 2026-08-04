@@ -34,7 +34,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code at all** — *guarded.* Not one line vendored, and nothing fetched at runtime except the cookie-free analytics beacon named above, which is the single deliberate exception and is allowlisted by name in `qa/guards.js`. The app runs with the network off.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 200 KB raw and 80 KB gzipped; it is currently 178 KB / 52 KB (rounded — the raw file sits at 178.1, one and a half kilobytes lighter than 2.5.0 because 2.5.1 retired the move offer). The ceilings have moved four times — 150 → 160 in 1.9.5 (ratings data), 160 → 165 in 2.0.0 (the progress card), and 165 → 200 raw with the first-ever gzip raise, 50 → 80, in 2.5.0 (the full-catalogue seed) — every raise an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 200 KB raw and 80 KB gzipped; it is currently 179 KB / 52 KB (rounded — the raw file sits at 179.3, up 1.2 KB on 2.5.1: two restored FAQ answers and the progress ring's accessible name). The ceilings have moved four times — 150 → 160 in 1.9.5 (ratings data), 160 → 165 in 2.0.0 (the progress card), and 165 → 200 raw with the first-ever gzip raise, 50 → 80, in 2.5.0 (the full-catalogue seed) — every raise an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -119,7 +119,7 @@ Zero dependencies, and every function under test is **extracted from `docs/index
 **Deployment and bookkeeping.** Nothing deployable strays to the repo root, `wrangler.jsonc` points at the served directory with SPA fallback off, and `sw.js`, `index.html` and `CHANGELOG.md` all agree on the version. The four headline counts in this README — and the counts baked into the `<meta>` and `og:` description tags — match the data.
 
 Every guard has been negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 27 negative suites, 320
+trusted. That evidence lives in `qa/negative/` — 28 negative suites, 331
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all — concurrently, one suite per core, since the suites are
