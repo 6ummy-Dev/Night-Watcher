@@ -61,14 +61,35 @@ m=re.search(r'(\d+) negative suites',s);assert m
 s=s[:m.start(1)]+str(int(m.group(1))-1)+s[m.end(1):];io.open(p,'w',encoding='utf-8').write(s)"
 
 echo "--- 80: the ring circumference is tied to its radius"
+# Re-anchored in 3.0.0. These two were pinned to 125.7, the circumference of the
+# r=20 ring, and 3.0.0 took the ring to r=17.5 — so both reported SETUP BROKE,
+# which is the harness working exactly as designed: an anchor that no longer
+# exists is announced rather than skipped. 109.96 is 2π × 17.5.
 run_case "the markup circumference stops matching the radius" \
   "does not match 2πr" \
-  "${P}a='stroke-dasharray=\"125.7\" stroke-dashoffset=\"125.7\"';assert a in s
+  "${P}a='stroke-dasharray=\"109.96\" stroke-dashoffset=\"109.96\"';assert a in s
 s=s.replace(a,'stroke-dasharray=\"120\" stroke-dashoffset=\"120\"',1);${W}"
 
 run_case "the script circumference drifts from the markup" \
   "the script draws the ring with" \
-  "${P}a='(125.7 * (1 - frac))';assert a in s;s=s.replace(a,'(124.9 * (1 - frac))',1);${W}"
+  "${P}a='(109.96 * (1 - frac))';assert a in s;s=s.replace(a,'(109.0 * (1 - frac))',1);${W}"
+
+# 3.0.0 gave section 80 two assertions it did not have, and a new assertion with
+# nothing proving it fires is the shape this whole directory exists to prevent.
+run_case "the track is left behind at the old radius" \
+  "they are one ring and one of the two was changed alone" \
+  "${P}a='id=\"ringTrack\" cx=\"23\" cy=\"23\" r=\"17.5\"';assert a in s
+s=s.replace(a,'id=\"ringTrack\" cx=\"23\" cy=\"23\" r=\"20\"',1);${W}"
+
+run_case "the track keeps the old stroke while the arc thins" \
+  "different stroke widths" \
+  "${P}a='id=\"ringTrack\" cx=\"23\" cy=\"23\" r=\"17.5\" fill=\"none\" stroke-width=\"3\"';assert a in s
+s=s.replace(a,'id=\"ringTrack\" cx=\"23\" cy=\"23\" r=\"17.5\" fill=\"none\" stroke-width=\"4\"',1);${W}"
+
+run_case "the ring shrinks until 100% will not fit inside it" \
+  "a finished run would print its number through the ring" \
+  "${P}a='.ring b{';i=s.index(a);j=s.index('font-size:',i)
+s=s[:j]+'font-size:15px;'+s[s.index(';',j)+1:];${W}"
 
 echo "--- 81: an era note describes a period, not a story"
 run_case "an era note quotes an episode" \

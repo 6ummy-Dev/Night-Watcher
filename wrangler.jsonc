@@ -6,7 +6,10 @@
   /* The apex, bound as a custom domain rather than a route: Cloudflare then
      owns the DNS record and the certificate, and there is one place to look
      when either is wrong. GitHub Pages keeps serving the same tree at its own
-     address on purpose \u2014 see the move offer in docs/index.html. */
+     address on purpose: progress is stored per-origin, so it is the only place
+     anyone's old progress can be read. It carries an injected noindex rather
+     than an offer to move — that offer was retired in 2.5.1, and guard 77
+     fails the build if it returns. */
   "routes": [
     { "pattern": "nightwatcher.life", "custom_domain": true }
   ],

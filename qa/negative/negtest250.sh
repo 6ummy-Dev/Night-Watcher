@@ -112,7 +112,7 @@ run_case "the fallback condition is dropped" \
 s=s.replace(a,'  if(S.tab !== \"watch\"){ render(); return; }',1);${W}"
 
 run_case "and the gate catches a repaint that goes stale" \
-  "the tick path is byte-identical to a full render" \
+  "surgical paths are byte-identical to a full render" \
   "${P}a='  grp.parentNode.replaceChild(scratch.firstChild, grp);';assert a in s
 s=s.replace(a,'',1);${W}" \
   "smoke" "main"

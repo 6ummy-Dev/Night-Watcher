@@ -68,9 +68,29 @@ run_case () {
   ensure_tree
   heal_tree
   ( cd "$NEG" && python3 -c "$pyscript" ) || { echo "  SETUP BROKE  $label"; FAILED=$((FAILED+1)); return; }
-  local out
+  # 3.0.0, and this is the one that mattered most in the release.
+  #
+  # THE OLD LINE GREPPED THE WHOLE RUN, INCLUDING THE GREEN PART. A passing
+  # guards run prints its notes as "  · <note>" and a passing smoke run prints
+  # "  ok   <check name>" for every check — so any fixture whose expected string
+  # was a check NAME rather than a failure MESSAGE matched the success output
+  # and reported PASS while the suite it was aiming at had gone green. 22 of the
+  # 392 fixtures were in that state: every expect was extracted and tested
+  # against captured pristine output, and 22 of them matched a run in which
+  # nothing had been broken at all. A negative fixture that passes against a
+  # green tree is worse than no fixture, because it is counted.
+  #
+  # Filtering the green lines out before matching is the narrowest fix that
+  # works. Two others were tried and rejected on evidence: gating on the exit
+  # code breaks negtest176's three warning-only fixtures, which are correct as
+  # written and expect a green exit; filtering on '✗|FAIL' breaks the two
+  # fixtures that expect a harness error rather than a guard failure. This
+  # regresses exactly three fixtures, and all three turned out to be hiding real
+  # holes in their own mutations rather than in the harness.
+  local out sig
   out=$(cd "$NEG" && SMOKE_ONLY="$phase" node qa/$suite.js 2>&1)
-  if printf '%s' "$out" | grep -qF "$expect"; then
+  sig=$(printf '%s\n' "$out" | grep -vE '^  (ok|·) ')
+  if printf '%s' "$sig" | grep -qF "$expect"; then
     echo "  PASS  $label"; PASS=$((PASS+1))
   else
     echo "  FAIL  $label"

@@ -8,8 +8,28 @@
 # Content-Security-Policy stays in the <meta> tag in index.html: the guards
 # bless its hash against the one inline script, and moving it to a header
 # would split one rule across two files.
+#
+# CACHE POLICY, ADDED IN 3.0.0, AND IT ONLY TAKES EFFECT ON UPLOAD. Nothing in
+# this project declared one, so every file was cached with whatever Workers
+# Assets emits by default and Cloudflare caches .js at the edge. Two independent
+# routes reached the same conclusion: the six subset faces are 62,996 bytes,
+# network-first in the service worker, and re-fetched on a policy nobody wrote;
+# and on 5 Aug 2026 the bare /sw.js answered VERSION = "2.5.1" while the same
+# file with a cache-busting query answered 2.7.5.
+#
+# sw.js is the one file that must never be stale, because it is how a returning
+# browser learns the app changed — its own header comment says so. no-cache
+# does not mean "do not store": it means revalidate before use, which is exactly
+# what a version marker wants. The fonts are content-addressed by the subset
+# script's own hash record and never change under a name, so they take the year.
 
 /*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=(), interest-cohort=()
+
+/sw.js
+  Cache-Control: no-cache
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable

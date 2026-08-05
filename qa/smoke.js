@@ -23,8 +23,10 @@ var fails = [];
    scoped run boots the same first document, then runs only the phase named:
      main    — the primary document, its reboots, and the restore-link block
      css     — the dead-rule sweep
-     origin  — the old-origin move offer (its own document)
      blocked — the throwing-store document
+   "origin" was listed here until 3.0.0 and left PHASES in 2.5.1 with the move
+   offer it booted a document for. A phase named in the prose and not in the
+   array is a fixture waiting to be written against nothing.
    The README check-count self-assert only runs unscoped, because a scoped
    run's count is meaningless by design. npm test never sets this; the full
    run is still the bar, and a fixture naming a phase that does not exist is
@@ -235,6 +237,20 @@ win.addEventListener("load", function(){
        fails here by construction. States outside the targeted condition
        (filters, search, other tabs) take the full-render door and are
        trivially identical; one is driven below to prove the fallback fires. */
+    /* 3.0.0 WIDENED THE GATE AND ADDED THREE MORE PATHS TO IT. The gate read
+       #view only, so a surgical path that left the header, the theme attribute
+       or the theme-colour meta stale would have passed it — and 3.0.0 adds a
+       theme toggle that touches nothing else. What is compared now is the
+       header markup, the view, <html data-theme> and the theme-colour content,
+       joined; the three new paths (opening a row, closing a group, rating) are
+       driven exactly like the tick and held to the same arithmetic. */
+    function shot(){
+      return doc.getElementById("view").innerHTML + " " +
+             (doc.querySelector("header") ? doc.querySelector("header").innerHTML : "NO HEADER") + " " +
+             doc.documentElement.getAttribute("data-theme") + " " +
+             (doc.querySelector('meta[name="theme-color"]') || {getAttribute:function(){ return "none"; }})
+               .getAttribute("content");
+    }
     (function(){
       var v = doc.getElementById("view");
       var mismatches = [], drove = 0;
@@ -250,12 +266,73 @@ win.addEventListener("load", function(){
             [0, 1].forEach(function(){
               var btn = v.querySelector('.tick[data-id="' + id + '"]');
               if(btn) btn.click();
-              var after = v.innerHTML;
+              var after = shot();
               win.render();
-              if(v.innerHTML !== after) mismatches.push(pt + "/" + fs[0] + "/" + id);
+              if(shot() !== after) mismatches.push(pt + "/" + fs[0] + "/" + id);
               drove++;
             });
           });
+          /* Opening and closing a row (3.0.0's rowUpdate). */
+          ids.forEach(function(id){
+            [0, 1].forEach(function(){
+              var fm = v.querySelector('.fmain[data-act="expand"][data-id="' + id + '"]');
+              if(fm) fm.click();
+              var afterR = shot();
+              win.render();
+              if(shot() !== afterR) mismatches.push("expand:" + pt + "/" + fs[0] + "/" + id);
+              drove++;
+            });
+          });
+          /* Closing and re-opening a group (3.0.0's groupUpdate). Both the
+             group and the Collapse all / Expand all button that reads it. */
+          (function(){
+            /* Driven from all-closed, so the one group opening and closing
+               again flips Collapse all / Expand all in both directions — the
+               only part of the view outside the group that a group toggle can
+               move, and invisible from an all-open start. */
+            win.setAllGroups(false); win.render();
+            var gh = v.querySelector('.ghead[data-act="group"]');
+            if(!gh){ win.setAllGroups(true); win.render(); return; }
+            var gk = gh.dataset.gk;
+            [0, 1].forEach(function(){
+              var h = v.querySelector('.ghead[data-act="group"][data-gk="' +
+                                      gk.replace(/"/g, '\\"') + '"]');
+              if(h) h.click();
+              var afterG = shot();
+              win.render();
+              if(shot() !== afterG) mismatches.push("group:" + pt + "/" + fs[0] + "/" + gk);
+              drove++;
+            });
+            win.setAllGroups(true); win.render();
+          })();
+          /* Rating, which can also mark an entry watched (3.0.0 put it on the
+             tick fast path it had been driving straight past). */
+          ids.forEach(function(id){
+            S.open[id] = true; win.render();
+            [0, 1].forEach(function(){
+              var st = v.querySelector('.stars button[data-act="rate"][data-id="' + id + '"][data-n="4"]');
+              if(st) st.click();
+              var afterS = shot();
+              win.render();
+              if(shot() !== afterS) mismatches.push("rate:" + pt + "/" + fs[0] + "/" + id);
+              drove++;
+            });
+            delete S.open[id];
+          });
+          /* The theme toggle, which touches only the two document-level
+             attributes and the pressed state of its own two buttons. */
+          (function(){
+            var t0 = S.tab; S.tab = "home"; win.render();
+            ["darker", "dark"].forEach(function(th){
+              var tb = v.querySelector('button[data-theme="' + th + '"]');
+              if(tb) tb.click();
+              var afterT = shot();
+              win.render();
+              if(shot() !== afterT) mismatches.push("theme:" + th);
+              drove++;
+            });
+            S.tab = t0; win.render();
+          })();
           var first = v.querySelector('.tick[data-id]');
           if(first){
             var id2 = first.dataset.id;
@@ -263,9 +340,9 @@ win.addEventListener("load", function(){
             var sk = v.querySelector('.act[data-act="skip"][data-id="' + id2 + '"]');
             [0, 1].forEach(function(){
               if(sk) sk.click();
-              var after2 = v.innerHTML;
+              var after2 = shot();
               win.render();
-              if(v.innerHTML !== after2) mismatches.push("skip:" + pt + "/" + id2);
+              if(shot() !== after2) mismatches.push("skip:" + pt + "/" + id2);
               drove++;
               sk = v.querySelector('.act[data-act="skip"][data-id="' + id2 + '"]');
             });
@@ -273,8 +350,8 @@ win.addEventListener("load", function(){
           }
         });
       });
-      check("the tick path is byte-identical to a full render (" + drove + " driven)",
-            mismatches.length === 0 && drove >= 36, mismatches.slice(0, 3).join("  |  ") ||
+      check("the surgical paths are byte-identical to a full render (" + drove + " driven)",
+            mismatches.length === 0 && drove >= 120, mismatches.slice(0, 3).join("  |  ") ||
             (drove + " driven"));
       S.filter = "left"; win.render();
       var t2 = v.querySelector('.tick[data-id]');
@@ -821,7 +898,73 @@ win.addEventListener("load", function(){
     })();
     qi2.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("tapping again closes it", !doc.querySelector("#view .qitem .qpeek"));
-    S.open = {};
+    S.open = {}; S.peek = {};
+
+    /* --- watched and skipped cannot both be true (3.0.0) --- */
+    /* Three merge sites maintained the invariant markWatched() has always kept
+       and one of them did not — so a skip in one tab and a tick in another came
+       back as both, rendered with both classes, and shipped in both segments of
+       the backup code. Each site is driven through the real path here rather
+       than asserted about: the cross-tab storage event, applyImport(), and a
+       pasted JSON backup. */
+    (function(){
+      var f0 = FILMS[0].id, f1 = FILMS[1].id, f2 = FILMS[2].id;
+      function clean(){ S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; }
+
+      clean(); S.skipped[f0] = 1;
+      /* The event is built by hand rather than through the StorageEvent
+         constructor: the handler reads .key and .newValue as properties, and
+         jsdom does not let a constructed event's read-only fields be replaced. */
+      var ev = new win.Event("storage");
+      Object.defineProperty(ev, "key", {value: win.KEY});
+      Object.defineProperty(ev, "newValue", {value: JSON.stringify(
+        {watched:(function(o){ o[f0] = 1; return o; })({}), skipped:{}, rated:{}, log:[]})});
+      win.dispatchEvent(ev);
+      check("a tick arriving from another tab clears this tab's skip",
+            !!S.watched[f0] && !S.skipped[f0],
+            "watched=" + !!S.watched[f0] + " skipped=" + !!S.skipped[f0]);
+
+      clean(); S.skipped[f1] = 1;
+      win.applyImport({watched:(function(o){ o[f1] = 1; return o; })({}),
+                       skipped:{}, rated:{}, found:1, unknown:0, path:""});
+      check("a restored backup code clears a skip it marks watched",
+            !!S.watched[f1] && !S.skipped[f1],
+            "watched=" + !!S.watched[f1] + " skipped=" + !!S.skipped[f1]);
+
+      clean(); S.skipped[f2] = 1;
+      win.doRestore(JSON.stringify({app:"night-watcher", v:2, path:"",
+        watched:(function(o){ o[f2] = 1; return o; })({}), skipped:{}, rated:{}, log:[]}));
+      check("a restored JSON backup clears a skip it marks watched",
+            !!S.watched[f2] && !S.skipped[f2],
+            "watched=" + !!S.watched[f2] + " skipped=" + !!S.skipped[f2]);
+
+      /* The consequence, which is what a reader would actually see: an entry
+         counted twice, and exported twice. */
+      var both = FILMS.filter(function(f){ return S.watched[f.id] && S.skipped[f.id]; });
+      check("no entry is watched and skipped at once", both.length === 0,
+            both.map(function(f){ return f.id; }).join(","));
+      var c = win.counts();
+      check("the scoreboard adds up", c.done + c.left + c.skip === c.total,
+            c.done + "+" + c.left + "+" + c.skip + " vs " + c.total);
+      clean(); win.render();
+    })();
+
+    /* --- the Restore box survives a render nobody asked for (3.0.0) --- */
+    (function(){
+      var t0 = S.tab; S.tab = "stats"; win.render();
+      var box = doc.getElementById("restorebox");
+      check("the Restore box exists on Progress", !!box);
+      if(box){
+        box.value = "NW3WabcdeS";
+        win.render();
+        var after = doc.getElementById("restorebox");
+        check("a render nobody asked for does not wipe the paste",
+              !!after && after.value === "NW3WabcdeS",
+              after ? JSON.stringify(after.value) : "the box is gone");
+        if(after) after.value = "";
+      }
+      S.tab = t0; win.render();
+    })();
 
     /* --- The Path collapses and remembers (1.3.5) --- */
     S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.groupOpen = {};
@@ -900,28 +1043,57 @@ win.addEventListener("load", function(){
     S.watched = {}; S.rated = {}; S.tab = "home"; win.render();
 
     /* --- the watch link is a Brave search (1.3.2) --- */
+    /* 3.0.0: watchUrl() takes the ENTRY. It took the title, and a title cannot
+       say which production it means — see the block below, which is the defect
+       a reader actually met. */
+    var bat89 = win.FILMS.filter(function(f){ return f.t === "Batman" && f.y === 1989; })[0];
     check("the link is a Brave search",
-          win.watchUrl("Batman").indexOf("https://search.brave.com/search?q=") === 0,
-          win.watchUrl("Batman"));
+          win.watchUrl(bat89).indexOf("https://search.brave.com/search?q=") === 0,
+          win.watchUrl(bat89));
     check("the query leads with \"where to watch\"",
-          win.watchUrl("Batman").indexOf("where%20to%20watch%20Batman") > 0);
-    check("no country path can appear", !/\/(us|uy|uk|gb|br|de)\//.test(win.watchUrl("Batman")));
+          win.watchUrl(bat89).indexOf("where%20to%20watch%20Batman") > 0);
+    check("no country path can appear", !/\/(us|uy|uk|gb|br|de)\//.test(win.watchUrl(bat89)));
     /* A real title carries its year; an unknown one degrades to no year rather
        than to the string "undefined" (1.3.7). */
     var tvShow = win.FILMS.filter(function(f){ return f.tv; })[0];
     check("a real title carries its year",
-          decodeURIComponent(win.watchUrl(tvShow.t)).indexOf(" " + win.titleYear(tvShow.t)) > 0,
-          decodeURIComponent(win.watchUrl(tvShow.t)));
+          decodeURIComponent(win.watchUrl(tvShow)).indexOf(" " + win.titleYear(tvShow)) > 0,
+          decodeURIComponent(win.watchUrl(tvShow)));
     check("every season of a show asks the same question",
-          win.FILMS.filter(function(f){ return f.t === tvShow.t; })
-                   .every(function(f){ return win.watchUrl(f.t) === win.watchUrl(tvShow.t); }));
+          win.FILMS.filter(function(f){ return f.t === tvShow.t && f.gi === tvShow.gi; })
+                   .every(function(f){ return win.watchUrl(f) === win.watchUrl(tvShow); }));
     /* "Batman" was the title used here until 1.6.6 — and it is in the catalogue
        twice, so titleYear() returned 1966 and the no-year branch this check is
        named after never ran once. Remove the guard from watchUrl() and the old
        version still passed. */
     check("a title the catalogue has never heard of degrades cleanly",
-          win.titleYear("Zorro") === undefined &&
-          win.watchUrl("Zorro").indexOf("undefined") < 0, win.watchUrl("Zorro"));
+          win.titleYear({t: "Zorro", gi: -1}) === undefined &&
+          win.watchUrl({t: "Zorro", gi: -1}).indexOf("undefined") < 0,
+          win.watchUrl({t: "Zorro", gi: -1}));
+
+    /* --- THE ONE DEFECT A READER MET (3.0.0) --- */
+    /* Six titles are shared by productions in different universes, and the link
+       keyed on the title alone and took the earliest year anywhere in the
+       catalogue. Tapping Where to watch on the 2022 film asked for a 2004
+       cartoon. These are the exact entries, named rather than counted, because
+       a count would still pass if the wrong six were fixed. */
+    [["The Batman", 2022], ["Batman", 1989], ["Batman", 1966],
+     ["Justice League", 2017], ["Birds of Prey", 2020], ["Batman Beyond", 2014]
+    ].forEach(function(pair){
+      var e = win.FILMS.filter(function(f){ return f.t === pair[0] && f.y === pair[1]; })[0];
+      var q = e ? decodeURIComponent(win.watchUrl(e)) : "";
+      check(pair[0] + " (" + pair[1] + ") searches for its own year",
+            !!e && q.indexOf(pair[0] + " " + pair[1]) > 0, q || "entry not found");
+    });
+    check("two productions sharing a title do not share a search", (function(){
+      var seen = {}, ok = true;
+      win.FILMS.forEach(function(f){
+        var u = win.watchUrl(f);
+        if(seen[u] !== undefined && seen[u] !== f.gi) ok = false;
+        seen[u] = f.gi;
+      });
+      return ok;
+    })());
     check("every rendered link comes from the builder", (function(){
       S.tab = "next"; win.render();
       var a = doc.querySelector("#view .linkrow .lnk");
@@ -1119,10 +1291,18 @@ win.addEventListener("load", function(){
           closedSize < 150000, closedSize + " chars");
     S.open = {};
 
-    /* --- all six filters reachable from the Path tab --- */
+    /* --- every filter chipSet() offers is reachable from the Path tab --- */
+    /* Counted from chipSet() rather than held as a number: 2.8.0 added the
+       Skipped chip and a remembered 6 would have failed a correct build. */
     win.render();
     var chips = win.document.getElementById("view").querySelectorAll(".chip");
-    check("all six filter chips are present", chips.length === 6, chips.length + " chips");
+    var want = win.chipSet();
+    check("every filter chip chipSet() offers is rendered",
+          chips.length === want.length, chips.length + " chips for " + want.length + " filters");
+    var chipIds = Array.prototype.map.call(chips, function(c){ return c.dataset.filter; });
+    check("the rendered chips are exactly the filters chipSet() names",
+          want.every(function(p){ return chipIds.indexOf(p[0]) >= 0; }),
+          chipIds.join(","));
 
     /* --- tab state uses valid ARIA --- */
     S.tab = "stats"; win.render();
@@ -1198,8 +1378,13 @@ win.addEventListener("load", function(){
     check("code round-trips in the page", mine && mine.found === Object.keys(S.watched).length,
           mine ? "found " + mine.found : "null");
 
-    var future = win.importCode(code + "X7ab");
-    check("a future NW2 code with unknown segments still restores",
+    /* 3.0.0: the probe appended an unknown segment to an NW3 code and called it
+       "a future NW2 code" — a version older than the one it was testing. The
+       segment half was real; the version half was not being exercised at all.
+       It builds a genuinely later major now, which is the case that matters:
+       a code written by a version of this app that does not exist yet. */
+    var future = win.importCode(code.replace(/^NW3/, "NW9") + "X7ab");
+    check("a future NW9 code with unknown segments still restores",
           future && mine && future.found === mine.found, future ? "found " + future.found : "REJECTED");
     check("unknown segments are ignored, not restored as junk",
           future && mine && future.unknown === mine.unknown, future ? "unknown " + future.unknown : "-");
@@ -1207,8 +1392,25 @@ win.addEventListener("load", function(){
           !!win.importCode("  " + win.SITE + "#nw=" + code + "  "));
     check("a code split across lines still works",
           !!win.importCode(code.slice(0, 10) + "\n" + code.slice(10)));
+    /* 3.0.0: THIS CHECK TESTED NOTHING FOR NINE RELEASES. Two lines above it
+       asserts the code starts NW3W, and then it did code.replace(/^NW2/,"NW1"),
+       which cannot match — so it imported the same NW3 code and duplicated the
+       line below. Deleting NW1 support from the app left it green. (Guard 8
+       covers the NW1 format for real, so the format was never unprotected; the
+       check was lying, not the app.)
+
+       An NW1 code is BUILT here rather than derived, because the 1.0.0 layout
+       put ratings in six-character hash+digit records and importCode() takes
+       that branch only below version 3 — a prefix swap on an NW3 body would not
+       have exercised it even if the swap had worked. */
+    var nw1 = "NW1W" + win.idHash(FILMS[0].id) + win.idHash(FILMS[1].id) +
+              "S" + win.idHash(FILMS[3].id) +
+              "R" + win.idHash(FILMS[0].id) + "4";
+    var old1 = win.importCode(nw1);
     check("an NW1 code from 1.0.0 still restores",
-          !!win.importCode(code.replace(/^NW2/, "NW1").replace(/P[clr]$/, "")));
+          !!old1 && old1.found === 3 && !old1.cut && old1.rated[FILMS[0].id] === 4,
+          old1 ? "found " + old1.found + ", cut " + old1.cut + ", rating " +
+                 old1.rated[FILMS[0].id] : "REJECTED");
     check("a code with no path segment still restores",
           !!win.importCode(code.replace(/P[clr]$/, "")));
     var junkOk = ["", "hello", "NW1", "NW1W!!!", "not-a-code"].every(function(j){
@@ -1398,7 +1600,10 @@ win.addEventListener("load", function(){
       });
       S.skipped[FILMS[60].id] = 1; S.rated[FILMS[0].id] = 4;
       ["home", "next", "watch", "stats"].forEach(function(t){ S.tab = t; win.render(); sweep(); });
-      FILMS.forEach(function(f){ S.open[f.id] = true; });
+      /* Both keyspaces: 3.0.0 split the path's expanded rows (S.open) from
+         Next up's peeks (S.peek), and the sweep has to open both or .qpeek
+         renders in no state this pass visits. */
+      FILMS.forEach(function(f){ S.open[f.id] = true; S.peek[f.id] = true; });
       ["next", "watch"].forEach(function(t){ S.tab = t; win.render(); sweep(); });
       ["left", "done", "ess", "core", "opt"].forEach(function(f){
         S.tab = "watch"; S.filter = f; win.render(); sweep();
@@ -1434,12 +1639,10 @@ win.addEventListener("load", function(){
       S.tab = "home"; S.path = S.mode = "continuity"; win.render();
     })();
 
-    afterOrigin();
-    }
-
-    function afterOrigin(){
-      if(wants("blocked")) blockedStore();
-      else finish();
+    /* afterOrigin() outlived the origin phase by four releases: a one-line hop
+       named after a document this suite stopped booting in 2.5.1. */
+    if(wants("blocked")) blockedStore();
+    else finish();
     }
   }, 200);
 });

@@ -32,7 +32,7 @@ run_case "the Next-up hero drops the rating from its badges" \
 
 run_case "a fourth seat is added that nobody named" \
   "ratingBadge() is called" \
-  "${P}s=s.replace('function watchUrl(title){','function unused(f){ return ratingBadge(f); }\nfunction watchUrl(title){',1);${W}"
+  "${P}s=s.replace('function watchUrl(f){','function unused(f){ return ratingBadge(f); }\nfunction watchUrl(f){',1);${W}"
 
 echo "--- the share card's bottom block stays where the eye expects it"
 

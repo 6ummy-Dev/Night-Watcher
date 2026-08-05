@@ -20,6 +20,220 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.0.0] — 2026-08-05
+
+**The shape that changed is the harness, and then the watch link.** MAJOR here
+means a change to the app's shape, and this is the largest one since the Belt:
+it changes what the build is able to see, corrects a defect in the watch link of
+every entry whose title is shared, adds two controls, and rewrites the
+interaction path. **No saved-progress format moved.** Backup codes, restore
+links, the JSON export and every `i:` slug are byte-for-byte what 2.7.5 wrote,
+and guard 8 and the round-trip checks are unchanged. A code written by 2.7.5
+restores identically here, and a code written here restores in 2.7.5.
+
+Skips the rest of the 2.x line on the owner's call. Guard 74 holds the version
+history running one direction, so `2.8.0` and `2.9.0` are gone with it —
+`releases/plan-2.8.0.md` is superseded but kept, because this release cites it
+for the header measurements.
+
+### Fixed
+
+- **`titleYear()` keyed on the title alone, so seven entries searched for a
+  different production.** It took the earliest year anywhere in the catalogue
+  for a given title, which is the right rule for the seasons of one show and the
+  wrong rule for a name two unrelated productions share. `TITLEYEAR` is now keyed
+  `f.t + "|" + f.gi` and `watchLinks()` passes the entry to `watchUrl()` rather
+  than the title, because a title cannot say which production it means.
+
+  The seven, verified in a browser against the shipped catalogue before and
+  after: *The Batman* (2022) searched 2004 · *Batman* (1989) searched 1943 ·
+  *Batman* (1966), film and series, searched 1943 · *Justice League* (2017)
+  searched 2001 · *Birds of Prey* (2020) searched 2002 · *Batman Beyond* (2014)
+  searched 1999. **The 22 same-universe cases are seasons of one show sharing a
+  URL, which is the intended behaviour, and not one of them changed.**
+
+- **Guard 44 enforced the defect**, requiring earliest-year-per-title and only
+  looking for collisions between *different* titles — so the harness certified
+  the wrong answer. The rule now reads "the first year this title appears in its
+  own universe", asserts directly that no entry searches a year no entry of that
+  title in that universe carries, and treats two productions sharing one URL as
+  the failure. Rule, code and fixtures changed in one commit.
+
+- **Watched and skipped could both be true, and it survived into exports.**
+  `markWatched()` has always cleared the skip; three merge sites did not — the
+  cross-tab storage event, the JSON restore branch and `applyImport()`. Skip in
+  one tab, tick in another, and the entry rendered `class="film done skip"` and
+  appeared in both the `W` and `S` segments of the backup code and the JSON, so
+  every denominator on Progress disagreed with the next. `delete S.skipped[k]`
+  at all three. The log-merge dance was written out twice and is now
+  `mergeLog()`. Guard 111, and three smoke checks driving each site for real.
+
+- **`#restorebox` was wiped by renders the reader did not cause.** It is rebuilt
+  empty on every `render()`, and renders fire from another tab's storage event
+  and from the four-second reset-confirm timeout — which is gated on
+  `S.tab === "stats"`, the tab the box lives on. It is now carried across a
+  repaint the way `#q` already was, value and selection. Guard 112.
+
+- **`S.open` was one keyspace for two views.** The path's expanded rows and Next
+  up's peeks shared it, so opening one opened the other. Split into `S.open` and
+  `S.peek`. Next up stays on the full render deliberately — four rows, nothing
+  to save.
+
+### Added
+
+- **A Skipped filter in The path, and the Progress scoreboard is three
+  buttons.** One feature: the scoreboard has counted *Skipped* since 1.x with
+  nowhere to send anyone who tapped it. The tiles reuse the existing
+  `data-act="tier"` handler. Guard 109 holds the relationship rather than the
+  markup — every `data-tf` must be a filter `chipSet()` offers, and all three
+  counts must have a tile.
+
+- **`docs/_headers` declares a cache policy**, which nothing in this project ever
+  had. `/sw.js` takes `no-cache`; `/fonts/*` takes a year and `immutable`. Guard
+  104 pins both values and fails a blanket `Cache-Control` under `/*`, since the
+  two paths want opposite answers. **This is a serving change and takes effect
+  only on upload** — `_headers` is read by the edge, never by anything in the
+  repo.
+
+- **Guard 110** — the viewport is not locked. Section 62's argument that a small
+  control is acceptable because the reader can zoom rests on this page setting no
+  `maximum-scale`, a recorded WCAG 1.4.4 decision that nothing checked; adding
+  `maximum-scale=1, user-scalable=no` shipped green. `docs/404.html` was
+  unchecked entirely and is held to the same rule.
+
+- **`filmRow()`**, pulled out of `groupBlock()` so the surgical repaint and the
+  full render share one builder rather than two that drift.
+
+### Changed
+
+- **Interacting stops rebuilding the world.** Closing a group cost a full render:
+  148–214 ms at 200 entries on desktop Chromium, of which 2.2 ms was this file's
+  own code. `rowUpdate()`, `groupUpdate()` and `themeUpdate()` join the existing
+  `tickUpdate()`, and `rate()` moved onto the tick fast path it had been driving
+  straight past. `.group` carries `content-visibility:auto` with a
+  `contain-intrinsic-size` floor.
+
+  **Each falls back to `render()` the moment it cannot find what it expects**, and
+  the smoke suite's byte-identity gate was widened past `#view` to cover the
+  header markup, `<html data-theme>` and the theme-colour meta. Every surgical
+  path is driven and required to serialize byte-for-byte identically to a forced
+  full render — 144 comparisons.
+
+- **Section 29's external-script sweep matches the page it guards.** The pattern
+  required a double-quoted `src`; the only external script the page has ever
+  carried — the disclosed Cloudflare beacon — is single-quoted, and `git log -S`
+  says it always was. The match array was empty on every run since the section
+  was written, so the carve-out below it had never executed and a single-quoted
+  script added today shipped green: section 42's origin sweep is an allow list
+  and already allows `github.com` for links. Quote style is out of the pattern,
+  and an empty sweep now fails on its own.
+
+- **Section 43 pins the whole CSP, and refuses to hash an ambiguous script.** It
+  pinned four of eleven directives: deleting `static.cloudflareinsights.com` from
+  `script-src` shipped green, and rewriting the six unchecked directives to `*`
+  shipped green. Every declared directive is pinned to its exact value, a
+  directive the page declares that nothing pins fails, and `script-src` may carry
+  only the hash and the disclosed beacon origin.
+
+  **And the second half was worse than under-coverage.** This section hashed the
+  *first* plain `<script>` while section 46 parses the *longest*. With one script
+  they agree by luck; add a small inline script above the application block and
+  section 43 reports a stale hash and `npm run bless` writes the hash of the
+  decoy — both suites green over a page whose CSP blocks the entire app, and
+  jsdom does not enforce meta CSP so smoke cannot see it either. More than one
+  plain `<script>` is now the failure, because a single hash cannot describe two.
+
+- **`docs/sw.js` is compiled, not just grepped.** Five sections read its text and
+  smoke never registered it, so a syntax error appended to it left both suites
+  green while offline broke for every visitor. Section 11 binds the source and
+  runs it through `new vm.Script()` — the failure class 2.7.4 added that for,
+  applied to `index.html` and never extended to the other file that ships.
+
+- **Section 91 has a byte ceiling: 60,000.** It read `buf.length` only to print
+  it, so a valid 1200×630 PNG of 3,025,613 bytes passed. The card ships at 19,656
+  bytes only because of a manual PIL quantize documented at the top of
+  `qa/make-share-card.mjs`; the raw render is ~325 KB.
+
+- **Section 108's fallbacks are reachable.** `slice()` *throws* on a missing
+  marker, so `slice(…) || HTML.slice(…)` never reached its right-hand side and
+  `fail("shareCardBlock() is gone")` was unreachable with it — renaming the
+  function ended the run with a raw stack trace, the exact failure mode
+  `optionalFn()` was written to prevent twenty lines above its own definition.
+  `sliceOr()` is the version that keeps the promise.
+
+- **Smoke's NW1 check tests NW1.** It asserted the code starts `NW3W` and then
+  did `code.replace(/^NW2/, "NW1")`, which cannot match — so it imported an NW3
+  code and duplicated the line below it, and deleting NW1 support from the app
+  left it green. An NW1 code is now built, because the 1.0.0 rating layout is a
+  branch `importCode()` takes only below version 3. The forward-compat probe
+  builds a genuinely later major instead of calling an NW3 code "a future NW2".
+
+- **The negative harness stopped passing against green runs.** `run_case` grepped
+  the *whole* suite output, and a green run prints `  ok   <name>` and
+  `  · <note>` — so any fixture whose expected string was a check *name* rather
+  than a failure *message* matched success. All 392 expects were extracted and
+  tested against captured pristine output: **22 matched a run in which nothing
+  was broken.** The green lines are filtered before matching. An exit-code gate
+  and a `✗|FAIL` filter were both tried and rejected on evidence — the first
+  breaks `negtest176`'s three warning-only fixtures, the second breaks the two
+  that expect a harness error.
+
+  **Three of the 22 were hiding real holes**, and all three are fixed at the
+  mutation rather than the harness: `negtest172` named a check its mutation did
+  not trip (and the check it named had no fixture of its own, which now exists);
+  `negtest185`'s mutation made a value consistently wrong while the check asserts
+  the value does not *change*; `negtest251` left guards exiting **0**, because
+  nothing asserted that `_headers` stays out of the offline precache though
+  `share.png` and `orders.txt` have carried that assertion since 1.9.0 and 2.6.0.
+  Section 104 carries it now.
+
+- **`negtest183` and `negtest273` re-anchored.** Four fixtures were pinned to
+  `125.7` and `r="20" stroke-width="4"` and reported `SETUP BROKE` after the ring
+  moved — the designed behaviour, working. Section 47's new assertions, section
+  80's `#ringTrack` agreement and its `100%` label floor all gained fixtures.
+
+- **`var ids` was declared twice at guards file scope with different meanings.**
+  The catalogue one is `filmIds`.
+
+### Documentation
+
+- **README described a feature retired in 2.5.1** — the offer to carry progress
+  across from the old origin. `offCanonical()` only injects `noindex`, and guard
+  77 fails the build if the offer returns; the README is not what 77 reads, which
+  is how it survived a documented amendment pass. `wrangler.jsonc` pointed at the
+  same retired offer, and `qa/smoke.js` documented an `origin` phase that left
+  `PHASES` with it in 2.5.1 — along with the `afterOrigin()` hop named after it.
+- **NOTES.md amendments.** The Galactic Guardians slug paragraph carried no
+  *Amended* marker against the 1.8.1 rename recorded further down the same file ·
+  "Parked by decision", whose three items have all shipped and whose `og:image`
+  claim had been false since 1.9.0 · the Workers migration, still framed as a
+  live option four releases after it landed · a "2.2.1" citation with no
+  CHANGELOG entry behind it.
+- **CHANGELOG 2.7.4's orphaned paragraph** — an indented block with no heading
+  over it, the only structural break in 69 entries. It is a `### Fixed` item.
+- **`sw.js`'s "133 KB index.html"** is ~180, and 133 now collides with the film
+  count · section 104's comment credited the CSP hash to "section 10" when it is
+  43 · the README's file table omitted six `qa/` files.
+- **`NOTES.md` carries the reasoning** for the watchers, the watch-link key, the
+  merge invariant, the restore box, the surgical paths and the cache policy.
+  `docs/index.html` carries none of it: guard 65 allows two comment blocks in
+  that file and the explanations go where they are read.
+
+### Not in this release
+
+Recorded so it is not mistaken for missed. **Section 106's font verification** —
+it compares hashes to a manifest the subset script itself wrote, so
+narrow-run-widen-run leaves it green over tofu. A genuine hole; real coverage
+needs cmap inspection and a new dependency, and it is too big to ride a release
+this size. The ~60-item P3 tail, the shell hygiene, CI hardening, and
+`404.html`'s root link on the Pages mirror, which wants a decision rather than a
+patch.
+
+**And one gap this release opened and did not close:** nothing guards the README
+prose corrected above. Guard 77 reads the served HTML, so the retired move offer
+can return to the README without failing anything. Left as found rather than
+fixed, because a new watcher is new scope.
+
 ## [2.7.5] — 2026-08-04
 
 The header's two flankers finally match.
@@ -70,14 +284,16 @@ progress.
 
 The source link finds its seat, and the page checks that it parses.
 
+### Fixed
 
-  **The note breaks after its first sentence.** It read *Announced dates can
+- **The note breaks after its first sentence.** It read *Announced dates can
   move. · Build 2.7.4 · updated 2026-08-04 · read the source* — a middot placed
   after a full stop, joining a caveat about the catalogue to a run of build
   provenance as though they were one list. They are two different statements and
   they now sit on two lines. Not guarded: nothing depends on it, and a line
   break that carries no decision is exactly the sort of thing that should not
   acquire a rule.
+
 ### Changed
 
 - **The source link moved to Progress's build line, and it is legible now.**

@@ -35,7 +35,7 @@ assert a in s;s=s.replace(a,'else toast(\"Sharing files is not available here\")
 
 run_case "the apology text returns anywhere at all" \
   "still reports that sharing is unavailable" \
-  "${P}s=s.replace('function watchUrl(title){','function spare(){ toast(\"Sharing files is not available here\"); }\nfunction watchUrl(title){',1);${W}"
+  "${P}s=s.replace('function watchUrl(f){','function spare(){ toast(\"Sharing files is not available here\"); }\nfunction watchUrl(f){',1);${W}"
 
 run_case "a handler returns with no button to reach it" \
   "cardsave exists on only one side" \
@@ -43,16 +43,42 @@ run_case "a handler returns with no button to reach it" \
 
 echo "--- the header keeps its balance"
 
-# 2.7.5: the flankers are now checked against each other rather than a floor,
-# so this shrinks one of the pair and requires the mismatch to be named.
+# 2.7.5 checked the flankers against each other rather than against a floor.
+# 3.0.0 replaced equality with the owner's rule — the ring comes in strictly
+# UNDER the bat, no tolerance — and measures the glyph rather than its CSS box,
+# so both of these were re-anchored: the old ones named a message that no longer
+# exists and were pinned to r="20" stroke-width="4", which is why they reported
+# SETUP BROKE rather than passing over a rule that had changed underneath them.
 run_case "the bat shrinks back under the ring" \
-  "the header flankers do not match" \
+  "the readout is as wide as the mark or wider" \
   "${P}s=s.replace('.mark svg{display:block;width:44px;','.mark svg{display:block;width:32px;',1);${W}"
 
 run_case "the ring grows away from the bat instead" \
-  "the header flankers do not match" \
-  "${P}a='id=\"ringArc\" cx=\"23\" cy=\"23\" r=\"20\" fill=\"none\" stroke-width=\"4\"';assert a in s
-s=s.replace(a,'id=\"ringArc\" cx=\"23\" cy=\"23\" r=\"20\" fill=\"none\" stroke-width=\"12\"',1);${W}"
+  "the readout is as wide as the mark or wider" \
+  "${P}a='id=\"ringArc\" cx=\"23\" cy=\"23\" r=\"17.5\" fill=\"none\" stroke-width=\"3\"';assert a in s
+s=s.replace(a,'id=\"ringArc\" cx=\"23\" cy=\"23\" r=\"17.5\" fill=\"none\" stroke-width=\"12\"',1);${W}"
+
+# Equality is exactly what the owner's rule is not, and the first draft of 3.0.0
+# proposed r=18 — 40px drawn against a 39.81px bat, inside any sane tolerance
+# and over the mark. A rule with a direction in it has to reject this.
+run_case "the ring is brought back level with the bat" \
+  "the readout is as wide as the mark or wider" \
+  "${P}s=s.replace('r=\"17.5\" fill=\"none\" stroke-width=\"3\"','r=\"18\" fill=\"none\" stroke-width=\"4\"');${W}"
+
+# The other direction is silent rather than ugly: a ring far under the bat still
+# satisfies the rule and leaves the right-hand flank held up by nothing but the
+# percentage printed inside it.
+run_case "the ring shrinks until it is not a flanker any more" \
+  "so far under that the" \
+  "${P}s=s.replace('r=\"17.5\" fill=\"none\" stroke-width=\"3\"','r=\"8\" fill=\"none\" stroke-width=\"2\"');${W}"
+
+# And the measurement itself: pathBox() reads M/L/C/Z, and a glyph redrawn with
+# arcs or quadratics would go unmeasured, which is the failure mode of every
+# header release before this one.
+run_case "the bat is redrawn with a command the guard cannot measure" \
+  "extend pathBox() rather than letting the" \
+  "${P}import re;m=re.search(r'(<button class=\"mark\"[\\s\\S]*?</button>)',s);assert m
+b=m.group(1);nb=b.replace(' d=\"M',' d=\"A0 0 0 0 0 0 0M',1);s=s[:m.start(1)]+nb+s[m.end(1):];${W}"
 
 run_case "the bat overflows its own column" \
   "it overflows its own flank" \

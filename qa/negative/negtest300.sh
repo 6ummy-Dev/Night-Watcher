@@ -1,0 +1,341 @@
+#!/bin/bash
+# Negative-test 3.0.0's Stage 1 — the watchers.
+#
+# This suite is the gate the release was written around. Every check below
+# repairs an instrument that could not see, and the audit found each of them the
+# same way: by breaking something on purpose and watching a green build come
+# back. So a repair with no fixture under it is the same promise that had just
+# failed, and every one of them has a line here.
+#
+# The list, in the order the plan runs them: section 29's external-script sweep,
+# which had never matched the page it guards; section 43's CSP, which pinned
+# four of eleven directives and could bless the hash of a decoy script; the
+# service worker, which nothing had ever parsed; the viewport, whose deliberate
+# absence of maximum-scale holds up the whole argument of section 62 and was
+# unguarded; the share card's missing byte ceiling; section 108's unreachable
+# fallbacks; and smoke's NW1 check, which asserted a thing that could not match.
+. "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
+
+H2="import io;p='docs/_headers';s=io.open(p,encoding='utf-8').read();"
+HW2="io.open(p,'w',encoding='utf-8').write(s)"
+
+echo "--- 29: the external-script sweep matches the page it guards"
+
+# The bug, exactly as it shipped: the old pattern required a double-quoted src,
+# the page's only external script is single-quoted, and so a single-quoted
+# script added today went out green. Section 42's origin sweep is an ALLOW list
+# and already allows github.com for links, so nothing else caught it either.
+run_case "a single-quoted external script is added" \
+  "the app must run with no network" \
+  "${P}a='<!-- Cloudflare Web Analytics -->'
+assert a in s;s=s.replace(a,\"<script src='https://github.com/evil.js'></script>\"+a,1);${W}"
+
+run_case "a double-quoted external script is added" \
+  "the app must run with no network" \
+  "${P}a='<!-- Cloudflare Web Analytics -->'
+assert a in s;s=s.replace(a,'<script src=\"https://example.com/evil.js\"></script>'+a,1);${W}"
+
+# An empty sweep reads exactly like a clean sweep, which is how this went
+# unnoticed for eleven releases. The page has one external script by decision,
+# so finding none means the pattern has stopped matching, not that the page got
+# safer.
+run_case "the sweep finds nothing at all" \
+  "An empty sweep is not a clean sweep" \
+  "${P}import re;s=re.sub(r'<!-- Cloudflare Web Analytics -->.*?<!-- End Cloudflare Web Analytics -->','',s,flags=re.S);${W}"
+
+echo "--- 43: every directive the policy declares is pinned"
+
+# Deleting the beacon origin from script-src shipped green before 3.0.0. The
+# beacon is disclosed in the privacy copy and in SECURITY.md; dropping it from
+# the policy stops it without retiring it anywhere a reader would look.
+run_case "the beacon origin is dropped from script-src" \
+  "script-src no longer allows" \
+  "${P}s=s.replace(\"' https://static.cloudflareinsights.com; style-src\",\"'; style-src\",1);${W}"
+
+run_case "an unchecked directive is rewritten to a wildcard" \
+  "this build was reviewed with" \
+  "${P}s=s.replace(\"img-src 'self' data:\",'img-src *',1);${W}"
+
+run_case "connect-src is opened to anywhere" \
+  "this build was reviewed with" \
+  "${P}s=s.replace(\"connect-src 'self' https://cloudflareinsights.com\",'connect-src *',1);${W}"
+
+run_case "a directive is dropped from the policy" \
+  "CSP no longer sets worker-src" \
+  "${P}s=s.replace(\"worker-src 'self'; \",'',1);${W}"
+
+run_case "a directive arrives that nothing pins" \
+  "an unpinned directive is an unreviewed one" \
+  "${P}s=s.replace(\"; base-uri 'none'\",\"; frame-src *; base-uri 'none'\",1);${W}"
+
+run_case "an origin is smuggled into script-src beside the hash" \
+  "and nothing else belongs there" \
+  "${P}s=s.replace(' https://static.cloudflareinsights.com;',' https://static.cloudflareinsights.com https://cdn.example.com;',1);${W}"
+
+# THE ONE THAT MATTERED MOST. This section hashed the FIRST plain <script> and
+# section 46 parsed the LONGEST. With a small decoy above the application block
+# the two describe different code, this section reports a stale hash, and
+# `npm run bless` writes the hash of the decoy — both suites green over a page
+# whose CSP blocks the entire app. jsdom does not enforce meta CSP, so smoke
+# cannot see it either. The ambiguity is the bug, so the ambiguity is the fail.
+run_case "a second plain script is added above the application block" \
+  "plain <script> blocks" \
+  "${P}a='<!-- No trademarked logos'
+assert a in s;s=s.replace(a,'<script>var decoy=1;</script>'+a,1);${W}"
+
+echo "--- 11: the service worker is parsed, not just grepped"
+
+# Five sections grep sw.js as text and smoke never registers it, so a syntax
+# error in the one file that tells a returning browser the app changed left
+# both suites green and broke offline for every visitor.
+run_case "a syntax error is appended to sw.js" \
+  "docs/sw.js does not parse" \
+  "import io;p='docs/sw.js';s=io.open(p,encoding='utf-8').read()
+io.open(p,'w',encoding='utf-8').write(s+'\nfunction broken( {\n')"
+
+run_case "a quote is dropped inside sw.js" \
+  "docs/sw.js does not parse" \
+  "import io;p='docs/sw.js';s=io.open(p,encoding='utf-8').read()
+a='\"./index.html\"';assert a in s;s=s.replace(a,'\"./index.html',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+echo "--- 110: the page can still be pinch-zoomed"
+
+# Section 62 accepts this page's smallest controls only because a reader can
+# always zoom into them. That argument had nothing under it: both of these
+# shipped green through guards and smoke.
+run_case "the viewport caps zoom" \
+  "Capping zoom is a WCAG 1.4.4 failure" \
+  "${P}s=s.replace('initial-scale=1, viewport-fit=cover','initial-scale=1, maximum-scale=1, viewport-fit=cover',1);${W}"
+
+run_case "the viewport refuses zoom outright" \
+  "refuses to be pinch-zoomed at all" \
+  "${P}s=s.replace('initial-scale=1, viewport-fit=cover','initial-scale=1, user-scalable=no, viewport-fit=cover',1);${W}"
+
+run_case "the viewport stops sizing to the device" \
+  "no longer sets width=device-width" \
+  "${P}s=s.replace('content=\"width=device-width, initial-scale=1, viewport-fit=cover\"','content=\"width=1024, initial-scale=1, viewport-fit=cover\"',1);${W}"
+
+# 404.html was unchecked entirely, and it is the page a reader meets when they
+# are already lost.
+run_case "the 404 page caps zoom" \
+  "Capping zoom is a WCAG 1.4.4 failure" \
+  "import io;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
+a='width=device-width, initial-scale=1';assert a in s
+s=s.replace(a,a+', maximum-scale=1',1);io.open(p,'w',encoding='utf-8').write(s)"
+
+run_case "the 404 page loses its viewport" \
+  "has no viewport meta" \
+  "import io,re;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
+s=re.sub(r'<meta name=\"viewport\"[^>]*>','',s);io.open(p,'w',encoding='utf-8').write(s)"
+
+echo "--- 91: the share card has a byte ceiling"
+
+# The card ships at ~19.7 KB only because of a manual PIL quantize documented at
+# the top of make-share-card.mjs; the raw render is ~325 KB. This section read
+# buf.length only to print it, so a valid 1200x630 PNG of three megabytes passed.
+# The mutation keeps the file a strictly valid PNG — a tEXt chunk carrying a
+# large payload, inserted after IHDR — because a ceiling that only catches
+# corrupt files is not a ceiling.
+run_case "the card ships unquantized" \
+  "over the 60,000-byte ceiling" \
+  "import io,struct,zlib
+p='docs/share.png';b=io.open(p,'rb').read()
+i=8+8+struct.unpack('>I',b[8:12])[0]+4
+pay=b'Comment\x00'+(b'x'*200000)
+ch=b'tEXt'+pay
+out=b[:i]+struct.pack('>I',len(pay))+ch+struct.pack('>I',zlib.crc32(ch)&0xffffffff)+b[i:]
+io.open(p,'wb').write(out)"
+
+echo "--- 108: the fallbacks report instead of dying"
+
+# slice() THROWS on a missing marker, so slice(...) || HTML.slice(...) never
+# reached its fallback and the readable failure under it was unreachable with
+# it. Renaming the function ended the whole run with a raw stack trace — the
+# exact failure mode optionalFn() was written to prevent, twenty lines above
+# where it is defined.
+run_case "shareCardBlock is renamed out from under the guard" \
+  "shareCardBlock() is gone" \
+  "${P}s=s.replace('function shareCardBlock','function shareCardPanel');${W}"
+
+echo "--- smoke: the NW1 check tests the thing it names"
+
+# It asserted the code starts NW3W and then did code.replace(/^NW2/,"NW1"),
+# which cannot match — so it imported an NW3 code and duplicated the line below
+# it. Deleting NW1 support from the app left it green. It does not now.
+run_case "NW1 support is deleted from the parser" \
+  "an NW1 code from 1.0.0 still restores" \
+  "${P}a='if(!/^NW\\\\d+(?:[A-Z][0-9a-z]*)+\$/.test(code)) return null;'
+assert a in s;s=s.replace(a,'if(!/^NW[23](?:[A-Z][0-9a-z]*)+\$/.test(code)) return null;',1);${W}" \
+  "smoke" "main"
+
+run_case "the pre-3 rating layout is dropped" \
+  "an NW1 code from 1.0.0 still restores" \
+  "${P}a='  if(ver >= 3){';assert a in s;s=s.replace(a,'  if(true){',1);${W}" \
+  "smoke" "main"
+
+echo "--- 109: every count on Progress is a way into the list"
+
+# Stage 3 made the three figures buttons. That they ARE buttons is section 40;
+# that they land somewhere real is this. A filter renamed in chipSet() leaves a
+# tile pointing at a slice the app no longer offers, and the app answers a tap
+# by rendering The path with a filter nothing matches — which looks exactly like
+# an empty catalogue rather than like a broken link.
+run_case "a filter is renamed under the tile that points at it" \
+  "chipSet() does not offer it" \
+  "${P}a='[\"skip\",\"Skipped\"]';assert a in s;s=s.replace(a,'[\"skipped\",\"Skipped\"]',1);${W}"
+
+run_case "the Skipped filter is removed and the tile is left behind" \
+  "chipSet() does not offer it" \
+  "${P}a='[\"skip\",\"Skipped\"],';assert a in s;s=s.replace(a,'',1);${W}"
+
+run_case "a count goes back to being a figure with nowhere to go" \
+  "all three counts are a way in or none of them is" \
+  "${P}a='scoreTile(\"skip\", c.skip, \"Skipped\", \"sc-skip\")+'
+assert a in s;s=s.replace(a,'\\'<button data-act=\"tier\" data-tf=\"done\"><b class=\"sc-skip\">\\'+c.skip+\\'</b><span>Skipped</span></button>\\'+',1);${W}"
+
+echo "--- 44: the watch link searches for the entry's own production"
+
+# THE ONE DEFECT A USER MET, and until this release the guard enforced it.
+# titleYear() keyed on the title alone and took the earliest year anywhere in
+# the catalogue, so The Batman (2022) sent a reader to search for the 2004
+# cartoon. Section 44 required exactly that and only looked for collisions
+# between DIFFERENT titles, so it certified the wrong answer for eleven
+# releases. Reverting the key has to be caught by the rule now, not blessed.
+run_case "the year goes back to being keyed on the title alone" \
+  "the reader is sent to a different production" \
+  "${P}a='      var k = g.t + \"|\" + g.gi;';assert a in s;s=s.replace(a,'      var k = g.t;',1)
+b='  return TITLEYEAR[f.t + \"|\" + f.gi];';assert b in s;s=s.replace(b,'  return TITLEYEAR[f.t];',1);${W}"
+
+run_case "the link hands over the title instead of the entry" \
+  "no longer hands watchUrl() the entry" \
+  "${P}a='watchUrl(f)+';assert a in s;s=s.replace(a,'watchUrl(f.t)+',1);${W}"
+
+# The other direction: a year that is not any entry's year in that universe.
+run_case "the year is taken from the wrong end of the universe" \
+  "the first year this title appears in its own universe" \
+  "${P}a='if(TITLEYEAR[k] === undefined || g.y < TITLEYEAR[k]) TITLEYEAR[k] = g.y;'
+assert a in s;s=s.replace(a,'if(TITLEYEAR[k] === undefined || g.y > TITLEYEAR[k]) TITLEYEAR[k] = g.y;',1);${W}"
+
+# And in the browser, by name. A count would still pass if the wrong six were
+# fixed, so the six entries are named in smoke and asserted one at a time.
+run_case "The Batman (2022) is sent back to the 2004 cartoon" \
+  "The Batman (2022) searches for its own year" \
+  "${P}a='  return TITLEYEAR[f.t + \"|\" + f.gi];';assert a in s
+s=s.replace(a,'  return TITLEYEAR[f.t + \"|\" + f.gi] === 2022 ? 2004 : TITLEYEAR[f.t + \"|\" + f.gi];',1);${W}" \
+  "smoke" "main"
+
+echo "--- the surgical paths stay byte-identical to the full render"
+
+# The danger with a fast path is not that it is wrong on the day, it is that it
+# drifts from the builder afterwards and nothing says so. The gate is arithmetic
+# rather than review: every targeted repaint must leave a DOM that serialises
+# byte-for-byte identically to a forced full render, header and document-level
+# attributes included. These four mutations are the four ways it drifts.
+run_case "the group toggle forgets the Collapse all button" \
+  "byte-identical to a full render" \
+  "${P}a='    all.textContent = ao ? \"Collapse all\" : \"Expand all\";'
+assert a in s;s=s.replace(a,'',1);${W}" \
+  "smoke" "main"
+
+run_case "the row repaint drops the open class" \
+  "byte-identical to a full render" \
+  "${P}a='  scratch.innerHTML = filmRow(f);'
+assert a in s;s=s.replace(a,'  scratch.innerHTML = filmRow(f).replace(\' open\\\"\', \'\\\"\');',1);${W}" \
+  "smoke" "main"
+
+run_case "the theme toggle leaves the buttons stale" \
+  "byte-identical to a full render" \
+  "${P}a='    b.setAttribute(\"aria-pressed\", String(S.theme === b.dataset.theme));'
+assert a in s;s=s.replace(a,'',1);${W}" \
+  "smoke" "main"
+
+# applyTheme() moves two document-level attributes and this drops the second.
+# The status-bar check catches it first, which is the right answer — the gate is
+# the backstop, not the only thing looking.
+run_case "the theme toggle leaves the status bar behind" \
+  "darker repaints the status bar" \
+  "${P}a='function themeUpdate(){\n  applyTheme();'
+assert a in s;s=s.replace(a,'function themeUpdate(){\n  document.documentElement.setAttribute(\"data-theme\", S.theme);',1);${W}" \
+  "smoke" "main"
+
+# One builder, or two that drift. filmRow() was pulled out of groupBlock()
+# rather than reimplemented for exactly this reason.
+run_case "the row builder is reimplemented for the fast path" \
+  "byte-identical to a full render" \
+  "${P}a='  scratch.innerHTML = filmRow(f);'
+assert a in s;s=s.replace(a,'  scratch.innerHTML = \\'<div class=\"film\"><div class=\"frow\"></div></div>\\';',1);${W}" \
+  "smoke" "main"
+
+echo "--- 111: watched and skipped are never both true"
+
+run_case "the cross-tab merge stops clearing the skip" \
+  "clears this tab's skip" \
+  "${P}a='  for(k in (o.watched || {})){ if(!S.watched[k]){ S.watched[k] = 1; delete S.skipped[k]; moved++; } }'
+assert a in s;s=s.replace(a,'  for(k in (o.watched || {})){ if(!S.watched[k]){ S.watched[k] = 1; moved++; } }',1);${W}" \
+  "smoke" "main"
+
+run_case "applyImport stops clearing the skip" \
+  "restored backup code clears a skip" \
+  "${P}a='S.watched[id] = 1; delete S.skipped[id]; S.log.push'
+assert a in s;s=s.replace(a,'S.watched[id] = 1; S.log.push',1);${W}" \
+  "smoke" "main"
+
+run_case "the JSON restore stops clearing the skip" \
+  "restored JSON backup clears a skip" \
+  "${P}a='{ S.watched[id3] = 1; delete S.skipped[id3]; }'
+assert a in s;s=s.replace(a,'{ S.watched[id3] = 1; }',1);${W}" \
+  "smoke" "main"
+
+# And the guard, from the other side: the three sites are found by name, so a
+# site that loses the line fails the build without a browser.
+run_case "a merge site loses the line and the guard says which" \
+  "an entry can come back watched AND skipped" \
+  "${P}a='S.watched[id] = 1; delete S.skipped[id]; S.log.push'
+assert a in s;s=s.replace(a,'S.watched[id] = 1; S.log.push',1);${W}"
+
+run_case "the log merge is copied back out to a call site" \
+  "the log-merge dance appears" \
+  "${P}a='  if(Array.isArray(o.log)) moved += mergeLog(o.log);'
+assert a in s
+s=s.replace(a,'  if(Array.isArray(o.log)){ var have={}; S.log.forEach(function(x){have[x.id]=1;}); o.log.forEach(function(en){ if(en \&\& en.id \&\& isFinite(en.ts) \&\& !have[en.id]){ S.log.push({id:String(en.id),ts:Number(en.ts)}); have[en.id]=1; moved++; } }); S.log.sort(function(a,b){return a.ts-b.ts;}); }',1);${W}"
+
+echo "--- 112: the Restore box survives a render nobody asked for"
+
+run_case "render stops carrying the paste across" \
+  "does not wipe the paste" \
+  "${P}a='  if(rb && rbVal){';assert a in s;s=s.replace(a,'  if(false && rb && rbVal){',1);${W}" \
+  "smoke" "main"
+
+run_case "the preservation is dropped out of render entirely" \
+  "render() does not preserve #restorebox" \
+  "${P}import re;a='  var rbPrev = document.getElementById(\"restorebox\");'
+assert a in s;s=s.replace(a,'  var rbPrev = null;',1)
+i=s.index('  var rb = document.getElementById(\"restorebox\");');j=s.index('  if(keep) window.scrollTo',i)
+s=s[:i]+s[j:];${W}"
+
+echo "--- 104: the cache policy, pinned the moment it exists"
+
+run_case "sw.js loses its no-cache rule" \
+  "docs/_headers has no /sw.js rule" \
+  "${H2}import re;s=re.sub(r'\n/sw\.js\n  Cache-Control: no-cache\n','\n',s);${HW2}"
+
+run_case "sw.js is given a lifetime instead" \
+  "no longer sets Cache-Control on /sw.js" \
+  "${H2}s=s.replace('  Cache-Control: no-cache','  Cache-Control: public, max-age=3600',1);${HW2}"
+
+run_case "the fonts lose their year" \
+  "no longer sets Cache-Control on /fonts/*" \
+  "${H2}s=s.replace('  Cache-Control: public, max-age=31536000, immutable','  Cache-Control: public, max-age=60',1);${HW2}"
+
+run_case "the fonts rule is dropped" \
+  "docs/_headers has no /fonts/* rule" \
+  "${H2}import re;s=re.sub(r'\n/fonts/\*\n  Cache-Control:[^\n]*\n','\n',s);${HW2}"
+
+# A blanket rule under /* covers sw.js, and the two want opposite answers.
+run_case "a blanket cache policy is set under the star rule" \
+  "which covers sw.js" \
+  "${H2}s=s.replace('  X-Frame-Options: DENY','  X-Frame-Options: DENY\n  Cache-Control: public, max-age=3600',1);${HW2}"
+
+rm -rf "$NEG"
+finish "3.0.0 negative tests"

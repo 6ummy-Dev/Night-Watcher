@@ -56,9 +56,24 @@ run_case "the terminal era is deleted under the entries that need it" \
   "${P}import re;s=re.sub(r' \{k:11,[^\n]*\n','',s);${W}"
 
 echo "--- the by-universe chip"
+# 3.0.0: THIS FIXTURE NAMED THE WRONG CHECK. The mutation is right for what the
+# label says — putting the chip back to the group's position number — but the
+# expected string was copied from a different check further down the same phase,
+# and that check's name appears in the "ok" lines of a passing run, so the old
+# whole-output grep reported PASS against a green suite. The mutation trips
+# "a path number is the universe's real tag"; that is what it expects now.
 run_case "the chip goes back to counting positions" \
-  "an era renders in life order" \
+  "a path number is the universe's real tag" \
   "${P}a='tag:eraTag(g)';assert a in s;s=s.replace(a,'tag:g.n');${W}" \
+  "smoke" "main"
+
+echo "--- 68: the life order is a sort, not the order the file is typed in"
+# And the check the fixture above used to name had no fixture of its own, which
+# is how the mistake survived: dropping the lo: term from the comparator is the
+# 1.7.1 regression, and it went unproven until this line existed.
+run_case "the life comparator loses its position term" \
+  "an era renders in life order" \
+  "${P}a='((a.lo || 9999) - (b.lo || 9999)) || ';assert a in s;s=s.replace(a,'',1);${W}" \
   "smoke" "main"
 
 echo "--- the lead card"

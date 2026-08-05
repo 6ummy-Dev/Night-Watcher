@@ -7,10 +7,12 @@ A single-file web app mapping every Batman story ever filmed — animated and li
 **Live:** https://nightwatcher.life/
 
 Served from Cloudflare Workers (static assets). The old GitHub Pages address
-still works and always will \u2014 progress is stored per-origin, so it is the only
-place anyone's old progress can be read, and the app offers to carry it across
-when opened there. A Pages custom domain would have turned that address into a
-redirect, and a redirect runs no JavaScript.
+still works and always will — progress is stored per-origin, so it is the only
+place anyone's old progress can be read. The offer to carry that progress across
+was retired in 2.5.1, and guard 77 fails the build if it comes back; what the old
+address does now is serve the same tree with `noindex` injected, so the two
+addresses never compete in search. A Pages custom domain would have turned that
+address into a redirect, and a redirect runs no JavaScript.
 
 ## What it does
 
@@ -34,7 +36,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code at all** — *guarded.* Not one line vendored, and nothing fetched at runtime except the cookie-free analytics beacon named above, which is the single deliberate exception and is allowlisted by name in `qa/guards.js`. The app runs with the network off.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 200 KB raw and 80 KB gzipped; it is currently 180 KB / 52 KB (rounded — the raw file sits at 179.6, essentially flat on 2.7.2: the share block lost a button, the footer gained a link, and the header grew). **The page was never the whole story.** 2.7.0 subset five of the six webfonts, taking the fonts from 116 KB to 62 KB, so the first visit costs 241 KB rather than 296 — an 18% cut that the page's own budget could not see, because it does not count them. The ceilings have moved four times — 150 → 160 in 1.9.5 (ratings data), 160 → 165 in 2.0.0 (the progress card), and 165 → 200 raw with the first-ever gzip raise, 50 → 80, in 2.5.0 (the full-catalogue seed) — every raise an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 200 KB raw and 80 KB gzipped; it is currently 182 KB / 53 KB (rounded — the raw file sits at 181.9, up ~2 KB on 2.7.5: 3.0.0 added a Skipped filter, three surgical repaint paths and a shared log merge, and took three comment blocks back out to NOTES.md). **The page was never the whole story.** 2.7.0 subset five of the six webfonts, taking the fonts from 116 KB to 62 KB, so the first visit costs 241 KB rather than 296 — an 18% cut that the page's own budget could not see, because it does not count them. The ceilings have moved four times — 150 → 160 in 1.9.5 (ratings data), 160 → 165 in 2.0.0 (the progress card), and 165 → 200 raw with the first-ever gzip raise, 50 → 80, in 2.5.0 (the full-catalogue seed) — every raise an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -97,6 +99,13 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `qa/frozen-ids.json` | Snapshot of every `i:` slug, so a rename can't slip through |
 | `qa/smoke.js` | Optional headless render test (requires jsdom) |
 | `qa/negative/` | One suite per release: each fixture breaks a guard on purpose and asserts it fails |
+| `qa/renamed-ids.json` | The one recorded slug rename, and the closed window that allowed it |
+| `qa/retired-ids.json` | Slugs that left the catalogue, so a reused id cannot mean two things |
+| `qa/font-subset.json` | Bytes and hash of every shipped face, blessed by the subset script |
+| `qa/subset-fonts.py` | Rebuilds the subset faces from the catalogue's own codepoints |
+| `qa/make-share-card.mjs` | Draws `docs/share.png` from the tree, so the card cannot drift |
+| `qa/share-card.html` | The card's layout, rendered headless by the script above |
+| `qa/browser-check.mjs` | A real browser at 390×844, for the header and the jumps jsdom cannot see |
 | `CHANGELOG.md` | Every shipped change, newest first. Enforced by the guards |
 | `LICENSE` | AGPL-3.0 for the code, with the writing, DC's marks and the fonts set out separately |
 | `SECURITY.md` | How to report something privately |
@@ -121,7 +130,7 @@ Zero dependencies, and every function under test is **extracted from `docs/index
 **Deployment and bookkeeping.** Nothing deployable strays to the repo root, `wrangler.jsonc` points at the served directory with SPA fallback off, and `sw.js`, `index.html` and `CHANGELOG.md` all agree on the version. The four headline counts in this README — and the counts baked into the `<meta>` and `og:` description tags — match the data.
 
 Every guard has been negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 33 negative suites, 392
+trusted. That evidence lives in `qa/negative/` — 34 negative suites, 444
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all — concurrently, one suite per core, since the suites are
@@ -129,7 +138,7 @@ independent — and CI runs them on every push and again nightly. All three
 counts in this paragraph and the one above are themselves guarded, because they
 have drifted twice.
 
-There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. It drives the path end to end: the chooser on first run, choosing through the real click handler, a reload returning on the same path and theme, a 1.1.0 save migrating without being asked again, a shared link that does not change what is stored, and a borrowed ordering that can always be stepped back out of, and every one of the eight shareable link tokens. 278 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
+There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. It drives the path end to end: the chooser on first run, choosing through the real click handler, a reload returning on the same path and theme, a 1.1.0 save migrating without being asked again, a shared link that does not change what is stored, and a borrowed ordering that can always be stepped back out of, and every one of the eight shareable link tokens. 293 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
 
 ## Releasing
 

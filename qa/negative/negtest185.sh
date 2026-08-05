@@ -83,10 +83,17 @@ run_case "the chip is taken off the filtered list" \
   "${P}a='tag:eraTag(g),';assert a in s
 s=s.replace(a,'tag:eraTag({films:g.films.filter(function(f){return f.k!==\"tv\";})}),',1);${W}"
 
+# 3.0.0: THIS MUTATION TRIPPED NOTHING AT ALL. It made eraTag() read a list
+# with television removed on BOTH scopes, so the chip was consistently wrong and
+# the invariant this check asserts — that the number does not change when the
+# scope does — still held. It reported PASS only because the check's name is
+# printed on every green run and the old harness grepped the green lines too.
+# The mutation now filters on the live scope, which is the regression the check
+# was written against: The Batman (2004) reads 2 with series shown and 3 without.
 run_case "and the rendered chip moves when the scope does" \
   "the universe chip does not move when the scope does" \
   "${P}a='tag:eraTag(g),';assert a in s
-s=s.replace(a,'tag:eraTag({films:g.films.filter(function(f){return f.k!==\"tv\";})}),',1);${W}" \
+s=s.replace(a,'tag:eraTag(S.scope===\"movies\"?{films:g.films.filter(function(f){return f.k!==\"tv\";})}:g),',1);${W}" \
   "smoke" "main"
 
 echo "--- 89: the amnesty window is closed"

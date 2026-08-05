@@ -21,7 +21,7 @@ s=s.replace(a,'<div class=\"hbadges\">'+chr(39)+'+badges(f)',1);${W}"
 
 run_case "a fourth seat appears that nobody named" \
   "ratingBadge() is called" \
-  "${P}a='function watchUrl(title){';assert a in s
+  "${P}a='function watchUrl(f){';assert a in s
 s=s.replace(a,'function spare(f){ return ratingBadge(f); }\n'+a,1);${W}"
 
 echo "--- 96: the buckle fits the narrowest phone"

@@ -53,6 +53,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      19   Rating writes go through the clamp
      21   A blocked store has to say so
      35   The log holds one entry per id
+     111  Watched and skipped are never both true
      50   Rating and progress stay separate
      87   A backup carries progress, not settings
      102  A tick burst writes once, and leaving flushes
@@ -103,6 +104,9 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      61   Contrast is measured on the ink that renders
      62   Nothing focusable is small enough to zoom
      75   A control is as big as a finger
+     109  Every count on Progress is a way into the list
+     110  The page can still be pinch-zoomed
+     112  The Restore box survives a render nobody asked for
 
    DEPLOY
      10   No vendored third-party code
@@ -164,6 +168,17 @@ function slice(from, to){
   var a = HTML.indexOf(from);
   var b = HTML.indexOf(to, a);
   if(a < 0 || b < 0) throw new Error("cannot locate source block: " + from);
+  return HTML.slice(a, b);
+}
+/* sliceOr() is slice() for the call sites that wrote `slice(…) || fallback`
+   and meant it. slice() throws, so those fallbacks were unreachable and the
+   readable failure underneath them was unreachable with it — section 108 ended
+   the run with a stack trace instead. Same relationship as fn()/optionalFn(),
+   for the same reason: a guard that dies is a guard that says nothing. */
+function sliceOr(from, to){
+  var a = HTML.indexOf(from);
+  var b = HTML.indexOf(to, a);
+  if(a < 0 || b < 0) return "";
   return HTML.slice(a, b);
 }
 /* fn() throws when a function is missing, which ends the run with a stack trace
@@ -300,15 +315,15 @@ if(fs.existsSync(RETIREDFILE)){
     RETIRED[k] = rl[k];
   });
 }
-var ids = FILMS.map(function(f){ return f.id; }).sort();
-ids.forEach(function(i){
+var filmIds = FILMS.map(function(f){ return f.id; }).sort();
+filmIds.forEach(function(i){
   if(RETIRED[i]) fail("retired id is back in the data: " + i +
                       " \u2014 removal is not reversible by re-adding the slug");
   if(RENAMED[i]) fail("renamed id is back in the data: " + i + " \u2014 it was renamed to " +
                       RENAMED[i] + ", and having both is worse than having either");
 });
 Object.keys(RENAMED).forEach(function(k){
-  if(ids.indexOf(RENAMED[k]) < 0){
+  if(filmIds.indexOf(RENAMED[k]) < 0){
     fail("renamed-ids.json says " + k + " became " + RENAMED[k] +
          ", which is not in the catalogue");
   }
@@ -326,13 +341,13 @@ if(BLESS){
       warn("retired-ids.json lists " + k + ", which was never frozen");
     }
   });
-  fs.writeFileSync(SNAP, JSON.stringify(ids, null, 1) + "\n");
-  note("blessed frozen-ids.json with " + ids.length + " ids");
+  fs.writeFileSync(SNAP, JSON.stringify(filmIds, null, 1) + "\n");
+  note("blessed frozen-ids.json with " + filmIds.length + " ids");
 } else if(!fs.existsSync(SNAP)){
   warn("no qa/frozen-ids.json yet — run: node qa/guards.js --bless");
 } else {
   var prev = JSON.parse(fs.readFileSync(SNAP, "utf8"));
-  var now = {}; ids.forEach(function(i){ now[i] = 1; });
+  var now = {}; filmIds.forEach(function(i){ now[i] = 1; });
   var was = {}; prev.forEach(function(i){ was[i] = 1; });
   prev.forEach(function(i){
     if(!now[i] && !RETIRED[i] && !RENAMED[i]){
@@ -340,7 +355,7 @@ if(BLESS){
     }
     if(!now[i] && RENAMED[i]) note("renamed since the last bless: " + i + " -> " + RENAMED[i]);
   });
-  var added = ids.filter(function(i){ return !was[i]; });
+  var added = filmIds.filter(function(i){ return !was[i]; });
   if(added.length) note(added.length + " new id(s) added — safe. Re-bless when ready.");
 }
 
@@ -554,14 +569,30 @@ if(vendored){
 
 var buildM = HTML.match(/var BUILD = "([^"]+)"/);
 var swPath = path.join(PUBLIC, "sw.js");
+var SW = "";
 if(!buildM) fail("cannot find BUILD in index.html");
 if(!fs.existsSync(swPath)) fail("sw.js is missing but index.html registers it");
 else {
-  var verM = fs.readFileSync(swPath, "utf8").match(/var VERSION\s*=\s*"([^"]+)"/);
+  SW = fs.readFileSync(swPath, "utf8");
+  var verM = SW.match(/var VERSION\s*=\s*"([^"]+)"/);
   if(!verM) fail("cannot find VERSION in sw.js");
   else if(buildM && verM[1] !== buildM[1]){
     fail("sw.js VERSION (" + verM[1] + ") != index.html BUILD (" + buildM[1] +
          ") — old caches will never be retired");
+  }
+  /* 3.0.0: SW.JS WAS NEVER PARSED BY ANYTHING. Five sections grep its text and
+     smoke never registers it, so a syntax error appended to this file left both
+     suites green while offline broke for every visitor — confirmed by doing it.
+     That is the failure class 2.7.4 added new vm.Script() for, applied to
+     index.html and never extended to the other file that ships. Three lines.
+     Compiling does not run it: the worker's globals do not exist here, and the
+     question is only whether a browser could parse what we shipped. */
+  try {
+    new vm.Script(SW, {filename: "docs/sw.js"});
+  } catch(e){
+    fail("docs/sw.js does not parse: " + e.message + " — the browser would " +
+         "refuse to register it, every returning visitor would stay on the old " +
+         "app, and nothing else in this suite reads it as anything but text");
   }
 }
 
@@ -1175,12 +1206,25 @@ if(gzipKB > 80) fail("index.html is " + gzipKB.toFixed(1) + " KB gzipped, over t
    third-party code in index.html at all \u2014 the vendored QR encoder was the last
    of it and came out in 1.2.4; guard 10 fails if it returns. Nothing may be
    fetched at runtime either. */
-var ext = HTML.match(/<script[^>]+src="https?:\/\/[^"]+"/g) || [];
+/* 3.0.0: THIS REGEX HAD NEVER MATCHED THE PAGE. It required a double-quoted
+   src, and the only external script the page has ever carried — the disclosed
+   Cloudflare beacon — is written with single quotes, and `git log -S` says it
+   always was. So the match array was empty on every run since the section was
+   written, the carve-out below never once executed, and a script element added
+   today with single quotes shipped green: section 42's origin sweep is an ALLOW
+   list and already allows github.com for links. Quote style is not part of the
+   rule, so it is no longer part of the pattern. */
+var ext = HTML.match(/<script[^>]+src=["']https?:\/\/[^"']+["']/g) || [];
 ext.forEach(function(tag){
   if(tag.indexOf("cloudflareinsights") < 0){
     fail("index.html loads external script " + tag + " — the app must run with no network");
   }
 });
+if(!ext.length){
+  fail("section 29 found no external script tag at all — the disclosed " +
+       "Cloudflare beacon is one, so either it has gone or this pattern has " +
+       "stopped matching the page. An empty sweep is not a clean sweep");
+}
 
 /* ---------- 30. Documented spoiler order holds ------------------------ */
 /* By-universe renders in array order, so the array IS the watch order. Group
@@ -1283,8 +1327,14 @@ if(!/function titleYear\s*\(/.test(HTML)){
   vm.runInContext(fn("titleYear") + "\n" + watchSrc, sandbox);
 }
 
+/* 3.0.0: watchUrl() takes the ENTRY, not the title. A title alone cannot say
+   which production it means, which is the whole of Stage 2 — so these read the
+   real entry out of the catalogue rather than passing a string that would have
+   to be resolved by guessing. */
 ["Batman: Soul of the Dragon", "Teen Titans Go! vs. Teen Titans", "Harley Quinn"].forEach(function(t){
-  var u = sandbox.watchUrl(t);
+  var entry = FILMS.filter(function(f){ return f.t === t; })[0];
+  if(!entry){ fail("the catalogue no longer carries \"" + t + "\""); return; }
+  var u = sandbox.watchUrl(entry);
   if(u.indexOf("https://search.brave.com/search?q=") !== 0){
     fail("the watch link is not a Brave search \u2014 " + u);
   }
@@ -1297,7 +1347,8 @@ if(!/function titleYear\s*\(/.test(HTML)){
 });
 
 /* No country, no locale, nothing that can 404 per market. */
-var u0 = sandbox.watchUrl("Batman");
+var u0 = sandbox.watchUrl(FILMS.filter(function(f){ return f.t === "Batman"; })[0] ||
+                          {t: "Batman", gi: -1});
 if(/\/(us|uy|uk|gb|br|de|fr|mx|es)\//.test(u0)){
   fail("the watch link carries a country path again \u2014 " + u0);
 }
@@ -1621,9 +1672,32 @@ if((HTML.match(/[^n] scoreboard\(c\)|\+scoreboard\(c\)/g) || []).length !== 1){
 ["sc-done", "sc-left", "sc-skip"].forEach(function(cl){
   if(HTML.indexOf(cl) < 0) fail("the scoreboard lost its ." + cl + " colour hook");
 });
-if(!/\.bigstat div\{[^}]*text-align:center/.test(HTML)){
+if(!/\.bigstat button\{[^}]*text-align:center/.test(HTML)){
   fail("scoreboard numbers are no longer centred");
 }
+/* 2.8.0 made the three tiles controls. Each lands on the matching filter in
+   The path by reusing data-act="tier", which already reads data-tf — one
+   handler for "send me to this slice", not two. The tiles are asserted to BE
+   buttons here; that they land somewhere real is section 109's job. */
+(function(){
+  var block = (HTML.match(/class="bigstat">[\s\S]*?scoreTile\("skip"[^;]*/) || [""])[0];
+  var sb = fn("scoreboard") + fn("scoreTile");
+  if(!/<button data-act="tier" data-tf="/.test(sb)){
+    fail("the scoreboard tiles are not buttons any more — the counts went back " +
+         "to being text, and Progress has no way into the slice it is counting");
+  }
+  ["done", "left", "skip"].forEach(function(tf){
+    if(sb.indexOf('"' + tf + '"') < 0){
+      fail("the scoreboard has no tile for the \"" + tf + "\" filter — all three " +
+           "counts are a way in or none of them is");
+    }
+  });
+  if(!/aria-label="'\+n\+' '\+/.test(sb)){
+    fail("a scoreboard tile has no accessible name carrying its number — the " +
+         "visible content is a bare figure and a word, so the name has to say " +
+         "what tapping it does");
+  }
+})();
 /* Palette only. A new hex here would be a second identity. */
 var scCss = HTML.match(/\.bigstat \.sc-[a-z]+\{[^}]*\}/g) || [];
 scCss.forEach(function(rule){
@@ -1711,23 +1785,108 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
 
 /* ---------- 43. Content-Security-Policy ------------------------------- */
 /* The hash changes with every edit to the script, so it has to be recomputed
-   from the file rather than trusted. */
+   from the file rather than trusted.
+
+   3.0.0 REWROTE THIS SECTION, AND IT WAS THE MOST SEVERE THING THE 2.7.5 AUDIT
+   FOUND. Two holes, and the second is worse than the first.
+
+   IT PINNED FOUR OF ELEVEN DIRECTIVES. The other seven were unchecked, so
+   deleting static.cloudflareinsights.com from script-src shipped green and the
+   disclosed beacon would simply have stopped; rewriting img-src, font-src,
+   connect-src, style-src, worker-src and manifest-src to * shipped green as
+   well. Every directive the page declares is now pinned to its exact value,
+   and a directive the page declares that is NOT named here fails too \u2014 an
+   unrecognised directive is an unreviewed one.
+
+   AND THE HASH COULD BLESS THE WRONG SCRIPT. This section hashes the FIRST
+   plain <script>; section 46's parse check takes the LONGEST. Today there is
+   exactly one, so the two agree by luck. Add a small inline script above the
+   application block and this section goes red with "stale hash \u2014 fix with
+   npm run bless", and `npm run bless` then writes the hash of the decoy: both
+   suites green over a page whose CSP blocks the entire application, and jsdom
+   does not enforce meta CSP so smoke cannot see it either. The fix is not a
+   better choice of script. A single hash cannot describe two scripts, so the
+   AMBIGUITY is the bug: more than one plain <script> fails the build. */
 
 (function(){
+  /* Every directive the policy declares, with the value it must declare.
+     script-src is the one that legitimately moves, and it is checked below
+     against its own rule: the beacon origin, the hash, and nothing else. */
+  var PINNED = {
+    "default-src":  "'none'",
+    "style-src":    "'self' 'unsafe-inline'",
+    "font-src":     "'self'",
+    "img-src":      "'self' data:",
+    "manifest-src": "'self'",
+    "connect-src":  "'self' https://cloudflareinsights.com",
+    "worker-src":   "'self'",
+    "base-uri":     "'none'",
+    "form-action":  "'none'",
+    "object-src":   "'none'"
+  };
+  var BEACON = "https://static.cloudflareinsights.com";
+
   var meta = HTML.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/);
   if(!meta){ fail("the Content-Security-Policy meta tag is gone"); return; }
   var csp = meta[1];
-  [["default-src", "'none'"], ["object-src", "'none'"],
-   ["base-uri", "'none'"], ["form-action", "'none'"]].forEach(function(d){
-    if(csp.indexOf(d[0] + " " + d[1]) < 0) fail("CSP no longer sets " + d[0] + " " + d[1]);
+
+  var got = {};
+  csp.split(";").forEach(function(part){
+    var s = part.trim();
+    if(!s) return;
+    var sp = s.indexOf(" ");
+    if(sp < 0){ got[s] = ""; return; }
+    got[s.slice(0, sp)] = s.slice(sp + 1).trim();
   });
+
+  Object.keys(PINNED).forEach(function(d){
+    if(!(d in got)){
+      fail("CSP no longer sets " + d + " \u2014 it fell back to default-src or to " +
+           "the browser, and neither is the policy this page was reviewed with");
+    } else if(got[d] !== PINNED[d]){
+      fail("CSP sets " + d + " to \"" + got[d] + "\"; this build was reviewed " +
+           "with \"" + PINNED[d] + "\". Change the pin in the same commit as " +
+           "the policy, or the policy is unreviewed");
+    }
+  });
+  Object.keys(got).forEach(function(d){
+    if(d !== "script-src" && !(d in PINNED)){
+      fail("CSP declares " + d + ", which nothing here checks \u2014 a directive " +
+           "arrived without a pin, and an unpinned directive is an unreviewed one");
+    }
+  });
+
   if(/'unsafe-eval'/.test(csp)) fail("CSP allows unsafe-eval");
   if(/script-src[^;]*'unsafe-inline'/.test(csp)){
     fail("CSP allows unsafe-inline scripts \u2014 the hash is there so it does not have to");
   }
+  var scriptSrc = got["script-src"] || "";
+  if(scriptSrc.indexOf(BEACON) < 0){
+    fail("script-src no longer allows " + BEACON + " \u2014 the analytics beacon is " +
+         "disclosed in the privacy copy and in SECURITY.md, and dropping it " +
+         "from the policy stops it without retiring it anywhere a reader looks");
+  }
+  scriptSrc.split(/\s+/).filter(Boolean).forEach(function(tok){
+    if(tok === BEACON || /^'sha256-[A-Za-z0-9+/=]+'$/.test(tok)) return;
+    fail("script-src carries " + tok + " \u2014 this page runs one hashed inline " +
+         "block and one disclosed beacon origin, and nothing else belongs there");
+  });
+
+  /* ONE PLAIN SCRIPT. A single hash cannot describe two, and the two suites
+     that read "the inline script" disagree about which one they mean. */
+  var plain = HTML.match(/<script>[\s\S]*?<\/script>/g) || [];
+  if(plain.length !== 1){
+    fail("index.html carries " + plain.length + " plain <script> blocks. This " +
+         "section hashes the first and section 46 parses the longest, so with " +
+         "more than one they describe different code \u2014 and `npm run bless` " +
+         "would write the hash of whichever came first, shipping a green build " +
+         "over a page whose CSP blocks the application");
+    return;
+  }
+
   var declared = (csp.match(/'sha256-([A-Za-z0-9+/=]+)'/) || [])[1];
   if(!declared){ fail("CSP has no script hash"); return; }
-  var body = (HTML.match(/<script>([\s\S]*?)<\/script>/) || [])[1];
+  var body = (plain[0].match(/<script>([\s\S]*?)<\/script>/) || [])[1];
   var actual = require("crypto").createHash("sha256").update(body, "utf8").digest("base64");
   if(declared === actual) return;
   /* Any edit to the script invalidates the hash, and a stale one is not a
@@ -1751,36 +1910,73 @@ if(/target="_blank"(?![^>]*noreferrer)/.test(HTML)){
 
 /* ---------- 44. Every watch link carries a year ----------------------- */
 /* Thirteen titles repeat across the catalogue. Without a year they all resolve
-   to whichever one the search engine thinks is more famous. */
+   to whichever one the search engine thinks is more famous.
+
+   AND UNTIL 3.0.0 THIS SECTION ENFORCED THE DEFECT. It required the earliest
+   year ANYWHERE IN THE CATALOGUE for a title, which is the right rule for the
+   seasons of one show and the wrong rule for a title two different productions
+   share. Seven entries were sent to search for something else, and the harness
+   was certifying it: The Batman (2022) asked for the 2004 cartoon, both 1966
+   Batmans and the 1989 one asked for the 1943 serial, the DCEU's Justice League
+   asked for the 2001 animated series, Birds of Prey asked for 2002, and the
+   2014 Batman Beyond short asked for 1999.
+
+   The unit was never the title. It is the title WITHIN ITS UNIVERSE \u2014 seasons
+   of one show live in one continuity and should keep sharing a URL, and two
+   productions that merely share a name never do. So the rule below moved from
+   "the earliest year for this title" to "the earliest year for this title in
+   this universe", which is exactly the key titleYear() now builds. The rule and
+   the code changed in the same commit: a guard that outlives the thing it was
+   written against will certify whatever replaces it. */
 
 var wu = fn("watchUrl");
 if(!/titleYear\(/.test(wu)){
   fail("watchUrl() does not add a year \u2014 repeated titles would resolve to the " +
        "wrong show");
 }
+if(!/watchUrl\(f\)/.test(fn("watchLinks"))){
+  fail("watchLinks() no longer hands watchUrl() the entry \u2014 passing the title " +
+       "alone is what sent seven entries to search for a different production, " +
+       "because a title cannot say which one of them it means");
+}
 (function(){
   var byUrl = {};
   FILMS.forEach(function(f){
-    var u = decodeURIComponent(sandbox.watchUrl(f.t));
-    var y = sandbox.titleYear(f.t);
+    var u = decodeURIComponent(sandbox.watchUrl(f));
+    var y = sandbox.titleYear(f);
     if(u.indexOf(" " + y) < 0){
       fail("watch URL for \"" + f.t + "\" carries no year: " + u);
     }
-    /* The earliest year for the title, not the entry's own \u2014 otherwise every
-       season of a show asks a different question about the same show. */
-    if(y !== Math.min.apply(null, FILMS.filter(function(g){ return g.t === f.t; })
-                                       .map(function(g){ return g.y; }))){
-      fail("watch URL for \"" + f.t + "\" uses " + y + ", not the title's first year");
+    /* The earliest year for the title IN THIS UNIVERSE, not in the catalogue \u2014
+       so every season of a show asks one question about that show, and a name
+       two productions share does not drag one of them to the other's decade. */
+    var sameUniverse = FILMS.filter(function(g){ return g.t === f.t && g.gi === f.gi; });
+    var want = Math.min.apply(null, sameUniverse.map(function(g){ return g.y; }));
+    if(y !== want){
+      fail("watch URL for \"" + f.t + "\" (" + f.gname + ") uses " + y + ", not " +
+           want + " \u2014 the first year this title appears in its own universe");
     }
-    byUrl[u] = byUrl[u] || {}; byUrl[u][f.t] = 1;
+    /* The defect this release fixed, asserted directly rather than implied: an
+       entry may not be sent to search for a year no entry of that title in its
+       universe carries. */
+    if(sameUniverse.map(function(g){ return g.y; }).indexOf(y) < 0){
+      fail("watch URL for \"" + f.t + "\" (" + f.gname + ") searches " + y +
+           ", which is not the year of any entry of that title in that " +
+           "universe \u2014 the reader is sent to a different production");
+    }
+    byUrl[u] = byUrl[u] || {};
+    byUrl[u][f.t + " \u00b7 " + f.gname] = 1;
   });
-  /* Seasons of one show sharing a URL is the design. Two different titles
-     sharing one would mean a year failed to separate them. */
+  /* Seasons of one show sharing a URL is the design. Two DIFFERENT productions
+     sharing one \u2014 the same title in two universes, or two titles \u2014 would mean a
+     year failed to separate them, which is the 3.0.0 defect in reverse. */
   var collided = Object.keys(byUrl).filter(function(u){ return Object.keys(byUrl[u]).length > 1; });
   if(collided.length){
-    fail("two different titles share a watch URL: " + collided[0] + " \u2014 " +
+    fail("two different productions share a watch URL: " + collided[0] + " \u2014 " +
          Object.keys(byUrl[collided[0]]).join(", "));
   }
+  note("watch links: " + Object.keys(byUrl).length + " distinct searches for " +
+       FILMS.length + " entries, each keyed on its own universe");
 })();
 
 /* ---------- 45. The README lists every served file -------------------- */
@@ -1875,17 +2071,32 @@ if(!rmSize){
 })();
 
 /* ---------- 47. The wordmark returns to the top ----------------------- */
-/* 2.7.3, the header's optical balance. The row is three flex columns with both
-   flankers boxed at 46px, so the wordmark was always mathematically centred and
-   nothing was ever misaligned in the box model \u2014 which is exactly why this
-   went unnoticed for eleven releases. What was lopsided was the mass inside the
-   boxes: the bat drew at 32px with 7px of air each side, against a ring that
-   fills its 46px edge to edge, and vertically covered 26.7px against the ring's
-   46. Light on the left, heavy on the right, and the eye reads that as crooked.
+/* THE HEADER IS THREE FLEX COLUMNS with both flankers boxed at 46px, so the
+   wordmark is always mathematically centred and nothing here was ever
+   misaligned in the box model \u2014 which is exactly why it went unnoticed for
+   eleven releases. What is lopsided is the mass INSIDE the boxes.
 
-   The bat went to 40px and the wordmark from 21 to 24px in the same change,
-   because enlarging the title alone moves mass to the centre and re-breaks the
-   balance. Guarded together for the same reason: they are one decision.
+   THREE RELEASES CORRECTED THIS AND ALL THREE MEASURED THE WRONG THING.
+   2.7.3 grew the bat 32 -> 40 against "a 46px ring"; 46 is the ring's box, and
+   at r=19/4px it drew 42. 2.7.5 fixed that side, set both to "44", and wrote
+   THIS GUARD as bat-width == 2*(r + stroke/2) \u2014 a real relationship, with one
+   term read from `.mark svg{width:44px}`. A CSS width is a box. The glyph
+   inside it sits in a viewBox with 4 units of padding each side and draws
+   39.81px, so the guard was green for a 4.19px gap while asserting the two
+   were equal.
+
+   AND THE TARGET WAS WRONG AS WELL AS THE TERM. Equality is what a symmetric
+   row looks like on paper; it is not the requirement. The owner's rule, 5 Aug:
+   THE RING IS NEVER WIDER THAN THE BAT. The bat is the logo, the ring is a
+   readout of how far you have got, and a readout that outdraws the mark is the
+   wrong way round. A rule with a direction in it cannot be satisfied by luck.
+   Two of the three releases above were satisfied by luck.
+
+   So this section measures the GLYPH \u2014 every path and the ellipse, flattened,
+   real cubic extrema rather than the control hull, the group transform applied,
+   scaled by cssWidth/viewBoxWidth \u2014 and requires the ring to come in strictly
+   under it. NO TOLERANCE. A one-pixel slack is precisely what would let r=18
+   (40px drawn, 0.19 over) read as a pass.
 
    THE CEILING IS THE NARROW PHONE. At 375px the row leaves ~219px for the
    wordmark once the two 46px flankers and two 14px gaps are taken. NIGHT
@@ -1894,34 +2105,136 @@ if(!rmSize){
    silently rather than pushing back \u2014 nothing would go red, the title would
    just start wrapping on somebody's phone. */
 (function(){
-  var bat = (HTML.match(/\.mark svg\{[^}]*width:(\d+)px/) || [])[1];
-  var word = (HTML.match(/\.wordmark h1\{[^}]*font-size:(\d+(?:\.\d+)?)px/) || [])[1];
-  if(!bat || !word){ fail("cannot read the header's bat width or wordmark size"); return; }
-  /* 2.7.5 replaced a magic floor with the invariant it was standing in for.
-     "The bat is at least 38px" was a number chosen by narrowing a gap; what
-     actually balances the row is that BOTH FLANKERS DRAW THE SAME WIDTH. They
-     never did: the ring's box is 46px but a stroked circle at r=19 with a 4px
-     stroke draws 42, and the bat drew 32 and then 40. Now r=20 draws 44 and the
-     bat is 44, so the two match and the guard checks the match rather than a
-     remembered constant. */
+  /* Real bounding box of an SVG path made of M/L/C/Z. The control-point hull
+     is not good enough: it over-reports, which on this glyph would make the
+     bat look wider than it draws and hand the ring room it has not got. */
+  function cubicExtrema(p0, p1, p2, p3){
+    var out = [p0, p3];
+    var a = -p0 + 3 * p1 - 3 * p2 + p3;
+    var b = 2 * (p0 - 2 * p1 + p2);
+    var c = -p0 + p1;
+    function at(t){ var u = 1 - t;
+      return u*u*u*p0 + 3*u*u*t*p1 + 3*u*t*t*p2 + t*t*t*p3; }
+    function keep(t){ if(t > 0 && t < 1) out.push(at(t)); }
+    if(Math.abs(a) < 1e-12){
+      if(Math.abs(b) > 1e-12) keep(-c / b);
+    } else {
+      var disc = b * b - 4 * a * c;
+      if(disc >= 0){
+        var rt = Math.sqrt(disc);
+        keep((-b + rt) / (2 * a));
+        keep((-b - rt) / (2 * a));
+      }
+    }
+    return out;
+  }
+  var unsupported = null;
+  function pathBox(d, box){
+    var t = d.match(/[A-Za-z]|-?\d*\.?\d+/g) || [];
+    var i = 0, cur = null, first = null, cmd = null;
+    function put(x, y){
+      if(!box.n){ box.x0 = box.x1 = x; box.y0 = box.y1 = y; box.n = 1; return; }
+      if(x < box.x0) box.x0 = x;
+      if(x > box.x1) box.x1 = x;
+      if(y < box.y0) box.y0 = y;
+      if(y > box.y1) box.y1 = y;
+    }
+    while(i < t.length){
+      if(/^[A-Za-z]$/.test(t[i])){ cmd = t[i]; i++; }
+      if(cmd === "M" || cmd === "L"){
+        cur = [parseFloat(t[i]), parseFloat(t[i + 1])]; i += 2;
+        if(cmd === "M") first = cur;
+        put(cur[0], cur[1]);
+      } else if(cmd === "C"){
+        var p1 = [parseFloat(t[i]), parseFloat(t[i+1])],
+            p2 = [parseFloat(t[i+2]), parseFloat(t[i+3])],
+            p3 = [parseFloat(t[i+4]), parseFloat(t[i+5])];
+        i += 6;
+        cubicExtrema(cur[0], p1[0], p2[0], p3[0]).forEach(function(x){ put(x, cur[1]); });
+        cubicExtrema(cur[1], p1[1], p2[1], p3[1]).forEach(function(y){ put(cur[0], y); });
+        put(p3[0], p3[1]);
+        cur = p3;
+      } else if(cmd === "Z" || cmd === "z"){
+        cur = first; i++;
+      } else {
+        unsupported = cmd;
+        return;
+      }
+    }
+  }
+
+  var markSvg = (HTML.match(/<button class="mark"[\s\S]*?<\/button>/) || [""])[0];
+  var css     = (HTML.match(/\.mark svg\{[^}]*width:(\d+(?:\.\d+)?)px/) || [])[1];
+  var vb      = (markSvg.match(/viewBox="([-\d.\s]+)"/) || [])[1];
+  var word    = (HTML.match(/\.wordmark h1\{[^}]*font-size:(\d+(?:\.\d+)?)px/) || [])[1];
   var ringArc = (HTML.match(/<circle id="ringArc"[\s\S]*?\/?>/) || [""])[0];
-  var rr = parseFloat((ringArc.match(/\br="([\d.]+)"/) || [])[1]);
+  var rr  = parseFloat((ringArc.match(/\br="([\d.]+)"/) || [])[1]);
   var rsw = parseFloat((ringArc.match(/stroke-width="([\d.]+)"/) || [])[1]);
+
+  if(!markSvg || !css || !vb){
+    fail("cannot read the header bat's viewBox or its rendered width \u2014 the " +
+         "flanker comparison below is the whole point of this section and it " +
+         "has nothing to measure");
+    return;
+  }
+  if(!word){ fail("cannot read the wordmark size"); return; }
   if(!(rr > 0) || !(rsw > 0)){
     fail("cannot read the ring's radius and stroke to compare it with the bat");
-  } else {
-    var drawn = 2 * (rr + rsw / 2);
-    if(Math.abs(parseInt(bat, 10) - drawn) > 1){
-      fail("the header flankers do not match: the bat draws " + bat + "px and the " +
-           "ring draws " + drawn + "px (r=" + rr + " plus half a " + rsw +
-           "px stroke). Both boxes are 46px wide, so the row measures symmetric " +
-           "and reads crooked \u2014 that was the 2.7.2 soak note, and the gap is " +
-           "what the eye is seeing rather than the boxes");
+    return;
+  }
+
+  var vbp = vb.trim().split(/\s+/).map(parseFloat);
+  var tr  = (markSvg.match(/transform="translate\(([-\d.]+)\s*,\s*([-\d.]+)\)"/) || []);
+  var tx  = tr.length ? parseFloat(tr[1]) : 0;
+  var ty  = tr.length ? parseFloat(tr[2]) : 0;
+
+  var box = {n: 0};
+  (markSvg.match(/\sd="([^"]+)"/g) || []).forEach(function(m){
+    pathBox(m.slice(4, -1), box);
+  });
+  (markSvg.match(/<ellipse[^>]*>/g) || []).forEach(function(e){
+    var cx = parseFloat((e.match(/cx="([-\d.]+)"/) || [])[1]);
+    var cy = parseFloat((e.match(/cy="([-\d.]+)"/) || [])[1]);
+    var rx = parseFloat((e.match(/rx="([-\d.]+)"/) || [])[1]);
+    var ry = parseFloat((e.match(/ry="([-\d.]+)"/) || [])[1]);
+    if(isFinite(cx) && isFinite(cy) && isFinite(rx) && isFinite(ry)){
+      pathBox("M" + (cx - rx) + " " + (cy - ry) + "L" + (cx + rx) + " " + (cy + ry), box);
     }
-    if(parseInt(bat, 10) > 46){
-      fail("the bat is " + bat + "px in a 46px column \u2014 it overflows its own " +
-           "flank and starts taking the wordmark's room on a narrow phone");
-    }
+  });
+
+  if(unsupported){
+    fail("the bat's path uses the \"" + unsupported + "\" command, which this " +
+         "section cannot measure \u2014 extend pathBox() rather than letting the " +
+         "glyph go unmeasured, which is how the last three headers went wrong");
+    return;
+  }
+  if(!box.n){ fail("found no drawable shapes inside the header bat"); return; }
+
+  var scale    = parseFloat(css) / vbp[2];
+  var batDrawn = (box.x1 - box.x0) * scale;
+  var batTall  = (box.y1 - box.y0) * scale;
+  var ringDrawn = 2 * (rr + rsw / 2);
+
+  /* THE OWNER'S RULE. Strictly under, and no tolerance \u2014 see the header. */
+  if(!(ringDrawn < batDrawn)){
+    fail("the ring draws " + ringDrawn.toFixed(2) + "px and the bat draws " +
+         batDrawn.toFixed(2) + "px, so the readout is as wide as the mark or " +
+         "wider. The bat is the logo; the ring says how far you have got. " +
+         "Lower r or thin the stroke until 2*(r + stroke/2) is under the " +
+         "glyph's own width \u2014 not its CSS box, which is " + css + "px and has " +
+         "never been what the bat draws");
+  }
+  /* Kept from 2.7.3: the box, not the glyph, is what overflows the column. */
+  if(parseFloat(css) > 46){
+    fail("the bat is " + css + "px in a 46px column \u2014 it overflows its own " +
+         "flank and starts taking the wordmark's room on a narrow phone");
+  }
+  /* A ring that is under the bat by a mile is a different bug from one that is
+     over it, and only the first is silent. Half the mark is the floor. */
+  if(ringDrawn < batDrawn / 2){
+    fail("the ring draws " + ringDrawn.toFixed(2) + "px against a " +
+         batDrawn.toFixed(2) + "px bat \u2014 under it, but so far under that the " +
+         "percentage inside it is the only thing holding the right-hand flank");
   }
   if(parseFloat(word) < 23){
     fail("the wordmark is " + word + "px \u2014 2.7.3 set it to 24 on the owner's " +
@@ -1932,8 +2245,9 @@ if(!rmSize){
          "~219px a 375px phone leaves between the flankers, and .wordmark " +
          "shrinks silently rather than failing");
   }
-  note("header: bat " + bat + "px, wordmark " + word + "px, ring draws " +
-       (2 * (rr + rsw / 2)) + "px in a 46px box");
+  note("header: bat draws " + batDrawn.toFixed(2) + " × " + batTall.toFixed(2) +
+       "px in a " + css + "px box (viewBox " + vb.trim() + ", translate " + tx + "," + ty +
+       "), ring draws " + ringDrawn.toFixed(2) + "px, wordmark " + word + "px");
 })();
 
 if(!/id="topBtn"/.test(HTML)) fail("the wordmark is no longer a control");
@@ -1996,7 +2310,11 @@ if(!/kept by 6ummy/.test(HTML)) fail("the credit line is gone from the footer");
 (function(){
   var src = optionalFn("rate", "nothing would record a rating");
   var box = { S:{watched:{}, skipped:{}, rated:{}, log:[]},
-              persist:function(){}, render:function(){}, now:function(){ return 1; } };
+              persist:function(){}, render:function(){}, now:function(){ return 1; },
+              /* 3.0.0 moved rate() onto the tick fast path, so the stub set
+                 has to carry it too. A repaint is not what this section is
+                 about; what happens to S is. */
+              tickUpdate:function(){} };
   /* Hand-written copies of clampRating() and markWatched() lived here until
      1.7.5 and quietly diverged from the app: parseInt where the page uses
      Math.floor(Number()), and a markWatched that never cleared S.skipped. This
@@ -3984,6 +4302,61 @@ var ROUTE_VOCAB = [
     fail("renderHead() computes the ring percentage more than once — the visible " +
          "text and the accessible name must come from one value or they drift");
   }
+
+  /* THE TRACK AND THE ARC ARE ONE RING. Everything above reads #ringArc, so a
+     #ringTrack left behind at the old radius or the old stroke would be silent:
+     the arc would draw the progress at one size and the groove it runs in at
+     another, and every assertion here would still pass. 2.8.0 moved both from
+     r=20/4px to r=17.5/3px and this is what makes moving one alone impossible. */
+  var track = (HTML.match(/<circle id="ringTrack"[\s\S]*?\/?>/) || [""])[0];
+  if(!track){
+    fail("there is no #ringTrack — the ring has lost the groove its arc runs in");
+  } else {
+    var tr2 = parseFloat((track.match(/\br="([\d.]+)"/) || [])[1]);
+    var tsw = parseFloat((track.match(/stroke-width="([\d.]+)"/) || [])[1]);
+    if(!(tr2 > 0) || !(tsw > 0)){
+      fail("#ringTrack has no radius or no stroke width to compare with the arc");
+    } else {
+      if(tr2 !== r){
+        fail("#ringTrack draws at r=" + tr2 + " and #ringArc at r=" + r +
+             " — they are one ring and one of the two was changed alone");
+      }
+      if(tsw !== parseFloat((arc.match(/stroke-width="([\d.]+)"/) || [])[1])){
+        fail("#ringTrack and #ringArc carry different stroke widths — the " +
+             "progress would draw thicker or thinner than the groove it fills");
+      }
+    }
+  }
+
+  /* THE RING MAY NOT SHRINK PAST ITS OWN READOUT. 2.8.0 brought the ring down
+     under the bat on the owner's rule (section 47), and the floor on that move
+     is the label: the longest string this ring ever shows is "100%". What has
+     to clear is not the inner diameter but the CHORD at the text's own height —
+     the circle narrows where the glyphs actually sit. IBM Plex Mono advances
+     0.6em per character, so the width comes from the CSS font-size rather than
+     a number anybody remembered; at 11px that is 26.41px, and the measured
+     value in a browser is 26.41. */
+  var pctCss = (HTML.match(/\.ring b\{[^}]*font-size:(\d+(?:\.\d+)?)px/) || [])[1];
+  var sw2    = parseFloat((arc.match(/stroke-width="([\d.]+)"/) || [])[1]);
+  if(!pctCss){
+    fail("cannot read the ring label's font-size — the ring's floor is the " +
+         "width of \"100%\" and there is nothing to compute it from");
+  } else {
+    var fsz   = parseFloat(pctCss);
+    var label = 4 * fsz * 0.6;              /* "100%", Plex Mono's 0.6em advance */
+    var lineH = fsz * 1.27;                 /* the label's own box, measured 14px at 11px */
+    var innerR = r - sw2 / 2;
+    var chord = (innerR > lineH / 2)
+      ? 2 * Math.sqrt(innerR * innerR - (lineH / 2) * (lineH / 2)) : 0;
+    if(chord < label){
+      fail("the ring's inner circle gives " + chord.toFixed(2) + "px across at the " +
+           "label's own height and \"100%\" needs " + label.toFixed(2) + "px at " +
+           fsz + "px — a finished run would print its number through the ring. " +
+           "r=" + r + " with a " + sw2 + "px stroke is below the floor");
+    }
+    note("ring label: \"100%\" needs " + label.toFixed(2) + "px, the inner circle " +
+         "gives " + chord.toFixed(2) + "px at that height");
+  }
 })();
 
 /* ---------- 81. An era note describes a period, not a story ------------ */
@@ -4375,6 +4748,23 @@ var ROUTE_VOCAB = [
     fail("share.png is in sw.js's SHELL precache — it is a crawler asset the " +
          "app never fetches, and caching it spends every installer's storage " +
          "on an image no view renders");
+  }
+  /* 3.0.0: A BYTE CEILING, because there was none. This section read
+     buf.length only to print it, so a valid 1200×630 PNG of 3,025,613 bytes
+     passed — tested. The card ships at ~19.7 KB only because of the manual PIL
+     quantize documented at the top of qa/make-share-card.mjs; the raw render is
+     ~325 KB. That quantize is a step a person remembers to run, and the whole
+     argument of this file is that a step somebody remembers is a step that gets
+     skipped. 60 KB is three times what the card takes today and a fifth of an
+     unquantized render, so it cannot be tripped by honest drawing and cannot be
+     missed by a skipped quantize. Scrapers time out on slow cards; a megabyte
+     of PNG is a blank embed, which is the same outcome as no card at all. */
+  if(buf.length > 60000){
+    fail("docs/share.png is " + buf.length.toLocaleString("en-US") + " bytes, over " +
+         "the 60,000-byte ceiling. The card is quantized by hand at the top of " +
+         "qa/make-share-card.mjs and the raw render is ~325 KB, so this is what " +
+         "a skipped quantize looks like. Scrapers give up on slow images and the " +
+         "embed comes back blank");
   }
   note("share card: 1200×630 PNG, " + buf.length.toLocaleString("en-US") +
        " bytes, three references agree, out of the shell");
@@ -5250,10 +5640,66 @@ var ROUTE_VOCAB = [
   });
   if(/Content-Security-Policy/i.test(D)){
     fail("docs/_headers sets a CSP \u2014 the CSP lives in the <meta> tag whose " +
-         "hash section 10 blesses, and two of them will disagree");
+         "hash section 43 blesses, and two of them will disagree");
   }
 
-  note("_headers sets Referrer-Policy, X-Frame-Options and Permissions-Policy");
+  /* OUT OF THE OFFLINE SHELL, and until 3.0.0 nothing said so. Section 13
+     names _headers in NOT_SHELLED, which only permits its absence — smuggling
+     it INTO the precache left the whole suite green, and negtest251 reported
+     PASS for it because its expected string, "_headers", matched the note this
+     section prints on a good run. Two failures, one fixture. share.png and
+     orders.txt have carried this assertion since 1.9.0 and 2.6.0; the file the
+     edge reads before a response exists gets it too. */
+  /* THE CACHE POLICY, PINNED THE MOMENT IT EXISTS. This file declared none at
+     all, so every response took whatever Workers Assets emits by default and
+     Cloudflare caches .js at the edge — and on 5 Aug 2026 the bare /sw.js
+     answered VERSION = "2.5.1" while the same file with a cache-busting query
+     answered 2.7.5. sw.js is how a returning browser learns the app changed, so
+     a stale copy pins every returning visitor to an old app indefinitely; the
+     value is load-bearing, which is the whole argument for guarding it rather
+     than remembering it. The fonts go the other way: 62,996 bytes that never
+     change under a name, re-fetched on no policy at all until now. */
+  var RULES = [
+    ["/sw.js", /^\s+Cache-Control:\s*no-cache\s*$/m,
+     "no-cache — it must be revalidated before use, or a returning browser " +
+     "never learns the app changed"],
+    ["/fonts/*", /^\s+Cache-Control:\s*public,\s*max-age=31536000,\s*immutable\s*$/m,
+     "a year and immutable — the faces are blessed by hash and never change " +
+     "under a name, so re-fetching them buys nothing"]
+  ];
+  RULES.forEach(function(r){
+    var i = D.indexOf("\n" + r[0] + "\n");
+    if(i < 0){
+      fail("docs/_headers has no " + r[0] + " rule — 3.0.0 added one because " +
+           "nothing in this project declared a cache policy and the edge was " +
+           "answering /sw.js from a stale copy");
+      return;
+    }
+    var next = D.indexOf("\n/", i + 1);
+    var body = D.slice(i, next < 0 ? D.length : next);
+    if(!r[1].test(body)){
+      fail("docs/_headers no longer sets Cache-Control on " + r[0] + " to " + r[2]);
+    }
+  });
+  /* A blanket policy under /* would cover sw.js too, and the two want opposite
+     answers. One rule, one path. */
+  var star = D.slice(D.indexOf("\n/*\n"), D.indexOf("\n/sw.js\n") < 0 ? undefined : D.indexOf("\n/sw.js\n"));
+  if(/Cache-Control/i.test(star)){
+    fail("docs/_headers sets Cache-Control under /*, which covers sw.js — the " +
+         "version marker and the fonts want opposite answers, and a blanket " +
+         "rule gives one of them the wrong one");
+  }
+
+  var shell104 = (fs.readFileSync(path.join(PUBLIC, "sw.js"), "utf8")
+                    .match(/var SHELL\s*=\s*\[[\s\S]*?\]/) || [""])[0];
+  if(shell104.indexOf("_headers") >= 0){
+    fail("_headers is in sw.js's SHELL precache — it is read by the edge before " +
+         "a response is ever sent and the page never fetches it, so caching it " +
+         "spends every installer's storage on a file no view can use");
+  }
+
+  note("_headers: Referrer-Policy, X-Frame-Options and Permissions-Policy on /*, " +
+       "no-cache on /sw.js, a year on /fonts/*, and out of the offline shell");
 })();
 
 /* ---------- 105. The catalogue answers in plain text ------------------ */
@@ -5670,7 +6116,13 @@ var ROUTE_VOCAB = [
   }
 
   /* The share card's lower band, restored. */
-  var card = slice("function drawShareCard", "\nfunction shareCardBlock") ||
+  /* 3.0.0: THESE FALLBACKS WERE DEAD CODE. slice() THROWS when a marker is
+     missing, so `slice(…) || HTML.slice(…)` never reached its right-hand side
+     and the fail("shareCardBlock() is gone") below was unreachable — renaming
+     the function ended the run with a raw stack trace, which is the exact
+     failure mode optionalFn() was written to prevent twenty lines above its
+     definition. sliceOr() is the version that keeps the promise. */
+  var card = sliceOr("function drawShareCard", "\nfunction shareCardBlock") ||
              HTML.slice(HTML.indexOf("function drawShareCard"));
   var domain = (card.match(/"nightwatcher\.life",\s*(\d+)\)/) || [])[1];
   var strap  = (card.match(/"One path through every Batman",\s*(\d+)\)/) || [])[1];
@@ -5695,7 +6147,7 @@ var ROUTE_VOCAB = [
   }
 
   /* The share block reads like every other block: title, description, buttons. */
-  var blk = slice("function shareCardBlock", "\nfunction cardFile") || "";
+  var blk = sliceOr("function shareCardBlock", "\nfunction cardFile") || "";
   if(!blk){ fail("shareCardBlock() is gone"); }
   else {
     var iP = blk.indexOf("<p>A story card"), iB = blk.indexOf('class="bkbtns"');
@@ -5714,6 +6166,203 @@ var ROUTE_VOCAB = [
 
   note("2.7.1 cosmetics: era note clear of the rule, card block at 1590/1700/1750, " +
        "share block reads title → description → buttons");
+})();
+
+/* ---------- 109. Every count on Progress is a way into the list -------- */
+/* 3.0.0 made the scoreboard's three figures buttons. Section 40 asserts they
+   ARE buttons; this asserts they land somewhere real, which is the half that
+   can rot silently. The tiles reuse data-act="tier" and pass data-tf, so a
+   filter renamed or removed in chipSet() leaves a tile pointing at a slice the
+   app no longer offers — and the app would answer a tap by rendering The path
+   with a filter nothing matches, which looks exactly like an empty catalogue.
+   The relationship is the guard: every data-tf in the markup must be a filter
+   chipSet() names, and every count the scoreboard prints must have a tile. */
+
+(function(){
+  /* chipSet() is evaluated, not pattern-matched: the list is the app's answer
+     to "what filters exist", and reading it any other way is reimplementing it
+     here — which this file's own header forbids. */
+  var offers = [];
+  try {
+    var cs = {};
+    vm.runInNewContext(fn("chipSet") + "\nout = chipSet();", cs);
+    offers = (cs.out || []).map(function(p){ return p[0]; });
+  } catch(e){
+    fail("chipSet() will not evaluate: " + e.message + " — the filters The " +
+         "path offers cannot be read, so nothing below can check that the " +
+         "Progress tiles point at any of them");
+    return;
+  }
+  if(!offers.length){
+    fail("chipSet() names no filters — The path has no way to narrow itself, " +
+         "and every scoreboard tile below points at nothing");
+    return;
+  }
+  var sb = fn("scoreboard") + fn("scoreTile");
+  var tfs = (sb.match(/data-tf="'\+tf\+'"/) ? sb.match(/scoreTile\("([a-z]+)"/g) || [] : [])
+              .map(function(m){ return m.replace(/scoreTile\("|"/g, ""); });
+  /* Written literally rather than through the helper is just as valid. */
+  (sb.match(/data-tf="([a-z]+)"/g) || []).forEach(function(m){
+    var v = m.replace(/data-tf="|"/g, "");
+    if(tfs.indexOf(v) < 0) tfs.push(v);
+  });
+  if(!tfs.length){
+    fail("no scoreboard tile names a filter — the three counts on Progress are " +
+         "back to being figures with nowhere to go, which is the whole thing " +
+         "3.0.0 fixed");
+    return;
+  }
+  tfs.forEach(function(tf){
+    if(offers.indexOf(tf) < 0){
+      fail("a Progress tile sends the reader to the \"" + tf + "\" filter and " +
+           "chipSet() does not offer it (" + offers.join(", ") + ") — tapping " +
+           "the count would open The path on a filter nothing matches, which " +
+           "reads as an empty catalogue rather than as a broken link");
+    }
+  });
+  ["done", "left", "skip"].forEach(function(tf){
+    if(tfs.indexOf(tf) < 0){
+      fail("the scoreboard counts \"" + tf + "\" and offers no way into it — " +
+           "all three counts are a way in or none of them is. Skipped spent " +
+           "four releases as a number with nowhere to send anybody who tapped it");
+    }
+  });
+  note("Progress tiles: " + tfs.join(", ") + " — all offered by chipSet() (" +
+       offers.length + " filters)");
+})();
+
+/* ---------- 110. The page can still be pinch-zoomed -------------------- */
+/* 3.0.0, and NOTHING GUARDED THIS. Section 62's entire argument — that a 24px
+   control is acceptable because the reader can always zoom in on it — rests on
+   this page deliberately setting no maximum-scale and no user-scalable=no. That
+   is a recorded WCAG 1.4.4 decision, and adding `maximum-scale=1,
+   user-scalable=no` shipped green through guards and smoke: tested. A decision
+   with an argument built on top of it and no assertion under it is the shape
+   this whole file exists to catch.
+
+   404.html is held to the same rule. It is the page a reader meets when they
+   are already lost, and it was unchecked entirely. */
+
+(function(){
+  var PAGES = [["index.html", HTML], ["404.html", null]];
+  var p404 = path.join(PUBLIC, "404.html");
+  PAGES[1][1] = fs.existsSync(p404) ? fs.readFileSync(p404, "utf8") : null;
+  PAGES.forEach(function(pg){
+    var name = pg[0], src = pg[1];
+    if(src === null){
+      fail("docs/404.html is missing — the origin serves it and section 45 " +
+           "lists it, so its absence is a 404 for the 404");
+      return;
+    }
+    var vp = (src.match(/<meta name="viewport" content="([^"]*)"/) || [])[1];
+    if(!vp){
+      fail(name + " has no viewport meta — a phone renders it at desktop width " +
+           "and scales the whole page down, so every control is below the touch " +
+           "target size section 62 measures");
+      return;
+    }
+    if(/maximum-scale/.test(vp)){
+      fail(name + " sets maximum-scale in its viewport (\"" + vp + "\"). Capping " +
+           "zoom is a WCAG 1.4.4 failure, and section 62 accepts this page's " +
+           "smallest controls only because a reader can zoom into them");
+    }
+    if(/user-scalable\s*=\s*(no|0)/.test(vp)){
+      fail(name + " sets user-scalable=no in its viewport (\"" + vp + "\") — the " +
+           "page refuses to be pinch-zoomed at all, which is the same WCAG 1.4.4 " +
+           "failure by the blunter route");
+    }
+    if(vp.indexOf("width=device-width") < 0){
+      fail(name + " no longer sets width=device-width (\"" + vp + "\") — the " +
+           "layout stops being the one every measurement in this file assumes");
+    }
+  });
+  note("viewport: index.html and 404.html both zoomable, width=device-width");
+})();
+
+/* ---------- 111. Watched and skipped are never both true --------------- */
+/* markWatched() has always cleared the skip — watched-clears-skip is the app's
+   own definition of what a tick means. THREE MERGE SITES DID NOT, and every one
+   of them is a hand-copied version of the same few lines: the cross-tab storage
+   event, the JSON restore branch, and applyImport(). Skip an entry in one tab,
+   mark it watched in another, and the row renders class="film done skip" and
+   appears in BOTH the W and the S segments of the backup code and the JSON —
+   demonstrated in jsdom before it was fixed. Every denominator on Progress then
+   disagrees with the next, because one entry is counted twice.
+
+   THIS IS NOT THE RECORDED "THE MERGE ONLY EVER ADDS" DECISION. That decision
+   is about never losing a mark somebody made, and it stands. This is drift
+   between three copies of one merge, and the copies are the bug: the log-merge
+   dance underneath was written out twice as well, and is now mergeLog(), so
+   there is one place to change rather than three to remember. */
+
+(function(){
+  var SITES = [
+    ["applyImport()", optionalFn("applyImport", "a restored backup would not be applied")],
+    ["the JSON restore branch", optionalFn("doRestore", "nothing would read a pasted backup")],
+    ["the cross-tab storage event",
+     sliceOr('window.addEventListener("storage"', "\ndocument.getElementById(\"tabs\")")]
+  ];
+  SITES.forEach(function(site){
+    if(!site[1]){
+      fail("cannot locate " + site[0] + " — it is one of the three places a mark " +
+           "arrives from somewhere else, and all three have to clear the skip");
+      return;
+    }
+    if(site[1].indexOf("delete S.skipped") < 0){
+      fail(site[0] + " sets S.watched without clearing S.skipped — an entry can " +
+           "come back watched AND skipped, which markWatched() has never allowed. " +
+           "It renders with both classes and lands in both segments of the backup " +
+           "code, so every count on Progress disagrees with the next");
+    }
+  });
+
+  /* One merge, one place. Two copies of a loop is how the invariant came to be
+     maintained in one of them and not the others. */
+  if(!/function\s+mergeLog\s*\(/.test(HTML)){
+    fail("mergeLog() is gone — the log merge is back to being written out at " +
+         "each call site, which is exactly how the three sites above drifted");
+  }
+  var dance = (HTML.match(/isFinite\(en\.ts\)/g) || []).length;
+  if(dance > 1){
+    fail("the log-merge dance appears " + dance + " times — it was written out " +
+         "twice and 3.0.0 made it one helper. A second copy is a second thing to " +
+         "remember to fix");
+  }
+  note("merge sites: 3, all clearing the skip; one shared log merge");
+})();
+
+/* ---------- 112. The Restore box survives a render nobody asked for ---- */
+/* #restorebox is recreated empty on every render(), and renders fire from
+   things the reader did not do: another tab's storage event, and the 4-second
+   reset-confirm timeout — which is gated on S.tab === "stats", the very tab the
+   box lives on. Paste a backup code, let another device tick something, and the
+   paste is gone with no message. #q has been preserved across renders for
+   releases; the box that holds somebody's only copy of their progress had not.
+
+   3B reduces how often uncaused renders happen. It does not make this
+   unnecessary: the storage event still fires. */
+
+(function(){
+  var r = fn("render");
+  if(HTML.indexOf('id="restorebox"') < 0){
+    fail("#restorebox is gone — there is nowhere to paste a backup");
+    return;
+  }
+  if(r.indexOf("restorebox") < 0){
+    fail("render() does not preserve #restorebox — it is rebuilt empty by every " +
+         "render, including the ones the reader did not cause, and a half-typed " +
+         "backup code disappears with nothing said");
+    return;
+  }
+  if(!/rbVal|restorebox[\s\S]{0,200}\.value/.test(r)){
+    fail("render() finds #restorebox but does not carry its value across — " +
+         "preserving the element is not preserving the paste");
+  }
+  if(r.indexOf('getElementById("q")') < 0){
+    fail("render() no longer preserves the search box either — #q and " +
+         "#restorebox are the two inputs a render must not empty");
+  }
+  note("render() carries #q and #restorebox across a repaint");
 })();
 
 /* ---------- report ---------- */

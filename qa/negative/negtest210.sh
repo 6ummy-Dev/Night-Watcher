@@ -43,7 +43,7 @@ s=s.replace(a,'.includes.opening .scope,.includes.closing{animation:none;}',1);$
 echo "--- 67: the freshness date tells the truth"
 run_case "the updated date drifts from the changelog" \
   "but the newest CHANGELOG" \
-  "${P}a='var BUILT = \"2026-08-04\";';assert a in s
+  "${P}a='var BUILT = \"2026-08-05\";';assert a in s
 s=s.replace(a,'var BUILT = \"2026-08-01\";',1);${W}"
 
 run_case "the updated line is dropped from Progress" \

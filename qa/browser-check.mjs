@@ -1,0 +1,247 @@
+/* One-off browser check for the 3.0.0 build. NOT part of npm test — jsdom has
+   no layout, so the four things below cannot be observed by the harness at all:
+   the header at 0% and 100%, jumping to a group with content-visibility on, a
+   group opening and closing, and the Where to watch URL a reader actually taps.
+
+   Run against a served copy of docs/ at 390x844 (iPhone 12/13/14 logical size).
+   Not committed to CI: it needs a browser, and the point of it is that a person
+   would otherwise have to look. */
+import { chromium } from "playwright";
+
+const URL = process.env.NW_URL || "http://127.0.0.1:8099/";
+const EXE = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+const out = [];
+let bad = 0;
+function ok(name, pass, detail){
+  out.push((pass ? "  ok   " : "  FAIL ") + name + (detail ? "  — " + detail : ""));
+  if(!pass) bad++;
+}
+
+const browser = await chromium.launch({ executablePath: EXE, args: ["--no-sandbox"] });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 },
+                                     deviceScaleFactor: 3 });
+await page.goto(URL, { waitUntil: "load" });
+await page.waitForFunction(() => typeof window.render === "function");
+
+/* Start clean and choose a path, so nothing below meets the first-run chooser. */
+await page.evaluate(() => {
+  localStorage.clear();
+  S.path = S.mode = "continuity"; S.watched = {}; S.skipped = {}; S.rated = {};
+  S.log = []; S.open = {}; S.peek = {}; S.tab = "watch"; S.filter = "all"; S.q = "";
+  setAllGroups(true); render();
+});
+
+/* ---- the header at 0% ------------------------------------------------- */
+const head0 = await page.evaluate(() => {
+  const bat = document.querySelector(".mark svg").getBoundingClientRect();
+  const glyph = document.querySelector(".mark svg path").getBBox
+    ? null : null;
+  const ring = document.querySelector("#ringArc").getBoundingClientRect();
+  const wm = document.querySelector(".wordmark h1").getBoundingClientRect();
+  return { pct: document.getElementById("ringPct").textContent,
+           aria: document.getElementById("ringBtn").getAttribute("aria-label"),
+           batBox: bat.width, ringInk: ring.width, wmTop: wm.top,
+           offset: document.getElementById("ringArc").getAttribute("stroke-dashoffset"),
+           wraps: document.querySelector(".wordmark h1").getClientRects().length };
+});
+ok("header at 0%: the ring reads 0%", head0.pct === "0%", head0.pct);
+ok("header at 0%: the accessible name carries the number",
+   (head0.aria || "").indexOf("0%") === 0, head0.aria);
+ok("header at 0%: the arc is fully retracted",
+   Math.abs(parseFloat(head0.offset) - 109.96) < 0.05, head0.offset);
+ok("header at 0%: the ring's ink is narrower than the bat's box",
+   head0.ringInk < head0.batBox, head0.ringInk.toFixed(2) + " vs " + head0.batBox.toFixed(2));
+ok("header at 0%: the wordmark holds one line at 390px",
+   head0.wraps === 1, head0.wraps + " line box(es)");
+
+/* the glyph's own drawn width, from the browser rather than from arithmetic */
+const drawn = await page.evaluate(() => {
+  const svg = document.querySelector(".mark svg");
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  svg.querySelectorAll("path, ellipse, circle, rect").forEach(el => {
+    const b = el.getBBox();
+    x0 = Math.min(x0, b.x); x1 = Math.max(x1, b.x + b.width);
+    y0 = Math.min(y0, b.y); y1 = Math.max(y1, b.y + b.height);
+  });
+  const vb = svg.viewBox.baseVal;
+  const scale = svg.getBoundingClientRect().width / vb.width;
+  const arc = document.getElementById("ringArc");
+  const r = parseFloat(arc.getAttribute("r"));
+  const sw = parseFloat(arc.getAttribute("stroke-width"));
+  return { bat: (x1 - x0) * scale, tall: (y1 - y0) * scale, ring: 2 * (r + sw / 2) };
+});
+ok("header: the ring draws strictly under the bat's glyph",
+   drawn.ring < drawn.bat,
+   "ring " + drawn.ring.toFixed(2) + "px, bat " + drawn.bat.toFixed(2) + "×" +
+   drawn.tall.toFixed(2) + "px");
+
+/* ---- the header at 100% ------------------------------------------------ */
+await page.evaluate(() => {
+  pool().forEach(f => { S.watched[f.id] = 1; });
+  render();
+});
+const head100 = await page.evaluate(() => {
+  const pct = document.getElementById("ringPct");
+  /* The <b> fills its flank, so its box is 46px and says nothing. What has to
+     fit is the text run — the same thing guard 80 computes from the font size. */
+  const rng = document.createRange();
+  rng.selectNodeContents(pct);
+  const r = rng.getBoundingClientRect();
+  const ringBox = document.querySelector(".ring svg").getBoundingClientRect();
+  const arc = document.getElementById("ringArc");
+  const rr = parseFloat(arc.getAttribute("r"));
+  const sw = parseFloat(arc.getAttribute("stroke-width"));
+  const scale = ringBox.width / 46;
+  const inner = (rr - sw / 2) * scale;
+  const h = r.height;
+  const chord = inner > h / 2 ? 2 * Math.sqrt(inner * inner - (h / 2) * (h / 2)) : 0;
+  return { text: pct.textContent, offset: arc.getAttribute("stroke-dashoffset"),
+           aria: document.getElementById("ringBtn").getAttribute("aria-label"),
+           labelW: r.width, labelH: h, chord: chord,
+           subWraps: document.getElementById("hsub").getClientRects().length,
+           bar: document.querySelector('meta[name="theme-color"]').content };
+});
+ok("header at 100%: the ring reads 100%", head100.text === "100%", head100.text);
+ok("header at 100%: the arc is fully drawn",
+   parseFloat(head100.offset) === 0, head100.offset);
+ok("header at 100%: the accessible name agrees with the visible number",
+   (head100.aria || "").indexOf("100%") === 0, head100.aria);
+ok('header at 100%: "100%" fits inside the ring',
+   head100.labelW < head100.chord,
+   head100.labelW.toFixed(2) + "px of text in a " + head100.chord.toFixed(2) +
+   "px chord at the label's own " + head100.labelH.toFixed(2) + "px height");
+ok("header at 100%: the subtitle holds one line at 390px",
+   head100.subWraps === 1, head100.subWraps + " line box(es)");
+
+/* ---- content-visibility is actually on ---------------------------------- */
+const cv = await page.evaluate(() => {
+  const g = document.querySelector("#view .group");
+  return { cv: getComputedStyle(g).contentVisibility,
+           cis: getComputedStyle(g).containIntrinsicSize,
+           groups: document.querySelectorAll("#view .group").length };
+});
+ok("content-visibility is on .group", cv.cv === "auto", cv.cv + " / " + cv.cis);
+
+/* ---- jumping to a group, from all four ways in -------------------------- */
+async function jump(clickFn, label){
+  await page.evaluate(() => { S.tab = "stats"; S.progOpen = {uni:true, era:true}; render(); window.scrollTo(0,0); });
+  const gk = await page.evaluate(clickFn);
+  if(!gk){ ok("jump from " + label, false, "found nothing to click"); return; }
+  await page.waitForTimeout(700);
+  const landed = await page.evaluate((k) => {
+    const h = document.querySelector('.ghead[data-gk="' + k + '"]');
+    if(!h) return { ok: false, why: "the target group did not render" };
+    const r = h.getBoundingClientRect();
+    const grp = h.closest(".group");
+    return { ok: true, tab: S.tab, open: grp.classList.contains("open"),
+             top: r.top, height: r.height,
+             cv: getComputedStyle(grp).contentVisibility,
+             onlyOpen: document.querySelectorAll("#view .group.open").length };
+  }, gk);
+  ok("jump from " + label + " lands on the right group",
+     landed.ok && landed.tab === "watch" && landed.open && landed.onlyOpen === 1,
+     JSON.stringify(landed));
+  ok("jump from " + label + " leaves the group in view",
+     landed.ok && landed.top > -2 && landed.top < 844,
+     landed.ok ? "top " + landed.top.toFixed(1) + "px" : "-");
+  ok("jump from " + label + ": the landed group is not skipped by content-visibility",
+     landed.ok && landed.cv === "auto" && landed.height > 0,
+     landed.ok ? landed.cv + ", head " + landed.height.toFixed(1) + "px" : "-");
+}
+
+await jump(() => {
+  const g = document.querySelector('#view .pies g[data-seg^="c"]');
+  if(!g) return null;
+  const k = g.getAttribute("data-seg");
+  g.querySelector("circle").dispatchEvent(new MouseEvent("click", {bubbles: true}));
+  return k;
+}, "the universes donut");
+await jump(() => {
+  const g = document.querySelector('#view .pies g[data-seg^="e"]');
+  if(!g) return null;
+  const k = g.getAttribute("data-seg");
+  g.querySelector("circle").dispatchEvent(new MouseEvent("click", {bubbles: true}));
+  return k;
+}, "the eras donut");
+await jump(() => {
+  const bs = [...document.querySelectorAll('#view [data-act="jump"][data-gk^="c"]')]
+    .filter(b => !b.closest(".pies"));
+  if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click(); return k;
+}, "the universes fold");
+await jump(() => {
+  const bs = [...document.querySelectorAll('#view [data-act="jump"][data-gk^="e"]')]
+    .filter(b => !b.closest(".pies"));
+  if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click(); return k;
+}, "the eras fold");
+
+/* ---- a group opens and closes, and the rows really disappear ------------ */
+await page.evaluate(() => {
+  S.tab = "watch"; S.mode = "continuity"; S.filter = "all"; S.q = "";
+  setAllGroups(true); render(); window.scrollTo(0, 0);
+});
+const grp = await page.evaluate(() => {
+  const h = document.querySelector("#view .ghead");
+  const body = h.closest(".group").querySelector(".gbody");
+  return { gk: h.dataset.gk, open: h.getAttribute("aria-expanded"),
+           bodyShown: getComputedStyle(body).display };
+});
+ok("a group starts open", grp.open === "true" && grp.bodyShown === "block",
+   grp.open + " / " + grp.bodyShown);
+await page.click("#view .ghead");
+await page.waitForTimeout(120);
+const closed = await page.evaluate(() => {
+  const h = document.querySelector("#view .ghead");
+  const g = h.closest(".group");
+  return { aria: h.getAttribute("aria-expanded"), cls: g.className,
+           body: getComputedStyle(g.querySelector(".gbody")).display,
+           allBtn: document.querySelector(".allbtn").textContent,
+           height: g.getBoundingClientRect().height };
+});
+ok("closing a group hides its rows",
+   closed.aria === "false" && closed.cls === "group" && closed.body === "none",
+   JSON.stringify(closed));
+await page.click("#view .ghead");
+await page.waitForTimeout(120);
+const reopened = await page.evaluate(() => {
+  const h = document.querySelector("#view .ghead");
+  const g = h.closest(".group");
+  return { aria: h.getAttribute("aria-expanded"), cls: g.className,
+           body: getComputedStyle(g.querySelector(".gbody")).display,
+           rows: g.querySelectorAll(".film").length };
+});
+ok("re-opening a group brings its rows back",
+   reopened.aria === "true" && reopened.cls === "group open" &&
+   reopened.body === "block" && reopened.rows > 0, JSON.stringify(reopened));
+
+/* ---- the whole point of Stage 2: one tap on The Batman (2022) ----------- */
+const link = await page.evaluate(() => {
+  S.tab = "watch"; S.mode = "continuity"; S.filter = "all";
+  S.q = "The Batman"; setAllGroups(true); render();
+  const f = FILMS.filter(x => x.t === "The Batman" && x.y === 2022)[0];
+  if(!f) return { err: "The Batman (2022) is not in the catalogue" };
+  S.open = {}; S.open[f.id] = true; render();
+  const a = document.querySelector('.film.open .linkrow a.lnk');
+  return { id: f.id, href: a ? a.href : null, text: a ? a.textContent.trim() : null,
+           rel: a ? a.getAttribute("rel") : null, target: a ? a.getAttribute("target") : null };
+});
+ok("Where to watch renders on The Batman (2022)", !!link.href, JSON.stringify(link));
+if(link.href){
+  const q = decodeURIComponent(link.href);
+  ok("its URL searches 2022", q.indexOf("where to watch The Batman 2022") > 0, q);
+  ok("it does NOT search 2004", q.indexOf("2004") < 0, q);
+  ok("it opens safely", link.target === "_blank" && /noopener/.test(link.rel || "") &&
+     /noreferrer/.test(link.rel || ""), link.target + " " + link.rel);
+}
+
+/* Screenshots, so the header can be looked at rather than only measured. */
+await page.evaluate(() => { S.watched = {}; S.tab = "watch"; render(); window.scrollTo(0,0); });
+await page.screenshot({ path: "qa/shot-header-0.png", clip: {x:0, y:0, width:390, height:120} });
+await page.evaluate(() => { pool().forEach(f => S.watched[f.id] = 1); render(); });
+await page.screenshot({ path: "qa/shot-header-100.png", clip: {x:0, y:0, width:390, height:120} });
+
+await browser.close();
+console.log("\nNight Watcher browser check — 390×844, Chromium\n");
+out.forEach(l => console.log(l));
+console.log(bad ? "\n  ✗ " + bad + " browser check(s) failed\n"
+                : "\n  ✓ browser checks passed\n");
+process.exit(bad ? 1 : 0);

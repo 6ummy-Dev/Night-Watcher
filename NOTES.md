@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 108 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 112 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -981,6 +981,15 @@ there will ever be, and the decision taken in 1.7.5 is to spend it on nothing.
 The contract is worth what it is because it has never been broken for
 convenience.
 
+> **Amended 1.8.1, and this paragraph carried no marker for eleven releases.**
+> That slug WAS renamed, once, inside the window described above — the full
+> reasoning is under *The frozen-slug rule has exactly one exception* further
+> down this file, and `qa/renamed-ids.json` carries it in the tree. The
+> paragraph above is kept because the decision it records is the durable one:
+> the window was spent on exactly one slug and is now closed. Read together
+> they say what happened. Read alone, the older one is wrong.
+> *(Marker added in 3.0.0.)*
+
 ### Two entries span more eras than one row can hold
 
 *Static Shock* is entered as seasons 1–4 and crosses into Batman's world three
@@ -1272,7 +1281,8 @@ What the import tolerates on purpose, and silently: a trailing partial
 `W`/`S`/`R` chunk and junk characters inside the ratings segment are ignored
 rather than reported. That is a decision, not an accident — a pasted code
 should restore everything it verifiably carries instead of refusing over
-residue — but it was never written down until 2.2.1, and an undocumented
+residue — but it was never written down until this paragraph, and an
+undocumented
 tolerance reads like a bug to the next person who traces it. It is this
 paragraph now, and writing it retired the last open line of the pre-1.8.0
 backlog.
@@ -1387,15 +1397,17 @@ design: an unanswered question should not outlive the tab.
 ### `wrangler` stays a dev dependency
 
 It is the large majority of a 130-package lockfile and CI installs it on every
-push, while the tests need only jsdom. It stays because the Workers path is a
-live option for the domain migration, and `wrangler.jsonc` is guarded — section
-13 checks its assets directory against `docs/` and rejects SPA fallback, both of
-which are real rules about how this site is served.
+push, while the tests need only jsdom. It stays because `wrangler.jsonc` is
+guarded — section 13 checks its assets directory against `docs/` and rejects SPA
+fallback, both of which are real rules about how this site is served.
 
-Reviewed in 1.6.6 and kept deliberately. If the migration lands on GitHub Pages
-alone, dropping `wrangler`, its two scripts and the jsonc takes `npm ci` to a
-fraction of its size, and that is the moment to do it — not before, and not
-without deciding the serving question first.
+> **Amended in 3.0.0.** This read *"the Workers path is a live option for the
+> domain migration"* and *"if the migration lands on GitHub Pages alone…"* long
+> after it landed. **`nightwatcher.life` has been served by Cloudflare Workers
+> since 2.1.0**; the serving question is answered, GitHub Pages is a mirror
+> rather than a candidate, and the conditional that would have dropped
+> `wrangler` can never be met. It is a build dependency of the live site now,
+> which is a better reason to keep it than the one this section used to give.
 
 ## The sentinel that the search box could type
 
@@ -1518,20 +1530,27 @@ Batman is in it, and still out, because nothing happens in it.
 release section where it is read before the next build, not into a file that only
 runs after one.
 
-## Parked by decision, not by neglect
+## Parked by decision, not by neglect — all three have since shipped
 
-Recorded so they stop reading as things nobody got to.
+Recorded so they stop reading as things nobody got to. **Closed in 3.0.0: every
+item below shipped, and the first one's standing claim had gone false.** Kept
+rather than deleted, because the reasoning for parking each of them is the part
+worth having.
 
-- **The 1200×630 share card** — moved to 1.9.0. `og:image` points at the square
-  icon until then, so shares render cropped. The work is small and known: the
-  asset, four meta tags, a README row, and it stays out of the offline shell
-  because it is a crawler asset.
-- **Rating badges** — MPA for films, TV Parental Guidelines for series. The
-  blocker is not the code, it is sourcing a rating for 200 entries and keeping
-  them true across regions. Its own release when it happens.
-- **Master chooser and header magic** — deferred nine times, and the last several
-  were decisions rather than postponements. It still wants a picture before
-  anyone builds it; every attempt so far has started from the mechanism.
+- **The 1200×630 share card** — **shipped in 1.9.0.** The claim that `og:image`
+  points at the square icon has been wrong since; it points at `share.png`, and
+  section 91 fails the build if the three card references ever disagree. The
+  work was as small as this said: the asset, four meta tags, a README row, and
+  out of the offline shell because it is a crawler asset.
+- **Rating badges** — **shipped across 2.3.x–2.7.2**, and the blocker was
+  exactly what this said it was: sourcing a rating for 200 entries. That pass
+  lives in `catalogue/ratings-findings.md`, every value carrying its source, and
+  section 92 holds the distribution. The Mature badge it replaced was retired in
+  2.7.2, four releases later, which became its own rule: a replacement is two
+  changes and only one of them has a natural failure mode.
+- **Master chooser and header magic** — **shipped.** It did want a picture
+  first, and it got one; the header has been corrected three times since and the
+  measurements are in `releases/plan-2.8.0.md`.
 
 ## Where the negative suites' eight minutes actually went
 
@@ -1912,30 +1931,201 @@ than the syntax. This is the project's most-exposed failure mode by
 construction, and until 2.7.4 the only thing standing under it was a stack
 trace.
 
-## The ring was never 46px, and two releases were measured against that
+## The header, corrected three times, measured wrong every time
 
 2.7.3 raised the header bat from 32px to 40px to close a gap "against a 46px
 ring". The reasoning was right and the number was wrong. **46 is the ring's
-box.** What it draws is a stroked circle — `r="19"` with a 4px stroke, so the
-outer edge sits at radius 21 and the ring covers **42px**, leaving 2px of its
-box unused.
-
-So the fix that closed the gap was itself measured against a figure nobody had
+box.** What it drew was a stroked circle — `r="19"` with a 4px stroke, so the
+outer edge sat at radius 21 and the ring covered **42px**, leaving 2px of its
+box unused. The fix that closed the gap was measured against a figure nobody had
 checked, and it landed at 40 against a real 42 by luck rather than arithmetic.
-2.7.5 sets the radius to 20 — 44px drawn, still inside the 46px box — and the
-bat to 44. Both flankers now draw the same width for the first time.
 
-**The guard was the more important half.** It held a floor: *the bat is at least
-38px.* That number came from narrowing a gap, not from measuring anything, and a
-floor would have accepted 44-against-42 exactly as happily as 44-against-44. It
-now asserts the thing that actually balances the row — **the bat's width equals
-`2 × (r + stroke/2)`, within a pixel** — plus a ceiling at the column width so
-the bat cannot overflow its own flank and start taking the wordmark's room.
+**2.7.5 fixed that side and then made the same mistake on the other one.** It
+set the radius to 20 — 44px drawn — and the bat to "44", and recorded that both
+flankers drew the same width for the first time. **They did not.** 44 is the
+bat's *CSS box*. `.mark svg` is `width:44px` over `viewBox="8 16 84 70"`, and the
+glyph's own bounding box is `12,17 → 88,78` — four units of empty viewBox each
+side — so **the bat draws 39.81px**, and the ring was 4.19px wider than the mark
+it flanks.
+
+**The guard is what makes this worth writing down.** 2.7.5 replaced a magic
+floor (*the bat is at least 38px*) with a genuine relationship: **bat width =
+`2 × (r + stroke/2)`, within a pixel**. That was the right move and it was still
+green for a 4.19px gap, because one of its two terms was read from a CSS
+declaration. **A relationship guard is only as honest as its terms.** A CSS
+width is a box; the thing anybody looks at is the glyph.
+
+**And the target was wrong as well as the term.** All three attempts aimed at
+*matching*, because matching is what a symmetric row looks like on paper. The
+owner's rule, 5 Aug: **the ring is never wider than the bat.** The bat is the
+logo. The ring is a readout of how far you have got. A readout that outdraws the
+mark is the wrong way round, and it had been the wrong way round since the ring
+was added. **A rule with a direction in it cannot be satisfied by luck** — and
+two of the three releases above were satisfied by luck. It also kills the
+tolerance: 2.8.0's own first draft proposed `r=18`, which draws 40px, matches
+within a pixel, and is *over the bat*.
+
+2.8.0 takes the ring to `r=17.5` with a **3px** stroke — 38px drawn, 1.81px
+clear of the bat, and 330px² of ink against the bat's 444. The stroke moves
+because shrinking the radius alone makes the band a larger fraction of the ring
+(9.1% → 10.5%), so the ring gets *visually heavier* as it gets smaller, which is
+the opposite of the instruction.
+
+Section 47 now measures the glyph: every path and the ellipse, flattened with
+real cubic extrema rather than the control hull, scaled by
+`cssWidth ÷ viewBoxWidth`. It requires `2 × (r + stroke/2)` to come in **strictly
+under** it, and it is squeezed from below by the ring's own label — `100%` needs
+`4 × fontSize × 0.6` and has to clear the **chord** at the text's height, not the
+inner diameter. Both bounds are computed from what ships. Neither is a number
+anybody landed on.
 
 **The general shape, which this project keeps rediscovering:** a guard written
 as a remembered constant protects the number somebody happened to land on. A
-guard written as a relationship protects the reason. Section 80 already did this
-correctly — it derives the circumference from the radius instead of holding
-119.4 — which is why changing `r` from 19 to 20 checked all three dependent
-numbers without anyone telling it to. The header guard did not, and cost a
-release to find out.
+guard written as a relationship protects the reason — *provided its terms mean
+what they say, and provided the relationship is the one that was actually
+wanted.* Section 80 got the first part right from the start: it derives the
+circumference from the radius instead of holding 119.4, which is why every move
+of `r` has corrected the dasharray, the dashoffset and the script's offset
+unprompted. It did not cover `#ringTrack`, and 2.8.0 closed that too.
+
+## A watcher that cannot see is worse than no watcher
+
+3.0.0's first stage touched no app code at all, and that was the point. The deep
+QA audit of 2.7.5 found that **four of its five P1s were instruments rather than
+defects** — a guard whose regex had never once matched the page it guards, a
+smoke check asserting something that could not be true, twenty-two negative
+fixtures that passed against a fully green run, and a README paragraph
+describing a feature retired four releases earlier.
+
+**Every one of them was found the same way: by breaking something on purpose and
+watching a green build come back.** That is the only method that works on this
+class of bug, because a blind watcher reports exactly what a working one
+reports. Nothing in a diff looks wrong. Nothing in the output looks wrong. The
+suite is green and the thing it was pointed at is unprotected.
+
+**So the order of the release was decided by the finding.** Landing the app work
+first would have meant verifying it with instruments the audit had just proved
+partly blind. Stage 1 repaired the watchers, could not break the page, and
+everything after it was verified by a harness that can see.
+
+**The gate, and it is the durable part:** every repaired watcher got a negative
+fixture proving it now fires. A watcher fixed without a fixture is the same
+promise that had just failed.
+
+### The three that were hiding real holes
+
+Filtering the green lines out of the negative harness's output regressed exactly
+three fixtures out of 392, and all three turned out to be worth the trouble:
+
+- One named a check its mutation did not trip — the mutation was right for the
+  fixture's own label and the expected string had been copied from elsewhere.
+  **The check it wrongly named had no fixture of its own**, which is how the
+  mistake survived; it has one now.
+- One's mutation tripped nothing at all. It made the value under test
+  *consistently* wrong, and the check asserts that the value does not *change* —
+  so the invariant held over a broken app.
+- One left the guards exiting **0**, and matched a note the section prints on
+  every good run. **There was no assertion at all** behind it: `_headers` could
+  be smuggled into the offline precache and nothing said so, though `share.png`
+  and `orders.txt` had both carried that assertion for releases.
+
+**The shape worth remembering:** a fixture whose expected string is a check NAME
+rather than a failure MESSAGE will match a passing run. The harness now strips
+the green lines before matching, and three alternatives were tried and rejected
+on evidence rather than taste — an exit-code gate breaks the warning-only
+fixtures, and a `✗|FAIL` filter breaks the two that expect a harness error.
+
+## A title is not a production
+
+`titleYear()` keyed on the title alone and took the earliest year anywhere in the
+catalogue, so **seven entries sent a reader to search for something else**. The
+2022 *The Batman* asked for the 2004 cartoon. Both 1966 *Batman*s and the 1989
+one asked for the 1943 serial.
+
+**The unit was wrong, not the rule.** Earliest-year-per-title is exactly right
+for the seasons of one show, which is what the rule was written for and what it
+kept working for. It is exactly wrong for a name two unrelated productions
+share. The key is the title *within its universe*: seasons of a show live in one
+continuity and keep sharing one search; two productions that merely share a name
+never do. Twenty-two same-universe cases were checked before and after and none
+of them moved.
+
+**Guard 44 was enforcing the defect**, which is why the fix could not land
+first. It required the earliest year in the catalogue and only looked for
+collisions between *different* titles — so the wrong answer was not merely
+unguarded, it was certified. The rule and its fixtures changed in the same commit
+as the code, and that is the house rule this release exists to demonstrate:
+**a guard that outlives the thing it was written against will certify whatever
+replaces it.**
+
+## Three copies of one merge, and only one of them kept the invariant
+
+`markWatched()` has always cleared the skip — watched-clears-skip is the app's
+own definition of what a tick means. **Three merge sites did not**: the cross-tab
+storage event, the JSON restore branch, and `applyImport()`. Skip an entry in one
+tab, tick it in another, and it came back as both — rendered with both classes,
+and shipped in *both* segments of the backup code and the JSON.
+
+**This is not the recorded "the merge only ever adds" decision**, which is about
+never losing a mark somebody made and still stands. This was drift between three
+hand-copied copies of one merge, and **the copies were the bug**: the log-merge
+dance underneath had been written out twice as well. One `mergeLog()` now, so
+there is one place to change rather than three to remember.
+
+## A render nobody asked for is still a render
+
+`#restorebox` was rebuilt empty by every `render()`, and renders fire from things
+the reader did not do: another tab's storage event, and the four-second
+reset-confirm timeout — which is gated on `S.tab === "stats"`, the very tab the
+box lives on. Paste a backup code, let another device tick something, and the
+paste was gone with nothing said. `#q` had been preserved across renders for
+releases. The box holding somebody's only copy of their progress had not.
+
+## The surgical paths, and the arithmetic that makes them safe
+
+Closing a group in The path cost a full render: 148–214 ms at 200 entries on
+desktop Chromium, of which **2.2 ms was this project's own code** and the rest
+was the browser laying out two hundred rows nobody had asked to change. 3.0.0
+added three targeted repaints beside the tick path that already existed — a row
+opening, a group closing, and the theme — and moved `rate()` onto the tick path
+it had been driving straight past.
+
+**The danger with a fast path is not that it is wrong on the day. It is that it
+drifts from the builder afterwards, silently.** So one builder serves both:
+`filmRow()` was pulled out of `groupBlock()` rather than reimplemented, and the
+smoke suite's byte-identity gate — widened past `#view` to cover the header and
+the two document-level attributes — drives every surgical path and requires the
+DOM to serialize **byte-for-byte identically to a forced full render**. That is
+not a review, it is arithmetic. A count missed, a class dropped, an aria left
+stale fails by construction.
+
+Each path also falls back to a full render the moment it cannot find what it
+expects. **A fast path that guesses is worse than no fast path.**
+
+`S.open` was one keyspace shared by The path's expanded rows and Next up's peeks,
+so opening a row in one view opened something in the other. Split into `S.open`
+and `S.peek`. Next up keeps the full render deliberately — it is a four-row list,
+and there is nothing there to save.
+
+## Nothing in this project declared a cache policy
+
+`docs/_headers` set three security headers under `/*` and nothing else, so every
+response took whatever Workers Assets emits by default — and Cloudflare caches
+`.js` at the edge. **Two independent routes reached the same conclusion.** The
+six subset faces are 62,996 bytes, network-first in the service worker, and
+re-fetched on a policy nobody wrote. And on 5 Aug 2026 the bare `/sw.js` answered
+`VERSION = "2.5.1"` while the same file with a cache-busting query answered
+`2.7.5`.
+
+**`sw.js` is the one file that must never be stale**, because it is how a
+returning browser learns the app changed — the file's own header comment says so.
+It takes `no-cache`, which does not mean *do not store*: it means revalidate
+before use, which is exactly what a version marker wants. The fonts take a year
+and `immutable`; they are blessed by hash and never change under a name.
+
+**Guard 104 pins both, because the value is load-bearing the moment it exists** —
+and a blanket `Cache-Control` under `/*` fails the build, since the two paths
+want opposite answers and one rule would give one of them the wrong one.
+
+**It only takes effect on upload.** `_headers` is read by the edge, not by
+anything in the repo, so nothing about this changes until the tree is deployed.
