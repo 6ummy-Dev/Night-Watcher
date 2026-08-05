@@ -145,6 +145,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      104  The security headers the edge cannot set
      105  The catalogue answers in plain text
      106  The fonts carry every letter the catalogue uses
+     116  The fonts really carry what the page really renders
      107  Every section can fail, and every section runs
      108  The 2.7.1 soak notes stay fixed
 
@@ -973,19 +974,44 @@ if(!/id="nosave"/.test(HTML)){
 }
 
 /* ---------- 22. No JS escapes stranded in the markup ------------------ */
-/* \uXXXX is an em dash in a script and six literal characters in markup. */
+/* \uXXXX is an em dash in a script and six literal characters in markup.
 
-var bodyAt = HTML.indexOf("<body>");
-var scriptAt = HTML.indexOf("<script", bodyAt);
-if(bodyAt > 0){
-  var markup = HTML.slice(bodyAt, scriptAt > bodyAt ? scriptAt : HTML.length);
-  var stranded = markup.match(/\\u[0-9a-fA-F]{4}/g);
-  if(stranded){
-    fail("static markup contains " + stranded.length + " JS escape(s) (" +
-         stranded.slice(0, 3).join(", ") + ") — these render literally, not as " +
-         "the character. Use the character itself or an HTML entity.");
+   3.0.2 WIDENED THE SCAN, WHICH HAD NEVER SEEN THE HEAD. It sliced <body> to
+   the first <script>, so the whole of <head> was outside it — and the head is
+   where the title, the description and the OG/Twitter tags live. A stranded
+   escape there renders literally to every crawler and every social embed, which
+   is the most expensive place on the page for this defect to land and the one
+   place the section could not look. The JSON-LD block is excluded on purpose:
+   it is JSON, where \uXXXX is correct and means the character. */
+
+(function(){
+  var bodyAt = HTML.indexOf("<body>");
+  var scriptAt = HTML.indexOf("<script", bodyAt);
+  var headAt = HTML.indexOf("<head>");
+  var regions = [];
+  if(headAt >= 0 && bodyAt > headAt){
+    /* The head, minus any JSON-LD, where the escapes are legitimate. */
+    regions.push(["the head", HTML.slice(headAt, bodyAt)
+      .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, "")]);
   }
-}
+  if(bodyAt > 0){
+    regions.push(["static markup",
+      HTML.slice(bodyAt, scriptAt > bodyAt ? scriptAt : HTML.length)]);
+  }
+  if(!regions.length){
+    fail("section 22 found neither a head nor a body to scan — the page's shape " +
+         "changed and this section is measuring nothing");
+    return;
+  }
+  regions.forEach(function(r){
+    var stranded = r[1].match(/\\u[0-9a-fA-F]{4}/g);
+    if(stranded){
+      fail(r[0] + " contains " + stranded.length + " JS escape(s) (" +
+           stranded.slice(0, 3).join(", ") + ") — these render literally, not as " +
+           "the character. Use the character itself or an HTML entity.");
+    }
+  });
+})();
 
 /* ---------- 23. The path vocabulary agrees with itself ---------------- */
 /* PATHS, MODENOTE, PATHCODE and CODEPATH describe the same three orderings;
@@ -1922,9 +1948,25 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
 if(!/<meta name="referrer" content="strict-origin-when-cross-origin">/.test(HTML)){
   fail("the referrer policy is gone");
 }
-if(/target="_blank"(?![^>]*noreferrer)/.test(HTML)){
-  fail('a target="_blank" link is missing rel="noreferrer"');
-}
+/* 3.0.2: THIS PATTERN ONLY LOOKED RIGHTWARD, and that made it a false positive
+   waiting to happen. `rel="noopener noreferrer" target="_blank"` is correct
+   HTML and a common ordering, and the old lookahead — which only scanned from
+   `target` to the end of the tag — failed the build on it. A guard that goes red
+   on a correct page is worse than one with a gap: it sends the next person
+   hunting a defect that does not exist, and it teaches them the guard is
+   unreliable, which is how a real failure later gets waved through. Read the
+   whole tag and check it for what it needs. */
+(function(){
+  (HTML.match(/<a\s[^>]*>/g) || []).forEach(function(tag){
+    if(tag.indexOf('target="_blank"') < 0) return;
+    if(tag.indexOf("noreferrer") < 0){
+      fail('a target="_blank" link is missing rel="noreferrer": ' + tag.slice(0, 90));
+    }
+    if(tag.indexOf("noopener") < 0){
+      fail('a target="_blank" link is missing rel="noopener": ' + tag.slice(0, 90));
+    }
+  });
+})();
 
 /* ---------- 44. Every watch link carries a year ----------------------- */
 /* Thirteen titles repeat across the catalogue. Without a year they all resolve
@@ -5266,11 +5308,24 @@ var ROUTE_VOCAB = [
          "shape coming back");
   }
   var shareH = (HTML.match(/act === "cardshare"\)\{[\s\S]*?\n  \}/) || [""])[0];
-  if(!/download\(f\.name, f\)/.test(shareH)){
-    fail("the share action has no download fallback \u2014 navigator.share can " +
-         "exist while file sharing does not, and with one button that is a " +
-         "dead end with no way out. Fall back to downloading, do not report " +
-         "failure");
+  /* 3.0.2 GAVE THIS HANDLER A SECOND FALLBACK AND WEAKENED THE CHECK BY DOING
+     SO. There are two ways to end up with no shared file: the browser never
+     offered file sharing, and the share itself failed after being offered. Both
+     have to fall back to the download, and until now one call site satisfied a
+     test written when there was only one. Count them. */
+  var falls = (shareH.match(/download\(f\.name, f\)/g) || []).length;
+  if(falls < 2){
+    fail("the share action has " + falls + " download fallback(s) and needs two \u2014 " +
+         "navigator.share can exist while file sharing does not, AND a share that " +
+         "was offered can still fail. With one button, either without a fallback " +
+         "is a dead end with no way out. Fall back to downloading, do not report " +
+         "failure and do not swallow it");
+  }
+  if(!/AbortError/.test(shareH)){
+    fail("the share handler no longer distinguishes a cancelled share from a " +
+         "failed one \u2014 a reader who dismissed the sheet gets a download they " +
+         "did not ask for, or a real failure goes silent. Both were the same " +
+         "empty catch until 3.0.2");
   }
   if(/toast\("Sharing files is not available here"\)/.test(HTML)){
     fail("the share action still reports that sharing is unavailable \u2014 with " +
@@ -5407,10 +5462,25 @@ var ROUTE_VOCAB = [
     fail(seats + ' seats carry "qhead big", the owner named exactly 3: the grid ' +
          "heading on Home, Then on Next up, and the Progress fold headings");
   }
+  /* 3.0.2: THIS LOOP CHECKED NOTHING. It computed `at`, tested a condition, and
+     the `if` body was a comment — no fail(), no note(), no effect. Check-shaped
+     and inert, which is the class 3.0.0 was written about, sitting inside a
+     section that otherwise works. The comment described a real relationship, so
+     it asserts it now rather than coming out: each named seat has to sit beside
+     the variant, or the count above is three seats that are not the three the
+     owner named. */
   ["GRIDNAME[S.mode]", '<p class="qhead big">Then</p>'].forEach(function(mark){
     var at = HTML.indexOf(mark);
-    if(at < 0 || HTML.lastIndexOf("qhead big", at + 60) < 0){
-      /* soft anchor: each named seat must sit next to the variant */
+    if(at < 0){
+      fail("the named seat " + mark + " is gone from the page — section 99 counts " +
+           "three seats carrying \"qhead big\" and this is one of the three it " +
+           "counts, so the count would still read 3 with the wrong seat in it");
+      return;
+    }
+    if(HTML.lastIndexOf("qhead big", at + 60) < 0){
+      fail("the named seat " + mark + " no longer sits beside \"qhead big\" — the " +
+           "seat and the variant drifted apart, and the count above cannot tell " +
+           "that from a correct page");
     }
   });
   if(!/class="qhead big" style="margin-top:6px"/.test(HTML)){
@@ -5501,6 +5571,24 @@ var ROUTE_VOCAB = [
   } else {
     var ft = fs.readFileSync(fp, "utf8");
     if(!/noindex/.test(ft)) fail("404.html does not ask to stay out of the index");
+    /* THE ROOT LINK, DECIDED 5 Aug 2026 — the apex wins, and the mirror's
+       404 link stays wrong on purpose.
+
+       The parked item was right that `href="/"` is wrong on the GitHub Pages
+       mirror, where it lands on 6ummy-dev.github.io rather than the app. It was
+       also right that there is no fix serving both: an absolute canonical
+       breaks self-containment below, and `./` breaks on any path deeper than
+       one segment, because the 404 is served AT the requested URL rather than
+       redirected to.
+
+       So it is a trade, and the apex takes it. The mirror has measured ZERO
+       visits against the apex's hundred, serves with noindex injected, is a
+       waiting room by decision, and retires after the depth-2 call. Breaking a
+       live rule that keeps the error page dependency-free — the page that shows
+       when something is already broken — to fix a link on an origin nobody
+       reaches is the wrong way round.
+
+       Closed. Do not re-open without new traffic evidence on the mirror. */
     if(!/href="\/"/.test(ft)) fail("404.html does not link home");
     if(/https?:\/\//.test(ft)){
       fail("404.html reaches off the page \u2014 it is self-contained or it is " +
@@ -6595,6 +6683,198 @@ var ROUTE_VOCAB = [
   }
   note("bat glyph: " + markPaths.length + " paths agree across the header, BATP " +
        "and icon.svg, ellipse and transform matched");
+})();
+
+/* ---------- 116. The fonts really carry what the page really renders --- */
+/* SECTION 106 HAS NEVER READ A FONT. It compares each file's bytes and hash to
+   qa/font-subset.json — a manifest qa/subset-fonts.py writes itself — so
+   narrow-the-range, re-run, re-bless leaves it green over a font that lost
+   glyphs. That was the recorded hole, deferred twice as "needs real cmap
+   inspection and a new dependency."
+
+   IT NEEDED NO DEPENDENCY. woff2 is a Brotli-compressed sfnt and Node ships
+   zlib.brotliDecompressSync, so the table directory, the cmap and its real
+   codepoint set are all reachable in pure Node — which matters, because "Zero
+   dependencies" is stated in this file's own header and in README's QA
+   paragraph, and shelling out to fontTools would have falsified a guarded claim
+   to fix an unguarded one.
+
+   AND IT FOUND A SECOND HOLE NOBODY HAD RECORDED. Section 106's other half
+   asserts that every character the page renders sits inside the blessed range —
+   and it scans the file for literal non-ASCII only. The star, the caret and the
+   external-link arrow all ship as \uXXXX ESCAPES in the script, so the check
+   could not see them and has been passing over four characters that are in none
+   of the six faces since the subset landed. The escapes are counted here.
+
+   THE FOUR ARE NOT A DEFECT, AND THAT IS THE POINT OF RECORDING THEM. A star, a
+   caret, an arrow and a guillemet are UI marks rather than text; they render
+   from the system font, they have always rendered from the system font, and
+   subsetting four symbol glyphs into five faces would spend bytes for a worse
+   result. What was wrong was that nobody had decided it — it was invisible, not
+   intentional. It is a named exception now, and like section 107's nested
+   section, the exception is asserted rather than assumed: if one of them ever
+   turns up INSIDE a face, this fails, because the reason it was excepted has
+   gone. */
+
+(function(){
+  var KNOWN_TABLES = ["cmap","head","hhea","hmtx","maxp","name","OS/2","post","cvt ",
+    "fpgm","glyf","loca","prep","CFF ","VORG","EBDT","EBLC","gasp","hdmx","kern",
+    "LTSH","PCLT","VDMX","vhea","vmtx","BASE","GDEF","GPOS","GSUB","EBSC","JSTF",
+    "MATH","CBDT","CBLC","COLR","CPAL","SVG ","sbix","acnt","avar","bdat","bloc",
+    "bsln","cvar","fdsc","feat","fmtx","fvar","gvar","hsty","just","lcar","mort",
+    "morx","opbd","prop","trak","Zapf","Silf","Glat","Gloc","Feat","Sill"];
+
+  /* Symbol marks that come from the system font by decision. Each must stay
+     absent from every face; a value here that turns up in a font means the
+     subset grew and this exception is stale. */
+  var SYSTEM_MARKS = {
+    0x2605: "the rating star",
+    0x25B6: "the group caret",
+    0x2197: "the external-link arrow",
+    0x203A: "the breadcrumb guillemet"
+  };
+
+  function base128(buf, p){
+    var v = 0, i;
+    for(i = 0; i < 5; i++){
+      var b = buf[p.o++];
+      if(i === 0 && b === 0x80) throw new Error("UIntBase128 leading zero");
+      if(v & 0xFE000000) throw new Error("UIntBase128 overflow");
+      v = (v << 7) | (b & 0x7F);
+      if(!(b & 0x80)) return v >>> 0;
+    }
+    throw new Error("UIntBase128 too long");
+  }
+  function woff2Tables(buf){
+    if(buf.readUInt32BE(0) !== 0x774F4632) throw new Error("not a woff2");
+    var numTables = buf.readUInt16BE(12), p = {o: 48}, dir = [], i;
+    for(i = 0; i < numTables; i++){
+      var flags = buf[p.o++], idx = flags & 0x3F;
+      var tag = idx === 0x3F ? buf.toString("latin1", p.o, (p.o += 4)) : KNOWN_TABLES[idx];
+      var len = base128(buf, p);
+      /* Only glyf and loca define a transform with its own length. */
+      if((idx === 10 || idx === 11) && ((flags >> 6) & 0x03) === 0) len = base128(buf, p);
+      dir.push({tag: tag, len: len});
+    }
+    var data = require("zlib").brotliDecompressSync(buf.slice(p.o));
+    var off = 0, out = {};
+    dir.forEach(function(t){ out[t.tag] = data.slice(off, off + t.len); off += t.len; });
+    return out;
+  }
+  function codepointsOf(cmap){
+    var n = cmap.readUInt16BE(2), best = null, bestScore = -1, i;
+    for(i = 0; i < n; i++){
+      var rec = 4 + i * 8;
+      var pid = cmap.readUInt16BE(rec), eid = cmap.readUInt16BE(rec + 2);
+      var off = cmap.readUInt32BE(rec + 4), fmt = cmap.readUInt16BE(off), score = -1;
+      if(pid === 3 && eid === 10 && fmt === 12) score = 4;
+      else if(pid === 0 && fmt === 12) score = 3;
+      else if(pid === 3 && eid === 1 && fmt === 4) score = 2;
+      else if(pid === 0 && fmt === 4) score = 1;
+      if(score > bestScore){ bestScore = score; best = {off: off, fmt: fmt}; }
+    }
+    if(!best) throw new Error("no unicode cmap subtable");
+    var set = {}, t = best.off, c;
+    if(best.fmt === 4){
+      var segX2 = cmap.readUInt16BE(t + 6), seg = segX2 / 2;
+      var endO = t + 14, startO = endO + segX2 + 2, deltaO = startO + segX2,
+          roO = deltaO + segX2;
+      for(i = 0; i < seg; i++){
+        var end = cmap.readUInt16BE(endO + i * 2), start = cmap.readUInt16BE(startO + i * 2);
+        var delta = cmap.readInt16BE(deltaO + i * 2), ro = cmap.readUInt16BE(roO + i * 2);
+        if(start === 0xFFFF) continue;
+        for(c = start; c <= end && c !== 0x10000; c++){
+          var g;
+          if(ro === 0) g = (c + delta) & 0xFFFF;
+          else {
+            var gi = roO + i * 2 + ro + (c - start) * 2;
+            if(gi + 1 >= cmap.length) continue;
+            g = cmap.readUInt16BE(gi);
+            if(g) g = (g + delta) & 0xFFFF;
+          }
+          if(g) set[c] = 1;
+        }
+      }
+    } else if(best.fmt === 12){
+      var groups = cmap.readUInt32BE(t + 12);
+      for(i = 0; i < groups; i++){
+        var go = t + 16 + i * 12;
+        var s = cmap.readUInt32BE(go), e = cmap.readUInt32BE(go + 4);
+        if(!cmap.readUInt32BE(go + 8)) continue;
+        for(c = s; c <= e; c++) set[c] = 1;
+      }
+    } else throw new Error("unsupported cmap format " + best.fmt);
+    return set;
+  }
+
+  /* What the shipped files actually need — literals AND \uXXXX escapes, which
+     is the half section 106 could not see. */
+  var need = {};
+  ["index.html", "orders.txt", "llms.txt"].forEach(function(f){
+    var fp = path.join(PUBLIC, f);
+    if(!fs.existsSync(fp)) return;
+    var t = fs.readFileSync(fp, "utf8"), i;
+    for(i = 0; i < t.length; i++){ var c = t.codePointAt(i); if(c > 127) need[c] = 1; }
+    (t.match(/\\u[0-9a-fA-F]{4}/g) || []).forEach(function(e){
+      var c = parseInt(e.slice(2), 16); if(c > 127) need[c] = 1;
+    });
+  });
+  var needed = Object.keys(need).map(Number).sort(function(a, b){ return a - b; });
+  if(needed.length < 5){
+    fail("section 116 found only " + needed.length + " non-ASCII characters in the " +
+         "served files — the scan stopped seeing the page and is measuring nothing");
+    return;
+  }
+
+  var manPath = path.join(__dirname, "font-subset.json");
+  var man = fs.existsSync(manPath) ? JSON.parse(fs.readFileSync(manPath, "utf8")) : null;
+  var dir = path.join(PUBLIC, "fonts");
+  var faces = fs.readdirSync(dir).filter(function(f){ return /\.woff2$/.test(f); }).sort();
+  if(!faces.length){ fail("no woff2 faces on disk to read"); return; }
+
+  var checked = 0;
+  faces.forEach(function(f){
+    var cps;
+    try { cps = codepointsOf(woff2Tables(fs.readFileSync(path.join(dir, f)))["cmap"]); }
+    catch(e){
+      fail("cannot read the cmap out of fonts/" + f + ": " + e.message +
+           " — this section exists because comparing hashes to a manifest the " +
+           "subset script wrote cannot see a lost glyph, and it has just lost " +
+           "the ability to see one too");
+      return;
+    }
+    checked++;
+    var missing = needed.filter(function(c){ return !cps[c] && !SYSTEM_MARKS[c]; });
+    if(missing.length){
+      fail("fonts/" + f + " does not carry " + missing.length + " character(s) the " +
+           "page renders: " + missing.map(function(c){
+             return "U+" + c.toString(16).toUpperCase() + " (" + String.fromCodePoint(c) + ")";
+           }).join(", ") + " — a subset that lost a glyph draws a blank box on " +
+           "somebody else's device and nothing throws");
+    }
+    /* Staleness is judged against the SUBSET faces only, and the reason is
+       worth writing down: limelight is not subset, so what it happens to carry
+       is the foundry's decision rather than this project's. It carries U+203A
+       and the five subset faces do not — which is exactly why the exception is
+       "not carried by every face" rather than "carried by none". */
+    if(man && man.files && man.files[f] && man.files[f].subset){
+      Object.keys(SYSTEM_MARKS).forEach(function(k){
+        if(cps[k]){
+          fail("the subset face fonts/" + f + " now carries U+" +
+               Number(k).toString(16).toUpperCase() + " (" + SYSTEM_MARKS[k] +
+               "), which is recorded here as coming from the system font by " +
+               "decision. The subset grew and the exception is stale — take it " +
+               "out of SYSTEM_MARKS or take it out of the range");
+        }
+      });
+    }
+  });
+  if(checked !== faces.length){ return; }
+
+  note("font coverage: " + needed.length + " characters needed, " +
+       (needed.length - Object.keys(SYSTEM_MARKS).length) + " carried by all " +
+       checked + " faces, " + Object.keys(SYSTEM_MARKS).length +
+       " from the system font by decision");
 })();
 
 /* ---------- report ---------- */

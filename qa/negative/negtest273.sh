@@ -29,7 +29,7 @@ run_case "the one button stops being Share the night" \
 echo "--- and it falls back instead of dead-ending"
 
 run_case "the fallback is replaced by the old apology" \
-  "the share action has no download fallback" \
+  "download fallback(s) and needs two" \
   "${P}a='else toast(download(f.name, f) ? \"Card downloaded\" : \"Download unavailable\");'
 assert a in s;s=s.replace(a,'else toast(\"Sharing files is not available here\");',1);${W}"
 

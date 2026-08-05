@@ -19,7 +19,31 @@
 # suite or a fixture.
 set -u
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-NEG="${NEGDIR:-$(mktemp -d)}/tree"
+
+# THE LEAK, AND ITS SHAPE WAS RECORDED WRONG. The parked item read "eight
+# leaking suites" — the eight that end without `rm -rf "$NEG"`. That is a
+# symptom and fixing those eight would have left the real one in place.
+#
+# $NEG is "$dir/tree", so `rm -rf "$NEG"` removes the TREE and leaves the
+# temp directory that held it. Every suite leaked, not eight — the other
+# twenty-six just leaked an empty directory instead of a full one, which is
+# why nobody noticed. run-all.sh was never affected: it sets NEGDIR under its
+# own $WORK and traps that on EXIT, so the whole thing goes at once. What
+# leaked was the standalone run — one suite at a time, which is how every
+# fixture gets written and debugged.
+#
+# So the fix belongs here rather than in eight files: when this library makes
+# the directory, this library cleans it up, on any exit including a failure
+# or a Ctrl-C. When run-all.sh supplies one, it still owns it. The `rm -rf
+# "$NEG"` lines in the suites are now redundant and are left alone — they
+# state intent, they cost nothing, and removing twenty-six of them is churn.
+if [ -n "${NEGDIR:-}" ]; then
+  NEG="$NEGDIR/tree"
+else
+  NEGOWN="$(mktemp -d)"
+  NEG="$NEGOWN/tree"
+  trap 'rm -rf "$NEGOWN"' EXIT
+fi
 PASS=0; FAILED=0
 
 # run_case <label> <expected-failure-substring> <python-mutation> [suite] [phase]

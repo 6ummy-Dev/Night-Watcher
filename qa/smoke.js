@@ -10,7 +10,20 @@ var PUBLIC = fs.existsSync(path.join(ROOT, "docs", "index.html"))
   ? path.join(ROOT, "docs") : ROOT;
 var jsdom;
 try { jsdom = require("jsdom"); }
-catch(e){ console.log("skipped — jsdom not installed (npm i -D jsdom)"); process.exit(0); }
+catch(e){
+  /* 3.0.2: THIS EXITED 0 IN CI TOO. The skip is a deliberate affordance for
+     someone who cloned without dev dependencies — it should survive. But if
+     `npm ci` ever fails to bring jsdom down, `npm test` passed with this suite
+     never running, and the README's check count went unasserted with it. A
+     silent skip in the file that reports the count is the same family as
+     everything 3.0.0 repaired. Local stays soft; CI is told. */
+  if(process.env.CI){
+    console.log("FAILED — jsdom is not installed and this is CI, so the smoke " +
+                "suite did not run. A skipped suite is not a passing suite.");
+    process.exit(1);
+  }
+  console.log("skipped — jsdom not installed (npm i -D jsdom)"); process.exit(0);
+}
 
 var html = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8")
   /* strip network assets so the test is offline and deterministic */

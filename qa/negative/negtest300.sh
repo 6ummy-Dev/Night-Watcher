@@ -413,5 +413,83 @@ run_case "an unlisted origin appears in the page" \
   "reaches out to" \
   "${P}s=s.replace('\"https://x.com/6ummy\"','\"https://x.com/6ummy\",\"https://evil.example.com/x\"',1);${W}"
 
+
+echo "--- 3.0.2: the guard holes"
+
+# The loop's if-body was a comment. Check-shaped, inert, inside a section that
+# otherwise works — the class 3.0.0 was written about.
+run_case "a named seat leaves the page" \
+  "is gone from the page" \
+  "${P}a='<p class=\"qhead big\">Then</p>';assert a in s
+s=s.replace(a,'<p class=\"qhead big\">Next</p>',1);${W}"
+
+# Section 22 could not see the head, which is where the description tags live.
+run_case "a JS escape is stranded in the description" \
+  "the head contains" \
+  "${P}import re;m=re.search(r'<meta name=\"description\" content=\"([^\"]*)\"',s);assert m
+s=s[:m.start(1)]+m.group(1).replace(' ','\\\\u2014',1)+s[m.end(1):];${W}"
+
+# The old pattern only looked rightward: correct HTML, red build.
+run_case "a blank-target link loses noreferrer" \
+  "missing rel=" \
+  "${P}a='target=\"_blank\" rel=\"noopener noreferrer\"';assert a in s
+s=s.replace(a,'target=\"_blank\" rel=\"noopener\"',1);${W}"
+
+echo "--- 3.0.2: the app defects"
+
+run_case "the belt goes back to closing on a timer" \
+  "does not parse" \
+  "${P}a='        S.beltOpen = false;\n        setTimeout(function(){ if(!S.beltOpen) render(); }, 240);'
+assert a in s;s=s.replace(a,'        setTimeout(function({ S.beltOpen = false; render(); }, 240);',1);${W}"
+
+run_case "the share handler stops telling a cancel from a failure" \
+  "download fallback(s) and needs two" \
+  "${P}import re;i=s.index('act === \"cardshare\"'); j=s.index('\n  }',i)
+blk=s[i:j];nb=re.sub(r'download\\(f\\.name, f\\)','void 0',blk);s=s[:i]+nb+s[j:];${W}"
+
+run_case "the share handler goes back to one empty catch" \
+  "no longer distinguishes a cancelled share" \
+  "${P}a='        if(err && err.name === \"AbortError\") return;'
+assert a in s;s=s.replace(a,'        if(err) return;',1);${W}"
+
+echo "--- 116: the fonts really carry what the page renders"
+
+# Swapping one face for another proves nothing here: all five subset faces
+# carry an identical 204-codepoint set, so no swap can produce a missing
+# character. The invariant is tested from the other side instead — the page
+# starts needing a character no face has, which is exactly what a catalogue
+# patch with an unusual title would do, and is the failure §106 could never see
+# because it compares bytes to a record the subset script wrote.
+run_case "the page starts needing a glyph no face carries" \
+  "does not carry" \
+  "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read()
+io.open(p,'w',encoding='utf-8').write(s+chr(10)+'A title with an unsubset glyph: '+chr(0x4E00)+chr(10))"
+
+run_case "a recorded system mark turns up in a subset face" \
+  "the exception is stale" \
+  "import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read()
+a='0x203A: \"the breadcrumb guillemet\"';assert a in s
+s=s.replace(a,'0x0041: \"a letter that is obviously in every face\"',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+run_case "the cmap reader is fed something that is not a woff2" \
+  "cannot read the cmap out of" \
+  "import io;p='docs/fonts/anton-latin-400-normal.woff2'
+io.open(p,'wb').write(b'NOTAWOFF2'+b'\\x00'*400)"
+
+echo "--- 5.1: smoke does not skip silently in CI"
+
+# run_case sets no environment, so the CI condition is forced by the mutation
+# rather than by the runner. What is proved is the branch's behaviour — it says
+# the suite did not run and exits non-zero — not the env detection itself.
+run_case "jsdom goes missing where a skip would be silent" \
+  "the smoke suite did not run" \
+  "import io;p='qa/smoke.js';s=io.open(p,encoding='utf-8').read()
+a='try { jsdom = require(\"jsdom\"); }';assert a in s
+s=s.replace(a,'try { jsdom = require(\"jsdom-not-installed\"); }',1)
+b='if(process.env.CI){';assert b in s;s=s.replace(b,'if(true){',1)
+io.open(p,'w',encoding='utf-8').write(s)" \
+  "smoke"
+
 rm -rf "$NEG"
 finish "3.0.x negative tests"

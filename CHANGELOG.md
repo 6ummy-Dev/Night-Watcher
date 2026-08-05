@@ -20,6 +20,135 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.0.2] — 2026-08-05
+
+**The emptying release.** Every code item left anywhere in this project is in
+here, and the ~60-item P3 tail is triaged once and closed rather than carried as
+a block nobody had read. No app behaviour changes beyond two confirmed defects,
+and no saved-progress format moves.
+
+### Fixed
+
+- **Section 99 carried a loop that checked nothing.** It computed a condition
+  and the `if` body was a comment — no `fail()`, no `note()`, no effect.
+  Check-shaped and inert, inside a section that otherwise works. The comment
+  described a real relationship, so it asserts it now rather than being deleted.
+
+- **Section 22 could not see the head.** It sliced `<body>` to the first
+  `<script>`, so `<head>` — where the title, description and OG/Twitter tags
+  live — was outside the scan. A stranded `\uXXXX` there renders literally to
+  every crawler and every social embed. The JSON-LD block is excluded on purpose:
+  it is JSON, where the escape is correct.
+
+- **Section 37's `target="_blank"` check only looked rightward.**
+  `rel="noopener noreferrer" target="_blank"` is correct HTML and a common
+  ordering, and the old lookahead failed the build on it. **A guard that goes red
+  on a correct page is worse than one with a gap** — it teaches the next person
+  the guard is unreliable, which is how a real failure later gets waved through.
+  It reads the whole tag now, and checks for `noopener` as well.
+
+- **The belt could reopen mid-close.** `S.beltOpen` was cleared inside a 240 ms
+  timeout while the closing animation ran, and 3.0.0 established that renders
+  arrive from things the reader did not do. Any render inside that window
+  redrew an open pouch. The state is set when the close starts; the class
+  carries the animation.
+
+- **The share card could not tell a cancel from a failure.**
+  `navigator.share(…).catch(function(){})` swallowed both, so a genuine failure
+  was silent. `AbortError` returns; anything else falls back to the download —
+  the same shape as the 2.7.3 fallback that made one button safe, which was
+  guarded where this path was not.
+
+- **The negative harness leaked a temp directory on every standalone run.** The
+  parked item read "eight leaking suites" — the eight ending without
+  `rm -rf "$NEG"`. That is the symptom. `$NEG` is `"$dir/tree"`, so removing it
+  leaves the directory that held it: every suite leaked, the other twenty-six
+  just leaked an empty one. `run-all.sh` was never affected. One trap in
+  `_lib.sh`, where the directory is made.
+
+### Added
+
+- **Guard 116 — the fonts really carry what the page really renders.** Section
+  106 has never read a font: it compares bytes and hashes to a manifest
+  `qa/subset-fonts.py` writes itself, so narrow-the-range, re-run, re-bless
+  leaves it green over a face that lost glyphs. This was deferred twice as
+  *"needs real cmap inspection and a new dependency."*
+
+  **It needed no dependency.** woff2 is a Brotli-compressed sfnt and Node ships
+  `zlib.brotliDecompressSync`, so the table directory, the `cmap` and its real
+  codepoint set are reachable in pure Node — which matters, because *"Zero
+  dependencies"* is stated in `guards.js`'s own header and in README's QA
+  paragraph, and shelling out to fontTools would have falsified a guarded claim
+  to fix an unguarded one.
+
+  **And it found a second hole nobody had recorded.** Section 106's other half
+  asserts every character the page renders is inside the blessed range — and it
+  scans for literal non-ASCII only. **The star, the caret and the external-link
+  arrow all ship as `\uXXXX` escapes**, so it could not see them, and four
+  characters the app renders daily are in none of the six faces: `U+2605` ★,
+  `U+25B6` ▶, `U+2197` ↗, `U+203A` ›.
+
+  **They are not a defect, and recording them is the point.** They are UI marks
+  rather than text, they render from the system font, they always have, and
+  subsetting four symbol glyphs into five faces would spend bytes for a worse
+  result. What was wrong is that nobody had decided it — it was invisible, not
+  intentional. Named in `SYSTEM_MARKS` now and asserted like section 107's
+  nested-section exception: if one turns up inside a **subset** face, this fails,
+  because the reason it was excepted has gone. Staleness is judged against the
+  subset faces only — limelight is not subset, and what the foundry shipped in
+  it is not this project's decision. It carries `U+203A`; the five subset faces
+  do not, which is why the exception is *"not carried by every face"* rather than
+  *"carried by none"*.
+
+- **Smoke no longer skips silently in CI.** It exited **0** when `jsdom` was
+  missing, so a failed `npm ci` would have passed `npm test` with the suite never
+  running — and the README check-count assertion going unrun with it. The skip
+  survives locally, where it is a real affordance for a fresh clone; under `CI`
+  it says the suite did not run and exits 1.
+
+### Decided
+
+- **`404.html`'s root link stays `href="/"`, and the mirror's stays wrong.** The
+  parked item was right that both obvious fixes break the other origin: an
+  absolute canonical breaks the self-containment rule below it, and `./` breaks
+  on any path deeper than one segment, because the 404 is served **at** the
+  requested URL rather than redirected to. **So it is a trade, and the apex takes
+  it.** The mirror has measured zero visits against the apex's hundred, serves
+  with `noindex` injected, is a waiting room by decision, and retires after the
+  depth-2 call. Breaking a live rule that keeps the error page dependency-free —
+  the page shown when something is already broken — to fix a link on an origin
+  nobody reaches is the wrong way round. Recorded in the guard; do not re-open
+  without new traffic evidence.
+
+  *This was planned as an absolute canonical and the guard rejected it. The guard
+  was right.*
+
+### The P3 tail — closed
+
+Sixty items were being carried as a block nobody had read. **Six were taken** —
+the three guard holes and the three app items above; the first three were
+coverage holes rather than nits, which is why clearing the block wholesale would
+have been wrong.
+
+**The rest are cleared permanently, not deferred:** two radixes parsing ratings
+in formats that genuinely differ · the series-count hint that self-corrects on
+jump · `subOf()` computed twice · a stray comma · `ratingBadge`/`S.rated` naming ·
+`S.log = {}; S.log = [];` · smoke's dead Google-Fonts strip · README read three
+times and `sw.js` five times under different names · three hand-synced copies of
+the CSS tokenizer · smoke's fire-and-forget collapse-reboot check ·
+`make-share-card`'s error-handling hardenings on a twice-a-year tool. Every one
+is real and none is worth a line in a release note; carrying them further teaches
+the backlog to be ignored.
+
+### Not in this release
+
+**SHA-pinned CI actions** — the one item whose failure mode is a broken CI run
+rather than a red guard, and the SHAs could not be confirmed from here.
+**The beacon** — 3.1.0 after Batman Day, and with no Worker: `wrangler.jsonc` has
+no `main`, GSC's Links report already gives referring domains, and Cloudflare's
+HTTP Traffic panel already gives visits. **The Instagram safe zone**, gated on a
+Story test. **The devlog** and everything downstream of it.
+
 ## [3.0.1] — 2026-08-05
 
 **Four watchers and one line of schema.** No app behaviour changes and no
