@@ -1897,9 +1897,31 @@ if(!rmSize){
   var bat = (HTML.match(/\.mark svg\{[^}]*width:(\d+)px/) || [])[1];
   var word = (HTML.match(/\.wordmark h1\{[^}]*font-size:(\d+(?:\.\d+)?)px/) || [])[1];
   if(!bat || !word){ fail("cannot read the header's bat width or wordmark size"); return; }
-  if(parseInt(bat, 10) < 38){
-    fail("the header bat is " + bat + "px against a 46px ring \u2014 that gap is " +
-         "what made the header read as crooked in the 2.7.2 soak");
+  /* 2.7.5 replaced a magic floor with the invariant it was standing in for.
+     "The bat is at least 38px" was a number chosen by narrowing a gap; what
+     actually balances the row is that BOTH FLANKERS DRAW THE SAME WIDTH. They
+     never did: the ring's box is 46px but a stroked circle at r=19 with a 4px
+     stroke draws 42, and the bat drew 32 and then 40. Now r=20 draws 44 and the
+     bat is 44, so the two match and the guard checks the match rather than a
+     remembered constant. */
+  var ringArc = (HTML.match(/<circle id="ringArc"[\s\S]*?\/?>/) || [""])[0];
+  var rr = parseFloat((ringArc.match(/\br="([\d.]+)"/) || [])[1]);
+  var rsw = parseFloat((ringArc.match(/stroke-width="([\d.]+)"/) || [])[1]);
+  if(!(rr > 0) || !(rsw > 0)){
+    fail("cannot read the ring's radius and stroke to compare it with the bat");
+  } else {
+    var drawn = 2 * (rr + rsw / 2);
+    if(Math.abs(parseInt(bat, 10) - drawn) > 1){
+      fail("the header flankers do not match: the bat draws " + bat + "px and the " +
+           "ring draws " + drawn + "px (r=" + rr + " plus half a " + rsw +
+           "px stroke). Both boxes are 46px wide, so the row measures symmetric " +
+           "and reads crooked \u2014 that was the 2.7.2 soak note, and the gap is " +
+           "what the eye is seeing rather than the boxes");
+    }
+    if(parseInt(bat, 10) > 46){
+      fail("the bat is " + bat + "px in a 46px column \u2014 it overflows its own " +
+           "flank and starts taking the wordmark's room on a narrow phone");
+    }
   }
   if(parseFloat(word) < 23){
     fail("the wordmark is " + word + "px \u2014 2.7.3 set it to 24 on the owner's " +
@@ -1910,7 +1932,8 @@ if(!rmSize){
          "~219px a 375px phone leaves between the flankers, and .wordmark " +
          "shrinks silently rather than failing");
   }
-  note("header: bat " + bat + "px, wordmark " + word + "px, ring 46px");
+  note("header: bat " + bat + "px, wordmark " + word + "px, ring draws " +
+       (2 * (rr + rsw / 2)) + "px in a 46px box");
 })();
 
 if(!/id="topBtn"/.test(HTML)) fail("the wordmark is no longer a control");

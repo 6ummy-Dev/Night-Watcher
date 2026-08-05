@@ -1911,3 +1911,31 @@ line is long, the change is one character, and the eye reads the sentence rather
 than the syntax. This is the project's most-exposed failure mode by
 construction, and until 2.7.4 the only thing standing under it was a stack
 trace.
+
+## The ring was never 46px, and two releases were measured against that
+
+2.7.3 raised the header bat from 32px to 40px to close a gap "against a 46px
+ring". The reasoning was right and the number was wrong. **46 is the ring's
+box.** What it draws is a stroked circle — `r="19"` with a 4px stroke, so the
+outer edge sits at radius 21 and the ring covers **42px**, leaving 2px of its
+box unused.
+
+So the fix that closed the gap was itself measured against a figure nobody had
+checked, and it landed at 40 against a real 42 by luck rather than arithmetic.
+2.7.5 sets the radius to 20 — 44px drawn, still inside the 46px box — and the
+bat to 44. Both flankers now draw the same width for the first time.
+
+**The guard was the more important half.** It held a floor: *the bat is at least
+38px.* That number came from narrowing a gap, not from measuring anything, and a
+floor would have accepted 44-against-42 exactly as happily as 44-against-44. It
+now asserts the thing that actually balances the row — **the bat's width equals
+`2 × (r + stroke/2)`, within a pixel** — plus a ceiling at the column width so
+the bat cannot overflow its own flank and start taking the wordmark's room.
+
+**The general shape, which this project keeps rediscovering:** a guard written
+as a remembered constant protects the number somebody happened to land on. A
+guard written as a relationship protects the reason. Section 80 already did this
+correctly — it derives the circumference from the radius instead of holding
+119.4 — which is why changing `r` from 19 to 20 checked all three dependent
+numbers without anyone telling it to. The header guard did not, and cost a
+release to find out.

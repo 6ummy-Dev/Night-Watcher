@@ -63,12 +63,12 @@ s=s[:m.start(1)]+str(int(m.group(1))-1)+s[m.end(1):];io.open(p,'w',encoding='utf
 echo "--- 80: the ring circumference is tied to its radius"
 run_case "the markup circumference stops matching the radius" \
   "does not match 2πr" \
-  "${P}a='stroke-dasharray=\"119.4\" stroke-dashoffset=\"119.4\"';assert a in s
+  "${P}a='stroke-dasharray=\"125.7\" stroke-dashoffset=\"125.7\"';assert a in s
 s=s.replace(a,'stroke-dasharray=\"120\" stroke-dashoffset=\"120\"',1);${W}"
 
 run_case "the script circumference drifts from the markup" \
   "the script draws the ring with" \
-  "${P}a='(119.4 * (1 - frac))';assert a in s;s=s.replace(a,'(118.9 * (1 - frac))',1);${W}"
+  "${P}a='(125.7 * (1 - frac))';assert a in s;s=s.replace(a,'(124.9 * (1 - frac))',1);${W}"
 
 echo "--- 81: an era note describes a period, not a story"
 run_case "an era note quotes an episode" \

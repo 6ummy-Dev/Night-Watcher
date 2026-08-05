@@ -43,9 +43,20 @@ run_case "a handler returns with no button to reach it" \
 
 echo "--- the header keeps its balance"
 
+# 2.7.5: the flankers are now checked against each other rather than a floor,
+# so this shrinks one of the pair and requires the mismatch to be named.
 run_case "the bat shrinks back under the ring" \
-  "against a 46px ring" \
-  "${P}s=s.replace('.mark svg{display:block;width:40px;','.mark svg{display:block;width:32px;',1);${W}"
+  "the header flankers do not match" \
+  "${P}s=s.replace('.mark svg{display:block;width:44px;','.mark svg{display:block;width:32px;',1);${W}"
+
+run_case "the ring grows away from the bat instead" \
+  "the header flankers do not match" \
+  "${P}a='id=\"ringArc\" cx=\"23\" cy=\"23\" r=\"20\" fill=\"none\" stroke-width=\"4\"';assert a in s
+s=s.replace(a,'id=\"ringArc\" cx=\"23\" cy=\"23\" r=\"20\" fill=\"none\" stroke-width=\"12\"',1);${W}"
+
+run_case "the bat overflows its own column" \
+  "it overflows its own flank" \
+  "${P}s=s.replace('.mark svg{display:block;width:44px;','.mark svg{display:block;width:52px;',1);${W}"
 
 run_case "the wordmark is tidied back down" \
   "2.7.3 set it to 24 on the owner" \

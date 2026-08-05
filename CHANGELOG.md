@@ -20,6 +20,52 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [2.7.5] — 2026-08-04
+
+The header's two flankers finally match.
+
+### Changed
+
+- **The bat and the ring both draw 44px.** 2.7.3 took the bat from 32 to 40 to
+  close a gap against what was described as a 46px ring. **The ring was never
+  46.** Its *box* is 46; what it draws is a stroked circle at `r="19"` with a
+  4px stroke — outer edge at radius 21, so **42px across**, with 2px of slack it
+  never used.
+
+  So the correction that closed the gap was itself measured against the wrong
+  number. The ring's radius is now 20, which draws 44 inside the same 46px box,
+  and the bat is 44. Two flankers, same drawn width, 1px of air each — for the
+  first time the row is symmetric in what a reader sees rather than only in what
+  the box model reports.
+
+  `stroke-dasharray`, `stroke-dashoffset` and the offset the script computes all
+  move with the radius: 2πr for r=20 is **125.7**. Section 80 derives the
+  circumference from the radius rather than holding a constant, so it checked
+  all three against the new value without being told.
+
+- **The guard now checks the two against each other.** It held a floor — *the
+  bat is at least 38px* — which was a number produced by narrowing a gap, not by
+  measuring anything. **What actually balances the row is that both flankers
+  draw the same width**, so that is what it asserts: the bat's width against
+  `2 × (r + stroke/2)`, within a pixel, plus a ceiling at the 46px column so the
+  bat cannot overflow its own flank and start taking the wordmark's room on a
+  narrow phone.
+
+  A floor would have passed 44 and 42 as happily as 44 and 44. The invariant
+  catches a change to *either* side, which a constant never could.
+
+- **The build line drops below the caveat and centres.** *Announced dates can
+  move.* is a statement about the catalogue; *Build · updated · read the source*
+  is provenance. They were one run-on line, then two adjacent ones. Now the
+  second sits a full line below and centred under the first, which is what it
+  always was: a footer, not a continuation.
+
+### Why PATCH
+
+Two CSS widths, a radius and the three numbers that follow from it, and a
+`<span>`. No catalogue change, no behaviour change, nothing touching saved
+progress.
+
 ## [2.7.4] — 2026-08-04
 
 The source link finds its seat, and the page checks that it parses.
