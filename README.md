@@ -35,7 +35,7 @@ These are the constraints the app is built around, not features nobody has got t
 
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
-- **No third-party code at all** — *guarded.* Not one line vendored, and nothing fetched at runtime except the cookie-free analytics beacon named above, which is the single deliberate exception and is allowlisted by name in `qa/guards.js`. The app runs with the network off.
+- **No third-party code in this repository** — *guarded.* Not one line vendored, and nothing fetched at runtime except the cookie-free analytics beacon named above, which is the single deliberate exception and is allowlisted by name in `qa/guards.js`. The app runs with the network off. **The guard reads this repository, because that is the only thing it can honestly promise.** The apex is served through Cloudflare, and Cloudflare's edge injects a script of its own — not in this file, not ours, and not removable from here. Open `docs/index.html` from disk, or serve it from any other host, and what runs is exactly what you can read.
 - **A weight budget** — *guarded.* `docs/index.html` must stay under 200 KB raw and 80 KB gzipped; it is currently 183 KB / 53 KB (rounded — the raw file sits at 181.9, up ~2 KB on 2.7.5: 3.0.0 added a Skipped filter, three surgical repaint paths and a shared log merge, and took three comment blocks back out to NOTES.md). **The page was never the whole story.** 2.7.0 subset five of the six webfonts, taking the fonts from 116 KB to 62 KB, so the first visit costs 241 KB rather than 296 — an 18% cut that the page's own budget could not see, because it does not count them. The ceilings have moved four times — 150 → 160 in 1.9.5 (ratings data), 160 → 165 in 2.0.0 (the progress card), and 165 → 200 raw with the first-ever gzip raise, 50 → 80, in 2.5.0 (the full-catalogue seed) — every raise an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
@@ -51,7 +51,7 @@ The DC Animated Universe entry also carries the full interleave: where *Mask of 
 
 ## Running it
 
-One HTML file, no build step, nothing to install, and no third-party code — every line is written for this project.
+One HTML file, no build step, nothing to install, and nothing vendored — every line in this repository is written for this project.
 
 Open `docs/index.html` in any modern browser, or serve the `docs/` folder from any static host — this repo publishes via GitHub Pages and Cloudflare Workers Assets. Served over HTTPS it registers a service worker, so after the first visit it opens and works with no network at all. Opened straight off disk as `file://` it still works; the service worker just doesn't register, since browsers only allow them in a secure context.
 
