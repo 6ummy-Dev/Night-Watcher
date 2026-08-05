@@ -337,5 +337,81 @@ run_case "a blanket cache policy is set under the star rule" \
   "which covers sw.js" \
   "${H2}s=s.replace('  X-Frame-Options: DENY','  X-Frame-Options: DENY\n  Cache-Control: public, max-age=3600',1);${HW2}"
 
+
+echo "--- 113: every negative suite runs in CI"
+
+# 3.0.0 added a suite and never sharded it. The whole suite ran green on the
+# release machine four times, including from inside the zip, and all four CI
+# shards went red before run-all.sh ran. The check existed only in CI, which is
+# a watcher that cannot see from where the work happens.
+run_case "a suite is added and never sharded" \
+  "no CI shard runs" \
+  "import io;io.open('qa/negative/negtest999.sh','w').write('#!/bin/bash\n. \"\$(dirname \"\${BASH_SOURCE[0]}\")/_lib.sh\"\nfinish \"stub\"\n')"
+
+run_case "a shard pattern is dropped from the matrix" \
+  "expected 4" \
+  "import io,re;p='.github/workflows/qa.yml';s=io.open(p,encoding='utf-8').read()
+i=s.index(\"          - shard: \\\"4\\\"\");j=s.index('    steps:',i)
+s=s[:i]+s[j:];io.open(p,'w',encoding='utf-8').write(s)"
+
+run_case "the workflow is deleted outright" \
+  "nothing runs the suites on push" \
+  "import os;os.remove('.github/workflows/qa.yml')"
+
+echo "--- 114: the README describes the origin that actually serves"
+
+run_case "the retired move offer returns to the README" \
+  "in the present tense" \
+  "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
+a='The offer to carry that progress across'
+assert a in s;s=s.replace(a,'and the app offers to carry it across when opened there. The offer',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+run_case "the offer is named without the retired marker" \
+  "never says it was retired" \
+  "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
+a='was retired in 2.5.1, and guard 77 fails the build if it comes back; what the old'
+assert a in s;s=s.replace(a,'is described elsewhere; what the old',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+# No backticks in a mutation string: _lib.sh runs it through python3 -c "$pyscript"
+# in DOUBLE quotes, so a backtick inside is command substitution and the anchor
+# never matches. The first draft of this fixture reported SETUP BROKE for exactly
+# that reason, which is the harness telling the truth about a broken fixture.
+run_case "the paragraph stops naming what the mirror does" \
+  "does not mention noindex" \
+  "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
+assert 'noindex' in s;s=s.replace('noindex','nothing',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+echo "--- 115: three copies of the bat agree"
+
+run_case "the share card's bat drifts from the header's" \
+  "the header bat and BATP have drifted apart" \
+  "${P}a='var BATP = \"M50 36';assert a in s;s=s.replace(a,'var BATP = \"M50 37',1);${W}"
+
+run_case "the installed icon drifts from both" \
+  "icon.svg and BATP have drifted apart" \
+  "import io;p='docs/icon.svg';s=io.open(p,encoding='utf-8').read()
+a='M50 36 C 44 25';assert a in s;s=s.replace(a,'M50 38 C 44 25',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+run_case "the ellipse is dropped from the header" \
+  "lost its ellipse" \
+  "${P}import re;m=re.search(r'(<button class=\"mark\"[\\s\\S]*?</button>)',s);assert m
+b=m.group(1);nb=re.sub(r'<ellipse[^>]*>','',b);s=s[:m.start(1)]+nb+s[m.end(1):];${W}"
+
+run_case "the icon is moved without the header" \
+  "same shape, different position" \
+  "import io;p='docs/icon.svg';s=io.open(p,encoding='utf-8').read()
+a='transform=\"translate(0,5)\"';assert a in s;s=s.replace(a,'transform=\"translate(0,9)\"',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+echo "--- 42: named origins and fetched origins are different lists"
+
+run_case "an unlisted origin appears in the page" \
+  "reaches out to" \
+  "${P}s=s.replace('\"https://x.com/6ummy\"','\"https://x.com/6ummy\",\"https://evil.example.com/x\"',1);${W}"
+
 rm -rf "$NEG"
-finish "3.0.0 negative tests"
+finish "3.0.x negative tests"

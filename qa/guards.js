@@ -106,6 +106,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      75   A control is as big as a finger
      109  Every count on Progress is a way into the list
      110  The page can still be pinch-zoomed
+     115  Three copies of the bat, and they agree
      112  The Restore box survives a render nobody asked for
 
    DEPLOY
@@ -120,6 +121,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      29   Weight budget
      31   The README describes the app that exists
      45   The README lists every served file
+     114  The README describes the origin that actually serves
      82   GitHub Pages never gets a custom domain
      83   The manifest id is an identity, not a path
      46   The README states the real weight
@@ -149,6 +151,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
    META
      65   The file points at where its reasoning went
      66   The guards are navigable
+     113  Every negative suite runs in CI
 
    Sections are numbered in file order. Groups are for finding things;
    they do not affect what runs. Guard 66 enforces the numbering, that every
@@ -1720,9 +1723,24 @@ if(!/<label class="bklab" for="restorebox">/.test(HTML)){
    disclosed in the footer. */
 
 (function(){
-  var ALLOWED = ["static.cloudflareinsights.com", "cloudflareinsights.com",
-                 "nightwatcher.life", "search.brave.com",
-                 "schema.org", "www.w3.org", "www.sitemaps.org", "github.com"];
+  /* 3.0.1 split this list, because it had been doing two jobs with one name and
+     the second one arrived. An origin the page FETCHES tells a third party that
+     somebody opened the page — that is what this section has always been about.
+     An origin the page NAMES — a link the reader may choose to follow, or a
+     sameAs entry declaring that two URLs are the same entity — sends nothing
+     and is read by crawlers, not by browsers. github.com was already in here on
+     the second footing; x.com joins it for the same reason.
+
+     The distinction is written down rather than implied, because the next
+     addition will be argued from this list and the wrong reading of it is
+     "these origins are fine". They are fine to MENTION. Nothing here may be
+     fetched except the disclosed beacon, and section 29's sweep is what holds
+     that half. */
+  var FETCHED = ["static.cloudflareinsights.com", "cloudflareinsights.com",
+                 "nightwatcher.life"];
+  var NAMED   = ["search.brave.com", "schema.org", "www.w3.org",
+                 "www.sitemaps.org", "github.com", "x.com"];
+  var ALLOWED = FETCHED.concat(NAMED);
   /* Every file that ships, not just index.html. sw.js kept Google's font
      origins in a dead cache branch from 1.4.2 to 1.5.0 because this scan only
      ever read the page. A service worker reaches the network too. */
@@ -6363,6 +6381,220 @@ var ROUTE_VOCAB = [
          "#restorebox are the two inputs a render must not empty");
   }
   note("render() carries #q and #restorebox across a repaint");
+})();
+
+/* ---------- 113. Every negative suite runs in CI ---------------------- */
+/* 3.0.0 ADDED A NEGATIVE SUITE AND NEVER ADDED IT TO THE SHARD MATRIX. The
+   whole suite ran green on the release machine four times, including from
+   inside the zip, because run-all.sh with no argument runs everything. CI
+   shards, negtest300 was in none of the four pick patterns, and all four
+   shards failed at the workflow's "every suite lands in some shard" step
+   before run-all.sh ran at all.
+
+   THIRD TIME THAT STEP HAS GONE RED, SECOND DISTINCT CAUSE. negtest252 and
+   negtest260 reached the pick patterns and missed a hand-maintained fifth copy
+   of the shard lists; that was fixed by making the workflow read the patterns
+   out of itself instead of restating them. This one missed the pattern.
+
+   The remaining hole was WHERE THE CHECK LIVED. It existed only in CI, so a
+   tree could be fully green on the machine that built it and red on push —
+   which is a watcher that cannot see from where the work happens, the exact
+   shape 3.0.0 was written about. It lives here now. The workflow keeps its
+   copy: it is the last line of defence if this file is the thing that broke,
+   and two checks of one property is redundancy rather than drift, because
+   neither restates the patterns. */
+
+(function(){
+  var ymlPath = path.join(ROOT, ".github", "workflows", "qa.yml");
+  if(!fs.existsSync(ymlPath)){
+    fail(".github/workflows/qa.yml is gone — nothing runs the suites on push, " +
+         "and the negative evidence goes back to being produced by hand on the " +
+         "release machine, which is what the workflow was created to end");
+    return;
+  }
+  var YML = fs.readFileSync(ymlPath, "utf8");
+  var picks = (YML.match(/^\s*pick:\s*'(.*)'\s*$/gm) || [])
+    .map(function(l){ return (l.match(/'(.*)'/) || [])[1]; })
+    .filter(Boolean);
+
+  /* A check that silently reads zero patterns calls every suite uncovered; one
+     that reads three waves a whole missing shard through. The count is asserted
+     before the coverage, for the same reason the workflow asserts it. */
+  if(picks.length !== 4){
+    fail("read " + picks.length + " shard pick patterns out of qa.yml, expected 4 " +
+         "— the matrix changed shape, or the pick lines stopped being readable. " +
+         "Until that is fixed this section cannot tell covered from uncovered");
+    return;
+  }
+
+  var negDir = path.join(__dirname, "negative");
+  var suites = fs.readdirSync(negDir).filter(function(f){
+    return /^negtest.*\.sh$/.test(f);
+  }).sort();
+  if(!suites.length){ fail("qa/negative holds no suites at all"); return; }
+
+  var uncovered = suites.filter(function(f){
+    return !picks.some(function(p){
+      try { return new RegExp(p).test("qa/negative/" + f); }
+      catch(e){ return false; }
+    });
+  });
+  if(uncovered.length){
+    fail("no CI shard runs " + uncovered.join(", ") + " — the suite exists, " +
+         "passes locally under run-all.sh with no argument, and never runs on " +
+         "push. Add it to a pick pattern in .github/workflows/qa.yml");
+  }
+  note("CI shards: " + picks.length + " patterns covering all " + suites.length +
+       " negative suites");
+})();
+
+/* ---------- 114. The README describes the origin that actually serves --- */
+/* Section 77 inverted in 2.5.1 and fails the build if the move offer returns
+   to the app. It reads the SERVED HTML. It does not read the README — which is
+   exactly why a paragraph promising an offer retired four releases earlier
+   survived a documented amendment pass and shipped until 3.0.0.
+
+   3.0.0 corrected the prose and left the hole open: a fixture was written for
+   it, found nothing to trip, and was REMOVED rather than left passing against a
+   green run, which is the failure this release line exists to stop.
+
+   NOT A BLOCKLIST OF FORBIDDEN WORDS. The 3.0.0 audit recommended greping for
+   the retired move-offer language; a blocklist passes for every phrasing nobody
+   thought of, and this project already refused that shape once — negtest172
+   records why a spoiler-word blocklist was rejected for era notes. What is
+   asserted here is AGREEMENT: the app injects noindex on the mirror and offers
+   nothing, so the README's paragraph about that address has to say the first
+   and must not claim the second. Section 77 holds the app's half; this holds
+   the prose's half; neither can drift without the other going red. */
+
+(function(){
+  var para = (README.match(/^Served from Cloudflare Workers[\s\S]*?(?=\n\n)/m) || [""])[0];
+  if(!para){
+    fail("cannot find the README paragraph that describes the old GitHub Pages " +
+         "address — it is the one piece of prose in this file that makes a claim " +
+         "about behaviour section 77 guards, and it has to stay locatable");
+    return;
+  }
+  /* What the app actually does to the mirror, read from the app. */
+  var injects = /noindex/.test(HTML) && /function offCanonical\s*\(/.test(HTML);
+  if(!injects){
+    fail("the app no longer injects noindex on the mirror, or offCanonical() is " +
+         "gone — section 77 and section 78 own that, but this section's whole " +
+         "premise is the README agreeing with it, so it cannot check anything");
+    return;
+  }
+  if(para.indexOf("noindex") < 0){
+    fail("the README's old-origin paragraph does not mention noindex, which is " +
+         "the only thing the app actually does there. A reader is told the " +
+         "address still works and not what it does, which is how the retired " +
+         "move offer lived in this paragraph for four releases");
+  }
+  /* THE FIRST DRAFT OF THIS CHECK FAILED ON THE CORRECTED PROSE, which is worth
+     recording because it is the whole argument against the shape the 3.0.0 audit
+     asked for. It matched "carry that progress across" — inside the sentence
+     saying the offer WAS RETIRED. A pattern that cannot tell a claim from its
+     retraction is a blocklist wearing a better coat.
+
+     So the assertion is about tense and marking, not vocabulary. The paragraph
+     may name the offer; it may not present it as something the app does. */
+  if(/\b(app|it)\s+offers?\s+to\s+carry/i.test(para)){
+    fail("the README says the app offers to carry progress across from the old " +
+         "origin, in the present tense. That offer was retired in 2.5.1 and " +
+         "section 77 fails the build if it returns to the app — this is the same " +
+         "claim in the file section 77 does not read");
+  }
+  if(/carry (it|that progress|your progress) across/i.test(para) &&
+     !/\bretired\b/i.test(para)){
+    fail("the README's old-origin paragraph mentions carrying progress across " +
+         "and never says it was retired. Naming a retired feature without the " +
+         "marker is how the last one survived four releases — mention it if it " +
+         "helps a reader, but mark it");
+  }
+  note("README's old-origin paragraph agrees with offCanonical(): noindex, no offer");
+})();
+
+/* ---------- 115. Three copies of the bat, and they agree --------------- */
+/* THE GLYPH IS WRITTEN OUT VERBATIM IN THREE PLACES and nothing asserted they
+   match: the header markup in index.html, BATP for the share card, and
+   icon.svg, from which every PNG raster derives. Found while measuring the
+   header on 5 Aug and still unguarded after 3.0.0.
+
+   Cheaper than it looked, and worth recording why: all three sit in the same
+   0-100 coordinate space and carry the same translate(0,5), so this needs no
+   geometry — the header and icon.svg hold four <path> elements plus an
+   <ellipse>, and BATP is those four d values concatenated. String equality
+   after normalising whitespace is the whole check.
+
+   BATP CARRIES NO ELLIPSE, and that is a real difference rather than a defect:
+   the share card draws it on the canvas separately. It is asserted as a
+   difference here rather than papered over, because the next person to see
+   three-of-four will otherwise assume a bug. */
+
+(function(){
+  function norm(s){ return String(s || "").replace(/\s+/g, " ").trim(); }
+  function paths(src){
+    return (src.match(/\sd="([^"]+)"/g) || []).map(function(m){
+      return norm(m.slice(4, -1));
+    });
+  }
+  function ellipse(src){
+    var e = (src.match(/<ellipse[^>]*>/) || [""])[0];
+    if(!e) return null;
+    return ["cx", "cy", "rx", "ry"].map(function(k){
+      return (e.match(new RegExp(k + '="([-\\d.]+)"')) || [])[1];
+    }).join(",");
+  }
+
+  var mark = (HTML.match(/<button class="mark"[\s\S]*?<\/button>/) || [""])[0];
+  var batp = (HTML.match(/var BATP\s*=\s*"([^"]+)"/) || [])[1];
+  var iconPath = path.join(PUBLIC, "icon.svg");
+  var icon = fs.existsSync(iconPath) ? fs.readFileSync(iconPath, "utf8") : "";
+
+  if(!mark){ fail("the header bat markup is gone"); return; }
+  if(!batp){ fail("BATP is gone — the share card has no bat to draw"); return; }
+  if(!icon){ fail("docs/icon.svg is missing — every PNG raster derives from it"); return; }
+
+  var markPaths = paths(mark), iconPaths = paths(icon);
+  var markJoined = norm(markPaths.join(" ")), iconJoined = norm(iconPaths.join(" "));
+  var batpN = norm(batp);
+
+  if(markPaths.length !== iconPaths.length){
+    fail("the header bat draws " + markPaths.length + " paths and icon.svg draws " +
+         iconPaths.length + " — they are the same mark and one of them was edited " +
+         "alone. The icon is what every install, every raster and every share " +
+         "surface shows");
+  }
+  if(markJoined !== batpN){
+    fail("the header bat and BATP have drifted apart — the mark in the page and " +
+         "the mark on the share card are different shapes, and only one of them " +
+         "is ever seen beside the other");
+  }
+  if(iconJoined !== batpN){
+    fail("docs/icon.svg and BATP have drifted apart — the installed icon and the " +
+         "share card would show different marks, and the icon is the copy nothing " +
+         "else in this suite reads");
+  }
+
+  var markEl = ellipse(mark), iconEl = ellipse(icon);
+  if(!markEl){ fail("the header bat has lost its ellipse"); }
+  else if(markEl !== iconEl){
+    fail("the bat's ellipse differs between the header (" + markEl + ") and " +
+         "icon.svg (" + iconEl + ")");
+  }
+  if(/<ellipse/.test(batp)){
+    fail("BATP now carries an ellipse — the share card draws it on the canvas " +
+         "separately, so this would draw it twice");
+  }
+
+  var trs = [mark, icon].map(function(s){
+    return (s.match(/transform="translate\(([^)]*)\)"/) || [])[1];
+  });
+  if(trs[0] !== trs[1]){
+    fail("the bat's transform differs between the header (" + trs[0] + ") and " +
+         "icon.svg (" + trs[1] + ") — same shape, different position");
+  }
+  note("bat glyph: " + markPaths.length + " paths agree across the header, BATP " +
+       "and icon.svg, ellipse and transform matched");
 })();
 
 /* ---------- report ---------- */

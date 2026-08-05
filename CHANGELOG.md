@@ -20,6 +20,95 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.0.1] — 2026-08-05
+
+**Four watchers and one line of schema.** No app behaviour changes and no
+saved-progress format moves. Every stage here closes a gap 3.0.0 either opened or
+left open, which is why it ships the same day rather than waiting: none of it is
+new capability, and a watcher that is going to exist should exist before the
+thing it watches drifts.
+
+### Added
+
+- **Guard 113 — every negative suite runs in CI.** 3.0.0 added `negtest300` and
+  never added it to the shard matrix in `.github/workflows/qa.yml`. The suite ran
+  green on the release machine four times, including from inside the zip, because
+  `run-all.sh` with no argument runs every suite; CI shards, and all four shards
+  failed at the workflow's own *"every suite lands in some shard"* step before
+  `run-all.sh` ran at all.
+
+  **Third time that step has gone red, second distinct cause.** `negtest252` and
+  `negtest260` reached the pick patterns and missed a hand-maintained fifth copy
+  of the shard lists — fixed then by making the workflow read the patterns out of
+  itself. This one missed the pattern. **The remaining hole was where the check
+  lived:** only in CI, so a tree could be green on the machine that built it and
+  red on push. It lives in `guards.js` now, which already read `qa.yml` for the
+  fixture-count comment. The workflow keeps its copy — neither restates the
+  patterns, so two checks of one property is redundancy rather than drift.
+
+- **Guard 114 — the README describes the origin that actually serves.** Guard 77
+  inverted in 2.5.1 and fails the build if the retired move offer returns to the
+  app, but it reads the *served HTML*; the README is not what it reads, which is
+  why a paragraph promising that offer survived a documented amendment pass and
+  shipped until 3.0.0. 3.0.0 corrected the prose and left the hole: a fixture was
+  written, found nothing to trip, and was removed rather than left passing
+  against a green run.
+
+  **Not a blocklist.** The 3.0.0 audit recommended greping for the retired
+  move-offer language; a blocklist passes for every phrasing nobody thought of,
+  and this project already refused that shape once — `negtest172` records why a
+  spoiler-word blocklist was rejected for era notes. What is asserted is
+  agreement: the app injects `noindex` and offers nothing, so the paragraph about
+  that address must name the first and must not present the second as current
+  behaviour. **The first draft of this guard failed on the corrected prose** — it
+  matched "carry that progress across" inside the sentence saying the offer was
+  retired. That is recorded in the section, because a pattern that cannot tell a
+  claim from its retraction is the same blocklist in better clothes.
+
+- **Guard 115 — three copies of the bat, and they agree.** The glyph is written
+  out verbatim in the header markup, in `BATP` for the share card, and in
+  `docs/icon.svg`, from which every PNG raster derives. Nothing asserted they
+  match. Cheaper than expected: all three share the 0–100 coordinate space and
+  the same `translate(0,5)`, so it is string equality after normalising
+  whitespace, not geometry. **`BATP` carries no ellipse** — the share card draws
+  it on the canvas separately — and that is asserted as a difference rather than
+  papered over, so three-of-four does not read as a bug later.
+
+- **`sameAs` names the project's X profile.** `audit-triage-2.1.0.md` §D declined
+  social profiles in the JSON-LD on the stated grounds that there was no social
+  presence to point at. There is now, so the premise died and the conclusion was
+  re-taken — the only way a decline lapses here. One entry beside the repository;
+  no separate Person or Organization social graph. **It will not move rankings:**
+  entity consolidation shows up in answer engines, and the instrument for that is
+  the monthly AI-citation check, not the SEO audit.
+
+### Changed
+
+- **Guard 42 splits its allowlist into fetched and named origins.** It had been
+  doing two jobs under one name. An origin the page *fetches* tells a third party
+  someone opened the page — that is what the section has always been about. An
+  origin the page *names* — a link a reader may follow, a `sameAs` entry
+  declaring two URLs are one entity — sends nothing and is read by crawlers.
+  `github.com` was already in the list on the second footing; `x.com` joins it
+  there. The distinction is written down rather than implied, because the next
+  addition will be argued from this list and the wrong reading of it is "these
+  origins are fine". They are fine to **mention**; section 29 holds the other half.
+
+### Not in this release
+
+**The beacon stays, and no Worker script was introduced.** `wrangler.jsonc` has
+no `main` — this is an assets-only deployment and nothing executes at the edge.
+Replacing the beacon with Worker-side `Referer` logging would mean putting
+JavaScript in front of every request to every route, where a throw is an outage
+rather than a red build. Recorded in `releases/plan-3.0.1.md` with the finding
+that matters more: **visits and referrers are different needs.** Cloudflare's
+built-in HTTP Traffic panel already counts visits server-side for free; referrers
+are a launch-window measurement. After Batman Day the beacon can retire with no
+Worker at all.
+
+Also unchanged: §106's font verification, the P3 tail, the shell hygiene, CI
+hardening, and `404.html`'s root link on the Pages mirror.
+
 ## [3.0.0] — 2026-08-05
 
 **The shape that changed is the harness, and then the watch link.** MAJOR here
