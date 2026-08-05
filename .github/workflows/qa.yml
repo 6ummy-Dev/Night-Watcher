@@ -90,7 +90,7 @@ jobs:
           - shard: "3"
             pick: 'negtest(165|170|172|187|163|210|260|271)\.sh'
           - shard: "4"
-            pick: 'negtest(185|182|186|180|176|177|181|220|272)\.sh|negtest\.sh'
+            pick: 'negtest(300|185|182|186|180|176|177|181|220|272)\.sh|negtest\.sh'
     steps:
       - uses: actions/checkout@v5
 
