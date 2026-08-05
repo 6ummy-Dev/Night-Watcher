@@ -119,4 +119,18 @@ a='\"not_found_handling\": \"404-page\"';assert a in s
 s=s.replace(a,'\"not_found_handling\": \"none\"',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
+run_case "llms.txt drops a claim the README makes" \
+  "llms.txt's summary drops the both-media claim" \
+  "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read()
+a='animated and live action';assert a in s
+s=s.replace(a,'live action',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+run_case "the README loses the sentence llms.txt is checked against" \
+  "the README's canonical sentence no longer makes the both-media claim" \
+  "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
+a='animated and live action';assert a in s
+s=s.replace(a,'live action',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
 finish "negtest210"

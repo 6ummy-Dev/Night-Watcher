@@ -20,6 +20,60 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.0.3] — 2026-08-05
+
+**One sentence, kept in two files, and one copy had drifted.** The README's
+canonical description and `docs/llms.txt`'s summary say the same thing to
+different readers. They had stopped saying the same thing, and nobody could say
+when.
+
+### Fixed
+
+- **`llms.txt` had dropped "animated and live action."** The README's one-line
+  description reads *"every Batman story ever filmed — animated and live action —
+  133 films and 67 seasons of television across 44 continuities."* The summary
+  block at the top of `llms.txt` carried that sentence with the middle clause
+  missing. Covering the animated work and the live action in one catalogue is
+  among the rarest true things this project can say: **"animated" appears 197
+  times in `index.html` and 4 times in the README, and did not appear once in the
+  file generative engines actually read.**
+
+### Added
+
+- **Section 117 — `llms.txt` says what the README says.** Restoring the clause
+  without a guard leaves the same hole open for the next edit, and this is the
+  project's most-repeated bug class: the tagline, the three copies of the bat,
+  the README's paragraph about the old origin. Section 101 already guards
+  `llms.txt` — but it guards the three counts and the canonical URL, because
+  counts are what drifted in 1.8.3, and the sentence carrying them was never
+  checked.
+
+  **Not a word blocklist, and not character-for-character equality.** The two
+  files are different documents for different readers and their wording is
+  allowed to differ. What is asserted is that the claim survives the copy: every
+  load-bearing phrase in the README's canonical sentence appears in the summary
+  too. Reword either freely; drop a claim from one and the build goes red.
+
+  It also asserts the README's own sentence still makes those claims, so the rule
+  and the check cannot drift apart — if the description legitimately changes, the
+  section's list moves with it in the same commit.
+
+  **The first draft went red on the text it was written from**, twice: it folded
+  the haystack to lowercase and not the needle, and it collapsed whitespace
+  before stripping `llms.txt`'s `> ` markers, which left them mid-sentence so any
+  phrase straddling a wrapped line read as missing. Both are recorded in the
+  section.
+
+### Also in this release
+
+- **The README's no-third-party-code claim is scoped to this repository.**
+  Cloudflare's edge injects a script that is not in `docs/index.html` and cannot
+  be removed from here, so the unqualified claim was false on the wire. Two
+  lines, not one — the Non-goals bullet and the Running-it line. **The scoped
+  data claims are untouched and stay true:** watch data never leaves the device,
+  progress is never transmitted. Evidence and the ruled-out list are in the
+  project's `ops/c0-edge-injection.md`.
+
 ## [3.0.2] — 2026-08-05
 
 **The emptying release.** Every code item left anywhere in this project is in

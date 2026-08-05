@@ -1,8 +1,9 @@
 # Night Watcher
 
 > One path through every Batman. An unofficial fan guide that maps every
-> Batman story ever filmed — 133 films and 67 seasons of television across
-> 44 continuities — into watch orders that spoil nothing.
+> Batman story ever filmed — animated and live action — 133 films and
+> 67 seasons of television across 44 continuities — into watch orders that
+> spoil nothing.
 
 Canonical URL: https://nightwatcher.life/
 Source (AGPL, free software): the Night-Watcher repository on GitHub, user 6ummy-Dev

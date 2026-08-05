@@ -122,6 +122,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      31   The README describes the app that exists
      45   The README lists every served file
      114  The README describes the origin that actually serves
+     117  llms.txt says what the README says
      82   GitHub Pages never gets a custom domain
      83   The manifest id is an identity, not a path
      46   The README states the real weight
@@ -6875,6 +6876,82 @@ var ROUTE_VOCAB = [
        (needed.length - Object.keys(SYSTEM_MARKS).length) + " carried by all " +
        checked + " faces, " + Object.keys(SYSTEM_MARKS).length +
        " from the system font by decision");
+})();
+
+/* ---------- 117. llms.txt says what the README says ------------------- */
+/* THE SAME SENTENCE, KEPT IN TWO FILES, AND ONE COPY HAD ALREADY DRIFTED.
+   README line 5 and llms.txt's summary block are the project's one-line
+   description. The README's reads "every Batman story ever filmed — animated
+   and live action — 133 films and 67 seasons of television across 44
+   continuities". llms.txt's had the middle clause missing, and had been missing
+   it long enough that nobody could say when it went.
+
+   The dropped words are not decoration. Covering the animated work and the live
+   action in one catalogue is among the rarest true things this project can say —
+   "animated" appears 197 times in index.html and 4 in the README, and llms.txt,
+   the file generative engines actually read, did not contain it once.
+
+   Section 101 already guards llms.txt: the three counts and the canonical URL.
+   Counts are what drifted in 1.8.3 so counts are what got a guard, and the
+   sentence carrying them was never checked — the same shape as section 77
+   reading the app while the README's paragraph about it rotted for four
+   releases, which is what section 114 exists to stop.
+
+   NOT A WORD BLOCKLIST, and not a demand that the two files match character for
+   character. They are different documents for different readers and their
+   wording is allowed to differ. What is asserted is that the CLAIM survives the
+   copy: every load-bearing phrase in the README's canonical sentence appears in
+   llms.txt's summary too. Reword either freely; drop a claim from one and this
+   goes red. */
+
+(function(){
+  var lp = path.join(PUBLIC, "llms.txt");
+  if(!fs.existsSync(lp)) return;   /* section 101 owns its absence */
+  var lt = fs.readFileSync(lp, "utf8");
+
+  /* The summary is the blockquote at the top — the part an engine quotes. */
+  var summary = (lt.match(/^>[\s\S]*?(?=\n\n)/m) || [""])[0];
+  if(!summary){
+    fail("llms.txt has no “> ” summary block — it is the part a " +
+         "generative engine quotes, and section 117 has nothing to compare");
+    return;
+  }
+  /* Strip the "> " markers BEFORE folding whitespace. Folding first leaves
+     them mid-sentence — "maps every > Batman story ever filmed" — and every
+     phrase that happens to straddle a wrapped line reads as missing. */
+  var flat = summary.replace(/^>[ \t]?/gm, "").replace(/\s+/g, " ");
+
+  var canon = (README.match(/^A single-file web app mapping[^\n]*/m) || [""])[0];
+  if(!canon){
+    fail("the README's canonical one-line description is gone — it is what " +
+         "llms.txt, the <meta> description and the landing page all restate, and " +
+         "with it missing nothing can be checked against it");
+    return;
+  }
+
+  /* Load-bearing phrases: what the sentence CLAIMS, not how it is written. */
+  [["every Batman story ever filmed", "the completeness claim"],
+   ["animated and live action",       "the both-media claim — the one that went missing"],
+   ["spoil nothing",                  "the spoiler promise"]
+  ].forEach(function(p){
+    /* Both sides folded. The first draft folded only the haystack and went red
+       on “every Batman story ever filmed” for the capital B — a check that
+       fails on the text it was written from is worth one comment. */
+    var needle = p[0].toLowerCase();
+    if(canon.toLowerCase().indexOf(needle) < 0){
+      fail("the README's canonical sentence no longer makes " + p[1] + " " +
+           "(“" + p[0] + "”). If that is deliberate, this section's " +
+           "list moves with it — rule and check change together");
+      return;
+    }
+    if(flat.toLowerCase().indexOf(needle) < 0){
+      fail("llms.txt's summary drops " + p[1] + " (“" + p[0] + "”) " +
+           "that the README's canonical sentence makes. The two say the same " +
+           "thing to different readers, and the engines read this one");
+    }
+  });
+
+  note("llms.txt summary carries the README's claims: filmed, animated and live action, spoils nothing");
 })();
 
 /* ---------- report ---------- */
