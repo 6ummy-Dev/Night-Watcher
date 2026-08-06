@@ -48,6 +48,19 @@ const page = await browser.newPage({ viewport: { width: 390, height: 844 },
    ("Refused to execute inline script") reads like a broken harness and is in
    fact the strongest evidence in this repository that the policy is real. */
 await page.addInitScript({ content: axeSrc });
+
+/* 3.3.0. THIS FILE MEASURED GEOMETRY AND NEVER READ THE CONSOLE, so a CSP
+   violation — the one failure mode a policy tightening actually has — would
+   have gone past 36 green checks without a word. connect-src went to 'none'
+   in 3.3.0 on the strength of this listener, not on the strength of an
+   argument. Collected from here and asserted at the end, so a violation in any
+   state below is caught rather than only one on load. */
+const cspHits = [], pageErrs = [];
+page.on("console", m => {
+  const t = m.text();
+  if(/Content Security Policy|Refused to (connect|load|execute)/i.test(t)) cspHits.push(t);
+});
+page.on("pageerror", e => pageErrs.push(String(e)));
 await page.goto(URL, { waitUntil: "load" });
 await page.waitForFunction(() => typeof window.render === "function");
 
@@ -356,6 +369,12 @@ await axeState("a group opened", () => {
   if(first) S.open[first] = 1;
   render();
 });
+
+/* ---- what the console said, across every state exercised above -------- */
+ok("no CSP violation in any state", cspHits.length === 0,
+   cspHits.length ? cspHits[0].slice(0, 160) : "connect-src 'none' held");
+ok("no uncaught page error in any state", pageErrs.length === 0,
+   pageErrs.length ? pageErrs[0].slice(0, 160) : "clean");
 
 await browser.close();
 console.log("\nNight Watcher browser check — 390×844, Chromium\n");

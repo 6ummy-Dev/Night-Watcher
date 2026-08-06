@@ -77,6 +77,7 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `docs/icon.png` | 512px icon, used for social cards and as the install icon |
 | `docs/icon-192.png` | 192px install icon |
 | `docs/icon.svg` | The favicon, as a real file rather than a `data:` URI — search engines crawl the favicon, and a data URI has no URL to crawl and no content type on the wire |
+| `docs/favicon.ico` | The classic root path, 16/32/48 in one container, for the crawlers and tools that ask for it and accept nothing else. Generated from `icon.png` by `qa/make-favicon.py`; out of the offline shell, because a favicon is browser chrome and the app never renders it |
 | `docs/icon-maskable-512.png` | Full-bleed variant so Android can apply its own mask without cropping |
 | `docs/robots.txt` | Opens the site to crawlers and points at the sitemap |
 | `docs/sitemap.xml` | One URL — the app is a single page |
@@ -84,7 +85,7 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `docs/google38dc2f1303c788e7.html` | Search Console ownership token. Google re-checks it, so it stays |
 | `docs/llms.txt` | The site described in plain text for generative engines — counts guarded against the data |
 | `docs/orders.txt` | The catalogue as plain text — one order, machine- and human-readable, generated from the data by `npm run bless` |
-| `docs/_headers` | Response headers the edge cannot set on a Worker response — Referrer-Policy, X-Frame-Options, Permissions-Policy |
+| `docs/_headers` | Response headers the edge cannot set on a Worker response — Referrer-Policy, X-Frame-Options, Permissions-Policy, Cross-Origin-Opener-Policy |
 | `docs/404.html` | The wrong-alley page. Self-contained, noindexed, served with a real 404 status |
 | `docs/fonts/limelight-latin-400-normal.woff2` | Display face for the wordmark and headings |
 | `docs/fonts/anton-latin-400-normal.woff2` | Condensed face for titles |
@@ -133,7 +134,7 @@ Zero dependencies, and every function under test is **extracted from `docs/index
 **Deployment and bookkeeping.** Nothing deployable strays to the repo root, `wrangler.jsonc` points at the served directory with SPA fallback off, and `sw.js`, `index.html` and `CHANGELOG.md` all agree on the version. The four headline counts in this README — and the counts baked into the `<meta>` and `og:` description tags — match the data.
 
 Every guard has been negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 36 negative suites, 492
+trusted. That evidence lives in `qa/negative/` — 37 negative suites, 507
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all — concurrently, one suite per core, since the suites are

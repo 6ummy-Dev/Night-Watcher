@@ -30,6 +30,107 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.3.0] — 2026-08-06
+
+**Five pendings, and the list is empty behind them.** Four of the five needed a
+guard written before the fix, because in four cases the thing that had let the
+defect ship was a guard that could not see it. The freeze was lifted for exactly
+one change and is otherwise unchanged.
+
+### Fixed
+
+- **The buckle's second line failed AA, and the guard that measures it had
+  already measured it.** `.pathseg .bs2` drew in `--staroff` at **3.37:1** on
+  `--card2`, where body text wants 4.5. It is `--dim` now — **5.28:1**, still
+  dimmer than the `--dust` line above it, so the buckle keeps its two-tier read.
+
+  **Section 20 computed that exact pair and returned without failing**, because
+  `--staroff` was on a list of tokens exempted to the 3:1 UI-component floor on
+  the grounds that they are *"drawn shapes, not prose."* That is a property of
+  the **rule**, not of the colour: `--staroff` is the unfilled star in
+  `.stars button`, which earns the exemption, and it was `.bs2`, which does not.
+  **The exemption names the rules it covers now.** Any other rule drawing text
+  in an exempted token fails.
+
+  Two of the three exempted tokens — `--line` and `--line2` — are used as a text
+  colour **nowhere at all**, and have been exempting nothing from a check they
+  never reached. Their lists are empty and explicit, which turns each into
+  *"if this is ever used as prose, fail."*
+
+  **Found by axe-core in an opened group.** Lighthouse's own axe pass scores this
+  page 100, because a cold load never reaches the state.
+
+- **`render()` read the scroll position after writing.** The read sat below
+  `flagSave()`, `applyTheme()` and `renderHead()`, forcing a synchronous layout
+  of the whole document on every render — **106.6 ms desktop, 64.1 ms mobile,
+  ~98% of LCP and the page's only long task.** It is the first line of the
+  function now. The value is identical either way; a DOM write does not move the
+  scroll position.
+
+- **The privacy footer still credited the beacon that left in 3.2.0.** *"Cloudflare
+  counts visits"* → *"the host counts visits"*. Still true before, and still the
+  sentence a reader meets first.
+
+### Changed
+
+- **`connect-src` from `'self'` to `'none'`.** Nothing has been fetched at
+  runtime since the beacon left, so `'self'` was looser than the truth for one
+  release. **Verified in a browser rather than argued** — see below.
+
+- **The head offers four icons instead of two, and one of them already shipped.**
+  `icon.png` is 512×512, has shipped since 1.x and was declared in the manifest,
+  but was never linked from `<head>`. A new `docs/favicon.ico` carries 16, 32 and
+  48 in one container for the crawlers that ask the classic root path and accept
+  nothing else, generated from `icon.png` by `qa/make-favicon.py`. **It is out of
+  the offline shell by decision**: a favicon is browser chrome, the app never
+  renders it, and nothing about working offline depends on it.
+
+  **This is insurance, not a fix.** The reading that prompted it rates a
+  four-day-old canonical origin as the cause and calls the rest *"almost entirely
+  timing"*; its claim that a 404 at that path is a negative signal is
+  unevidenced and is not repeated here.
+
+### Added
+
+- **Section 121 — the privacy footer says what the README says.** 3.2.0 rewrote
+  one copy of the visit-counting claim and left the other, and nothing noticed,
+  because nothing tied them. Section 117 ties `llms.txt` to the README and
+  section 114 ties the old-origin paragraph to `offCanonical()`; the app's own
+  footer was tied to nothing. **Not a word match** — both are free to be
+  reworded, and both must go on saying that counting happens and that the host
+  does it.
+
+- **Section 120 grew an ORDER clause, and the reason is the point.** Its pins
+  count how many times each layout property is read. **The reflow fix moves the
+  read rather than removing it — one before, one after — so the count could not
+  see the fix at all.** A count answers *how many* and never *in what order*, and
+  order was the whole defect. It now reads the offset of the scroll read against
+  the offset of the first write in `render()`'s own source.
+
+  The section's comment used to promise that the pins drop to zero when the fix
+  lands. **That was wrong the moment it was written**, and it is corrected.
+
+- **The favicon guard grew from a count into a decided set.** It asserted that at
+  least one icon link existed and printed how many it found, so adding or
+  dropping one changed only the number. Each icon is now named with the reason it
+  is offered, an unnamed one fails, and the `.ico` is checked for the ICO
+  signature and its layer count — a PNG renamed to `.ico` renders in browsers and
+  is exactly what the crawlers wanting that path do not accept.
+
+- **`qa/browser-check.mjs` reads the console.** It measured geometry across 36
+  checks and would not have noticed a Content-Security-Policy violation — the one
+  failure mode a policy tightening actually has. `connect-src 'none'` shipped on
+  the strength of that listener across the first-run chooser, an opened group and
+  the restore paths.
+
+### A second forced reflow, recorded and not fixed
+
+`flagSave()` writes `el.hidden = canSave` and then reads `h.offsetHeight` to set
+`--ghtop`. **It runs only when the store is blocked**, so every profile anyone
+has taken — all of them with storage available — is blind to it. Section 120
+pins that read by name so it cannot go missing. The freeze was lifted for one
+change and this is a second one.
+
 ## [3.2.0] — 2026-08-06
 
 **The page fetched one thing from somebody else, and it owned both hops of the

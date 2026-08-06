@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 120 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 121 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -1722,6 +1722,33 @@ or absent. Nothing in the harness could ever have caught this by running the
 app. The only way to hold it is to refuse the shape — so guard 96 fails if
 `scrollHeight` appears in `index.html` at all. It is exactly the line somebody
 reasoning about scroll restoration from first principles would add back.
+
+## The same defect, at the other end of the same function
+
+Guard 96 refused `scrollHeight` by name in 2.7.0. On 6 Aug 2026 a Lighthouse
+run found a forced reflow of **106.6 ms desktop / 64.1 ms mobile** at the TOP of
+`render()` — `window.pageYOffset || document.documentElement.scrollTop`, read
+after `flagSave()`, `applyTheme()` and `renderHead()` had all written. Same
+defect, different property name, walking straight past a guard written against
+the first name. It was ~98% of LCP and the page's only long task.
+
+**The fix is ordering, not removal.** The scroll read moved to the first line of
+`render()`, above every write. The value is identical either way — a DOM write
+does not move the scroll position — and the layout is not forced.
+
+**That is why counting could not hold it.** Section 120 pins `pageYOffset` and
+`scrollTop` to one occurrence each, and the fix moves the read rather than
+removing it: one before, one after. A count answers *how many* and can never
+answer *in what order*. Section 120 carries an ORDER clause as well now, reading
+the offset of the scroll read against the offset of `flagSave()` in render's
+own source — the same trick as refusing a shape, because jsdom still has no
+layout and nothing here can observe a reflow by running the app.
+
+**And there is a second one, still present, recorded rather than fixed.**
+`flagSave()` writes `el.hidden = canSave` and then reads `h.offsetHeight` to set
+`--ghtop`. It only runs when the store is blocked, so a profile taken with
+storage available — which is every profile anyone has taken — cannot see it.
+Section 120 pins that read by name so it cannot go missing.
 
 ## The favicon that every browser drew and no crawler could see
 

@@ -70,6 +70,8 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      37   Progress does not restate The Path
      48   The footer describes the link that exists
 
+     121  The privacy footer says what the README says
+
    LAYOUT
      17   One hero size, declared once
      80   The ring is drawn with its own circumference
@@ -652,7 +654,11 @@ if(PUBLIC !== ROOT){
                 .match(/"\.\/([^"]*)"/g) || [];
   shell = shell.map(function(q){ return q.slice(3, -1); });
   var NOT_SHELLED = ["sw.js", "robots.txt", "sitemap.xml", "fonts/OFL.txt", "share.png", "llms.txt", "404.html", "_headers",
-                     "orders.txt"];
+                     "orders.txt",
+                     /* 3.3.0. Browser chrome: the app never renders it, so
+                        nothing about working offline depends on it, and a
+                        visitor who is offline already has the tab open. */
+                     "favicon.ico"];
   var served = [];
   (function walk(dir, pre){
     fs.readdirSync(dir).forEach(function(name){
@@ -899,6 +905,55 @@ function contrast(a, b){
   return (x + 0.05) / (y + 0.05);
 }
 
+/* Tokens allowed the 3:1 UI-component floor instead of 4.5:1 -- and the exact
+   rules allowed to use them as a text colour. A rule not named here that draws
+   text in one of these tokens is prose wearing a shape's exemption. */
+var UI_EXEMPT = {
+  line:    [],
+  line2:   [],
+  staroff: [".stars button"]   /* the unfilled star: a glyph, not a sentence */
+};
+
+/* WHICH RULES ACTUALLY DRAW TEXT IN AN EXEMPTED TOKEN. Read from the stylesheet
+   with the same strict pattern the ink sweep uses, so "text-decoration-color"
+   and friends cannot be mistaken for a text colour.
+
+   Worth knowing: --line and --line2 are exempted and are used as a text colour
+   NOWHERE. Two thirds of this list has been exempting nothing from a check it
+   never reached. Kept, empty and explicit, because an empty allowlist now says
+   "if either is ever used as prose, fail" -- which is the assertion that was
+   missing. */
+(function(){
+  var css = HTML.slice(HTML.indexOf("<style>"), HTML.indexOf("</style>"));
+  var re = /([^{}]+)\{([^{}]*)\}/g, m;
+  Object.keys(UI_EXEMPT).forEach(function(tok){
+    var allowed = UI_EXEMPT[tok], found = [];
+    re.lastIndex = 0;
+    while((m = re.exec(css))){
+      var sel = m[1].trim().replace(/\s+/g, " ");
+      if(new RegExp("(^|[;{\"\\s])color:\\s*var\\(--" + tok + "\\)").test(m[2])) found.push(sel);
+    }
+    found.forEach(function(sel){
+      if(allowed.indexOf(sel) < 0){
+        fail("`" + sel + "` draws text in --" + tok + ", which section 20 exempts " +
+             "from the 4.5:1 AA floor on the grounds that it is a drawn shape " +
+             "rather than prose. That is true of " +
+             (allowed.length ? allowed.join(", ") : "nothing currently") +
+             " and it is not true here. Either the rule is a glyph and belongs " +
+             "in UI_EXEMPT with a reason, or it is text and needs a token that " +
+             "clears 4.5:1");
+      }
+    });
+    allowed.forEach(function(sel){
+      if(found.indexOf(sel) < 0){
+        fail("UI_EXEMPT names `" + sel + "` for --" + tok + ", and no rule by " +
+             "that name draws text in it \u2014 an exemption for something that " +
+             "is not there will quietly cover whatever takes its place");
+      }
+    });
+  });
+})();
+
 themes.forEach(function(t){
   var name = t[0], p = t[1];
   /* Every token used as a text colour, against every surface it can land on.
@@ -920,8 +975,23 @@ themes.forEach(function(t){
     /* --card2 is the hero's top stop; warn, since the default has shipped at
        4.12 there since 1.0.0 with nothing dim on it. */
     /* --line2 and --staroff are drawn shapes, not prose. WCAG puts UI
-       components at 3:1 (1.4.11) and body text at 4.5:1 (1.4.3). */
-    var uiOnly = (pair[0] === "line" || pair[0] === "line2" || pair[0] === "staroff");
+       components at 3:1 (1.4.11) and body text at 4.5:1 (1.4.3).
+
+       3.3.0: THE EXEMPTION IS GRANTED PER TOKEN AND EARNED PER RULE, AND THAT
+       GAP SHIPPED A REAL AA FAILURE. axe-core, run in an opened group on
+       6 Aug 2026, found .pathseg .bs2 -- the belt buckle's second line, prose,
+       7px -- drawing in --staroff at 3.37:1 on --card2. This section had
+       ALREADY COMPUTED that exact pair. It measured 3.37 and returned here,
+       because --staroff was on the list and the list is of tokens.
+
+       "Drawn shapes, not prose" is a property of the RULE, not of the colour.
+       --staroff is both: the unfilled star in .stars button, which earns 3:1,
+       and .bs2, which does not. So the exemption now has to name the rules it
+       covers, and any other rule drawing text in one of these tokens fails
+       below. Same lesson as guard 115 counting three copies of the bat: an
+       assumption about how a thing is used stops being true without anything
+       saying so. */
+    var uiOnly = UI_EXEMPT.hasOwnProperty(pair[0]);
     if(uiOnly){
       if(r < 3) fail(name + ": --" + pair[0] + " on --" + pair[1] + " is " + r.toFixed(2) +
                      ":1 \u2014 below the 3:1 floor for a UI component (1.4.11)");
@@ -1948,7 +2018,12 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
     "font-src":     "'self'",
     "img-src":      "'self' data:",
     "manifest-src": "'self'",
-    "connect-src":  "'self'",
+    /* 3.3.0: 'none'. The page fetched nothing but the beacon, and the beacon
+       left in 3.2.0 — so 'self' was looser than the truth for one release.
+       Verified in a browser rather than argued: browser-check.mjs now fails on
+       any CSP violation in the console, across the first-run chooser, an
+       opened group and the backup/restore paths. */
+    "connect-src":  "'none'",
     "worker-src":   "'self'",
     "base-uri":     "'none'",
     "form-action":  "'none'",
@@ -6091,20 +6166,90 @@ var ROUTE_VOCAB = [
 
    Inlining it again would be a defensible optimisation on every ground except
    the one that matters, so the rule is written down rather than remembered. */
+/* 3.3.0 GREW THIS FROM A COUNT INTO A LIST, AND THE COUNT IS WHY IT HAD TO.
+   It asserted that at least one icon link existed and that none was a data:
+   URI, then printed how many it found. Adding a link changed the number it
+   printed and nothing else — so the set of icons the page actually offers was
+   never asserted at all, and any one of them could have been dropped in
+   silence. Same shape as guard 115 counting three copies of the bat when there
+   were four, and section 104 pinning three headers of four.
+
+   What the set is for. A 6 Aug 2026 reading said the site offered "only a 192px
+   PNG and an SVG" and recommended generating a raster. It was wrong: icon.png
+   is 512x512 and has shipped since 1.x -- it was simply never linked from the
+   head, only declared in the manifest. So the raster recommendation cost one
+   line. favicon.ico is the genuinely new file, for the crawlers that still look
+   at the classic root path first and nothing else.
+
+   OUT OF THE OFFLINE SHELL, DELIBERATELY. A favicon is browser chrome: the app
+   never renders it, and nothing about working offline depends on it. Section 13
+   permits its absence from SHELL; this is the reasoning for why it is absent. */
 (function(){
   var links = HTML.match(/<link[^>]*rel="(?:shortcut )?icon"[^>]*>/g) || [];
   if(!links.length){ fail("no <link rel=\"icon\"> in the head"); return; }
   links.forEach(function(l){
     if(/href="data:/.test(l)){
-      fail("a favicon ships as a data: URI \u2014 browsers render it and search " +
+      fail("a favicon ships as a data: URI — browsers render it and search " +
            "engines cannot crawl it, because there is no URL to fetch and no " +
            "content type on the wire. Serve it as a file");
     }
   });
-  if(!fs.existsSync(path.join(PUBLIC, "icon.svg"))){
-    fail("docs/icon.svg is missing \u2014 the head points at it");
+
+  /* The set, each with the reason it is offered. Grow this when a link is
+     added; a link the page carries that is not named here fails below. */
+  var WANT = [
+    ["favicon.ico",  /rel="icon"[^>]*href="favicon\.ico"[^>]*sizes="any"|sizes="any"[^>]*href="favicon\.ico"/,
+     "the classic root path, for crawlers that look there and nowhere else"],
+    ["icon.svg",     /type="image\/svg\+xml"[^>]*href="icon\.svg"/,
+     "the modern vector, preferred by every current browser"],
+    ["icon-192.png", /sizes="192x192"[^>]*href="icon-192\.png"/,
+     "the raster a phone uses for a home-screen tile"],
+    ["icon.png",     /sizes="512x512"[^>]*href="icon\.png"/,
+     "the large raster — shipped since 1.x, declared in the manifest, and " +
+     "unlinked from the head until 3.3.0"]
+  ];
+  var head = HTML.slice(0, HTML.indexOf("</head>"));
+  WANT.forEach(function(w){
+    if(!w[1].test(head)){
+      fail("the head no longer offers " + w[0] + " as an icon — " + w[2] +
+           ". If it is genuinely not wanted, take it out of this list in the " +
+           "same commit, so the set stays something that was decided");
+    }
+    if(!fs.existsSync(path.join(PUBLIC, w[0]))){
+      fail("docs/" + w[0] + " is missing and the head points at it");
+    }
+  });
+
+  /* Every icon href in the head has to be one of the four above. A fifth
+     arriving unnamed is the thing the old count could not see. */
+  var named = WANT.map(function(w){ return w[0]; });
+  (HTML.match(/<link[^>]*rel="(?:shortcut )?icon"[^>]*href="([^"]+)"/g) || []).forEach(function(tag){
+    var href = (tag.match(/href="([^"]+)"/) || [])[1];
+    if(href && named.indexOf(href) < 0){
+      fail("the head offers an icon this section does not know about: " + href +
+           " — add it to the list with its reason, or it is an icon nobody " +
+           "decided to ship");
+    }
+  });
+
+  /* favicon.ico is a real ICO, not a PNG with the wrong extension. Some
+     crawlers parse the container rather than trusting the name. */
+  var ico = path.join(PUBLIC, "favicon.ico");
+  if(fs.existsSync(ico)){
+    var b = fs.readFileSync(ico);
+    if(!(b[0] === 0 && b[1] === 0 && b[2] === 1 && b[3] === 0)){
+      fail("docs/favicon.ico does not begin with the ICO signature — a PNG " +
+           "renamed to .ico works in browsers and is exactly the kind of thing " +
+           "the crawlers that still want this path do not accept");
+    } else if(b[4] < 2){
+      fail("docs/favicon.ico carries " + b[4] + " image(s) — it exists to " +
+           "serve the small sizes a browser tab and a crawler ask for, so it " +
+           "carries several. Regenerate with qa/make-favicon.py");
+    }
   }
-  note("favicon: " + links.length + " icon link(s), all served as files");
+
+  note("favicon: " + links.length + " icon link(s) — " + named.join(", ") +
+       " — all served as files, ico out of the shell");
 })();
 
 /* ---------- 106. The fonts carry every letter the catalogue uses ------ */
@@ -7328,8 +7473,15 @@ var ROUTE_VOCAB = [
    exact sites that exist, each named — because refusing them today would fail
    the build over a defect that is real, known, planned and frozen until after
    19 Sep 2026. A guard that cannot be green against the tree it ships with is
-   not a guard, it is a wish. When render()'s read is hoisted above the first
-   write, its pin drops to zero and both members move up into REFUSED. */
+   not a guard, it is a wish.
+
+   3.3.0 CORRECTS THE LAST SENTENCE THIS COMMENT USED TO CARRY. It said the
+   pins drop to zero when render()'s read is hoisted, and both members move up
+   into REFUSED. That was wrong the moment it was written: the fix MOVES the
+   read, it does not remove it, so the count is 1 before and 1 after and the
+   pins stay exactly where they are. A count answers "how many" and can never
+   answer "in what order" -- and order is the whole of this defect. The ORDER
+   clause below is the half that can see the fix. */
 
 (function(){
   /* Never read here. Any appearance is a new forced-layout site. */
@@ -7383,8 +7535,107 @@ var ROUTE_VOCAB = [
     }
   });
 
+  /* ---- ORDER, which is the thing the counts above cannot see ----------
+     render() reads the scroll position so it can restore it after the repaint.
+     Reading it AFTER flagSave(), applyTheme() and renderHead() have written
+     forces a synchronous layout of the whole document -- 106.6ms desktop,
+     64.1ms mobile, ~98% of LCP and the page's only long task, measured 6 Aug
+     2026. Hoisting the read above the first write costs nothing and removes
+     all of it: the value is identical either way, because a DOM write does not
+     move the scroll position.
+
+     Asserted on source order rather than on behaviour, because jsdom has no
+     layout and nothing in this harness can observe a reflow by running the
+     app. That is the same reason section 96 refused scrollHeight by name in
+     2.7.0, and the same limitation that let this one walk in under a different
+     one. */
+  var rbody = (HTML.match(/function render\(\)\{[\s\S]*?\n\}/) || [""])[0];
+  if(!rbody){
+    fail("render() cannot be located, so the order of its first layout read " +
+         "cannot be checked — section 120's ORDER clause is blind, which is " +
+         "worse than absent");
+  } else {
+    var readAt  = rbody.search(/pageYOffset|documentElement\.scrollTop/);
+    var writeAt = rbody.indexOf("flagSave()");
+    if(readAt < 0){
+      note("render() no longer reads the scroll position at all — if that is " +
+           "deliberate, move pageYOffset and scrollTop into REFUSED above");
+    } else if(writeAt < 0){
+      fail("render() no longer opens with flagSave(), so the first write in the " +
+           "function is unknown and the scroll read cannot be placed against it");
+    } else if(readAt > writeAt){
+      fail("render() reads the scroll position after it has already written — " +
+           "flagSave() comes first, so the read at offset " + readAt + " forces a " +
+           "synchronous layout of the whole document on every render. Hoist the " +
+           "read above the first write; the value is the same and the reflow is " +
+           "not. This is the 6 Aug 2026 finding, and a count of the property " +
+           "names cannot see it, because the fix moves the read rather than " +
+           "removing it");
+    }
+  }
+
   note("layout reads: " + REFUSED.length + " properties refused outright, " +
-       pins + " pinned read(s) across " + PINNED.length + " named sites");
+       pins + " pinned read(s) across " + PINNED.length + " named sites, scroll " +
+       "read before the first write");
+})();
+
+/* ---------- 121. The privacy footer says what the README says --------- */
+/* 3.2.0 REWROTE ONE COPY OF THIS CLAIM AND LEFT THE OTHER, AND NOTHING NOTICED.
+   Removing the analytics beacon changed what is true about how visits are
+   counted: it is the host answering a request, with nothing on the page. The
+   README's bullet was rewritten to say exactly that. The app's own footer went
+   on saying "Cloudflare counts visits" -- still literally true, and still the
+   sentence a reader meets first.
+
+   Section 117 ties llms.txt to the README. Section 114 ties the old-origin
+   paragraph to offCanonical(). NOTHING tied the app's privacy footer to the
+   README's privacy copy, which is the only reason one could move without the
+   other. Two copies of one claim, and the fix is a guard asserting they agree.
+
+   NOT A WORD MATCH. The two are written for different readers and their
+   phrasing is allowed to differ entirely. What is asserted is that the CLAIM
+   survives the copy: both say counting happens, and both say the host does it
+   rather than anything on the page. Reword either freely; drop the claim from
+   one and this goes red. */
+
+(function(){
+  var foot = (HTML.match(/<p class="homefoot">[\s\S]*?<\/p>/) || [""])[0];
+  if(!foot){
+    fail("the Home footer is gone — it is where the app states its own " +
+         "privacy claim to a reader who will never open the README");
+    return;
+  }
+  var bullet = (README.match(/^- \*\*Anonymous visit counts[^\n]*/m) || [""])[0];
+  if(!bullet){
+    fail("the README's visit-counting bullet is gone — section 121 has " +
+         "nothing to hold the footer against");
+    return;
+  }
+
+  [["counts", "that counting happens at all — the app has never hidden it"],
+   ["host",   "WHO counts: the host answering the request, not anything on the page"]
+  ].forEach(function(c){
+    if(foot.toLowerCase().indexOf(c[0]) < 0){
+      fail("the Home footer no longer carries \"" + c[0] + "\" — " + c[1] +
+           ". The README's bullet still claims it, and a reader meets the " +
+           "footer first");
+    }
+    if(bullet.toLowerCase().indexOf(c[0]) < 0){
+      fail("the README's visit-counting bullet no longer carries \"" + c[0] +
+           "\" — " + c[1] + ", and the footer still says it");
+    }
+  });
+
+  /* The asymmetric half, and the one 3.2.0 needed. If the README promises
+     nothing runs on the page, the footer has to name the host as the counter
+     or a reader is left to assume the opposite. */
+  if(/no script on the page/i.test(bullet) && !/host/i.test(foot)){
+    fail("the README promises no script on the page while the footer does not " +
+         "say who counts — exactly the drift 3.2.0 shipped");
+  }
+
+  note("privacy claim: footer and README agree on counting, and on the host " +
+       "doing it");
 })();
 
 /* ---------- report ---------- */

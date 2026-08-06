@@ -69,7 +69,7 @@ run_case "an unchecked directive is rewritten to a wildcard" \
 
 run_case "connect-src is opened to anywhere" \
   "this build was reviewed with" \
-  "${P}s=s.replace(\"connect-src 'self'\",'connect-src *',1);${W}"
+  "${P}s=s.replace(\"connect-src 'none'\",'connect-src *',1);${W}"
 
 run_case "a directive is dropped from the policy" \
   "CSP no longer sets worker-src" \
