@@ -403,6 +403,25 @@ assert a in s;s=s.replace(a,'The old GitHub Pages mirror is described elsewhere.
 s=s.replace('was retired','was changed',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
+echo "--- the generated code sweep in section 8"
+# The sweep asserts two things no hand-written fixture can express, because you
+# would have to guess the input that produces them. Both are proved here.
+
+# A code may lose progress. It may never invent it. This lets an unresolved hash
+# fall through as though it were an id -- what a careless `|| raw` would do.
+run_case "importCode invents an id it could not resolve" \
+  "the catalogue does not contain" \
+  "${P}a='    id = map[W.substr(i,5)];';assert a in s
+s=s.replace(a,'    id = map[W.substr(i,5)] || W.substr(i,5);',1);${W}"
+
+# A pasted or truncated code must be refused, never crash the restore. Dropping
+# one defensive default is enough: a real code always carries a W segment, so
+# section 7 never notices, and every generated code without one throws.
+run_case "a defensive default is dropped from the segment read" \
+  "must be refused, never crash" \
+  "${P}a='  var W = seg.W || \"\", K = seg.S';assert a in s
+s=s.replace(a,'  var W = seg.W, K = seg.S',1);${W}"
+
 echo "--- the idHash memo proves its own assumption"
 # The memo is sound only while idHash is pure. This gives it state exactly as a
 # careless future edit would -- a counter folded into the seed -- and asserts the
