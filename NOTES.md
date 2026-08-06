@@ -1157,6 +1157,15 @@ instead of two: it marks the mirror `noindex`. The reasoning below is kept
 because it is why the beta address is still *serving* rather than redirecting,
 and that part has not changed.
 
+> **Amended 6 Aug 2026 — the mirror is gone.** GitHub Pages was unpublished on
+> the owner's decision that `nightwatcher.life` is the only address. What follows
+> is therefore history rather than description: no second origin serves, and
+> `offCanonical()` has no remaining job. **It is still in the tree on purpose** —
+> every line that would let the mirror come back stays until the retirement has
+> soaked, and removing it is planned as its own PATCH after 19 Sep. The reasoning
+> below is kept because it is why a Pages custom domain was never allowed, which
+> is still what guard 82 enforces.
+
 `nightwatcher.life` is canonical and served by Cloudflare Workers. The old
 GitHub Pages address serves the same tree and is never given a custom domain.
 
@@ -1257,7 +1266,12 @@ The canonical link points every origin at the apex. That is the mechanism search
 engines use to consolidate, and it is the primary signal.
 
 The injected `noindex` is the second, and it exists because GitHub Pages cannot
-send a header and has to keep serving. It says `follow` as well, so the links
+send a header and has to keep serving.
+
+> **Amended 6 Aug 2026.** GitHub Pages was unpublished, so nothing is served from
+> a second origin and the injected `noindex` marks nothing. The canonical link is
+> unchanged and remains the primary signal.
+ It says `follow` as well, so the links
 out of that page — the canonical one among them — still count. It is injected
 rather than static: a static robots meta in the markup would apply to the
 canonical origin too and take the whole site out of search, which section 78
@@ -1440,6 +1454,10 @@ fallback, both of which are real rules about how this site is served.
 > rather than a candidate, and the conditional that would have dropped
 > `wrangler` can never be met. It is a build dependency of the live site now,
 > which is a better reason to keep it than the one this section used to give.
+>
+> **And amended again 6 Aug 2026:** the mirror was unpublished. `wrangler` is
+> still a build dependency of the live site — and the deployments API confirms it
+> is the *only* mechanism: every version of the Worker was uploaded by hand.
 
 ## The sentinel that the search box could type
 
