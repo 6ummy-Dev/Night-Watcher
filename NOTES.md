@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 117 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 119 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -728,8 +728,40 @@ alignment, which put them off the button they belong to.
 
 At 10px with .1em tracking, "Where to watch" needs about 112px and the 38%
 column gives 96px, so it wrapped to two lines and left the stars floating in
-the dead space beside it. The link is a secondary control and does not have
-to match Skip's weight, only its edges.
+the dead space beside it. **The 9px label stays for that reason** — even at the
+full column width the inner box measures 96.7px, so putting it back to 10px
+brings the wrap back.
+
+**Two corrections, 3.1.0, and both of the sentences that used to be here were
+wrong.**
+
+**It is not a secondary control.** This note ended *"the link is a secondary
+control and does not have to match Skip's weight, only its edges"*, and the
+1.4.x CHANGELOG entry said the same thing. That was a wrapping bug fixed by
+shrinking a label, with *"it is secondary anyway"* written down afterwards as
+the reason — a layout constraint promoted to a rule of the design. The README's
+feature list leads with *"Where to watch, without picking a side"* and
+`introBlock()` tells every first-time reader *"Tap anything for what it is and
+where to watch it."* A control the README sells and the intro promises is not
+secondary. It has a fill and an edge of its own now and its label is `--bone`:
+5.08:1 became 10.28:1, bought entirely with colour and not one extra pixel of
+width.
+
+**And it never shared Skip's edges.** Measured at 375px in a real browser, and
+identical in shipped 3.0.3 and in the fix: the hero pill stopped **8.0px short**
+of Skip's right edge — content-sized at 108.7px inside a 116.7px column — stood
+**38px against Skip's 46**, cornered at **8px against 11**, and in an expanded
+row sat **171.7px right** of the description, the tick indent and both buttons.
+The left edge in the hero was 0.0px, which is how this survived eleven releases:
+the one edge anybody would check was right, and a faint outline stopping 8px
+early against a faint outline is not something an eye finds. Fill it and both
+edges are read at once. The fill did not cause any of this — it stopped hiding
+it.
+
+Section 119 asserts all of it from the two rules that have to agree rather than
+from a remembered pair of numbers, because a comment asserting a relationship is
+exactly how this one stayed false for eleven releases. **A decision worth keeping
+becomes a guard, not a document** — and this paragraph is the example.
 
 ### `@media (max-width:360px){`
 

@@ -103,8 +103,8 @@ s=s.replace(a,'\"night-watcher.png\"',1);${W}"
 echo "--- 99: the soak notes hold"
 run_case "the link row loses its alignment again" \
   "the link row does not centre its items" \
-  "${P}a='justify-content:flex-end;align-items:center;';assert a in s
-s=s.replace(a,'justify-content:flex-end;',1);${W}"
+  "${P}a='justify-content:flex-start;align-items:center;';assert a in s
+s=s.replace(a,'justify-content:flex-start;',1);${W}"
 
 run_case "the format badges collapse back into one look" \
   "styled identically again" \

@@ -233,6 +233,65 @@ if(link.href){
      /noreferrer/.test(link.rel || ""), link.target + " " + link.rel);
 }
 
+/* ---- 3.1.0: the watch link's edges, which only a browser can see -------
+   Section 119 asserts that the two rules DECLARE the same min-height and the
+   same corner, and that the hero pill fills its column. It cannot assert what
+   the boxes actually do, and that is the half that was wrong for eleven
+   releases: NOTES.md said the link "shares Skip's edges", nothing checked it,
+   and it was false in the file the whole time. A comment asserting a
+   relationship is how that survives. This is the check that catches it, in the
+   one harness with layout.
+
+   It also caught the mock. The v2 mock measured the hero pill's right edge 8.0px
+   short of Skip's; in the real page it was 0.0px, because the pill overflowed
+   its column's 38% basis and min-width:auto widened the column to match — the
+   edges agreed BY ACCIDENT OF LABEL WIDTH, and would have parted the first time
+   the label or the font changed. flex:1 makes the agreement structural, which
+   is the fix either way. Measure the thing that runs, not a proxy for it. */
+const edges = await page.evaluate(() => {
+  localStorage.clear();
+  S.path = S.mode = "continuity"; S.watched = {}; S.skipped = {}; S.rated = {};
+  S.log = []; S.open = {}; S.peek = {}; S.tab = "next"; S.filter = "all"; S.q = "";
+  render();
+  const lnk  = document.querySelector(".herorow .lnk");
+  const skip = document.querySelector(".heroacts .no");
+  if(!lnk || !skip) return { err: "the hero link or Skip is not rendered" };
+  const a = lnk.getBoundingClientRect(), s = skip.getBoundingClientRect();
+  const ca = getComputedStyle(lnk), cs = getComputedStyle(skip);
+  return { right: +(a.right - s.right).toFixed(1), height: +(a.height - s.height).toFixed(1),
+           radius: [ca.borderTopLeftRadius, cs.borderTopLeftRadius],
+           fits: lnk.scrollWidth <= Math.ceil(lnk.clientWidth),
+           fill: ca.backgroundColor, label: ca.color, edge: ca.borderTopColor };
+});
+ok("hero: the watch link's right edge is Skip's", edges.right === 0, edges.right + "px");
+ok("hero: the watch link stands as tall as Skip", edges.height === 0, edges.height + "px");
+ok("hero: the watch link turns the same corner as Skip",
+   !!edges.radius && edges.radius[0] === edges.radius[1], (edges.radius || []).join(" vs "));
+ok("hero: the 9px label still fits its column", edges.fits === true, "no wrap, no clip");
+ok("hero: the watch link is filled, lit, and read in bone",
+   edges.fill !== "rgba(0, 0, 0, 0)" && edges.label !== edges.edge,
+   edges.fill + " · label " + edges.label + " · edge " + edges.edge);
+
+const detail = await page.evaluate(() => {
+  S.tab = "watch"; S.q = ""; setAllGroups(true); render();
+  const f = document.querySelector(".film");
+  const id = f.getAttribute("data-id") ||
+            (f.querySelector("[data-id]") || {}).getAttribute?.("data-id");
+  S.open = {}; S.open[id] = true; render();
+  const open = document.querySelector(".film.open");
+  if(!open) return { err: "no row opened" };
+  const lnk = open.querySelector(".lnk"), act = open.querySelector(".act"),
+        para = open.querySelector(".fdetail p");
+  if(!lnk || !act || !para) return { err: "the expanded row is missing a control" };
+  const a = lnk.getBoundingClientRect(), m = act.getBoundingClientRect(),
+        d = para.getBoundingClientRect();
+  return { vsAct: +(a.left - m.left).toFixed(1), vsPara: +(a.left - d.left).toFixed(1) };
+});
+ok("expanded row: the watch link sits on Mark watched's line", detail.vsAct === 0,
+   detail.vsAct + "px");
+ok("expanded row: and on the description's line", detail.vsPara === 0,
+   detail.vsPara + "px");
+
 /* Screenshots, so the header can be looked at rather than only measured. */
 await page.evaluate(() => { S.watched = {}; S.tab = "watch"; render(); window.scrollTo(0,0); });
 await page.screenshot({ path: "qa/shot-header-0.png", clip: {x:0, y:0, width:390, height:120} });

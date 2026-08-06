@@ -43,7 +43,7 @@ s=s.replace(a,'.includes.opening .scope,.includes.closing{animation:none;}',1);$
 echo "--- 67: the freshness date tells the truth"
 run_case "the updated date drifts from the changelog" \
   "but the newest CHANGELOG" \
-  "${P}a='var BUILT = \"2026-08-05\";';assert a in s
+  "${P}a='var BUILT = \"2026-08-06\";';assert a in s
 s=s.replace(a,'var BUILT = \"2026-08-01\";',1);${W}"
 
 run_case "the updated line is dropped from Progress" \
@@ -131,6 +131,52 @@ run_case "the README loses the sentence llms.txt is checked against" \
   "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
 a='animated and live action';assert a in s
 s=s.replace(a,'live action',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+echo "--- 3.1.0: the 404's bat"
+# The first two came back GREEN against the three-copy version of section 115 —
+# a fourth copy added, one path edited alone, all 117 sections passing; then the
+# bat deleted outright, all 117 passing again. That is the provenance.
+run_case "the 404's bat is deleted" \
+  "the 404's bat is gone" \
+  "import io,re;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
+a=re.search(r'<svg class=\"bat\"[\s\S]*?</svg>\n',s).group(0)
+s=s.replace(a,'',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+run_case "one of the 404's bat paths is edited alone" \
+  "the 404's bat and BATP have drifted apart" \
+  "import io;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
+a='M42 32 L38 17 L49 29 Z';assert a in s
+s=s.replace(a,'M42 32 L38 18 L49 29 Z',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+run_case "the svg namespace comes back" \
+  "404.html carries an xmlns attribute" \
+  "import io;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
+a='<svg class=\"bat\"';assert a in s
+s=s.replace(a,'<svg class=\"bat\" xmlns=\"http://www.w3.org/2000/svg\"',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+run_case "the bat is loaded with url() instead of inlined" \
+  "404.html fetches something with url()" \
+  "import io;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
+a='opacity:.09;';assert a in s
+s=s.replace(a,'opacity:.09;background:url(icon.svg);',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+run_case "the bat is turned up past the contrast floor" \
+  "under the 4.5:1 AA floor" \
+  "import io;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
+a='opacity:.09;';assert a in s
+s=s.replace(a,'opacity:.3;',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+run_case "the 404 clips its own body" \
+  "404.html clips its own body" \
+  "import io;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
+a='text-align:center;padding:24px;}';assert a in s
+s=s.replace(a,'text-align:center;padding:24px;overflow:hidden;}',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
 finish "negtest210"

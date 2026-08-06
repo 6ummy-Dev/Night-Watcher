@@ -97,6 +97,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      59   Every badge is the same box
      60   One left edge for the group chips
      63   The grid columns have a floor
+     119  Where to watch has a rank of its own
 
    ACCESSIBILITY
      20   Text contrast against the surface it sits on
@@ -106,8 +107,9 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      75   A control is as big as a finger
      109  Every count on Progress is a way into the list
      110  The page can still be pinch-zoomed
-     115  Three copies of the bat, and they agree
+     115  Four copies of the bat, and they agree
      112  The Restore box survives a render nobody asked for
+     118  The 404 still reads over its own bat
 
    DEPLOY
      10   No vendored third-party code
@@ -952,6 +954,63 @@ heroRules.forEach(function(rule){
   }
 });
 
+/* THE WATCH LINK PAINTS ITS OWN SURFACE, AND THE SWEEP ABOVE CANNOT SEE IT.
+   3.1.0 gave "Where to watch" a rank of its own — a tonal steel fill under a
+   bone label — because it had none: `.lnk` and `.act` were the same rule twice,
+   differing only in text colour, and the link was the fainter of the two at
+   5.08:1. Every pair measured above is token-on-token. A translucent fill lands
+   the label on a blend that appears in no palette, so adding one to `.lnk`
+   would have been invisible here in exactly the way `--steel` on `--card2` was
+   invisible from 1.0.0 to 1.4.0.
+
+   The measured trap, and it is why this is arithmetic rather than a review:
+   tinting the fill and KEEPING the steel label reads as the obvious move and
+   lands at 4.09:1 — under AA. Raising the fill without raising the label buys
+   weight by spending contrast. Whatever fill is chosen, the label goes up.
+
+   Section 119 asserts the fill and the colour are declared in a form this can
+   parse; without that pairing a rewrite to a form the regex misses would leave
+   this measuring nothing and reporting green. */
+
+(function(){
+  var lnk = block(".lnk");
+  if(!lnk){ fail(".lnk has no rule — the watch link cannot be measured"); return; }
+
+  var bg = lnk.match(/background:\s*rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/);
+  var fg = lnk.match(/(?:^|[;{])color:\s*var\(--([a-z0-9]+)\)/);
+  if(!bg || !fg){
+    fail(".lnk no longer declares both an rgba() fill and a var() colour — " +
+         "section 119 says it must, and this measurement is why");
+    return;
+  }
+  var a = parseFloat(bg[4]), rgb = [+bg[1], +bg[2], +bg[3]];
+
+  function over(hex){
+    var out = "#";
+    for(var i = 0; i < 3; i++){
+      var base = parseInt(hex.substr(1 + i * 2, 2), 16);
+      var v = Math.round(base + (rgb[i] - base) * a);
+      out += (v < 16 ? "0" : "") + v.toString(16);
+    }
+    return out;
+  }
+
+  themes.forEach(function(t){
+    var name = t[0], p = t[1], ink = p[fg[1]];
+    if(!ink){ fail("theme " + name + " has no --" + fg[1] + " for the watch link's label"); return; }
+    ["ink", "sunk", "card", "card2"].forEach(function(s){
+      var eff = over(p[s]), r = contrast(ink, eff);
+      if(r < 4.5){
+        fail(name + ": the watch link's label (--" + fg[1] + ") reads " + r.toFixed(2) +
+             ":1 against its own fill over --" + s + " (" + eff + ") — under the " +
+             "4.5:1 AA floor. The fill is what buys the rank; the label is what " +
+             "pays for it, and it must not");
+      }
+    });
+  });
+  note("watch link: --" + fg[1] + " over rgba(" + rgb.join(",") + "," + a + ") clears AA on every surface");
+})();
+
 /* ---------- 21. A blocked store has to say so ------------------------- */
 /* A blocked store used to fail silently. The warning must be inside the
    sticky header, where it cannot scroll away. */
@@ -1392,10 +1451,21 @@ if((HTML.match(/class="lnk"/g) || []).length !== 1){
   fail("the entry link row is not a single link");
 }
 
-/* Right-aligned in both places it renders: the hero and the detail panel. */
-if(!/\.linkrow\{[^}]*justify-content:flex-end/.test(HTML)){
-  fail("the watch link is no longer right-aligned");
-}
+/* THE ALIGNMENT CLAUSE MOVED TO SECTION 119 IN 3.1.0, AND IT FLIPPED.
+   It read: `.linkrow` must be `justify-content:flex-end` — "the watch link is
+   no longer right-aligned". That is the eleven-release shape again, a guard
+   outliving the thing it was written against and then certifying it. Flex-end
+   put the link 171.7 px right of the description, the tick indent and both
+   buttons in an expanded row; this clause was the thing that would have
+   stopped the fix, and it went red before the fix did.
+
+   It also had no fixture. Nothing in qa/negative/ ever tripped it, so it was
+   never negative-tested and nobody ever had to look at what it asserted.
+
+   Section 119 owns the watch link's rank and alignment now — one intention in
+   one place, the same reason `.herorow .linkrow` stopped re-declaring
+   `justify-content`. This section keeps the wiring: the URL, the year, and
+   that there is exactly one link. */
 
 /* ---------- 33. One tagline, everywhere ------------------------------- */
 /* It lived in six places carrying three different strings. Six copies that can
@@ -5591,9 +5661,34 @@ var ROUTE_VOCAB = [
 
        Closed. Do not re-open without new traffic evidence on the mirror. */
     if(!/href="\/"/.test(ft)) fail("404.html does not link home");
+    /* THE NAMESPACE TRAP, 3.1.0. This section fails on any https?:// in the
+       file, and xmlns="http://www.w3.org/2000/svg" is that string \u2014 so the
+       first inline-bat candidate went red with "404.html reaches off the
+       page", which names the wrong cause and sends the next reader hunting
+       for a fetch that is not there. The attribute is unnecessary in an HTML
+       document; the header's own <svg> omits it. Named before the sweep below
+       can mislabel it. */
+    if(/xmlns=/.test(ft)){
+      fail("404.html carries an xmlns attribute \u2014 an inline <svg> in an HTML " +
+           "document does not need one, and the namespace URL is indistinguishable " +
+           "from a real off-page reference to the check below. Drop the attribute");
+    }
     if(/https?:\/\//.test(ft)){
       fail("404.html reaches off the page \u2014 it is self-contained or it is " +
            "another thing that can break");
+    }
+    /* INLINE OR NOTHING, and asserted by shape rather than by matching URLs.
+       Cloudflare serves this file AT the address that missed rather than
+       redirecting to it, so every relative reference on it resolves against
+       whatever directory the reader happened to be in: url(./icon.svg) works
+       at /nope and asks for /a/b/icon.svg at /a/b/nope. The same resolution
+       rule that killed `./` for the root link above, and the same one that
+       made a live audit report manifest.json as a 404 on 5 Aug. A URL check
+       would pass anything phrased differently; no url() at all cannot. */
+    if(/url\(/.test(ft)){
+      fail("404.html fetches something with url() \u2014 this page is served at " +
+           "whatever address missed, so a relative reference on it resolves " +
+           "against a directory nobody chose. The mark is inline or it is nothing");
     }
     if(Buffer.byteLength(ft) > 4096){
       fail("404.html is " + Buffer.byteLength(ft) + " bytes \u2014 it is one " +
@@ -6602,22 +6697,31 @@ var ROUTE_VOCAB = [
   note("README's old-origin paragraph agrees with offCanonical(): noindex, no offer");
 })();
 
-/* ---------- 115. Three copies of the bat, and they agree --------------- */
-/* THE GLYPH IS WRITTEN OUT VERBATIM IN THREE PLACES and nothing asserted they
-   match: the header markup in index.html, BATP for the share card, and
-   icon.svg, from which every PNG raster derives. Found while measuring the
-   header on 5 Aug and still unguarded after 3.0.0.
+/* ---------- 115. Four copies of the bat, and they agree ---------------- */
+/* THE GLYPH IS WRITTEN OUT VERBATIM IN FOUR PLACES and nothing asserted they
+   match: the header markup in index.html, BATP for the share card, icon.svg
+   from which every PNG raster derives, and — since 3.1.0 — the mark behind
+   the 404. Found while measuring the header on 5 Aug and still unguarded
+   after 3.0.0.
 
-   Cheaper than it looked, and worth recording why: all three sit in the same
+   Cheaper than it looked, and worth recording why: all four sit in the same
    0-100 coordinate space and carry the same translate(0,5), so this needs no
-   geometry — the header and icon.svg hold four <path> elements plus an
-   <ellipse>, and BATP is those four d values concatenated. String equality
+   geometry — the header, icon.svg and the 404 hold four <path> elements plus
+   an <ellipse>, and BATP is those four d values concatenated. String equality
    after normalising whitespace is the whole check.
 
    BATP CARRIES NO ELLIPSE, and that is a real difference rather than a defect:
    the share card draws it on the canvas separately. It is asserted as a
    difference here rather than papered over, because the next person to see
-   three-of-four will otherwise assume a bug. */
+   three-of-four will otherwise assume a bug.
+
+   THE COUNT IS PART OF THE ASSERTION, and 3.1.0 is the proof. Stage A added a
+   fourth copy to 404.html against the three-copy version of this section: one
+   of its paths was edited alone and all 117 sections stayed green; the bat was
+   then deleted outright and all 117 stayed green again. A guard that counts
+   copies certifies whatever it was not told about. Both experiments are
+   fixtures in negtest210 now — the best provenance a fixture can have is that
+   it came back green when it should not have. */
 
 (function(){
   function norm(s){ return String(s || "").replace(/\s+/g, " ").trim(); }
@@ -6638,52 +6742,70 @@ var ROUTE_VOCAB = [
   var batp = (HTML.match(/var BATP\s*=\s*"([^"]+)"/) || [])[1];
   var iconPath = path.join(PUBLIC, "icon.svg");
   var icon = fs.existsSync(iconPath) ? fs.readFileSync(iconPath, "utf8") : "";
+  var fourPath = path.join(PUBLIC, "404.html");
+  var fourSrc = fs.existsSync(fourPath) ? fs.readFileSync(fourPath, "utf8") : "";
+  var four = (fourSrc.match(/<svg class="bat"[\s\S]*?<\/svg>/) || [""])[0];
 
   if(!mark){ fail("the header bat markup is gone"); return; }
   if(!batp){ fail("BATP is gone — the share card has no bat to draw"); return; }
   if(!icon){ fail("docs/icon.svg is missing — every PNG raster derives from it"); return; }
+  if(!four){
+    fail("the 404's bat is gone — <svg class=\"bat\"> is not in docs/404.html. " +
+         "It is the copy nobody reads, on the page a reader meets when something " +
+         "is already broken, which is exactly the position icon.svg was in " +
+         "before 3.0.0");
+    return;
+  }
 
-  var markPaths = paths(mark), iconPaths = paths(icon);
-  var markJoined = norm(markPaths.join(" ")), iconJoined = norm(iconPaths.join(" "));
+  /* The count is the assertion. Add a fifth copy and add it here, or it is a
+     copy nothing compares. */
+  /* THE NAMES ARE FIXTURE-FACING. negtest300 pins "the header bat and BATP have
+     drifted apart" and "icon.svg and BATP have drifted apart" — 483 fixtures
+     assert against guard output by message, so a reworded failure is a broken
+     fixture. The loop is new; the sentences it prints are the ones that were
+     already being asserted. */
+  var COPIES = [["the header bat", mark], ["docs/icon.svg", icon], ["the 404's bat", four]];
+
   var batpN = norm(batp);
+  var ref = null;
+  COPIES.forEach(function(c){
+    var ps = paths(c[1]), joined = norm(ps.join(" "));
+    if(ref === null) ref = ps.length;
+    if(ps.length !== ref){
+      fail(c[0] + " draws " + ps.length + " paths and the header draws " + ref +
+           " — they are the same mark and one of them was edited alone. Every " +
+           "install, every raster, every share surface and the error page show it");
+    }
+    if(joined !== batpN){
+      fail(c[0] + " and BATP have drifted apart — the same mark is two " +
+           "different shapes, and nothing but this section reads both");
+    }
+  });
 
-  if(markPaths.length !== iconPaths.length){
-    fail("the header bat draws " + markPaths.length + " paths and icon.svg draws " +
-         iconPaths.length + " — they are the same mark and one of them was edited " +
-         "alone. The icon is what every install, every raster and every share " +
-         "surface shows");
-  }
-  if(markJoined !== batpN){
-    fail("the header bat and BATP have drifted apart — the mark in the page and " +
-         "the mark on the share card are different shapes, and only one of them " +
-         "is ever seen beside the other");
-  }
-  if(iconJoined !== batpN){
-    fail("docs/icon.svg and BATP have drifted apart — the installed icon and the " +
-         "share card would show different marks, and the icon is the copy nothing " +
-         "else in this suite reads");
-  }
-
-  var markEl = ellipse(mark), iconEl = ellipse(icon);
-  if(!markEl){ fail("the header bat has lost its ellipse"); }
-  else if(markEl !== iconEl){
-    fail("the bat's ellipse differs between the header (" + markEl + ") and " +
-         "icon.svg (" + iconEl + ")");
-  }
+  var els = COPIES.map(function(c){ return [c[0], ellipse(c[1])]; });
+  if(!els[0][1]){ fail("the header bat has lost its ellipse"); }
+  else els.slice(1).forEach(function(e){
+    if(e[1] !== els[0][1]){
+      fail("the bat's ellipse differs between the header (" + els[0][1] + ") and " +
+           e[0] + " (" + e[1] + ")");
+    }
+  });
   if(/<ellipse/.test(batp)){
     fail("BATP now carries an ellipse — the share card draws it on the canvas " +
          "separately, so this would draw it twice");
   }
 
-  var trs = [mark, icon].map(function(s){
-    return (s.match(/transform="translate\(([^)]*)\)"/) || [])[1];
+  var trs = COPIES.map(function(c){
+    return [c[0], (c[1].match(/transform="translate\(([^)]*)\)"/) || [])[1]];
   });
-  if(trs[0] !== trs[1]){
-    fail("the bat's transform differs between the header (" + trs[0] + ") and " +
-         "icon.svg (" + trs[1] + ") — same shape, different position");
-  }
-  note("bat glyph: " + markPaths.length + " paths agree across the header, BATP " +
-       "and icon.svg, ellipse and transform matched");
+  trs.slice(1).forEach(function(t){
+    if(t[1] !== trs[0][1]){
+      fail("the bat's transform differs between the header (" + trs[0][1] + ") and " +
+           t[0] + " (" + t[1] + ") — same shape, different position");
+    }
+  });
+  note("bat glyph: " + ref + " paths agree across the header, BATP, icon.svg and " +
+       "the 404, ellipse and transform matched");
 })();
 
 /* ---------- 116. The fonts really carry what the page really renders --- */
@@ -6952,6 +7074,196 @@ var ROUTE_VOCAB = [
   });
 
   note("llms.txt summary carries the README's claims: filmed, animated and live action, spoils nothing");
+})();
+
+/* ---------- 118. The 404 still reads over its own bat ----------------- */
+/* SECTION 20 READS index.html ONLY, so nothing in this suite has ever measured
+   a colour on the error page — and until 3.1.0 nothing needed to, because
+   there was nothing behind the text. There is now.
+
+   The arithmetic, not a screenshot. A screenshot of an error page is the one
+   thing nobody looks at twice, and the failure mode here is gradual: somebody
+   decides the mark is too faint, raises the opacity, and the page a reader
+   meets when something is ALREADY broken becomes the least readable page on
+   the origin. At .09 the h1 reads 14.6:1 and the body 6.7:1 against AA's 4.5,
+   so there is a great deal of room — which is exactly why this needs a number
+   rather than a judgement.
+
+   A5, and it is the other half: `overflow:hidden` on <body> must not go in. A
+   position:fixed box contributes nothing to document overflow, so it buys
+   nothing, and section 110's whole argument is that this page can be
+   pinch-zoomed. */
+
+(function(){
+  var fp = path.join(PUBLIC, "404.html");
+  if(!fs.existsSync(fp)){ fail("docs/404.html is missing — section 101 says so too"); return; }
+  var src = fs.readFileSync(fp, "utf8");
+
+  function rule(sel){
+    var m = src.match(new RegExp("(^|[\n}])\\s*" +
+      sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\{([^}]*)\\}"));
+    return m ? m[2] : null;
+  }
+  var body = rule("body"), bat = rule(".bat"), para = rule("p");
+  if(!body || !bat){ fail("404.html has no body or .bat rule — the bat cannot be measured"); return; }
+
+  var bg = (body.match(/background:\s*(#[0-9A-Fa-f]{6})/) || [])[1];
+  var h1 = (body.match(/color:\s*(#[0-9A-Fa-f]{6})/) || [])[1];
+  var pc = (String(para || "").match(/color:\s*(#[0-9A-Fa-f]{6})/) || [])[1];
+  var op = parseFloat((bat.match(/opacity:\s*([\d.]+)/) || [])[1]);
+  var fill = (src.match(/<svg class="bat"[\s\S]*?fill="(#[0-9A-Fa-f]{6})"/) || [])[1];
+
+  if(!bg || !h1 || !pc || !fill || !(op >= 0)){
+    fail("cannot read the 404's page colour, text colours, bat fill or bat opacity — " +
+         "this section is measuring nothing and would report green forever");
+    return;
+  }
+
+  var eff = "#";
+  for(var i = 0; i < 3; i++){
+    var b = parseInt(bg.substr(1 + i * 2, 2), 16);
+    var f = parseInt(fill.substr(1 + i * 2, 2), 16);
+    var v = Math.round(b + (f - b) * op);
+    eff += (v < 16 ? "0" : "") + v.toString(16);
+  }
+
+  [[h1, "the heading"], [pc, "the sentence"]].forEach(function(t){
+    var r = contrast(t[0], eff);
+    if(r < 4.5){
+      fail("the 404's bat at opacity " + op + " puts " + t[1] + " (" + t[0] + ") at " +
+           r.toFixed(2) + ":1 over the lit background (" + eff + ") — under the 4.5:1 " +
+           "AA floor. This is the page somebody reaches when something is already " +
+           "broken; it does not get to be the hardest one to read");
+    }
+  });
+
+  if(/overflow:\s*hidden/.test(body)){
+    fail("404.html clips its own body — a position:fixed mark contributes nothing " +
+         "to document overflow, so this buys nothing and costs the pinch-zoom " +
+         "section 110 exists to protect");
+  }
+
+  note("404 bat: " + fill + " at " + op + " over " + bg + " = " + eff + "; heading " +
+       contrast(h1, eff).toFixed(2) + ":1, sentence " + contrast(pc, eff).toFixed(2) + ":1");
+})();
+
+/* ---------- 119. Where to watch has a rank of its own ----------------- */
+/* THE README'S FEATURE LIST LEADS WITH IT — "Where to watch, without picking a
+   side" — and introBlock() promises every first-time reader "Tap anything for
+   what it is and where to watch it." It shipped as the fainter of two
+   identical pills: `.lnk` and `.act` were the same rule twice, differing only
+   in text colour, at 5.08:1 against .act's 5.87.
+
+   IT WAS CALLED SECONDARY ONCE, FOR A REASON THAT WAS NOT ABOUT ITS
+   IMPORTANCE. At 10px with .1em tracking the label needed ~112px and the hero's
+   38% column gave 96px, so it wrapped; the label was shrunk and "it is a
+   secondary control anyway" was the justification. That justification went into
+   NOTES.md and the CHANGELOG, where it read as a considered statement about the
+   feature. It was a layout constraint promoted to a rule of the design. Both
+   notes are corrected in 3.1.0.
+
+   AND THE NOTE CLAIMED AN ALIGNMENT THAT WAS NEVER TRUE — "it only has to share
+   Skip's edges, not its weight." Measured at 375px: the hero pill stopped 8.0px
+   short of Skip's right edge, stood 38px against Skip's 46, cornered at 8px
+   against 11, and in an expanded row sat 171.7px right of the description, the
+   tick indent and both buttons. The left edge in the hero was perfect, which is
+   what let it survive eleven releases: the one edge anybody would check was
+   right, and a faint outline stopping early against a faint outline is not
+   something an eye finds. The fill did not cause any of it. It stopped hiding
+   it.
+
+   A decision worth keeping becomes a guard, not a document. Every assertion
+   here is read from the two rules that have to agree, never from a remembered
+   pair of numbers. The contrast arithmetic is section 20's — one intention,
+   one place — and this section holds the pairing that keeps it able to see. */
+
+(function(){
+  function rules(sel){
+    var out = [], re = new RegExp("(^|[\n}])\\s*" +
+      sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\{([^}]*)\\}", "g"), m;
+    while((m = re.exec(HTML))) out.push(m[2]);
+    return out;
+  }
+  function one(sel){ var r = rules(sel); return r.length ? r[0] : null; }
+
+  var lnk = one(".lnk"), act = one(".act"),
+      hlnk = one(".herorow .lnk"), skip = one(".heroacts button"),
+      linkrow = one(".linkrow"), hlinkrows = rules(".herorow .linkrow");
+
+  if(!lnk || !act || !hlnk || !skip || !linkrow){
+    fail("one of .lnk, .act, .herorow .lnk, .heroacts button or .linkrow is gone — " +
+         "the watch link's rank cannot be read");
+    return;
+  }
+
+  /* RANK, and the assertion is deliberately not "the two rules differ". They
+     always differed — in white-space, display, align-items, text-decoration —
+     so a difference count would have passed on the shipped defect. What was
+     missing is the two things an eye reads as rank: a fill, and an edge of its
+     own. Both are named. */
+  if(!/background:\s*rgba?\(/.test(lnk)){
+    fail("the watch link has no fill of its own — it is styled as one of the " +
+         "secondary pills again, and the README's feature list leads with " +
+         '"Where to watch, without picking a side". A control the README sells ' +
+         "and the intro promises is not a secondary control");
+  }
+  if(/background:/.test(act)){
+    fail(".act has grown a fill — the watch link's rank is bought by being the " +
+         "one pill in the row that has one, and that stops being true here");
+  }
+  var lb = (lnk.match(/border:\s*1px solid var\(--([a-z0-9]+)\)/) || [])[1];
+  var ab = (act.match(/border:\s*1px solid var\(--([a-z0-9]+)\)/) || [])[1];
+  if(!lb || lb === ab){
+    fail("the watch link and .act share an edge colour (--" + (lb || "?") + ") — " +
+         "before 3.1.0 the only difference between the two rules was a text " +
+         "colour, which is how the one control that leaves the app became the " +
+         "quietest thing in the panel");
+  }
+
+  /* The pairing section 20 depends on. Rewrite the fill into a form its regex
+     cannot read and the AA measurement silently stops happening. */
+  if(!/background:\s*rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\)/.test(lnk) ||
+     !/(?:^|[;{])color:\s*var\(--[a-z0-9]+\)/.test(lnk)){
+    fail("the watch link's fill is not a plain rgba() or its label is not a " +
+         "var() token — section 20 blends the two to check the label clears AA, " +
+         "and in any other form it measures nothing and reports green");
+  }
+
+  /* S1b — the hero pill and Skip, read from both rules rather than remembered. */
+  function px(rule, prop){
+    var m = String(rule).match(new RegExp(prop + ":\\s*(\\d+)px"));
+    return m ? m[1] : null;
+  }
+  ["min-height", "border-radius"].forEach(function(prop){
+    var a = px(hlnk, prop), b = px(skip, prop);
+    if(!a || !b || a !== b){
+      fail("the hero watch link declares " + prop + ":" + (a || "nothing") +
+           " and Skip declares " + (b || "nothing") + " — the note says the link " +
+           "shares Skip's edges, and for eleven releases it did not");
+    }
+  });
+  if(!/flex:\s*1/.test(hlnk)){
+    fail("the hero watch link is content-sized again — it must fill its column " +
+         "(flex:1) or its right edge drifts back off Skip's, which is the 8px " +
+         "nobody found because the left edge was perfect");
+  }
+
+  /* S1b — the expanded row. The description, the tick indent and both buttons
+     all sit on the 42px line; the link sat 171.7px to the right of them. */
+  if(!/justify-content:\s*flex-start/.test(linkrow)){
+    fail(".linkrow does not justify to the start — the watch link leaves the " +
+         "line every other thing in a detail block sits on");
+  }
+  hlinkrows.forEach(function(r){
+    if(/justify-content/.test(r)){
+      fail(".herorow .linkrow re-declares justify-content — the base rule already " +
+           "says it. Two copies of one intention is how they drift, and this " +
+           "override existed only because the base rule disagreed");
+    }
+  });
+
+  note("watch link rank: own fill and edge, hero pill matches Skip at " +
+       px(skip, "min-height") + "px/" + px(skip, "border-radius") + "px, linkrow starts");
 })();
 
 /* ---------- report ---------- */

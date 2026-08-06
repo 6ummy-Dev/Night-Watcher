@@ -384,7 +384,7 @@ run_case "the paragraph stops naming what the mirror does" \
 assert 'noindex' in s;s=s.replace('noindex','nothing',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
-echo "--- 115: three copies of the bat agree"
+echo "--- 115: four copies of the bat agree"
 
 run_case "the share card's bat drifts from the header's" \
   "the header bat and BATP have drifted apart" \

@@ -16,9 +16,175 @@ MAJOR marks a change to the app's shape — 2.0.0 is the Belt. A breaking change
 to saved progress would also be MAJOR, and should never happen, because every
 `i:` slug is frozen (see the README).
 
+> **Note on versioning**
+> v1.0.0 → v2.x.x were public beta / early-access builds running directly on
+> production. **v3.0.0 is the first version considered stable.** Every version
+> in this file shipped to the live origin the day it was written — there is no
+> staging environment and never has been — so the 3.0.0 line is not a change of
+> process, only of the stability contract it is honest to offer.
+>
+> Anything experimental after 3.0.0 takes a pre-release tag — `3.1.0-rc.1` —
+> rather than a plain version.
+
 ## [Unreleased]
 
 Nothing yet.
+
+## [3.1.0] — 2026-08-06
+
+**One of the app's functions was the quietest thing in the panel, and the error
+page had nothing on it.** The soak produced the first; the belt release gave up
+the second. Neither is large. One of them is the eleventh release in a row in
+which a comment asserted a relationship that nothing checked and that was not
+true.
+
+### Changed
+
+- **"Where to watch" has a rank of its own.** `.lnk` and `.act` were the same
+  rule twice — same font, same 10px, same `.1em`, same uppercase, same
+  `1px solid var(--line2)`, same `8px` radius, same `10px 12px` padding, same
+  `38px` floor. **The only difference was a text colour**, and the link had the
+  fainter of the two: `--steel` at **5.08:1** against `--dust`'s 5.87. In the
+  hero it dropped to 9px — the smallest type in the block — directly above
+  `.heroacts .go`, which is solid `--bone`. The one control that leaves the app
+  was the quietest thing on the panel.
+
+  It now carries `background:rgba(114,149,204,.14)`, `border:1px solid
+  var(--steel)` and `color:var(--bone)`. **5.08:1 → 10.28:1.** Rank bought
+  entirely with colour: not one extra pixel of width, so `white-space:nowrap`,
+  the hero's `font-size:9px` and the 360px stack all stay true.
+
+  **The obvious version of this fails AA and it is worth writing down.** Tinting
+  the fill and keeping the steel label lands at **4.09:1** at `.14` and 3.84 at
+  `.18`. Raising the fill without raising the label buys weight by spending
+  contrast. The safe move and the strong move are the same move.
+
+- **The hero link is Skip's size, and the expanded row has one left edge.**
+  Four declarations: `.herorow .lnk` gains `flex:1`,
+  `justify-content:center`, `min-height:46px` and `border-radius:11px`;
+  `.linkrow` justifies to the start; and `.herorow .linkrow` stops re-declaring
+  `justify-content` in both the base rule and the 360px block, because the base
+  rule now says it.
+
+### Fixed
+
+- **The note claimed an alignment that was never true.** `NOTES.md` and the
+  1.4.x entry both said the link *"only has to share Skip's **edges**, not its
+  weight."* Measured in Chromium at 375px, and **identical in shipped 3.0.3**:
+  the hero pill stood **38px against Skip's 46**, cornered at **8px against
+  11**, and in an expanded row sat **112px right** of the description, the tick
+  indent and both buttons, which all sit on the 42px line. All four now measure
+  **0.0px** apart.
+
+  The hero's right edges did agree before this release — but by accident. The
+  pill was content-sized and overflowed its column's 38% basis, and
+  `min-width:auto` widened the column to match, so the two edges met at a number
+  neither rule chose. `flex:1` makes the agreement structural.
+
+- **The watch link's alignment was guarded backwards.** Section 44 asserted
+  `.linkrow` must be `justify-content:flex-end` — the misalignment above. It
+  went red when the fix went in, which is the whole shape of guard 44's own
+  history: a guard that outlives the thing it was written against certifies
+  whatever replaces it. **It also had no fixture**, so nothing had ever made it
+  fail and nobody had to read what it asserted. Moved to section 119, flipped,
+  and negative-tested.
+
+### Added
+
+- **The 404 gets the bat.** `docs/404.html` draws the mark behind its text —
+  inline, `#B4AE9C` (the signal's hue at .14 saturation) at **opacity .09**,
+  `min(115vw,560px)`, `position:fixed` and centred on the viewport rather than
+  on `<main>`, so it bleeds past the copy block instead of reading as an
+  illustration. `prefers-contrast: more` removes it. **1,039 → 1,761 bytes**
+  against section 101's 4,096 ceiling.
+
+  **Inline is not a preference.** Cloudflare serves this file *at* the address
+  that missed rather than redirecting to it, so `url(./icon.svg)` works at
+  `/nope` and asks for `/a/b/icon.svg` at `/a/b/nope`. The same resolution rule
+  that killed `./` for the root link in 3.0.2 — and the same one that made a
+  live audit report `manifest.json` as a 404 on 5 Aug, which is that finding
+  arriving from the outside in a real tool.
+
+- **Section 115 counts four copies of the bat, not three.** The fourth copy was
+  added against the three-copy version of the section: one of its paths was
+  edited alone and **all 117 sections stayed green**; the bat was then deleted
+  outright and **all 117 stayed green again**. A guard that counts copies
+  certifies whatever it was not told about. Both experiments are fixtures now.
+
+- **Section 118 — the 404 still reads over its own bat.** Section 20 reads
+  `index.html` only, so nothing in this suite had ever measured a colour on the
+  error page. The arithmetic rather than a screenshot: at `.09` the heading
+  reads **14.62:1** and the sentence **6.72:1** over the lit background
+  `#17181C`. It also refuses `overflow:hidden` on `<body>` — a `position:fixed`
+  box contributes nothing to document overflow, so it buys nothing and costs
+  the pinch-zoom section 110 exists to protect.
+
+- **Section 119 — where to watch has a rank of its own.** Asserts the link has
+  a fill and an edge no other pill in the row has, that `.act` has not grown one
+  too, that the hero pill and Skip declare the same `min-height` and
+  `border-radius`, that the pill fills its column, that `.linkrow` starts, and
+  that nothing re-declares `justify-content`. **Every assertion is read from the
+  two rules that have to agree, never from a remembered pair of numbers** —
+  which is exactly how the old note stayed false for eleven releases.
+
+- **Section 20 grew to see a translucent fill.** Every pair it measures is
+  token-on-token; a `rgba()` fill lands the label on a blend that appears in no
+  palette. It now blends `.lnk`'s fill over every surface, per theme, and checks
+  the label against the result. Section 119 asserts the fill and colour are
+  written in a form this can parse, because in any other form it measures
+  nothing and reports green.
+
+- **Section 101 names the namespace trap and requires the mark be inline.**
+  `xmlns="http://www.w3.org/2000/svg"` is an `https://` string, so the first
+  candidate went red with *"404.html reaches off the page"* — the right verdict
+  with the wrong cause, which sends the next reader hunting for a fetch that is
+  not there. The attribute is unnecessary in an HTML document and is now refused
+  by name. Separately: no `url()` at all in `404.html`, asserted by shape rather
+  than by matching URLs, because a URL check passes anything phrased
+  differently.
+
+- **`qa/negative/negtest310.sh`** — 10 fixtures for sections 119 and 20's
+  growth. `negtest210` gains 6 for the 404's bat. **35 suites, 483 fixtures.**
+
+  **Two fixtures re-anchored, one of them by this release.** `negtest200`'s
+  *"the link row loses its alignment again"* — a section 99 fixture about
+  `align-items:center` — pinned the string `justify-content:flex-end;align-items:center;`,
+  which S1b deleted, so it reported `SETUP BROKE` rather than failing. It tests
+  the same thing against the new anchor. `negtest210`'s freshness fixture moved
+  from `BUILT = "2026-08-05"` to `"2026-08-06"`, which is routine every release.
+  **Section 115's failure sentences were kept word-for-word** where the
+  assertion did not change, because `negtest300` pins two of them and 483
+  fixtures assert against guard output by message.
+
+- **Seven browser checks for the edges guards cannot see.** `qa/browser-check.mjs`
+  measures the hero pill against Skip and the expanded row against Mark watched
+  and the description. It is still not in `npm test` and still not in CI, by the
+  same decision as before: it needs a browser, and the point of it is that a
+  person would otherwise have to look. **It caught the mock** — the v2 mock put
+  the hero's right edge 8.0px short and the row 171.7px out; the real page said
+  0.0 and 112.0. Measure the thing that runs, not a proxy for it.
+
+### Documented
+
+- **`NOTES.md`'s two sentences about this control were both wrong, and both are
+  corrected in place.** It is not a secondary control — the README's feature
+  list leads with *"Where to watch, without picking a side"* and `introBlock()`
+  promises every first-time reader *"Tap anything for what it is and where to
+  watch it."* The "secondary" label came from a 1.4.x wrapping bug fixed by
+  shrinking a label, with the justification written down afterwards: a layout
+  constraint promoted to a rule of the design. And it never shared Skip's edges.
+  A reversal is written down rather than left looking like drift.
+
+- The 9px hero label stays, and now says why: even at the full column width the
+  inner box measures 96.7px and the label needs ~112px at `.1em`.
+
+### Not in this release
+
+- **axe-core on `qa/browser-check.mjs`.** The one forward-looking item either
+  5 Aug audit produced, and the one gap both named: browser a11y, which neither
+  could execute. It needs no release and rides whenever — it is still the
+  owner's call, and an unattended-ish build does not add a devDependency nobody
+  asked for on ship day.
 
 ## [3.0.3] — 2026-08-05
 
