@@ -577,6 +577,79 @@ if(!importCode("https://nightwatcher.life/#nw=" + code)) fail("parser rejected a
   if(importCode(bad)) fail("parser accepted junk it should reject: \"" + bad + "\"");
 });
 
+/* A generated sweep over the same parser, because the cases above are the ones
+   somebody thought of. Every fixture in section 8 is a hand-written mutation of
+   one code; the truncation sweep is already a property test over exactly one
+   axis, which is the argument for generating the others rather than against it.
+
+   Deterministic on purpose -- a seeded LCG, no Math.random(). A generator that
+   finds a defect on one run and not the next is a rumour, and this file's whole
+   contract is that a red build is reproducible. Seed and case are printed with
+   any failure so a report is re-runnable by hand.
+
+   The invariant is narrow and total: importCode() must never throw, and
+   whatever it returns must never invent an id the catalogue does not have.
+   Restoring less than was written is allowed -- that is the forward tolerance
+   sections 7 and 8 exist to protect. Restoring something that was never there
+   is the failure this cannot express in a hand-written fixture, because you
+   would have to guess the input that produces it. */
+
+(function(){
+  var seed = 20260806, CASES = 240;
+  function rnd(){ seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+  function pick(a){ return a[Math.floor(rnd() * a.length) % a.length]; }
+
+  var real = Object.create(null);
+  FILMS.forEach(function(f){ real[f.id] = 1; });
+  var ALPHA = "0123456789abcdefghijklmnopqrstuvwxyz";
+  var HEADS = ["NW1", "NW2", "NW3", "NW9", "NW0", "nw3", "NW", ""];
+  var SEGS  = ["W", "S", "R", "O", "P", "X", "Z", "QQ"];
+
+  var bad = 0, threw = 0, firstBad = "";
+  for(var c = 0; c < CASES; c++){
+    var body = pick(HEADS);
+    var parts = 1 + Math.floor(rnd() * 5);
+    for(var q = 0; q < parts; q++){
+      body += pick(SEGS);
+      var runLen = Math.floor(rnd() * 14);
+      for(var r = 0; r < runLen; r++){
+        /* Half real hashes, half noise: a code made only of garbage never
+           reaches the branches that resolve an id. */
+        body += rnd() < 0.5 ? idHash(pick(FILMS).id) : pick(ALPHA.split(""));
+      }
+    }
+    if(rnd() < 0.35) body = body.slice(0, Math.max(0, body.length - Math.floor(rnd() * 9)));
+    var res;
+    try { res = importCode(body); }
+    catch(e){
+      threw++;
+      if(!firstBad) firstBad = "threw " + e.name + " on \"" + body + "\"";
+      continue;
+    }
+    if(!res) continue;
+    var invented = Object.keys(res.watched || {}).concat(Object.keys(res.rated || {}))
+                     .filter(function(id){ return !real[id]; });
+    if(invented.length){
+      bad++;
+      if(!firstBad) firstBad = "restored " + JSON.stringify(invented.slice(0, 3)) +
+                               " from \"" + body + "\"";
+    }
+  }
+
+  if(threw){
+    fail("importCode() threw on " + threw + " of " + CASES + " generated codes \u2014 " +
+         "a pasted or truncated code must be refused, never crash the restore. " +
+         "seed " + 20260806 + ", first: " + firstBad);
+  }
+  if(bad){
+    fail("importCode() restored " + bad + " entr" + (bad === 1 ? "y" : "ies") +
+         " the catalogue does not contain, out of " + CASES + " generated codes " +
+         "\u2014 a code can lose progress, it may never invent it. seed " + 20260806 +
+         ", first: " + firstBad);
+  }
+  note("generated codes: " + CASES + " parsed, none threw, none invented an id (seed 20260806)");
+})();
+
 /* ---------- 9. The restore link stays reachable ----------------------- */
 /* Transfer used to be a QR of this link. The QR is gone; the link is the whole
    mechanism now, so losing the control that surfaces it would silently remove
