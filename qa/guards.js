@@ -99,6 +99,8 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      63   The grid columns have a floor
      119  Where to watch has a rank of its own
 
+     120  The page does not read layout after writing it
+
    ACCESSIBILITY
      20   Text contrast against the surface it sits on
      41   The restore box has a real label
@@ -1303,17 +1305,27 @@ if(gzipKB > 80) fail("index.html is " + gzipKB.toFixed(1) + " KB gzipped, over t
    today with single quotes shipped green: section 42's origin sweep is an ALLOW
    list and already allows github.com for links. Quote style is not part of the
    rule, so it is no longer part of the pattern. */
+/* 3.2.0: THE CARVE-OUT AND THE EMPTY-SWEEP CHECK BOTH INVERT, AND THE SECOND
+   is the interesting half. This section allowed exactly one external script,
+   the disclosed beacon, and then \u2014 correctly, at the time \u2014 FAILED
+   when it found none at all, because an empty match array had already fooled
+   it once: the pattern required a double-quoted src and the beacon has always
+   been single-quoted, so the sweep matched nothing on every run from 1.2.4 to
+   3.0.0 and a script added with single quotes would have shipped green. "An
+   empty sweep is not a clean sweep" was the fix for that.
+
+   With the beacon removed, an empty sweep IS the clean sweep, and a check
+   written to catch a blind pattern would instead have blocked the correct
+   state. So it inverts rather than being deleted: the page must carry NO
+   external script, which is a stronger assertion than the carve-out ever was,
+   and the pattern's old blindness no longer has anywhere to hide \u2014 there
+   is no allowed tag left for a mis-match to be mistaken for. */
 var ext = HTML.match(/<script[^>]+src=["']https?:\/\/[^"']+["']/g) || [];
 ext.forEach(function(tag){
-  if(tag.indexOf("cloudflareinsights") < 0){
-    fail("index.html loads external script " + tag + " — the app must run with no network");
-  }
+  fail("index.html loads external script " + tag + " \u2014 the app must run " +
+       "with no network, and since 3.2.0 there is no disclosed exception for " +
+       "it to be");
 });
-if(!ext.length){
-  fail("section 29 found no external script tag at all — the disclosed " +
-       "Cloudflare beacon is one, so either it has gone or this pattern has " +
-       "stopped matching the page. An empty sweep is not a clean sweep");
-}
 
 /* ---------- 30. Documented spoiler order holds ------------------------ */
 /* By-universe renders in array order, so the array IS the watch order. Group
@@ -1833,8 +1845,11 @@ if(!/<label class="bklab" for="restorebox">/.test(HTML)){
      "these origins are fine". They are fine to MENTION. Nothing here may be
      fetched except the disclosed beacon, and section 29's sweep is what holds
      that half. */
-  var FETCHED = ["static.cloudflareinsights.com", "cloudflareinsights.com",
-                 "nightwatcher.life"];
+  /* 3.2.0 emptied this of everything but our own origin. It carried the two
+     beacon hostnames \u2014 static. for the script, the apex for its reporting
+     \u2014 which were two strings in two CSP directives, and that is exactly how
+     one of them survives a removal that only remembers the other. */
+  var FETCHED = ["nightwatcher.life"];
   var NAMED   = ["search.brave.com", "schema.org", "www.w3.org",
                  "www.sitemaps.org", "github.com", "x.com"];
   var ALLOWED = FETCHED.concat(NAMED);
@@ -1933,14 +1948,12 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
     "font-src":     "'self'",
     "img-src":      "'self' data:",
     "manifest-src": "'self'",
-    "connect-src":  "'self' https://cloudflareinsights.com",
+    "connect-src":  "'self'",
     "worker-src":   "'self'",
     "base-uri":     "'none'",
     "form-action":  "'none'",
     "object-src":   "'none'"
   };
-  var BEACON = "https://static.cloudflareinsights.com";
-
   var meta = HTML.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/);
   if(!meta){ fail("the Content-Security-Policy meta tag is gone"); return; }
   var csp = meta[1];
@@ -1975,16 +1988,17 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
   if(/script-src[^;]*'unsafe-inline'/.test(csp)){
     fail("CSP allows unsafe-inline scripts \u2014 the hash is there so it does not have to");
   }
+  /* 3.2.0. script-src used to be REQUIRED to carry the beacon origin, so that
+     dropping it from the policy could not silently stop a thing the privacy
+     copy and SECURITY.md both promised was running. The beacon leaves all
+     three in this release, so the requirement inverts with it: one hash, and
+     nothing else at all. A host expression here now is a third-party origin
+     arriving without the disclosure that used to have to go with one. */
   var scriptSrc = got["script-src"] || "";
-  if(scriptSrc.indexOf(BEACON) < 0){
-    fail("script-src no longer allows " + BEACON + " \u2014 the analytics beacon is " +
-         "disclosed in the privacy copy and in SECURITY.md, and dropping it " +
-         "from the policy stops it without retiring it anywhere a reader looks");
-  }
   scriptSrc.split(/\s+/).filter(Boolean).forEach(function(tok){
-    if(tok === BEACON || /^'sha256-[A-Za-z0-9+/=]+'$/.test(tok)) return;
-    fail("script-src carries " + tok + " \u2014 this page runs one hashed inline " +
-         "block and one disclosed beacon origin, and nothing else belongs there");
+    if(/^'sha256-[A-Za-z0-9+/=]+'$/.test(tok)) return;
+    fail("script-src carries " + tok + " \u2014 since 3.2.0 this page runs one " +
+         "hashed inline block and nothing else");
   });
 
   /* ONE PLAIN SCRIPT. A single hash cannot describe two, and the two suites
@@ -5283,24 +5297,6 @@ var ROUTE_VOCAB = [
          "re-render and then jumps in one frame. That was soak finding 1");
   }
 
-  /* 2.7.0. render() ended by clamping the restored scroll position against
-     documentElement.scrollHeight. Reading scrollHeight immediately after
-     writing #view.innerHTML forces a synchronous layout of the whole document
-     \u2014 measured at ~216ms on a 200-entry list, on every single render, to
-     compute a number the platform already applies: window.scrollTo clamps to
-     the scrollable range on its own. The clamp was defensive code paying full
-     price for nothing.
-
-     Guarded because it is the kind of line that gets added back by anyone
-     reasoning about scroll restoration from first principles, and it is
-     invisible in the harness \u2014 jsdom has no layout, so nothing here would
-     ever have caught it. */
-  if(/scrollHeight/.test(HTML)){
-    fail("index.html reads scrollHeight \u2014 reading layout straight after " +
-         "writing innerHTML forces a synchronous reflow of the document. " +
-         "window.scrollTo already clamps to the scrollable range; the read " +
-         "buys nothing and cost ~216ms per render before 2.7.0");
-  }
   /* 2.2.0 soak note: the buckle crops on narrow phones. Below 375px the two
      lines shrink and the padding tightens so "Live action / Movies+Series"
      — the longest state — fits without clipping. */
@@ -5624,8 +5620,34 @@ var ROUTE_VOCAB = [
              " \u2014 a count in prose drifts here exactly like it did in the README");
       }
     });
-    if(lt.indexOf("https://nightwatcher.life/") < 0){
-      fail("llms.txt does not name the canonical URL");
+    /* THE SUBSTRING HOLE, FOUND 6 Aug 2026 AND CLOSED HERE. This read
+           lt.indexOf("https://nightwatcher.life/") < 0
+       while printing "llms.txt does not name the canonical URL". Those are not
+       the same assertion: https://nightwatcher.life/orders.txt CONTAINS that
+       substring, and llms.txt has carried that link since 2.6.0 — so the whole
+       "Canonical URL:" line could be deleted and this section stayed green.
+       Proven against the shipped file before it was touched. A guard's
+       assertion is its code, not the sentence it prints when it fails.
+
+       Matched as a LINE now, and against index.html's own canonical rather
+       than a literal, so the two cannot drift apart either. The optional
+       [text](url) shape is accepted because 3.2.0 makes these Markdown links —
+       an engine asset that spells its links out in plain text is the thing
+       Agentic Browsing marked us down for. */
+    var wantCanon = (HTML.match(/<link rel="canonical" href="([^"]+)"/) || [])[1] || "";
+    var cline = lt.match(/^Canonical URL:[ \t]*(?:\[[^\]]*\]\(([^)]+)\)|(\S+))[ \t]*$/m);
+    if(!wantCanon){
+      fail("index.html has no canonical URL, so llms.txt's cannot be checked " +
+           "against it — section 38 owns that one");
+    } else if(!cline){
+      fail("llms.txt has no \"Canonical URL:\" line — and the URL may still " +
+           "appear elsewhere in the file, because orders.txt's own link " +
+           "contains it character for character. That is why this is matched " +
+           "as a line and not as a substring");
+    } else if((cline[1] || cline[2]) !== wantCanon){
+      fail("llms.txt's canonical line names " + (cline[1] || cline[2]) +
+           ", index.html's <link rel=canonical> names " + wantCanon +
+           " — two copies of one address, and they have drifted");
     }
   }
   var swTxt = fs.readFileSync(path.join(PUBLIC, "sw.js"), "utf8");
@@ -5821,12 +5843,25 @@ var ROUTE_VOCAB = [
          "nothing");
   }
 
-  [["Referrer-Policy",   /^\s+Referrer-Policy:\s*strict-origin-when-cross-origin\s*$/m,
+  var PINNED104 = [["Referrer-Policy",   /^\s+Referrer-Policy:\s*strict-origin-when-cross-origin\s*$/m,
     "strict-origin-when-cross-origin"],
    ["X-Frame-Options",   /^\s+X-Frame-Options:\s*DENY\s*$/m, "DENY"],
    ["Permissions-Policy", /^\s+Permissions-Policy:\s*.*geolocation=\(\)/m,
-    "a policy that at least denies geolocation"]
-  ].forEach(function(t){
+    "a policy that at least denies geolocation"],
+   /* 3.2.0. COOP severs window.opener for a cross-origin opener. This app
+      reads .opener nowhere at all — checked, zero occurrences — every watch
+      link is a plain target="_blank" navigation, and there is no popup flow,
+      no OAuth and no payment frame. It is here rather than at the edge for the
+      same reason as the three above: every route is Worker-served, and a
+      Response Header Transform Rule does not reach a Worker's response.
+
+      IT IS IN THIS ARRAY BECAUSE THE LINE IN _headers IS NOT SELF-GUARDING.
+      Adding a header to that file and not to this list ships an unwatched
+      header: nothing fails when it is there, and nothing fails when someone
+      deletes it again. The file and this entry are one commit. */
+   ["Cross-Origin-Opener-Policy", /^\s+Cross-Origin-Opener-Policy:\s*same-origin\s*$/m,
+    "same-origin"]];
+  PINNED104.forEach(function(t){
     if(!t[1].test(D)){
       fail("docs/_headers no longer sets " + t[0] + " to " + t[2]);
     }
@@ -5900,8 +5935,13 @@ var ROUTE_VOCAB = [
          "spends every installer's storage on a file no view can use");
   }
 
-  note("_headers: Referrer-Policy, X-Frame-Options and Permissions-Policy on /*, " +
-       "no-cache on /sw.js, a year on /fonts/*, and out of the offline shell");
+  /* THE NOTE IS DERIVED, NOT RESTATED. It named three headers by hand, and
+     3.2.0 pinned a fourth — so the note would have gone on printing three
+     while the array checked four, which is the drift this project fixes with
+     a guard every other time it appears. It reads the list now. */
+  note("_headers: " + PINNED104.map(function(t){ return t[0]; }).join(", ") +
+       " on /*, no-cache on /sw.js, a year on /fonts/*, and out of the " +
+       "offline shell");
 })();
 
 /* ---------- 105. The catalogue answers in plain text ------------------ */
@@ -7264,6 +7304,87 @@ var ROUTE_VOCAB = [
 
   note("watch link rank: own fill and edge, hero pill matches Skip at " +
        px(skip, "min-height") + "px/" + px(skip, "border-radius") + "px, linkrow starts");
+})();
+
+/* ---------- 120. The page does not read layout after writing it ------- */
+/* THE FAMILY, NOT THE MEMBER. Section 96 refused `scrollHeight` from 2.7.0,
+   written when render()'s closing clamp came out — 216ms of forced layout on
+   every render, invisible to the harness because jsdom has no layout and
+   nothing here can observe a reflow by running the app. It refused one
+   property NAME. On 6 Aug 2026 a Lighthouse run found a forced reflow of
+   106.6ms desktop / 64.1ms mobile at the TOP of that same function, arriving
+   as `window.pageYOffset || document.documentElement.scrollTop` — the same
+   defect under a different name, walking straight past a guard written
+   against the first one.
+
+   It also moves the assertion out of section 96, which is titled "The Belt is
+   one strip, and its pouches open from behind". The scrollHeight refusal was
+   filed there because that is where the 2.7.0 work happened, not because it
+   is what that section is about, and a guard filed under the wrong name is a
+   guard the next reader does not find.
+
+   TWO LISTS, AND THE SECOND IS THE HONEST PART. Properties this page does not
+   read at all are refused outright. The ones it DOES read are PINNED to the
+   exact sites that exist, each named — because refusing them today would fail
+   the build over a defect that is real, known, planned and frozen until after
+   19 Sep 2026. A guard that cannot be green against the tree it ships with is
+   not a guard, it is a wish. When render()'s read is hoisted above the first
+   write, its pin drops to zero and both members move up into REFUSED. */
+
+(function(){
+  /* Never read here. Any appearance is a new forced-layout site. */
+  var REFUSED = ["scrollHeight", "scrollY", "offsetTop", "offsetWidth",
+                 "clientHeight", "clientWidth", "getBoundingClientRect",
+                 "getComputedStyle", "innerHeight", "innerWidth"];
+
+  /* Read here, exactly this many times, for exactly this reason. The count is
+     the assertion: one more is a new site, one fewer means the fix landed and
+     this entry moves to REFUSED. */
+  var PINNED = [
+    ["pageYOffset", 1,
+     "render()'s scroll keep, read after flagSave(), applyTheme() and " +
+     "renderHead() have already written — the 6 Aug forced reflow, 106.6ms " +
+     "desktop. Fix is to hoist the read above the first write; it is inside " +
+     "render(), so it waits for the freeze to lift on 19 Sep 2026"],
+    ["scrollTop", 1,
+     "the second half of the same expression on the same line as pageYOffset " +
+     "above — one defect, two property names, which is the whole reason this " +
+     "section exists"],
+    ["offsetHeight", 1,
+     "the header's own height, measured once to set --ghtop when the store is " +
+     "blocked. Read THEN write, which is the correct order and not a forced " +
+     "reflow — recorded rather than refused, so that a second appearance has " +
+     "to be argued for"]
+  ];
+
+  REFUSED.forEach(function(prop){
+    if(HTML.indexOf(prop) >= 0){
+      fail("index.html reads " + prop + " — reading layout in a function that " +
+           "also writes it forces a synchronous reflow of the document, and " +
+           "jsdom has no layout, so nothing else in this harness can see it. " +
+           "If this read is deliberate, pin it in section 120 with its reason " +
+           "rather than deleting the check");
+    }
+  });
+
+  var pins = 0;
+  PINNED.forEach(function(t){
+    var prop = t[0], want = t[1], why = t[2];
+    var got = HTML.split(prop).length - 1;
+    pins += got;
+    if(got > want){
+      fail("index.html reads " + prop + " " + got + " times; this build was " +
+           "reviewed with " + want + ". A new layout read arrived — " + why);
+    } else if(got < want){
+      fail("index.html reads " + prop + " " + got + " times, down from " +
+           want + " — if the reflow fix landed, move " + prop + " into " +
+           "REFUSED in the same commit, because a pin nothing satisfies " +
+           "certifies the next one that arrives");
+    }
+  });
+
+  note("layout reads: " + REFUSED.length + " properties refused outright, " +
+       pins + " pinned read(s) across " + PINNED.length + " named sites");
 })();
 
 /* ---------- report ---------- */

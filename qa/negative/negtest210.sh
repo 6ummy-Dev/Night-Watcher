@@ -94,6 +94,20 @@ b='\"./icon.png\",';assert b in s
 s=s.replace(b,'\"./icon.png\", \"./llms.txt\",',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
+run_case "the canonical line is deleted from llms.txt" \
+  "llms.txt has no \"Canonical URL:\" line" \
+  "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read()
+a='Canonical URL: [nightwatcher.life](https://nightwatcher.life/)\n';assert a in s
+s=s.replace(a,'',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
+run_case "the canonical drifts from index.html's" \
+  "two copies of one address" \
+  "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read()
+a='(https://nightwatcher.life/)';assert a in s
+s=s.replace(a,'(https://nightwatcher.life/index.html)',1)
+io.open(p,'w',encoding='utf-8').write(s)"
+
 run_case "the 404 is deleted" \
   "docs/404.html is missing" \
   "import os;os.remove('docs/404.html')"

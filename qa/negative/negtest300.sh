@@ -27,30 +27,41 @@ echo "--- 29: the external-script sweep matches the page it guards"
 # and already allows github.com for links, so nothing else caught it either.
 run_case "a single-quoted external script is added" \
   "the app must run with no network" \
-  "${P}a='<!-- Cloudflare Web Analytics -->'
+  "${P}a='</body>'
 assert a in s;s=s.replace(a,\"<script src='https://github.com/evil.js'></script>\"+a,1);${W}"
 
 run_case "a double-quoted external script is added" \
   "the app must run with no network" \
-  "${P}a='<!-- Cloudflare Web Analytics -->'
+  "${P}a='</body>'
 assert a in s;s=s.replace(a,'<script src=\"https://example.com/evil.js\"></script>'+a,1);${W}"
 
-# An empty sweep reads exactly like a clean sweep, which is how this went
-# unnoticed for eleven releases. The page has one external script by decision,
-# so finding none means the pattern has stopped matching, not that the page got
-# safer.
-run_case "the sweep finds nothing at all" \
-  "An empty sweep is not a clean sweep" \
-  "${P}import re;s=re.sub(r'<!-- Cloudflare Web Analytics -->.*?<!-- End Cloudflare Web Analytics -->','',s,flags=re.S);${W}"
+# 3.2.0 RETIRED THE EMPTY-SWEEP CHECK AND THIS FIXTURE INVERTS WITH IT. The
+# old check failed when the sweep matched NOTHING, because the page carried one
+# external script by decision, so an empty result meant the pattern had stopped
+# matching -- which had really happened, for eleven releases, over a
+# single-quoted src. With the beacon gone an empty sweep is the correct state,
+# and there is no "found none" left to fail on.
+#
+# What that check really protected is the pattern's eyesight, and that is what
+# this fixture protects now: the beacon's own shape -- single quotes AND
+# type='module' -- was the exact blind spot, so it is the shape the sweep is
+# made to catch. If the regex ever narrows again, this goes red.
+run_case "a script in the beacon's own shape is added" \
+  "the app must run with no network" \
+  "${P}a='</body>'
+assert a in s;s=s.replace(a,\"<script type='module' src='https://static.example.com/x.min.js'></script>\"+a,1);${W}"
 
 echo "--- 43: every directive the policy declares is pinned"
 
-# Deleting the beacon origin from script-src shipped green before 3.0.0. The
-# beacon is disclosed in the privacy copy and in SECURITY.md; dropping it from
-# the policy stops it without retiring it anywhere a reader would look.
-run_case "the beacon origin is dropped from script-src" \
-  "script-src no longer allows" \
-  "${P}s=s.replace(\"' https://static.cloudflareinsights.com; style-src\",\"'; style-src\",1);${W}"
+# INVERTED IN 3.2.0, AND THE SAME STRING DOES BOTH JOBS. Until this release
+# script-src was REQUIRED to carry the beacon origin, so that dropping it from
+# the policy could not silently stop a thing the privacy copy and SECURITY.md
+# both promised was running -- deleting it shipped green before 3.0.0. The
+# beacon left all three in 3.2.0, so the origin that used to be mandatory is
+# now refused, and the fixture that proved it was required proves it is banned.
+run_case "the old beacon origin comes back to script-src" \
+  "script-src carries https://static.cloudflareinsights.com" \
+  "${P}s=s.replace(\"'; style-src\",\"' https://static.cloudflareinsights.com; style-src\",1);${W}"
 
 run_case "an unchecked directive is rewritten to a wildcard" \
   "this build was reviewed with" \
@@ -58,7 +69,7 @@ run_case "an unchecked directive is rewritten to a wildcard" \
 
 run_case "connect-src is opened to anywhere" \
   "this build was reviewed with" \
-  "${P}s=s.replace(\"connect-src 'self' https://cloudflareinsights.com\",'connect-src *',1);${W}"
+  "${P}s=s.replace(\"connect-src 'self'\",'connect-src *',1);${W}"
 
 run_case "a directive is dropped from the policy" \
   "CSP no longer sets worker-src" \
@@ -69,8 +80,8 @@ run_case "a directive arrives that nothing pins" \
   "${P}s=s.replace(\"; base-uri 'none'\",\"; frame-src *; base-uri 'none'\",1);${W}"
 
 run_case "an origin is smuggled into script-src beside the hash" \
-  "and nothing else belongs there" \
-  "${P}s=s.replace(' https://static.cloudflareinsights.com;',' https://static.cloudflareinsights.com https://cdn.example.com;',1);${W}"
+  "script-src carries https://cdn.example.com" \
+  "${P}s=s.replace(\"'; style-src\",\"' https://cdn.example.com; style-src\",1);${W}"
 
 # THE ONE THAT MATTERED MOST. This section hashed the FIRST plain <script> and
 # section 46 parsed the LONGEST. With a small decoy above the application block

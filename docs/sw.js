@@ -15,7 +15,7 @@
  * ~180 KB index.html, so a stale cache means a stale catalogue AND stale code
  * with no way to push a fix.
  */
-var VERSION = "3.1.0";
+var VERSION = "3.2.0";
 var CACHE   = "night-watcher-" + VERSION;
 /* icon-192.png is in the shell because index.html's <head> now references it
    directly for rel=icon and apple-touch-icon (it used to inline the bytes). */
@@ -39,14 +39,15 @@ var SHELL   = ["./", "./index.html", "./manifest.json", "./icon.png", "./icon-19
                "./fonts/ibm-plex-mono-latin-400-normal.woff2",
                "./fonts/ibm-plex-mono-latin-600-normal.woff2"];
 
-/* Reads as dead code, and is, today: the fetch handler returns on any
-   cross-origin request a few lines below, and every origin that could be listed
-   here is cross-origin by definition. It stays because that is a fact about
-   where the beacon is served from, not about what this list means. Serve the
-   beacon through a same-origin path \u2014 Cloudflare offers exactly that \u2014 and the
-   cross-origin return stops catching it while this list still does. One line to
-   make a mistake impossible is cheaper than the mistake. */
-var NEVER_CACHE  = ["https://static.cloudflareinsights.com"];
+/* NEVER_CACHE IS GONE, 3.2.0, WITH THE THING IT GUARDED. It held one entry,
+   the analytics beacon's origin, and existed because the cross-origin return
+   below is about WHERE the beacon was served from rather than about what the
+   list meant: serve it through a same-origin path, which Cloudflare offers,
+   and the origin check stops catching it while the list still would. With no
+   beacon there is nothing cross-origin left for either to catch, and an empty
+   list consulted on every fetch is a line that can only ever be right by
+   accident. If anything is ever fetched from another origin again, this is the
+   comment that says put the list back before the fetch, not after. */
 
 self.addEventListener("install", function(e){
   e.waitUntil(
@@ -80,8 +81,6 @@ self.addEventListener("fetch", function(e){
 
   var url;
   try { url = new URL(req.url); } catch(err){ return; }
-
-  if(inList(url.origin, NEVER_CACHE)) return;
 
   if(url.origin !== location.origin) return;
 

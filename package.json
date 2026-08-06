@@ -3,14 +3,17 @@
   "private": true,
   "description": "Build guards for Night Watcher. The app itself ships as a single static index.html with nothing to install.",
   "scripts": {
-    "test": "node qa/guards.js && node qa/smoke.js",
-    "guards": "node qa/guards.js",
     "bless": "node qa/guards.js --bless",
+    "browser": "node qa/browser-check.mjs",
     "deploy": "wrangler deploy",
-    "preview": "wrangler dev"
+    "guards": "node qa/guards.js",
+    "preview": "wrangler dev",
+    "test": "node qa/guards.js && node qa/smoke.js"
   },
   "devDependencies": {
+    "axe-core": "^4.12.1",
     "jsdom": "^30.0.1",
+    "playwright": "^1.56.0",
     "wrangler": "^4.114.0"
   }
 }

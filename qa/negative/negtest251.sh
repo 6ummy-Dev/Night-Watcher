@@ -21,6 +21,14 @@ run_case "the /* rule is narrowed to one path" \
   "${H}a='/*';assert a in s;s=s.replace(a,'/index.html',1);${HW}"
 
 echo "--- 104: each header, one at a time"
+run_case "COOP is dropped" \
+  "no longer sets Cross-Origin-Opener-Policy" \
+  "${H}import re;s=re.sub(r'^\s+Cross-Origin-Opener-Policy:.*$','',s,flags=re.M);${HW}"
+
+run_case "COOP is weakened to unsafe-none" \
+  "no longer sets Cross-Origin-Opener-Policy" \
+  "${H}s=s.replace('Cross-Origin-Opener-Policy: same-origin','Cross-Origin-Opener-Policy: unsafe-none',1);${HW}"
+
 run_case "Referrer-Policy is dropped" \
   "no longer sets Referrer-Policy" \
   "${H}import re;s=re.sub(r'^\\s+Referrer-Policy:.*\$','',s,flags=re.M);${HW}"

@@ -75,8 +75,11 @@ run_case "reduced motion stops cutting the box collapse" \
 
 echo "--- the forced reflow does not come back"
 
+# 3.2.0: this assertion moved from section 96 (titled for the Belt, where it
+# was only ever a squatter) to section 120, which owns the whole forced-layout
+# family. The mutation is unchanged; the message it has to match is not.
 run_case "render clamps the scroll against scrollHeight again" \
-  "reading layout straight after" \
+  "index.html reads scrollHeight" \
   "${P}s=s.replace('if(keep) window.scrollTo(0, keep);','if(keep){var m=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);window.scrollTo(0,Math.min(keep,m));}',1);${W}"
 
 echo "--- 107: every section can fail, and every section runs"

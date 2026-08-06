@@ -1,15 +1,33 @@
-/* One-off browser check for the 3.0.0 build. NOT part of npm test — jsdom has
-   no layout, so the four things below cannot be observed by the harness at all:
-   the header at 0% and 100%, jumping to a group with content-visibility on, a
-   group opening and closing, and the Where to watch URL a reader actually taps.
+/* Browser check. NOT part of npm test — jsdom has no layout, so the things
+   below cannot be observed by the harness at all: the header at 0% and 100%,
+   jumping to a group with content-visibility on, a group opening and closing,
+   the Where to watch URL a reader actually taps — and, since 3.2.0, accessibility
+   in a STATE rather than on a cold load.
 
    Run against a served copy of docs/ at 390x844 (iPhone 12/13/14 logical size).
    Not committed to CI: it needs a browser, and the point of it is that a person
-   would otherwise have to look. */
+   would otherwise have to look.
+
+   3.2.0 FIXED WHAT THIS FILE COULD NOT SAY ABOUT ITSELF. It imported playwright
+   while package.json declared only jsdom and wrangler, and it launched a
+   hard-coded /opt/pw-browsers/chromium-1194/… path — so it ran on whatever
+   happened to be installed, at one pinned build number, and would have failed
+   or, worse, silently not run anywhere else. Adding an accessibility pass to a
+   script that cannot declare how to start is how a guard comes to pass because
+   it never executed. Both dependencies are declared now, and the executable is
+   resolved by Playwright with an env override kept for sandboxes that place it
+   somewhere unusual. */
 import { chromium } from "playwright";
+import { createRequire } from "node:module";
+import fs from "node:fs";
 
 const URL = process.env.NW_URL || "http://127.0.0.1:8099/";
-const EXE = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+/* axe-core, read from the declared devDependency rather than fetched. */
+const axeSrc = fs.readFileSync(
+  createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
+/* Playwright resolves its own browser. NW_CHROME is the escape hatch, not the
+   default — a pinned path IS the bug this replaced. */
+const EXE = process.env.NW_CHROME || undefined;
 const out = [];
 let bad = 0;
 function ok(name, pass, detail){
@@ -17,9 +35,19 @@ function ok(name, pass, detail){
   if(!pass) bad++;
 }
 
-const browser = await chromium.launch({ executablePath: EXE, args: ["--no-sandbox"] });
+const browser = await chromium.launch(
+  EXE ? { executablePath: EXE, args: ["--no-sandbox"] } : { args: ["--no-sandbox"] });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 },
                                      deviceScaleFactor: 3 });
+/* THE PAGE'S OWN CSP REFUSES addScriptTag, AND THAT IS THE POLICY WORKING.
+   script-src is one sha256 hash and, since 3.2.0, nothing else at all — so
+   injecting a <script> element the ordinary way is blocked exactly as an
+   attacker's would be. addInitScript runs before the document's scripts, over
+   the debugger protocol rather than as page content, so it is not page content
+   for CSP to have an opinion about. Recorded because the failure message
+   ("Refused to execute inline script") reads like a broken harness and is in
+   fact the strongest evidence in this repository that the policy is real. */
+await page.addInitScript({ content: axeSrc });
 await page.goto(URL, { waitUntil: "load" });
 await page.waitForFunction(() => typeof window.render === "function");
 
@@ -297,6 +325,37 @@ await page.evaluate(() => { S.watched = {}; S.tab = "watch"; render(); window.sc
 await page.screenshot({ path: "qa/shot-header-0.png", clip: {x:0, y:0, width:390, height:120} });
 await page.evaluate(() => { pool().forEach(f => S.watched[f.id] = 1); render(); });
 await page.screenshot({ path: "qa/shot-header-100.png", clip: {x:0, y:0, width:390, height:120} });
+
+/* ---- axe-core, in states a static scan cannot reach ------------------- */
+/* 3.2.0. Lighthouse already runs axe against the cold load and passes it, so
+   repeating that buys nothing — TEN of its accessibility checks are manual and
+   unautomatable (focus traps, managed focus, tab order, offscreen content) and
+   a static pass cannot reach a state at all. What this adds is the state: the
+   first-run chooser, which a cold load never shows, and a group opened, which
+   is the app's most complex live DOM. Injected from the declared devDependency
+   rather than a CDN — an accessibility guard that reaches the network to run
+   would contradict the page it is checking. */
+async function axeState(name, setup){
+  await page.evaluate(setup);
+  const r = await page.evaluate(async () => await window.axe.run(document, {
+    resultTypes: ["violations"],
+    runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] }
+  }));
+  const v = r.violations.filter(x => x.impact !== "minor");
+  ok("axe (" + name + "): no serious violations", v.length === 0,
+     v.length ? v.map(x => x.id + " ×" + x.nodes.length).join(", ")
+              : r.violations.length + " minor");
+}
+
+await axeState("first-run chooser", () => {
+  localStorage.clear(); S.path = null; S.tab = "home"; render();
+});
+await axeState("a group opened", () => {
+  S.path = S.mode = "continuity"; S.tab = "watch"; S.open = {};
+  const first = PATH[0] && PATH[0].k;
+  if(first) S.open[first] = 1;
+  render();
+});
 
 await browser.close();
 console.log("\nNight Watcher browser check — 390×844, Chromium\n");

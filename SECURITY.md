@@ -20,8 +20,10 @@ it's fixed.
 
 ## What is not
 
-- The Cloudflare Web Analytics beacon. It is deliberate, disclosed in the
-  footer, sets no cookies and never sees which entries you watch.
+- Cloudflare's server-side request counting. It is what any host sees by
+  answering a request at all: it sets no cookies, adds nothing to the page and
+  never sees which entries you watch. The client-side Web Analytics beacon that
+  used to sit here was removed in 3.2.0, and the page now fetches nothing.
 - Missing HTTP security headers **on the beta GitHub Pages address**. The
   canonical site sets `Referrer-Policy`, `X-Frame-Options` and
   `Permissions-Policy` from `docs/_headers`, and HSTS and

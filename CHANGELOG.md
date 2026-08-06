@@ -30,6 +30,109 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.2.0] — 2026-08-06
+
+**The page fetched one thing from somebody else, and it owned both hops of the
+longest request chain on the site.** It is gone, and with it the last runtime
+dependency on any origin but this one. Four things ride with it, and two of
+them are guards that turned out not to be asserting what they printed.
+
+### Removed
+
+- **The analytics beacon, from seven places and under two hostnames.** Every
+  document describing this removal listed four: a CSP origin, a `NEVER_CACHE`
+  line, a guard exception, and a clause of README hedging. The tree disagreed.
+  The script tag; **`script-src`, carrying `static.cloudflareinsights.com`**;
+  **`connect-src`, carrying the apex `cloudflareinsights.com`** — two different
+  strings in two different directives, which is exactly how one of them
+  survives a removal that only remembers the other; `sw.js`'s `NEVER_CACHE` and
+  the `inList` call that consumed it; section 29's carve-out; section 42's
+  `FETCHED` list, which held both hostnames; and section 43's `PINNED` map and
+  `BEACON` constant.
+
+  **Deleting the beacon from `script-src` shipped green once before**, when
+  section 43 pinned four directives of eleven. That hole closed in 3.0.0, and
+  it is why this removal was caught at every step rather than at none: the pin
+  went red on `connect-src` the moment the policy moved without it.
+
+- **`NEVER_CACHE` in `sw.js`, with the thing it guarded.** It held one entry
+  and existed because the cross-origin return below it is about *where* the
+  beacon was served from rather than about what the list meant. With nothing
+  cross-origin left, an empty list consulted on every fetch is a line that can
+  only be right by accident.
+
+### Changed
+
+- **Two guards inverted rather than being deleted.** Section 29 allowed exactly
+  one external script and then **failed when it found none**, because an empty
+  match array had fooled it once already — the pattern required a double-quoted
+  `src`, the beacon has always been single-quoted, and the sweep therefore
+  matched nothing on every run from 1.2.4 to 3.0.0. *"An empty sweep is not a
+  clean sweep"* was the right fix then. With the beacon gone an empty sweep **is**
+  the clean sweep, and a check written to catch a blind pattern would instead
+  have blocked the correct state. It now refuses every external script, which
+  is a stronger assertion than the carve-out ever was. Section 43's
+  `script-src` rule inverts the same way: the origin that was **required** is
+  now **refused**, and the fixture that proved it mandatory proves it banned.
+
+- **`docs/llms.txt` states its links as links.** Two bare URLs, no `[text](url)`
+  anywhere, in the one file written for engines that read Markdown.
+
+### Fixed
+
+- **Section 101 was not asserting the thing it printed.** It failed with
+  *"llms.txt does not name the canonical URL"* while testing
+  `lt.indexOf("https://nightwatcher.life/")` — and
+  `https://nightwatcher.life/orders.txt`, in the same file since 2.6.0,
+  **contains that string.** Proven against the shipped file before it was
+  touched: delete the entire `Canonical URL:` line and the section stayed
+  green. It has been unable to say anything since 2.1.0. It matches the line
+  now, anchored, and against `index.html`'s own `<link rel="canonical">` rather
+  than a literal, so the two copies of that address cannot drift apart either.
+
+### Added
+
+- **Section 120 — the page does not read layout after writing it.** Section 96
+  refused `scrollHeight` from 2.7.0 and refused **one property name**; a forced
+  reflow arrived at the top of the same function as
+  `window.pageYOffset || document.documentElement.scrollTop`. Ten properties
+  are refused outright and three are **pinned to the exact sites that exist**,
+  each named with its reason — because refusing them today would fail the build
+  over a defect that is real, known, planned and frozen. A guard that cannot be
+  green against the tree it ships with is not a guard.
+
+  The `scrollHeight` assertion also **moves out of section 96**, which is
+  titled *"The Belt is one strip, and its pouches open from behind"*. It was
+  filed there because that is where the 2.7.0 work happened, and a guard filed
+  under the wrong name is a guard the next reader does not find.
+
+  **A third layout read turned up in the sweep** and is pinned with the other
+  two: the header measures its own height to set `--ghtop` when the store is
+  blocked. Read then write, which is the correct order — recorded rather than
+  refused, so a second one has to be argued for.
+
+- **`Cross-Origin-Opener-Policy: same-origin` in `docs/_headers`**, and in
+  section 104's array in the same commit, because the file is not
+  self-guarding: a header added there and nowhere else is a header nothing
+  fails over when it is deleted again. Section 104's note is **derived from
+  that array** now instead of naming three headers by hand.
+
+- **axe-core in `qa/browser-check.mjs`, in two states.** Lighthouse already
+  passes the cold load, and ten of its accessibility checks are manual and
+  unautomatable; what a browser buys is a **state**. It runs against the
+  first-run chooser and against an opened group.
+
+  **The dependency it needed was the finding.** This file imported `playwright`
+  while `package.json` declared only `jsdom` and `wrangler`, and launched a
+  hard-coded `/opt/pw-browsers/chromium-1194/…` — so it ran on whatever
+  happened to be installed, at one pinned build. Both are declared now and the
+  executable is resolved by Playwright, with `NW_CHROME` kept as an override.
+
+  **The page's own CSP refuses `addScriptTag`, and that is the policy working.**
+  `script-src` is one hash and nothing else, so an injected `<script>` is
+  blocked exactly as an attacker's would be. axe is injected before navigation
+  instead.
+
 ## [3.1.0] — 2026-08-06
 
 **One of the app's functions was the quietest thing in the panel, and the error
