@@ -717,7 +717,7 @@ thing it watches drifts.
 no `main` — this is an assets-only deployment and nothing executes at the edge.
 Replacing the beacon with Worker-side `Referer` logging would mean putting
 JavaScript in front of every request to every route, where a throw is an outage
-rather than a red build. Recorded in `releases/plan-3.0.1.md` with the finding
+rather than a red build. Recorded in `releases/history-3.0-3.2.x.md` §4 (was `plan-3.0.1.md`) with the finding
 that matters more: **visits and referrers are different needs.** Cloudflare's
 built-in HTTP Traffic panel already counts visits server-side for free; referrers
 are a launch-window measurement. After Batman Day the beacon can retire with no
