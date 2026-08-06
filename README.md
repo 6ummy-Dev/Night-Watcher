@@ -134,7 +134,7 @@ Zero dependencies, and every function under test is **extracted from `docs/index
 **Deployment and bookkeeping.** Nothing deployable strays to the repo root, `wrangler.jsonc` points at the served directory with SPA fallback off, and `sw.js`, `index.html` and `CHANGELOG.md` all agree on the version. The four headline counts in this README — and the counts baked into the `<meta>` and `og:` description tags — match the data.
 
 Every guard has been negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 37 negative suites, 508
+trusted. That evidence lives in `qa/negative/` — 37 negative suites, 509
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all — concurrently, one suite per core, since the suites are
