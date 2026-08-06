@@ -9,13 +9,13 @@ A single-file web app mapping every Batman story ever filmed — animated and li
 Versions prior to 3.0.0 were public betas, shipped straight to the live origin.
 3.0.0 marks the first stable release.
 
-Served from Cloudflare Workers (static assets). The old GitHub Pages address
-still works and always will — progress is stored per-origin, so it is the only
-place anyone's old progress can be read. The offer to carry that progress across
-was retired in 2.5.1, and guard 77 fails the build if it comes back; what the old
-address does now is serve the same tree with `noindex` injected, so the two
-addresses never compete in search. A Pages custom domain would have turned that
-address into a redirect, and a redirect runs no JavaScript.
+Served from Cloudflare Workers (static assets). **`nightwatcher.life` is the
+only address.** The old GitHub Pages mirror was unpublished on 6 August 2026. It
+had been an unadvertised copy marked `noindex` since 2.5.1, when the offer to
+carry progress across from it was retired — guard 77 fails the build if that
+offer comes back. Progress is stored per-origin, so anything saved only on the
+old address can no longer be read there; a backup code, a restore link or a JSON
+export taken while it was up still restores anywhere.
 
 ## What it does
 
@@ -56,7 +56,7 @@ The DC Animated Universe entry also carries the full interleave: where *Mask of 
 
 One HTML file, no build step, nothing to install, and nothing vendored — every line in this repository is written for this project.
 
-Open `docs/index.html` in any modern browser, or serve the `docs/` folder from any static host — this repo publishes via GitHub Pages and Cloudflare Workers Assets. Served over HTTPS it registers a service worker, so after the first visit it opens and works with no network at all. Opened straight off disk as `file://` it still works; the service worker just doesn't register, since browsers only allow them in a secure context.
+Open `docs/index.html` in any modern browser, or serve the `docs/` folder from any static host — this repo publishes via Cloudflare Workers Assets. Served over HTTPS it registers a service worker, so after the first visit it opens and works with no network at all. Opened straight off disk as `file://` it still works; the service worker just doesn't register, since browsers only allow them in a secure context.
 
 ### Deploy to Cloudflare Workers
 
