@@ -28,7 +28,42 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 ## [Unreleased]
 
-Nothing yet.
+**QA only — no app change, no version bump.** Nothing in `docs/` moved, the
+guard-section count is unchanged, and the CSP hash is untouched.
+
+### Changed
+
+- **`idHash` is memoised inside the guard sandbox, and the memo proves its own
+  assumption.** Profiled with `--cpu-prof`: `idHash` was **34% of `guards.js`'s
+  entire runtime** — 147.9 ms of 432 — for 201 distinct answers. It was being
+  called **24,339 times**, because `importCode()` rebuilds its whole
+  `{hash: id}` map on every call and section 3's truncation sweep walks a backup
+  code down one character at a time, calling `importCode` about 117 times.
+  117 × 201 is the number the profiler saw.
+
+  **Nothing was wrong.** That is the app's own function, extracted and driven
+  honestly, being asked the same pure question twenty-four thousand times. The
+  memo wraps the **extracted** function — still `idHash` out of `index.html`,
+  still never reimplemented, only asked less. **390 ms → 260 ms, output
+  byte-identical, all 121 sections pass.**
+
+  It multiplies: roughly 500 guards-running fixtures in the negative suite, at
+  ~130 ms each saved.
+
+  **The memo is sound only while `idHash` is pure, so that is checked rather
+  than assumed** — every id is hashed through the real function twice and the
+  memo once, and a disagreement fails the build. `negtest300` gives the function
+  state exactly as a careless edit would and proves the check fires; without it
+  this would be the one `fail()` in the file that nothing has ever made fire.
+
+- **Negative fixtures 508 → 509.** Counts swept in `README.md` and `qa.yml`,
+  along with the per-fixture guards cost the memo halved.
+
+> **Found while triaging an outside proposal that recommended splitting
+> `guards.js` and moving fixtures in-memory.** Measured, the full-tree copy it
+> named as the biggest win costs **16 ms once per suite**, and `guards.js` was
+> already sub-second. Both readings ranked work by source size; the profiler
+> disagreed. `qa/proposal-triage-2026-08.md` in the project has it in full.
 
 ## [3.3.1] — 2026-08-06
 
