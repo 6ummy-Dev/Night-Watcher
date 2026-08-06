@@ -403,6 +403,16 @@ assert a in s;s=s.replace(a,'The old GitHub Pages mirror is described elsewhere.
 s=s.replace('was retired','was changed',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
+echo "--- the idHash memo proves its own assumption"
+# The memo is sound only while idHash is pure. This gives it state exactly as a
+# careless future edit would -- a counter folded into the seed -- and asserts the
+# proof catches it. Without this the memo would be the one fail() in the file
+# that nothing has ever made fire.
+run_case "idHash is given state" \
+  "idHash is not pure" \
+  "${P}a='  var h = 2166136261, i;';assert a in s
+s=s.replace(a,'  var h = 2166136261 + (idHash.n = (idHash.n || 0) + 1), i;',1);${W}"
+
 echo "--- 115: four copies of the bat agree"
 
 run_case "the share card's bat drifts from the header's" \
