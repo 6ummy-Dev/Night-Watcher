@@ -24,13 +24,12 @@ it's fixed.
   answering a request at all: it sets no cookies, adds nothing to the page and
   never sees which entries you watch. The client-side Web Analytics beacon that
   used to sit here was removed in 3.2.0, and the page now fetches nothing.
-- Missing HTTP security headers **on the beta GitHub Pages address**. The
-  canonical site sets `Referrer-Policy`, `X-Frame-Options` and
-  `Permissions-Policy` from `docs/_headers`, and HSTS and
-  `X-Content-Type-Options` at the Cloudflare edge; the CSP is in a meta tag so
-  that both addresses carry it. GitHub Pages can set no headers at all, and
-  since 2.5.1 that address is an unadvertised mirror marked `noindex`. Reports
-  about headers there are known and out of scope.
+- Missing HTTP security headers on any address other than `nightwatcher.life`.
+  The canonical site — now the only one — sets `Referrer-Policy`,
+  `X-Frame-Options` and `Permissions-Policy` from `docs/_headers`, and HSTS and
+  `X-Content-Type-Options` at the Cloudflare edge; the CSP travels in a meta
+  tag. The GitHub Pages mirror, which could set no headers at all, was
+  unpublished on 6 August 2026.
 - Content disputes about watch order. Those are issues, not vulnerabilities.
 
 ## What to expect
