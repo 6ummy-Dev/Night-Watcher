@@ -1783,7 +1783,7 @@ the trigger.
   **redirect chain checked**, **favicon flag confirmed a false
   positive**, Bing/GSC rechecks run.
 - The audits' remaining findings are triaged in the project
-  (`releases/audit-triage-2.1.0.md`): declined items recorded so they are
+  (`releases/history-1.9-2.2.x.md` §11, was `audit-triage-2.1.0.md`): declined items recorded so they are
   not relitigated; authority/backlink work handed to the promotion plan.
 
 ## [2.0.0] — 2026-08-03
