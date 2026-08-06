@@ -30,6 +30,70 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.3.1] — 2026-08-06
+
+**One address.** GitHub Pages was unpublished on the owner's decision that
+`nightwatcher.life` is the only site, and everything in the tree that existed
+only because a second origin was serving comes out with it. Three guards invert
+rather than disappear; sections still run 1..n with no gaps.
+
+### Removed
+
+- **`offCanonical()` and the `noindex` it injected.** They existed so the
+  GitHub Pages mirror could ask to be left out of an index, because Pages can
+  send no headers and had to keep serving. The mirror was unpublished on
+  6 August 2026 and the address returns 404, so there is no off-canonical
+  origin left to mark. `SITE` stays — the restore link is built from it.
+- **`connect-src` from the Content-Security-Policy.** Not loosened: **it never
+  took effect.** 3.3.0 set it to `'none'`, and a wire reading on 6 August found
+  the Cloudflare edge appending `'self'` to it. A `'none'` sitting beside a
+  second source expression is ignored, so the directive shipped, read like
+  protection and provided none — `fetch("/orders.txt")` from the live page
+  returned 200. It now falls through to `default-src 'none'`, the first
+  directive in the policy, which the edge has no directive of its own to append
+  to. **The page opens no connections of any kind**, so the fallback is the
+  truth rather than a hope. **Whether the edge leaves a fallback alone is the
+  open question this release asks and cannot answer from the tree** — read the
+  served CSP after deploying.
+
+### Changed
+
+- **Sections 77, 78 and 114 invert.** All three asserted the mirror's `noindex`
+  from a different side — the app's, the crawler's and the README's. Each would
+  have gone red on the day the correct state was reached, and 77's failure
+  message became false the moment Pages went dark. A guard that would block the
+  correct state inverts rather than being deleted; section 29 is the precedent.
+  They now fail if `offCanonical()` returns, if a `noindex` injection returns,
+  or if the README promises the retired address "still works and always will".
+- **Section 82 keeps its assertion and loses its premise.** No `CNAME` file may
+  exist. That is what would catch someone re-enabling Pages with a custom
+  domain, so it stays; the title no longer claims Pages is serving.
+- **`README.md`, `SECURITY.md`, `NOTES.md`.** The README promised the old
+  address "still works and always will" — a guarantee, and false as of the
+  unpublish. `NOTES.md` is amended rather than rewritten, in its own convention.
+
+### Fixed
+
+- **Section 120's pinned reads described a defect that was already fixed.** The
+  `pageYOffset` entry still said the read sat after `flagSave()`, `applyTheme()`
+  and `renderHead()` and that hoisting it "waits for the freeze to lift on
+  19 Sep 2026". **3.3.0 hoisted it**; it is the first line of `render()`. The
+  count was right and the reason was a release out of date, which is the same
+  shape as the guards this release inverts.
+- **Three doc paths in comments.** Sections 96 and 98 and one CHANGELOG line
+  named `releases/design-belt.md` and `releases/design-progress-card.md`, which
+  moved to `design/` on 6 August. Comments, never `fail()` strings — nothing was
+  ever red.
+
+### Recorded, not changed
+
+- **`flagSave()`'s conditional reflow is correct and cannot be hoisted.** It was
+  carried as an open item on the assumption that the read could move above the
+  write, as `render()`'s did. It cannot: `#nosave` is inside `<header>`, so
+  showing it changes the height `--ghtop` is measuring, and reading first would
+  set the wrong value in the one state that uses it. **Intentional, confirmed,
+  no action.**
+
 ## [3.3.0] — 2026-08-06
 
 **Five pendings, and the list is empty behind them.** Four of the five needed a
@@ -1784,7 +1848,7 @@ their own small data patch, as the road plan always said.
   want; where the share sheet does not exist, download takes the lead).
   Guard 98 holds the seat, the share-first ordering, the on-demand
   canvas, the one-source counts, the local-only line, and the theme
-  independence. Design record: `releases/design-progress-card.md` in
+  independence. Design record: `design/progress-card.md` in
   the project.
 - **`qa/negative/negtest200.sh`** — fixtures for every new guard: the
   belt's construction, buckle, stagger, reduced-motion and no-persist

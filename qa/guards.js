@@ -2018,12 +2018,17 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
     "font-src":     "'self'",
     "img-src":      "'self' data:",
     "manifest-src": "'self'",
-    /* 3.3.0: 'none'. The page fetched nothing but the beacon, and the beacon
-       left in 3.2.0 — so 'self' was looser than the truth for one release.
-       Verified in a browser rather than argued: browser-check.mjs now fails on
-       any CSP violation in the console, across the first-run chooser, an
-       opened group and the backup/restore paths. */
-    "connect-src":  "'none'",
+    /* connect-src is DELIBERATELY ABSENT in 3.3.1 and must stay absent.
+       3.3.0 set it to 'none'. The wire reading on 6 Aug 2026 found the edge
+       appending 'self' to it, and a 'none' sitting beside a second source
+       expression is ignored -- so the directive shipped, looked like
+       protection, and provided none: fetch("/orders.txt") from the live page
+       returned 200. It now falls through to default-src 'none', which is the
+       first directive in the policy and which the edge has no directive of its
+       own to append to. The page opens no connections of any kind -- no fetch,
+       no XHR, no beacon, no socket -- so the fallback is the truth rather than
+       a hope. Nothing new is needed to hold this: the unpinned-directive check
+       below fails the build the moment connect-src reappears. */
     "worker-src":   "'self'",
     "base-uri":     "'none'",
     "form-action":  "'none'",
@@ -4203,9 +4208,15 @@ var ROUTE_VOCAB = [
    history is worth keeping. It inverts, which is the established pattern for
    retired things: it now fails if the machinery ever comes back.
 
-   offCanonical() deliberately survives. It is no longer what decides whether
-   an offer renders; it is the only thing that marks the still-serving mirror
-   noindex, which section 78 checks. */
+   offCanonical() survived 2.5.1 for one job: marking the still-serving mirror
+   noindex. It is gone in 3.3.1, because the mirror is. GitHub Pages was
+   unpublished 6 Aug 2026 on the owner's decision that nightwatcher.life is the
+   only address, and that address now returns 404.
+
+   Section 78 checked that noindex, and section 114 checked that the README
+   agreed with it. All three retire together in 3.3.1 -- the app's half, the
+   crawler's half and the prose's half -- because one origin cannot be
+   off-canonical from itself. */
 
 (function(){
   [["function moveBanner", "moveBanner()"],
@@ -4229,12 +4240,17 @@ var ROUTE_VOCAB = [
     fail("the retired beta address is referenced in the app again");
   }
 
-  /* What DID survive, and why, so a future reader does not delete it as dead. */
-  if(!/function offCanonical\s*\(/.test(HTML)){
-    fail("offCanonical() is gone \u2014 nothing marks the still-serving mirror " +
-         "noindex, and it would compete with the canonical address in search");
+  /* INVERTED in 3.3.1. This clause used to fail if offCanonical() was GONE.
+     It would have gone red on the day the correct state was reached, and its
+     failure message became false the moment Pages was unpublished -- there is
+     no still-serving mirror to mark. A guard that would block the correct
+     state inverts rather than being deleted; section 29 is the precedent. */
+  if(/function offCanonical\s*\(/.test(HTML)){
+    fail("offCanonical() is back \u2014 it existed to mark a second serving " +
+         "origin noindex, and there has been no second origin since the " +
+         "mirror was unpublished on 6 Aug 2026");
   }
-  note("the move offer stays retired; offCanonical() survives for the noindex only");
+  note("the move offer stays retired; the mirror is unpublished and offCanonical() went with it");
 })();
 
 /* ---------- 78. A crawler sees a catalogue, not an empty page ---------- */
@@ -4382,23 +4398,17 @@ var ROUTE_VOCAB = [
        " eras, " + PATH.length + " continuities carrying all " + FILMS.length +
        " entries, " + picked.length + " curated titles, " + got.length + " bytes");
 
-  /* The old origin has to keep serving and cannot send a header, so the only
-     way it can ask to be left out of an index is to say so in the page. The
-     canonical link is the primary signal; this is the one that does not depend
-     on a crawler choosing to honour a preference. */
-  var ni = (HTML.match(/if\(offCanonical\(\)\)\{[\s\S]{0,400}?\n\}/) || [""])[0];
-  if(!ni || ni.indexOf("robots") < 0){
-    fail("nothing marks an off-canonical origin as noindex \u2014 GitHub Pages keeps " +
-         "serving the whole app and would compete with the canonical address");
-    return;
-  }
-  if(!/["']noindex/.test(ni)){
-    fail("the off-canonical origin asks to be indexed \u2014 the robots meta it injects " +
-         "does not say noindex");
-  }
-  if(!/follow/.test(ni)){
-    warn("the off-canonical robots meta does not say follow, so the links out of " +
-         "that page \u2014 including the one to the canonical address \u2014 stop counting");
+  /* INVERTED in 3.3.1. Until then the old origin had to keep serving and could
+     not send a header, so the only way it could ask to be left out of an index
+     was to say so in the page, and this checked that it did. GitHub Pages was
+     unpublished on 6 Aug 2026; there is no off-canonical origin, so there is
+     nothing to mark and the injection is gone. The clause inverts rather than
+     disappearing, because an injected noindex returning without a second origin
+     to justify it would be a robots meta on the canonical site -- which is the
+     failure the next clause has always guarded, arrived by a different door. */
+  if(/function offCanonical\s*\(/.test(HTML) || /noindex/.test(HTML)){
+    fail("the off-canonical noindex injection is back \u2014 there is one origin " +
+         "now, and a noindex it injects can only land on the canonical one");
   }
   if(HTML.indexOf('name="robots"') >= 0 && HTML.indexOf('content="noindex') >= 0){
     fail("a static robots noindex is in the markup \u2014 that would apply to the " +
@@ -4620,7 +4630,7 @@ var ROUTE_VOCAB = [
        " multi-word entry titles, none named");
 })();
 
-/* ---------- 82. GitHub Pages never gets a custom domain --------------- */
+/* ---------- 82. No CNAME file, ever (was: Pages never gets a domain) -- */
 /* The reasoning has been written down since 1.8.0 and nothing enforced it, which
    made it the highest-stakes decision in the project defended only by memory.
 
@@ -5224,7 +5234,7 @@ var ROUTE_VOCAB = [
 /* 2.0.0's headline. The three stacked control rows became one joined strip \u2014
    paths plus a buckle \u2014 with the include rows rendered only while the belt is
    open, sliding out from behind it. Design locked in the project's
-   releases/design-belt.md; this section is the locked picture, enforced. */
+   design/belt.md; this section is the locked picture, enforced. */
 
 (function(){
   var strip = (HTML.match(/\.pathseg\{[^}]*\}/) || [""])[0];
@@ -5417,7 +5427,7 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 98. The progress card is drawn here, from the real counts ---------- */
-/* Design locked in releases/design-progress-card.md: story-format canvas,
+/* Design locked in design/progress-card.md: story-format canvas,
    seated right under the scoreboard on Progress, local-only, one look
    regardless of theme. */
 
@@ -6844,19 +6854,26 @@ var ROUTE_VOCAB = [
          "about behaviour section 77 guards, and it has to stay locatable");
     return;
   }
-  /* What the app actually does to the mirror, read from the app. */
-  var injects = /noindex/.test(HTML) && /function offCanonical\s*\(/.test(HTML);
-  if(!injects){
-    fail("the app no longer injects noindex on the mirror, or offCanonical() is " +
-         "gone — section 77 and section 78 own that, but this section's whole " +
-         "premise is the README agreeing with it, so it cannot check anything");
-    return;
+  /* INVERTED in 3.3.1 with its subject. This section existed to keep the
+     README's paragraph about the old origin honest against what the app
+     actually did there, and the app no longer does anything there: the mirror
+     was unpublished 6 Aug 2026. What survives is the half that never depended
+     on a second origin -- the README must not describe the retired move offer
+     as something the app does, and must not promise the old address works. */
+  if(/function offCanonical\s*\(/.test(HTML)){
+    fail("offCanonical() is back in the app while this section assumes it is " +
+         "gone \u2014 section 77 owns that, and this one can no longer be read " +
+         "as agreeing with anything");
   }
-  if(para.indexOf("noindex") < 0){
-    fail("the README's old-origin paragraph does not mention noindex, which is " +
-         "the only thing the app actually does there. A reader is told the " +
-         "address still works and not what it does, which is how the retired " +
-         "move offer lived in this paragraph for four releases");
+  if(/still works and always will/i.test(para)){
+    fail("the README promises the old GitHub Pages address still works and " +
+         "always will. It was unpublished on 6 Aug 2026 and returns 404 \u2014 " +
+         "that is a guarantee, not a description, and it is false");
+  }
+  if(!/\bunpublish|\bretired\b|404/i.test(para)){
+    fail("the README's old-origin paragraph does not say the mirror was " +
+         "retired. Describing a dead address without marking it dead is the " +
+         "same failure the move offer survived four releases on");
   }
   /* THE FIRST DRAFT OF THIS CHECK FAILED ON THE CORRECTED PROSE, which is worth
      recording because it is the whole argument against the shape the 3.0.0 audit
@@ -6879,7 +6896,7 @@ var ROUTE_VOCAB = [
          "marker is how the last one survived four releases — mention it if it " +
          "helps a reader, but mark it");
   }
-  note("README's old-origin paragraph agrees with offCanonical(): noindex, no offer");
+  note("README's old-origin paragraph: mirror retired, no offer, no false promise");
 })();
 
 /* ---------- 115. Four copies of the bat, and they agree ---------------- */
@@ -7494,14 +7511,15 @@ var ROUTE_VOCAB = [
      this entry moves to REFUSED. */
   var PINNED = [
     ["pageYOffset", 1,
-     "render()'s scroll keep, read after flagSave(), applyTheme() and " +
-     "renderHead() have already written — the 6 Aug forced reflow, 106.6ms " +
-     "desktop. Fix is to hoist the read above the first write; it is inside " +
-     "render(), so it waits for the freeze to lift on 19 Sep 2026"],
+     "render()'s scroll keep, and it is now the FIRST line of render() — " +
+     "hoisted in 3.3.0 above flagSave(), applyTheme() and renderHead(), which " +
+     "removed the 106.6ms desktop forced reflow. The count stays 1 because the " +
+     "read is still needed; what changed is where it sits. This text described " +
+     "the unfixed state for one release after the fix shipped"],
     ["scrollTop", 1,
      "the second half of the same expression on the same line as pageYOffset " +
-     "above — one defect, two property names, which is the whole reason this " +
-     "section exists"],
+     "above — one read, two property names, which is the whole reason this " +
+     "section counts property names rather than statements"],
     ["offsetHeight", 1,
      "the header's own height, measured once to set --ghtop when the store is " +
      "blocked. Read THEN write, which is the correct order and not a forced " +

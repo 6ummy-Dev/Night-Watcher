@@ -14,13 +14,13 @@
 echo "--- 77: the move offer stays retired"
 run_case "moveBanner() comes back" \
   "the move offer is back" \
-  "${P}a='function offCanonical(){';assert a in s
-s=s.replace(a,'function moveBanner(){ return \"\"; }\nfunction offCanonical(){',1);${W}"
+  "${P}a='function flagSave(){';assert a in s
+s=s.replace(a,'function moveBanner(){ return \"\"; }\nfunction flagSave(){',1);${W}"
 
 run_case "the dismissal flag comes back" \
   "the moveHid dismissal flag" \
-  "${P}a='function offCanonical(){';assert a in s
-s=s.replace(a,'var moveHid = false;\nfunction offCanonical(){',1);${W}"
+  "${P}a='function flagSave(){';assert a in s
+s=s.replace(a,'var moveHid = false;\nfunction flagSave(){',1);${W}"
 
 run_case "the banner markup comes back" \
   "the .moved banner markup" \
@@ -42,24 +42,27 @@ run_case "the retired address is referenced again" \
   "${P}a='var SITE = ';assert a in s
 s=s.replace(a,'var OLD = \"https://6ummy-dev.github.io/Night-Watcher/\";\nvar SITE = ',1);${W}"
 
-run_case "offCanonical() is deleted as dead code" \
-  "nothing marks the still-serving mirror" \
-  "${P}import re
-m=re.search(r'function offCanonical\\(\\)\\{.*?\\n\\}\\n',s,re.S);assert m
-s=s[:m.start()]+s[m.end():]
-s=s.replace('if(offCanonical()){','if(false){',1);${W}"
+run_case "offCanonical() comes back" \
+  "offCanonical() is back" \
+  "${P}a='function flagSave(){';assert a in s
+s=s.replace(a,'function offCanonical(){ return false; }\nfunction flagSave(){',1);${W}"
 
-echo "--- 78: the mirror still asks to be left out"
-run_case "the noindex injection is removed" \
-  "nothing marks an off-canonical origin as noindex" \
-  "${P}import re
-m=re.search(r'if\\(offCanonical\\(\\)\\)\\{.*?\\n\\}\\n',s,re.S);assert m
-s=s[:m.start()]+s[m.end():];${W}"
+echo "--- 78: nothing may inject a noindex now that there is one origin"
+run_case "the noindex injection comes back" \
+  "the off-canonical noindex injection is back" \
+  "${P}a='function flagSave(){';assert a in s
+s=s.replace(a,'function offCanonical(){ return true; }\nfunction flagSave(){',1)
+a2='restore(function(){'
+assert a2 in s
+s=s.replace(a2,'if(offCanonical()){var n=document.createElement(\"meta\");n.setAttribute(\"name\",\"robots\");n.setAttribute(\"content\",\"noindex, follow\");document.head.appendChild(n);}\n'+a2,1);${W}"
 
-run_case "the mirror asks to be indexed" \
-  "does not say noindex" \
-  "${P}a='noix.setAttribute(\"content\", \"noindex, follow\");';assert a in s
-s=s.replace(a,'noix.setAttribute(\"content\", \"index, follow\");',1);${W}"
+echo "--- 114: the README may not promise a dead address"
+R="import io;p='README.md';s=io.open(p,encoding='utf-8').read();"
+RW="io.open(p,'w',encoding='utf-8').write(s)"
+run_case "the README promises the retired address again" \
+  "still works and always will" \
+  "${R}a='The old GitHub Pages mirror was unpublished';assert a in s
+s=s.replace(a,'The old GitHub Pages address still works and always will. It was unpublished',1);${RW}"
 
 echo "--- the addresses themselves"
 run_case "the canonical link is left pointing at the old home" \

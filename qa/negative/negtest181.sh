@@ -44,11 +44,14 @@ run_case "the block sinks below the app, outside #view" \
   "${P}import re;m=re.search(r'<main id=\"view\">([\\s\\S]*?)</main>',s);assert m
 s=s[:m.start()]+'<main id=\"view\"></main>\\n'+m.group(1)+s[m.end():];${W}"
 
-echo "--- the noindex an old origin asks for"
-run_case "the off-canonical origin stops asking not to be indexed" \
-  "asks to be indexed" \
-  "${P}a='  noix.setAttribute(\"content\", \"noindex, follow\");';assert a in s
-s=s.replace(a,'  noix.setAttribute(\"content\", \"index, follow\");',1);${W}"
+echo "--- 78: no noindex may be injected now that there is one origin"
+# 3.3.1: this used to prove the mirror asked not to be indexed. GitHub Pages was
+# unpublished on 6 Aug 2026, so the only origin a robots noindex could land on
+# is the canonical one -- which would take the whole site out of search.
+run_case "a robots noindex arrives in the markup" \
+  "noindex injection is back" \
+  "${P}a='<link rel=\"canonical\"';assert a in s
+s=s.replace(a,'<meta name=\"robots\" content=\"noindex, follow\">\\n<link rel=\"canonical\"',1);${W}"
 
 rm -rf "$NEG"
 finish "1.8.1 negative tests"

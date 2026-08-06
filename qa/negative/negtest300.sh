@@ -67,9 +67,16 @@ run_case "an unchecked directive is rewritten to a wildcard" \
   "this build was reviewed with" \
   "${P}s=s.replace(\"img-src 'self' data:\",'img-src *',1);${W}"
 
-run_case "connect-src is opened to anywhere" \
+run_case "a pinned directive is opened to anywhere" \
   "this build was reviewed with" \
-  "${P}s=s.replace(\"connect-src 'none'\",'connect-src *',1);${W}"
+  "${P}s=s.replace(\"font-src 'self'\",'font-src *',1);${W}"
+
+# 3.3.1: connect-src was removed from the policy so it falls through to
+# default-src 'none', which the edge has no directive to append 'self' to.
+# Its absence is held by the unpinned-directive check, not by a pin.
+run_case "connect-src comes back to the policy" \
+  "which nothing here checks" \
+  "${P}s=s.replace(\"default-src 'none'; \",\"default-src 'none'; connect-src 'none'; \",1);${W}"
 
 run_case "a directive is dropped from the policy" \
   "CSP no longer sets worker-src" \
@@ -374,25 +381,26 @@ echo "--- 114: the README describes the origin that actually serves"
 run_case "the retired move offer returns to the README" \
   "in the present tense" \
   "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
-a='The offer to carry that progress across'
-assert a in s;s=s.replace(a,'and the app offers to carry it across when opened there. The offer',1)
+a='guard 77 fails the build if that'
+assert a in s;s=s.replace(a,'the app offers to carry it across when opened there, and guard 77 fails the build if that',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
-run_case "the offer is named without the retired marker" \
-  "never says it was retired" \
+# 3.3.1: the paragraph used to have to say what the app DID to the mirror.
+# The app does nothing to it -- there is no mirror -- so what it must now say is
+# that the address is gone, and what it may never say is that it still works.
+run_case "the README promises the retired address again" \
+  "still works and always will" \
   "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
-a='was retired in 2.5.1, and guard 77 fails the build if it comes back; what the old'
-assert a in s;s=s.replace(a,'is described elsewhere; what the old',1)
+a='The old GitHub Pages mirror was unpublished on 6 August 2026.'
+assert a in s;s=s.replace(a,'The old GitHub Pages address still works and always will.',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
-# No backticks in a mutation string: _lib.sh runs it through python3 -c "$pyscript"
-# in DOUBLE quotes, so a backtick inside is command substitution and the anchor
-# never matches. The first draft of this fixture reported SETUP BROKE for exactly
-# that reason, which is the harness telling the truth about a broken fixture.
-run_case "the paragraph stops naming what the mirror does" \
-  "does not mention noindex" \
+run_case "the paragraph stops saying the mirror is gone" \
+  "does not say the mirror was" \
   "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
-assert 'noindex' in s;s=s.replace('noindex','nothing',1)
+a='The old GitHub Pages mirror was unpublished on 6 August 2026.'
+assert a in s;s=s.replace(a,'The old GitHub Pages mirror is described elsewhere.',1)
+s=s.replace('was retired','was changed',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
 echo "--- 115: four copies of the bat agree"
