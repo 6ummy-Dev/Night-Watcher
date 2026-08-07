@@ -18,6 +18,24 @@ run_case "a decade key loses its branch in goToGroup" \
   'has no branch for a "d" key' \
   "${P}a='(jk.charAt(0) === \"d\") ? \"release\" : ';assert a in s;s=s.replace(a,'',1);${W}"
 
+# 3.3.2. The jump landed nowhere for a whole release because it asked for a
+# smooth scroll across a content-visibility:auto list, and the only instrument
+# that could see it asserted a range wide enough for "never moved" to fit
+# inside. These two are the tree-side hold, and they run on every push.
+run_case "the jump asks for a scroll behavior again" \
+  "asks for a scroll behavior again" \
+  "${P}a='target.scrollIntoView({block:\"start\"});';assert a in s
+s=s.replace(a,'target.scrollIntoView({block:\"start\", behavior:calmScroll()});',1);${W}"
+
+run_case "the jump stops scrolling to the group it opened" \
+  "no longer scrolls to the group it opened" \
+  "${P}i=s.index('function goToGroup(');j=s.index('function ',i+10)
+blk=s[i:j];assert 'scrollIntoView' in blk
+import re
+blk2=re.sub(r'  if\(target && target\.scrollIntoView\)\{[\s\S]*?\n  \}\n','',blk,count=1)
+assert 'scrollIntoView' not in blk2
+s=s[:i]+blk2+s[j:];${W}"
+
 run_case "the grid drops the path's description" \
   "Home's grid carries no description" \
   "${P}a='+esc(pathBlurb(S.mode))+';assert a in s;s=s.replace(a,'+\"\"+',1);${W}"

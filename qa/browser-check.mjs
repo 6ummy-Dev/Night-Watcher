@@ -163,10 +163,44 @@ const cv = await page.evaluate(() => {
 });
 ok("content-visibility is on .group", cv.cv === "auto", cv.cv + " / " + cv.cis);
 
-/* ---- jumping to a group, from all four ways in -------------------------- */
-async function jump(clickFn, label){
-  await page.evaluate(() => { S.tab = "stats"; S.progOpen = {uni:true, era:true}; render(); window.scrollTo(0,0); });
-  const gk = await page.evaluate(clickFn);
+/* ---- jumping to a group, from all five ways in -------------------------- */
+/* 3.3.2 REWROTE WHAT "IN VIEW" MEANS HERE, BECAUSE THE OLD PHRASING WAS WIDE
+   ENOUGH FOR THE BROKEN STATE TO SIT INSIDE IT. Until 3.3.1 the middle
+   assertion read `top > -2 && top < 844` — 844 is the whole viewport height,
+   so a jump that never scrolled at all passed as long as the target happened
+   to fall inside the first fold. It did: the donut's group sits about 434px
+   down the document, so every one of these four drives was green while the
+   page did not move. A reader found it from Home, where the target sits far
+   enough down that the same broken jump would have gone red.
+
+   Three assertions replace it, and none can be satisfied by doing nothing:
+   the page MOVED, it moved IN THE SAME TASK as the click, and the head parked
+   where a landing actually parks it — clamped at the sticky wrapper's own
+   offset, read from the page rather than assumed.
+
+   THE SAME-TASK ONE IS THE LOAD-BEARING ONE, and it took a failed negative
+   test to find that out. Serving this tree with `behavior:"smooth"` restored
+   left every settled assertion GREEN: headless Chromium animates 0 → 435 in
+   about 360ms and lands exactly, because a local copy under a headless
+   renderer does not reproduce the content-visibility race that made the same
+   code land at 0 on the live origin. An assertion read 700ms later cannot
+   tell the two apart. Read in the click's own task it can: instant is already
+   at 435, smooth is still at 0. A jump is a navigation, so arriving next
+   frame is the assertion, not arriving eventually.
+
+   The drives return the scroll offset from inside the click's task for that
+   reason, rather than the key alone.
+
+   Home's universe grid joins the drives below; it was never one of the four,
+   which is why the one entry point nothing drove is the one a person had to
+   find. */
+async function jump(clickFn, label, tab){
+  await page.evaluate((t) => {
+    S.tab = t; S.progOpen = {uni:true, era:true}; render(); window.scrollTo(0,0);
+  }, tab || "stats");
+  const before = await page.evaluate(() => window.scrollY);
+  const fired = await page.evaluate(clickFn);
+  const gk = fired && fired.gk;
   if(!gk){ ok("jump from " + label, false, "found nothing to click"); return; }
   await page.waitForTimeout(700);
   const landed = await page.evaluate((k) => {
@@ -174,17 +208,40 @@ async function jump(clickFn, label){
     if(!h) return { ok: false, why: "the target group did not render" };
     const r = h.getBoundingClientRect();
     const grp = h.closest(".group");
+    /* The head lives inside a position:sticky wrapper, so its own rect is
+       clamped and cannot answer "how far away was this". The group is static
+       and can. */
+    const wrap = h.closest(".ghwrap") || h;
+    const de = document.documentElement;
     return { ok: true, tab: S.tab, open: grp.classList.contains("open"),
-             top: r.top, height: r.height,
+             top: r.top, height: r.height, scrollY: window.scrollY,
+             groupDocTop: grp.getBoundingClientRect().top + window.scrollY,
+             stick: parseFloat(getComputedStyle(wrap).top) || 0,
+             atEnd: window.scrollY + window.innerHeight >= de.scrollHeight - 2,
              cv: getComputedStyle(grp).contentVisibility,
              onlyOpen: document.querySelectorAll("#view .group.open").length };
   }, gk);
   ok("jump from " + label + " lands on the right group",
      landed.ok && landed.tab === "watch" && landed.open && landed.onlyOpen === 1,
      JSON.stringify(landed));
-  ok("jump from " + label + " leaves the group in view",
-     landed.ok && landed.top > -2 && landed.top < 844,
-     landed.ok ? "top " + landed.top.toFixed(1) + "px" : "-");
+  /* Nothing to travel is the only excuse for not travelling. */
+  ok("jump from " + label + " moves the page",
+     landed.ok && (landed.groupDocTop <= landed.stick + 2 || landed.scrollY > before),
+     landed.ok ? "scroll " + before + " → " + landed.scrollY +
+                 ", group " + landed.groupDocTop.toFixed(1) + "px down the document" : "-");
+  /* The one an animated scroll cannot pass. `fired.y` is read in the same task
+     as the click, so an instant scrollIntoView is already applied and an
+     animated one has not started. */
+  ok("jump from " + label + " lands in the click's own task, not over one",
+     landed.ok && (landed.groupDocTop <= landed.stick + 2 ||
+                   Math.abs(fired.y - landed.scrollY) <= 2),
+     landed.ok ? "same-task " + fired.y + ", settled " + landed.scrollY : "-");
+  /* A landing clamps at the sticky offset — 70px, which record-3.0.0.md saw
+     and never pinned. The end of the document is the one place it cannot. */
+  ok("jump from " + label + " parks the head under the sticky header",
+     landed.ok && landed.top > -2 && (landed.top < landed.stick + 24 || landed.atEnd),
+     landed.ok ? "top " + landed.top.toFixed(1) + "px against a " + landed.stick +
+                 "px sticky offset" + (landed.atEnd ? ", document at its end" : "") : "-");
   ok("jump from " + label + ": the landed group is not skipped by content-visibility",
      landed.ok && landed.cv === "auto" && landed.height > 0,
      landed.ok ? landed.cv + ", head " + landed.height.toFixed(1) + "px" : "-");
@@ -195,25 +252,33 @@ await jump(() => {
   if(!g) return null;
   const k = g.getAttribute("data-seg");
   g.querySelector("circle").dispatchEvent(new MouseEvent("click", {bubbles: true}));
-  return k;
+  return { gk: k, y: window.scrollY };
 }, "the universes donut");
 await jump(() => {
   const g = document.querySelector('#view .pies g[data-seg^="e"]');
   if(!g) return null;
   const k = g.getAttribute("data-seg");
   g.querySelector("circle").dispatchEvent(new MouseEvent("click", {bubbles: true}));
-  return k;
+  return { gk: k, y: window.scrollY };
 }, "the eras donut");
 await jump(() => {
   const bs = [...document.querySelectorAll('#view [data-act="jump"][data-gk^="c"]')]
     .filter(b => !b.closest(".pies"));
-  if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click(); return k;
+  if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click();
+  return { gk: k, y: window.scrollY };
 }, "the universes fold");
 await jump(() => {
   const bs = [...document.querySelectorAll('#view [data-act="jump"][data-gk^="e"]')]
     .filter(b => !b.closest(".pies"));
-  if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click(); return k;
+  if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click();
+  return { gk: k, y: window.scrollY };
 }, "the eras fold");
+/* The fifth way in, and the one that had never been driven. */
+await jump(() => {
+  const c = document.querySelector('#view .ucard[data-act="jump"]');
+  if(!c) return null; const k = c.dataset.gk; c.click();
+  return { gk: k, y: window.scrollY };
+}, "Home's universe grid", "home");
 
 /* ---- a group opens and closes, and the rows really disappear ------------ */
 await page.evaluate(() => {
@@ -372,7 +437,11 @@ await axeState("a group opened", () => {
 
 /* ---- what the console said, across every state exercised above -------- */
 ok("no CSP violation in any state", cspHits.length === 0,
-   cspHits.length ? cspHits[0].slice(0, 160) : "connect-src 'none' held");
+   /* This read "connect-src 'none' held" until 3.3.2, one release after 3.3.1
+      removed that directive for never having taken effect. A green line that
+      names a thing which is not there is the same failure as a guard asserting
+      a retired state, in the one place a person reads rather than runs. */
+   cspHits.length ? cspHits[0].slice(0, 160) : "the policy refused nothing it allows");
 ok("no uncaught page error in any state", pageErrs.length === 0,
    pageErrs.length ? pageErrs[0].slice(0, 160) : "clean");
 

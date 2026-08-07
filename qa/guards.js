@@ -4258,6 +4258,24 @@ var ROUTE_VOCAB = [
            "and it would land in the wrong ordering");
     }
   });
+  /* THE JUMP SCROLLS INSTANTLY, AND THAT IS THE FIX, NOT A PREFERENCE. 3.3.1
+     shipped `behavior: calmScroll()` here, which resolves to "smooth" for anyone
+     who has not asked for reduced motion. A smooth scroll across a
+     content-visibility:auto list races the browser's own rendering and lands at
+     0 -- measured on live 3.3.1 from Home's grid AND from the donut, which is
+     one of the four ways in browser-check drives. Nothing was watching: that
+     check asserted the landed head was `top < 844`, the whole viewport, so a
+     target that never moved passed whenever it fell inside the first fold.
+     This is the tree-side half, and it runs on every push. */
+  if(/scrollIntoView\(\{[^}]*behavior/.test(go)){
+    fail("goToGroup() asks for a scroll behavior again \u2014 it must scroll " +
+         "instantly. A smooth scroll across content-visibility:auto lands at 0, " +
+         "which is how every jump in 3.3.1 silently did nothing");
+  }
+  if(go.indexOf("scrollIntoView") < 0){
+    fail("goToGroup() no longer scrolls to the group it opened \u2014 opening a " +
+         "group the reader cannot see is the defect 3.3.2 exists to fix");
+  }
   if(!/GRIDNAME/.test(home)) fail("Home's grid heading no longer names what it holds");
   var gn = (HTML.match(/var GRIDNAME = \{[^}]*\}/) || [""])[0];
   sandbox.PATHS.forEach(function(p){
@@ -7621,10 +7639,14 @@ var ROUTE_VOCAB = [
   var PINNED = [
     ["pageYOffset", 1,
      "render()'s scroll keep, and it is now the FIRST line of render() — " +
-     "hoisted in 3.3.0 above flagSave(), applyTheme() and renderHead(), which " +
-     "removed the 106.6ms desktop forced reflow. The count stays 1 because the " +
-     "read is still needed; what changed is where it sits. This text described " +
-     "the unfixed state for one release after the fix shipped"],
+     "hoisted in 3.3.0 above flagSave(), applyTheme() and renderHead(). It cut " +
+     "the forced reflow, it did not end it: PageSpeed against live 3.3.1 " +
+     "measures 46ms at this exact line, down from 64.1ms mobile before the " +
+     "hoist, and the earlier wording here claimed the removal was total. The " +
+     "residue is inherent — render() is called after other code has already " +
+     "written in the same task, so its first line forces a layout wherever it " +
+     "sits. Not worth chasing: TBT is 0ms. qa/pagespeed-3.3.1.md. The count " +
+     "stays 1 because the read is still needed; what changed is where it sits"],
     ["scrollTop", 1,
      "the second half of the same expression on the same line as pageYOffset " +
      "above — one read, two property names, which is the whole reason this " +

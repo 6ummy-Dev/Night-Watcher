@@ -444,9 +444,10 @@ the end of the document leaves the page parked in empty space.
 
 ### `calmScroll()`
 
-The CSS kills transitions under prefers-reduced-motion; these two scrolls
-were never covered by it, so the one setting that says "do not animate" was
-half honoured.
+The CSS kills transitions under prefers-reduced-motion; these scrolls were
+never covered by it, so the one setting that says "do not animate" was half
+honoured. One caller since 3.3.2 — `goToGroup()`'s was the second and it was
+taken back out, for the reason under `target` below.
 
 ### `persist();`
 
@@ -457,6 +458,18 @@ state by design. Jumping is a deliberate act, so its collapse sticks.
 
 A collapsed group is still a 56px sticky header, so scrolling to the top
 can leave the requested group far below the fold.
+
+Scrolled instantly, on purpose, and not through `calmScroll()`. 3.3.1 asked
+for `behavior: calmScroll()`, which resolves to "smooth" for anyone who has
+not asked for reduced motion, and a smooth scroll across a
+`content-visibility: auto` list races the browser's own rendering: the
+animation's offset is computed against a layout in which every off-screen
+group is skipped, and the document grows underneath it as it travels.
+Measured on live 3.3.1, same element and session — instant landed at 973,
+smooth ended at 0, from every way in. `goToGroup()` also calls
+`window.scrollTo(0, 0)` and `render()` in the same frame, which is the second
+reason. A jump is a navigation, not an animation. Guard 76 fails the build if
+a behavior comes back.
 
 ### `window.addEventListener("storage", function(e){`
 
