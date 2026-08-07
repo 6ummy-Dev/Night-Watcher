@@ -316,9 +316,9 @@ in the reader's browser. Free software under the AGPL.
 ----------------------------
   1. Batman v Superman: Dawn of Justice (2016) · live action · core · PG-13
   2. Suicide Squad (2016) · live action · optional · PG-13
-  3. Birds of Prey — and the Fantabulous Emancipation of One Harley Quinn (2020) · live action · optional · R
-  4. Justice League (2017) · live action · core · PG-13
-  5. Zack Snyder’s Justice League (2021) · live action · optional · R
+  3. Justice League (2017) · live action · core · PG-13
+  4. Zack Snyder’s Justice League (2021) · live action · optional · R
+  5. Birds of Prey — and the Fantabulous Emancipation of One Harley Quinn (2020) · live action · optional · R
   6. The Flash (2023) · live action · optional · PG-13
 
 39. Ninjaverse

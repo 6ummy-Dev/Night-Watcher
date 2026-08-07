@@ -30,6 +30,99 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.3.3] — 2026-08-07
+
+**Era 7 was named after a building and tested on a man.** 1.7.2 split the old
+62-entry era 7 on one checkable line — is a Robin or a Batgirl on screen as his
+working partner — and then named the residue *The Watchtower years*, which is a
+roster. `catalogue/refile-findings.md` finding 5 has been open since: the name
+describes an institution while the test measures whether anyone is beside him.
+This release fixes the name, moves one entry that was flagged as having no
+Batman in it while a Bruce is on screen in it, puts *Birds of Prey* into
+continuity order, and writes down the `out:` rule the project actually runs.
+
+**No `i:` slug changed. Nothing anyone has ticked has moved.** The catalogue is
+200 entries before and after.
+
+### Changed
+
+- **Era 7 is now *No one in the car*.** Was *The Watchtower years*. The note
+  goes with it: "The League is an institution now — a roster of dozens — and he
+  works it alone. No partner beside him, which is the one thing every entry here
+  shares." *A partner in the car* is already the app's idiom — eras 3, 4 and 6
+  all use it — so the headings now read down as a life rather than as a filing
+  scheme: **The Grayson years** (a partner in the car) → **Rebuilding** (a later
+  partner in the car) → **The League years** (still a partner in the car) →
+  **No one in the car** (nobody). **Two strings.** No `e:` value changed, no
+  entry moved, the era scheme is still eleven stages plus era 0, and section 86
+  — which refuses a twelfth era by name — stays green. **A further split of
+  era 7 remains refused**; this is the half section 86 does not address, because
+  it refuses on size and the defect was in the definition.
+- **`README.md`'s era list carries the new name.** Section 14's second clause
+  checks that list against `ERAS` in both directions — omissions and strays —
+  and it went red on both until swept.
+- **The crawlable seed carries the new name and note.** `<h2>The eras of Bruce's
+  life</h2>` renders all eleven from `ERAS`, so this is the surface a crawler
+  that runs no JavaScript reads, and it re-indexes on the next crawl rather than
+  on a deploy.
+- ***Birds of Prey* (2020) moves to continuity order in the DCEU.** It sat third
+  in the block, **before *Justice League* (2017), which it postdates**, placed
+  there as *Suicide Squad*'s direct sequel. **Both orderings move, because both
+  claim story order:** the array is the by-universe order and `lo:` is the life
+  order. *Justice League* 4 → 3 and `lo:` 47 → 46; *Zack Snyder's Justice
+  League* 5 → 4 and `lo:` 48 → 47; *Birds of Prey* 3 → 5 and `lo:` 46 → 48. The
+  two cuts of *Justice League* stay adjacent — one story, two versions. Era 7
+  stays at 48 entries, positions 1..48, no gaps and no ties.
+- **`harley-quinn-valentines-special-2023` moves from era 0 to era 8**, at
+  `lo:25`, between *Harley Quinn* seasons 3 and 4. It carried `out:"none"` —
+  *no Batman in it at all* — and **Bruce Wayne is on screen in it**, without a
+  line, taking bat-shaped chocolates from Selina Kyle. Three independent anchors
+  put it where it now sits: Max files it as season 3, episode 11; its continuity
+  is already placed at era 8; and Bruce's state in it falls between the two
+  seasons. `e:0` and `out:"none"` are both removed, because **guard 70 fails a
+  placed entry that still claims a reason for having none.** Era 8's `lo:`
+  25–29 renumber to 26–30 — season 4, *Kite Man: Hell Yeah!*, season 5, *Merry
+  Little Batman*, *Bat-Fam* — because section 68 requires 1..n with no gaps.
+  **Era 0 goes 16 → 15, era 8 goes 29 → 30, the catalogue stays at 200**, and no
+  README count moves.
+- **The Valentine's special's description is rewritten.** It said *"Batman gets
+  the holiday off"*, which is false, and was also the entry's stated reason for
+  being outside the timeline.
+- **Clayface's description stops asserting a Batman-less Gotham.** It read
+  *"Gotham with no Batman in it yet."* Gunn has said the film sits before
+  *Superman* (2025); he has said nothing about whether Gotham has a Batman then,
+  and *Creature Commandos* — also before *Superman* — shows one already
+  operating in a flashback. **The film has no Batman in it; the city may well
+  have one**, and the entry now says only what is established.
+- **Robot Chicken DC Comics Special III's description gains its reason.** It was
+  the only era-0 entry whose copy did not say why it is outside. `out:"many"` is
+  exact and earned: the Cosmic Treadmill sketch puts **Adam West's 1960s Batman
+  on screen beside the modern one**, credited as *"Adam West as 60's Batman"* —
+  which is what separates it from Specials I and II, both at era 6 on one
+  Batman each.
+- **`docs/orders.txt`, the JSON-LD `ItemList` and the crawlable seed are
+  re-blessed** against the moved data, and the CSP script hash with them.
+- **`sitemap.xml` `lastmod`, the JSON-LD `dateModified` and `BUILT`** move to
+  2026-08-07 together, as section 67 requires.
+
+### Documentation
+
+- **The operative `out:` rule is written down, in both places that state it.**
+  `NOTES.md` gave the reason table and guard 70's comment paraphrased it, and
+  read literally — *"no Batman in it at all"* — the path breaks it three times
+  on purpose: *Joker: Folie à Deux* (era 1), *Birds of Prey* (era 7) and *Kite
+  Man: Hell Yeah!* (era 8) each have no Batman in them and a place anyway.
+  **What is actually run is narrower: an entry follows its continuity, and
+  `out:` applies when the entry has no place *and* its continuity cannot lend it
+  one.** That is why *Teen Titans: Trouble in Tokyo* left era 0 in 1.7.1 — it is
+  the finale of a series already in era 3 — and it is the test the Valentine's
+  special failed on both counts. **This was the gap the outside audit walked
+  into**, and the two statements are now one statement rather than two claims.
+- **Guard 70's comment stops naming a number.** It said *"fourteen entries"*;
+  there were sixteen, and fifteen after this release. The count in the code is
+  computed and printed by `note()`; the count in the prose beside it was two
+  releases stale. Same shape as section 120's note, which 3.3.2 corrected.
+
 ## [3.3.2] — 2026-08-06
 
 **A jump that never moved the page.** Reported from Home during 3.3.1's soak,

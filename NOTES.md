@@ -960,6 +960,17 @@ Batgirl both working.
 `tbd` is the DCU, whose Batman is uncast. Guard 70 requires every era-0 entry to
 carry one, because an undifferentiated bucket is what let the tone-filings hide.
 
+**The table gives the reason. It is not the test.** Read literally, `none` would
+put *Joker: Folie à Deux* (era 1), *Birds of Prey* (era 7) and *Kite Man: Hell
+Yeah!* (era 8) outside, and all three are placed on purpose — none of them has a
+Batman in it. The rule actually run is narrower: **an entry follows its
+continuity, and `out:` applies when the entry has no place *and* its continuity
+cannot lend it one.** That is why *Teen Titans: Trouble in Tokyo* left era 0 in
+1.7.1 — it is the finale of a series already in era 3 — and it is the test the
+Harley Quinn Valentine's special failed on both counts: there is a Bruce on
+screen, and its continuity is placed. Guard 70's own comment carries this too.
+Leaving it unwritten is what an outside audit walks into.
+
 ### The universes run in the order their stories start
 
 By universe had no stated ordering principle until 1.7.2, so every continuity

@@ -3945,8 +3945,19 @@ if(!/function legendBlock/.test(HTML) ||
 /* Era 0 held a quarter of the catalogue before 1.7.2, because "outside any
    timeline" had become the place things went when nobody wanted to judge them.
    Three quarters of it turned out to be placeable and filed on tone. What is
-   left is fourteen entries and five distinct reasons, and an undifferentiated
-   bucket is exactly what let the tone-filings hide. */
+   left carries five distinct reasons, and an undifferentiated bucket is exactly
+   what let the tone-filings hide. The count is computed below and printed by
+   note(); naming it in this comment only dates the comment, which is what it
+   did for two releases while it said "fourteen".
+
+   The rule this section enforces is narrower than out:"none" reads. Taken
+   literally, "no Batman in it at all" would put Joker: Folie a Deux (era 1),
+   Birds of Prey (era 7) and Kite Man: Hell Yeah! (era 8) outside, and all
+   three are placed on purpose. What is actually run: an entry follows its
+   continuity, and out: applies when the entry has no place AND its continuity
+   cannot lend it one. That is why Trouble in Tokyo left era 0 in 1.7.1 - it is
+   the finale of a series already in era 3. NOTES.md carries the same rule
+   beside the out: table; the two are one statement or they are two claims. */
 
 (function(){
   var WHY = {
