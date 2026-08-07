@@ -2298,3 +2298,68 @@ The jump drives in the same file had already learned this in 3.3.2 and say so in
 their own name — *lands in the click's own task, not over one*. The lesson did
 not travel the twenty lines to the next check anyone wrote.
 
+## 3.4.1 — the fix went to the branch almost nobody is in
+
+`tickUpdate` opens with a gate: a filter chip or a search falls back to
+`render()`, and everything else patches the DOM in place. 3.4.0 fixed
+`render()`. It did not touch the other branch, which is the state the app opens
+in — no filter, no search — and where every reader starts.
+
+That branch rebuilt the whole group through `groupBlock()` and swapped the
+element in. `.group` carries `content-visibility: auto` with
+`contain-intrinsic-size: auto 64px`, and the replacement is a brand-new node, so
+the browser has no remembered size for it and renders the placeholder. Measured
+at 390×844 inside the click's own task: **3418px → 66px**, and the document
+loses 3352px under the reader. In *Bruce's life* a group is an era rather than a
+universe, which is why the report came from the path tab.
+
+The fix is smaller than what it replaces. With no filter and no query,
+`groupBlock`'s seven filter clauses all fall through and `matches()` returns
+true, so the row set cannot change; a tick can only change the row, the `n of m`
+in the head, and the head's bar. The row goes through `filmRow()` — `.film`
+carries no `content-visibility` — and the other two are written in place, the way
+`groupUpdate()` always has. Nothing outside the full render builds a `.group` any
+more, and section 103 now asserts that by counting the places `class="group"` is
+constructed.
+
+## The bar that serialized differently
+
+Writing the head's progress bar with `bar.style.width = "60%"` produced
+`style="width: 60%;"`. The string builder emits `style="width:60%"`. Identical to
+look at, one space apart on the wire — and the smoke drift gate caught it on the
+first run, naming three entries whose in-place repaint no longer matched a full
+render. `setAttribute` instead of `.style`, and the two agree byte-for-byte
+again.
+
+This is the check earning its keep. Nothing a person would ever see went wrong;
+what went wrong was that two paths that must produce the same bytes stopped
+producing the same bytes, which is exactly one release away from something a
+person does see.
+
+## Two fixtures that were aimed at the wrong function
+
+`rowUpdate()` and `tickUpdate()` contain the same two lines verbatim —
+`scratch.innerHTML = filmRow(f);` and the `replaceChild` after it — and
+`rowUpdate` comes first in the file. A single-line anchor with
+`.replace(..., 1)` therefore mutates `rowUpdate` and leaves `tickUpdate`
+untouched, so section 103 has nothing to complain about and the fixture reports
+`FAIL` with the expected message simply absent. It reads like a broken guard.
+
+Every anchor in that block is multi-line now, ending on
+`var gm = head.querySelector(".meta");` — the one line that exists only in
+`tickUpdate`. Same shape as 3.4.0's shell-quoting bug: a mutation that does not
+change what it means to change is a negative test that proves nothing, and both
+times the tell was a failure report with an empty or irrelevant `got:`.
+
+## The harness reads a server, not the tree it sits in
+
+`browser-check.mjs` loads `NW_URL`, default `http://127.0.0.1:8099/`. Copying
+the tree, breaking the copy, and running the check from inside the copy tests
+whatever the server is already serving — the original. Three runs against a
+deliberately broken build reported green that way, and the symptom is
+indistinguishable from a check that cannot fail, which is the exact thing this
+release exists to stamp out.
+
+Serve the copy on its own port and pass `NW_URL`. Done properly, both new
+assertions go red: the group element is replaced, and the height falls
+`3512 → 66` with the document at `15347 → 11901`.

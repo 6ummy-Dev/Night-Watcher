@@ -6004,7 +6004,7 @@ var ROUTE_VOCAB = [
   }
 })();
 
-/* ---------- 103. The tick repaints one group, and cannot drift ---------- */
+/* ---------- 103. The tick repaints one ROW, and cannot drift ---------- */
 /* 2.5.0, optimization report \u00a73.8 \u2014 the one the report called genuinely
    risky, shipped behind arithmetic instead of nerve. The tick path
    (toggleWatched/toggleSkip) repaints the row's group through groupBlock()
@@ -6013,7 +6013,40 @@ var ROUTE_VOCAB = [
    outside the targeted condition (another tab, a filter, a search) falls
    back to the full render. The real gate lives in smoke: after every driven
    tick, a forced full render must serialize byte-for-byte identical. This
-   section holds the shape so the gate always has something to gate. */
+   section holds the shape so the gate always has something to gate.
+
+   3.4.1 SUPERSEDES THE PARAGRAPH ABOVE, AND THE SHAPE IT HELD WAS THE DEFECT.
+   Everything it says about drift is still true and still enforced below. What
+   it got wrong was the granularity. It required tickUpdate() to rebuild the
+   whole GROUP through groupBlock() and replaceChild it in \u2014 and .group
+   carries content-visibility:auto with contain-intrinsic-size:auto 64px, so
+   the replacement is a brand-new element with no remembered size and renders
+   as a 64px placeholder until layout catches up. Measured at 390x844 in the
+   click's own task: the ticked group falls 3418px -> 66px and the document
+   loses 3352px underneath the reader. In Bruce's life, where an era is six
+   times a universe, that is the whole screen.
+
+   THE CHECK THAT SHOULD HAVE CAUGHT IT COULD NOT SEE IT. 3.4.0 added a browser
+   drive for exactly this and asserted on window.scrollY, which reads 8780 ->
+   8780 across the defect: the offset does not move, the content does. It also
+   ran only filter ess and filter core, and BOTH of those take the fallback
+   branch on the very line this section pins. The default state \u2014 no filter,
+   no search, where every reader starts \u2014 had never been driven at all.
+   qa/soak-3.4.0-tick-jump.md.
+
+   With filter "all" and no query, groupBlock's seven filter clauses all fall
+   through and matches() returns true, so THE ROW SET CANNOT CHANGE. A tick can
+   change exactly three things: the row, the "n of m" in the group head, and
+   the head's progress bar. So the row is replaced through filmRow() \u2014 .film
+   carries no content-visibility and cannot collapse \u2014 and the other two are
+   written in place, the way groupUpdate() has always done it. Nothing creates
+   a .group element outside the full render any more, which is the class of
+   defect rather than this instance of it.
+
+   The anti-drift argument is unchanged and is now stronger: filmRow() is the
+   same row builder groupBlock() composes from, and gSub()/gPct() are the same
+   two helpers the head is built from, so a second copy of any of the three
+   cannot exist. The smoke gate still has the last word. */
 
 (function(){
   var tw = fn("toggleWatched"), ts = fn("toggleSkip");
@@ -6027,19 +6060,47 @@ var ROUTE_VOCAB = [
          "view patched in place WILL drift from the full render; the gate " +
          "exists because this line exists");
   }
-  if(!/groupBlock\(g, S\.q\.toLowerCase\(\)\)/.test(tu) || !/renderHead\(counts\(\)\)/.test(tu)){
-    fail("tickUpdate() does not rebuild through groupBlock() and renderHead() " +
-         "\u2014 a second copy of either is a drift waiting for a release");
+  if(!/renderHead\(counts\(\)\)/.test(tu)){
+    fail("tickUpdate() does not update the header through renderHead() " +
+         "\u2014 a second copy of it is a drift waiting for a release");
+  }
+  if(/groupBlock\(/.test(tu)){
+    fail("tickUpdate() builds a group again. That is the 3.4.1 defect exactly: " +
+         "the replacement .group is a new element, content-visibility:auto has " +
+         "no remembered size for it, and it renders at contain-intrinsic-size " +
+         "\u2014 3418px to 66px, measured. The tick repaints a ROW");
+  }
+  if(!/filmRow\(f\)/.test(tu)){
+    fail("tickUpdate() does not rebuild the row through filmRow() \u2014 whatever " +
+         "it does instead is a second implementation of the row, and the smoke " +
+         "gate exists because that is how the two drift");
+  }
+  if(!/gSub\(g\)/.test(tu) || !/gPct\(g\)/.test(tu)){
+    fail("tickUpdate() no longer writes the group head through gSub()/gPct() " +
+         "\u2014 those are the helpers groupBlock() builds the head from, and a " +
+         "second copy of either means the count under your thumb and the count " +
+         "after a redraw can disagree");
+  }
+  var gb = optionalFn("groupBlock", "the head helpers cannot be checked");
+  if(gb && (!/gSub\(g\)/.test(gb) || !/gPct\(g\)/.test(gb))){
+    fail("groupBlock() no longer builds the head from gSub()/gPct() \u2014 the " +
+         "shared helpers are the whole reason the tick path and the full " +
+         "render cannot disagree about a group's tally");
   }
   if(!/groupBlock\(g, q\)/.test(optionalFn("viewWatch",
        "the tick path would have nothing to compose from"))){
     fail("viewWatch() no longer composes from groupBlock() \u2014 the tick path " +
          "and the full render just became two implementations");
   }
-  if(!/replaceChild/.test(tu)){
-    fail("tickUpdate() does not replace the group element \u2014 whatever it does " +
-         "instead is not the targeted repaint the gate verifies");
+  var creators = HTML.split('class="group').length - 1;
+  if(creators > 1){
+    fail("a .group element is built in " + creators + " places in index.html. " +
+         "It has to be exactly one \u2014 groupBlock() \u2014 or something other " +
+         "than the full render can create a group, and a fresh .group collapses " +
+         "to its contain-intrinsic-size the instant it lands");
   }
+  note("the tick repaints one row in place; nothing outside the full render " +
+       "builds a .group");
 })();
 
 /* ---------- 104. The security headers the edge cannot set ------------- */

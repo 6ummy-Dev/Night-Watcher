@@ -96,7 +96,7 @@ s=s.replace(a,'''function persist(){
 }''',1);${W}" \
   "smoke" "main"
 
-echo "--- 103: the tick repaints one group, and cannot drift"
+echo "--- 103: the tick repaints one row, and cannot drift"
 run_case "a toggle stops going through tickUpdate" \
   "does not go through tickUpdate" \
   "${P}a='''  if(S.skipped[id]) delete S.skipped[id];
@@ -113,8 +113,53 @@ s=s.replace(a,'  if(S.tab !== \"watch\"){ render(); return; }',1);${W}"
 
 run_case "and the gate catches a repaint that goes stale" \
   "surgical paths are byte-identical to a full render" \
-  "${P}a='  grp.parentNode.replaceChild(scratch.firstChild, grp);';assert a in s
-s=s.replace(a,'',1);${W}" \
+  "${P}a='''  scratch.innerHTML = filmRow(f);
+  row.parentNode.replaceChild(scratch.firstChild, row);
+  var gm''';assert a in s
+s=s.replace(a,'''  var gm''',1);${W}" \
   "smoke" "main"
+
+# 3.4.1 re-aimed this section, and the fixtures below did not exist while 103
+# required the group rebuild -- that shape WAS the assertion. A fixture set can
+# only be as good as the thing it defends, and this one defended the defect.
+#
+# EVERY ANCHOR HERE IS MULTI-LINE, AND THAT IS NOT STYLE. rowUpdate() and
+# tickUpdate() contain the same two lines verbatim --
+# `scratch.innerHTML = filmRow(f);` then the replaceChild -- and rowUpdate
+# comes first in the file, so a single-line anchor with .replace(...,1) mutates
+# rowUpdate and leaves tickUpdate untouched. Section 103 then has nothing to
+# complain about and the fixture reports FAIL with the expected message absent,
+# which reads like a broken guard rather than a misaimed fixture. The line
+# `var gm = head.querySelector(".meta");` exists only in tickUpdate and is what
+# makes each anchor below unique.
+
+run_case "the tick goes back to rebuilding the whole group" \
+  "builds a group again" \
+  "${P}a='  var gm = head.querySelector(\".meta\");';assert a in s
+s=s.replace(a,'  var gbx = groupBlock(g, S.q.toLowerCase());\n  var gm = head.querySelector(\".meta\");',1);${W}"
+
+run_case "the row builder is inlined instead of shared" \
+  "does not rebuild the row through filmRow()" \
+  "${P}a='''  scratch.innerHTML = filmRow(f);
+  row.parentNode.replaceChild(scratch.firstChild, row);
+  var gm''';assert a in s
+s=s.replace(a,'''  scratch.innerHTML = String(f.id);
+  row.parentNode.replaceChild(scratch.firstChild, row);
+  var gm''',1);${W}"
+
+run_case "the group head grows a second copy of its own tally" \
+  "no longer writes the group head through gSub()" \
+  "${P}a='  if(gm) gm.textContent = gSub(g);';assert a in s
+s=s.replace(a,'  if(gm) gm.textContent = gDone(g) + \" of \" + g.films.length;',1);${W}"
+
+run_case "the group head grows a second copy of its own bar" \
+  "no longer writes the group head through gSub()" \
+  "${P}a='\"width:\" + gPct(g) + \"%\"';assert a in s
+s=s.replace(a,'\"width:\" + pct(gDone(g), g.films.length) + \"%\"',1);${W}"
+
+run_case "a second place learns how to build a group" \
+  "is built in 2 places" \
+  "${P}a='function gDone(g){';assert a in s
+s=s.replace(a,'function strayGroup(){ return \'<div class=\"group\"></div>\'; }\nfunction gDone(g){',1);${W}"
 
 finish "negtest250"

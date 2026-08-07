@@ -407,12 +407,17 @@ ok("expanded row: and on the description's line", detail.vsPara === 0,
    to smoke (which serializes markup, where neither a scroll offset nor an
    activeElement leaves a mark). This is the only instrument that can see
    either. */
-async function tickDrive(filter, label){
-  await page.evaluate((f) => {
-    S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = f; S.q = "";
+/* inPlace: tickUpdate patches the DOM only when nothing is filtered and
+   nothing is searched. Every other state falls back to the full render,
+   which legitimately rebuilds all of #view, so the identity assertion
+   below would be false there for a correct reason. */
+async function tickDrive(filter, label, mode){
+  const inPlace = filter === "all";
+  await page.evaluate(({f, m}) => {
+    S.path = S.mode = m; S.tab = "watch"; S.filter = f; S.q = "";
     S.watched = {}; S.skipped = {}; S.rated = {}; S.open = {};
     render(); window.scrollTo(0, 0);
-  }, filter);
+  }, { f: filter, m: mode || "continuity" });
   await page.waitForTimeout(250);
   await page.evaluate(() => window.scrollTo(0, Math.round(document.body.scrollHeight * 0.55)));
   await page.waitForTimeout(350);
@@ -427,8 +432,35 @@ async function tickDrive(filter, label){
                     return q.top > 100 && q.bottom < window.innerHeight - 60; });
     if(!btn) return null;
     const before = Math.round(window.scrollY);
+    const gk = btn.closest(".group").querySelector(".ghead").dataset.gk;
+    const elByKey = () => {
+      const h = document.querySelector('#view .ghead[data-gk="' + gk + '"]');
+      return h ? h.closest(".group") : null;
+    };
+    /* TWO ASSERTIONS, AND THE SECOND ONE IS THE READER'S. Element identity is
+       structural: nothing but a full render may replace a .group, because a
+       fresh node has no remembered size for content-visibility:auto and lands
+       at its contain-intrinsic-size. Height is the consequence a reader
+       actually feels. Both go red against 3.4.0 -- group 3512 -> 66, document
+       15347 -> 11901 -- and green after.
+
+       READ THIS BEFORE DEBUGGING THIS FILE. It loads NW_URL over HTTP, default
+       127.0.0.1:8099, NOT the tree it happens to sit in. Editing docs/ in a
+       scratch copy and running this from that copy tests whatever the server
+       is serving, which is the original. Three runs against a deliberately
+       broken tree reported green that way, and the mistake looked exactly like
+       a check that could not fail -- serve the copy on its own port and pass
+       NW_URL, or you are grading the wrong homework. */
+    const stamp = elByKey();
+    stamp.dataset.nwprobe = "1";
+    const grpH = Math.round(stamp.getBoundingClientRect().height);
+    const docH = Math.round(document.documentElement.scrollHeight);
     btn.click();
-    return { before, sameTask: Math.round(window.scrollY) };
+    const after = elByKey();
+    return { before, sameTask: Math.round(window.scrollY), grpH, docH,
+             replaced: !(after && after.dataset.nwprobe === "1"),
+             grpH2: after ? Math.round(after.getBoundingClientRect().height) : -1,
+             docH2: Math.round(document.documentElement.scrollHeight) };
   });
   if(!r){
     ok("tick keeps your place (filter " + label + ")", false, "no tick in view to click");
@@ -439,10 +471,32 @@ async function tickDrive(filter, label){
   ok("tick keeps your place (filter " + label + ")",
      r.before > 300 && Math.abs(r.sameTask - r.before) < 150,
      "same-task " + r.before + " → " + r.sameTask + ", settled " + settled);
+  /* 3.4.1, and this is the assertion the 3.4.0 pair could not make. scrollY is
+     unchanged across the group-collapse defect -- 8780 to 8780 -- because the
+     offset does not move, the content under it does. What moves is the ticked
+     group's own height, so that is what is measured, in the click's own task. */
+  if(inPlace){
+    ok("a tick does not replace the group element (" + label + ")",
+       !r.replaced,
+       r.replaced
+         ? "the .group node was swapped for a fresh one — content-visibility:" +
+           "auto has no remembered size for it, so it renders at contain-" +
+           "intrinsic-size and the page moves under the reader"
+         : "same node kept, group " + r.grpH + " → " + r.grpH2);
+  }
+  ok("a tick does not collapse the group under you (" + label + ")",
+     r.grpH > 200 && r.grpH2 > r.grpH * 0.9,
+     "group " + r.grpH + " → " + r.grpH2 + ", document " + r.docH +
+     " → " + r.docH2);
 }
 
 await tickDrive("ess", "ess");
 await tickDrive("core", "core");
+/* The default state: no filter, no search. Both drives above take tickUpdate's
+   FALLBACK branch on its first line, so between them they had never exercised
+   the branch every reader is actually in. In Bruce's life the groups are eras,
+   which is where the collapse is worst. */
+await tickDrive("all", "all, life", "life");
 
 const foc = await page.evaluate(() => {
   S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = "all"; S.q = "";

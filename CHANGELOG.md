@@ -30,6 +30,71 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.4.1] — 2026-08-07
+
+The tick stops collapsing the group under you. 3.4.0 fixed the branch almost
+nobody is in.
+
+### Fixed
+
+- **Ticking a row no longer drops the group out from under the page.**
+  `tickUpdate()` has two branches. A filter chip or a search sends the tick
+  through `render()` — the function 3.4.0 fixed, and it is correct there. **No
+  filter and no search — the state the app opens in — rebuilt the whole group
+  through `groupBlock()` and swapped the element in.** The replacement is a
+  brand-new node, so `content-visibility: auto` has no remembered size for it
+  and `contain-intrinsic-size: auto 64px` is what renders. Measured at 390×844
+  in the click's own task: **the ticked group falls 3418px → 66px and the
+  document loses 3352px.** In *Bruce's life*, where a group is an era rather
+  than a universe, that is the whole screen — which is where it was reported.
+
+  **The fix is smaller than the thing it replaces, and both halves already
+  existed.** With `filter: all` and no query, `groupBlock`'s seven filter
+  clauses all fall through and `matches()` returns true, so **the row set cannot
+  change**. A tick can change exactly three things: the row, the `n of m` in the
+  group head, and the head's progress bar. The row now goes through `filmRow()`
+  — `.film` carries no `content-visibility` and cannot collapse — and the other
+  two are written in place, the way `groupUpdate()` has always done it.
+  **Nothing outside the full render builds a `.group` any more**, which retires
+  the class rather than this instance of it.
+
+  `qa/soak-3.4.0-tick-jump.md`.
+
+### Changed
+
+- **`gDone()`, `gSub()` and `gPct()` — one source for a group's tally.**
+  `groupBlock()` computed it inline. Now that two call sites need the same two
+  strings, they come from the same three functions, so the count under your
+  thumb and the count after a full redraw cannot disagree. The smoke gate still
+  has the last word: after every driven tick, a forced full render must
+  serialize byte-for-byte identical.
+
+- **Section 103 is rewritten rather than extended, because the shape it held
+  was the defect.** It required `tickUpdate()` to rebuild through
+  `groupBlock()` and `replaceChild` the group. It now **refuses** `groupBlock`
+  inside `tickUpdate`, requires `filmRow`, `gSub` and `gPct`, and asserts that
+  `class="group"` is constructed in exactly one place in the file. The
+  superseded reasoning is struck in place above the new, not deleted.
+
+### Why nothing caught this
+
+**The check written for this defect could not see it.** 3.4.0 added a browser
+drive that clicks a real tick, and it asserts on `window.scrollY` — which reads
+**8780 → 8780** across the collapse. The offset does not move; the content under
+it does. It also ran only `filter ess` and `filter core`, and **both of those
+take the fallback branch on `tickUpdate`'s first line.** The default state had
+never been driven at all.
+
+Both halves are fixed. The drive now measures **the ticked group's own height**
+across the click, and a third case runs **`filter: all` in `life`** — the
+combination nothing in this harness had ever exercised.
+
+### Why PATCH
+
+One function rewritten to do less, three helpers extracted from code that
+already existed, one guard section re-aimed. No catalogue change, no new
+surface, nothing touching saved progress.
+
 ## [3.4.0] — 2026-08-07
 
 **Marking something watched stopped losing your place.** The owner found it on a
