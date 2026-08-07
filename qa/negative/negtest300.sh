@@ -329,7 +329,7 @@ run_case "the preservation is dropped out of render entirely" \
   "render() does not preserve #restorebox" \
   "${P}import re;a='  var rbPrev = document.getElementById(\"restorebox\");'
 assert a in s;s=s.replace(a,'  var rbPrev = null;',1)
-i=s.index('  var rb = document.getElementById(\"restorebox\");');j=s.index('  if(keep) window.scrollTo',i)
+i=s.index('  var rb = document.getElementById(\"restorebox\");');j=s.index('  if(keep){',i)
 s=s[:i]+s[j:];${W}"
 
 echo "--- 104: the cache policy, pinned the moment it exists"

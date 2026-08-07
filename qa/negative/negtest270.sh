@@ -80,7 +80,7 @@ echo "--- the forced reflow does not come back"
 # family. The mutation is unchanged; the message it has to match is not.
 run_case "render clamps the scroll against scrollHeight again" \
   "index.html reads scrollHeight" \
-  "${P}s=s.replace('if(keep) window.scrollTo(0, keep);','if(keep){var m=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);window.scrollTo(0,Math.min(keep,m));}',1);${W}"
+  "${P}s=s.replace('v.classList.add(\"settling\");','var m=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);keep=Math.min(keep,m);v.classList.add(\"settling\");',1);${W}"
 
 echo "--- 107: every section can fail, and every section runs"
 

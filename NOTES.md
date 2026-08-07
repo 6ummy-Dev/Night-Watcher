@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 121 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 123 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -2230,3 +2230,71 @@ want opposite answers and one rule would give one of them the wrong one.
 
 **It only takes effect on upload.** `_headers` is read by the edge, not by
 anything in the repo, so nothing about this changes until the tree is deployed.
+
+## A scroll restore that measured a document which had not been laid out yet
+
+`render()` ended with `if(keep) window.scrollTo(0, keep);`. The line is right in
+isolation and wrong in place. It runs in the same task as `v.innerHTML = ...`,
+and `.group` carries `content-visibility: auto` — which is the whole reason the
+page opens as fast as it does, because the browser skips layout for groups that
+are off-screen. So at the instant the restore runs, every off-screen group is
+still measuring its `contain-intrinsic-size` rather than its real height. The
+document is about a third as tall as it is about to be, the browser clamps the
+scroll to that shorter maximum, and the reader is somewhere else.
+
+Measured at 390×844: **2233 → 1011**, with the row count and the final document
+height both unchanged. That last part is what rules out any explanation
+involving the content — nothing was added or removed, only the scroll moved.
+
+**It could not be measured out of.** Every property that answers *how tall is
+it* — `scrollHeight`, `clientHeight`, `getBoundingClientRect` — is refused by
+guard section 120, because reading layout inside a function that writes it is
+the forced reflow 3.3.0 spent a release removing. There was no number available
+that was not itself the older defect.
+
+So the fix does not measure. `.settling` on `#view` drops `content-visibility`
+to `visible` for the one frame the restore lives in, the scroll lands against
+the true height, and the class comes off on the next frame — by which point
+`contain-intrinsic-size: auto` has remembered the real sizes, so the next render
+starts from a better estimate than this one did. The cost is one full layout on
+renders that restore a scroll, and it does not touch the Performance score,
+which measures load.
+
+**Why the tick was where a person met it.** `tickUpdate` falls back to a full
+`render()` whenever a filter chip is active. With the filter on `all` the
+targeted repaint runs and never touches the scroll, so the defect is invisible.
+With any chip active every tick goes through `render()`. `left` is the chip
+someone actually uses while working through a path, which is why it was found
+by using the app rather than by testing it.
+
+## Three of four controls dropped focus to the page, and the fourth hid it
+
+`tickUpdate` restored focus by looking for `[data-act="watched"]`, and
+`querySelector` returns the first match — the row's own tick. So pressing *Mark
+watched* or *Skip* inside an open row, or any star, destroyed the button that
+held focus and left it on `<body>`. Only the bare tick survived, and it survived
+because it happened to be the element the selector was written for.
+
+It now remembers which control actually had focus, the way `render()` already
+did, and returns it there; `data-n` is what tells the five stars apart. The same
+change gave `tickUpdate` the `preventScroll` that `rowUpdate` and `render()`
+already passed — it had never been observed to move the viewport, which is
+exactly why it was worth closing. An assertion-free difference between three
+sites doing the same job is a coin that has not landed yet.
+
+## The drive that was green against the defect it was written for
+
+The first version of the new browser check clicked a tick, waited 450ms, and
+compared the scroll position. It passed against the fixed build and it passed
+against the broken one, which makes it worse than no check at all.
+
+Chromium's scroll anchoring pulls the page back within a few hundred
+milliseconds. The clamp is real, the reader sees it, and by the time a patient
+test looks, it is gone. Rewritten to read the scroll position **inside the
+click's own task**, it reports `2778 → 757` against the defect and `2778 → 2778`
+with the fix.
+
+The jump drives in the same file had already learned this in 3.3.2 and say so in
+their own name — *lands in the click's own task, not over one*. The lesson did
+not travel the twenty lines to the next check anyone wrote.
+

@@ -30,6 +30,85 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.4.0] — 2026-08-07
+
+**Marking something watched stopped losing your place.** The owner found it on a
+phone, soaking 3.3.2: with a filter chip active, ticking a row re-rendered and
+sent the page back near the top. It was reported as *"it reloads instead of
+staying"*, and it was not a reload — it was the scroll restore failing.
+
+**It reached further than the tick.** `render()` restores the scroll for every
+caller that depends on it holding position: the filter chips, the peek, the
+belt, the backup-code panel, the theme buttons. The tick is only where a person
+met it first.
+
+**No `i:` slug changed. Nothing anyone has ticked has moved.** The catalogue is
+200 entries before and after, and nothing in it was touched.
+
+### Fixed
+
+- **`render()`'s scroll restore no longer clamps.** `.group` carries
+  `content-visibility: auto`, which lets the browser skip layout for off-screen
+  groups. In the same task as the repaint, every off-screen group therefore
+  measures its `contain-intrinsic-size` rather than its real height, the
+  document is about a third as tall as it is about to be, and `window.scrollTo`
+  clamps to that shorter maximum. Measured **2233 → 1011** at 390×844 with the
+  row count and the final document height both unchanged, which is what rules
+  out any explanation involving the content. The restore now happens with a
+  `.settling` class on `#view` that drops `content-visibility` to `visible` for
+  that one frame, so the scroll lands against the true height; the class comes
+  off on the next frame. **`content-visibility: auto` stays** — it is
+  load-bearing for the Performance score, which measures load, and the cost here
+  is one layout on renders that restore a scroll.
+- **Marking watched or skipping inside an open row no longer throws focus to the
+  page.** `tickUpdate` restored focus by looking for `[data-act="watched"]`, and
+  `querySelector` returns the row's own tick — the first match. So the button
+  that had actually been pressed was destroyed with focus on it and focus fell
+  to `<body>`. **Three of the four controls**, measured at 390×844; only the
+  bare tick survived. It now remembers which control held focus, the way
+  `render()` already did, and returns it there. Stars are told apart by
+  `data-n`.
+- **`tickUpdate` restores focus with `preventScroll`.** It was the one
+  button-focus restore in the app without it — `rowUpdate` and `render()` both
+  passed it. It was never observed to move the viewport, which is exactly why it
+  was worth closing: an assertion-free difference between three sites doing the
+  same job is a coin that has not landed yet.
+
+### Added
+
+- **`docs/3e6082eed9f040d5bc8ab07531bf58b9.txt` — the IndexNow key.** A search
+  engine fetches it to confirm this host controls the key a submission is signed
+  with. One submission is shared across every IndexNow-enabled engine — Amazon,
+  Bing, Naver, Seznam, Yandex, Yep — which makes announcing a release one call
+  rather than six. **Google does not participate**, so this does not touch the
+  site's main search surface. The file is out of the offline shell for the
+  reason `llms.txt` and `orders.txt` are: it is written for machines that never
+  run the app.
+- **Two guard sections.** **122** fails the build if the scroll restore goes
+  back to a bare `window.scrollTo`, if `.settling` stops being added before the
+  scroll, if it is never removed, or if the CSS rule behind it disappears.
+  **123** fails if any button-focus restore drops `preventScroll`, or if
+  `tickUpdate` goes back to looking for `[data-act="watched"]`.
+- **`browser-check.mjs` clicks a tick.** It never had. It set `S.watched`
+  directly and called `render()`, which is why five green drives said nothing
+  about either defect in this release.
+
+### Why nothing caught either of these
+
+Section 103 asserts what `tickUpdate` **calls** — that both toggles route
+through it, that the fallback condition is intact, that it rebuilds through
+`groupBlock()` and `renderHead()`. Every one of those was true throughout, and
+stays true now. The smoke gate compares a targeted repaint against a full render
+serialized byte-for-byte, and **a gate that reads markup cannot see a scroll
+position or an `activeElement`.** `browser-check.mjs` drove jumps and never
+clicked a tick.
+
+**Three instruments, one hole, and a person on a phone.** The same shape as
+3.3.2's jump, where the check that should have caught the defect was asking a
+question the defect could satisfy. Sections 122 and 123 and the new browser
+check are the part of this release that stops it being found this way a third
+time.
+
 ## [3.3.3] — 2026-08-07
 
 **Era 7 was named after a building and tested on a man.** 1.7.2 split the old

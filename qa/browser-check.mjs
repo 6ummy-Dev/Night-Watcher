@@ -398,6 +398,97 @@ ok("expanded row: the watch link sits on Mark watched's line", detail.vsAct === 
 ok("expanded row: and on the description's line", detail.vsPara === 0,
    detail.vsPara + "px");
 
+/* ---- the tick, which this file had never clicked ---------------------- */
+/* 3.4.0. Every drive above sets S.watched directly and calls render(), or
+   drives a jump. Nothing here had ever pressed a tick, which is why five green
+   drives said nothing about either defect this release fixes: a scroll restore
+   that clamped against content-visibility, and a focus restore that returned to
+   the wrong element. Both are invisible to the guards (which read the tree) and
+   to smoke (which serializes markup, where neither a scroll offset nor an
+   activeElement leaves a mark). This is the only instrument that can see
+   either. */
+async function tickDrive(filter, label){
+  await page.evaluate((f) => {
+    S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = f; S.q = "";
+    S.watched = {}; S.skipped = {}; S.rated = {}; S.open = {};
+    render(); window.scrollTo(0, 0);
+  }, filter);
+  await page.waitForTimeout(250);
+  await page.evaluate(() => window.scrollTo(0, Math.round(document.body.scrollHeight * 0.55)));
+  await page.waitForTimeout(350);
+  /* Measured inside the click's own task, for the reason the jump drives are:
+     the clamp happens during the repaint, and Chromium's scroll anchoring pulls
+     the page back within a few hundred ms. A drive that waits and then looks is
+     green against the defect — this one was, before it was rewritten, which is
+     the whole reason it is written this way. */
+  const r = await page.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll('#view [data-act="watched"]'))
+      .find(el => { const q = el.getBoundingClientRect();
+                    return q.top > 100 && q.bottom < window.innerHeight - 60; });
+    if(!btn) return null;
+    const before = Math.round(window.scrollY);
+    btn.click();
+    return { before, sameTask: Math.round(window.scrollY) };
+  });
+  if(!r){
+    ok("tick keeps your place (filter " + label + ")", false, "no tick in view to click");
+    return;
+  }
+  await page.waitForTimeout(450);
+  const settled = await page.evaluate(() => Math.round(window.scrollY));
+  ok("tick keeps your place (filter " + label + ")",
+     r.before > 300 && Math.abs(r.sameTask - r.before) < 150,
+     "same-task " + r.before + " → " + r.sameTask + ", settled " + settled);
+}
+
+await tickDrive("ess", "ess");
+await tickDrive("core", "core");
+
+const foc = await page.evaluate(() => {
+  S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = "all"; S.q = "";
+  S.watched = {}; S.skipped = {}; S.rated = {}; S.open = {};
+  window.setAllGroups(true); render();
+  const row = document.querySelector('#view [data-act="expand"]');
+  if(!row) return { err: "no expandable row" };
+  const id = row.dataset.id;
+  S.open[id] = 1; render();
+  const inRow = Array.from(
+    document.querySelectorAll('#view [data-act="watched"][data-id="' + id + '"]')).pop();
+  if(!inRow) return { err: "no Mark watched inside the open row" };
+  inRow.focus();
+  const started = document.activeElement === inRow;
+  inRow.click();
+  const ae = document.activeElement;
+  return { started, tag: ae ? ae.tagName : "none",
+           act: ae && ae.dataset ? (ae.dataset.act || "") : "" };
+});
+ok("focus survives a tick inside an open row",
+   !foc.err && foc.started && foc.tag === "BUTTON",
+   foc.err ? foc.err : "focus started on the button and landed on " +
+   foc.tag + (foc.act ? ' [data-act="' + foc.act + '"]' : ""));
+
+const focStar = await page.evaluate(() => {
+  S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = "all"; S.q = "";
+  S.watched = {}; S.rated = {}; S.open = {};
+  window.setAllGroups(true); render();
+  const row = document.querySelector('#view [data-act="expand"]');
+  if(!row) return { err: "no expandable row" };
+  const id = row.dataset.id;
+  S.open[id] = 1; render();
+  const star = document.querySelector('#view [data-act="rate"][data-id="' + id + '"]');
+  if(!star) return { err: "no star in the open row" };
+  star.focus();
+  const started = document.activeElement === star;
+  star.click();
+  const ae = document.activeElement;
+  return { started, tag: ae ? ae.tagName : "none",
+           act: ae && ae.dataset ? (ae.dataset.act || "") : "" };
+});
+ok("focus survives rating from inside an open row",
+   !focStar.err && focStar.started && focStar.tag === "BUTTON",
+   focStar.err ? focStar.err : "landed on " + focStar.tag +
+   (focStar.act ? ' [data-act="' + focStar.act + '"]' : ""));
+
 /* Screenshots, so the header can be looked at rather than only measured. */
 await page.evaluate(() => { S.watched = {}; S.tab = "watch"; render(); window.scrollTo(0,0); });
 await page.screenshot({ path: "qa/shot-header-0.png", clip: {x:0, y:0, width:390, height:120} });

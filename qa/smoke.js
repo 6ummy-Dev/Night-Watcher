@@ -1631,6 +1631,13 @@ win.addEventListener("load", function(){
       S.beltOpening = true; win.render(); sweep(); S.beltOpening = false;
       doc.querySelector(".includes").className = "includes closing"; sweep();
       doc.querySelector(".includes").className = "includes";
+      /* 3.4.0. render() puts .settling on #view for the one frame the scroll
+         restore lives in and drops it in a rAF. jsdom reports the scroll
+         position as 0 forever, so keep is always 0 and that branch never runs
+         here \u2014 the class is staged the way beltOpening and .includes closing
+         already are. */
+      doc.getElementById("view").classList.add("settling"); sweep();
+      doc.getElementById("view").classList.remove("settling");
       S.beltOpen = false;
       /* The states a sweep cannot reach by walking the tabs. */
       S.tab = "watch"; S.mode = "life"; win.render(); sweep();

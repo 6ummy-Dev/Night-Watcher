@@ -102,8 +102,10 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      119  Where to watch has a rank of its own
 
      120  The page does not read layout after writing it
+     122  The scroll restore survives content-visibility
 
    ACCESSIBILITY
+     123  Focus restores never move the viewport
      20   Text contrast against the surface it sits on
      41   The restore box has a real label
      61   Contrast is measured on the ink that renders
@@ -767,7 +769,14 @@ if(PUBLIC !== ROOT){
                      /* 3.3.0. Browser chrome: the app never renders it, so
                         nothing about working offline depends on it, and a
                         visitor who is offline already has the tab open. */
-                     "favicon.ico"];
+                     "favicon.ico",
+                     /* 3.4.0. The IndexNow key. Fetched by search engines to
+                        prove this host controls the key it submits under, and
+                        by nothing else -- the app never reads it, and a reader
+                        who is offline has no use for it. Same reasoning as
+                        llms.txt and orders.txt: written for machines that never
+                        run the app. */
+                     "3e6082eed9f040d5bc8ab07531bf58b9.txt"];
   var served = [];
   (function walk(dir, pre){
     fs.readdirSync(dir).forEach(function(name){
@@ -7796,6 +7805,125 @@ var ROUTE_VOCAB = [
 
   note("privacy claim: footer and README agree on counting, and on the host " +
        "doing it");
+})();
+
+/* ---------- 122. The scroll restore survives content-visibility ---------- */
+/* THE DEFECT THIS EXISTS TO STOP COMING BACK, 3.4.0.
+   render() ended with `if(keep) window.scrollTo(0, keep);`. The line is
+   correct in isolation and wrong in place: it runs in the same task as
+   `v.innerHTML = ...`, and .group carries content-visibility:auto, so every
+   off-screen group still measures its contain-intrinsic-size rather than its
+   real height. The document is about a third as tall as it is about to be, the
+   browser clamps the scroll to that shorter maximum, and the reader loses
+   their place. Measured 2233 -> 1011 at 390x844 with the row count and the
+   final document height both unchanged, which is what rules out any
+   content explanation. qa/soak-3.3.2-scroll-restore.md.
+
+   It reached every caller that relies on render() to hold position -- the
+   filter chips, peek, the belt, mkcode, the theme buttons -- and it survived
+   because nothing could see it. Section 103 asserts what tickUpdate CALLS.
+   The smoke gate serializes HTML, and a scroll leaves no mark in markup.
+   browser-check.mjs did not click a tick until this release. Three green
+   instruments and one defect, which is the same shape as 3.3.2's jump.
+
+   Asserted on source, because jsdom has no layout and nothing in this harness
+   can watch a scroll clamp -- the same limitation section 120 works around,
+   and the same one that let this walk in. */
+(function(){
+  var rbody = (HTML.match(/function render\(\)\{[\s\S]*?\n\}/) || [""])[0];
+  if(!rbody){
+    fail("render() cannot be located, so the scroll restore cannot be checked " +
+         "— section 122 is blind, which is worse than absent");
+    return;
+  }
+  if(/if\s*\(\s*keep\s*\)\s*window\.scrollTo/.test(rbody)){
+    fail("render() restores the scroll with a bare window.scrollTo again. That " +
+         "is the 3.3.2 defect exactly: content-visibility:auto means the " +
+         "document is short at this instant and the browser clamps the restore. " +
+         "The scroll must land while .settling is on #view");
+  }
+  if(rbody.indexOf('classList.add("settling")') < 0){
+    fail("render() no longer adds .settling before restoring the scroll — " +
+         "without it the document is measured at contain-intrinsic-size and the " +
+         "restore clamps");
+  }
+  if(rbody.indexOf('classList.remove("settling")') < 0){
+    fail("render() adds .settling and never removes it — content-visibility " +
+         "would stay off for every group from the first restore onward, which " +
+         "gives back the whole reason .group carries it");
+  }
+  if(rbody.indexOf("requestAnimationFrame") < 0){
+    fail("render() removes .settling without waiting a frame — the class has " +
+         "to outlive the layout the scroll forces, or it has bought nothing");
+  }
+  var addAt = rbody.indexOf('classList.add("settling")');
+  var scrollAt = rbody.indexOf("window.scrollTo");
+  if(addAt >= 0 && scrollAt >= 0 && addAt > scrollAt){
+    fail("render() scrolls before it adds .settling — the order is the fix. " +
+         "The class has to be on the element when the browser computes the " +
+         "maximum scroll offset, not after");
+  }
+  if(!/#view\.settling\s+\.group\s*\{[^}]*content-visibility\s*:\s*visible/.test(HTML)){
+    fail("the .settling rule is gone from the CSS, or no longer sets " +
+         "content-visibility:visible — render() is toggling a class that " +
+         "styles nothing, and the restore clamps in silence");
+  }
+  if(!/\.group\s*\{[^}]*content-visibility\s*:\s*auto/.test(HTML)){
+    fail("content-visibility:auto is gone from .group. If that was deliberate " +
+         "the restore no longer needs .settling and this section and the CSS " +
+         "rule come out together — but it is load-bearing for the Performance " +
+         "score, so it wants a decision rather than a deletion");
+  }
+  note("scroll restore: held against content-visibility, class added before " +
+       "the scroll and dropped a frame after it");
+})();
+
+/* ---------- 123. Focus restores never move the viewport ---------- */
+/* 3.4.0. tickUpdate restored focus with a bare back.focus(), the only one of
+   the three button-focus restores in the app without preventScroll -- rowUpdate
+   and render() both had it. It was never observed to move the viewport, which
+   is exactly why it is worth pinning: an assertion-free difference between
+   three sites that do the same job is a coin that has not landed yet.
+
+   The other half of the same defect: tickUpdate looked only for
+   [data-act="watched"], and querySelector returns the row's own tick. Tapping
+   Mark watched or Skip inside an open row, or any star, destroyed the focused
+   button and dropped focus to <body> -- three of four controls at 390x844.
+   That is checked here too, because a focus restore that finds the wrong
+   element is worse than one that finds none. */
+(function(){
+  var SITES = ["rowUpdate", "tickUpdate", "render"];
+  SITES.forEach(function(fn){
+    var re = new RegExp("function " + fn + "\\([^)]*\\)\\{[\\s\\S]*?\\n\\}");
+    var body = (HTML.match(re) || [""])[0];
+    if(!body){
+      fail("section 123 cannot locate " + fn + "(), so its focus restore is " +
+           "unchecked");
+      return;
+    }
+    if(body.indexOf(".focus(") < 0) return;      /* no restore here to check */
+    if(body.indexOf("preventScroll") < 0){
+      fail(fn + "() restores focus without preventScroll. The other restores " +
+           "pass it, and restoring focus must not move the viewport — this is " +
+           "the 3.4.0 finding, and it is the difference that had no reason");
+    }
+  });
+
+  var tbody = (HTML.match(/function tickUpdate\([^)]*\)\{[\s\S]*?\n\}/) || [""])[0];
+  if(!tbody){
+    fail("tickUpdate() cannot be located, so the control it returns focus to " +
+         "cannot be checked");
+  } else if(/var back = v\.querySelector\('\[data-act="watched"\]/.test(tbody)){
+    fail("tickUpdate() is looking for [data-act=\"watched\"] again when it puts " +
+         "focus back. querySelector returns the row's own tick, so Mark " +
+         "watched and Skip inside an open row, and every star, lose focus to " +
+         "<body>. It has to restore the control that actually had it");
+  } else if(tbody.indexOf("document.activeElement") < 0){
+    fail("tickUpdate() no longer reads document.activeElement, so it cannot " +
+         "know which control held focus before it replaced the group");
+  }
+  note("focus restores: preventScroll at every button site, and tickUpdate " +
+       "returns focus to the control that had it");
 })();
 
 /* ---------- report ---------- */
