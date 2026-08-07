@@ -1,3 +1,18 @@
+# Content usage preferences (contentsignals.org). Three separate permissions:
+#   ai-train  use for training generative models
+#   search    use for building a search index
+#   ai-input  use as real-time input to an AI answer
+#
+# Indexing and live citation are permitted because a spoiler-free watch order is
+# only worth writing if it can be found and cited. Training is not, because the
+# catalogue is the work, and allowing the index is not allowing the copy.
+#
+# The prose above deliberately does not restate the values below. It did in the
+# first draft, and a negative fixture aimed at the directive silently mutated
+# the comment instead — a value written twice is a value that can disagree with
+# itself, which is the same rule this project applies to counts in prose.
+Content-Signal: ai-train=no, search=yes, ai-input=yes
+
 User-agent: *
 Allow: /
 

@@ -103,6 +103,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
+     124  Every face is asked for before the CSS finds it
 
    ACCESSIBILITY
      123  Focus restores never move the viewport
@@ -153,6 +154,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      101  The site answers off the app too
      104  The security headers the edge cannot set
      105  The catalogue answers in plain text
+     125  robots.txt states a position on AI use
      106  The fonts carry every letter the catalogue uses
      116  The fonts really carry what the page really renders
      107  Every section can fail, and every section runs
@@ -1955,6 +1957,20 @@ if(!/<meta property="og:site_name" content="Night Watcher">/.test(HTML)){
     }
   });
   if(app.isAccessibleForFree !== true) fail("JSON-LD no longer says the app is free");
+
+  /* 3.4.2. NO COMMERCE VOCABULARY, AND isAccessibleForFree IS WHY IT IS NOT
+     NEEDED. The node carried offers:{@type:Offer, price:"0",
+     priceCurrency:"USD"}, which is a legitimate way to say "free" and is also
+     the single line that made the 7 Aug Cloudflare Radar scan record a commerce
+     signal on a site it had itself classified isCommerce:false. Two vocabularies
+     for one fact, and the quieter one was already present. Stray Offer markup
+     can produce misleading rich results, so the shape is refused rather than
+     merely removed. qa/scan-triage-2026-08-07.md. */
+  if(app.offers){
+    fail("JSON-LD carries an Offer again " + "\u2014" + " isAccessibleForFree already " +
+         "says the app is free, and commerce vocabulary on a watch-order guide " +
+         "reads as a storefront to anything parsing it");
+  }
 })();
 
 /* ---------- 40. One scoreboard ---------------------------------------- */
@@ -6153,7 +6169,15 @@ var ROUTE_VOCAB = [
       header: nothing fails when it is there, and nothing fails when someone
       deletes it again. The file and this entry are one commit. */
    ["Cross-Origin-Opener-Policy", /^\s+Cross-Origin-Opener-Policy:\s*same-origin\s*$/m,
-    "same-origin"]];
+    "same-origin"],
+   /* 3.4.2, and all three land here for the reason the comment above gives: a
+      header in that file and not in this array is a header nothing watches. */
+   ["Cross-Origin-Resource-Policy", /^\s+Cross-Origin-Resource-Policy:\s*same-origin\s*$/m,
+    "same-origin"],
+   ["Link: sitemap", /^\s+Link:\s*<https:\/\/nightwatcher\.life\/sitemap\.xml>;\s*rel="sitemap"\s*$/m,
+    "an RFC 8288 sitemap relation"],
+   ["Link: canonical", /^\s+Link:\s*<https:\/\/nightwatcher\.life\/>;\s*rel="canonical"\s*$/m,
+    "an RFC 8288 canonical relation pointing at the apex"]];
   PINNED104.forEach(function(t){
     if(!t[1].test(D)){
       fail("docs/_headers no longer sets " + t[0] + " to " + t[2]);
@@ -6172,6 +6196,29 @@ var ROUTE_VOCAB = [
     fail("docs/_headers sets a CSP \u2014 the CSP lives in the <meta> tag whose " +
          "hash section 43 blesses, and two of them will disagree");
   }
+
+  /* 3.4.2. TWO DEAD TOKENS, ONE OF WHICH WAS SHOUTING. `usb` is not a
+     registered Permissions-Policy feature, and Chrome logged "Unrecognized
+     feature: 'usb'" on every single page load — the only console output the
+     app produced. It was found by the 7 Aug Cloudflare Radar scan and by
+     nothing in this harness, because nothing here read a header's tokens.
+     `interest-cohort` is the FLoC opt-out; FLoC was withdrawn, so the app was
+     declaring an opinion about a feature that no longer exists. The scan
+     flagged the first and missed the second.
+
+     Refused by name rather than pinned as a whole string: the policy is allowed
+     to grow, and a future token deserves an argument rather than a diff. */
+  var DEAD104 = ["usb", "interest-cohort"];
+  var pp104 = (D.match(/^\s+Permissions-Policy:.*$/m) || [""])[0];
+  DEAD104.forEach(function(t){
+    if(new RegExp("\\b" + t + "\\s*=").test(pp104)){
+      fail("docs/_headers declares " + t + " in Permissions-Policy — it is not " +
+           "a live feature token. `usb` throws a console warning on every page " +
+           "load; `interest-cohort` opts out of a feature that was withdrawn. A " +
+           "policy naming something the browser does not know is noise the next " +
+           "person has to rule out");
+    }
+  });
 
   /* OUT OF THE OFFLINE SHELL, and until 3.0.0 nothing said so. Section 13
      names _headers in NOT_SHELLED, which only permits its absence — smuggling
@@ -6195,7 +6242,21 @@ var ROUTE_VOCAB = [
      "never learns the app changed"],
     ["/fonts/*", /^\s+Cache-Control:\s*public,\s*max-age=31536000,\s*immutable\s*$/m,
      "a year and immutable — the faces are blessed by hash and never change " +
-     "under a name, so re-fetching them buys nothing"]
+     "under a name, so re-fetching them buys nothing"],
+    /* 3.4.2. A DAY, DELIBERATELY, AND NOT A YEAR. Both icons were served
+       max-age=0 and revalidated on every visit — two conditional requests a
+       visit, forever, for files that do not change. A year with immutable is
+       only honest behind a content-hashed filename, and renaming the favicon is
+       the one change forbidden before 19 Sep: "unstable or frequently changed"
+       is a listed Google cause of favicon non-appearance, and this icon already
+       changed twice in three days. qa/favicon-serp-2026-08.md. If the names ever
+       become hashed these two move to the fonts' policy, and this comment is
+       what says why they were not already there. */
+    ["/icon.svg", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day — long enough to stop revalidating on every visit, short enough " +
+     "that the name can stay stable"],
+    ["/favicon.ico", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day, for the same reason as /icon.svg"]
   ];
   RULES.forEach(function(r){
     var i = D.indexOf("\n" + r[0] + "\n");
@@ -7985,6 +8046,121 @@ var ROUTE_VOCAB = [
   }
   note("focus restores: preventScroll at every button site, and tickUpdate " +
        "returns focus to the control that had it");
+})();
+
+/* ---------- 124. Every face is asked for before the CSS finds it ---------- */
+/* 3.4.2, and the measurement is the whole argument. The 7 Aug Cloudflare Radar
+   scan timed all six faces: Limelight and Anton carried <link rel=preload> and
+   went out at 287-293ms; the four IBM Plex faces had none, were discovered only
+   after the inline CSS was parsed, and did not request until 467-501ms despite
+   the browser knowing about them at ~293ms. Each then took 213-239ms. That
+   stall is the entire 141ms between domContentLoaded (396ms) and domComplete
+   (537ms) -- not a byte problem, a discovery-order problem.
+
+   Asserted on the head rather than on timing, for the reason section 120 gives:
+   jsdom has no network and no layout, so nothing in this harness can watch a
+   request go out late. What CAN be checked is that every @font-face src in the
+   document has a preload naming the same file. That is a set equality, so it
+   fails in both directions -- a new face without a preload, and a preload for a
+   face that no longer exists.
+
+   Two faces were already preloaded before this release and are covered by the
+   same rule; they are not special-cased, because a rule with an exception is a
+   rule someone will extend. */
+(function(){
+  var head = HTML.slice(0, HTML.indexOf("</head>"));
+  var faces = [], pre = [], m;
+  var fre = /src:url\("(fonts\/[a-z0-9.\-]+\.woff2)"\)/g;
+  while((m = fre.exec(HTML))) { if(faces.indexOf(m[1]) < 0) faces.push(m[1]); }
+  var pre_re = /<link rel="preload"[^>]*href="(fonts\/[a-z0-9.\-]+\.woff2)"[^>]*>/g;
+  while((m = pre_re.exec(head))) { if(pre.indexOf(m[1]) < 0) pre.push(m[1]); }
+
+  if(!faces.length){
+    fail("no @font-face src could be read from index.html, so section 124 " +
+         "cannot check that the faces are preloaded " + "\u2014" + " a blind section is " +
+         "worse than an absent one");
+    return;
+  }
+  faces.forEach(function(f){
+    if(pre.indexOf(f) < 0){
+      fail("index.html declares @font-face for " + f + " with no " +
+           '<link rel="preload"> for it. CSS-discovered faces are not requested ' +
+           "until the stylesheet is parsed " + "\u2014" + " measured at 467-501ms against " +
+           "287-293ms for the preloaded ones, which is the whole gap between " +
+           "domContentLoaded and domComplete");
+    }
+  });
+  pre.forEach(function(f){
+    if(faces.indexOf(f) < 0){
+      fail("index.html preloads " + f + ", which no @font-face uses. A preload " +
+           "the page never claims is a download nobody asked for, and the " +
+           "browser warns about it in the console");
+    }
+  });
+  /* The attributes matter as much as the presence: a font preload without
+     crossorigin is fetched twice, once anonymously and once for real. */
+  pre.forEach(function(f){
+    var tag = (head.match(new RegExp('<link rel="preload"[^>]*href="' +
+      f.replace(/[.\/\-]/g, "\\$&") + '"[^>]*>')) || [""])[0];
+    if(tag.indexOf("crossorigin") < 0){
+      fail("the preload for " + f + " has no crossorigin attribute " + "\u2014" + " fonts are " +
+           "fetched in CORS mode, so without it the browser downloads the file " +
+           "a second time and the preload has cost rather than saved");
+    }
+    if(tag.indexOf('as="font"') < 0){
+      fail("the preload for " + f + ' has no as="font" ' + "\u2014" + " without it the " +
+           "browser cannot prioritise the request and warns that the preload " +
+           "went unused");
+    }
+  });
+  note("fonts: " + faces.length + " faces, all preloaded with crossorigin");
+})();
+
+/* ---------- 125. robots.txt states a position on AI use ---------------- */
+/* 3.4.2. Content Signals (contentsignals.org) is a line in robots.txt declaring
+   three separate permissions -- training, search indexing, and real-time use as
+   input to an AI answer. It was added because being citable is the point of a
+   spoiler-free watch order, and because the AI-citation re-run booked for early
+   September measures nothing if the site has declared nothing.
+
+   THIS SECTION DOES NOT PIN THE VALUES. They are a rights position, they are
+   the owner's to change, and a guard that fails when the owner changes their
+   mind is a guard that gets deleted. What it pins is that the line EXISTS, that
+   it names all three signals, and that each carries a value the spec allows --
+   the failure modes of a hand-edited text file nothing else reads. A typo in
+   robots.txt is invisible: no build breaks, no page changes, and the directive
+   is simply ignored by every crawler that reads it. */
+(function(){
+  var rp = path.join(PUBLIC, "robots.txt");
+  if(!fs.existsSync(rp)){
+    fail("docs/robots.txt is missing");
+    return;
+  }
+  var R = fs.readFileSync(rp, "utf8");
+  var line = (R.match(/^Content-Signal:.*$/m) || [""])[0];
+  if(!line){
+    fail("docs/robots.txt declares no Content-Signal line " + "\u2014" + " 3.4.2 added one " +
+         "so that AI training, search indexing and live citation are three " +
+         "separate answers rather than one silence. qa/scan-triage-2026-08-07.md");
+    return;
+  }
+  ["ai-train", "search", "ai-input"].forEach(function(k){
+    var v = (line.match(new RegExp(k + "\\s*=\\s*(yes|no)")) || [])[1];
+    if(!v){
+      fail("robots.txt's Content-Signal does not give " + k + " a value of yes " +
+           "or no. A signal left out is not a default, it is an omission, and " +
+           "the whole point of the line is that the three answers can differ");
+    }
+  });
+  if(!/^Sitemap:\s*https:\/\/nightwatcher\.life\/sitemap\.xml\s*$/m.test(R)){
+    fail("docs/robots.txt no longer names the sitemap at the canonical host");
+  }
+  if(!/^User-agent:\s*\*\s*$/m.test(R) || !/^Allow:\s*\/\s*$/m.test(R)){
+    fail("docs/robots.txt no longer allows every user-agent at the root " + "\u2014" + " the " +
+         "app is one public page and nothing in it is meant to be hidden");
+  }
+  note("robots.txt: " + line.replace(/^Content-Signal:\s*/, "") +
+       ", sitemap named, everything allowed");
 })();
 
 /* ---------- report ---------- */

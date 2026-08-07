@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 123 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 125 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 

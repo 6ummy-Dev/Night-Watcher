@@ -7,7 +7,10 @@
 #
 # Content-Security-Policy stays in the <meta> tag in index.html: the guards
 # bless its hash against the one inline script, and moving it to a header
-# would split one rule across two files.
+# would split one rule across two files. The 7 Aug 2026 Cloudflare Radar scan
+# reported the CSP MISSING and rated it P0 — a response-header scan cannot see
+# a <meta> policy, and the header it proposed (script-src 'self' 'unsafe-inline')
+# is weaker than the single sha256 that ships. qa/scan-triage-2026-08-07.md.
 #
 # CACHE POLICY, ADDED IN 3.0.0, AND IT ONLY TAKES EFFECT ON UPLOAD. Nothing in
 # this project declared one, so every file was cached with whatever Workers
@@ -22,15 +25,32 @@
 # does not mean "do not store": it means revalidate before use, which is exactly
 # what a version marker wants. The fonts are content-addressed by the subset
 # script's own hash record and never change under a name, so they take the year.
+#
+# 3.4.2 ADDS THE TWO ICONS, AND THEY GET A DAY RATHER THAN A YEAR. Both were
+# served max-age=0 and revalidated on every visit — two conditional requests a
+# visit, forever, for files that do not change. A year with immutable is only
+# safe behind a content-hashed filename, and RENAMING THE FAVICON IS THE ONE
+# THING FORBIDDEN BEFORE 19 SEP: "unstable or frequently changed" is a listed
+# Google cause of favicon non-appearance, and this icon already changed twice in
+# three days. A day takes the win and leaves the names alone.
 
 /*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
-  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=(), interest-cohort=()
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()
   Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Link: <https://nightwatcher.life/sitemap.xml>; rel="sitemap"
+  Link: <https://nightwatcher.life/>; rel="canonical"
 
 /sw.js
   Cache-Control: no-cache
 
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
+
+/icon.svg
+  Cache-Control: public, max-age=86400
+
+/favicon.ico
+  Cache-Control: public, max-age=86400

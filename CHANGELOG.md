@@ -30,6 +30,109 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.4.2] — 2026-08-07
+
+Headers, robots and four preloads. Nothing in the app's logic changed.
+
+Scoped from an independent Cloudflare Radar scan of the live `3.4.1` build.
+**Three of that report's eighteen items are not done here, and its
+top-priority one is refused** — the reasoning is in
+`qa/scan-triage-2026-08-07.md`.
+
+### Fixed
+
+- **`Permissions-Policy` declared two tokens that do not exist.** `usb` is not
+  a registered feature, and Chrome logged *"Unrecognized feature: 'usb'"* on
+  **every page load** — the only console output the app produced.
+  `interest-cohort` was the FLoC opt-out, and FLoC was withdrawn, so the policy
+  was stating an opinion about a feature no browser has. The scan found the
+  first; the second was found while fixing it. Both are gone, and section 104
+  now refuses them by name rather than pinning the policy as a whole string, so
+  the policy can still grow.
+
+- **`icon.svg` and `favicon.ico` were served `max-age=0`** and revalidated on
+  every visit — two conditional requests per visit, forever, for files that do
+  not change. Both now carry `public, max-age=86400`.
+
+  **A day rather than a year, and the filenames are untouched.** A year with
+  `immutable` is only honest behind a content-hashed name, and renaming the
+  favicon is the one change forbidden before 19 September: *unstable or
+  frequently changed* is a listed Google cause of favicon non-appearance, and
+  this icon already changed twice in three days.
+
+### Added
+
+- **The four IBM Plex faces are preloaded.** They were discovered only after
+  the inline CSS was parsed: the browser knew about them at ~293 ms and did not
+  request them until **467–501 ms**, then spent 213–239 ms on each. That stall
+  is the entire 141 ms between `domContentLoaded` (396 ms) and `domComplete`
+  (537 ms). Limelight and Anton already carried preloads and went out at
+  287–293 ms, which is the control.
+
+  **Section 124 asserts set equality between `@font-face` sources and preload
+  tags**, so it fails in both directions — a new face without a preload, and a
+  preload for a face nothing uses — and it checks `crossorigin` and `as="font"`
+  on each, because a font preload missing either downloads the file twice.
+
+- **`Cross-Origin-Resource-Policy: same-origin`**, beside the existing COOP.
+
+- **`Link:` response headers** carrying `rel="sitemap"` and `rel="canonical"`.
+  In `_headers`, never a Transform Rule — those do not apply to Worker
+  responses, verified here against a HIT, a MISS and a 404. No
+  `rel="api-catalog"`: advertising a 404 is worse than advertising nothing.
+
+- **A `Content-Signal` line in `robots.txt`** — `ai-train=no, search=yes,
+  ai-input=yes`. Three separate permissions: training, search indexing, and
+  live use as input to an AI answer. **Search and citation are yes because a
+  spoiler-free watch order is only worth writing if it can be found and cited;
+  training is no because the catalogue is the work.**
+
+  **Section 125 does not pin the values.** They are a position, they are the
+  owner's to change, and a guard that fails when the owner changes their mind
+  is a guard that gets deleted. It pins that the line exists, names all three
+  signals, and gives each a value the spec allows — because a typo in
+  `robots.txt` is invisible: no build breaks, no page changes, and every
+  crawler simply ignores the directive.
+
+### Removed
+
+- **The `Offer` node from the JSON-LD.** `offers: {price: "0"}` is a
+  legitimate way to say *free*, and it was also the single line that made the
+  scan record a commerce signal on a site it had itself classified
+  `isCommerce: false`. `isAccessibleForFree: true` was already on the same node
+  saying the same thing in quieter vocabulary. The shape is now refused rather
+  than merely deleted, because stray `Offer` markup can produce misleading rich
+  results.
+
+### What the scan asked for and did not get
+
+- **A `Content-Security-Policy` header.** The report rates its absence **P0**
+  and calls it the largest header gap. **The site has a CSP** — it is a
+  `<meta http-equiv>` tag, which a response-header scan structurally cannot
+  see. **And the policy it proposed is weaker than the one shipping:**
+  `script-src 'self' 'unsafe-inline'` against a single `sha256` and nothing
+  else. Adopting it would admit every inline script on the page; guard 43,
+  guard 10 and `browser-check.mjs` would all reject it anyway.
+
+- **HSTS `preload`.** Declined permanently. The report asks for it and concedes
+  two pages later that submission is difficult to reverse.
+
+- **DNSSEC "in a single toggle".** It is not one, while DNS is at Cloudflare
+  and the registrar is GoDaddy: the `DS` is hand-carried between two panels and
+  a wrong one takes the domain dark for every validating resolver. Dated after
+  the 29 September transfer.
+
+- **Markdown content negotiation.** The sketch needs a Worker script and this
+  deployment is assets-only. The cheap version already exists and the scanner
+  did not look for it: `llms.txt` and `orders.txt` are served, machine-readable
+  and written for that audience.
+
+### Why PATCH
+
+Two response headers added, one corrected, two cache rules, four `<link>` tags,
+one line of `robots.txt`, one JSON-LD property removed. No catalogue change, no
+behaviour change, nothing touching saved progress.
+
 ## [3.4.1] — 2026-08-07
 
 The tick stops collapsing the group under you. 3.4.0 fixed the branch almost
