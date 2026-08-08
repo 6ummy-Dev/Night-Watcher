@@ -30,6 +30,77 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.4.4] — 2026-08-08
+
+**Corrective, and it is one finding reaching the tree.** **C0 — recorded here
+since 3.3.1 as an injection by Cloudflare's edge — was a TLS-intercepting VPN on
+the author's own machine.** The origin serves what this repository ships, plus
+nothing. `ops/c0-edge-injection.md`.
+
+Nothing in the app's logic changed. No catalogue change. No saved progress
+touched.
+
+### Fixed
+
+- **The README told readers something untrue about Cloudflare, and it shipped
+  for two days.** The Non-goals bullet read: *"The apex is served through
+  Cloudflare, and Cloudflare's edge injects a script of its own — not in this
+  file, not ours, and not removable from here."* **It does not.** Read with the
+  interception switched off on 8 August, the served page carries **two
+  `<script>` tags, no injected third, and the Content-Security-Policy in this
+  file — ten directives, one `sha256`.**
+
+  **So the two hedges added in 3.3.1 come out.** *"No third-party code **in this
+  repository**"* → **"No third-party code."** *"every line **in this repository**
+  is written for this project"* → **"every line is written for this project."**
+  **The unqualified claim is true of what a visitor receives**, which is what it
+  always said and what was doubted for the wrong reason.
+
+- **Guard 43's `connect-src` refusal rested on the same misreading, and the
+  refusal is kept anyway.** `3.3.1` removed `connect-src 'none'` because *"the
+  edge appends `'self'` to it, so the directive shipped, looked like protection,
+  and provided none."* **The edge appends nothing.**
+
+  **The removal stands on the half of the reasoning that was never about the
+  edge:** `default-src 'none'` is the first directive in the policy, the page
+  opens no connections of any kind, and a directive that restates its own
+  fallback is a second copy of one rule. **What changes is that restoring it is
+  a live option again — costing nothing, gaining nothing — rather than an
+  impossibility.** The comment says so, so the next person argues redundancy
+  instead of inheriting a fact that was never true.
+
+- **Two `3.3.1` CHANGELOG entries corrected in place**, struck rather than
+  rewritten, per house rule.
+
+- **Three CSS attribute selectors escaped quotes and not backslashes.**
+  `docs/index.html` builds selectors with `.replace(/"/g, '\\"')` at three
+  sites — the group lookup in `rowUpdate`, and the focus restores in
+  `tickUpdate` and `render()`. **A value containing a backslash breaks the
+  selector.** Every value that reaches them comes from the frozen catalogue IDs,
+  **so there was no reachable defect** — but all three now escape the backslash
+  first. Found by CodeQL, which is the first instrument that has ever read the
+  shipped script this way.
+
+### Removed
+
+- **`.tmp/` from `.gitignore`.** Nothing in the repository creates a `.tmp/`
+  directory — the negative suite uses `mktemp -d` and `qa/make-share-card.mjs`
+  uses `os.tmpdir()`. Boilerplate that came with the file.
+
+  **It is here rather than in a commit of its own for a reason worth writing
+  down:** it *was* removed by hand on 8 August, and the `3.4.3` upload put it
+  back fourteen seconds later, because `.gitignore` ships inside the release
+  archive. **A hand edit to any tracked file is undone by the next release, and
+  no guard can report it** — the tree ends up exactly what the archive said it
+  should be.
+
+### Why PATCH
+
+Two README phrases, one guard comment, two CHANGELOG corrections, three
+backslash escapes and one dead ignore line. No behaviour change, no catalogue
+change, nothing touching saved progress. **The belt is `3.5.0` and is not in
+here.**
+
 ## [3.4.3] — 2026-08-08
 
 **Corrective.** Nothing in the app's logic changed, nothing in the catalogue
@@ -598,17 +669,29 @@ rather than disappear; sections still run 1..n with no gaps.
   send no headers and had to keep serving. The mirror was unpublished on
   6 August 2026 and the address returns 404, so there is no off-canonical
   origin left to mark. `SITE` stays — the restore link is built from it.
-- **`connect-src` from the Content-Security-Policy.** Not loosened: **it never
+- **`connect-src` from the Content-Security-Policy.** ~~Not loosened: **it never
   took effect.** 3.3.0 set it to `'none'`, and a wire reading on 6 August found
   the Cloudflare edge appending `'self'` to it. A `'none'` sitting beside a
   second source expression is ignored, so the directive shipped, read like
   protection and provided none — `fetch("/orders.txt")` from the live page
   returned 200. It now falls through to `default-src 'none'`, the first
   directive in the policy, which the edge has no directive of its own to append
-  to. **The page opens no connections of any kind**, so the fallback is the
-  truth rather than a hope. **Whether the edge leaves a fallback alone is the
+  to.~~ **The page opens no connections of any kind**, so the fallback is the
+  truth rather than a hope. ~~**Whether the edge leaves a fallback alone is the
   open question this release asks and cannot answer from the tree** — read the
-  served CSP after deploying.
+  served CSP after deploying.~~
+
+  > **CORRECTED IN 3.4.4 — the struck reasoning is false. The edge appends
+  > nothing.** That 6 August wire reading, and the three like it, were taken
+  > through a **TLS-intercepting VPN on the author's own machine**; read with it
+  > switched off on 8 August, the served policy is this file's exactly — ten
+  > directives, one `sha256`, no `connect-src`. **So this release removed a
+  > directive on a misreading, and guard 43 has enforced that removal ever
+  > since.** **The removal is kept**, on the half of the reasoning that was never
+  > about the edge: `default-src 'none'` covers it and the page opens no
+  > connections, so the directive would only restate its own fallback.
+  > **Restoring it is now a live option that costs nothing and gains nothing —
+  > not an impossibility.**
 
 ### Changed
 
@@ -1054,13 +1137,17 @@ when.
 
 ### Also in this release
 
-- **The README's no-third-party-code claim is scoped to this repository.**
+- ~~**The README's no-third-party-code claim is scoped to this repository.**
   Cloudflare's edge injects a script that is not in `docs/index.html` and cannot
-  be removed from here, so the unqualified claim was false on the wire. Two
+  be removed from here, so the unqualified claim was false on the wire.~~ Two
   lines, not one — the Non-goals bullet and the Running-it line. **The scoped
   data claims are untouched and stay true:** watch data never leaves the device,
-  progress is never transmitted. Evidence and the ruled-out list are in the
-  project's `ops/c0-edge-injection.md`.
+  progress is never transmitted.
+
+  > **REVERSED IN 3.4.4.** **Cloudflare's edge injects nothing.** The scoping was
+  > added for an injection that turned out to be a VPN on the author's machine,
+  > and **both lines are unhedged again in 3.4.4** — the unqualified claim is
+  > true of what a visitor is served.
 
 ## [3.0.2] — 2026-08-05
 

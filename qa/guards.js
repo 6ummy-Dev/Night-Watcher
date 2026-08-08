@@ -2152,17 +2152,37 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
     "font-src":     "'self'",
     "img-src":      "'self' data:",
     "manifest-src": "'self'",
-    /* connect-src is DELIBERATELY ABSENT in 3.3.1 and must stay absent.
-       3.3.0 set it to 'none'. The wire reading on 6 Aug 2026 found the edge
+    /* connect-src is DELIBERATELY ABSENT since 3.3.1 and stays absent -- BUT
+       NOT FOR THE REASON RECORDED HERE UNTIL 3.4.4, WHICH WAS FALSE.
+
+       This comment used to read: "The wire reading on 6 Aug 2026 found the edge
        appending 'self' to it, and a 'none' sitting beside a second source
-       expression is ignored -- so the directive shipped, looked like
-       protection, and provided none: fetch("/orders.txt") from the live page
-       returned 200. It now falls through to default-src 'none', which is the
-       first directive in the policy and which the edge has no directive of its
-       own to append to. The page opens no connections of any kind -- no fetch,
-       no XHR, no beacon, no socket -- so the fallback is the truth rather than
-       a hope. Nothing new is needed to hold this: the unpinned-directive check
-       below fails the build the moment connect-src reappears. */
+       expression is ignored -- so the directive shipped, looked like protection,
+       and provided none: fetch('/orders.txt') from the live page returned 200.
+       It now falls through to default-src 'none', which is the first directive
+       in the policy and which the edge has no directive of its own to append
+       to."
+
+       THE EDGE APPENDS NOTHING. That reading, and the three others like it, were
+       taken through a TLS-intercepting VPN on the author's own machine -- read
+       with it switched off on 8 Aug 2026 the served policy is this file's,
+       exactly: ten directives, one sha256, no connect-src. C0 was never
+       Cloudflare. ops/c0-edge-injection.md.
+
+       SO 3.3.1 REMOVED A DIRECTIVE ON A MISREADING, AND THIS GUARD HAS BEEN
+       ENFORCING THAT REMOVAL EVER SINCE. The removal is kept anyway, on the
+       half of the old reasoning that was never about the edge: default-src
+       'none' is the first directive in the policy and connect-src falls through
+       to it, and the page opens no connections of any kind -- no fetch, no XHR,
+       no beacon, no socket. A directive that restates its own fallback is a
+       second copy of one rule, and two copies drift.
+
+       THE DIFFERENCE MATTERS TO THE NEXT PERSON. Restoring connect-src 'none'
+       is now a live option that costs nothing and gains nothing, not an
+       impossibility. If anyone argues for it, the argument is redundancy, not
+       "the edge will eat it". The unpinned-directive check below still fails the
+       build the moment connect-src reappears -- so the decision is made here,
+       deliberately, rather than drifted into. */
     "worker-src":   "'self'",
     "base-uri":     "'none'",
     "form-action":  "'none'",
