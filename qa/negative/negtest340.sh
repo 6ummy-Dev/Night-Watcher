@@ -19,16 +19,22 @@ HP="import io;p='docs/_headers';s=io.open(p,encoding='utf-8').read();"
 RP="import io;p='docs/robots.txt';s=io.open(p,encoding='utf-8').read();"
 HW="io.open(p,'w',encoding='utf-8').write(s)"
 
-echo "--- 104: the two dead Permissions-Policy tokens do not come back"
-
-run_case "usb creeps back into Permissions-Policy" \
-  "declares usb in Permissions-Policy" \
-  "${HP}a='  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()';assert a in s
-s=s.replace(a,a+', usb=()',1);${HW}"
+# 3.4.3: THIS WAS TWO CASES AND IS NOW ONE. The usb fixture came out with the
+# token's removal from DEAD104 — `usb` is the live feature token for WebUSB,
+# Chrome accepts it, and 3.4.2 removed it on a console warning from a scanner's
+# own engine. A fixture aimed at a rule that no longer exists would pass forever
+# while testing nothing, which is the failure this whole directory exists to
+# prevent. `interest-cohort` keeps its fixture because it keeps its rule.
+#
+# The anchor below also had to move: _headers now ends the policy with usb=(),
+# so the old literal would not be found and the mutation would silently match
+# nothing. A mutation that changes nothing is a negative test that proves
+# nothing.
+echo "--- 104: the dead Permissions-Policy token does not come back"
 
 run_case "interest-cohort creeps back in" \
   "declares interest-cohort in Permissions-Policy" \
-  "${HP}a='  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()';assert a in s
+  "${HP}a='  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=()';assert a in s
 s=s.replace(a,a+', interest-cohort=()',1);${HW}"
 
 echo "--- 104: the headers 3.4.2 added are watched, not just present"

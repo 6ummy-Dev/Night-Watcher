@@ -30,6 +30,80 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.4.3] — 2026-08-08
+
+**Corrective.** Nothing in the app's logic changed, nothing in the catalogue
+moved, and one response header value is different. **Everything here is the
+repair of something this project told itself.**
+
+Scoped from `qa/sweep-repo-page-dns-2026-08-08.md`, which read the repository,
+the panels, the wire and both DNS zones.
+
+### Fixed
+
+- **A Response Header Transform Rule was overriding this project's own
+  `_headers`, and three places in the tree said that was impossible.** An active
+  Cloudflare rule named *"Security headers"*, matching all incoming requests,
+  had been setting `Permissions-Policy`, `Referrer-Policy` and
+  `X-Frame-Options` at the edge. **For the whole of 3.4.2 the wire served the
+  rule's `Permissions-Policy`, not the one this repository ships** — and guard
+  104 was green the entire time, correctly, because it reads the file and the
+  file was right.
+
+  **The 4 August finding that produced the wrong claim is the interesting part.**
+  A rule was created in the dashboard, showed *Active*, and set nothing —
+  verified against a HIT, a MISS and a 404. **A rule that sets nothing is not
+  evidence about rules that do.** An instrument used to rule something out has
+  to be able to see it.
+
+  The claim is struck in `docs/_headers`, in section 104's comment and in
+  section 104's COOP note, **superseded rather than deleted**, because how a
+  wrong conclusion was reached is the part worth keeping. **The rule is deleted;
+  `_headers` is the only source.** Nothing guards that it stays deleted — no
+  guard can read a panel, and one that pretended to would be worse than an
+  honest gap — so the wire check lives in the release checklist.
+
+- **`usb=()` is back in `Permissions-Policy`, and section 104 stops refusing
+  it.** 3.4.2 removed the token on a console warning from a **scanner's own
+  browser engine**, recorded as *"not a registered Permissions-Policy
+  feature"*. It is one: `usb` is the policy-controlled feature for WebUSB,
+  Chrome accepts it, and the live response carried `usb=()` while Chrome's
+  console stayed silent through three loads.
+
+  **For one release a guard forbade putting back a legitimate header value** —
+  a guard blocking the correct state, which is worse than the noise it was
+  written to stop. `DEAD104` is down to one entry. **`interest-cohort` stays
+  refused:** FLoC was withdrawn and that token really is dead.
+
+- **`wrangler.jsonc` still argued for the GitHub Pages mirror**, two releases
+  after 3.3.1 retired it and while `README.md` said the opposite and was right.
+  **On 8 August it got read**: Pages was republished, a `docs/CNAME` appeared,
+  and the old origin became first a permanent 301 and then a second live origin
+  serving this same tree. Guard 82 caught the file the moment it landed; nothing
+  in this repository can see a panel. **A stale comment is not a tidiness
+  problem — it is an argument, sitting in the tree, for doing the thing the
+  project decided not to do.**
+
+### Changed
+
+- **`negtest340` loses its `usb` fixture** — a fixture aimed at a rule that no
+  longer exists passes forever while testing nothing. Its `interest-cohort`
+  sibling keeps its rule and keeps its fixture, **with its anchor moved**,
+  because the policy line it mutates now ends in `usb=()` and the old literal
+  would have matched nothing. **A mutation that changes nothing is a negative
+  test that proves nothing.** `README.md`'s count moves with it: **534 → 533**.
+
+- **Section 104 is retitled** from *"the security headers the edge cannot set"*
+  to *"the security headers the tree owns"*. The old title was a claim about
+  capability and the claim was false; the new one is the decision, which is
+  what survived being checked.
+
+### Why PATCH
+
+One header token restored, one guard's refusal list shortened by one, one
+negative fixture removed, four comments corrected and one count updated. No
+catalogue change, no behaviour change, nothing touching saved progress.
+
 ## [3.4.2] — 2026-08-07
 
 Headers, robots and four preloads. Nothing in the app's logic changed.
@@ -41,14 +115,22 @@ top-priority one is refused** — the reasoning is in
 
 ### Fixed
 
-- **`Permissions-Policy` declared two tokens that do not exist.** `usb` is not
+- ~~**`Permissions-Policy` declared two tokens that do not exist.** `usb` is not
   a registered feature, and Chrome logged *"Unrecognized feature: 'usb'"* on
-  **every page load** — the only console output the app produced.
+  **every page load** — the only console output the app produced.~~
   `interest-cohort` was the FLoC opt-out, and FLoC was withdrawn, so the policy
-  was stating an opinion about a feature no browser has. The scan found the
-  first; the second was found while fixing it. Both are gone, and section 104
+  was stating an opinion about a feature no browser has. ~~The scan found the
+  first; the second was found while fixing it. Both are gone~~, and section 104
   now refuses them by name rather than pinning the policy as a whole string, so
   the policy can still grow.
+
+  > **CORRECTED IN 3.4.3 — the struck half of this entry is wrong.** `usb` **is**
+  > a registered Permissions-Policy feature: it is the policy-controlled feature
+  > for WebUSB, and Chrome accepts it. The *"Unrecognized feature"* warning came
+  > from the **scanner's own browser engine**, not from Chrome — the live
+  > response carried `usb=()` while Chrome's console stayed silent through three
+  > loads. **`usb=()` is restored in 3.4.3, and section 104 no longer refuses
+  > it.** `interest-cohort` is correct as written and stays refused.
 
 - **`icon.svg` and `favicon.ico` were served `max-age=0`** and revalidated on
   every visit — two conditional requests per visit, forever, for files that do
@@ -77,9 +159,17 @@ top-priority one is refused** — the reasoning is in
 - **`Cross-Origin-Resource-Policy: same-origin`**, beside the existing COOP.
 
 - **`Link:` response headers** carrying `rel="sitemap"` and `rel="canonical"`.
-  In `_headers`, never a Transform Rule — those do not apply to Worker
-  responses, verified here against a HIT, a MISS and a 404. No
+  In `_headers`, ~~never a Transform Rule — those do not apply to Worker
+  responses, verified here against a HIT, a MISS and a 404~~. No
   `rel="api-catalog"`: advertising a 404 is worse than advertising nothing.
+
+  > **CORRECTED IN 3.4.3.** Transform Rules **do** apply to Worker responses and
+  > they **win**. The 4 August test that "verified" otherwise was run against a
+  > rule that set nothing — which proves nothing about rules that do. An active
+  > rule named *"Security headers"* was overriding this release's
+  > `Permissions-Policy` on the wire for the whole of 3.4.2. **The rule is
+  > deleted in 3.4.3; `_headers` is the only source now**, and it stays the
+  > source because a file can be diffed and guarded and a panel cannot.
 
 - **A `Content-Signal` line in `robots.txt`** — `ai-train=no, search=yes,
   ai-input=yes`. Three separate permissions: training, search indexing, and
@@ -122,10 +212,19 @@ top-priority one is refused** — the reasoning is in
   a wrong one takes the domain dark for every validating resolver. Dated after
   the 29 September transfer.
 
-- **Markdown content negotiation.** The sketch needs a Worker script and this
-  deployment is assets-only. The cheap version already exists and the scanner
+- **Markdown content negotiation.** ~~The sketch needs a Worker script and this
+  deployment is assets-only.~~ The cheap version already exists and the scanner
   did not look for it: `llms.txt` and `orders.txt` are served, machine-readable
   and written for that audience.
+
+  > **RE-TESTED 8 AUG 2026, and the struck premise has expired** — Cloudflare's
+  > *Markdown for Agents* is a platform toggle needing no Worker. **It is still
+  > declined, on three new grounds:** it is a Pro-and-up feature and this zone is
+  > free; it converts the **origin's HTML**, not a rendered page, so on a site
+  > whose catalogue lives in the inline script it would return the `<noscript>`
+  > block; and `orders.txt` already does the job better, from the data, guarded.
+  > A retirement lapses when a premise disappears — this one did, so it was
+  > re-tested rather than restated. `qa/agent-readiness-triage-2026-08-08.md`.
 
 ### Why PATCH
 

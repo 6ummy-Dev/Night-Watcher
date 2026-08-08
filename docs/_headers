@@ -1,7 +1,24 @@
 # Response headers for every path served by the Worker's static assets.
 #
-# Cloudflare Response Header Transform Rules do NOT apply to responses a
-# Worker generates, which is why these live here and not in the dashboard.
+# SUPERSEDED 8 AUG 2026 — the claim that stood here was wrong. It read:
+# "Cloudflare Response Header Transform Rules do NOT apply to responses a
+# Worker generates, which is why these live here and not in the dashboard."
+# They DO apply, and they WIN. A rule named "Security headers", active on all
+# incoming requests, had been setting Permissions-Policy, Referrer-Policy and
+# X-Frame-Options at the edge — and for the whole of 3.4.2 the wire served the
+# rule's Permissions-Policy rather than the one below, while guard 104 stayed
+# green because it reads this file and the file was correct. The 4 Aug reading
+# that produced the wrong claim tested a rule that set nothing, and a rule that
+# sets nothing proves nothing about rules.
+#
+# THE DECISION IS UNCHANGED AND THE REASON IS BETTER. These live here because a
+# file in the tree can be diffed, guarded and shipped inside a release, and a
+# dashboard rule can be none of those. The rule is deleted in 3.4.3, so this
+# file becomes the only thing setting these headers. NOTHING GUARDS THAT IT
+# STAYS DELETED — no guard can read a panel, and one that pretended to would be
+# worse than an honest gap — so the wire check lives in the release checklist.
+# qa/sweep-repo-page-dns-2026-08-08.md.
+#
 # HSTS and X-Content-Type-Options are set at the edge instead (SSL/TLS panel
 # and Managed Transforms) and are deliberately not duplicated here.
 #
@@ -33,11 +50,20 @@
 # THING FORBIDDEN BEFORE 19 SEP: "unstable or frequently changed" is a listed
 # Google cause of favicon non-appearance, and this icon already changed twice in
 # three days. A day takes the win and leaves the names alone.
+#
+# 3.4.3 PUTS usb=() BACK. 3.4.2 removed it on a console warning from a scanner's
+# own engine, recorded as "not a registered Permissions-Policy feature". It is
+# one: usb is the policy-controlled feature for WebUSB and Chrome accepts it —
+# the live response carried usb=() while Chrome's console stayed silent through
+# three page loads. The app never uses WebUSB, so denying it is cheap hardening
+# that was taken for a wrong reason and is returned for a plain one.
+# interest-cohort does NOT come back: FLoC was withdrawn, and section 104 still
+# refuses that token by name.
 
 /*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
-  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=()
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
   Link: <https://nightwatcher.life/sitemap.xml>; rel="sitemap"

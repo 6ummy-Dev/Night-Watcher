@@ -152,7 +152,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      95   The curated list is machine-readable
      100  The straight answers are machine-readable
      101  The site answers off the app too
-     104  The security headers the edge cannot set
+     104  The security headers the tree owns
      105  The catalogue answers in plain text
      125  robots.txt states a position on AI use
      106  The fonts carry every letter the catalogue uses
@@ -6119,16 +6119,34 @@ var ROUTE_VOCAB = [
        "builds a .group");
 })();
 
-/* ---------- 104. The security headers the edge cannot set ------------- */
-/* Cloudflare Response Header Transform Rules do not apply to responses a
-   Worker generates, and every route here is Worker-served. A rule was created
-   in the dashboard on 4 Aug 2026, showed "Active", and set nothing — verified
-   against a cache HIT, a cache MISS and a 404. docs/_headers is the mechanism
-   that does work, so it is the mechanism that gets a guard.
+/* ---------- 104. The security headers the tree owns ------------------- */
+/* THE TITLE OF THIS SECTION USED TO BE "the security headers the edge cannot
+   set", and the comment under it used to say: "Cloudflare Response Header
+   Transform Rules do not apply to responses a Worker generates... A rule was
+   created in the dashboard on 4 Aug 2026, showed Active, and set nothing —
+   verified against a cache HIT, a cache MISS and a 404."
+
+   BOTH WERE WRONG, FOUND 8 AUG 2026. A Response Header Transform Rule reaches
+   a Worker response and overrides this file. A rule named "Security headers",
+   active on all incoming requests, was setting Permissions-Policy,
+   Referrer-Policy and X-Frame-Options — and for the whole of 3.4.2 the wire
+   served ITS Permissions-Policy while this section stayed green, because this
+   section reads the file and the file was right. The 4 Aug rule that "set
+   nothing" is the whole error: a rule that sets nothing is not evidence about
+   rules that do. An instrument used to rule something out must be able to see
+   it, and a no-op rule cannot.
+
+   WHAT DOES NOT CHANGE IS WHERE THE HEADERS LIVE, and now for a reason that
+   survives being checked: a file in the tree can be diffed, guarded and shipped
+   inside a release; a dashboard rule can be none of those. The rule was deleted
+   in 3.4.3. NOTHING HERE GUARDS THAT IT STAYED DELETED — this section reads the
+   tree, and a guard pretending to read the wire would be worse than an honest
+   gap. The wire check is in the release checklist.
+   qa/sweep-repo-page-dns-2026-08-08.md.
 
    HSTS and X-Content-Type-Options are deliberately NOT here: those are set at
-   the edge (SSL/TLS panel and Managed Transforms), which does survive a Worker
-   response, and setting them twice would mean two places to be wrong.
+   the edge (SSL/TLS panel and Managed Transforms), and setting them twice would
+   mean two places to be wrong.
 
    CSP is deliberately not here either. It lives in the <meta> tag whose hash
    section 10 blesses against the one inline script; splitting one rule across
@@ -6138,8 +6156,8 @@ var ROUTE_VOCAB = [
   var hp = path.join(PUBLIC, "_headers");
   if(!fs.existsSync(hp)){
     fail("docs/_headers is missing \u2014 the app would serve no Referrer-Policy, " +
-         "no X-Frame-Options and no Permissions-Policy, and a Transform Rule " +
-         "cannot put them back on a Worker response");
+         "no X-Frame-Options and no Permissions-Policy, and nothing at the edge " +
+         "is setting them since the Transform Rule was deleted in 3.4.3");
     return;
   }
   var H = fs.readFileSync(hp, "utf8");
@@ -6161,8 +6179,10 @@ var ROUTE_VOCAB = [
       reads .opener nowhere at all — checked, zero occurrences — every watch
       link is a plain target="_blank" navigation, and there is no popup flow,
       no OAuth and no payment frame. It is here rather than at the edge for the
-      same reason as the three above: every route is Worker-served, and a
-      Response Header Transform Rule does not reach a Worker's response.
+      same reason as the three above — CORRECTED 8 AUG 2026: that reason used to
+      be "a Response Header Transform Rule does not reach a Worker's response",
+      which is false. The reason is that a rule cannot be diffed, guarded or
+      shipped in a release, and this array is what watches the file.
 
       IT IS IN THIS ARRAY BECAUSE THE LINE IN _headers IS NOT SELF-GUARDING.
       Adding a header to that file and not to this list ships an unwatched
@@ -6197,26 +6217,41 @@ var ROUTE_VOCAB = [
          "hash section 43 blesses, and two of them will disagree");
   }
 
-  /* 3.4.2. TWO DEAD TOKENS, ONE OF WHICH WAS SHOUTING. `usb` is not a
-     registered Permissions-Policy feature, and Chrome logged "Unrecognized
-     feature: 'usb'" on every single page load — the only console output the
-     app produced. It was found by the 7 Aug Cloudflare Radar scan and by
-     nothing in this harness, because nothing here read a header's tokens.
-     `interest-cohort` is the FLoC opt-out; FLoC was withdrawn, so the app was
-     declaring an opinion about a feature that no longer exists. The scan
-     flagged the first and missed the second.
+  /* 3.4.2 PUT TWO TOKENS IN THIS LIST AND ONE OF THEM DID NOT BELONG. The
+     comment here used to read: "TWO DEAD TOKENS, ONE OF WHICH WAS SHOUTING.
+     `usb` is not a registered Permissions-Policy feature, and Chrome logged
+     'Unrecognized feature: usb' on every single page load."
 
-     Refused by name rather than pinned as a whole string: the policy is allowed
-     to grow, and a future token deserves an argument rather than a diff. */
-  var DEAD104 = ["usb", "interest-cohort"];
+     THAT IS WRONG AND 3.4.3 REVERSES IT. `usb` IS the policy-controlled feature
+     for WebUSB and Chrome accepts it. The warning came from the 7 Aug scanner's
+     own browser engine, not from Chrome and not from a malformed header: the
+     live response carried usb=() while Chrome's console stayed silent through
+     three loads. The triage that recorded it caught the same report's CSP error,
+     its DNSSEC error and its HSTS error, and took the console warning at face
+     value because a console warning feels like evidence rather than like a
+     reading from one engine.
+
+     WHAT THAT COST IS THE POINT OF LEAVING THIS WRITTEN DOWN. For one release
+     this guard forbade putting back a legitimate header value — a guard
+     blocking the correct state, which is worse than the noise it was written to
+     stop.
+
+     `interest-cohort` STAYS REFUSED, and for its own reason: it is the FLoC
+     opt-out, FLoC was withdrawn, and the token really is dead.
+
+     A HAND-MAINTAINED LIST INSIDE A GUARD IS THE GUARD. Growing or shrinking
+     this array is the change, and negtest340 is the only thing that proves it
+     — which is why the usb fixture came out in the same commit. Refused by name
+     rather than pinned as a whole string: the policy is allowed to grow, and a
+     future token deserves an argument rather than a diff. */
+  var DEAD104 = ["interest-cohort"];
   var pp104 = (D.match(/^\s+Permissions-Policy:.*$/m) || [""])[0];
   DEAD104.forEach(function(t){
     if(new RegExp("\\b" + t + "\\s*=").test(pp104)){
       fail("docs/_headers declares " + t + " in Permissions-Policy — it is not " +
-           "a live feature token. `usb` throws a console warning on every page " +
-           "load; `interest-cohort` opts out of a feature that was withdrawn. A " +
-           "policy naming something the browser does not know is noise the next " +
-           "person has to rule out");
+           "a live feature token. `interest-cohort` opts out of FLoC, which was " +
+           "withdrawn. A policy naming something the browser does not know is " +
+           "noise the next person has to rule out");
     }
   });
 

@@ -5,11 +5,25 @@
   "compatibility_flags": ["nodejs_compat"],
   /* The apex, bound as a custom domain rather than a route: Cloudflare then
      owns the DNS record and the certificate, and there is one place to look
-     when either is wrong. GitHub Pages keeps serving the same tree at its own
-     address on purpose: progress is stored per-origin, so it is the only place
-     anyone's old progress can be read. It carries an injected noindex rather
-     than an offer to move — that offer was retired in 2.5.1, and guard 77
-     fails the build if it returns. */
+     when either is wrong.
+
+     THIS COMMENT USED TO END: "GitHub Pages keeps serving the same tree at its
+     own address on purpose: progress is stored per-origin, so it is the only
+     place anyone's old progress can be read. It carries an injected noindex
+     rather than an offer to move." ALL OF IT LAPSED IN 3.3.1, when the mirror
+     was retired, offCanonical() left the tree and sections 77, 78 and 114 were
+     inverted. It sat here unrevised for two releases while README.md said the
+     opposite and was right.
+
+     ON 8 AUG 2026 IT GOT READ. Pages was republished, a docs/CNAME appeared,
+     and the old origin became first a 301 and then a second live origin serving
+     this same tree. Guard 82 caught the file; nothing could catch the panel.
+     A constraint outlives the reason it was written for, and a stale comment
+     is not a tidiness problem — it is an argument, sitting in the repository,
+     for doing the thing the project decided not to do.
+
+     THERE IS ONE ORIGIN: nightwatcher.life, served by this Worker. GitHub Pages
+     is unpublished and stays unpublished. */
   "routes": [
     { "pattern": "nightwatcher.life", "custom_domain": true }
   ],
