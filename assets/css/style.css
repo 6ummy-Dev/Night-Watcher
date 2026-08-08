@@ -1,0 +1,1091 @@
+/* ============================================================
+   6UMMY — stylesheet
+   Palette: dark and darker. --paper (#232323) is the lead black
+   and carries the page; --well (#1A1A1A) recedes underneath it
+   for the fixed bar, the wells and the footer.
+   #FFEA00 is the secondary brand colour, carried over from the
+   mark: section numbers, the primary button, focus and selection.
+   The live flood still owns the whole status bar, so the signal
+   survives the promotion.
+   ============================================================ */
+
+/* ============================================================
+   SILKSCREEN — SIL Open Font Licence 1.1, licence text alongside
+   the files in assets/fonts/. Self-hosted rather than linked from
+   a CDN: no third-party request, no render-blocking hop, and it
+   can't disappear on us.
+
+   Display only. Silkscreen is a bitmap face drawn for small sizes;
+   set a paragraph in it and it becomes work to read. It takes the
+   section titles, where it echoes the drawn wordmark, and the body
+   text stays in the mono.
+
+   swap: the mono renders immediately and Silkscreen replaces it
+   once loaded, so a slow connection never gets invisible headings.
+   ============================================================ */
+
+@font-face {
+  font-family: "Silkscreen";
+  src: url("../fonts/silkscreen-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Silkscreen";
+  src: url("../fonts/silkscreen-latin-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --ink:     #EFF3F4;
+  --paper:   #232323;
+  --well:    #1A1A1A;
+  --live:    #FFEA00;
+
+  --ink-64:  rgba(239, 243, 244, .64);
+  --ink-40:  rgba(239, 243, 244, .52);
+  --rule:    rgba(239, 243, 244, .18);
+  --rule-hi: rgba(239, 243, 244, .38);
+  --hover:   rgba(239, 243, 244, .06);
+
+  /* Squarer first. JetBrains Mono, IBM Plex Mono, DejaVu Sans Mono
+     and Liberation Mono are all free-licence and have flatter
+     terminals than the Apple monos, which is what "less round"
+     actually means here. The Apple ones stay on as fallbacks. */
+  --mono: "JetBrains Mono", "IBM Plex Mono", "DejaVu Sans Mono",
+          "Liberation Mono", ui-monospace, SFMono-Regular, "SF Mono",
+          Menlo, Consolas, monospace;
+  --sans: var(--mono);
+  --pixel: "Silkscreen", var(--mono);
+
+  --w: 62rem;
+  --pad: clamp(1.25rem, 5vw, 3.5rem);
+  --bar: 2.25rem;
+  /* Every click-to-load box waits at this height, whatever it will
+     become once loaded. One number so they stay in step. */
+  --idle: 10rem;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding-top: var(--bar);
+  counter-reset: sec;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: .875rem;
+  line-height: 1.6;
+  font-variant-ligatures: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--live); color: #232323; }
+
+a { color: inherit; text-decoration: none; }
+
+:focus-visible {
+  outline: 2px solid var(--live);
+  outline-offset: 3px;
+}
+
+img { max-width: 100%; display: block; }
+
+/* ---------- shell ---------- */
+
+.wrap {
+  width: 100%;
+  max-width: var(--w);
+  margin-inline: auto;
+  padding-inline: var(--pad);
+}
+
+/* ---------- language switching (CSS-only, no flicker) ---------- */
+
+html[data-lang="en"] [data-es],
+html[data-lang="es"] [data-en] { display: none; }
+
+/* ============================================================
+   STATUS BAR — the signature element.
+   Off air: quiet ink-on-paper. Live: the whole bar floods.
+   ============================================================ */
+
+.status {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  height: var(--bar);
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding-inline: var(--pad);
+  background: var(--well);
+  border-bottom: 1px solid var(--rule);
+  font-size: .6875rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  transition: background .35s ease, border-color .35s ease, color .35s ease;
+}
+
+.status__mark {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -.03em;
+  text-transform: none;
+  display: flex;
+  align-items: center;
+}
+
+.status__mark .pix { height: .8rem; }
+
+.status__state {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.dot {
+  width: .4rem;
+  height: .4rem;
+  border-radius: 50%;
+  background: var(--ink-40);
+  flex: none;
+}
+
+.status__clock {
+  margin-left: auto;
+  color: var(--ink-64);
+  font-variant-numeric: tabular-nums;
+}
+
+.lang {
+  appearance: none;
+  background: none;
+  border: 1px solid var(--rule-hi);
+  color: inherit;
+  font: inherit;
+  letter-spacing: .1em;
+  padding: .15rem .5rem;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.lang:hover { border-color: currentColor; }
+
+/* --- live state --- */
+
+body.is-live .status {
+  background: var(--live);
+  color: #232323;
+  border-bottom-color: #232323;
+}
+body.is-live .status__clock { color: rgba(35, 35, 35, .7); }
+body.is-live .lang { border-color: rgba(35, 35, 35, .45); }
+body.is-live .dot {
+  background: #232323;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse { 50% { opacity: .25; } }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ============================================================
+   HERO — wordmark + label copy, the way a record centre
+   sticker lists its own facts.
+   ============================================================ */
+
+.hero { padding-block: clamp(3rem, 11vw, 7rem) clamp(2rem, 6vw, 3.5rem); }
+
+.wordmark {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: clamp(3.75rem, 19vw, 11rem);
+  letter-spacing: -.055em;
+  line-height: .82;
+  margin: 0 0 clamp(1.75rem, 5vw, 3rem);
+}
+
+/* Drawn rather than typeset: the block height is set by the art,
+   not by a font size. */
+.wordmark--pix {
+  line-height: 0;
+  margin-bottom: clamp(1.75rem, 5vw, 3rem);
+  color: var(--live);
+  display: flex;
+  align-items: stretch;
+  gap: .45em;
+}
+
+/* A blinking block after the name, the way a terminal sits waiting
+   for input — off air is the page waiting. It goes solid the moment
+   the stream starts, so the motion marks the idle state and the
+   colour flood still marks the live one.
+
+   One blink a second: well under the three-per-second flash
+   threshold, and the reduced-motion rule already stops it dead. */
+.wordmark__cursor {
+  align-self: stretch;
+  aspect-ratio: 1 / 7;
+  background: currentColor;
+  animation: blink 1.06s steps(1, end) infinite;
+}
+
+body.is-live .wordmark__cursor { animation: none; }
+
+@keyframes blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+
+.pix--wordmark {
+  width: 100%;
+  max-width: 34rem;
+  height: auto;
+}
+
+/* Screen-reader text — the drawn wordmark is decorative, so the
+   real name has to live somewhere readable. */
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.specs {
+  border-top: 1px solid var(--rule-hi);
+  max-width: 34rem;
+}
+
+.spec {
+  display: flex;
+  gap: 1rem;
+  padding: .5rem 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: .75rem;
+  letter-spacing: .04em;
+}
+
+.spec dt {
+  flex: none;
+  width: 6.5rem;
+  color: var(--ink-40);
+  text-transform: uppercase;
+}
+
+.spec dd { margin: 0; }
+
+.bio {
+  margin: clamp(1.75rem, 5vw, 2.5rem) 0 0;
+  max-width: 34rem;
+  font-size: .9375rem;
+  line-height: 1.7;
+}
+
+.hero__img { margin-top: clamp(2rem, 6vw, 3rem); }
+
+.hero__img img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.08);
+}
+
+/* ============================================================
+   SECTIONS
+   ============================================================ */
+
+.section {
+  padding-block: clamp(2.5rem, 7vw, 4.5rem);
+  counter-increment: sec;
+}
+
+/* Head is a ruled band: label left, note and index right. The
+   index is generated, so adding or reordering a section renumbers
+   the page on its own. */
+.section__head {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  padding-block: .7rem .65rem;
+  border-bottom: 1px solid var(--rule-hi);
+
+  /* Each head holds under the status bar for the length of its own
+     section, then the next one pushes it out. Same top for all of
+     them: sticky is scoped to the parent section, so the handover
+     happens on its own without any scroll maths. */
+  position: sticky;
+  top: var(--bar);
+  z-index: 20;
+  background: var(--paper);
+}
+
+
+.section__head h2 {
+  margin: 0 auto 0 0;
+  font-family: var(--pixel);
+  font-size: clamp(1rem, 2.4vw, 1.45rem);
+  font-weight: 400;
+  letter-spacing: .06em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+/* Matches the rail and the enhanced head: a plain ordinal, not 1.n. */
+.section__head::after {
+  content: counter(sec);
+  margin-left: 1.5rem;
+  flex: none;
+  color: var(--live);
+  font-size: clamp(.8125rem, 1.6vw, 1rem);
+  letter-spacing: .06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.section__note {
+  font-size: .6875rem;
+  color: var(--ink-40);
+  letter-spacing: .06em;
+  text-align: right;
+}
+
+/* The rows already carry a top rule; the ruled head would double it.
+   Matched through the body wrapper rather than as a sibling of the
+   head, since collapsing put a container between the two. */
+.section__body .rows:first-child,
+.section__head + .rows { border-top: 0; }
+
+/* ---------- rows (dates, sets, crate, links) ---------- */
+
+.rows { border-top: 1px solid var(--rule-hi); }
+
+.row {
+  display: grid;
+  gap: .15rem 1.25rem;
+  padding: .85rem 0;
+  border-bottom: 1px solid var(--rule);
+  grid-template-columns: 9rem 1fr auto;
+  align-items: baseline;
+}
+
+.row__key {
+  /* Hostnames vary a lot in length — nightwatcher.life is nearly
+     twice soundcloud.com. Clip rather than let a long one push
+     the whole row out of column. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .75rem;
+  color: var(--ink-40);
+  letter-spacing: .05em;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+.row__main { font-size: .9375rem; }
+
+.row__sub {
+  grid-column: 2;
+  font-size: .75rem;
+  color: var(--ink-64);
+}
+
+.row__end {
+  font-size: .75rem;
+  color: var(--ink-64);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+a.row:hover { background: var(--hover); }
+
+@media (max-width: 34rem) {
+  .row { grid-template-columns: 1fr auto; }
+  .row__key { grid-column: 1 / -1; }
+  .row__sub { grid-column: 1 / -1; }
+}
+
+/* ---------- empty state ---------- */
+
+.empty {
+  font-size: .8125rem;
+  color: var(--ink-64);
+  padding: .5rem 0 0;
+}
+
+/* ============================================================
+   DEFERRED EMBEDS — nothing loads until asked. This is where
+   the page weight savings actually come from.
+   ============================================================ */
+
+.embed {
+  position: relative;
+  width: 100%;
+  border: 1px solid var(--rule-hi);
+  background: transparent;
+}
+
+/* Idle: all three boxes are the same band, so a section that hasn't
+   been opened yet reads as a row of consistent cards rather than
+   three differently-sized holes. Loaded: each takes the height its
+   content actually needs. */
+.embed:not(.is-loaded) {
+  height: var(--idle);
+  aspect-ratio: auto;
+}
+
+.embed--video.is-loaded { aspect-ratio: 16 / 9; height: auto; }
+/* A SoundCloud playlist widget renders its tracklist only when it
+   has the room; below ~300px it collapses to its header and reads
+   as a single track.
+
+   This has to be `height`, not `min-height`. A percentage height on
+   the iframe resolves against the parent's *specified* height, and
+   min-height leaves that `auto` — so `height: 100%` fell back to the
+   iframe default of 150px and the widget collapsed no matter how
+   tall the box around it was. .embed--video never hit this because
+   aspect-ratio gives it a definite height. */
+/* A SoundCloud playlist widget only renders its tracklist with room
+   to do it; below ~300px it collapses to its header and reads as a
+   single track. Must be `height`, not `min-height` — a percentage
+   height on the iframe resolves against the parent's *specified*
+   height, and min-height leaves that auto. */
+.embed--audio.is-loaded { height: 22rem; }
+
+/* No filter here on purpose. Darkening a cross-origin iframe is only
+   possible by inverting the whole frame, which turns every sleeve
+   thumbnail into a colour negative. The white player is the honest
+   trade: SoundCloud's chrome stays theirs, the artwork stays right. */
+
+/* Was an inline style attribute; moved here so the page can run
+   under style-src 'self' with no unsafe-inline. */
+.set + .set { margin-top: 1rem; }
+
+.embed__btn {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  appearance: none;
+  background: none;
+  border: 0;
+  color: var(--live);
+  font: inherit;
+  font-size: .875rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.embed__btn small {
+  font-size: .625rem;
+  letter-spacing: .1em;
+  color: var(--ink-40);
+  text-transform: none;
+}
+
+.embed__btn:hover { background: var(--hover); }
+
+.embed iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+body.is-live .embed--video { border-color: var(--live); border-width: 2px; }
+
+/* ============================================================
+   CONTACT
+   ============================================================ */
+
+.form {
+  display: grid;
+  gap: 1rem;
+  max-width: 34rem;
+}
+
+.field { display: grid; gap: .35rem; }
+
+.field label {
+  font-size: .6875rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.field input,
+.field textarea {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule-hi);
+  color: var(--ink);
+  font: inherit;
+  padding: .5rem 0;
+  border-radius: 0;
+}
+
+.field textarea { resize: vertical; min-height: 5rem; }
+
+.field input:focus,
+.field textarea:focus {
+  outline: 0;
+  border-bottom-color: var(--ink);
+}
+
+/* honeypot */
+.hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.btn {
+  justify-self: start;
+  appearance: none;
+  background: var(--live);
+  color: #232323;
+  border: 1px solid var(--live);
+  font: inherit;
+  font-size: .75rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  padding: .6rem 1.4rem;
+  cursor: pointer;
+}
+
+.btn:hover { background: transparent; color: var(--live); }
+
+.form__msg {
+  font-size: .8125rem;
+  color: var(--ink-64);
+  min-height: 1.2em;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+
+
+/* ============================================================
+   CRATE ROWS — sleeve thumbnails from Discogs.
+   Desaturated like every other image, so the artwork sits
+   inside the palette instead of fighting it.
+   ============================================================ */
+
+.rec {
+  grid-template-columns: 3.5rem 1fr auto;
+  align-items: start;
+  gap: .3rem 1rem;
+}
+
+.rec img,
+.rec__blank {
+  width: 3.5rem;
+  height: 3.5rem;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.06);
+  background: var(--rule);
+  grid-row: span 2;
+}
+
+.rec .row__main { padding-top: .1rem; }
+
+.rec .row__sub {
+  grid-column: 2 / -1;
+  display: block;
+}
+
+.rec__note {
+  display: block;
+  font-style: normal;
+  color: var(--ink);
+  margin-top: .3rem;
+  max-width: 40rem;
+}
+
+@media (max-width: 34rem) {
+  .rec { grid-template-columns: 2.75rem 1fr auto; }
+  .rec img,
+  .rec__blank { width: 2.75rem; height: 2.75rem; }
+  .rec .row__sub { grid-column: 2 / -1; }
+}
+
+/* ============================================================
+   LINK GROUPS — eight flat rows read as a pile. The heading is
+   the same weight as a section note, so grouping reads as
+   filing rather than as another level of hierarchy.
+   ============================================================ */
+
+.group + .group { margin-top: 1.75rem; }
+
+.group__name {
+  margin: 0 0 .45rem;
+  font-family: var(--pixel);
+  font-size: .6875rem;
+  font-weight: 400;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--live);
+}
+
+.row__tag {
+  margin-left: .5rem;
+  font-size: .6875rem;
+  color: var(--ink-40);
+}
+
+/* ============================================================
+   REVEALS — reveal and settle. The class is applied by JS, so
+   with JS off nothing is ever hidden in the first place.
+   ============================================================ */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(.6rem);
+  transition:
+    opacity .55s cubic-bezier(.22, .61, .36, 1) calc(var(--i, 0) * 45ms),
+    transform .55s cubic-bezier(.22, .61, .36, 1) calc(var(--i, 0) * 45ms);
+}
+
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============================================================
+   HEAD CONTROLS — the label jumps, the index toggles. Both are
+   real buttons, stripped back to look like the text they replaced.
+   ============================================================ */
+
+.section__jump,
+.section__toggle {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.section__jump:hover { color: var(--live); }
+
+/* The generated index steps aside once the real button exists, so
+   a reader without JS still gets numbered sections. */
+.section__head.is-enhanced::after { content: none; }
+
+.section__toggle {
+  flex: none;
+  margin-left: 1.5rem;
+  color: var(--live);
+  font-size: clamp(.8125rem, 1.6vw, 1rem);
+  letter-spacing: .06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.section__toggle::after {
+  content: "\2212";              /* minus — shut sections show a plus */
+  margin-left: .5rem;
+  color: var(--ink-40);
+}
+
+.is-shut .section__toggle::after { content: "+"; }
+.section__toggle:hover::after { color: var(--live); }
+
+.is-shut .section__head { margin-bottom: 0; }
+
+/* ============================================================
+   SECTION INDEX — numbers only, so the column stays narrow
+   enough to sit outside the 62rem text measure. The name slides
+   in on hover rather than living there permanently.
+   ============================================================ */
+
+/* A permanent rail rather than a wide-screen extra. It carries the
+   only copy of the section numbers now, so it can't be something
+   that disappears — the numbers ARE the menu. */
+.index {
+  position: fixed;
+  top: var(--bar);
+  right: 0;
+  z-index: 40;
+  padding: .55rem .5rem .55rem .55rem;
+  background: var(--well);
+  border-left: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+/* Keep the reading column clear of the rail. On wide screens the
+   page gutter already does this. */
+@media (max-width: 70rem) {
+  .wrap { padding-right: calc(var(--pad) + 2.25rem); }
+
+  /* The rail is pinned to the top of the viewport, so it never sits
+     beside the footer. Inheriting its clearance pushed every footer
+     field ~18px left of centre on a phone. */
+  .footer.wrap { padding-right: var(--pad); }
+}
+
+.index__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: .1rem;
+  text-align: right;
+}
+
+.index__item {
+  appearance: none;
+  background: none;
+  border: 0;
+  color: var(--ink-40);
+  font: inherit;
+  font-size: .6875rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: .32rem .2rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .6rem;
+  width: 100%;
+}
+
+/* Taken out of flow: hidden labels were still reserving width and
+   stretching the rail to three times the size of its numbers. */
+.index__label {
+  position: absolute;
+  right: 100%;
+  margin-right: .55rem;
+  padding: .1rem .45rem;
+  background: var(--well);
+  border: 1px solid var(--rule);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(.35rem);
+  transition: opacity .25s ease, transform .25s ease;
+  white-space: nowrap;
+}
+
+@media (min-width: 70rem) {
+  .index:hover .index__label,
+  .index__item:focus-visible .index__label { opacity: 1; transform: none; }
+}
+
+@media (max-width: 70rem) {
+  .index__label { display: none; }
+}
+
+.index__num { display: block; }
+
+.index__item:hover,
+.index__item.is-current { color: var(--live); }
+
+.index__item.is-current .index__num { font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .index__label { transition: none; }
+}
+
+/* ============================================================
+   PIXEL NUMERALS — drawn, not typeset, so they stay square at
+   any size and match the mark rather than the body text.
+   ============================================================ */
+
+.pix {
+  display: block;
+  height: 1em;
+  width: auto;
+}
+
+.index__num .pix { height: .8rem; }
+
+.index__item.is-current .index__num .pix { height: .95rem; }
+
+/* ============================================================
+   FOOTER — three aligned fields on a wide screen, one centred
+   stack on a narrow one. The glyph row and the tagline belong
+   together, so they travel as a single middle field instead of
+   being two more items in a wrapping row.
+   ============================================================ */
+
+.footer {
+  border-top: 1px solid var(--rule-hi);
+  padding-block: 2.5rem 3.5rem;
+  font-size: .6875rem;
+  letter-spacing: .08em;
+  color: var(--ink-64);
+  text-transform: uppercase;
+
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.footer a { border-bottom: 1px solid var(--rule-hi); }
+.footer a:hover { border-bottom-color: currentColor; }
+
+.footer__side {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  justify-self: start;
+}
+
+.footer__side--end {
+  justify-self: end;
+  text-align: right;
+}
+
+.footer__mid {
+  display: grid;
+  justify-items: center;
+  gap: .5rem;
+  text-align: center;
+}
+
+.footer__glyphs {
+  font-size: .9375rem;
+  letter-spacing: .3em;
+  /* the trailing letter-space would otherwise push the row left */
+  text-indent: .3em;
+  line-height: 1;
+}
+
+.tagline {
+  text-transform: none;
+  letter-spacing: .04em;
+  color: var(--ink);
+}
+
+@media (max-width: 46rem) {
+  .footer {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    gap: 1.75rem;
+  }
+  .footer__side,
+  .footer__side--end {
+    justify-self: center;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+/* ============================================================
+   LINK ROWS — the name carries the link, so the row itself is no
+   longer one large target and the hostname column is gone.
+   ============================================================ */
+
+.row--link { grid-template-columns: 1fr auto; }
+
+.row__link {
+  border-bottom: 1px solid var(--rule-hi);
+  transition: color .2s ease, border-color .2s ease;
+}
+
+.row__link:hover,
+.row__link:focus-visible {
+  color: var(--live);
+  border-bottom-color: var(--live);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row__link { transition: none; }
+}
+
+/* ============================================================
+   PORTFOLIO REEL — one row high whatever the playlist length.
+   Scroll-snap does the work: a swipe is native on touch, the
+   arrows exist only because a mouse has nothing to swipe with.
+   ============================================================ */
+
+#portfolioPlayer { margin-bottom: 1.25rem; }
+
+.reel { position: relative; }
+
+.reel__track {
+  display: flex;
+  gap: .75rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 0;
+  padding-bottom: .75rem;
+  /* a hairline scrollbar rather than the platform's chrome */
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-hi) transparent;
+}
+
+.reel__track::-webkit-scrollbar { height: 3px; }
+.reel__track::-webkit-scrollbar-track { background: var(--rule); }
+.reel__track::-webkit-scrollbar-thumb { background: var(--rule-hi); }
+
+.reel__item {
+  flex: 0 0 auto;
+  width: clamp(9.5rem, 42vw, 13rem);
+  scroll-snap-align: start;
+  display: grid;
+  gap: .4rem;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.reel__item img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--well);
+  filter: grayscale(1) contrast(1.06);
+  transition: filter .35s ease;
+}
+
+.reel__title {
+  font-size: .75rem;
+  line-height: 1.35;
+  /* two lines, then clip — titles vary wildly in length and a
+     ragged strip reads as broken */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.reel__year {
+  font-size: .6875rem;
+  color: var(--ink-40);
+  font-variant-numeric: tabular-nums;
+}
+
+.reel__item:hover img,
+.reel__item:focus-visible img { filter: none; }
+
+.reel__item.is-playing img {
+  filter: none;
+  outline: 2px solid var(--live);
+  outline-offset: -2px;
+}
+.reel__item.is-playing .reel__title { color: var(--live); }
+
+.reel__nav {
+  display: none;
+  gap: .5rem;
+  justify-content: flex-end;
+  margin-top: .5rem;
+}
+
+/* Pointer devices have nothing to swipe, so they get arrows. */
+@media (hover: hover) and (pointer: fine) {
+  .reel__nav { display: flex; }
+}
+
+.reel__arrow {
+  appearance: none;
+  background: none;
+  border: 1px solid var(--rule-hi);
+  color: var(--ink-64);
+  font: inherit;
+  font-size: .8125rem;
+  line-height: 1;
+  padding: .35rem .7rem;
+  cursor: pointer;
+}
+
+.reel__arrow:hover { color: var(--live); border-color: var(--live); }
+
+@media (prefers-reduced-motion: reduce) {
+  .reel__item img { transition: none; }
+}
+
+/* ============================================================
+   404 — its own page, so it carries its own layout rather than
+   borrowing the index's. No JS: the glyphs are static SVG in the
+   markup, which keeps it working even if everything else fails.
+   ============================================================ */
+
+.nf {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: var(--pad);
+  text-align: center;
+}
+
+.nf__wrap {
+  max-width: 32rem;
+  display: grid;
+  justify-items: center;
+  gap: 1.5rem;
+}
+
+.nf__code { margin: 0; line-height: 0; color: var(--live); }
+
+.nf__num { width: clamp(7rem, 34vw, 12rem); height: auto; }
+
+.nf__title {
+  margin: 0;
+  font-family: var(--pixel);
+  font-size: clamp(.95rem, 3vw, 1.3rem);
+  font-weight: 400;
+  letter-spacing: .06em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.nf__body {
+  margin: 0;
+  max-width: 26rem;
+  font-size: .875rem;
+  line-height: 1.7;
+  color: var(--ink-64);
+}
+
+.nf__home { margin: .5rem 0 0; line-height: 0; }
+
+.nf__home .row__link {
+  display: inline-block;
+  border-bottom: 0;
+  color: var(--ink);
+}
+
+.nf__home .row__link:hover { color: var(--live); }
+
+.nf__mark { width: clamp(5.5rem, 22vw, 8rem); height: auto; }

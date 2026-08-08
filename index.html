@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>6UMMY</title>
+<meta name="description" content="6UMMY — DJ, collector and curator based in Montevideo, Uruguay. Techno, House, and Rares. Livestreams, gigs, and vinyl since 2004.">
+<meta name="author" content="6ummy">
+<meta name="theme-color" content="#1A1A1A">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="6UMMY">
+<meta property="og:description" content="DJ, collector and curator based in Montevideo, Uruguay. Techno, House, and Rares. Livestreams, gigs, and vinyl since 2004.">
+<meta property="og:url" content="https://6ummy.xyz/">
+<meta property="og:image" content="https://6ummy.xyz/assets/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://6ummy.xyz/assets/img/og.png">
+<meta name="twitter:site" content="@6ummy">
+
+<!-- Content-Security-Policy. GitHub Pages cannot set response headers,
+     so this is the meta form — it covers everything except
+     frame-ancestors, which meta cannot express.
+
+     Every host here is one the site actually uses: thumbnails from
+     YouTube and Discogs, the three media players, and the Worker.
+     style-src and script-src are strict because there is no inline
+     script and no inline style anywhere in the build. formspree and
+     web3forms are pre-authorised so wiring formEndpoint later does
+     not silently break under this policy. -->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  base-uri 'none';
+  object-src 'none';
+  script-src 'self';
+  style-src 'self';
+  font-src 'self';
+  img-src 'self' data: https://i.ytimg.com https://i.discogs.com https://img.discogs.com;
+  connect-src 'self' https://6ummy-api.6ummy-xyz.workers.dev;
+  frame-src https://www.youtube-nocookie.com https://player.twitch.tv https://w.soundcloud.com;
+  form-action 'self' https://formspree.io https://api.web3forms.com;
+">
+
+<!-- Structured data. Static rather than generated from content.js:
+     crawlers that don't run JS still get it, and it's the one place
+     duplication is worth the reliability. Keep in sync with the
+     identity + elsewhere blocks in assets/js/content.js. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://6ummy.xyz/#person",
+      "name": "6UMMY",
+      "alternateName": "6ummy",
+      "url": "https://6ummy.xyz/",
+      "image": "https://6ummy.xyz/assets/img/og.png",
+      "jobTitle": "DJ, collector and curator",
+      "description": "DJ, collector and curator based in Montevideo, Uruguay. Techno, House, and Rares. Livestreams, gigs, and vinyl since 2004.",
+      "knowsLanguage": ["en", "es"],
+      "homeLocation": {
+        "@type": "Place",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Montevideo",
+          "addressCountry": "UY"
+        }
+      },
+      "sameAs": [
+        "https://x.com/6ummy",
+        "https://soundcloud.com/6ummy",
+        "https://www.twitch.tv/6ummy",
+        "https://www.youtube.com/@10mopiso",
+        "https://www.youtube.com/@domingo_feliz",
+        "https://www.discogs.com/user/6ummy",
+        "https://opensea.io/6ummy",
+        "https://objkt.com/@6ummy",
+        "https://nightwatcher.life"
+      ]
+    },
+    {
+      "@type": "MusicGroup",
+      "@id": "https://6ummy.xyz/#act",
+      "name": "6UMMY",
+      "url": "https://6ummy.xyz/",
+      "genre": ["Techno", "House", "Rares"],
+      "foundingDate": "2004",
+      "foundingLocation": {
+        "@type": "Place",
+        "name": "Montevideo, Uruguay"
+      },
+      "member": { "@id": "https://6ummy.xyz/#person" }
+    },
+    {
+      "@type": "ProfilePage",
+      "@id": "https://6ummy.xyz/#page",
+      "url": "https://6ummy.xyz/",
+      "name": "6UMMY",
+      "inLanguage": "en",
+      "mainEntity": { "@id": "https://6ummy.xyz/#person" }
+    }
+  ]
+}
+</script>
+
+<link rel="canonical" href="https://6ummy.xyz/">
+<link rel="alternate" hreflang="en" href="https://6ummy.xyz/">
+<link rel="alternate" hreflang="es" href="https://6ummy.xyz/?lang=es">
+
+<!-- The real mark at every size. It's pixel art on a 40×40 grid, so
+     16 and 32 are non-integer downscales — these were resampled with
+     Lanczos, which keeps the ring and the figure readable where
+     nearest-neighbour drops whole rows of blocks. -->
+<link rel="icon" type="image/png" sizes="16x16" href="assets/img/icon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/icon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="assets/img/icon-48.png">
+<link rel="icon" type="image/png" sizes="80x80" href="assets/img/icon-80.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/icon-180.png">
+
+<link rel="preconnect" href="https://www.googleapis.com" crossorigin>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+<!-- ========== STATUS BAR ========== -->
+<header class="status" id="status">
+  <span class="status__mark">6</span>
+  <span class="status__state">
+    <span class="dot" aria-hidden="true"></span>
+    <span id="stateLabel" aria-live="polite">
+      <span data-en>Off air</span><span data-es>Fuera del aire</span>
+    </span>
+  </span>
+  <span class="status__clock">MVD <span id="clock">--:--</span></span>
+  <button class="lang" id="langBtn" type="button" aria-label="Cambiar a español">ES</button>
+</header>
+
+<main>
+
+  <!-- ========== HERO ========== -->
+  <section class="hero wrap">
+    <h1 class="wordmark" id="wordmark">6UMMY</h1>
+
+    <dl class="specs" id="specs"></dl>
+
+    <p class="bio">
+      <span data-en id="bioEn"></span><span data-es id="bioEs"></span>
+    </p>
+
+    <figure class="hero__img" id="heroImg" hidden></figure>
+  </section>
+
+  <!-- ========== STREAM ========== -->
+  <section class="section wrap" id="stream-section">
+    <div class="section__head">
+      <h2><span data-en>Stream</span><span data-es>En vivo</span></h2>
+      <span class="section__note" id="streamNote"></span>
+    </div>
+    <div class="embed embed--video" id="twitchEmbed">
+      <button class="embed__btn" type="button" data-embed="twitch">
+        <span data-en>Load stream</span><span data-es>Cargar transmisión</span>
+        <small>twitch.tv/6ummy</small>
+      </button>
+    </div>
+  </section>
+
+  <!-- ========== DATES ========== -->
+  <section class="section wrap" id="dates-section">
+    <div class="section__head">
+      <h2><span data-en>Dates</span><span data-es>Fechas</span></h2>
+      <span class="section__note" id="datesNote"></span>
+    </div>
+    <div id="dates">
+      <p class="empty">
+        <span data-en>Loading dates…</span><span data-es>Cargando fechas…</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== SETS ========== -->
+  <section class="section wrap" id="sets-section">
+    <div class="section__head">
+      <h2><span data-en>Sets</span><span data-es>Sesiones</span></h2>
+    </div>
+    <div id="sets"></div>
+  </section>
+
+  <!-- ========== PORTFOLIO ========== -->
+  <section class="section wrap" id="portfolio-section">
+    <div class="section__head">
+      <h2><span data-en>Portfolio</span><span data-es>Portafolio</span></h2>
+      <span class="section__note" id="portfolioNote"></span>
+    </div>
+    <div class="embed embed--video" id="portfolioPlayer" hidden></div>
+    <div class="reel" id="portfolio"></div>
+  </section>
+
+  <!-- ========== CRATE ========== -->
+  <section class="section wrap" id="crate-section">
+    <div class="section__head">
+      <h2><span data-en>Crate</span><span data-es>Cajón</span></h2>
+      <span class="section__note" id="crateNote"></span>
+    </div>
+    <div class="rows" id="crate"></div>
+  </section>
+
+  <!-- ========== ELSEWHERE ========== -->
+  <section class="section wrap" id="elsewhere-section">
+    <div class="section__head">
+      <h2><span data-en>Elsewhere</span><span data-es>En otros lados</span></h2>
+    </div>
+    <div class="rows" id="elsewhere"></div>
+  </section>
+
+  <!-- ========== CONTACT ========== -->
+  <section class="section wrap" id="contact-section">
+    <div class="section__head">
+      <h2><span data-en>Bookings &amp; contact</span><span data-es>Contrataciones y contacto</span></h2>
+    </div>
+
+    <form class="form" id="contactForm" novalidate>
+      <div class="field">
+        <label for="f-name"><span data-en>Name</span><span data-es>Nombre</span></label>
+        <input id="f-name" name="name" type="text" autocomplete="name" required>
+      </div>
+      <div class="field">
+        <label for="f-email"><span data-en>Email</span><span data-es>Correo electrónico</span></label>
+        <input id="f-email" name="email" type="email" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <label for="f-msg"><span data-en>Message</span><span data-es>Mensaje</span></label>
+        <textarea id="f-msg" name="message" rows="4" required></textarea>
+      </div>
+
+      <!-- honeypot: replaces reCAPTCHA, costs 0 KB -->
+      <div class="hp" aria-hidden="true">
+        <label for="f-company">Company</label>
+        <input id="f-company" name="company" type="text" tabindex="-1" autocomplete="off">
+      </div>
+
+      <button class="btn" type="submit">
+        <span data-en>Send</span><span data-es>Enviar</span>
+      </button>
+      <p class="form__msg" id="formMsg" role="status"></p>
+    </form>
+  </section>
+
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer class="footer wrap">
+  <div class="footer__side">
+    <span id="support"></span>
+  </div>
+
+  <div class="footer__mid">
+    <span class="footer__glyphs" id="glyphs" aria-hidden="true"></span>
+    <span class="tagline" id="tagline"></span>
+  </div>
+
+  <div class="footer__side footer__side--end">
+    <span>Montevideo, UY</span>
+    <span>© 2004–<span id="year"></span> 6UMMY</span>
+  </div>
+</footer>
+
+<script src="assets/js/content.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+# 6UMMY
+
+> DJ, collector and curator based in Montevideo, Uruguay. Techno, House,
+> and Rares. Livestreams, gigs, and vinyl since 2004.
+
+Personal site. Single page, bilingual (English / Spanish), no tracking,
+no cookies. Live data is served from a Cloudflare Worker; everything
+degrades to readable text if it is unreachable.
+
+## Identity
+- Name: 6UMMY (also written 6ummy)
+- Based: Montevideo, Uruguay (UTC-3)
+- Active since: 2004
+- Formats: vinyl and digital
+- Styles: techno, house, rares
+- Contact: sync@6ummy.xyz
+
+## Sections
+- Stream — live Twitch status and player
+- Dates — upcoming gigs, falls back to recent past dates
+- Sets — recorded SoundCloud sessions
+- Portfolio — curated YouTube playlist
+- Crate — record collection, newest first, from Discogs
+- Elsewhere — profiles and projects
+- Bookings & contact
+
+## Elsewhere
+- https://x.com/6ummy
+- https://soundcloud.com/6ummy
+- https://www.twitch.tv/6ummy
+- https://www.youtube.com/@10mopiso (Décimo Piso)
+- https://www.youtube.com/@domingo_feliz (DMF)
+- https://www.discogs.com/user/6ummy
+- https://opensea.io/6ummy
+- https://objkt.com/@6ummy
+- https://nightwatcher.life
+
+## Canonical
+- https://6ummy.xyz/
