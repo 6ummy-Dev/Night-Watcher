@@ -788,9 +788,17 @@ win.addEventListener("load", function(){
     /* The master chooser opens every tab (1.5.6). */
     ["home", "next", "watch", "stats"].forEach(function(tab){
       S.tab = tab; S.beltOpen = false; win.render();
-      var first = doc.getElementById("view").children[0];
+      /* 3.5.0: the belt travels with its park sentinel — the 1px beltguide the
+         IntersectionObserver watches, since a sticky strip cannot report its
+         own parking and reading its geometry is the layout read section 120
+         refuses. The sentinel is part of the belt, so "opens with the belt"
+         now means both of them, in order. */
+      var kids = doc.getElementById("view").children;
       check(tab + " opens with the belt",
-            !!first && first.className.indexOf("pathseg") >= 0, first && first.className);
+            !!kids[0] && kids[0].className === "beltguide" &&
+            !!kids[1] && kids[1].className.indexOf("pathseg") >= 0,
+            (kids[0] ? kids[0].className : "(none)") + " / " +
+            (kids[1] ? kids[1].className : "(none)"));
       check(tab + " keeps the pouches closed until asked",
             !doc.querySelector("#view .includes"));
       doc.querySelector('#view [data-act="belt"]').click();
@@ -808,7 +816,8 @@ win.addEventListener("load", function(){
 
     doc.querySelector('#view [data-act="belt"]').click();
     var iSeg = posOf(".pathseg"), iInc = posOf(".includes"), iHero = posOf(".hero");
-    check("the controls come first", iSeg === 0, "pathseg at " + iSeg);
+    check("the controls come first", iSeg === 1 && posOf(".beltguide") === 0,
+          "pathseg at " + iSeg + ", beltguide at " + posOf(".beltguide"));
     check("the two control groups are adjacent", iInc === iSeg + 1,
           "pathseg " + iSeg + ", includes " + iInc);
     check("the card comes after what governs it", iHero > iInc,
@@ -1652,6 +1661,11 @@ win.addEventListener("load", function(){
       ["home", "next", "watch", "stats"].forEach(function(t){ S.tab = t; win.render(); sweep(); });
       doc.documentElement.setAttribute("data-theme", "darker"); sweep();
       doc.documentElement.setAttribute("data-theme", "dark");
+      /* 3.5.0: the parked flag is set by an IntersectionObserver jsdom does not
+         have, so the parked state is staged the way data-theme is — the sweep
+         asks whether the selectors can match, not whether the observer fired. */
+      doc.documentElement.setAttribute("data-beltpark", ""); sweep();
+      doc.documentElement.removeAttribute("data-beltpark");
       var dead = sels.filter(function(sel){ return !matched[sel]; });
       check("every CSS rule matches something in some state",
             dead.length === 0, dead.join("  |  "));

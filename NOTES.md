@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 127 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 128 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -2432,3 +2432,84 @@ release exists to stamp out.
 Serve the copy on its own port and pass `NW_URL`. Done properly, both new
 assertions go red: the group element is replaced, and the height falls
 `3512 → 66` with the document at `15347 → 11901`.
+
+## The belt parks as the peek, and what 12px is allowed to say
+
+3.5.0, Stage B of `releases/plan-belt-release.md`. The strip is
+`position:sticky` and parks under the header with `--belt-peek` (12px) of
+itself showing — a rail with one lit chunk at left, middle or right. Position
+encodes the path; the band carries no text, no buckle line, no second channel.
+That rule is why the peek exists at all, and it is the locked design's, not
+this file's.
+
+**The chunk lights from `S.mode`, and `aria-pressed` stays on `S.path`, and the
+difference is the whole point.** `S.mode` is the ordering on screen right now;
+`S.path` is the one you committed to. They diverge from any Progress count and
+any deep link, and stay diverged until you move them back. A peek lit from
+`S.path` is confidently wrong in exactly that state — worse than the blank rail
+F4 worried about, which barely exists (`S.mode` is never empty, so there is
+always one lit chunk, and the pre-choice conditional the design once proposed
+was never needed). Pressed means picked, lit means here; `viewWatch()` prints
+both facts in words directly under the strip, so the peek inherits a
+distinction the app already states rather than inventing one. F4 is superseded
+by this, not answered.
+
+**While parked, the strip's buttons go `visibility:hidden`, which is three
+fixes in one property.** The mock's `elementFromPoint` across the parked band
+read `BUTTON life · continuity · release · buckle` — a 12px touch target
+against the 44px floor, attached to silently re-ordering the entire list.
+`visibility:hidden` removes the buttons from hit-testing, from the tab order,
+and from the accessibility tree in one line, with no attribute juggling for
+`render()` to erase. The strip itself becomes the one handle: tap = calm scroll
+home. A keyboard reader keeps the wordmark (guard 47) as the route to the top;
+the parked band is a sign with a pointer affordance, not a focus stop — 12px
+was never going to be an honest keyboard target.
+
+**The parked flag is an `IntersectionObserver` on a 1px sentinel, and the flip
+is deliberately late.** A sticky element never leaves the viewport, so it
+cannot report its own parking; reading its geometry is the layout read section
+120 refuses; and the exact pin offset involves `env(safe-area-inset-top)`,
+which no script can read without `getComputedStyle`. So the sentinel rides at
+the strip's natural position and the flag flips when it leaves the viewport
+top — a few dozen pixels after sticky engages. In that window the band has not
+yet slid in and the strip's bottom edge shows its ordinary segment bottoms,
+which is the same thing every other element does while scrolling under the
+header. The flag lives on `<html>` because `render()` replaces `#view` on
+every tick; the observer is re-pointed at the new sentinel at the end of every
+render, and the attribute never flips on a re-render, which is why the
+entrance cannot replay the way the pouches once did (2.2.1). A browser without
+`IntersectionObserver` never sets the flag: the strip still parks and its
+buttons stay live — a degradation accepted by the 2019 support baseline, and
+recorded here rather than guarded around.
+
+**The entrance is a transition because `*` does not match pseudo-elements.**
+Q2's trap, one layer deeper than the plan wrote it: the reduced-motion block
+was `*{transition:none!important}`, which covers every element and not one
+`::before`. The band's slide is a transition on the pseudos, so the block now
+reads `*,::before,::after` — the extension the plan's "extend the explicit
+list" option meant. A keyframe entrance would have slipped the block entirely;
+guard 128 asserts the mechanism chosen is one reduced motion actually covers,
+and the negative suite makes both halves fail.
+
+**71, not 70.** The header is `12 + 46 + 12` of padding and row plus a 1px
+border, and `offsetHeight` — the JS override's read — includes the border. The
+old `--ghtop` fallback said 70 and lost nothing because a group header parks
+*behind* the border; the belt loses a twelfth of its peek. One `--hdrh` in
+`:root`, border included; `--ghtop` derives from it plus the peek (F3 — the
+era headers pin below the band, not under it); the belt's top derives from all
+three; the storage-blocked override writes `--hdrh` so the fallback and the
+override are two answers to the same question through the same variable.
+`--beltH` is 46: the 44px button floor guard 62/75 holds, plus the strip's two
+borders.
+
+**F14 ships as one condition on `position`, and the staged close is what makes
+it safe.** An open belt is `data-held` — in flow, scrolling away with its
+pouches; there is no state in which a peek and a pouch are on screen together.
+The buckle's staged close leaves the old render's `data-held` in the DOM until
+the deferred re-render, so a closing belt stays in flow while the exit plays —
+the `:not(.closing)` machinery the design describes belongs to Stage C's
+mid-close parking, which does not exist yet. Stage C, whole — the drop, the
+anchor, the retraction, F9/F13's reversals of 2.0.0, and section 96's growth
+for all of it — waits on the guard-120 argument, or on the CSS positioning
+answer that would make the argument unnecessary. Deferred with the release
+valve the plan named, not dropped.

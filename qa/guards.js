@@ -102,6 +102,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      60   One left edge for the group chips
      63   The grid columns have a floor
      119  Where to watch has a rank of its own
+     128  The Belt parks as the peek, and the peek tells the truth
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -7882,10 +7883,11 @@ var ROUTE_VOCAB = [
      "above — one read, two property names, which is the whole reason this " +
      "section counts property names rather than statements"],
     ["offsetHeight", 1,
-     "the header's own height, measured once to set --ghtop when the store is " +
-     "blocked. Read THEN write, which is the correct order and not a forced " +
-     "reflow — recorded rather than refused, so that a second appearance has " +
-     "to be argued for"]
+     "the header's own height, measured once to set --hdrh when the store is " +
+     "blocked (it wrote --ghtop until 3.5.0 derived --ghtop from --hdrh — one " +
+     "source, section 128). Read THEN write, which is the correct order and " +
+     "not a forced reflow — recorded rather than refused, so that a second " +
+     "appearance has to be argued for"]
   ];
 
   REFUSED.forEach(function(prop){
@@ -8478,6 +8480,232 @@ var ROUTE_VOCAB = [
   }
   note("storage: failed read stops the writes, failed write retries, three " +
        "containers shaped on the way in, timestamps validated");
+})();
+
+/* ---------- 128. The Belt parks as the peek, and the peek tells the truth - */
+/* 3.5.0, Stage B of releases/plan-belt-release.md — the sticky strip, the
+   offset unification, and the parked strip as one inert handle. Stage C (the
+   drop) is NOT here: its guard rows land with it, because a guard that cannot
+   be green against the tree it ships with is a wish (the section-120 lesson).
+
+   THE PEEK HAS EXACTLY ONE JOB: say which of the three orderings the list in
+   front of you is in. S.mode is that variable — it moves with every Progress
+   count, deep link and "Back to my path". S.path is what you COMMITTED to,
+   and in the divergent state (S.mode !== S.path) a peek lit from S.path would
+   be confidently wrong about the list it is parked over. The share card has
+   read S.path || S.mode for this exact reason since it shipped; viewWatch()
+   prints both facts in words. The mock read S.path because aria-pressed was
+   nearest to hand — right in every state the mock could reach, wrong in the
+   one it could not. */
+
+(function(){
+  var mc = optionalFn("masterChooser", "there is no belt to park");
+
+  /* (Q1) The peek lights from S.mode, never from S.path. */
+  if(!/data-lit="'\+S\.mode\+'"/.test(mc)){
+    fail("the peek does not light from S.mode — data-lit is the lit chunk's " +
+         "position, and S.mode is where you ARE. Lit from anything else, the " +
+         "12px rail lies in the divergent state (S.mode !== S.path), which is " +
+         "reachable from every Progress count and every shared link. The share " +
+         "card's own line reads S.path || S.mode for exactly this reason");
+  }
+  if(/data-lit="'\+S\.path/.test(mc)){
+    fail("the peek lights from S.path — that is what you PICKED, not where you " +
+         "are. A parked rail lit from S.path answers the peek's one question " +
+         "with the wrong ordering whenever S.mode has moved, and it persists " +
+         "until you move it back");
+  }
+  /* (Q1a) …while aria-pressed stays on S.path, on purpose. Pressed is what
+     you picked; lit is where you are. viewWatch() renders "Viewing X. Your
+     path is Y." directly under this strip — the peek inherits a distinction
+     the app already states in words, and "fixing" the disagreement repairs a
+     bug that is not there. */
+  if(!/aria-pressed="'\+\(S\.path===m\[0\]\)\+'"/.test(mc)){
+    fail("the belt's segments no longer press from S.path — pressed means " +
+         "committed, lit means current, and viewWatch()'s two-line banner is " +
+         "the reason they are different variables on purpose");
+  }
+  /* The chunk's three positions are the segments' own thirds, in PATHS order. */
+  [["life", "0"], ["continuity", "26%"], ["release", "52%"]].forEach(function(p){
+    if(!new RegExp("\\.pathseg\\[data-lit=\"" + p[0] + "\"\\]::after\\{left:" +
+                   p[1].replace("%", "%") + ";\\}").test(HTML)){
+      fail("the peek's lit chunk has no position for \"" + p[0] + "\" at left:" +
+           p[1] + " — position encodes the path, left/middle/right at the " +
+           "segments' own 26% thirds, and a chunk that cannot reach one " +
+           "ordering cannot say it");
+    }
+  });
+
+  /* (F14) `position` on the strip carries exactly ONE condition: an open belt
+     never parks — it leaves with its pouches, and the peek arrives once they
+     are gone. The staged close keeps the old render's data-held in the DOM
+     until the deferred re-render, so a closing belt stays in flow while the
+     pouches play out. A SECOND condition on position, from any other cause,
+     is the treatment-for-one-state-applied-to-all mistake arriving early. */
+  var strip = (HTML.match(/\.pathseg\{[^}]*\}/) || [""])[0];
+  if(!/position:sticky/.test(strip) ||
+     !/top:calc\(var\(--hdrh\) \+ var\(--belt-peek\) - var\(--beltH\)\)/.test(strip)){
+    fail("the strip is not sticky at calc(--hdrh + --belt-peek - --beltH) — " +
+         "either the belt no longer parks as the peek, or its parked offset " +
+         "stopped deriving from the one source section 128 pins");
+  }
+  if(!/\.pathseg\[data-held\]\{position:relative;\}/.test(HTML)){
+    fail("an open belt parks — .pathseg[data-held]{position:relative;} is the " +
+         "F14 rule: a belt with its pouches out is a belt in use, and it " +
+         "scrolls away with them. Without it the strip pins as a peek while " +
+         "its pouches carry on below at full size");
+  }
+  var posRules = (HTML.match(/\.pathseg[^ {,]*\{[^}]*position:[^}]*\}/g) || [])
+    .filter(function(r){ return !/\.pathseg \./.test(r) && !/::/.test(r); });
+  if(posRules.length !== 2){
+    fail("`position` on the strip carries " + posRules.length + " rules; this " +
+         "build was reviewed with exactly 2 — sticky, and F14's data-held " +
+         "release. A third condition is a new state nobody argued for");
+  }
+  if(!/\(S\.beltOpen \? ' data-held=""' : ''\)/.test(mc)){
+    fail("data-held does not render from S.beltOpen — F14's condition has to " +
+         "come from the state that opened the pouches, or the two go out of " +
+         "sync on the first re-render");
+  }
+
+  /* (F1/B2) One source for every offset the header casts. 71 is 12 + 46 + 12
+     + the 1px border — the border is F1's finding: a peek built against 70
+     renders 11px. The JS override reads the header's real box (which includes
+     the border) when the no-save banner grows it, so the CSS fallback agrees
+     with the override only if it carries the border too. */
+  if(!/--hdrh:calc\(env\(safe-area-inset-top\) \+ 71px\);/.test(HTML)){
+    fail("--hdrh is not env(safe-area-inset-top) + 71px — 12 + 46 + 12 + the " +
+         "1px border. 70 is the group-header arithmetic that loses nothing by " +
+         "parking 1px behind the border; the belt loses a twelfth of its peek");
+  }
+  if(!/--ghtop:calc\(var\(--hdrh\) \+ var\(--belt-peek\)\);/.test(HTML)){
+    fail("--ghtop no longer derives from --hdrh + --belt-peek — F3: a pinned " +
+         "era header must park exactly one peek below the header, or the belt " +
+         "clips the era title it parks over");
+  }
+  if(/--ghtop, calc\(/.test(HTML)){
+    fail("a call site carries its own --ghtop fallback constant — the one " +
+         "source is :root, and a local fallback is the 70/71 drift waiting to " +
+         "happen a third time");
+  }
+  var fsv = fn("flagSave");
+  if(!/setProperty\("--hdrh"/.test(fsv) || /setProperty\("--ghtop"/.test(fsv)){
+    fail("flagSave() does not override --hdrh (or still overrides --ghtop) — " +
+         "the JS override and the CSS fallback are two answers to one " +
+         "question, and they only agree while both describe the whole header, " +
+         "border included, through the same variable");
+  }
+
+  /* (Q2) The peek's entrance is a mechanism reduced motion actually covers.
+     The reduced-motion block is *{transition:none} — and * does not match
+     pseudo-elements, so an entrance authored as a transition on ::before/
+     ::after slips it unless the block names them. An entrance authored as a
+     keyframe slips it entirely. Assert the mechanism, not the motion. */
+  var band = (HTML.match(/\.pathseg::before,\.pathseg::after\{[^}]*\}/) || [""])[0];
+  if(!band){
+    fail("the peek band is gone — no ::before rail and ::after chunk on the " +
+         "strip means the parked 12px shows the segments' own bottoms, which " +
+         "light from aria-pressed, which is S.path: Q1's lie by another route");
+    return;
+  }
+  if(!/transition:transform [^;]*,opacity [^;}]*/.test(band) || /animation:/.test(band)){
+    fail("the peek's entrance is not a transition — Q2's trap: the " +
+         "reduced-motion block cuts transitions, and an @keyframes entrance " +
+         "slides down for the reader who asked it not to");
+  }
+  if(!/pointer-events:none/.test(band)){
+    fail("the peek band takes pointer events — the strip is the handle, and a " +
+         "band that eats the tap makes the handle a dead zone exactly where " +
+         "it is visible");
+  }
+  if(!/@media \(prefers-reduced-motion:reduce\)\{\*,::before,::after\{transition:none!important;\}\}/.test(HTML)){
+    fail("the reduced-motion block does not reach pseudo-elements — " +
+         "*{transition:none} does not match ::before/::after, so the peek's " +
+         "entrance would play for a reader who asked for no motion. The block " +
+         "must name them: *,::before,::after");
+  }
+
+  /* (Q4) The two --hdr declarations move together. The token LOOKS like one
+     value and is declared twice — default theme and darker. F2's ghosting fix
+     raised the default; the rule is the relationship, not the two literals:
+     if one alpha moves, the other moves with it. Same lesson as the ring and
+     the bat in 3.0.0 — pin the relationship, survive the next honest change. */
+  var alphas = [];
+  (HTML.match(/--hdr:rgba\([^)]*\)/g) || []).forEach(function(d){
+    var a = d.match(/,\s*(\.?\d+(?:\.\d+)?)\)$/);
+    if(a) alphas.push(a[1]);
+  });
+  if(alphas.length !== 2){
+    fail("--hdr is declared " + alphas.length + " time(s); the two themes " +
+         "declare it twice, and a third declaration (or a lost one) is a " +
+         "theme this section has never seen");
+  } else if(alphas[0] !== alphas[1]){
+    fail("the two --hdr declarations have drifted apart (" + alphas.join(" vs ") +
+         ") — the parked belt ghosts through the blur in whichever theme was " +
+         "left behind, which is F2 fixed in one theme and shipped broken in " +
+         "the other");
+  }
+
+  /* (F5) While parked, the strip is not a control — the peek is ONE handle.
+     The parked band is 12px of the most destructive-feeling action in the
+     app; the fix is that its buttons leave the tree (visibility:hidden takes
+     them out of hit-testing AND the focus order AND the accessibility tree),
+     and the strip's own tap goes home. */
+  if(!/html\[data-beltpark\] \.pathseg:not\(\[data-held\]\) button\{visibility:hidden;\}/.test(HTML)){
+    fail("the parked strip's buttons are still live — elementFromPoint across " +
+         "the parked band read BUTTON life · continuity · release · buckle in " +
+         "the mock: a 12px touch target against the 44px floor, wired to " +
+         "silently re-ordering the entire list. visibility:hidden is the " +
+         "whole of F5: no hit-testing, no tab stop, no phantom in the " +
+         "accessibility tree");
+  }
+  var vh = HTML.indexOf('getElementById("view").addEventListener("click"');
+  var vhBlock = HTML.slice(vh, vh + 900);
+  if(!/data-beltpark/.test(vhBlock) || !/closest\(".pathseg"\)/.test(vhBlock) ||
+     !/calmScroll\(\)/.test(vhBlock)){
+    fail("a tap on the parked strip does not go home — the peek is one " +
+         "handle, and its answer is the calm scroll to the top, through " +
+         "calmScroll() so reduced motion jumps instead of gliding");
+  }
+  if(!/hasAttribute\("data-held"\)/.test(vhBlock)){
+    fail("the parked tap handler ignores data-held — with the belt open the " +
+         "strip is a working control, and sending that tap home is the drop " +
+         "failing at the only thing it is for");
+  }
+
+  /* The flag is written by an IntersectionObserver on the belt's own sentinel
+     — never a scroll listener, and never a layout read. A sticky element
+     never leaves the viewport, so it cannot report its own parking, and
+     reading its geometry is exactly what section 120 refuses. The flag lives
+     on <html>, outside #view, because render() replaces #view.innerHTML on
+     every tick and would erase it mid-entrance. */
+  if(!/class="beltguide"/.test(mc)){
+    fail("the belt has no park sentinel — nothing can say when the strip " +
+         "parked without reading layout, which section 120 refuses");
+  }
+  var bw = optionalFn("beltWatch", "nothing flips the parked flag");
+  if(!/IntersectionObserver/.test(bw) || !/data-beltpark/.test(bw) ||
+     !/beltguide/.test(bw)){
+    fail("beltWatch() does not observe the sentinel onto <html>'s " +
+         "data-beltpark — the parked flag has to come from an observer, " +
+         "live outside #view, and follow the sentinel across renders");
+  }
+  if(/addEventListener\("scroll"/.test(HTML)){
+    fail("a scroll listener arrived — the house rule since F6 is an " +
+         "IntersectionObserver, not a scroll listener: one fires when the " +
+         "answer changes, the other runs on every frame of every scroll " +
+         "forever");
+  }
+  if(!/beltWatch\(\);/.test(fn("render"))){
+    fail("render() does not re-point the belt observer — #view.innerHTML is " +
+         "replaced on every tick, so the observed sentinel is destroyed on " +
+         "every tick, and an observer watching a detached node reports " +
+         "nothing forever");
+  }
+
+  note("the belt parks as the peek: lit from S.mode, one position condition, " +
+       "offsets from --hdrh, entrance is a transition, parked strip is one " +
+       "handle, observer not listener");
 })();
 
 /* ---------- report ---------- */

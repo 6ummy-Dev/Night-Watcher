@@ -30,6 +30,102 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.5.0] — 2026-08-09
+
+**The Belt parks instead of leaving. Stage B of the belt-peek design — the
+peek — and nothing else.** After one scroll the app used to stop saying which
+of the three orderings you were in; now the strip slides up under the header
+and parks with 12px of itself still showing — a dark rail with one lit chunk,
+at left, middle or right. **Position encodes the path.** Tap it and the page
+scrolls calmly home to the whole belt. `releases/plan-belt-release.md` is the
+plan; `releases/design-belt-peek.md` holds the seven mock rounds it was built
+from.
+
+**Stage C — the drop, the belt that opens in place from anywhere — is
+deliberately NOT here.** Guard 120 refuses the layout read its strip-measured
+anchor was specified against, and moving a property out of that guard's
+`REFUSED` list is an argument to be made on its own, not improvised
+mid-build. Stage C becomes its own version, which is the release valve the
+plan named on the day it was written. Before that argument is had, there is a
+cheaper question: whether the pouches can be positioned from the strip in CSS,
+with no layout read at all — in which case guard 120 never applies.
+
+**No catalogue change. No saved progress touched.** MINOR, and it takes a tag
+— `v3.5.0`, the sixth.
+
+### Added
+
+- **The peek.** The strip is `position:sticky`, parked at
+  `calc(var(--hdrh) + var(--belt-peek) - var(--beltH))` — one peek below the
+  header's border, which is F1's finding: the header is 71px including its
+  border, not the 70 the group-header arithmetic used, and a peek built
+  against 70 renders 11px tall.
+- **The peek lights from `S.mode`, never from `S.path`.** `S.mode` is the
+  ordering on screen right now — it moves with every Progress count, every
+  deep link, every "Back to my path". `S.path` is the ordering you committed
+  to. In the divergent state a peek lit from `S.path` would confidently name
+  the wrong ordering for the list it is parked over, and that state is
+  reachable at any time and persists. The segments' `aria-pressed` stays on
+  `S.path` **on purpose**: pressed is what you picked, lit is where you are,
+  and `viewWatch()` already states both in words. Guard 128 holds the two
+  apart and its failure message says why.
+- **While parked, the strip is not a control.** The mock's `elementFromPoint`
+  across the parked band read four live buttons, 12px tall — the smallest
+  touch target in the app wired to the most destructive-feeling action in it.
+  Parked, the buttons go `visibility:hidden` — out of hit-testing, out of the
+  focus order, out of the accessibility tree — and the strip itself is one
+  handle: **tap = calm scroll home**, through the same reduced-motion check
+  every other scroll uses. The wordmark remains the keyboard route to the top,
+  as it has been since 1.x.
+- **An open belt never parks (F14).** It scrolls away with its pouches —
+  `position` on the strip carries exactly that one condition, and the staged
+  close keeps the old anchor until the exit has played. There is no state in
+  which a peek and a pouch are on screen together.
+- **The parked flag comes from an `IntersectionObserver` on a 1px sentinel
+  that travels with the belt** — never a scroll listener, and never a layout
+  read, which section 120 refuses. The flag lives on `<html>`, outside
+  `#view`, because `render()` replaces `#view` on every tick. The flip lands
+  a few dozen pixels after sticky engages — the honest price of measuring
+  nothing.
+- **The peek's entrance is a 200ms slide from behind the header, authored as
+  a transition — deliberately.** The reduced-motion block cuts transitions;
+  an `@keyframes` entrance would slip it. And `*{transition:none}` does not
+  match pseudo-elements, so the block now names them:
+  `*,::before,::after`. Guard 128 asserts the mechanism, not the motion.
+- **Guard section 128** — the peek's variable, the one position condition,
+  the offset derivation, the entrance's mechanism, the `--hdr` relationship,
+  the inert handle, the observer. **`negtest360.sh`, 24 fixtures**, three of
+  them conversions of the v2 mock's own defect toggles.
+
+### Changed
+
+- **Header opacity `.9` → `.96` — in both themes.** F2: the parked belt's
+  labels sat frozen behind the blur and ghosted through it; content that
+  scrolls under is meant to ghost, a control that parks is not. The darker
+  theme shipped at `.92` and was never in the mock — the owner's rule is the
+  general one: if the default moves, Darker moves with it. **Guard 128 pins
+  the relationship, not the literals** — the two `--hdr` alphas must agree,
+  so the next honest adjustment moves both or goes red.
+- **One source for every offset the header casts.** `--hdrh` (border
+  included) is declared once in `:root`, `--ghtop` derives from it plus
+  `--belt-peek`, the belt's parked top derives from all three, and the
+  storage-blocked JS override now writes `--hdrh` rather than `--ghtop` — so
+  the fallback and the override describe the same box through the same
+  variable. Pinned era headers park exactly one peek lower (F3), and no call
+  site carries its own fallback constant any more.
+- The belt renders behind a 1px sentinel on all five of its surfaces; smoke's
+  "opens with the belt" and "controls come first" now mean both elements, in
+  order, and the CSS sweep stages the parked state the way it stages
+  `data-theme`.
+
+### Deferred
+
+- **Stage C, whole** — the drop, the strip-measured anchor, the staged
+  retraction, F9's three planes, F13's one seam, and section 96's growth for
+  all of it. With Stage C, not around it.
+- The guard-120 amendment (or the CSS answer that makes it unnecessary), same
+  reason.
+
 ## [3.4.5] — 2026-08-09
 
 **The deep-QA round, and one of the six should never have been allowed to
