@@ -64,12 +64,12 @@ echo "--- 102: a tick burst writes once, and leaving flushes"
 run_case "persist writes inline again" \
   "not a trailing debounce" \
   "${P}a='''function persist(){
-  if(!canSave || !store) return;
+  if(!store || readFailed) return;
   if(persistTimer) clearTimeout(persistTimer);
   persistTimer = setTimeout(function(){ persistTimer = null; persistNow(); }, 200);
 }''';assert a in s
 s=s.replace(a,'''function persist(){
-  if(!canSave || !store) return;
+  if(!store || readFailed) return;
   persistNow();
 }''',1);${W}"
 
@@ -86,12 +86,12 @@ s=s.replace(a,'',1);${W}"
 run_case "and smoke sees the burst write synchronously" \
   "a tick burst does not write synchronously" \
   "${P}a='''function persist(){
-  if(!canSave || !store) return;
+  if(!store || readFailed) return;
   if(persistTimer) clearTimeout(persistTimer);
   persistTimer = setTimeout(function(){ persistTimer = null; persistNow(); }, 200);
 }''';assert a in s
 s=s.replace(a,'''function persist(){
-  if(!canSave || !store) return;
+  if(!store || readFailed) return;
   persistNow();
 }''',1);${W}" \
   "smoke" "main"

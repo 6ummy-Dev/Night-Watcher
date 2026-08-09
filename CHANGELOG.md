@@ -30,6 +30,126 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.4.5] — 2026-08-09
+
+**The deep-QA round, and one of the six should never have been allowed to
+ship.** An independent adversarial review of the 3.4.4 tree — three tracks
+beyond the harness, every claimed defect reproduced in jsdom or Chromium before
+it was written down — returned one HIGH, two MEDIUM and three LOW. **All of them
+are fixed here.** `qa/deep-qa-3.4.4-2026-08-09.md`.
+
+**No catalogue change. No saved progress touched, and nothing anyone has ticked
+moves.** Everything below is the storage layer, the a11y tree, or a guard.
+
+The review also went looking in the places this release series has been changing
+fastest — the targeted-update paths added across 3.4.x — and **found them
+clean**: every patched state is byte-identical to a full render of the same
+state, across modes, filters, active search and group completion. That is
+recorded here because it is the load-bearing property of the whole architecture
+and it now has an audit behind it rather than an argument.
+
+### Fixed
+
+- **A JSON backup could poison the saved path and break every later boot.**
+  `isPath()` was `return !!PATHCODE[id]` — a lookup that reads the prototype
+  chain. **A restored backup carrying `"path":"__proto__"` passed it**, set
+  `S.path` and `S.mode`, and threw inside `noteFor()` *after* the state had
+  mutated and *before* the render finished. **The debounced write scheduled a
+  moment earlier fired anyway and put the poison in storage.**
+
+  **From then on the app threw on every boot** — the static pre-render shell,
+  no progress visible, Home and Path throwing on every tap — and the only
+  recovery was clearing site data, **which is exactly the progress loss the
+  backup feature exists to prevent.** Reproduced end to end, twice,
+  independently.
+
+  The lookup now asks whether the key is `PATHCODE`'s own and whether what it
+  finds is the string a path code is. `BYID` is null-prototype for the same
+  reason one step downstream. **Only the JSON route was ever exposed** —
+  `importCode()` constrains the path to `c`/`l`/`r`. Guard 126, and the
+  `NOTES.md` note under `res` had predicted the shape of this two releases
+  early.
+
+- **A rejected read left saving switched on, and the next write overwrote
+  everything.** In `restore()`, the async backend's rejection path called
+  `finish(null)` without clearing `canSave`, unlike the synchronous throw three
+  lines below it. **The app booted empty, stayed willing to save, and the first
+  tick wrote a one-entry payload over the reader's whole saved state.** Only the
+  host-app backend can fail that way — which is precisely the embedded context
+  that backend exists for. **A read that failed means the stored state is
+  unknown, so the writes now stop for the session.**
+
+- **A corrupted payload could kill marking until a reset.** `S.watched =
+  o.watched || {}` accepted any truthy value, so a stored `"watched":"oops"`
+  made every `toggleWatched()` throw. `groupOpen` and `progOpen` five lines down
+  had had the right `typeof` check for releases; **the three containers holding
+  the actual progress did not.** They do now, and restored ratings go through
+  the clamp — a stored `9` used to survive into `S.rated`.
+
+- **One transient write failure used to latch saving off for the session.** Both
+  catch paths set `canSave = false` and nothing ever cleared it: after a single
+  quota-style throw, a healthy store was never tried again and **everything
+  after the blip was lost on close.** The banner was honest, which is why this
+  is a LOW rather than worse. **It clears itself now when a write lands** — a
+  blip is a blip. Guard 127 holds this and the rejected-read fix apart, on
+  purpose: they are opposite facts and fixing them the same way would undo one
+  of them.
+
+- **A log entry with `ts:null` dated itself 1970.** `isFinite(null)` is true, so
+  the entry became epoch 0 and sorted to the front of Activity.
+
+- **The "Restored N" toast counted names it had not restored.** `BYID` was a
+  plain object literal, so `BYID["constructor"]` answered truthy and inherited
+  names were counted as found — the apply loops then correctly dropped them.
+
+- **A malformed `#nw=%` left junk in the address bar and said nothing.**
+  `decodeURIComponent` threw inside the swallowing `try`, so there was no offer
+  and no cleanup. **`#nw=garbage` was already handled cleanly**; the two behave
+  the same way now.
+
+- **`revealHero()` mutated saved state without saving it.** The one
+  state-mutating site in the app that did not write. Self-healing on reload,
+  which is why it lasted.
+
+### Accessibility
+
+- **Progress was the only tab with an axe violation.** Its four headings were
+  `h3` under the wordmark's `h1` with no `h2` anywhere between them —
+  `heading-order`, moderate. **All four go up one level**; Home, The Path and
+  Next up already ran `h1` → `h2`. Nothing changes visually: the fold heading
+  takes `font:inherit` and the card titles were fully specified already.
+
+- **`ratingBadge()` put an `aria-label` on a bare `<span>`**, which ARIA
+  prohibits on generics and screen readers ignore — the certificate was
+  announced as its bare letter or not at all. It carries `role="img"` now. The
+  `.stars` case was already correct; it has `role="group"`.
+
+- **A keyboard user pressing the detail panel's Mark watched landed back on the
+  row's small tick.** The focus snapshot keyed on `{data-act, data-id}` and a
+  row holds **two** buttons matching `[data-act="watched"][data-id=…]`. Both
+  restores were right about which element had focus; **the key could not tell
+  the two apart.** The detail button carries `data-src="detail"` and both
+  snapshots read it.
+
+### Added
+
+- **Guard sections 126 and 127**, and `qa/negative/negtest350.sh` — 21 fixtures
+  that put each old shape back one at a time and require the new sections to go
+  red for it. **Fixtures matter more than usual here:** every one of these
+  guards was written with the defect already in front of it, and a guard written
+  that way will pass on a fixed tree while asserting nothing.
+
+### Recorded, not fixed
+
+- **`NOTES.md` now says what the additive cross-tab merge costs.** Writes are
+  whole-payload last-writer-wins, so **"Clear all progress" is silently false
+  with a second tab open** — the stale tab's next write puts everything back.
+  The same bias means a tab that merges a foreign tick and is never touched
+  again leaves that tick out of storage. **Both follow from the deliberate
+  anti-loss decision and neither is a defect in the merge**; the reset one is
+  worth knowing because the app says "Progress cleared" and means it about this
+  tab only.
+
 ## [3.4.4] — 2026-08-08
 
 **Corrective, and it is one finding reaching the tree.** **C0 — recorded here

@@ -56,6 +56,8 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      111  Watched and skipped are never both true
      50   Rating and progress stay separate
      87   A backup carries progress, not settings
+     126  A restored path cannot reach the prototype chain
+     127  A failed read stops the writes, a failed write does not
      102  A tick burst writes once, and leaving flushes
      103  The tick repaints one group, and cannot drift
 
@@ -1799,6 +1801,7 @@ if(!amax || amax[1] !== "3"){
    hand-edited and from other builds. Enforced on read, so it holds regardless. */
 
 var dedupeLog = new vm.Script(
+  optionalFn("validTs", "nothing would say what a usable timestamp is") + "\n" +
   optionalFn("dedupeLog", "a saved payload could hold two entries for one id") +
   "\ntypeof dedupeLog === 'function' ? dedupeLog : function(a){ return a; };"
 ).runInNewContext({});
@@ -1807,9 +1810,24 @@ if(dl.length !== 2) fail("dedupeLog left " + dl.length + " entries, expected 2")
 if(dl.map(function(e){ return e.id; }).join(",") !== "a,b"){
   fail("dedupeLog did not preserve first-seen order: " + dl.map(function(e){return e.id;}));
 }
-if(dl[0].ts !== 100) fail("dedupeLog kept ts " + dl[0].ts + ", expected the earliest (100)");
+/* 3.4.5 coupled this to validTs(), so an empty result is now reachable from a
+   defect in a different function — and dl[0].ts on an empty array ends the run
+   with a stack trace instead of the four failures underneath it. Same rule as
+   optionalFn(): a guard that dies says nothing. */
+if(!dl.length) fail("dedupeLog returned nothing for four well-formed entries");
+else if(dl[0].ts !== 100) fail("dedupeLog kept ts " + dl[0].ts + ", expected the earliest (100)");
 if(JSON.stringify(dedupeLog(dl)) !== JSON.stringify(dl)) fail("dedupeLog is not idempotent");
 if(dedupeLog([null, {ts:1}, {id:"a",ts:1}]).length !== 1) fail("dedupeLog admitted a junk entry");
+/* 3.4.5. mergeLog got validTs() for the ts:null case and this path did not,
+   which left the hole exactly where the audit had found it: restore() reads a
+   saved log through dedupeLog(), NOT through mergeLog(), so an entry with no
+   timestamp still reached S.log from storage and Activity still dated it 1970.
+   The two readers of foreign log data now agree on what a timestamp is. */
+if(dedupeLog([{id:"a",ts:null}, {id:"b",ts:1}, {id:"c"}, {id:"d",ts:"x"}]).length !== 1){
+  fail("dedupeLog admitted an entry with no usable timestamp — isFinite(null) " +
+       "is true, the entry becomes epoch 0, and Activity dates it 1970. " +
+       "restore() reads the saved log through here and not through mergeLog()");
+}
 if(!/dedupeLog\(Array\.isArray\(o\.log\)/.test(HTML)){
   fail("restore() does not pass the saved log through dedupeLog()");
 }
@@ -5635,7 +5653,7 @@ var ROUTE_VOCAB = [
     fail('"Share the night" is not the primary action \u2014 the owner\'s words');
   }
   var sbBlock = (HTML.match(/<div class="bk sharecard">[\s\S]*?<\/div><\/div>/) || [""])[0] ||
-                (HTML.match(/sharecard"><h3>[\s\S]{0,600}?bkbtns[\s\S]{0,400}?<\/div>/) || [""])[0];
+                (HTML.match(/sharecard"><h2>[\s\S]{0,600}?bkbtns[\s\S]{0,400}?<\/div>/) || [""])[0];
   var btnCount = (sbBlock.match(/data-act="card/g) || []).length;
   if(btnCount !== 1){
     fail("the share block offers " + btnCount + " card buttons \u2014 2.7.3 cut it " +
@@ -5742,9 +5760,17 @@ var ROUTE_VOCAB = [
   }
   /* 2.2.0 soak note: "make it a card, borders and title should be bigger
      same as all others". The block is a .bk card like every other block on
-     Progress, and its title is an h3 like theirs — not a qhead whisper. */
-  if(!/<div class="bk sharecard"><h3>Share your progress<\/h3>/.test(HTML)){
-    fail("the share block is not a card — .bk with an h3 title is what every " +
+     Progress, and its title is a real heading like theirs — not a qhead
+     whisper.
+
+     3.4.5 MOVED THE LEVEL AND NOT THE RULE. Every heading Progress renders was
+     an h3 under the wordmark's h1, with no h2 anywhere between them — the one
+     axe violation in the whole app, and the only tab that had one. The four
+     went up a level together, which is why this reads h2 now. What the owner
+     asked for was that the title match the other blocks, and it still does;
+     the level is the a11y tree's business, not the design's. */
+  if(!/<div class="bk sharecard"><h2>Share your progress<\/h2>/.test(HTML)){
+    fail("the share block is not a card — .bk with an h2 title is what every " +
          "other Progress block gets, and the owner asked for the same");
   }
   if(/class="qhead"[^>]*>Share your progress/.test(HTML)){
@@ -7043,7 +7069,14 @@ var ROUTE_VOCAB = [
     fail("mergeLog() is gone — the log merge is back to being written out at " +
          "each call site, which is exactly how the three sites above drifted");
   }
-  var dance = (HTML.match(/isFinite\(en\.ts\)/g) || []).length;
+  /* 3.4.5 MOVED THE SHAPE THIS COUNTED AND ALMOST LOST THE COUNT. mergeLog's
+     timestamp check became validTs(en.ts) — isFinite(null) is true, which is
+     how an entry with no timestamp came to date itself 1970 — and this pattern
+     went from matching once to matching nothing. A copied-out dance would then
+     have been the FIRST occurrence and passed. Both shapes are counted, because
+     a call site copying the loop out is exactly as likely to copy the old
+     isFinite version out of a stale editor buffer. */
+  var dance = (HTML.match(/(?:isFinite|validTs)\(en\.ts\)/g) || []).length;
   if(dance > 1){
     fail("the log-merge dance appears " + dance + " times — it was written out " +
          "twice and 3.0.0 made it one helper. A second copy is a second thing to " +
@@ -8099,8 +8132,29 @@ var ROUTE_VOCAB = [
     fail("tickUpdate() no longer reads document.activeElement, so it cannot " +
          "know which control held focus before it replaced the group");
   }
-  note("focus restores: preventScroll at every button site, and tickUpdate " +
-       "returns focus to the control that had it");
+  /* 3.4.4 deep QA §2.6. The snapshot keys on {data-act, data-id} and a row
+     holds TWO buttons matching [data-act="watched"][data-id=x] — the tick, and
+     the open detail panel's action button. Both restores rebuild a selector
+     from the snapshot and take the first match, which is the tick, so a
+     keyboard user who activated the detail button was put back on the small
+     tick at the other end of the row. Neither restore was wrong about which
+     element had focus; the KEY could not tell the two apart. data-src is the
+     discriminator, and it is only worth anything if both key lists carry it. */
+  if(!/data-act="watched" data-src="detail" data-id=/.test(HTML)){
+    fail("the detail panel's action button has no data-src, so it is " +
+         "indistinguishable from the row's own tick in a focus snapshot — a " +
+         "keyboard user who presses it lands back on the tick");
+  }
+  [["tickUpdate", /\["act", "id", "n", "gk", "tf", "src"\]/],
+   ["render", /"n","pk","src"\]/]].forEach(function(pair){
+    if(!pair[1].test(HTML)){
+      fail(pair[0] + "()'s focus snapshot no longer reads data-src, so the " +
+           "discriminator on the detail button is written and never used");
+    }
+  });
+  note("focus restores: preventScroll at every button site, tickUpdate " +
+       "returns focus to the control that had it, and data-src tells the " +
+       "row's two watched buttons apart");
 })();
 
 /* ---------- 124. Every face is asked for before the CSS finds it ---------- */
@@ -8216,6 +8270,214 @@ var ROUTE_VOCAB = [
   }
   note("robots.txt: " + line.replace(/^Content-Signal:\s*/, "") +
        ", sitemap named, everything allowed");
+})();
+
+/* ---------- 126. A restored path cannot reach the prototype chain ------ */
+/* 3.4.4 deep QA, finding 2.1, and it is the only defect this project has ever
+   shipped that broke the app on EVERY LATER BOOT rather than in the moment.
+
+   isPath() was `return !!PATHCODE[id]`, an inherited-property lookup on a plain
+   object literal. "__proto__", "constructor", "toString" — every name on
+   Object.prototype answered truthy, so a restored JSON backup carrying
+   "path":"__proto__" set S.path and S.mode to it. The apply then threw inside
+   noteFor (MODENOTE["__proto__"] is an object and .indexOf is not a function),
+   AFTER the state had mutated and BEFORE the render finished — and the
+   debounced persist scheduled just before the throw still fired, writing the
+   poison into localStorage. Every later boot threw at render: the static
+   pre-render shell, no progress visible, Home and Path throwing on every tap,
+   and the only way out was clearing site data, which is the progress loss the
+   whole backup feature exists to prevent.
+
+   NOTES.md said this in advance under `res`: the null-prototype discipline
+   covers the four progress containers, "but the protection should not depend on
+   that staying true". path is a scalar and was validated by isPath alone.
+
+   Two properties are pinned here, because the fix has two halves and either one
+   alone leaves a hole. The lookup must be an OWN-property lookup, and the value
+   it finds must be the string a real path code is. BYID is pinned null-prototype
+   for the same reason one step downstream: it is the other plain-object lookup
+   a hand-supplied id reaches, and BYID["constructor"] being truthy is what made
+   doRestore count inherited names into "Restored N". */
+
+(function(){
+  var box = {};
+  new vm.Script(
+    sliceOr("var HAS = Object.prototype.hasOwnProperty;", "function pathName") +
+    "\n" + optionalFn("isPath", "nothing would validate a restored path at all")
+  ).runInContext(vm.createContext(box));
+
+  if(typeof box.isPath !== "function"){
+    fail("section 126 cannot evaluate isPath(), so the path validator is unchecked");
+    return;
+  }
+  ["continuity", "life", "release"].forEach(function(ok){
+    if(box.isPath(ok) !== true){
+      fail("isPath() rejects " + ok + " — the hardening took a real path with it");
+    }
+  });
+  ["__proto__", "constructor", "toString", "valueOf", "hasOwnProperty",
+   "isPrototypeOf", "propertyIsEnumerable"].forEach(function(bad){
+    if(box.isPath(bad) !== false){
+      fail("isPath(\"" + bad + "\") is true — a name off Object.prototype passes " +
+           "as a path again. A JSON backup carrying it poisons S.path, throws " +
+           "mid-apply, and the persist that is already scheduled writes it to " +
+           "storage: the app then fails to render on every later boot and only " +
+           "clearing site data recovers it. qa/deep-qa-3.4.4-2026-08-09.md §2.1");
+    }
+  });
+  [null, undefined, 0, 1, true, {}, [], "", "nope"].forEach(function(bad){
+    if(box.isPath(bad) !== false){
+      fail("isPath() accepts " + JSON.stringify(bad) + ", which is not a path");
+    }
+  });
+  if(/return\s*!!\s*PATHCODE\[/.test(HTML)){
+    fail("isPath() is a bare truthiness lookup on PATHCODE again — that reads " +
+         "the prototype chain, and the restore path is reachable from a file " +
+         "the reader supplies");
+  }
+  if(!/HAS\.call\(PATHCODE, id\)/.test(HTML)){
+    fail("isPath() no longer asks PATHCODE whether the key is its own");
+  }
+  if(!/var BYID = Object\.create\(null\)/.test(HTML)){
+    fail("BYID is a plain object literal again. Every id in a restored payload " +
+         "is looked up in it, so BYID[\"constructor\"] answers truthy and the " +
+         "\"Restored N\" count includes names the apply loops then drop — the " +
+         "toast reports more than the app took");
+  }
+  note("prototype names refused: isPath rejects 7 Object.prototype keys, BYID is null-prototype");
+})();
+
+/* ---------- 127. A failed read stops the writes, a failed write does not - */
+/* 3.4.4 deep QA, findings 2.2, 2.3, 2.4 and the ts half of 2.5 — four bugs in
+   one neighbourhood, and they are guarded together because they are the same
+   mistake seen from four angles: the storage layer trusted what it was handed.
+
+   2.2. restore()'s async rejection path called finish(null) and left canSave
+   true, unlike the synchronous throw three lines below it. The app booted
+   empty, stayed willing to save, and the first tick wrote a one-entry payload
+   over the reader's whole saved state. Only the host-app backend can reject
+   that way — which is exactly the embedded context the backend exists for.
+   A read that failed means the state on disk is UNKNOWN, so the writes stop
+   for the session: readFailed is a separate latch from canSave for that reason.
+
+   2.4 is the opposite failure and must not be fixed into the same thing. One
+   quota-style throw latched canSave false forever, so everything after a blip
+   was lost on close. A write that failed says nothing about the next write, so
+   that latch clears itself: the banner is honest in both directions now, and
+   saveWorked() is the half that was missing.
+
+   2.3. S.watched = o.watched || {} accepted any truthy value. "watched":"oops"
+   in storage made every toggleWatched throw and marking was dead until reset,
+   while groupOpen and progOpen five lines down got exactly the typeof check
+   the four containers needed. Ratings restored unclamped with it.
+
+   2.5. isFinite(null) is true, so a log entry with ts:null sorted to the front
+   and Activity dated it 1970. */
+
+(function(){
+  var rbody = (HTML.match(/function restore\([^)]*\)\{[\s\S]*?\n\}/) || [""])[0];
+  if(!rbody){
+    fail("section 127 cannot locate restore(), so nothing below it is checked");
+    return;
+  }
+  if(/S\.watched\s*=\s*o\.watched\s*\|\|/.test(rbody) ||
+     /S\.skipped\s*=\s*o\.skipped\s*\|\|/.test(rbody) ||
+     /S\.rated\s*=\s*o\.rated\s*\|\|/.test(rbody)){
+    fail("restore() takes a progress container straight off the parsed payload " +
+         "again. A stored \"watched\":\"oops\" survives the || and every " +
+         "toggleWatched throws on it — marking is dead until the reader resets");
+  }
+  if(!/S\.watched = marksOf\(o\.watched\)/.test(rbody) ||
+     !/S\.skipped = marksOf\(o\.skipped\)/.test(rbody) ||
+     !/S\.rated = ratingsOf\(o\.rated\)/.test(rbody)){
+    fail("restore() no longer shapes all three progress containers through " +
+         "marksOf()/ratingsOf() — groupOpen and progOpen have had that check " +
+         "since 1.4.x and these carry the progress");
+  }
+
+  var box = {};
+  new vm.Script(
+    "var HAS = Object.prototype.hasOwnProperty;\n" +
+    optionalFn("clampRating", "ratings could not be clamped on the way in") + "\n" +
+    optionalFn("marksOf", "restore() would take a container's shape on trust") + "\n" +
+    optionalFn("ratingsOf", "a stored rating of 9 would survive into S.rated") + "\n" +
+    optionalFn("validTs", "a log entry with ts:null would sort to 1970 again")
+  ).runInContext(vm.createContext(box));
+
+  if(typeof box.marksOf === "function"){
+    [["oops", "a string"], [42, "a number"], [null, "null"], [true, "a boolean"]].forEach(function(c){
+      var got = box.marksOf(c[0]);
+      if(!got || typeof got !== "object" || Object.keys(got).length){
+        fail("marksOf() returned something other than an empty container for " +
+             c[1] + " — that is the shape restore() writes to S.watched");
+      }
+    });
+    var m = box.marksOf({a:1, b:true, c:0, d:""});
+    if(m.a !== 1 || m.b !== 1 || "c" in m || "d" in m){
+      fail("marksOf() no longer normalises a real container to 1-per-marked-id");
+    }
+    if(Object.keys(box.marksOf(JSON.parse('{"__proto__":{"x":1}}'))).length){
+      fail("marksOf() copied a __proto__ key out of a parsed payload");
+    }
+  }
+  if(typeof box.ratingsOf === "function" && typeof box.clampRating === "function"){
+    var r = box.ratingsOf({a:9, b:3, c:0, d:-2, e:"4", f:null});
+    if("a" in r || "c" in r || "d" in r || "f" in r){
+      fail("ratingsOf() let an out-of-range rating through — a stored 9 reaching " +
+           "S.rated is what 2.3 recorded, and the clamp is the only thing between " +
+           "the payload and the star row");
+    }
+    if(r.b !== 3 || r.e !== 4){
+      fail("ratingsOf() dropped a rating that is inside the vocabulary");
+    }
+    if(!/clampRating/.test(fn("ratingsOf"))){
+      fail("ratingsOf() no longer runs values through clampRating()");
+    }
+  }
+  if(typeof box.validTs === "function"){
+    [null, "", true, false, {}, [], NaN, Infinity, "later", undefined].forEach(function(bad){
+      if(box.validTs(bad) !== false){
+        fail("validTs(" + JSON.stringify(bad) + ") is true. isFinite(null) is " +
+             "true, which is how a log entry with no timestamp came to sort " +
+             "first and show as 1970 in Activity");
+      }
+    });
+    [0, 1, 1754700000000, "1754700000000"].forEach(function(ok){
+      if(box.validTs(ok) !== true) fail("validTs() rejects a real timestamp: " + ok);
+    });
+    if(!/validTs\(en\.ts\)/.test(HTML)){
+      fail("mergeLog() no longer asks validTs() about the timestamp it is handed");
+    }
+  }
+
+  if(!/\.then\(finish, function\(\)\{ readFailed = true; canSave = false; finish\(null\); \}\)/.test(rbody)){
+    fail("restore()'s failed read no longer stops the writes. The rejection " +
+         "path used to call finish(null) and leave saving on, so the app booted " +
+         "empty and the first tick overwrote the reader's whole saved state " +
+         "with one entry. A read that failed means the stored state is unknown");
+  }
+  if((rbody.match(/readFailed = true/g) || []).length !== 2){
+    fail("restore() latches readFailed on only one of its two failure paths — " +
+         "the async rejection and the synchronous throw are the same event");
+  }
+  ["persist", "persistNow"].forEach(function(name){
+    var b = (HTML.match(new RegExp("function " + name + "\\([^)]*\\)\\{[\\s\\S]*?\\n\\}")) || [""])[0];
+    if(!/if\(!store \|\| readFailed\) return;/.test(b)){
+      fail(name + "() writes without asking whether the read succeeded");
+    }
+  });
+  var pn = (HTML.match(/function persistNow\([^)]*\)\{[\s\S]*?\n\}/) || [""])[0];
+  if(!/saveWorked/.test(pn) || !/function saveWorked/.test(HTML)){
+    fail("persistNow() has no way back from a write failure. One quota-style " +
+         "throw used to latch canSave false for the session, so a blip cost " +
+         "everything after it — the banner has to clear when a write lands");
+  }
+  if(/\.catch\(function\(\)\{ canSave = false/.test(pn)){
+    fail("persistNow() latches canSave on a rejected write with no path back — " +
+         "that is the 2.4 shape returning");
+  }
+  note("storage: failed read stops the writes, failed write retries, three " +
+       "containers shaped on the way in, timestamps validated");
 })();
 
 /* ---------- report ---------- */

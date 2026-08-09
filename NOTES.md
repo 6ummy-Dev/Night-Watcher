@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 125 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 127 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -94,6 +94,23 @@ copy — the link exists to reach a different device either way.
 Storage adapter: window.storage inside Claude artifacts; localStorage on the
 open web (GitHub Pages etc.); memory-only if neither is available.
 
+### `readFailed`
+
+Two latches, because a failed READ and a failed WRITE are opposite facts and
+3.4.5 fixed them in opposite directions. A read that failed means the state on
+disk is unknown, so the writes stop for the session — `readFailed` is checked
+in `persist()` and `persistNow()` and never clears. Before 3.4.5 the async
+backend's rejection path left saving on, and the first tick wrote a one-entry
+payload over everything the reader had. A write that failed says nothing about
+the next one, so `canSave` clears itself the moment a write lands: one
+quota-style throw used to latch it for the session and everything after the
+blip was lost on close. Guard 127 holds both directions, and holds them apart.
+
+### `saveWorked()`
+
+The half that was missing. `#nosave` is honest in both directions now — it
+appears when a write fails and goes when one succeeds. Nothing else clears it.
+
 ### `THEMEBAR`
 
 CSS cannot reach the system status bar; the meta tag has to follow.
@@ -114,6 +131,36 @@ chosen that wrote a real ordering, which the next load adopted as one.
 ### `if(isPath(o.path)) S.path = o.path;`
 
 Upgrading from 1.1.0: their saved mode is a question already answered.
+
+### `isPath()`
+
+An OWN-property lookup, and the value has to be the string a path code is.
+It was `!!PATHCODE[id]` until 3.4.5, which reads the prototype chain: a JSON
+backup carrying `"path":"__proto__"` passed, set `S.path` and `S.mode`, threw
+inside `noteFor()` after the state had already mutated, and the debounced
+persist that was scheduled a moment earlier wrote the poison to storage anyway.
+Every later boot then threw at render — pre-render shell, no progress, both
+tabs throwing on tap — and only clearing site data recovered it, which is the
+progress loss the backup feature exists to prevent. The `res` note below had
+predicted the shape of this two releases early. Guard 126.
+
+### `marksOf()`
+
+`S.watched = o.watched || {}` accepted any truthy value, so a stored
+`"watched":"oops"` made every `toggleWatched()` throw and marking stayed dead
+until the reader reset. `groupOpen` and `progOpen` had had the right check for
+releases; the three containers carrying the actual progress did not. Also drops
+`__proto__` and friends, which `JSON.parse` will hand over as own properties.
+
+### `ratingsOf()`
+
+The same check for ratings, plus the clamp. A stored `9` used to survive into
+`S.rated`.
+
+### `validTs()`
+
+`isFinite(null)` is true. A log entry with `ts:null` became epoch 0, sorted to
+the front of Activity and dated itself 1970.
 
 ### `if(o.scope === "movies" || o.scope === "all") S.scope = …`
 
@@ -171,6 +218,11 @@ The hero's group opens when you arrive at The Path, so the thing you are
 actually up to is never hidden behind a header you have to find. A deliberate
 collapse-all is left alone — re-opening it on every visit would make the
 control useless.
+
+It persists as of 3.4.5. It mutates `S.groupOpen`, which is saved state, and it
+was the one state-mutating site in the app that did not write — self-healing on
+the next reload, which is why it survived so long, and inconsistent with every
+other site, which is why it did not survive the audit.
 
 ### `scoreboard()`
 
@@ -332,6 +384,13 @@ to one device.
 Null-prototype, like dedupeLog. Every value written here is a primitive
 today, so a "__proto__" key from a hand-edited payload is inert — but the
 protection should not depend on that staying true.
+
+It did not stay true, and this note called the shape of it. The container was
+never the hole: `path` is a scalar beside them, validated only by `isPath()`,
+which read the prototype chain until 3.4.5. See `isPath()` above. `BYID` was
+the other half — a plain object literal, so `BYID["constructor"]` answered
+truthy and the "Restored N" toast counted names the apply loops then dropped.
+Null-prototype now, for the same one reason.
 
 ### `if(en && en.id && isFinite(en.ts) && !S.log.some(functio…`
 
@@ -1456,6 +1515,16 @@ its next save.
 That is deliberate. Losing a tick is a worse failure than an unexpected one
 reappearing, and there is no timestamp on a mark to reconcile with. If it ever
 becomes a real complaint, the fix is a per-mark timestamp, not a smarter merge.
+
+**Two consequences of the same bias, measured in the 3.4.4 audit and recorded
+here rather than fixed.** Writes are whole-payload last-writer-wins, so a tab
+that merges a foreign tick into memory and is never touched again leaves that
+tick out of storage — the flush is a no-op with no pending timer. And **"Clear
+all progress" is silently false with a second tab open**: the reset writes an
+empty payload, the stale tab still holds everything in memory, and its next
+write puts all of it back. Both follow from the anti-loss bias above and neither
+is a defect in the merge. The reset one is worth knowing because the app says
+"Progress cleared" and means it about this tab only.
 
 ### A restore link is held, not applied
 

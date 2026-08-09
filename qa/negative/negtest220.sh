@@ -34,13 +34,13 @@ s=s.replace(a,'',1);${W}"
 echo "--- 98: the share block is a card like all the others"
 run_case "the card chrome falls back off" \
   "the share block is not a card" \
-  "${P}a='<div class=\"bk sharecard\"><h3>Share your progress</h3>'
+  "${P}a='<div class=\"bk sharecard\"><h2>Share your progress</h2>'
 assert a in s
 s=s.replace(a,'<div class=\"sharecard\"><p class=\"qhead\" style=\"margin:26px 0 8px\">Share your progress</p>',1);${W}"
 
 run_case "the title whispers again beside the card" \
   "is a qhead again" \
-  "${P}a='<h3>Share your progress</h3>';assert s.count(a)==1
+  "${P}a='<h2>Share your progress</h2>';assert s.count(a)==1
 s=s.replace(a,a+'<p class=\"qhead\">Share your progress</p>',1);${W}"
 
 echo "--- smoke: a fixture cannot name a phase that does not exist"
