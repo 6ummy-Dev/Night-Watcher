@@ -2574,3 +2574,32 @@ tickable; render() rebuilds `#view` and regenerates the dropped classes from
 `S.beltDrop` — the drop is state, not a class, exactly because the plan warned
 that a checkbox tick would otherwise silently un-drop the belt. The scroll
 listener re-arms idempotently from beltWatch() after every render.
+
+## The pouch that was a window, and the header that walked through the belt
+
+3.6.1, from the drop's first evening of soak. Both findings are the same
+lesson the mock taught four times — a treatment correct in the state you
+pictured, wrong in the one you did not — arriving one layer down, in paint.
+
+The pouch rows never had a background. In the flow they sit directly on the
+page's `--ink`, so transparent and opaque render identically and nothing ever
+looked wrong — including in jsdom, which does not paint, and in every guard,
+which reads text. Dropped over a list, the rows were windows. The fix is
+`background:var(--ink)` on the row itself: the same pixels at Home, a surface
+over content. One construction, both states — F13's rule applied to paint.
+
+The pinned era headers share the strip's flow stack level (z2) and come later
+in the document, so a pinned header painted over the dropped pouches (z1) and
+over the dropped strip where they overlapped. The dropped pair now rides at
+z21/z20 — above every pinned header, below the app header's z30, which the
+belt parks behind on purpose. The flow levels are untouched; the raise is
+scoped to `[data-drop]`, because the dropped treatment applying outside the
+dropped state is the mistake this feature exists to have learned from.
+
+And the gate got honest: `supportsAnchor()` probed `position-anchor` alone
+and vouched for `anchor()` and `anchor-size()` too. A browser in the gap —
+a partial implementation, exactly the kind that ships first — would have
+dropped broken pouches when the correct answer was Stage B's calm scroll
+home. The gate now probes all three primitives, in the exact `calc()` shapes
+the CSS uses. An instrument used to rule something in must be able to see it,
+too.

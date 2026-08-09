@@ -8780,14 +8780,30 @@ var ROUTE_VOCAB = [
      front of the next. The -4px tuck only reads as "from behind" while the
      thing behind is actually behind. */
   var strip = (HTML.match(/\.pathseg\{[^}]*\}/) || [""])[0];
+  var stripDrop = (HTML.match(/\.pathseg\[data-drop\]\{[^}]*\}/) || [""])[0];
   var incFlow = (HTML.match(/\.includes\{[^}]*\}/) || [""])[0];
   var incDrop = (HTML.match(/\.includes\[data-drop\]\{[^}]*\}/) || [""])[0];
   if(!/z-index:2/.test(strip) || !/z-index:1/.test(incFlow) ||
-     !/z-index:1/.test(incDrop)){
+     !/z-index:21;/.test(stripDrop) || !/z-index:20;/.test(incDrop)){
     fail("the belt no longer paints in front of its own pouches — the v2 mock " +
          "inverted this the moment the pouches got their own layer, and four " +
-         "pixels of tuck looked wrong instantly. Strip z2, pouches z1, in the " +
-         "flow AND dropped (F8)");
+         "pixels of tuck looked wrong instantly. Strip z2 / pouches z1 in the " +
+         "flow; strip z21 / pouches z20 dropped (F8) — the dropped pair sits " +
+         "ABOVE the pinned era headers' z2, because 3.6.0 soaked for one " +
+         "evening with 'THE GRAYSON YEARS' punching through the pouches, and " +
+         "below the header's z30, which the belt parks behind on purpose");
+  }
+  /* 3.6.1, the other half of the same soak report: the pouch rows had no
+     background. In the flow they sat on the page's own --ink, so nothing ever
+     showed through and nothing looked wrong; dropped over a list, everything
+     did. An opaque row is the same pixels at Home and a working pouch over
+     content — one construction, both states (F13's rule, applied to paint). */
+  if(!/\.includes \.scope\{position:relative;background:var\(--ink\);/.test(HTML)){
+    fail("the pouch rows lost their opaque background — in the flow they sit " +
+         "on the page's own --ink and look identical either way, but a " +
+         "dropped pouch with no background is a window: the 3.6.0 soak read " +
+         "the era pill and the list's own titles straight through ANIMATED. " +
+         "var(--ink), the page's colour, so Home does not change by a pixel");
   }
   if(!/\.includes \.scope\.fmt\{z-index:2;\}/.test(HTML) ||
      !/\.includes \.scope:not\(\.fmt\)\{z-index:1;margin:-5px 11px 0;\}/.test(HTML)){
@@ -8807,7 +8823,7 @@ var ROUTE_VOCAB = [
          "to hang off and fall back to the page's coordinates, which is the " +
          "Next-up 7.5px half-scrollbar bug, third appearance");
   }
-  if(!/\.includes\[data-drop\]\{position:fixed;position-anchor:--belt;top:calc\(anchor\(bottom\) - 4px\);left:calc\(anchor\(left\) \+ 8px\);width:calc\(anchor-size\(width\) - 16px\);margin:0;z-index:1;\}/.test(HTML)){
+  if(!/\.includes\[data-drop\]\{position:fixed;position-anchor:--belt;top:calc\(anchor\(bottom\) - 4px\);left:calc\(anchor\(left\) \+ 8px\);width:calc\(anchor-size\(width\) - 16px\);margin:0;z-index:20;\}/.test(HTML)){
     fail("the dropped pouches are not anchored to the strip's own box — " +
          "top from its bottom (the same 4px tuck as the flow), left inset 8px, " +
          "width from anchor-size. Centre them against anything else and they " +
@@ -8919,9 +8935,26 @@ var ROUTE_VOCAB = [
          "taken from a dropped belt)");
   }
 
+  /* 3.6.1: the gate must probe the functions the drop actually uses, not one
+     adjacent property. A browser can parse position-anchor and still not
+     resolve anchor() or anchor-size() — and a gate that vouches for what it
+     cannot see is the register's oldest entry wearing CSS.supports. */
+  var sa = fn("supportsAnchor");
+  if(!/CSS\.supports\("position-anchor", "--belt"\)/.test(sa) ||
+     !/CSS\.supports\("top", "calc\(anchor\(bottom\) - 4px\)"\)/.test(sa) ||
+     !/CSS\.supports\("width", "calc\(anchor-size\(width\) - 16px\)"\)/.test(sa)){
+    fail("supportsAnchor() no longer probes all three primitives the drop " +
+         "stands on — position-anchor, anchor() in calc, and anchor-size() " +
+         "in calc. A gate that checks one property and vouches for three " +
+         "functions drops broken pouches on every browser in the gap, and " +
+         "the fallback it should have chosen was last release's shipped " +
+         "behaviour");
+  }
+
   note("the drop: anchored from the strip in CSS (section 120 untouched), " +
        "one close path with three doors, exits travel -115%/-210%, " +
-       "auto-close compensated from the observer's entry");
+       "auto-close compensated from the observer's entry, dropped pair " +
+       "above the pinned headers, pouch rows opaque");
 })();
 
 /* ---------- report ---------- */

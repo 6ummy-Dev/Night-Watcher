@@ -20,7 +20,7 @@ echo "--- 129: the belt paints in front of its pouches, each in front of the nex
 
 run_case "the dropped pouches lose their layer" \
   "no longer paints in front of its own pouches" \
-  "${P}a='width:calc(anchor-size(width) - 16px);margin:0;z-index:1;}'
+  "${P}a='width:calc(anchor-size(width) - 16px);margin:0;z-index:20;}'
 assert a in s
 s=s.replace(a,'width:calc(anchor-size(width) - 16px);margin:0;}',1);${W}"
 
@@ -135,6 +135,26 @@ run_case "the retraction hears the render's own clamp" \
   "${P}a='  if(dropSquelch){ armDropScroll(); return; }\\n'
 assert a in s
 s=s.replace(a,'',1);${W}"
+
+echo "--- 129, the 3.6.1 soak pair: opaque rows, and a drop above the pinned headers"
+
+run_case "the pouch rows go transparent again" \
+  "lost their opaque background" \
+  "${P}a='.includes .scope{position:relative;background:var(--ink);'
+assert a in s
+s=s.replace(a,'.includes .scope{position:relative;',1);${W}"
+
+run_case "the dropped belt slips behind the era headers" \
+  "ABOVE the pinned era headers" \
+  "${P}a='box-shadow:0 12px 26px rgba(0,0,0,.55);margin-bottom:0;z-index:21;}'
+assert a in s
+s=s.replace(a,'box-shadow:0 12px 26px rgba(0,0,0,.55);margin-bottom:0;}',1);${W}"
+
+run_case "the gate stops probing anchor-size" \
+  "no longer probes all three primitives" \
+  "${P}a='CSS.supports(\"width\", \"calc(anchor-size(width) - 16px)\")'
+assert a in s
+s=s.replace(a,'true',1);${W}"
 
 echo "--- the smoke half: the dropped state is staged, and its selectors must live"
 

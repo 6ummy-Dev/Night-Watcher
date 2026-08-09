@@ -30,6 +30,37 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.6.1] — 2026-08-09
+
+**The drop's first soak report, same evening, both findings fixed.** Dropped
+over a list, the pouch rows were windows and the pinned era headers punched
+through the belt. Neither was visible in the flow, which is exactly why
+neither was caught there.
+
+### Fixed
+
+- **The pouch rows are opaque now.** They never had a background — in the
+  flow they sit on the page's own colour, so nothing ever showed through and
+  nothing looked wrong. Dropped over a list, everything did: the era pill and
+  the list's own titles read straight through the rows. The fix is the page's
+  colour as an explicit background — Home does not change by a pixel, and a
+  dropped pouch is a surface instead of a window.
+- **The dropped belt and its pouches paint above the pinned era headers.**
+  The era headers pin with the same stack level the strip uses in the flow,
+  and they come later in the document — so a pinned "THE GRAYSON YEARS"
+  painted over the dropped pouches. The dropped pair now sits above every
+  pinned header and still below the app header, which the belt parks behind
+  on purpose.
+- **The drop's support gate probes what the drop actually uses.** It checked
+  one property and vouched for three functions; a browser in the gap would
+  have dropped broken pouches instead of falling back to the calm scroll
+  home. It now probes `position-anchor`, `anchor()` in `calc`, and
+  `anchor-size()` in `calc` — any miss means last release's behaviour, not a
+  degraded drop.
+
+**Guard 129 grew all three refusals; `negtest370.sh` gained their fixtures
+(22 now).** No catalogue change, no saved progress touched, PATCH — no tag.
+
 ## [3.6.0] — 2026-08-09
 
 **The Belt drops. Stage C of the belt-peek design — the other half of 3.5.0,
