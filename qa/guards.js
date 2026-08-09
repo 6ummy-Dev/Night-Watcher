@@ -9102,12 +9102,14 @@ var ROUTE_VOCAB = [
      which stops collapsing against a margin this negative. The result lands
      the flow slot exactly on the sticky offset, so the peek is
      pixel-identical at the top of a fresh tab and mid-scroll. */
-  if(!/\.pathseg\[data-park\]\{margin:calc\(var\(--belt-peek\) - var\(--beltH\) - 18px - 1px\) 0 0;\}/.test(HTML)){
+  if(!/\.pathseg\[data-park\]\{margin:calc\(var\(--belt-peek\) - var\(--beltH\) - 18px - 1px\) 0 10px;\}/.test(HTML)){
     fail("the parked strip's pull is gone or drifted — " +
          "margin-top: calc(--belt-peek − --beltH − 18px − 1px) is what puts " +
          "the flow slot exactly at the sticky offset (37 with no inset), so " +
          "the peek reads 12px under the header at the top of a fresh tab " +
-         "AND mid-list. 18 is main's own top padding; the 1px is the " +
+         "AND mid-list, with the base rule's own 10px of air before the " +
+         "content (the owner's note: nothing breathing under the belt). " +
+         "18 is main's own top padding; the 1px is the " +
          "sentinel's height, whose −1px margin stops collapsing against a " +
          "margin this negative. Wrong by one and the fresh-tab peek is 13px " +
          "— the F1 twelfth, earned back");

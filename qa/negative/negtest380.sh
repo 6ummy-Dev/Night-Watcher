@@ -62,9 +62,9 @@ s=s.replace(a,\"' data-park=\\\"\\\"'\",1);${W}"
 
 run_case "the pull drifts by the sentinel's pixel" \
   "pull is gone or drifted" \
-  "${P}a='.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 0;}'
+  "${P}a='.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 10px;}'
 assert a in s
-s=s.replace(a,'.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px) 0 0;}',1);${W}"
+s=s.replace(a,'.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px) 0 10px;}',1);${W}"
 
 run_case "main's padding walks away from the pull" \
   "no longer starts 18px 18px" \
@@ -74,9 +74,9 @@ s=s.replace(a,'main{flex:1;padding:17px 18px ',1);${W}"
 
 run_case "the parked strip grows a position rule again" \
   "grew a position rule or an anchor" \
-  "${P}a='.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 0;}'
+  "${P}a='.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 10px;}'
 assert a in s
-s=s.replace(a,'.pathseg[data-park]{position:fixed;margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 0;}',1);${W}"
+s=s.replace(a,'.pathseg[data-park]{position:fixed;margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 10px;}',1);${W}"
 
 run_case "the peek grows live buttons" \
   "the parked strip is not the peek" \

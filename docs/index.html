@@ -309,7 +309,7 @@ main{flex:1;padding:18px 18px calc(var(--tab-h) + env(safe-area-inset-bottom) + 
 .pathseg{display:flex;margin:0 0 10px;border:1px solid var(--line2);border-radius:10px;overflow:hidden;background:var(--card);position:sticky;top:calc(var(--hdrh) + var(--belt-peek) - var(--beltH));z-index:2;anchor-name:--belt;transition:top .22s ease;}
 .pathseg[data-held]{position:relative;top:auto;margin-bottom:0;}
 .pathseg[data-drop]{top:var(--hdrh);box-shadow:0 12px 26px rgba(0,0,0,.55);margin-bottom:0;z-index:21;}
-.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 0;}
+.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 10px;}
 .pathseg[data-park]:not([data-drop])::before,.pathseg[data-park]:not([data-drop])::after{opacity:1;transform:translateY(0);}
 .pathseg[data-park]:not([data-drop]) button{visibility:hidden;}
 .pathseg[data-park]:not([data-drop]){cursor:pointer;}
