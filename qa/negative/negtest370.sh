@@ -156,6 +156,20 @@ run_case "the gate stops probing anchor-size" \
 assert a in s
 s=s.replace(a,'true',1);${W}"
 
+echo "--- 129, the 3.6.3 soak pair: the drop arrives closed, and a selector is not a door"
+
+run_case "the drop opens the pouches again" \
+  "the drop opens the pouches again" \
+  "${P}a='function beltDropOpen(){\n  S.beltDrop = true;\n  render();\n}'
+assert a in s
+s=s.replace(a,'function beltDropOpen(){\n  S.beltDrop = true;\n  if(!S.beltOpen) openBelt();\n  else render();\n}',1);${W}"
+
+run_case "the path tap goes home from a dropped belt" \
+  "path tap from a dropped belt goes home" \
+  "${P}a='    if(!S.beltDrop) window.scrollTo(0,0);'
+assert a in s
+s=s.replace(a,'    window.scrollTo(0,0);',1);${W}"
+
 echo "--- the smoke half: the dropped state is staged, and its selectors must live"
 
 run_case "the dropped strip selector goes dead (smoke css)" \

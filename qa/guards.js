@@ -8915,6 +8915,36 @@ var ROUTE_VOCAB = [
          "the exact mock failure F6 was written after");
   }
 
+  /* 3.6.3, two owner soak calls from the drop's first weekend.
+
+     THE DROP ARRIVES CLOSED. The design doc's tap description said the drop
+     "opens its pouches in place", and 3.6.0 shipped that; the owner's soak
+     read it as a defect — "when dropping the belt, it always opens all
+     drops." The state machine's own table was right all along: Dropped is
+     the belt whole, over the list, with a shadow; Open is a separate state
+     the buckle enters. The buckle opens the pouches in place from a dropped
+     belt (F7 unchanged); the drop itself brings only the belt. */
+  if(/beltOpen/.test(fn("beltDropOpen"))){
+    fail("the drop opens the pouches again — the owner's soak call, 9 Aug: " +
+         "dropping brings the belt whole, with a shadow, and the pouches are " +
+         "the buckle's to open. The state machine always said Dropped and " +
+         "Open were two states; the tap description that conflated them lost");
+  }
+  /* A PATH TAP FROM A DROPPED BELT STAYS PUT. The segments' scroll-to-top
+     predates the belt being usable mid-list; from a dropped belt it threw
+     away exactly the place the drop exists to keep. The owner's words are
+     the rule: it is a selector, and home is above, in the app name — the
+     wordmark's job (guard 47), not a side effect of choosing. */
+  var pathTap = HTML.indexOf("if(b.dataset.path){");
+  var ptBlock = HTML.slice(pathTap, pathTap + 400);
+  if(!/if\(!S\.beltDrop\) window\.scrollTo\(0,0\);/.test(ptBlock)){
+    fail("a path tap from a dropped belt goes home — it is a selector, and " +
+         "home is above, in the app name (the wordmark, guard 47). The " +
+         "unconditional scroll-to-top predates the drop; from a dropped belt " +
+         "it discards exactly the place the drop exists to keep (owner's " +
+         "soak call, 9 Aug)");
+  }
+
   /* The retraction trigger is armed per drop and disarmed by firing. */
   if(!/if\(dropArmed\) return;/.test(fn("armDropScroll"))){
     fail("armDropScroll can stack listeners — {once:true} removes the " +

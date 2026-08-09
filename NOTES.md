@@ -2624,3 +2624,25 @@ The general form, for the register's family of state-scoped treatments: a
 rule that changes which positioning scheme applies must account for every
 property the old scheme was using. `position` names the scheme; `top` is the
 scheme's argument, and it survives the switch.
+
+## The drop arrives closed, and a selector is not a door
+
+3.6.3, both halves from the owner's soak, and both are the same correction:
+the drop had inherited behaviour from contexts that no longer applied.
+
+The design doc's tap description said the drop "opens its pouches in place,"
+and 3.6.0 shipped that reading. The doc's own state machine disagreed —
+Dropped (the belt whole, with a shadow) and Open (belt + pouches) were always
+two states with the buckle between them — and the owner's soak sided with the
+state machine: a drop that always opens everything gives you a control panel
+when you asked for a belt. beltDropOpen() now sets the drop and nothing else;
+F7 is untouched, because the buckle opening pouches in place from a dropped
+belt is exactly what it already did.
+
+The path segments' scroll-to-top predates the belt being usable anywhere but
+the top of the page: when choosing an ordering could only happen at the top,
+scrolling to the top was invisible. From a dropped belt it discarded the one
+thing the drop exists to keep. The jump is now gated on !S.beltDrop — kept
+for the chooser deck and the viewing-banner buttons, where going to the head
+of a re-sorted list is the point — and the guard's message keeps the owner's
+own formulation: it is a selector, and home is above, in the app name.

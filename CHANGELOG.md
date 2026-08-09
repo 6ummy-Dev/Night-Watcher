@@ -30,6 +30,28 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.6.3] — 2026-08-09
+
+**Two soak calls from the drop's first weekend, both about what the drop
+does rather than where it sits.**
+
+### Changed
+
+- **The drop arrives closed.** Tapping the peek used to bring the belt down
+  with both pouches already open. It now brings the belt whole — strip and
+  shadow — and the buckle opens the pouches in place when you want them,
+  exactly as it does everywhere else. The state machine always drew Dropped
+  and Open as two states; the tap now agrees with it.
+- **Choosing a path from a dropped belt keeps your place.** The path segments
+  carried a scroll-to-top from before the belt could be used mid-list; from a
+  dropped belt that threw away exactly the position the drop exists to
+  protect. A segment is a selector — the list re-sorts under you and you stay
+  where you are. Going home is the wordmark's job, above, in the app's name.
+
+**Both decisions are guarded in section 129 with the reasoning in the failure
+messages; `negtest370.sh` puts each old behaviour back on purpose (24
+fixtures).** No catalogue change, no saved progress touched, PATCH.
+
 ## [3.6.2] — 2026-08-09
 
 **One property, latent since 3.5.0, and it explains the whole "does not drop
