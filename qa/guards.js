@@ -103,6 +103,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      63   The grid columns have a floor
      119  Where to watch has a rank of its own
      128  The Belt parks as the peek, and the peek tells the truth
+     129  The Belt drops in place, and leaves the way it came
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -5564,13 +5565,25 @@ var ROUTE_VOCAB = [
     fail("the pouches have no exit \u2014 they animate open and vanish shut, " +
          "which is the exact soak note");
   }
+  /* 3.6.0 moved the staged close out of the handler and into closeBelt(),
+     because the drop gave the belt three doors out \u2014 the buckle, the drop's
+     one-shot scroll, and the flow auto-close \u2014 and F12's rule is that every
+     door is wired to the same exit. The handler keeps the decision; the
+     function keeps the mechanics. Section 129 holds the three-door routing;
+     this section keeps asserting the mechanics exist at all. */
   var bhAt = HTML.indexOf('act === "belt"');
-  var bh = HTML.slice(bhAt, bhAt + 700);
-  if(!/includes closing/.test(bh) || !/setTimeout/.test(bh)){
+  var bh = HTML.slice(bhAt, bhAt + 400);
+  if(!/closeBelt\("buckle"\)/.test(bh)){
+    fail("the buckle no longer routes through closeBelt \u2014 a state that can " +
+         "be left by three doors needs all three wired to the same exit, and " +
+         "the one nobody tested is always the one in the report");
+  }
+  var cbFn = optionalFn("closeBelt", "the belt has no close path at all");
+  if(!/includes closing/.test(cbFn) || !/setTimeout/.test(cbFn)){
     fail("the belt handler does not stage the close \u2014 the closing class plus " +
          "a delayed re-render is what lets the exit play");
   }
-  if(!/prefers-reduced-motion/.test(bh)){
+  if(!/prefers-reduced-motion/.test(cbFn)){
     fail("the close ignores prefers-reduced-motion \u2014 reduced motion closes " +
          "instantly, no timeout");
   }
@@ -8549,11 +8562,13 @@ var ROUTE_VOCAB = [
          "either the belt no longer parks as the peek, or its parked offset " +
          "stopped deriving from the one source section 128 pins");
   }
-  if(!/\.pathseg\[data-held\]\{position:relative;\}/.test(HTML)){
-    fail("an open belt parks — .pathseg[data-held]{position:relative;} is the " +
-         "F14 rule: a belt with its pouches out is a belt in use, and it " +
-         "scrolls away with them. Without it the strip pins as a peek while " +
-         "its pouches carry on below at full size");
+  if(!/\.pathseg\[data-held\]\{position:relative;margin-bottom:0;\}/.test(HTML)){
+    fail("an open belt parks — .pathseg[data-held]{position:relative;" +
+         "margin-bottom:0;} is the F14 rule plus F13's seam: a belt with its " +
+         "pouches out is a belt in use, it scrolls away with them, and an " +
+         "open belt drops its bottom margin so the pouch tuck is the same " +
+         "4px in every state. Without it the strip pins as a peek while its " +
+         "pouches carry on below at full size");
   }
   var posRules = (HTML.match(/\.pathseg[^ {,]*\{[^}]*position:[^}]*\}/g) || [])
     .filter(function(r){ return !/\.pathseg \./.test(r) && !/::/.test(r); });
@@ -8562,10 +8577,13 @@ var ROUTE_VOCAB = [
          "build was reviewed with exactly 2 — sticky, and F14's data-held " +
          "release. A third condition is a new state nobody argued for");
   }
-  if(!/\(S\.beltOpen \? ' data-held=""' : ''\)/.test(mc)){
-    fail("data-held does not render from S.beltOpen — F14's condition has to " +
-         "come from the state that opened the pouches, or the two go out of " +
-         "sync on the first re-render");
+  if(!/\(S\.beltOpen && !S\.beltDrop \? ' data-held=""' : ''\)/.test(mc)){
+    fail("data-held does not render from S.beltOpen && !S.beltDrop — F14's " +
+         "condition has to come from the state that opened the pouches, and " +
+         "a DROPPED belt is the exception on purpose: its pouches are out of " +
+         "the flow, so the strip stays pinned under the header instead of " +
+         "scrolling away. Without the !S.beltDrop half, tapping the peek " +
+         "would drop a belt that immediately un-sticks");
   }
 
   /* (F1/B2) One source for every offset the header casts. 71 is 12 + 46 + 12
@@ -8651,26 +8669,37 @@ var ROUTE_VOCAB = [
      app; the fix is that its buttons leave the tree (visibility:hidden takes
      them out of hit-testing AND the focus order AND the accessibility tree),
      and the strip's own tap goes home. */
-  if(!/html\[data-beltpark\] \.pathseg:not\(\[data-held\]\) button\{visibility:hidden;\}/.test(HTML)){
+  if(!/html\[data-beltpark\] \.pathseg:not\(\[data-held\]\):not\(\[data-drop\]\) button\{visibility:hidden;\}/.test(HTML)){
     fail("the parked strip's buttons are still live — elementFromPoint across " +
          "the parked band read BUTTON life · continuity · release · buckle in " +
          "the mock: a 12px touch target against the 44px floor, wired to " +
          "silently re-ordering the entire list. visibility:hidden is the " +
          "whole of F5: no hit-testing, no tab stop, no phantom in the " +
-         "accessibility tree");
+         "accessibility tree. The :not([data-drop]) half is F7: a DROPPED " +
+         "belt is a working belt, and its buttons come back");
   }
   var vh = HTML.indexOf('getElementById("view").addEventListener("click"');
   var vhBlock = HTML.slice(vh, vh + 900);
   if(!/data-beltpark/.test(vhBlock) || !/closest\(".pathseg"\)/.test(vhBlock) ||
-     !/calmScroll\(\)/.test(vhBlock)){
-    fail("a tap on the parked strip does not go home — the peek is one " +
-         "handle, and its answer is the calm scroll to the top, through " +
-         "calmScroll() so reduced motion jumps instead of gliding");
+     !/beltDropOpen\(\)/.test(vhBlock) || !/supportsAnchor\(\)/.test(vhBlock)){
+    fail("a tap on the parked strip does not drop the belt — the drop is the " +
+         "locked answer from the mock round: the belt comes down over the " +
+         "list and works in place, which is the thing it cannot do today at " +
+         "any price. The tap routes through supportsAnchor(), because the " +
+         "drop hangs its pouches off a CSS anchor");
   }
-  if(!/hasAttribute\("data-held"\)/.test(vhBlock)){
-    fail("the parked tap handler ignores data-held — with the belt open the " +
-         "strip is a working control, and sending that tap home is the drop " +
-         "failing at the only thing it is for");
+  if(!/calmScroll\(\)/.test(vhBlock)){
+    fail("the parked tap has no fallback — a browser without anchor " +
+         "positioning cannot hang the pouches off the strip, so its tap is " +
+         "the calm scroll home, which is the whole of Stage B and still " +
+         "correct. Dropping without the anchor puts the pouches at the " +
+         "page's mercy, which is the Next-up 7.5px bug with a stage");
+  }
+  if(!/hasAttribute\("data-held"\)/.test(vhBlock) ||
+     !/hasAttribute\("data-drop"\)/.test(vhBlock)){
+    fail("the parked tap handler ignores data-held or data-drop — with the " +
+         "belt open or dropped the strip is a working control, and swallowing " +
+         "those taps is the drop failing at the only thing it is for");
   }
 
   /* The flag is written by an IntersectionObserver on the belt's own sentinel
@@ -8690,11 +8719,20 @@ var ROUTE_VOCAB = [
          "data-beltpark — the parked flag has to come from an observer, " +
          "live outside #view, and follow the sentinel across renders");
   }
-  if(/addEventListener\("scroll"/.test(HTML)){
-    fail("a scroll listener arrived — the house rule since F6 is an " +
-         "IntersectionObserver, not a scroll listener: one fires when the " +
-         "answer changes, the other runs on every frame of every scroll " +
-         "forever");
+  /* 3.6.0: ONE scroll listener is now pinned, the way section 120 pins its
+     layout reads — the drop's retraction trigger. It is {once:true}: it fires
+     a single time, calls the one close path, and is gone until the next drop
+     arms it. Everything else stays refused: the parked flag, the auto-close
+     and the entrance all come from observers that fire when the answer
+     changes, not on every frame of every scroll forever. */
+  var scrollSites = HTML.split('addEventListener("scroll"').length - 1;
+  if(scrollSites !== 1 ||
+     !/addEventListener\("scroll", dropScrollOnce, \{once:true, passive:true\}\)/.test(HTML)){
+    fail("index.html carries " + scrollSites + " scroll listener(s); this " +
+         "build was reviewed with exactly 1 — the drop's one-shot retraction, " +
+         "{once:true, passive:true}, armed only while dropped. A second site " +
+         "(or a persistent first one) is the every-frame cost the observers " +
+         "exist to avoid");
   }
   if(!/beltWatch\(\);/.test(fn("render"))){
     fail("render() does not re-point the belt observer — #view.innerHTML is " +
@@ -8705,7 +8743,185 @@ var ROUTE_VOCAB = [
 
   note("the belt parks as the peek: lit from S.mode, one position condition, " +
        "offsets from --hdrh, entrance is a transition, parked strip is one " +
-       "handle, observer not listener");
+       "handle, observer plus one pinned one-shot listener");
+})();
+
+/* ---------- 129. The Belt drops in place, and leaves the way it came ---- */
+/* 3.6.0, Stage C of releases/plan-belt-release.md — the drop. Tap the peek
+   and the belt slides down under the header, over the list, with its pouches
+   open in place; the next scroll retracts them and parks it again. The list
+   never moves.
+
+   THE ANCHOR IS CSS, AND THAT IS THE HEADLINE. The plan spent a page on
+   amending section 120 for a strip-measured anchor — getBoundingClientRect,
+   offsetWidth or clientWidth, all three refused. The plan's own footnote
+   ("worth ten minutes before the argument is had") was right: CSS anchor
+   positioning hangs the pouches off the strip's real box with NO layout read
+   at all, so section 120 ships this release untouched, pins and all. The
+   pouches inherit whatever the belt did about scrollbars, safe areas and the
+   760px column BY CONSTRUCTION — which is the fix F11 wanted, for the bug
+   this app has now met three times (Next up sat 7.5px off-centre for the
+   same reason: two boxes centred against two different widths).
+
+   Four of the seven mock findings died in the same move. F11 (the half-
+   scrollbar): anchor() resolves the strip's box, scrollbar included. F12's
+   "the pouches were left behind" (the belt rose while they stayed pinned):
+   an anchored box tracks its anchor through a transition, measured mid-
+   flight in the build's Chromium drive. F13's phantom-anchor close and
+   F14's -203px mid-close fall: the strip never changes `position` during a
+   drop or its close — only `top` — so there is no layer hand-off to get
+   wrong. What is left to guard is what CSS cannot promise: the paint order,
+   the close routing, the exit distance, and the state scoping. */
+
+(function(){
+  var mc = optionalFn("masterChooser", "there is no belt to drop");
+
+  /* (F8/F9) The belt paints in front of its own pouches, and each pouch in
+     front of the next. The -4px tuck only reads as "from behind" while the
+     thing behind is actually behind. */
+  var strip = (HTML.match(/\.pathseg\{[^}]*\}/) || [""])[0];
+  var incFlow = (HTML.match(/\.includes\{[^}]*\}/) || [""])[0];
+  var incDrop = (HTML.match(/\.includes\[data-drop\]\{[^}]*\}/) || [""])[0];
+  if(!/z-index:2/.test(strip) || !/z-index:1/.test(incFlow) ||
+     !/z-index:1/.test(incDrop)){
+    fail("the belt no longer paints in front of its own pouches — the v2 mock " +
+         "inverted this the moment the pouches got their own layer, and four " +
+         "pixels of tuck looked wrong instantly. Strip z2, pouches z1, in the " +
+         "flow AND dropped (F8)");
+  }
+  if(!/\.includes \.scope\.fmt\{z-index:2;\}/.test(HTML) ||
+     !/\.includes \.scope:not\(\.fmt\)\{z-index:1;margin:-5px 11px 0;\}/.test(HTML)){
+    fail("the three-plane stack is gone — the types row hangs behind the " +
+         "format row, inset 11px each side and pulled up 5px, the same rule " +
+         "the format row applies to the belt. Flush-aligned pouches read as " +
+         "a floating panel when dropped (F9, the owner's 'looks odd'), and " +
+         "this deliberately reverses 2.0.0's flush alignment at Home too — " +
+         "the same object does not get two constructions");
+  }
+
+  /* (F11) The pouches are positioned FROM THE STRIP — a floating child of a
+     scrolled box is positioned from the thing it hangs off, not from the
+     page. anchor() is that rule as a platform primitive. */
+  if(!/anchor-name:--belt/.test(strip)){
+    fail("the strip lost its anchor name — the dropped pouches have nothing " +
+         "to hang off and fall back to the page's coordinates, which is the " +
+         "Next-up 7.5px half-scrollbar bug, third appearance");
+  }
+  if(!/\.includes\[data-drop\]\{position:fixed;position-anchor:--belt;top:calc\(anchor\(bottom\) - 4px\);left:calc\(anchor\(left\) \+ 8px\);width:calc\(anchor-size\(width\) - 16px\);margin:0;z-index:1;\}/.test(HTML)){
+    fail("the dropped pouches are not anchored to the strip's own box — " +
+         "top from its bottom (the same 4px tuck as the flow), left inset 8px, " +
+         "width from anchor-size. Centre them against anything else and they " +
+         "sit half a scrollbar off the belt, worst in the middle row, which " +
+         "is the owner's exact report at the mock round (F11)");
+  }
+  /* (F13) …and the dropped treatment applies ONLY in the dropped state. */
+  if((HTML.match(/position-anchor/g) || []).length !== 2){
+    fail("position-anchor appears at " +
+         (HTML.match(/position-anchor/g) || []).length + " sites; this build " +
+         "was reviewed with exactly 2 — the one [data-drop] rule, and " +
+         "supportsAnchor()'s probe. The dropped treatment applying outside " +
+         "the dropped state is the mistake four of the seven mock findings " +
+         "turned out to be (F13)");
+  }
+  if(!/\(S\.beltDrop \? ' data-drop=""' : ''\)/.test(mc) ||
+     (mc.split("data-drop").length - 1) !== 1){
+    fail("the strip's data-drop does not render from S.beltDrop exactly once " +
+         "— the drop must be state, not a class, or ticking a checkbox from " +
+         "a dropped belt silently un-drops it");
+  }
+  var ib = optionalFn("includeBlock", "there are no pouches to drop");
+  if(!/\(S\.beltDrop \? ' data-drop=""' : ''\)/.test(ib)){
+    fail("the pouches' data-drop does not render from S.beltDrop — the strip " +
+         "and the pouches reading different variables for one state is how " +
+         "the composition goes nonsense (F14's lesson, one door down)");
+  }
+  if(/beltDrop/.test(fn("persistNow"))){
+    fail("beltDrop is written to the saved payload — the drop is a way of " +
+         "standing, not content; it never survives a reload");
+  }
+
+  /* (F12) Every close routes through one function, and the three doors are
+     all wired to it. */
+  var cb = optionalFn("closeBelt", "the belt cannot close at all");
+  var opens = (HTML.match(/S\.beltOpen = false/g) || []).length;
+  var inCb  = (cb.match(/S\.beltOpen = false/g) || []).length;
+  if(opens !== inCb || inCb < 1){
+    fail("S.beltOpen is set false at " + (opens - inCb) + " site(s) outside " +
+         "closeBelt() — a state that can be left by two doors needs both " +
+         "wired to the same exit, and the one nobody tested is always the " +
+         "one in the report (F12)");
+  }
+  if(!/closeBelt\("drop"\)/.test(fn("dropScrollOnce")) ||
+     !/closeBelt\("auto"\)/.test(HTML)){
+    fail("a close path bypasses closeBelt — the drop's scroll retraction and " +
+         "the flow auto-close both route through the one function or the " +
+         "buckle's staging is theatre (F12)");
+  }
+  /* The dropped close keeps the anchor: the strip loses data-drop (so its
+     top transitions home and the anchored pouches ride it), while the
+     pouches keep theirs — className assignment cannot touch an attribute. */
+  if(!/seg\.removeAttribute\("data-drop"\)/.test(cb) ||
+     !/inc\.className = "includes closing"/.test(cb)){
+    fail("the dropped close breaks the ride home — the strip must lose " +
+         "data-drop (its top transitions back to the peek) while the pouches " +
+         "KEEP theirs through the className swap, so the anchor holds and " +
+         "they rise with the belt instead of being left pinned mid-air, " +
+         "which was F12's third finding");
+  }
+
+  /* (F12) The exit travels far enough to finish behind the strip — the test
+     is distance, not the presence of an animation. */
+  if(!/@keyframes pouchout\{to\{transform:translateY\(var\(--out,-10px\)\);opacity:0;\}\}/.test(HTML) ||
+     !/\.includes\.closing \.scope\.fmt\{--out:-115%;\}/.test(HTML) ||
+     !/\.includes\.closing \.scope:not\(\.fmt\)\{--out:-210%;\}/.test(HTML)){
+    fail("the pouches' exit no longer travels behind the strip — a 12px " +
+         "nudge plus opacity is a fade, and a fade reads as vanishing. " +
+         "Format clears at -115%; types has the format row's height to clear " +
+         "as well, -210%. The distance is the whole difference between the " +
+         "two readings (F12)");
+  }
+
+  /* (F6) The flow auto-close pays its own compensation — #view sets
+     overflow-anchor:none on purpose, so nothing absorbs the removal. The
+     height comes from the observer's entry, never from a layout read. */
+  if(!/nwScrollAdjust = Math\.max\(0, en\.boundingClientRect\.height \+ 14\)/.test(HTML)){
+    fail("the flow auto-close no longer measures its compensation from the " +
+         "observer's entry — the includes box leaves the flow with 14px of " +
+         "net margin, and compensating by anything else makes the list creep " +
+         "on every close. The mock shipped that bug once (F6)");
+  }
+  if(!/if\(nwScrollAdjust\)\{ keep = Math\.max\(0, keep - nwScrollAdjust\); nwScrollAdjust = 0; \}/.test(fn("render"))){
+    fail("render() does not consume the close compensation — " +
+         "overflow-anchor:none means the app pays for removed flow height " +
+         "itself, and an unpaid close snaps the list to the top, which is " +
+         "the exact mock failure F6 was written after");
+  }
+
+  /* The retraction trigger is armed per drop and disarmed by firing. */
+  if(!/if\(dropArmed\) return;/.test(fn("armDropScroll"))){
+    fail("armDropScroll can stack listeners — {once:true} removes the " +
+         "listener but not the intent, and two armed copies close the next " +
+         "drop the moment it opens");
+  }
+  /* Found by the 3.6.0 Chromium drive, not by any suite: replacing
+     #view.innerHTML momentarily clamps the scroll position, the browser
+     dispatches a real scroll event for the clamp, and the one-shot listener
+     read the app's own render as the user leaving — the drop closed itself
+     ~300ms after opening. jsdom has no layout, so no assertion here can see
+     the event fire; what CAN be asserted is that the squelch exists and the
+     listener re-arms through it. */
+  if(!/if\(dropSquelch\)\{ armDropScroll\(\); return; \}/.test(fn("dropScrollOnce")) ||
+     !/dropSquelch = true;/.test(fn("render"))){
+    fail("the retraction listens to render's own scroll clamp — replacing " +
+         "#view.innerHTML clamps the scroll for a frame and the browser " +
+         "dispatches a real scroll event for it, so without the squelch the " +
+         "drop closes itself the moment it opens (or on the first tick " +
+         "taken from a dropped belt)");
+  }
+
+  note("the drop: anchored from the strip in CSS (section 120 untouched), " +
+       "one close path with three doors, exits travel -115%/-210%, " +
+       "auto-close compensated from the observer's entry");
 })();
 
 /* ---------- report ---------- */

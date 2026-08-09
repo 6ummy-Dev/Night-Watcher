@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 128 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 129 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -2513,3 +2513,64 @@ anchor, the retraction, F9/F13's reversals of 2.0.0, and section 96's growth
 for all of it — waits on the guard-120 argument, or on the CSS positioning
 answer that would make the argument unnecessary. Deferred with the release
 valve the plan named, not dropped.
+
+## The drop that never made the argument it was blocked on
+
+3.6.0, Stage C. The plan's blocker was real: the strip-measured anchor needed
+`getBoundingClientRect`, `offsetWidth` or `clientWidth`, section 120 refuses
+all three, and moving one into `PINNED` is a decision with its own argument.
+The plan's footnote — *"worth ten minutes before the argument is had"* — was
+also real. CSS anchor positioning is the ten minutes: `anchor-name:--belt` on
+the strip, `anchor()` and `anchor-size()` on the dropped pouches, and the
+pouches inherit the strip's actual box — scrollbar, safe area, 760px column —
+by construction. **Section 120 shipped this release untouched.** The register
+should note the inverse lesson: an instrument that cannot see (a guard
+refusing a read) is sometimes answered by removing the need to look, not by
+widening the instrument.
+
+Verified empirically before a line of app code was written: a fixed anchored
+box tracks a sticky anchor's box exactly at 390px and at 1280px with a
+scrollbar, and — the part that killed F12's "left behind" bug — it tracks
+mid-transition, measured at 120ms of a 220ms `top` ease.
+
+**Why the drop is gated on `supportsAnchor()`.** Without anchor positioning
+the pouches would position against the page — the exact two-widths bug the
+Next-up tab had at 7.5px and the mock had at half a scrollbar. A browser
+without the primitive gets Stage B whole: parked tap = calm scroll home.
+Firefox is the notable absence; phone-first traffic makes it a rounding error,
+and the fallback is not a broken drop but last release's shipped behaviour.
+
+**Why the retraction is the app's only scroll listener.** An IntersectionObserver
+fires when an answer changes; "has the user scrolled at all while dropped" has
+no threshold to observe — any movement is the answer. `{once:true, passive:true}`,
+armed per drop, disarmed by firing; guard 128 pins the count at one the way
+section 120 pins its reads. The `dropArmed` flag exists because {once} removes
+the listener, not the intent — two armed copies would close the next drop the
+moment it opened.
+
+**Why closeBelt() takes a door name.** "buckle" closes pouches and keeps the
+drop (F7: a dropped belt is a working belt; Q3: the buckle closes pouches
+independently). "drop" ends everything: the strip loses `data-drop` so its
+`top` transitions home, and the pouches keep their attribute through the
+`className` swap — an attribute survives a class assignment, which is what
+lets the anchor hold and the pouches ride the belt up instead of hanging
+mid-air (F12's third finding, dead by construction). "auto" is the invisible
+flow close: no staging, because it happens entirely above the fold, and the
+compensation — the entry's height plus the 14px of net margin the includes
+box takes to the grave — is subtracted from render()'s scroll keep before the
+restore. Chrome's scroll anchoring would have absorbed this silently and made
+a broken close look perfect; `#view{overflow-anchor:none}` is deliberate, so
+the app pays its own bill or the defect is visible. That is F6's mock lesson,
+kept.
+
+**The auto-close reads its height from the observer's entry.** The one number
+the compensation needs arrives in the callback that decides to close —
+`boundingClientRect` on an IntersectionObserver entry is delivered geometry,
+not a forced layout, and the string is not the one section 120 refuses. No
+new pins.
+
+**What a tick does mid-drop.** Rows visible under the dropped belt are
+tickable; render() rebuilds `#view` and regenerates the dropped classes from
+`S.beltDrop` — the drop is state, not a class, exactly because the plan warned
+that a checkbox tick would otherwise silently un-drop the belt. The scroll
+listener re-arms idempotently from beltWatch() after every render.

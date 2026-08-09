@@ -44,19 +44,19 @@ echo "--- 128: position carries exactly one condition (F14)"
 
 run_case "an open belt parks again" \
   "an open belt parks" \
-  "${P}a='.pathseg[data-held]{position:relative;}'
+  "${P}a='.pathseg[data-held]{position:relative;margin-bottom:0;}'
 assert a in s
 s=s.replace(a,'',1);${W}"
 
 run_case "a third position condition arrives" \
   "carries 3 rules" \
-  "${P}a='.pathseg[data-held]{position:relative;}'
+  "${P}a='.pathseg[data-held]{position:relative;margin-bottom:0;}'
 assert a in s
-s=s.replace(a,a+'.pathseg[data-drop]{position:fixed;}',1);${W}"
+s=s.replace(a,a+'.pathseg[data-float]{position:fixed;}',1);${W}"
 
 run_case "data-held stops reading the state" \
   "data-held does not render from S.beltOpen" \
-  "${P}a='''(S.beltOpen ? ' data-held=\"\"' : '')'''
+  "${P}a='''(S.beltOpen && !S.beltDrop ? ' data-held=\"\"' : '')'''
 assert a in s
 s=s.replace(a,'''' data-held=\"\"''',1);${W}"
 
@@ -118,19 +118,19 @@ echo "--- 128: the parked strip is not a control (F5)"
 
 run_case "the parked buttons stay live" \
   "buttons are still live" \
-  "${P}a='html[data-beltpark] .pathseg:not([data-held]) button{visibility:hidden;}'
+  "${P}a='html[data-beltpark] .pathseg:not([data-held]):not([data-drop]) button{visibility:hidden;}'
 assert a in s
 s=s.replace(a,'',1);${W}"
 
 run_case "the parked tap goes nowhere" \
-  "does not go home" \
+  "does not drop the belt" \
   "${P}a='var pk = e.target.closest(\".pathseg\");'
 assert a in s
 s=s.replace(a,'var pk = null;',1);${W}"
 
 run_case "the open belt's tap goes home too" \
   "ignores data-held" \
-  "${P}a='if(pk && !pk.hasAttribute(\"data-held\")){'
+  "${P}a='if(pk && !pk.hasAttribute(\"data-held\") && !pk.hasAttribute(\"data-drop\")){'
 assert a in s
 s=s.replace(a,'if(pk){',1);${W}"
 
@@ -142,11 +142,11 @@ run_case "the sentinel disappears" \
 assert a in s
 s=s.replace(a,'',1);${W}"
 
-run_case "a scroll listener arrives" \
-  "a scroll listener arrived" \
-  "${P}a='var beltIO = null;'
+run_case "a second scroll listener arrives" \
+  "reviewed with exactly 1" \
+  "${P}a='var beltIO = null, beltIncIO = null, dropArmed = false, nwScrollAdjust = 0, dropSquelch = false;'
 assert a in s
-s=s.replace(a,'window.addEventListener(\"scroll\", function(){});\\nvar beltIO = null;',1);${W}"
+s=s.replace(a,'window.addEventListener(\"scroll\", function(){});\\nvar beltIO = null, beltIncIO = null, dropArmed = false, nwScrollAdjust = 0, dropSquelch = false;',1);${W}"
 
 run_case "render stops re-pointing the observer" \
   "does not re-point the belt observer" \
@@ -171,7 +171,7 @@ s=s.replace(a,'',1);${W}" \
 
 run_case "the parked selectors go dead (smoke css)" \
   "every CSS rule matches something in some state" \
-  "${P}a='html[data-beltpark] .pathseg:not([data-held]) button{visibility:hidden;}'
+  "${P}a='html[data-beltpark] .pathseg:not([data-held]):not([data-drop]) button{visibility:hidden;}'
 assert a in s
 s=s.replace(a,'html[data-beltparked] .pathseg:not([data-held]) button{visibility:hidden;}',1);${W}" \
   "smoke" "css"

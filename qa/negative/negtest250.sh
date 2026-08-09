@@ -20,8 +20,8 @@ s=s.replace(a,'S.beltOpen = true; S.beltOpening = true; render();',1);${W}"
 
 run_case "includeBlock stops reading the flag" \
   "does not read the opening flag" \
-  "${P}a='''<div class=\"includes'+(S.beltOpening ? \" opening\" : \"\")+'\">''';assert a in s
-s=s.replace(a,'<div class=\"includes opening\">',1);${W}"
+  "${P}a='''<div class=\"includes'+(S.beltOpening ? \" opening\" : \"\")+'\"''';assert a in s
+s=s.replace(a,'<div class=\"includes opening\"',1);${W}"
 
 echo "--- 99: the ratings sentence flows beside its badges"
 run_case "the flex block comes back" \

@@ -30,6 +30,90 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.6.0] — 2026-08-09
+
+**The Belt drops. Stage C of the belt-peek design — the other half of 3.5.0,
+and the half every one of the seven mock rounds' findings lives in.** Tap the
+parked peek and the belt slides down under the header, over the list, with its
+pouches open in place. Change your format four hundred rows deep in two taps
+without losing your place — the thing the drop exists for, and the thing the
+belt could not do at any price before today. The next scroll retracts the
+pouches, stage by stage, and the belt rises back to its peek.
+
+**The headline is a guard that did not change.** The plan spent a page on
+amending section 120 — the strip-measured anchor needed one of three refused
+layout reads, and moving one into the pinned list was "a decision with its own
+argument". The plan's own footnote said to spend ten minutes on a CSS answer
+first. **The ten minutes won: the dropped pouches hang off the strip through
+CSS anchor positioning** — `anchor()` resolves the strip's real box, scrollbar,
+safe area and column included — **so section 120 ships untouched, pins and
+all, and the argument never had to be made.** Four of the seven mock findings
+died in the same move: the half-scrollbar offset (F11) cannot happen when the
+pouches inherit the strip's own box; the pouches cannot be "left behind" by a
+rising belt (F12) when they are anchored to it — measured mid-transition in
+this build's Chromium drive; and the two mid-close layer hand-offs that went
+wrong in the mock (F13, F14) no longer exist, because the strip never changes
+`position` during a drop — only `top`.
+
+**No catalogue change. No saved progress touched.** MINOR, and it takes a tag
+— `v3.6.0`, the seventh.
+
+### Added
+
+- **The drop.** Parked tap → the strip's `top` transitions from the peek to
+  the header's bottom edge, shadow on, buttons live again, pouches open in
+  place — `position:fixed`, anchored: top from the strip's bottom (the same
+  4px tuck as the flow), left inset 8px, width from `anchor-size`. The list
+  never moves: the pouches were never in the flow, so there is nothing to
+  compensate.
+- **The staged departure.** One scroll retracts everything: types first,
+  format a beat later — each travelling far enough to finish behind the strip
+  (`-115%` and `-210%`; a 12px nudge plus opacity is a fade, and a fade reads
+  as vanishing) — while the belt rises to the peek on its own transition and
+  the pouches ride it, because an anchored box tracks its anchor. Armed as a
+  one-shot `{once:true}` scroll listener, alive only while dropped — **the one
+  scroll listener in the app, pinned by count in guard 128** the same way
+  section 120 pins its layout reads.
+- **The flow auto-close (F14's other half).** A belt opened at the top and
+  scrolled away now closes itself once its pouches' flow space is entirely
+  above the fold — invisible, and compensated by exactly the height the flow
+  gave up, read from the observer's entry rather than from a layout query.
+  `#view` sets `overflow-anchor:none` deliberately, so the app pays its own
+  compensation or the list jumps. Then the strip re-sticks and the peek slides
+  in — the entrance finally arriving by the route it was designed for.
+- **Three planes, one rule (F9).** The types row now hangs behind the format
+  row the same way the format row hangs behind the belt — inset 11px further,
+  pulled up 5px, painted behind. **This deliberately reverses 2.0.0's
+  flush-aligned pouches, at Home as well as dropped** — the same object does
+  not get two constructions. Recorded as a reversal, not left to look like
+  drift.
+- **One seam (F13's other reversal).** An open belt drops its bottom margin,
+  so the pouch tuck is the same 4px in every state — the 10px stays when
+  closed, where it is spacing rather than a seam.
+- **One exit (F12).** Every close — buckle, drop-scroll, auto-close — routes
+  through a single function, and guard 129 counts the doors: `S.beltOpen`
+  cannot go false anywhere else. The mock's buckle skipped the staged exit
+  entirely because it had its own door; that class of bug is now structural.
+- **Guard section 129** — the paint order, the anchor, the state scoping, the
+  close routing, the exit distance, the compensation. **`negtest370.sh`, 18
+  fixtures.** Sections 96 and 128 grew for the close's new home and the drop's
+  exceptions.
+
+### Changed
+
+- While dropped, the strip's segments and buckle are live controls again — a
+  dropped belt is a working belt (F7). The peek band stays down; there is no
+  state in which the sliver and a pouch share the screen (F14).
+- A browser without CSS anchor positioning keeps Stage B whole: its parked tap
+  is the calm scroll home. The drop is gated on support, because dropping
+  pouches positioned against the page rather than the strip is the Next-up
+  7.5px bug with a stage.
+
+### Deferred
+
+- Nothing of the belt design remains. The seven rounds, F1 through F14, have
+  all shipped.
+
 ## [3.5.0] — 2026-08-09
 
 **The Belt parks instead of leaving. Stage B of the belt-peek design — the

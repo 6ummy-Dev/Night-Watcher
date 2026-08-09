@@ -54,12 +54,14 @@ echo "--- 120: the scroll read comes before the first write"
 run_case "the scroll read slides back below flagSave()" \
   "reads the scroll position after it has already written" \
   "${P}a='''  var keep = window.pageYOffset || document.documentElement.scrollTop || 0;
+  if(nwScrollAdjust){ keep = Math.max(0, keep - nwScrollAdjust); nwScrollAdjust = 0; }
   flagSave();
   applyTheme();'''
 assert a in s
 s=s.replace(a,'''  flagSave();
   applyTheme();
-  var keep = window.pageYOffset || document.documentElement.scrollTop || 0;''',1);${W}"
+  var keep = window.pageYOffset || document.documentElement.scrollTop || 0;
+  if(nwScrollAdjust){ keep = Math.max(0, keep - nwScrollAdjust); nwScrollAdjust = 0; }''',1);${W}"
 
 run_case "render() stops opening with the write it is measured against" \
   "no longer opens with flagSave()" \

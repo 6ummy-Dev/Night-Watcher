@@ -487,8 +487,8 @@ echo "--- 3.0.2: the app defects"
 
 run_case "the belt goes back to closing on a timer" \
   "does not parse" \
-  "${P}a='        S.beltOpen = false;\n        setTimeout(function(){ if(!S.beltOpen) render(); }, 240);'
-assert a in s;s=s.replace(a,'        setTimeout(function({ S.beltOpen = false; render(); }, 240);',1);${W}"
+  "${P}a='    setTimeout(function(){ if(!S.beltOpen) render(); }, 240);'
+assert a in s;s=s.replace(a,'    setTimeout(function({ if(!S.beltOpen) render(); }, 240);',1);${W}"
 
 run_case "the share handler stops telling a cancel from a failure" \
   "download fallback(s) and needs two" \

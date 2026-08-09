@@ -1634,6 +1634,10 @@ win.addEventListener("load", function(){
       S.q = ""; S.tab = "stats"; S.code = win.exportCode();
       S.progOpen = {uni:true, era:true}; win.render(); sweep();
       S.tab = "watch"; S.beltOpen = true; win.render(); sweep();
+      /* 3.6.0: the dropped state — jsdom cannot resolve the anchor CSS, but
+         the sweep only asks whether the selectors can match, and they must. */
+      S.beltDrop = true; win.render(); sweep();
+      S.beltDrop = false;
       /* The opening render is one flag-scoped render (2.2.1) and the closing
          state is set imperatively by the belt handler, so the sweep stages
          both the way it stages data-theme. */

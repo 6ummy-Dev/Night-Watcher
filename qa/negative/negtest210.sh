@@ -27,8 +27,8 @@ s=s.replace(a,'@keyframes pouchgone{',1);${W}"
 
 run_case "the close goes back to vanishing" \
   "does not stage the close" \
-  "${P}a='        S.beltOpen = false;\n        setTimeout(function(){ if(!S.beltOpen) render(); }, 240);'
-assert a in s;s=s.replace(a,'        S.beltOpen = false; render();',1);${W}"
+  "${P}a='    setTimeout(function(){ if(!S.beltOpen) render(); }, 240);\n  } else { render(); }'
+assert a in s;s=s.replace(a,'    render();\n  } else { render(); }',1);${W}"
 
 run_case "the close stops asking about reduced motion" \
   "close ignores prefers-reduced-motion" \
