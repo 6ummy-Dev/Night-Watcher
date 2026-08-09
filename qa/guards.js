@@ -105,6 +105,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      128  The Belt parks as the peek, and the peek tells the truth
      129  The Belt drops in place, and leaves the way it came
      130  The Belt toasts down, stacks tight, and is the peek once chosen
+     131  The install seat, and the two watching-truths
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -5337,9 +5338,12 @@ var ROUTE_VOCAB = [
     fail("restore() does not read progOpen back \u2014 the state would be written " +
          "and never used");
   } else {
-    var psave = HTML.slice(HTML.indexOf("if(o.progOpen"),
-                           HTML.indexOf("if(o.progOpen") + 300);
-    if(!/=== true/.test(psave)){
+    /* 3.7.0: this was a 300-char window asking for "=== true" anywhere in it,
+       and insOff\u2019s restore line moved into the window \u2014 so the fixture that
+       deletes progOpen\u2019s own check went green on the neighbour\u2019s. Found by
+       the full negative run. The assertion is the exact shape now; a window
+       is satisfied by whatever wanders into it. */
+    if(HTML.indexOf("if(o.progOpen[pk] === true) S.progOpen[pk] = true;") < 0){
       fail("restore() accepts non-true progOpen values \u2014 only true is " +
            "meaningful; anything else inverts the closed default");
     }
@@ -9179,6 +9183,108 @@ var ROUTE_VOCAB = [
        "IS the peek — sticky plus a margin, no position rule, no anchor, no " +
        "state bookkeeping; five tab doors through goTab, drops retract at " +
        "the door");
+})();
+
+/* ---------- 131. The install seat, and the two watching-truths ------------ */
+/* 3.7.0. Two decisions in one release. The install seat: one quiet block in
+   Progress, under the saves-line, that renders only where it can do
+   something — behind a held beforeinstallprompt on the engines that fire
+   one, as a dismissible hint on iOS where none exists, and not at all
+   inside the installed app. It is furniture that removes itself, never a
+   banner. And the footer split: the availability note and the dates note
+   are truths about WATCHING, so they moved to Next up; Progress keeps the
+   machinery — the saves-line and the build line. Each sentence lives in
+   exactly one place, guard 121's drift lesson applied before the drift. */
+(function(){
+  var ib = optionalFn("installBlock", "the install seat has no renderer");
+  var wn = optionalFn("watchNotes", "the watching-truths have no home");
+  var vs = fn("viewStats"), vn = fn("viewNext");
+
+  if(!/if\(isStandalone\(\)\) return ""/.test(ib)){
+    fail("installBlock() renders inside the installed app — the seat's first " +
+         "line is the standalone check, because an install button in the " +
+         "installed app is furniture that forgot to remove itself");
+  }
+  if(!/if\(installEvt\)/.test(ib)){
+    fail("the install button no longer waits for a held offer — without the " +
+         "installEvt gate the button renders where tapping it can do " +
+         "nothing, which is a banner with worse manners");
+  }
+  if(/installbtn(?:[^"]*\bprimary\b|")/.test(HTML) &&
+     /class="[^"]*\bprimary\b[^"]*\binstallbtn\b|class="[^"]*\binstallbtn\b[^"]*\bprimary\b/.test(HTML)){
+    fail("the install button took the bone fill — the decision was the quiet " +
+         "outline: Progress already carries two primary fills, install is " +
+         "tapped once ever, and an element that exists on one platform and " +
+         "not another cannot hold primary weight");
+  }
+  if(HTML.indexOf('<button class="bkbtn installbtn" data-act="install">') < 0){
+    fail("the install button left the bkbtn outline tier — quiet outline, " +
+         "full width, under the saves-line: never bone, never signal fill, " +
+         "never crimson");
+  }
+  if(HTML.indexOf('var iev = installEvt; installEvt = null;') < 0){
+    fail("the offer is no longer spent before prompt() — prompt() throws on " +
+         "a second call to the same event, so the held event is cleared " +
+         "first and Chrome makes a fresh offer on a later visit");
+  }
+  if(!/beforeinstallprompt[\s\S]{0,120}preventDefault/.test(HTML)){
+    fail("beforeinstallprompt no longer calls preventDefault() — Chrome's " +
+         "own mini-infobar renders over the seat, which is exactly the " +
+         "banner the seat exists to replace");
+  }
+  if(!/IOSDEVICE && !S\.insOff/.test(ib)){
+    fail("the iOS hint lost its gate — it renders only on iOS, where no " +
+         "prompt API exists, and only until dismissed");
+  }
+  if(!/insOff:S\.insOff \? true : undefined/.test(fn("persistNow"))){
+    fail("insOff persists something other than only-true — groupOpen " +
+         "persists only false because absent means open, progOpen only true " +
+         "because absent means closed, and insOff follows progOpen: " +
+         "persisting a default flips it the next time a build changes one");
+  }
+  if(HTML.indexOf('if(o.insOff === true) S.insOff = true;') < 0){
+    fail("a restored payload can no longer dismiss the hint — or can " +
+         "un-dismiss it, which is worse: the read side of the only-true " +
+         "rule is as load-bearing as the write side");
+  }
+
+  if(vn.indexOf("watchNotes()") < 0){
+    fail("Next up dropped the watching-truths — the availability note and " +
+         "the dates note describe watching, and Next up is where watching " +
+         "happens");
+  }
+  if(!/Availability changes constantly/.test(wn) ||
+     !/Announced dates can move\./.test(wn)){
+    fail("watchNotes() no longer carries both truths — availability and " +
+         "announced dates travel together or the split has quietly become " +
+         "a deletion");
+  }
+  if(/Availability changes constantly|Announced dates can move/.test(vs)){
+    fail("a watching-truth is back in Progress — each sentence lives in " +
+         "exactly one place, and its place is Next up. Two copies of one " +
+         "sentence will drift; that is guard 121's lesson, applied here " +
+         "before the drift instead of after");
+  }
+  if(!/Progress saves automatically in this browser/.test(vs)){
+    fail("Progress lost the saves-line — the machinery notes stay with the " +
+         "machinery");
+  }
+  if(vs.indexOf("buildline") < 0){
+    fail("the build line left Progress — it names the build and points at " +
+         "the source, which is machinery, and machinery lives in Progress");
+  }
+  var seats = (HTML.match(/installBlock\(\)/g) || []).length -
+              (HTML.match(/function installBlock\(\)/g) || []).length;
+  if(seats !== 1){
+    fail(seats + " install seats — the seat is one quiet block in Progress " +
+         "under the saves-line, and a second call site is the first step " +
+         "back toward a banner");
+  }
+
+  note("the install seat: standalone renders nothing, the button waits for " +
+       "a held offer and spends it, the iOS hint dismisses forever " +
+       "(only-true), quiet outline never a fill, one seat; the " +
+       "watching-truths live on Next up and the machinery notes in Progress");
 })();
 
 /* ---------- report ---------- */

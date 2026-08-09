@@ -36,8 +36,8 @@ s=s.replace(a,'''var fmt = \"All\";
 
 run_case "the open belt is remembered" \
   "beltOpen is written to the saved payload" \
-  "${P}a='groupOpen:S.groupOpen, progOpen:S.progOpen});';assert a in s
-s=s.replace(a,'groupOpen:S.groupOpen, progOpen:S.progOpen, beltOpen:S.beltOpen});',1);${W}"
+  "${P}a='insOff:S.insOff ? true : undefined});';assert a in s
+s=s.replace(a,'insOff:S.insOff ? true : undefined, beltOpen:S.beltOpen});',1);${W}"
 
 run_case "the pouches stop staggering" \
   "the pouches do not stagger" \

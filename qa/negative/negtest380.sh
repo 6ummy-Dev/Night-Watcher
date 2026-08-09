@@ -116,9 +116,9 @@ s=s.replace(a,'function supportsAnchor(){ return true; }\\nfunction beltDropOpen
 
 run_case "the entrance flag survives a reload" \
   "entrance flag is written" \
-  "${P}a='groupOpen:S.groupOpen, progOpen:S.progOpen});'
+  "${P}a='insOff:S.insOff ? true : undefined});'
 assert a in s
-s=s.replace(a,'groupOpen:S.groupOpen, progOpen:S.progOpen, beltDropping:S.beltDropping});',1);${W}"
+s=s.replace(a,'insOff:S.insOff ? true : undefined, beltDropping:S.beltDropping});',1);${W}"
 
 echo "--- 129, the fallback half: a peek that opens nothing is not a door"
 

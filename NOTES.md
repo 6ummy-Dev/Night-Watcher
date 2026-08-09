@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 130 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 131 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -2720,3 +2720,44 @@ feature is new and the harness is one engine at one version, a green drive
 is evidence about that engine, not about browsers — the wire/tree lesson,
 one layer down. The second cut's answer is the standing rules' inverse
 move: restructure so the question disappears.
+
+## The install seat, and the footer split
+
+3.7.0. The site had been installable since the manifest and the service
+worker shipped, and told nobody — the only person who had installed it was
+the owner, who knew to look in the browser menu. The fix is one quiet block
+in Progress, under the saves-line, and its whole design is a list of
+refusals recorded in guard 131:
+
+It renders only where it can do something. Chromium engines fire
+`beforeinstallprompt`; the listener calls `preventDefault()` — otherwise
+Chrome draws its own mini-infobar, which is exactly the banner this seat
+exists to replace — and holds the event for the seat. The button renders
+only while an offer is held. On iOS no prompt API exists, so the seat
+renders a one-line Share → Add to Home Screen hint instead, dismissible
+forever; `insOff` persists only as true, following `progOpen`'s
+only-true rule, because persisting a default flips it the next time a
+build changes one. Inside the installed app (`display-mode: standalone`,
+or `navigator.standalone` on iOS) the seat renders nothing at all — an
+install button in the installed app is furniture that forgot to remove
+itself.
+
+`prompt()` throws if called twice on one event, so the handler clears
+`installEvt` before prompting. If the reader declines, the button sits out
+the rest of the session and Chrome makes a fresh offer on a later visit.
+That is the quietest failure mode available, and it was chosen on purpose.
+
+The button is the `bkbtn` outline, full width, and never a fill. Progress
+already carries two bone fills ("Create backup code", "Share the night");
+signal fill is state, crimson is danger, and an element that exists on one
+platform and not another cannot hold primary weight without the tab reading
+differently on an iPhone than on a Pixel. The copy does the selling
+instead, because the pitch was already true: works offline, progress
+already here.
+
+The same release split the Progress footer. The availability note and the
+dates note are truths about watching, so they moved to `watchNotes()` on
+Next up — the tab where watching happens — and Progress kept the machinery:
+the saves-line and the build line, which names the build and points at the
+source. Each sentence lives in exactly one place. Guard 121's drift lesson,
+applied before the drift instead of after.

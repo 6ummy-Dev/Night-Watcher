@@ -1686,6 +1686,14 @@ win.addEventListener("load", function(){
          asks whether the selectors can match, not whether the observer fired. */
       doc.documentElement.setAttribute("data-beltpark", ""); sweep();
       doc.documentElement.removeAttribute("data-beltpark");
+      /* 3.7.0: the install seat renders behind a held beforeinstallprompt or
+         an iOS UA, and jsdom has neither \u2014 staged the way data-beltpark is.
+         The sweep asks whether the selectors can match, not whether the
+         browser made an offer. */
+      win.installEvt = {}; S.tab = "stats"; win.render(); sweep();
+      win.installEvt = null;
+      win.IOSDEVICE = true; win.render(); sweep();
+      win.IOSDEVICE = false; win.render();
       var dead = sels.filter(function(sel){ return !matched[sel]; });
       check("every CSS rule matches something in some state",
             dead.length === 0, dead.join("  |  "));

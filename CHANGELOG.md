@@ -30,6 +30,48 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.7.0] — 2026-08-09
+
+**The app has been installable since the manifest shipped, and told nobody.
+Now it says so, once, quietly, in the place where it matters — and the
+Progress footer hands the two watching-truths to the tab where watching
+happens.**
+
+### Added
+
+- **The install seat.** One quiet block in Progress, under the saves-line.
+  On engines that fire `beforeinstallprompt` the offer is caught
+  (`preventDefault()`, so Chrome's own mini-infobar never appears), held,
+  and rendered as a `bkbtn`-outline button — tapped, the native install
+  dialog opens. On iOS, where no prompt API exists, the seat is a one-line
+  Share → "Add to Home Screen" hint with a Dismiss that lasts forever
+  (`insOff`, persisted only as true — `progOpen`'s rule, fourth verse).
+  Inside the installed app the seat renders nothing: an install button in
+  the installed app is furniture that forgot to remove itself. `prompt()`
+  is spent before it is called — a second call on one event throws — so a
+  decline quietly sits out the session and Chrome re-offers on a later
+  visit. Never a banner, never a fill: Progress already carries two bone
+  fills, signal is state, and a button that exists on one platform and not
+  another cannot hold primary weight. Guard 131; reasoning in NOTES.md.
+
+### Changed
+
+- **The Progress footer split, and the watching-truths moved home.** The
+  availability note ("Where to watch" runs a fresh search) and the dates
+  note ("Announced dates can move") are about watching, so they now render
+  at the foot of Next up, from one source (`watchNotes()`). Progress keeps
+  the machinery: the saves-line and the build line. Each sentence lives in
+  exactly one place — guard 121's drift lesson, applied before the drift
+  instead of after. Guard 131 holds the split both ways.
+
+### QA
+
+- **Guard section 131** — the seat's refusals (standalone renders nothing,
+  the button waits for a held offer and spends it, the hint dismisses
+  only-true, quiet outline, one seat) and the footer split (both truths in
+  `watchNotes()`, neither in Progress, the machinery notes staying put).
+- **`qa/negative/negtest131.sh`** — fixtures for every clause above.
+
 ## [3.6.4] — 2026-08-09
 
 **Three soak calls from the corrected drop's first evening — and one owner
