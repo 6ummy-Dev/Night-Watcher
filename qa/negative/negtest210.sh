@@ -37,8 +37,8 @@ s=s.replace(a,'false;',1);${W}"
 
 run_case "the reduced-motion block forgets the exit" \
   "does not cut .includes.closing .scope" \
-  "${P}a='.includes.opening .scope,.includes.closing .scope,.includes.closing{animation:none;}';assert a in s
-s=s.replace(a,'.includes.opening .scope,.includes.closing{animation:none;}',1);${W}"
+  "${P}a='.includes.opening .scope,.includes.closing .scope,.includes.closing,.pathseg[data-toast]{animation:none;}';assert a in s
+s=s.replace(a,'.includes.opening .scope,.includes.closing,.pathseg[data-toast]{animation:none;}',1);${W}"
 
 echo "--- 67: the freshness date tells the truth"
 run_case "the updated date drifts from the changelog" \

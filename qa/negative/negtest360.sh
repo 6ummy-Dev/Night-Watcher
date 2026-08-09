@@ -130,15 +130,15 @@ s=s.replace(a,'',1);${W}"
 
 run_case "the parked tap goes nowhere" \
   "does not drop the belt" \
-  "${P}a='var pk = e.target.closest(\".pathseg\");'
+  "${P}a='var pk = e.target.closest ? e.target.closest(\".pathseg\") : null;'
 assert a in s
 s=s.replace(a,'var pk = null;',1);${W}"
 
 run_case "the open belt's tap goes home too" \
   "ignores data-held" \
-  "${P}a='if(pk && !pk.hasAttribute(\"data-held\") && !pk.hasAttribute(\"data-drop\")){'
+  "${P}a='if(!pk.hasAttribute(\"data-held\") && !pk.hasAttribute(\"data-drop\")){'
 assert a in s
-s=s.replace(a,'if(pk){',1);${W}"
+s=s.replace(a,'if(1){',1);${W}"
 
 echo "--- 128: an observer on the sentinel, never a listener, never a read"
 

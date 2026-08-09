@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 129 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 130 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -2646,3 +2646,77 @@ thing the drop exists to keep. The jump is now gated on !S.beltDrop — kept
 for the chooser deck and the viewing-banner buttons, where going to the head
 of a re-sorted list is the point — and the guard's message keeps the owner's
 own formulation: it is a selector, and home is above, in the app name.
+
+## The belt's edges — and the cut that never rendered
+
+3.6.4, three owner soak calls from the corrected drop's first evening, plus
+one correction the owner made mid-build that is worth more than the three
+fixes together.
+
+The drop arrived in one frame. Not because nobody wrote the motion — the
+strip carries a .22s `top` transition that the retraction rides up every
+time — but because render() rebuilds the strip, and a freshly created
+element has no old value to transition from. The entrance the design always
+described ("the belt slides down over the list") had silently never existed
+in the shipped app. It is now a keyframe, `data-toast`, scoped to the drop's
+one render the way beltOpening scopes the pouches' entrance (the 2.2.1
+replay lesson), travelling exactly the retraction's 34px so arrival and exit
+are one motion read in two directions.
+
+The stack's second seam was a gap wearing a tuck's clothes. F9's numbers —
+types row inset 11px, pulled up 5px — shipped against a format row that
+still carried 6px of bottom margin, and adjacent margins collapse:
+6 + (−5) = 1px of daylight between the pouches. At Home the page's own
+colour filled it and no instrument ever saw it; dropped over a list it was a
+1px window — the 3.6.1 transparent-pouch finding at one-pixel scale, and the
+owner's "not always almost there" is exactly that state dependence. The
+margin is gone; every seam in the stack now overlaps (belt over format by 4,
+format over types by 5), one construction in both states.
+
+The third call — "when changing tabs, if already hidden, it should remain" —
+was answered twice, and the first answer is the one to remember. It kept the
+scroll-derived park and added state to carry it across tab changes:
+S.beltHide following the sentinel, a render flag, a reveal armed by the
+sentinel leaving, and a parked strip re-rendered as position:fixed, anchored
+to the guide with the same CSS the pouches use. The harness Chromium drew it
+pixel-perfect on every tab at two viewports; the guards held it; the drive
+passed sixteen checks against it. **On the owner's machines — Chrome, Brave,
+Edge, desktop and mobile — the sliver never rendered at all.** Six browsers,
+no peek, a belt reachable only by knowing to scroll.
+
+That failure was never diagnosed to a line, and deliberately so. The owner's
+correction reset the frame: "the utility belt from Batman — once you choose,
+it stays under the header, so you can use it whenever. You don't use it
+much, but it needs to work perfectly." Parked is not a place the belt gets
+to by scrolling; it is where the belt lives once a path is chosen. And a
+control that must work perfectly cannot stand on the newest CSS on the page.
+So the second cut deletes rather than fixes: the peek is the same sticky
+strip it always was, pulled up under the header by a margin
+(peek − beltH − main's 18px − the sentinel's 1px, which stops collapsing
+against a margin that negative), rendered from S.path — no position rule, no
+anchor, no observer involvement, no state bookkeeping, nothing left for a
+browser to lack. The hidden-state machinery, the reveal gesture, the tab
+carry and the JS anchor probe all went with it, and guard 130 now fails on
+their RETURN as loudly as on a removal — machinery for a state that cannot
+exist is where the next soak report lives.
+
+The pouches are the one place anchor CSS remains, and the gate moved into
+the stylesheet: the anchored rule sits inside @supports naming the three
+exact shapes it uses (the register's one-property lesson, now structurally
+incapable of drifting from the rule it vouches for), over a fixed-position
+fallback whose top is a constant the pinned strip guarantees —
+--hdrh + --beltH − 4px, the same tuck — and whose left/width are the
+column's own arithmetic. The fallback exists because the peek became the
+belt's only door: the old no-anchor answer was "scroll home and use the
+belt there," and there is no there any more. Older Safari and Firefox now
+get a working belt; their residual cost is at most half a scrollbar of
+pouch centring on desktop, the F11 number, recorded here so it is a known
+trade and not a future finding.
+
+One more note for the instrument register's spirit: the harness Chromium
+certified the anchored peek that six real browsers refused to draw, and the
+project still does not know which line they disagreed on. When the platform
+feature is new and the harness is one engine at one version, a green drive
+is evidence about that engine, not about browsers — the wire/tree lesson,
+one layer down. The second cut's answer is the standing rules' inverse
+move: restructure so the question disappears.

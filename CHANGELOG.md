@@ -30,6 +30,50 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.6.4] — 2026-08-09
+
+**Three soak calls from the corrected drop's first evening — and one owner
+correction mid-build that reset the belt's resting state. The rule is now
+one sentence: once you choose a path, the belt lives under the header.**
+
+### Changed
+
+- **Once chosen, the belt is the peek — everywhere, always.** The 12px
+  sliver sits under the header on every tab, at the top of the page and
+  mid-list alike; tap it and the belt drops to work in place, and the next
+  scroll or tab change tucks it back. The whole strip no longer sits in the
+  flow after a path is chosen (before you choose, it still does — a peek
+  with nothing lit would be debris). The peek is the same sticky strip it
+  always was, pulled up under the header by a margin — deliberately nothing
+  else, so it renders in every browser ever made. An earlier cut of this
+  release anchored it with new-platform CSS and it failed to appear at all
+  on six real browsers; that dependency is gone rather than diagnosed.
+- **The belt works without anchor positioning now.** The dropped strip was
+  never anchored; the pouches' anchored rule moved inside an `@supports`
+  gate that names the three exact shapes it uses, over a fixed-position
+  fallback whose top is a constant the pinned strip guarantees. Older
+  Safari and Firefox get a working belt instead of a peek that opens
+  nothing. The JS probe is deleted — the gate lives in the stylesheet,
+  where it cannot diverge from the rules it vouches for.
+
+### Fixed
+
+- **The drop toasts down.** Tapping the peek brought the belt in a single
+  frame — the render rebuilds the strip, so the transition that carries the
+  retraction up had nothing to leave from. The entrance now mirrors the
+  retraction: the same 34px from behind the header, the same ease, the same
+  0.22s, played once per drop and cut entirely under reduced motion.
+- **The stack has no daylight in it.** The format row's 6px bottom margin
+  collapsed against the types row's -5px pull to a 1px gap between the
+  pouches — invisible at Home on the page's own colour, a 1px window over a
+  dropped list. Every seam in the stack is now an overlap: belt over format
+  by 4px, format over types by 5px, in both states.
+
+**All decisions are guarded in section 130 with the reasoning in the failure
+messages; `negtest380.sh` puts every old behaviour back on purpose —
+including the deleted machinery, whose return must fail as loudly as a
+removal.** No catalogue change, no saved progress touched, PATCH.
+
 ## [3.6.3] — 2026-08-09
 
 **Two soak calls from the drop's first weekend, both about what the drop

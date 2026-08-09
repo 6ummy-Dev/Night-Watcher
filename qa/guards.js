@@ -104,6 +104,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      119  Where to watch has a rank of its own
      128  The Belt parks as the peek, and the peek tells the truth
      129  The Belt drops in place, and leaves the way it came
+     130  The Belt toasts down, stacks tight, and is the peek once chosen
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -8577,7 +8578,10 @@ var ROUTE_VOCAB = [
   if(posRules.length !== 2){
     fail("`position` on the strip carries " + posRules.length + " rules; this " +
          "build was reviewed with exactly 2 — sticky, and F14's data-held " +
-         "release. A third condition is a new state nobody argued for");
+         "release. A third condition is a new state nobody argued for: " +
+         "3.6.4's always-parked peek deliberately carries NO position rule " +
+         "of its own (section 130 — it is the same sticky, pulled up by a " +
+         "margin, so it works in browsers the anchored version never reached)");
   }
   if(!/\(S\.beltOpen && !S\.beltDrop \? ' data-held=""' : ''\)/.test(mc)){
     fail("data-held does not render from S.beltOpen && !S.beltDrop — F14's " +
@@ -8683,19 +8687,23 @@ var ROUTE_VOCAB = [
   var vh = HTML.indexOf('getElementById("view").addEventListener("click"');
   var vhBlock = HTML.slice(vh, vh + 900);
   if(!/data-beltpark/.test(vhBlock) || !/closest\(".pathseg"\)/.test(vhBlock) ||
-     !/beltDropOpen\(\)/.test(vhBlock) || !/supportsAnchor\(\)/.test(vhBlock)){
+     !/beltDropOpen\(\)/.test(vhBlock)){
     fail("a tap on the parked strip does not drop the belt — the drop is the " +
          "locked answer from the mock round: the belt comes down over the " +
          "list and works in place, which is the thing it cannot do today at " +
-         "any price. The tap routes through supportsAnchor(), because the " +
-         "drop hangs its pouches off a CSS anchor");
+         "any price. The tap drops UNCONDITIONALLY since 3.6.4: the dropped " +
+         "strip is plain sticky CSS, and the pouches carry their own " +
+         "@supports gate in the stylesheet (section 129) — a JS probe " +
+         "guarding a tap that no longer needs anchors was the owner's dead " +
+         "peek: every browser outside the probe got no belt at all once the " +
+         "peek became the only door");
   }
-  if(!/calmScroll\(\)/.test(vhBlock)){
-    fail("the parked tap has no fallback — a browser without anchor " +
-         "positioning cannot hang the pouches off the strip, so its tap is " +
-         "the calm scroll home, which is the whole of Stage B and still " +
-         "correct. Dropping without the anchor puts the pouches at the " +
-         "page's mercy, which is the Next-up 7.5px bug with a stage");
+  if(/supportsAnchor/.test(HTML)){
+    fail("the JS anchor probe is back — 3.6.4 moved the gate into the " +
+         "stylesheet (@supports around the anchored pouch rule), where it " +
+         "cannot diverge from the rules it vouches for. A probe beside the " +
+         "stylesheet is two answers to one question, and the register's " +
+         "one-property lesson was earned against exactly this function");
   }
   if(!/hasAttribute\("data-held"\)/.test(vhBlock) ||
      !/hasAttribute\("data-drop"\)/.test(vhBlock)){
@@ -8825,21 +8833,45 @@ var ROUTE_VOCAB = [
          "to hang off and fall back to the page's coordinates, which is the " +
          "Next-up 7.5px half-scrollbar bug, third appearance");
   }
-  if(!/\.includes\[data-drop\]\{position:fixed;position-anchor:--belt;top:calc\(anchor\(bottom\) - 4px\);left:calc\(anchor\(left\) \+ 8px\);width:calc\(anchor-size\(width\) - 16px\);margin:0;z-index:20;\}/.test(HTML)){
+  if(!/\.includes\[data-drop\]\{position-anchor:--belt;top:calc\(anchor\(bottom\) - 4px\);left:calc\(anchor\(left\) \+ 8px\);width:calc\(anchor-size\(width\) - 16px\);\}/.test(HTML)){
     fail("the dropped pouches are not anchored to the strip's own box — " +
          "top from its bottom (the same 4px tuck as the flow), left inset 8px, " +
          "width from anchor-size. Centre them against anything else and they " +
          "sit half a scrollbar off the belt, worst in the middle row, which " +
          "is the owner's exact report at the mock round (F11)");
   }
+  /* 3.6.4: the anchored rule lives INSIDE @supports, over a fallback that
+     works everywhere. A dropped strip always pins at --hdrh, so the
+     fallback's top is a constant with no anchor in it; left and width are
+     the column's own formula. The fallback exists because the peek became
+     the only door to the belt (section 130) — a browser outside the gate
+     used to fall back to scrolling home, and home now shows the peek. */
+  if(!/@supports \(position-anchor:--belt\) and \(top:calc\(anchor\(bottom\) - 4px\)\) and \(width:calc\(anchor-size\(width\) - 16px\)\)\{/.test(HTML)){
+    fail("the anchored pouch rule lost its @supports gate, or the gate " +
+         "stopped probing the exact shapes the rule uses — position-anchor, " +
+         "anchor() in calc, anchor-size() in calc. The gate lives in the " +
+         "stylesheet so it cannot diverge from the rule it vouches for; a " +
+         "partial implementation slipping it renders broken floaters when " +
+         "the correct answer was the fallback (the register's one-property " +
+         "lesson, 3.6.1)");
+  }
+  if(!/\.includes\[data-drop\]\{position:fixed;top:calc\(var\(--hdrh\) \+ var\(--beltH\) - 4px\);left:max\(26px, calc\(50% - 354px\)\);width:min\(100% - 52px, 708px\);margin:0;z-index:20;\}/.test(HTML)){
+    fail("the no-anchor fallback for the dropped pouches is gone or drifted " +
+         "— fixed at the constant the pinned strip guarantees (--hdrh + " +
+         "--beltH - 4px: the same 4px tuck), left/width from the column's " +
+         "own 760/18/8 arithmetic (26 = 18 + 8; 354 = 708/2; 708 = 724 - " +
+         "16). Without it, a browser outside the @supports gate has a peek " +
+         "that opens nothing — the owner's dead-sliver report, one layer " +
+         "down");
+  }
   /* (F13) …and the dropped treatment applies ONLY in the dropped state. */
   if((HTML.match(/position-anchor/g) || []).length !== 2){
     fail("position-anchor appears at " +
          (HTML.match(/position-anchor/g) || []).length + " sites; this build " +
-         "was reviewed with exactly 2 — the one [data-drop] rule, and " +
-         "supportsAnchor()'s probe. The dropped treatment applying outside " +
-         "the dropped state is the mistake four of the seven mock findings " +
-         "turned out to be (F13)");
+         "was reviewed with exactly 2 — the @supports condition, and the one " +
+         "anchored [data-drop] rule inside it. The dropped treatment " +
+         "applying outside the dropped state is the mistake four of the " +
+         "seven mock findings turned out to be (F13)");
   }
   if(!/\(S\.beltDrop \? ' data-drop=""' : ''\)/.test(mc) ||
      (mc.split("data-drop").length - 1) !== 1){
@@ -8967,26 +8999,184 @@ var ROUTE_VOCAB = [
          "taken from a dropped belt)");
   }
 
-  /* 3.6.1: the gate must probe the functions the drop actually uses, not one
-     adjacent property. A browser can parse position-anchor and still not
-     resolve anchor() or anchor-size() — and a gate that vouches for what it
-     cannot see is the register's oldest entry wearing CSS.supports. */
-  var sa = fn("supportsAnchor");
-  if(!/CSS\.supports\("position-anchor", "--belt"\)/.test(sa) ||
-     !/CSS\.supports\("top", "calc\(anchor\(bottom\) - 4px\)"\)/.test(sa) ||
-     !/CSS\.supports\("width", "calc\(anchor-size\(width\) - 16px\)"\)/.test(sa)){
-    fail("supportsAnchor() no longer probes all three primitives the drop " +
-         "stands on — position-anchor, anchor() in calc, and anchor-size() " +
-         "in calc. A gate that checks one property and vouches for three " +
-         "functions drops broken pouches on every browser in the gap, and " +
-         "the fallback it should have chosen was last release's shipped " +
-         "behaviour");
+  note("the drop: anchored from the strip in CSS (section 120 untouched), " +
+       "@supports-gated over a constant-top fallback, one close path with " +
+       "three doors, exits travel -115%/-210%, auto-close compensated from " +
+       "the observer's entry, dropped pair above the pinned headers, pouch " +
+       "rows opaque");
+})();
+
+/* ---------- 130. The Belt toasts down, stacks tight, and is the peek once chosen - */
+/* 3.6.4, from the corrected drop's first evening — and rebuilt once inside
+   the same version number, before upload, on the owner's second report.
+
+   THE FIRST CUT NEVER RENDERED ON THE OWNER'S MACHINES. It hung the parked
+   strip off a CSS anchor (position:fixed, anchored to the guide), and the
+   owner saw no sliver at all — Chrome, Brave, Edge, desktop and mobile —
+   while the harness Chromium drew it pixel-perfect on every tab. The
+   failure was never diagnosed to a line; the dependency was removed
+   instead, which is the standing rules' inverse move: the peek is now the
+   SAME sticky strip it always was, pulled up under the header by a margin,
+   and there is nothing left in it for a browser to lack.
+
+   AND THE OWNER RESET THE STATE MACHINE. "The utility belt from Batman: once
+   you choose, it stays under the header, so you can use it whenever. You
+   don't use it much, but it needs to work perfectly." So parked is not a
+   place the belt gets to by scrolling — it is where the belt LIVES once a
+   path is chosen. Every tab, every scroll position, always the peek; tap it
+   to drop; the drop retracts to the peek. The whole strip sits in the flow
+   only pre-choice, where the peek would be debris (F4). Hidden-state
+   bookkeeping, the tab-change carry, the reveal gesture, the JS anchor
+   probe: all deleted rather than fixed — a state that no longer exists
+   cannot resurrect.
+
+   Three rules survive from the first cut unchanged: the drop toasts down
+   (the retraction mirrored — render() rebuilds the strip, so the base
+   transition can never carry an entrance), every stack seam overlaps (the
+   6px margin left +1px of daylight between the pouches — the 3.6.1 window
+   at 1px scale), and a dropped belt never crosses a tab change. */
+
+(function(){
+  var mc = optionalFn("masterChooser", "there is no belt to park");
+
+  /* (1) The entrance mirrors the retraction: same distance, same curve, same
+     duration, one render only. */
+  if(!/\.pathseg\[data-toast\]\{animation:beltdrop \.22s ease;\}/.test(HTML) ||
+     !/@keyframes beltdrop\{from\{transform:translateY\(calc\(var\(--belt-peek\) - var\(--beltH\)\)\);\}\}/.test(HTML)){
+    fail("the drop's entrance no longer mirrors the retraction — the strip " +
+         "must toast down the same 34px (beltH − peek) the retraction rides " +
+         "up, same .22s ease, or the belt arrives in one frame, which is the " +
+         "owner's 9 Aug report ('too fast instead of toasting down'). The " +
+         "render rebuilds the strip, so the base `top` transition cannot " +
+         "carry the entrance; the keyframe is how it arrives at all");
+  }
+  if(!/S\.beltDropping = true; render\(\); S\.beltDropping = false;/.test(fn("beltDropOpen")) ||
+     !/\(S\.beltDropping \? ' data-toast=""' : ''\)/.test(mc)){
+    fail("the entrance is not scoped to the one render that drops — the " +
+         "beltOpening pattern, or the belt replays its arrival on every " +
+         "re-render taken from a dropped belt (a format pick, a type pick), " +
+         "which is the 2.2.1 soak note wearing the drop's clothes");
+  }
+  if(!new RegExp("prefers-reduced-motion: reduce\\)\\{[^}]*\\.pathseg\\[data-toast\\][^}]*\\{animation:none;").test(HTML)){
+    fail("reduced motion does not cut the drop's entrance — the keyframe " +
+         "slips *{transition:none} entirely (the section-128 Q2 trap), so " +
+         "the block must name .pathseg[data-toast] or the belt toasts down " +
+         "for the reader who asked it not to");
+  }
+  var stripBase = (HTML.match(/\.pathseg\{[^}]*\}/) || [""])[0];
+  if(/animation:/.test(stripBase)){
+    fail("the base .pathseg rule carries an animation — every render with a " +
+         "dropped belt replays the entrance (2.2.1); only the data-toast " +
+         "render animates");
   }
 
-  note("the drop: anchored from the strip in CSS (section 120 untouched), " +
-       "one close path with three doors, exits travel -115%/-210%, " +
-       "auto-close compensated from the observer's entry, dropped pair " +
-       "above the pinned headers, pouch rows opaque");
+  /* (2) Every seam in the stack is an overlap. */
+  if(!/\.includes \.scope\{position:relative;background:var\(--ink\);margin:0;/.test(HTML)){
+    fail("the format row grew a bottom margin back — 6px of margin collapsed " +
+         "against the types row's -5px pull leaves +1px of daylight between " +
+         "the pouches, invisible at Home on the page's own colour and a 1px " +
+         "window over a dropped list (the 3.6.1 lesson at 1px scale). The " +
+         "owner's 9 Aug report: 'the drops are too separated, not always " +
+         "almost there.' margin:0, so the -5px pull is a real 5px tuck and " +
+         "every seam in the stack overlaps — belt over format by 4, format " +
+         "over types by 5, both states");
+  }
+
+  /* (3) Once a path is chosen, the strip is the peek — rendered from state,
+     everywhere, in every scroll position. The one exception is an open
+     in-flow belt (data-held), reachable only pre-choice or in the render
+     where the path was just chosen from an open belt; F14 owns that state
+     and it closes into the peek. */
+  if(!/\(S\.path && !\(S\.beltOpen && !S\.beltDrop\) \? ' data-park=""' : ''\)/.test(mc) ||
+     (mc.split("data-park").length - 1) !== 1){
+    fail("the strip's data-park does not render from S.path exactly once — " +
+         "once chosen, the belt lives under the header (the owner's words: " +
+         "'it stays under the header, so you can use it whenever'), and " +
+         "parked must be state, not something scrolling grants and a tab " +
+         "change takes away. The !(beltOpen && !beltDrop) half is F14's: an " +
+         "open in-flow belt leaves with its pouches, then parks for good");
+  }
+  /* The peek is the SAME sticky strip pulled up by a margin — deliberately
+     nothing else, so it renders in every browser ever made. The pull is
+     peek − beltH − 18 − 1: main's own top padding and the sentinel's 1px,
+     which stops collapsing against a margin this negative. The result lands
+     the flow slot exactly on the sticky offset, so the peek is
+     pixel-identical at the top of a fresh tab and mid-scroll. */
+  if(!/\.pathseg\[data-park\]\{margin:calc\(var\(--belt-peek\) - var\(--beltH\) - 18px - 1px\) 0 0;\}/.test(HTML)){
+    fail("the parked strip's pull is gone or drifted — " +
+         "margin-top: calc(--belt-peek − --beltH − 18px − 1px) is what puts " +
+         "the flow slot exactly at the sticky offset (37 with no inset), so " +
+         "the peek reads 12px under the header at the top of a fresh tab " +
+         "AND mid-list. 18 is main's own top padding; the 1px is the " +
+         "sentinel's height, whose −1px margin stops collapsing against a " +
+         "margin this negative. Wrong by one and the fresh-tab peek is 13px " +
+         "— the F1 twelfth, earned back");
+  }
+  if(!/\nmain\{[^}]*padding:18px 18px /.test(HTML)){
+    fail("main's padding no longer starts 18px 18px — the parked strip's " +
+         "pull hardcodes that 18, so the two must move together or every " +
+         "fresh-tab peek shifts by the difference");
+  }
+  if(/\.pathseg\[data-park\]\{[^}]*(position:|anchor)/.test(HTML)){
+    fail("the parked strip grew a position rule or an anchor — the first " +
+         "cut of this section did exactly that and the owner saw NO SLIVER " +
+         "AT ALL on six browsers while the harness Chromium drew it " +
+         "perfectly. The peek is sticky plus a margin, nothing else: there " +
+         "is nothing in it left to lack");
+  }
+  if(!/\.pathseg\[data-park\]:not\(\[data-drop\]\)::before,\.pathseg\[data-park\]:not\(\[data-drop\]\)::after\{opacity:1;transform:translateY\(0\);\}/.test(HTML) ||
+     !/\.pathseg\[data-park\]:not\(\[data-drop\]\) button\{visibility:hidden;\}/.test(HTML) ||
+     !/\.pathseg\[data-park\]:not\(\[data-drop\]\)\{cursor:pointer;\}/.test(HTML)){
+    fail("the parked strip is not the peek — it must show the sliver, kill " +
+         "its buttons (F5: 12px of live re-ordering is the defect the peek " +
+         "exists to prevent) and read as one handle; and a DROPPED belt " +
+         "gets its buttons back (F7), which is what the :not([data-drop]) " +
+         "halves are");
+  }
+  var vh3 = HTML.indexOf('getElementById("view").addEventListener("click"');
+  if(!/hasAttribute\("data-park"\)/.test(HTML.slice(vh3, vh3 + 900))){
+    fail("a tap on the parked peek does not drop the belt — data-beltpark " +
+         "only covers the scroll-parked pre-choice strip, so without the " +
+         "data-park half the permanent peek is 12px of dead pixels: " +
+         "visible, labelled a handle, answering nothing");
+  }
+
+  /* Every tab change routes through one door, and a dropped belt does not
+     cross it. */
+  var gt = optionalFn("goTab", "tab changes have no policy");
+  if(!/if\(S\.beltDrop\) closeBelt\("auto"\); else render\(\);/.test(gt)){
+    fail("goTab() lets a dropped belt keep its shadow on the new tab — the " +
+         "drop is a way of standing in one list; leaving the tab retracts " +
+         "it through the one close path (F12), and the new tab greets you " +
+         "with the peek");
+  }
+  ["goTab(b.dataset.tab)", 'goTab("stats")', 'goTab("home")',
+   'goTab("next")', 'goTab("watch")'].forEach(function(site){
+    if(HTML.indexOf(site) < 0){
+      fail("a tab change bypasses goTab() — " + site + " is gone. Five " +
+           "doors, one function: the tab bar, the ring, the wordmark, " +
+           "resume, and the tier cards. A door wired around it is F12's " +
+           "three-door lesson, applied to arrival");
+    }
+  });
+  if(/beltHide|beltFix|beltRevealArmed/.test(HTML)){
+    fail("the hidden-state bookkeeping is back — beltHide/beltFix/" +
+         "beltRevealArmed belonged to the cut where parked was something " +
+         "scrolling granted and a tab change had to carry. Parked is " +
+         "rendered from S.path now; state that cannot exist cannot " +
+         "resurrect, and machinery for it is where the next soak report " +
+         "lives");
+  }
+  if(/beltDropping/.test(fn("persistNow"))){
+    fail("the entrance flag is written to the saved payload — it is one " +
+         "render long, like beltOpening (guard 96's rule, third verse)");
+  }
+
+  note("the belt's edges: entrance mirrors the retraction (34px, .22s, one " +
+       "render), every stack seam overlaps (4/5), and once chosen the belt " +
+       "IS the peek — sticky plus a margin, no position rule, no anchor, no " +
+       "state bookkeeping; five tab doors through goTab, drops retract at " +
+       "the door");
 })();
 
 /* ---------- report ---------- */

@@ -801,19 +801,30 @@ win.addEventListener("load", function(){
             (kids[1] ? kids[1].className : "(none)"));
       check(tab + " keeps the pouches closed until asked",
             !doc.querySelector("#view .includes"));
+      /* 3.6.4: once a path is chosen the strip is the permanent peek, so the
+         buckle lives behind the drop — the strip's own tap drops the belt
+         (closed), and the buckle opens the pouches from there. Two clicks,
+         both through the real handler, exactly the reader's route. */
+      doc.querySelector("#view .pathseg").click();
       doc.querySelector('#view [data-act="belt"]').click();
       check(tab + " opens the pouches from the buckle",
-            !!doc.querySelector("#view .includes") && S.beltOpen === true);
+            !!doc.querySelector("#view .includes") && S.beltOpen === true &&
+            S.beltDrop === true);
       check(tab + " has no lone scope switch left",
             !doc.querySelector("#view > .scope"));
-      S.beltOpen = false;
+      S.beltOpen = false; S.beltDrop = false;
     });
     S.tab = "watch"; win.render();
+    /* Switching paths now goes through the drop: tap the peek, then the
+       segment — a segment inside the peek is not a control (F5). */
+    doc.querySelector("#view .pathseg").click();
     doc.querySelector('#view .pathseg button[data-path="release"]')
        .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("switching path from another tab works", S.path === "release", S.path);
-    S.path = "continuity"; S.mode = "continuity"; S.tab = "home"; win.render();
+    S.path = "continuity"; S.mode = "continuity"; S.beltDrop = false;
+    S.tab = "home"; win.render();
 
+    doc.querySelector("#view .pathseg").click();
     doc.querySelector('#view [data-act="belt"]').click();
     var iSeg = posOf(".pathseg"), iInc = posOf(".includes"), iHero = posOf(".hero");
     check("the controls come first", iSeg === 1 && posOf(".beltguide") === 0,
@@ -826,7 +837,7 @@ win.addEventListener("load", function(){
           /background:var\(--signal\)/.test(
             (win.document.documentElement.innerHTML.match(
               /\.pathseg button\[aria-pressed="true"\]\{[^}]*\}/) || [""])[0]));
-    S.beltOpen = false;
+    S.beltOpen = false; S.beltDrop = false;
 
     /* Format badges only where format is ambiguous. */
     S.format = "all"; S.scope = "all"; S.tab = "watch"; S.filter = "all"; win.render();
@@ -1638,6 +1649,11 @@ win.addEventListener("load", function(){
          the sweep only asks whether the selectors can match, and they must. */
       S.beltDrop = true; win.render(); sweep();
       S.beltDrop = false;
+      /* 3.6.4: the entrance's one-render flag — staged the way beltOpening
+         is. The permanent peek needs no staging: data-park renders in every
+         chosen-path state this sweep already walks. */
+      S.beltDropping = true; S.beltDrop = true; win.render(); sweep();
+      S.beltDropping = false; S.beltDrop = false;
       /* The opening render is one flag-scoped render (2.2.1) and the closing
          state is set imperatively by the belt handler, so the sweep stages
          both the way it stages data-theme. */

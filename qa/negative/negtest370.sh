@@ -20,9 +20,9 @@ echo "--- 129: the belt paints in front of its pouches, each in front of the nex
 
 run_case "the dropped pouches lose their layer" \
   "no longer paints in front of its own pouches" \
-  "${P}a='width:calc(anchor-size(width) - 16px);margin:0;z-index:20;}'
+  "${P}a='width:min(100% - 52px, 708px);margin:0;z-index:20;}'
 assert a in s
-s=s.replace(a,'width:calc(anchor-size(width) - 16px);margin:0;}',1);${W}"
+s=s.replace(a,'width:min(100% - 52px, 708px);margin:0;}',1);${W}"
 
 run_case "the stack flattens back to flush" \
   "three-plane stack is gone" \
@@ -151,16 +151,16 @@ assert a in s
 s=s.replace(a,'box-shadow:0 12px 26px rgba(0,0,0,.55);margin-bottom:0;}',1);${W}"
 
 run_case "the gate stops probing anchor-size" \
-  "no longer probes all three primitives" \
-  "${P}a='CSS.supports(\"width\", \"calc(anchor-size(width) - 16px)\")'
+  "stopped probing the exact shapes" \
+  "${P}a='@supports (position-anchor:--belt) and (top:calc(anchor(bottom) - 4px)) and (width:calc(anchor-size(width) - 16px)){'
 assert a in s
-s=s.replace(a,'true',1);${W}"
+s=s.replace(a,'@supports (position-anchor:--belt) and (top:calc(anchor(bottom) - 4px)){',1);${W}"
 
 echo "--- 129, the 3.6.3 soak pair: the drop arrives closed, and a selector is not a door"
 
 run_case "the drop opens the pouches again" \
   "the drop opens the pouches again" \
-  "${P}a='function beltDropOpen(){\n  S.beltDrop = true;\n  render();\n}'
+  "${P}a='function beltDropOpen(){\n  S.beltDrop = true;\n  S.beltDropping = true; render(); S.beltDropping = false;\n}'
 assert a in s
 s=s.replace(a,'function beltDropOpen(){\n  S.beltDrop = true;\n  if(!S.beltOpen) openBelt();\n  else render();\n}',1);${W}"
 
