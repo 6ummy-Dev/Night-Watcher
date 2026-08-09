@@ -2603,3 +2603,24 @@ dropped broken pouches when the correct answer was Stage B's calm scroll
 home. The gate now probes all three primitives, in the exact `calc()` shapes
 the CSS uses. An instrument used to rule something in must be able to see it,
 too.
+
+## `top` does not stop existing when `position` changes
+
+3.6.2, and the sharpest lesson of the belt series. The strip's sticky parking
+needs `top:calc(var(--hdrh) + var(--belt-peek) - var(--beltH))` — 37px. The
+held rule (an open belt) switched `position` to `relative` and left `top`
+alone, and a relative box honours `top`: the open belt rendered 37px below its
+flow box, directly on top of its own pouches, from 3.5.0 until this patch.
+
+Why three rounds of verification missed it: jsdom has no layout, so guards and
+smoke cannot see a visual offset; the Chromium drives tested the open belt
+only for what F14 claimed about it — that it scrolls away and never parks —
+and never measured where it stood while open at the top. The screenshot that
+found it took one probe: the pouches' top edge read 37px above the strip's
+bottom. The drive suite now measures the open-at-top seam, and guard 128 pins
+`top:auto` in the held rule with the story in the failure message.
+
+The general form, for the register's family of state-scoped treatments: a
+rule that changes which positioning scheme applies must account for every
+property the old scheme was using. `position` names the scheme; `top` is the
+scheme's argument, and it survives the switch.

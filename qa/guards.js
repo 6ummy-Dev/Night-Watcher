@@ -8562,13 +8562,15 @@ var ROUTE_VOCAB = [
          "either the belt no longer parks as the peek, or its parked offset " +
          "stopped deriving from the one source section 128 pins");
   }
-  if(!/\.pathseg\[data-held\]\{position:relative;margin-bottom:0;\}/.test(HTML)){
-    fail("an open belt parks — .pathseg[data-held]{position:relative;" +
-         "margin-bottom:0;} is the F14 rule plus F13's seam: a belt with its " +
-         "pouches out is a belt in use, it scrolls away with them, and an " +
-         "open belt drops its bottom margin so the pouch tuck is the same " +
-         "4px in every state. Without it the strip pins as a peek while its " +
-         "pouches carry on below at full size");
+  if(!/\.pathseg\[data-held\]\{position:relative;top:auto;margin-bottom:0;\}/.test(HTML)){
+    fail("an open belt parks, or sinks — .pathseg[data-held]{position:" +
+         "relative;top:auto;margin-bottom:0;} is F14's rule plus F13's seam " +
+         "plus the 3.6.2 lesson: `top` offsets position:relative boxes too, " +
+         "so a held rule that switches position without resetting top leaves " +
+         "the open strip 37px below its flow box, sitting on its own " +
+         "pouches. That shipped in 3.5.0 and was reported as 'tapping the " +
+         "buckle at top does not drop correctly' — the pouches were there, " +
+         "buried behind the belt. top:auto, or the belt eats its pouches");
   }
   var posRules = (HTML.match(/\.pathseg[^ {,]*\{[^}]*position:[^}]*\}/g) || [])
     .filter(function(r){ return !/\.pathseg \./.test(r) && !/::/.test(r); });

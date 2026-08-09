@@ -44,13 +44,19 @@ echo "--- 128: position carries exactly one condition (F14)"
 
 run_case "an open belt parks again" \
   "an open belt parks" \
-  "${P}a='.pathseg[data-held]{position:relative;margin-bottom:0;}'
+  "${P}a='.pathseg[data-held]{position:relative;top:auto;margin-bottom:0;}'
 assert a in s
 s=s.replace(a,'',1);${W}"
 
+run_case "the open belt sinks onto its pouches again" \
+  "the belt eats its pouches" \
+  "${P}a='.pathseg[data-held]{position:relative;top:auto;margin-bottom:0;}'
+assert a in s
+s=s.replace(a,'.pathseg[data-held]{position:relative;margin-bottom:0;}',1);${W}"
+
 run_case "a third position condition arrives" \
   "carries 3 rules" \
-  "${P}a='.pathseg[data-held]{position:relative;margin-bottom:0;}'
+  "${P}a='.pathseg[data-held]{position:relative;top:auto;margin-bottom:0;}'
 assert a in s
 s=s.replace(a,a+'.pathseg[data-float]{position:fixed;}',1);${W}"
 

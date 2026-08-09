@@ -30,6 +30,29 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.6.2] — 2026-08-09
+
+**One property, latent since 3.5.0, and it explains the whole "does not drop
+correctly" report — including at the top of the page.**
+
+### Fixed
+
+- **An open belt sat 37px below its own place, on top of its pouches.** The
+  strip carries `top` for its sticky parking; opening the belt switches it to
+  `position:relative` — **and `top` offsets relative boxes too.** So from
+  3.5.0 on, tapping the buckle shifted the whole strip down by exactly the
+  parking offset, burying the format row completely and most of the types row
+  behind an opaque belt. With 3.6.0's transparent rows the wreckage was at
+  least visible; 3.6.1's opaque rows hid the pouches entirely, which is why
+  the buckle looked like it did nothing. The held rule now resets `top`. One
+  word — `auto` — and the belt opens where it stands.
+
+**Reproduced by geometry before the fix** (pouch top 37px above the strip's
+bottom edge, rows fully covered) **and re-measured after it** (the 4px tuck,
+exact). Guard 128's held-rule pin now includes the reset with the failure
+story in its message; `negtest360.sh` gained the fixture that puts the sinking
+back (25 fixtures). No catalogue change, no saved progress touched, PATCH.
+
 ## [3.6.1] — 2026-08-09
 
 **The drop's first soak report, same evening, both findings fixed.** Dropped
