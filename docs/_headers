@@ -59,6 +59,31 @@
 # that was taken for a wrong reason and is returned for a plain one.
 # interest-cohort does NOT come back: FLoC was withdrawn, and section 104 still
 # refuses that token by name.
+#
+# 3.7.1 MOVES THE TWO Link: LINES OUT OF /* AND UNDER /, AND THE REASON IS NOT
+# THE ONE THAT PROMPTED IT. An outside reading said the blanket canonical was
+# why GSC returned "Soft 404" for /icon.svg. IT IS NOT, and the control that
+# settled it is on file: three live tests, one instrument, one hour, 10 Aug.
+# /llms.txt carries this very header, Google READ it — User-declared canonical:
+# https://nightwatcher.life/ — and the verdict was still "URL is available to
+# Google · Page can be indexed". A header that blocked indexability could not
+# produce that row. /icon-192.png reported User-declared canonical: NONE, so a
+# PNG is never evaluated as a document at all, and it too came back available.
+# Only /icon.svg fails, because SVG is a renderable document format that renders
+# with no text. THE SOFT 404 IS SVG-SPECIFIC AND HARMLESS. qa/favicon-serp-2026-08.md.
+#
+# SO THIS MOVE BUYS NOTHING MEASURABLE AND SHIPS ON PRINCIPLE, WHICH IS RECORDED
+# HERE RATHER THAN DRESSED UP: a canonical relation is a statement about a
+# document, /* applies it to fonts, icons and sw.js, and RFC 8288 gives no
+# reading of "this PNG's authoritative version is the home page". The narrow
+# scope is what the file meant all along. Cloudflare's _headers matches on PATH
+# ONLY — never content type — and every matching rule applies cumulatively with
+# no way to unset, so scoping means removing from /* and re-declaring under /.
+# / is the whole HTML surface: wrangler.jsonc pins not_found_handling to
+# "404-page", NOT single-page-application, and the app is one page with hash
+# routing, so no other path ever serves a document. Section 104 asserts the
+# scope now, not merely the presence — the old regexes matched anywhere in this
+# file and would have stayed green through this very edit.
 
 /*
   Referrer-Policy: strict-origin-when-cross-origin
@@ -66,6 +91,8 @@
   Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=()
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
+
+/
   Link: <https://nightwatcher.life/sitemap.xml>; rel="sitemap"
   Link: <https://nightwatcher.life/>; rel="canonical"
 

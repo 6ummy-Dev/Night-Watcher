@@ -6235,11 +6235,40 @@ var ROUTE_VOCAB = [
          "nothing");
   }
 
+  /* 3.7.1. WHICH RULE A HEADER SITS UNDER IS PART OF THE HEADER, AND UNTIL NOW
+     THIS SECTION DID NOT SAY SO. Every entry below tested presence anywhere in
+     the file. The whole of the 3.7.1 change is moving two lines out of /* and
+     under / \u2014 and every assertion here would have stayed green through it,
+     because a regex anchored with /m matches its line wherever that line sits.
+     A guard's assertion is its code, not its name: this one was named for the
+     headers the tree owns and asserted only that the strings existed somewhere.
+
+     Parse the file into its rules and hold each header under the rule it
+     belongs to. Cloudflare's _headers matches on PATH ONLY \u2014 never content
+     type \u2014 and applies every matching rule cumulatively with no way to unset,
+     so scope is expressed by which block a line sits in and by nothing else. */
+  var BLOCKS104 = {};
+  (function(){
+    var cur = null;
+    D.split("\n").forEach(function(l){
+      if(/^\//.test(l)){ cur = l.trim(); BLOCKS104[cur] = BLOCKS104[cur] || []; return; }
+      if(/^\s*$/.test(l)){ return; }
+      if(cur){ BLOCKS104[cur].push(l); }
+    });
+  })();
+  function block104(p){ return (BLOCKS104[p] || []).join("\n"); }
+
+  if(!BLOCKS104["/"]){
+    fail("docs/_headers has no / rule \u2014 since 3.7.1 that is where the two " +
+         "Link: relations live, and without it the site declares no canonical " +
+         "and points at no sitemap on the one URL that serves a document");
+  }
+
   var PINNED104 = [["Referrer-Policy",   /^\s+Referrer-Policy:\s*strict-origin-when-cross-origin\s*$/m,
-    "strict-origin-when-cross-origin"],
-   ["X-Frame-Options",   /^\s+X-Frame-Options:\s*DENY\s*$/m, "DENY"],
+    "strict-origin-when-cross-origin", "/*"],
+   ["X-Frame-Options",   /^\s+X-Frame-Options:\s*DENY\s*$/m, "DENY", "/*"],
    ["Permissions-Policy", /^\s+Permissions-Policy:\s*.*geolocation=\(\)/m,
-    "a policy that at least denies geolocation"],
+    "a policy that at least denies geolocation", "/*"],
    /* 3.2.0. COOP severs window.opener for a cross-origin opener. This app
       reads .opener nowhere at all — checked, zero occurrences — every watch
       link is a plain target="_blank" navigation, and there is no popup flow,
@@ -6254,18 +6283,46 @@ var ROUTE_VOCAB = [
       header: nothing fails when it is there, and nothing fails when someone
       deletes it again. The file and this entry are one commit. */
    ["Cross-Origin-Opener-Policy", /^\s+Cross-Origin-Opener-Policy:\s*same-origin\s*$/m,
-    "same-origin"],
+    "same-origin", "/*"],
    /* 3.4.2, and all three land here for the reason the comment above gives: a
       header in that file and not in this array is a header nothing watches. */
    ["Cross-Origin-Resource-Policy", /^\s+Cross-Origin-Resource-Policy:\s*same-origin\s*$/m,
-    "same-origin"],
+    "same-origin", "/*"],
+   /* MOVED FROM /* TO / IN 3.7.1, and the scope is now the assertion. An
+      outside reading said the blanket canonical was why GSC returns Soft 404
+      for /icon.svg. IT IS NOT — three live tests one hour apart on 10 Aug:
+      /llms.txt carries this header, Google read it (User-declared canonical:
+      https://nightwatcher.life/) and still answered "Page can be indexed";
+      /icon-192.png reported User-declared canonical NONE, so a PNG is never
+      evaluated as a document at all; only /icon.svg fails, because SVG is a
+      renderable document format that renders with no text. The move ships on
+      principle — a link relation describes a document and /* applied it to
+      fonts, icons and sw.js — NOT on the reading that prompted it, and saying
+      so here is the difference between a decision and a cargo cult.
+      qa/favicon-serp-2026-08.md. */
    ["Link: sitemap", /^\s+Link:\s*<https:\/\/nightwatcher\.life\/sitemap\.xml>;\s*rel="sitemap"\s*$/m,
-    "an RFC 8288 sitemap relation"],
+    "an RFC 8288 sitemap relation", "/"],
    ["Link: canonical", /^\s+Link:\s*<https:\/\/nightwatcher\.life\/>;\s*rel="canonical"\s*$/m,
-    "an RFC 8288 canonical relation pointing at the apex"]];
+    "an RFC 8288 canonical relation pointing at the apex", "/"]];
   PINNED104.forEach(function(t){
-    if(!t[1].test(D)){
-      fail("docs/_headers no longer sets " + t[0] + " to " + t[2]);
+    if(!t[1].test(block104(t[3]))){
+      fail("docs/_headers no longer sets " + t[0] + " to " + t[2] +
+           " under its " + t[3] + " rule");
+    }
+  });
+
+  /* The 3.7.1 move asserted from the other side, because the entries above can
+     only ever say where a line IS. A header re-declared under /* while still
+     present under / satisfies every check above and puts the canonical back on
+     every asset — which is exactly the state 3.7.1 exists to leave. */
+  [["Link: sitemap",   /^\s+Link:.*rel="sitemap"/m],
+   ["Link: canonical", /^\s+Link:.*rel="canonical"/m]].forEach(function(t){
+    if(t[1].test(block104("/*"))){
+      fail("docs/_headers declares " + t[0] + " under /* — a link relation " +
+           "describes a document, and /* applies it to the fonts, the icons " +
+           "and sw.js. It belongs under / , which is the whole HTML surface: " +
+           "wrangler.jsonc pins not_found_handling to \"404-page\", not " +
+           "single-page-application, and the app is one page with hash routing");
     }
   });
 
@@ -6393,8 +6450,13 @@ var ROUTE_VOCAB = [
      3.2.0 pinned a fourth — so the note would have gone on printing three
      while the array checked four, which is the drift this project fixes with
      a guard every other time it appears. It reads the list now. */
-  note("_headers: " + PINNED104.map(function(t){ return t[0]; }).join(", ") +
-       " on /*, no-cache on /sw.js, a year on /fonts/*, and out of the " +
+  /* The note prints each header WITH ITS SCOPE, because until 3.7.1 it printed
+     the whole list followed by "on /*" and that sentence is now false for two
+     of the seven. A passing note that states something untrue is the same
+     defect as a failure message that does — it is read as evidence, and this
+     is the file whose scopes are the thing under test. */
+  note("_headers: " + PINNED104.map(function(t){ return t[0] + " on " + t[3]; }).join(", ") +
+       ", no-cache on /sw.js, a year on /fonts/*, and out of the " +
        "offline shell");
 })();
 

@@ -30,6 +30,57 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.7.1] — 2026-08-10
+
+**A canonical relation is a statement about a document, and `/*` was applying
+it to the fonts, the icons and `sw.js`. It moves under `/`. And `llms.txt` —
+the one file written to be found by engines — was findable by none of them,
+because nothing on the open web pointed at it.**
+
+### Changed
+
+- **The two `Link:` relations moved from `/*` to `/` in `docs/_headers`.**
+  Cloudflare's `_headers` matches on path only, never content type, and
+  applies every matching rule cumulatively with no way to unset — so scope
+  is which block a line sits in, and nothing else. `/` is the whole HTML
+  surface: `wrangler.jsonc` pins `not_found_handling` to `"404-page"`, not
+  `single-page-application`, and the app is one page with hash routing, so
+  no other path ever serves a document. **This ships on principle and buys
+  nothing measurable, which is recorded rather than dressed up** — see QA.
+- **`sitemap.xml` gains `llms.txt`.** GSC reported it *"URL is unknown to
+  Google — no referring sitemaps detected, no referring page"*: nothing
+  pointed at it, so the file written for engines could not be found by one.
+  **`orders.txt` stays out and guard 105 still fails the build if it appears
+  there** — it carries the same 200 entries as the crawlable seed, and
+  submitting both asks a search engine to choose between two near-identical
+  bodies on one domain. `llms.txt` is 1,892 bytes of summary and pointers,
+  not a second catalogue. Discoverable is not indexed.
+
+### QA
+
+- **The `icon.svg` "Soft 404" was measured, and it is not the canonical
+  header.** An outside reading attributed it to the blanket `Link:
+  rel="canonical"`. Three live tests, one instrument, one hour, 10 Aug:
+  `llms.txt` carries that header, Google *read* it (User-declared canonical:
+  `https://nightwatcher.life/`) and still answered **"Page can be indexed"**;
+  `icon-192.png` reported User-declared canonical **None**, so a PNG is never
+  evaluated as a document at all, and it came back available too; only
+  `icon.svg` fails, because SVG is a renderable document format that renders
+  with no text. **The verdict on the favicon is unchanged — no change, and
+  nothing before 19 Sep.** `qa/favicon-serp-2026-08.md`.
+- **Guard section 104 now asserts scope, not presence.** Every entry in
+  `PINNED104` tested whether a string existed anywhere in the file, so the
+  whole of this release would have shipped green through it. The file is
+  parsed into its rules and each header is held under the rule it belongs
+  to, with a refusal from the other side: a `Link:` relation re-declared
+  under `/*` fails even while the `/` copy still satisfies every presence
+  test.
+- **`qa/negative/negtest251.sh` gains six fixtures.** Both `Link:` clauses
+  entered `PINNED104` in 3.4.3 and **neither had ever been seen to fail** —
+  five releases of a hand-maintained list nothing tested. Dropped, retargeted,
+  re-declared under `/*` (both relations), and the `/` rule deleted outright.
+  636 fixtures → **642**.
+
 ## [3.7.0] — 2026-08-09
 
 **The app has been installable since the manifest shipped, and told nobody.

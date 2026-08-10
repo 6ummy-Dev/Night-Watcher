@@ -1,9 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The home page is FIRST and stays first: guard 67 reads the first <lastmod> in
+  this file and holds it against the JSON-LD dateModified, the newest CHANGELOG
+  release date and the BUILT line. A second entry above it would silently become
+  the one those three are checked against.
+
+  3.7.1 ADDS llms.txt. GSC reported it as "URL is unknown to Google — no
+  referring sitemaps detected, no referring page" on 10 Aug: nothing on the open
+  web pointed at it, so the file written to be found by engines could not be
+  found by one. That is the first-order constraint — the blanket canonical
+  header that prompted the investigation was measured the same hour and does not
+  block indexability at all. qa/favicon-serp-2026-08.md.
+
+  THE PLAIN-TEXT CATALOGUE EXPORT DELIBERATELY DOES NOT APPEAR HERE, and guard
+  105 fails the build if it ever does: it carries the same 200 entries as the
+  crawlable seed in the root page, so submitting both asks a search engine to
+  choose between two near-identical bodies on one domain. llms.txt is not that
+  file — 1,892 bytes of summary and pointers, no catalogue. Discoverable is not
+  indexed, and the two sit on opposite sides of that line.
+
+  THAT PARAGRAPH NAMES NO FILENAME ON PURPOSE, and the first draft of it did.
+  Guard 105 substring-matches this whole document, comments included, so writing
+  the export's name in prose here fails the build with "…is in sitemap.xml"
+  about a file that is not in it — a failure message making a false claim, which
+  is the one thing this project treats as worse than no guard. Same rule as
+  robots.txt's header comment: the prose does not restate the values below.
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://nightwatcher.life/</loc>
-    <lastmod>2026-08-09</lastmod>
+    <lastmod>2026-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://nightwatcher.life/llms.txt</loc>
+    <lastmod>2026-08-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>
