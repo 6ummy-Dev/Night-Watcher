@@ -124,6 +124,37 @@ run_case () {
   fi
 }
 
+# green_case "<label>" "<python mutation>" [suite] — THE INVERSE OF run_case.
+#
+# ADDED 10 AUG 2026, AND THE HOLE IT FILLS COST A BUILD THE SAME DAY. Every
+# fixture in this harness asserts that a guard DOES fail. Nothing could assert
+# that a guard does NOT — and a guard that fires when it should not is exactly
+# as broken as one that never fires, with the extra cost that its failure
+# message sends the reader looking for a defect that does not exist. Guard 105
+# read sitemap.xml with indexOf and failed on a COMMENT naming the export; the
+# fix was one clause, and there was no way to write the test that stops it
+# coming back.
+#
+# It asserts on the EXIT CODE rather than on absent output, deliberately. "The
+# expected string is missing" is how run_case works and it cannot express this:
+# a run that fails for an unrelated reason has no expected string either, so
+# absence proves nothing. A green exit is the claim.
+green_case () {
+  local label="$1"; local pyscript="$2"; local suite="${3:-guards}"
+  ensure_tree
+  heal_tree
+  ( cd "$NEG" && python3 -c "$pyscript" ) || { echo "  SETUP BROKE  $label"; FAILED=$((FAILED+1)); return; }
+  local out
+  if out=$(cd "$NEG" && node qa/$suite.js 2>&1); then
+    echo "  PASS  $label"; PASS=$((PASS+1))
+  else
+    echo "  FAIL  $label"
+    echo "        expected: the tree to stay GREEN after this mutation"
+    printf '%s\n' "$out" | grep -E '✗' | sed 's/^/        got: /' | head -3
+    FAILED=$((FAILED+1))
+  fi
+}
+
 # The two-line python prologue nearly every fixture opens with.
 P="import io;p='docs/index.html';s=io.open(p,encoding='utf-8').read();"
 W="io.open(p,'w',encoding='utf-8').write(s)"

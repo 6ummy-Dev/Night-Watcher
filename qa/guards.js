@@ -3704,9 +3704,16 @@ if(!/function legendBlock/.test(HTML) ||
       suites.forEach(function(f){
         /* A quoted label, so the run_case() definition at the top of every
            suite is not counted as one of its own fixtures. Counting it was how
-           the fixture total came to be reported as 194 when it was 178. */
+           the fixture total came to be reported as 194 when it was 178.
+
+           green_case COUNTS TOO, ADDED WITH IT IN 3.7.1. A fixture that proves
+           a guard does NOT fire is a fixture, and a counter that can only see
+           one of the two helpers reports a total that is quietly short — which
+           is this project's oldest failure wearing a new hat. The alternation
+           is the whole change: the moment a third helper exists it belongs
+           here, in the same commit that introduces it. */
         fixtures += (fs.readFileSync(path.join(negDir, f), "utf8")
-                       .match(/^run_case\s+"/gm) || []).length;
+                       .match(/^(?:run_case|green_case)\s+"/gm) || []).length;
       });
       counts.push(["negative suites", suites.length, /(\d+)\s+negative suites\b/]);
       counts.push(["negative fixtures", fixtures, /(\d+)\s+fixtures\b/]);
@@ -6561,11 +6568,42 @@ var ROUTE_VOCAB = [
          "is served and the page says nothing about it, which is how an audit " +
          "came to recommend building a file that already existed");
   }
+  /* 3.7.1 BROKE THIS CLAUSE'S BUILD AND THE CLAUSE WAS RIGHT TO BE SUSPECTED.
+     It read the whole document with indexOf, comments included, so writing the
+     export's NAME in a sitemap comment — explaining why the file is deliberately
+     absent — failed the build with "orders.txt is in sitemap.xml" about a file
+     that was not in it. A guard whose failure message states something false is
+     worse than no guard: it is read as evidence, and the reader's first move is
+     to go looking for a URL that is not there.
+
+     THE FIX IS TO ASSERT THE THING THE RULE IS ABOUT. What matters is whether a
+     crawler is being SUBMITTED the export, and that is expressed by <loc> and
+     by nothing else. Comments are stripped first anyway — belt and braces, so
+     that a commented-out <loc> in someone's work-in-progress cannot fail a
+     build either.
+
+     AND THE EMPTY CASE IS ASSERTED, because without it this check is vacuous.
+     A sitemap that parses to zero <loc> values satisfies "no loc is the export"
+     perfectly while being a broken sitemap, and a check that passes for the
+     wrong reason is the shape this file keeps paying for. */
   var smPath = path.join(PUBLIC, "sitemap.xml");
-  if(fs.existsSync(smPath) && fs.readFileSync(smPath, "utf8").indexOf("orders.txt") >= 0){
-    fail("orders.txt is in sitemap.xml — it carries the same 200 entries as " +
-         "the crawlable seed, so indexing both asks a search engine to choose " +
-         "between two near-identical bodies on one domain");
+  if(fs.existsSync(smPath)){
+    var SM105  = fs.readFileSync(smPath, "utf8").replace(/<!--[\s\S]*?-->/g, "");
+    var LOC105 = (SM105.match(/<loc>[^<]*<\/loc>/g) || []).map(function(m){
+      return m.replace(/<\/?loc>/g, "").trim();
+    });
+    if(!LOC105.length){
+      fail("sitemap.xml declares no <loc> at all — it submits nothing, and it " +
+           "would satisfy every other check in this section by being empty");
+    }
+    LOC105.forEach(function(u){
+      if(/\/orders\.txt$/.test(u)){
+        fail("orders.txt is submitted in sitemap.xml as " + u + " — it carries " +
+             "the same 200 entries as the crawlable seed, so indexing both asks " +
+             "a search engine to choose between two near-identical bodies on " +
+             "one domain");
+      }
+    });
   }
 
   /* Kept here rather than in 101 so one section owns this file end to end.

@@ -51,5 +51,33 @@ run_case "the alternate link points somewhere else" \
   "index.html does not point at orders.txt" \
   "${P}s=s.replace('href=\"orders.txt\" title=\"The whole catalogue as plain text\"','href=\"llms.txt\" title=\"The whole catalogue as plain text\"',1);${W}"
 
+echo "--- the export stays OUT of the sitemap"
+
+# ADDED 10 AUG 2026. Guard 105 has refused this since 2.7.2 and HAD NEVER BEEN
+# SEEN TO FAIL — five releases of a clause nobody had made go red. The same day
+# it went red for the WRONG reason: it read the document with indexOf, comments
+# and all, so a sitemap comment EXPLAINING the exclusion failed the build with
+# "orders.txt is in sitemap.xml" about a file that was not in it.
+#
+# So the clause needs both directions, and the two green_case fixtures are the
+# regression test for the fix. Without them the next person to simplify this
+# back to a substring match ships green.
+S="import io;p='docs/sitemap.xml';s=io.open(p,encoding='utf-8').read();"
+SW="io.open(p,'w',encoding='utf-8').write(s)"
+
+run_case "the export is submitted in the sitemap" \
+  "orders.txt is submitted in sitemap.xml" \
+  "${S}a='</urlset>';assert a in s;s=s.replace(a,'  <url>\n    <loc>https://nightwatcher.life/orders.txt</loc>\n  </url>\n'+a,1);${SW}"
+
+run_case "the sitemap declares no locations at all" \
+  "declares no <loc> at all" \
+  "${S}import re;t=re.sub(r'<url>[\\s\\S]*?</url>','',s);assert t!=s;s=t;${SW}"
+
+green_case "the export is named only in a sitemap COMMENT" \
+  "${S}a='<urlset';assert a in s;s=s.replace(a,'<!-- orders.txt is deliberately not submitted here -->\n'+a,1);${SW}"
+
+green_case "a location merely CONTAINS the export name without being it" \
+  "${S}a='<loc>https://nightwatcher.life/llms.txt</loc>';assert a in s;s=s.replace(a,'<loc>https://nightwatcher.life/about-orders.txt-policy</loc>',1);${SW}"
+
 rm -rf "$NEG"
 finish "2.7.2 negative tests"
