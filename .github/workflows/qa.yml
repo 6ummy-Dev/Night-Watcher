@@ -64,9 +64,12 @@ jobs:
   # guards work was produced only on the release machine, by hand — which is the
   # exact situation this workflow was created to end.
   #
-  # Cost, measured rather than averaged: 646 fixtures, of which 579 run guards.js
-  # at about 0.26s each (halved 6 Aug by memoising idHash) and 32 run smoke.js — most of those scoped to one phase
+  # Cost, measured rather than averaged: 651 fixtures, of which 606 run guards.js
+  # at about 0.26s each (halved 6 Aug by memoising idHash) and 45 run smoke.js — most of those scoped to one phase
   # by SMOKE_ONLY (2.2.0, report §5.4) at 2–10s instead of the full run's ~14s.
+  # (The previous figures here — "579 guards / 32 smoke" — had drifted AND did
+  # not sum to their own total; corrected 3.7.2. The counts are now guarded in
+  # this file the same as the README's, so the next drift fails the build.)
   # run-all.sh runs the suites concurrently and dispatches longest-first
   # (report §5.1); this job shards them 4-way on top (report §5.2), balanced by
   # smoke-fixture weight, so the wall clock is a quarter-shard, not the tail of
@@ -88,7 +91,7 @@ jobs:
           - shard: "2"
             pick: 'negtest(183|171|166|161|162|252|270|310|330|360|131)\.sh'
           - shard: "3"
-            pick: 'negtest(165|170|172|187|163|210|260|271|340|370)\.sh'
+            pick: 'negtest(165|170|172|187|163|210|260|271|340|370|390)\.sh'
           - shard: "4"
             pick: 'negtest(300|185|182|186|180|176|177|181|220|272)\.sh|negtest\.sh'
     steps:
@@ -140,3 +143,37 @@ jobs:
           exit $MISSED
 
       - run: bash qa/negative/run-all.sh '${{ matrix.pick }}'
+
+  # The behavioral instrument, in CI at last (H-3 of the 10 Aug review).
+  # browser-check.mjs is the only tool that can observe scroll restore, focus
+  # restore, belt park/drop rendering, sticky offsets, the service worker's
+  # offline promise, CSP console violations and the axe passes — precisely the
+  # defect classes with this project's worst shipping history (scroll clamp
+  # 3.3.2/3.4.0, focus loss 3.4.0, group collapse 3.4.1, the belt rendering
+  # nothing on six real browsers in 3.6.4). Until 3.7.2 it was manual-only,
+  # so between runs those behaviors were enforced by source-shape regexes
+  # that, by their own admission, cannot observe behavior. It runs on every
+  # push and nightly like everything else: the workflow exists so that no
+  # suite's evidence is produced only by hand on the release machine.
+  browser:
+    runs-on: ubuntu-latest
+    # The check itself takes ~1 minute; the browser download dominates.
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install chromium --with-deps
+
+      # A served copy, not file:// — sw.js registration and the CSP only
+      # behave like production over HTTP. The port is browser-check's default.
+      - run: |
+          python3 -m http.server 8099 --directory docs &
+          sleep 1
+          npm run browser
