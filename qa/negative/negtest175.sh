@@ -91,7 +91,9 @@ s=s.replace(a,' {k:12, name:\"A twelfth era\", note:\"Nothing here yet.\"},\n {k
 echo "--- 50: what the extracted markWatched() made checkable"
 run_case "marking watched stops clearing a skip" \
   "left it skipped as well as watched" \
-  "${P}a='S.watched[id] = 1; delete S.skipped[id];';assert a in s;s=s.replace(a,'S.watched[id] = 1;',1);${W}"
+  "${P}a='''  S.watched[id] = 1; stampMark(\"w\", id);
+  if(S.skipped[id]){ delete S.skipped[id]; stampMark(\"s\", id); }''';assert a in s
+s=s.replace(a,'  S.watched[id] = 1; stampMark(\"w\", id);',1);${W}"
 
 echo "--- the scope preference"
 run_case "a deep link writes the scope preference again" \

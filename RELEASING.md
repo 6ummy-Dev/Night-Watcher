@@ -67,6 +67,39 @@ an extra one means a dashboard rule came back); `no-cache` on both `/` and
 VERSION from the bare `/sw.js` URL — if it answers an old version, the edge
 is serving a stale worker and every returning visitor is pinned to it.
 
+Since 3.8.0 the root negotiates markdown (guard 133 executes the script;
+this reads the wire it actually shipped to):
+
+```
+curl -s -H 'Accept: text/markdown' -D - https://nightwatcher.life/ -o /tmp/nw.md \
+  | grep -iE 'content-type|vary|content-location'
+head -1 /tmp/nw.md
+curl -s https://nightwatcher.life/ | head -2
+```
+
+Expected: `text/markdown` with `Vary: Accept` and `Content-Location:
+/llms.txt`, the body opening `# Night Watcher` (llms.txt's first line) — and
+the last line proves a plain request still gets the HTML doctype, because
+the passthrough is the branch every other check in this file depends on.
+
+Two one-time checks from the 10 Aug Radar triage, worth re-reading on any
+DNS or panel change:
+
+```
+dig +dnssec nightwatcher.life A +multiline | grep -E 'flags|RRSIG'
+curl -s -o /dev/null -w '%{http_code}\n' \
+  https://nightwatcher.life/platform/v2/x402/discovery/resources
+```
+
+Expected: the `ad` flag and RRSIG records once DNSSEC is enabled in the
+Cloudflare DNS panel (it is a panel action by necessity — DNS is already
+panel-owned per the wrangler.jsonc custom-domain rationale; if the domain is
+on Cloudflare Registrar the DS record places itself); and a real `404` from
+the x402-shaped path — the 8/10 scan logged a 200 there, almost certainly
+the scanner probing Cloudflare's own platform endpoint, but if this URL ever
+answers 200 from the outside, something is answering in front of the Worker
+and that is a finding, not a curiosity.
+
 ## Rollback
 
 The recovery story `sw.js` promises, written down:

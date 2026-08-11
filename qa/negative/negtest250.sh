@@ -99,11 +99,11 @@ s=s.replace(a,'''function persist(){
 echo "--- 103: the tick repaints one row, and cannot drift"
 run_case "a toggle stops going through tickUpdate" \
   "does not go through tickUpdate" \
-  "${P}a='''  if(S.skipped[id]) delete S.skipped[id];
-  else { S.skipped[id] = 1; unmarkWatched(id); }
+  "${P}a='''  if(S.skipped[id]){ delete S.skipped[id]; stampMark(\"s\", id); }
+  else { S.skipped[id] = 1; stampMark(\"s\", id); unmarkWatched(id); askDurable(); }
   persist(); tickUpdate(id);''';assert a in s
-s=s.replace(a,'''  if(S.skipped[id]) delete S.skipped[id];
-  else { S.skipped[id] = 1; unmarkWatched(id); }
+s=s.replace(a,'''  if(S.skipped[id]){ delete S.skipped[id]; stampMark(\"s\", id); }
+  else { S.skipped[id] = 1; stampMark(\"s\", id); unmarkWatched(id); askDurable(); }
   persist(); render();''',1);${W}"
 
 run_case "the fallback condition is dropped" \

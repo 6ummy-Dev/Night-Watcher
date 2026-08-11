@@ -287,34 +287,40 @@ assert a in s;s=s.replace(a,'  scratch.innerHTML = \\'<div class=\"film\"><div c
 
 echo "--- 111: watched and skipped are never both true"
 
+# 3.8.0 moved the skip-clearing onto the clocked adopt branch, with the
+# exclusivity post-pass as its safety net — so this mutation has to disable
+# BOTH, or the post-pass heals the very defect the fixture introduces and the
+# smoke check stays honestly green.
 run_case "the cross-tab merge stops clearing the skip" \
   "clears this tab's skip" \
-  "${P}a='  for(k in (o.watched || {})){ if(!S.watched[k]){ S.watched[k] = 1; delete S.skipped[k]; moved++; } }'
-assert a in s;s=s.replace(a,'  for(k in (o.watched || {})){ if(!S.watched[k]){ S.watched[k] = 1; moved++; } }',1);${W}" \
+  "${P}a='if(!S.watched[k]){ S.watched[k] = 1; delete S.skipped[k]; moved++; }'
+assert a in s;s=s.replace(a,'if(!S.watched[k]){ S.watched[k] = 1; moved++; }',1)
+b='} else { delete S.skipped[k]; }'
+assert b in s;s=s.replace(b,'} else {}',1);${W}" \
   "smoke" "main"
 
 run_case "applyImport stops clearing the skip" \
   "restored backup code clears a skip" \
-  "${P}a='S.watched[id] = 1; delete S.skipped[id]; S.log.push'
-assert a in s;s=s.replace(a,'S.watched[id] = 1; S.log.push',1);${W}" \
+  "${P}a='S.watched[id] = 1; stampMark(\"w\", id); if(S.skipped[id]){ delete S.skipped[id]; stampMark(\"s\", id); } S.log.push'
+assert a in s;s=s.replace(a,'S.watched[id] = 1; stampMark(\"w\", id); S.log.push',1);${W}" \
   "smoke" "main"
 
 run_case "the JSON restore stops clearing the skip" \
   "restored JSON backup clears a skip" \
-  "${P}a='{ S.watched[id3] = 1; delete S.skipped[id3]; }'
-assert a in s;s=s.replace(a,'{ S.watched[id3] = 1; }',1);${W}" \
+  "${P}a='{ S.watched[id3] = 1; stampMark(\"w\", id3); if(S.skipped[id3]){ delete S.skipped[id3]; stampMark(\"s\", id3); } }'
+assert a in s;s=s.replace(a,'{ S.watched[id3] = 1; stampMark(\"w\", id3); }',1);${W}" \
   "smoke" "main"
 
 # And the guard, from the other side: the three sites are found by name, so a
 # site that loses the line fails the build without a browser.
 run_case "a merge site loses the line and the guard says which" \
   "an entry can come back watched AND skipped" \
-  "${P}a='S.watched[id] = 1; delete S.skipped[id]; S.log.push'
-assert a in s;s=s.replace(a,'S.watched[id] = 1; S.log.push',1);${W}"
+  "${P}a='S.watched[id] = 1; stampMark(\"w\", id); if(S.skipped[id]){ delete S.skipped[id]; stampMark(\"s\", id); } S.log.push'
+assert a in s;s=s.replace(a,'S.watched[id] = 1; stampMark(\"w\", id); S.log.push',1);${W}"
 
 run_case "the log merge is copied back out to a call site" \
   "the log-merge dance appears" \
-  "${P}a='  if(Array.isArray(o.log)) moved += mergeLog(o.log);'
+  "${P}a='  if(Array.isArray(o.log)) moved += mergeLog(o.log.filter(function(en){ return en && S.watched[en.id]; }));'
 assert a in s
 s=s.replace(a,'  if(Array.isArray(o.log)){ var have={}; S.log.forEach(function(x){have[x.id]=1;}); o.log.forEach(function(en){ if(en \&\& en.id \&\& isFinite(en.ts) \&\& !have[en.id]){ S.log.push({id:String(en.id),ts:Number(en.ts)}); have[en.id]=1; moved++; } }); S.log.sort(function(a,b){return a.ts-b.ts;}); }',1);${W}"
 

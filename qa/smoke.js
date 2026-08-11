@@ -943,16 +943,22 @@ win.addEventListener("load", function(){
        pasted JSON backup. */
     (function(){
       var f0 = FILMS[0].id, f1 = FILMS[1].id, f2 = FILMS[2].id;
-      function clean(){ S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; }
+      function clean(){ S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
+                        S.clk = {w:{}, s:{}, r:{}}; }
 
       clean(); S.skipped[f0] = 1;
       /* The event is built by hand rather than through the StorageEvent
          constructor: the handler reads .key and .newValue as properties, and
-         jsdom does not let a constructed event's read-only fields be replaced. */
+         jsdom does not let a constructed event's read-only fields be replaced.
+         The payload carries a clock since 3.8.0 — earlier smoke interactions
+         leave real clocks behind, and a clockless payload deliberately cannot
+         override a clocked local state. clean() clears the clocks for the
+         same reason it clears the marks. */
       var ev = new win.Event("storage");
       Object.defineProperty(ev, "key", {value: win.KEY});
       Object.defineProperty(ev, "newValue", {value: JSON.stringify(
-        {watched:(function(o){ o[f0] = 1; return o; })({}), skipped:{}, rated:{}, log:[]})});
+        {watched:(function(o){ o[f0] = 1; return o; })({}), skipped:{}, rated:{}, log:[],
+         clk:{w:(function(o){ o[f0] = Date.now() + 60000; return o; })({}), s:{}, r:{}}})});
       win.dispatchEvent(ev);
       check("a tick arriving from another tab clears this tab's skip",
             !!S.watched[f0] && !S.skipped[f0],
@@ -1602,6 +1608,58 @@ win.addEventListener("load", function(){
       check("a STALE resetAt does not erase newer progress",
             S.watched["batman-1989"] === 1, "resetAt=" + S.resetAt);
       S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.resetAt = 0;
+      win.render();
+    })();
+
+    /* --- an unmark in another tab stays unmarked (3.8.0) -----------------
+       resetAt covered the full erase; every INDIVIDUAL removal still
+       resurrected, because the merge was additive and a toggle is not. Every
+       mark now carries the time it last changed — in either direction — and
+       the newer clock decides, absence included: a clock whose mark is absent
+       is the tombstone. Payloads from older builds carry no clocks and still
+       merge additively, but they can no longer resurrect a clocked removal.
+       Driven through the real listener, like the erase above. */
+    (function(){
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.resetAt = 0;
+      S.clk = {w:{}, s:{}, r:{}};
+      var A = "batman-begins-2005", B = "the-batman-2022";
+      S.watched[A] = 1; S.clk.w[A] = 1000;
+      S.log = [{id: A, ts: 1}];
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({watched: {}, skipped: {}, rated: {}, log: [],
+          clk: {w: (function(o){ o[A] = 2000; return o; })({}), s: {}, r: {}}})}));
+      check("a cross-tab unmark with a newer clock unmarks here too",
+            !S.watched[A], "watched=" + !!S.watched[A]);
+      check("the unmark takes the log entry with it", S.log.length === 0,
+            "log " + S.log.length);
+      check("the tombstone's clock is adopted", S.clk.w[A] === 2000,
+            "clk=" + S.clk.w[A]);
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({watched: (function(o){ o[A] = 1; return o; })({}),
+                                  log: [{id: A, ts: 1}]})}));
+      check("a clockless payload cannot resurrect a deliberate removal",
+            !S.watched[A], "watched=" + !!S.watched[A]);
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({watched: (function(o){ o[A] = 1; return o; })({}),
+          log: [{id: A, ts: 3}],
+          clk: {w: (function(o){ o[A] = 3000; return o; })({}), s: {}, r: {}}})}));
+      check("a newer re-mark still lands", S.watched[A] === 1,
+            "watched=" + S.watched[A]);
+      check("the re-mark brings its log entry back",
+            S.log.length === 1 && S.log[0].id === A, "log " + S.log.length);
+      S.rated[B] = 5; S.clk.r[B] = 2000;
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({rated: (function(o){ o[B] = 3; return o; })({}),
+          clk: {w: {}, s: {}, r: (function(o){ o[B] = 1000; return o; })({})}})}));
+      check("an older rating loses to the newer one", S.rated[B] === 5,
+            "rated=" + S.rated[B]);
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({rated: {},
+          clk: {w: {}, s: {}, r: (function(o){ o[B] = 3000; return o; })({})}})}));
+      check("a rating cleared elsewhere clears here", S.rated[B] === undefined,
+            "rated=" + S.rated[B]);
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.resetAt = 0;
+      S.clk = {w:{}, s:{}, r:{}};
       win.render();
     })();
     tailPhases();

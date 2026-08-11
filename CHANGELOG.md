@@ -30,6 +30,79 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.8.0] — 2026-08-11
+
+**The durability round, plus the one item the Radar scan actually gated on.
+The 11 Aug storage-durability review (in-project) found the resurrection
+class M-1 only half-closed, ranked the honest fixes, and the top three ship
+here; the 10 Aug Radar triage recommended exactly one repo-side change and
+it ships too. MINOR because the root learns a new trick and the live payload
+gains a field; every saved progress format is untouched.**
+
+### Fixed
+
+- **An individual removal stays removed across tabs.** 3.7.2's `resetAt`
+  covered the full erase and nothing else: every merge site was additive
+  while every toggle can remove, so unmarking one entry — unticking, un-
+  skipping, clearing a rating — lasted exactly as long as it took any other
+  open tab to write. Every mark, skip and rating now carries the time it
+  last changed (`clk` in the live payload, `S.clk` in state), and the
+  cross-tab merge is last-write-wins wherever a clock exists on either
+  side: a clock whose mark is absent is a tombstone, and an absence with a
+  newer clock propagates instead of refilling. Ratings stop being
+  keep-local (they had no timestamps at all — not LWW, the review's premise
+  1). **The recorded "the merge only ever adds" decision is amended, not
+  voided:** clockless payloads from older builds still merge additively,
+  and restores/imports still only add — but they can no longer resurrect a
+  clocked, deliberate removal. This is also the review's stated
+  precondition for ANY future off-origin copy (file mirror, sync layer).
+  Deliberate: `exportJSON()` and the NW code carry no clocks — backups are
+  one-shot transports a person applies on purpose, and guards 7/8/87's
+  format promise holds. Guard 134 pins the shape; smoke drives all of it
+  through the real listener with real StorageEvents (306 checks, was 298);
+  `negtest400` re-introduces the resurrection one leg at a time and
+  requires each to be caught.
+
+### Added
+
+- **`GET /` negotiates markdown — the Radar Level 3 gate.** A request whose
+  Accept header PREFERS `text/markdown` (explicit entry, q-values read,
+  strictly over `text/html` — ties and wildcards go to the page) answers
+  with `llms.txt` served as `text/markdown` with `Vary: Accept` and
+  `Content-Location: /llms.txt`. One source, no second copy of the prose.
+  Implemented in-repo in `worker.js` — the first `main` script in front of
+  the assets — with `run_worker_first` scoped to `/` alone, so no other
+  path ever pays the Worker hop or inherits its failure modes; every
+  non-preferring shape falls through to the assets plane untouched. The
+  managed "Markdown for Agents" toggle was declined on the `_headers`
+  lesson: edge config is undiffable, unguardable, and it strips validators.
+  Guard 133 EXECUTES the worker (the sw.js treatment: written in `.then()`
+  chains so the sync-thenable harness can drive it), asserts the markdown
+  branch and the passthrough BY IDENTITY, and pins the wrangler wiring;
+  eight `negtest400` fixtures attack it; RELEASING.md gains the wire check.
+- **The durable-storage ask (durability review, item 1).** On the first
+  mark of a session — never on a bare load, so a first visit sees no
+  permission prompt — the app calls `navigator.storage.persist()` once.
+  Chromium grants silently from engagement and its eviction is the only
+  wipe this helps against; NOTES.md says so where the layers are ranked.
+  The install seat's copy now also tells the durability truth it always
+  half-knew: the installed copy is the one the browser treats as worth
+  keeping, and on iOS a home-screen app's storage outlives a tab's.
+- **The stale-backup nudge (durability review, item 2).** `lastExportAt`
+  rides the live payload, stamped when a code is made or a backup file
+  actually downloads. Once ten or more marks postdate the newer of
+  last-export and last-dismiss, the Your-data block says so — behind by N,
+  or never backed up at all — with a quiet "Later" that stamps
+  `bkDismissAt` (numeric, persisted only when set, the `insOff` family's
+  pattern) so the nudge returns only after ten NEW changes. It counts via
+  the same per-mark clocks the merge uses; no second bookkeeping.
+
+### Changed
+
+- **Weight: 198 KB raw / 57 KB gzipped** (was 194/56), inside the recorded
+  200/80 ceilings — no raise needed or taken. Counts, all guarded: 134
+  guard sections, 306 smoke checks, 45 negative suites / 664 fixtures.
+
 ## [3.7.2] — 2026-08-10
 
 **The deep review's round. A three-pass QA review of 3.7.1 (app, harness,

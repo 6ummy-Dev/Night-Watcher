@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 132 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 134 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -2810,3 +2810,103 @@ Next up — the tab where watching happens — and Progress kept the machinery:
 the saves-line and the build line, which names the build and points at the
 source. Each sentence lives in exactly one place. Guard 121's drift lesson,
 applied before the drift instead of after.
+
+## A removal is a fact, and the clocks that finally made it one
+
+3.8.0, from the 11 Aug durability review — reviewed in-project, three of its
+premises failed the review and the ranking that survived is what shipped.
+
+**The defect class, stated honestly:** marks were never grow-only.
+`toggleWatched` unmarks, `toggleSkip` deletes, `rate()` clears on a same-star
+tap — while every merge site (the storage listener, `doRestore`, `applyImport`)
+only ever added. So every individual removal resurrected cross-tab the moment
+another tab wrote. 3.7.2's `resetAt` closed exactly one case, the full erase,
+and its shape — a monotonic clock the merge consults before adding — is the
+shape the whole fix wanted. Ratings were worse than additive: no timestamps at
+all, keep-local on merge and incoming-wins on restore, which is two different
+wrong answers for one question.
+
+**What ships:** every mark, skip and rating carries the time it last changed,
+in either direction — `S.clk = {w, s, r}`, `clk` in the live payload. The
+cross-tab merge is last-write-wins wherever a clock exists on either side; a
+clock whose mark is absent IS the tombstone. `resetAt` stays first and stays
+separate: it is the largest tombstone, the one that covers ids no clock map
+has heard of, and an erase restarts the clocks under it. The recorded "the
+merge only ever adds" decision is AMENDED, not voided — a clockless payload
+(an older build's) still merges additively and restores still only add; what
+changed is that a deliberate, clocked removal now outranks an addition nobody
+re-made. Guard 134 holds the shape, smoke drives every leg through the real
+listener, negtest400 re-introduces the defect leg by leg.
+
+**What deliberately does not ship:** clocks in the backups. `exportJSON()` and
+the NW code are one-shot transports a person applies on purpose; they merge
+additively at apply time with a fresh clock, and guards 7/8/87's format
+stability is worth more than sync fidelity a backup was never promised to
+have. The review's items 4 and 5 (a file handle, an E2E blob on a Worker)
+stay parked — the clocks are their precondition, and the precondition is now
+met, which is the point.
+
+**The persist() ask (item 1):** `navigator.storage.persist()`, once per
+session, on the first mark — never on a bare load, so a first visit is never
+greeted with a permission prompt (Firefox may show one; Chromium decides
+silently from site engagement). Be honest about what it buys: it defends
+against CHROMIUM's quota eviction and nothing else. The Storage Standard put
+every script-writable store in one origin bucket — clear-site-data, Safari's
+ITP wipe and Chromium eviction all take localStorage and IndexedDB together,
+which is why the review rejected the proposed IDB mirror outright: a second
+copy in the same bucket is bookkeeping, not durability. The install seat is
+the real iOS answer — a home-screen app is exempt from ITP's seven-day wipe —
+and its copy now says so instead of half-knowing it.
+
+**The nudge (item 2):** `lastExportAt` stamps when a code is made or a backup
+file actually downloads (not on a failed download — the stamp is the claim
+that a copy LEFT). Ten or more marks newer than max(lastExportAt, bkDismissAt)
+and the Your-data block says so; "Later" stamps `bkDismissAt`, numeric,
+persisted only when set — the only-true family, `insOff`'s pattern — so a
+dismissal is not forever, it is "until ten NEW changes." The count reuses the
+merge's own clocks (`marksSince()`); a second bookkeeping structure for "what
+changed since" would drift from the first the way all second copies here
+always have.
+
+## The root negotiates markdown, and what was declined to get there
+
+3.8.0, the one repo-side recommendation of the 10 Aug Radar triage. The
+agent-readiness report gates Level 3 on a single item: answer
+`Accept: text/markdown` on `/` with a markdown representation. The
+representation already existed — llms.txt — so the honest implementation is
+30 lines in front of the assets, not a second document.
+
+`worker.js` is the first `main` script this deploy has ever had, and its
+entire design is containment. `run_worker_first` is `["/"]`, so only the root
+pays the Worker hop; every other path — sw.js, the fonts, the icons — stays
+on the assets plane where worker code cannot intercept, slow, or break it
+while down. Inside the script the gates repeat (GET only, pathname `/` only,
+explicit `text/markdown` strictly preferred over `text/html` — q-values
+parsed, ties and wildcards to the page), because wrangler scoping is edge
+config and the script must refuse on its own. The markdown branch fetches
+`/llms.txt` through the ASSETS binding — one source — and answers
+`text/markdown; charset=utf-8` with `Vary: Accept` and `Content-Location:
+/llms.txt`; if llms.txt is unreadable the negotiation quietly does not exist
+and the page answers instead. Everything else returns the assets response by
+reference, untouched.
+
+Cloudflare's managed "Markdown for Agents" toggle would have done this in one
+click, and was declined on the `_headers` lesson: a dashboard panel is
+undiffable and unguardable, it needs a paid plan, and it strips validators
+from converted responses. The 3.4.2 stale-Permissions-Policy release is the
+standing argument — edge config wins over the tree, silently. This file is in
+the repository; guard 133 EXECUTES it, the way 132 executes sw.js (it is
+written in `.then()` chains, not async/await, precisely so the sync-thenable
+harness can drive it to completion in one call stack), and the passthrough
+assertions are identity checks — the response OBJECT the assets mock
+returned — which is stronger than byte-for-byte. RELEASING.md reads the wire
+after every deploy, both branches.
+
+The rest of the scan was triaged to "no action" on the record: the rel types
+the checker wants (`api-catalog`, `service-doc`) describe APIs this site does
+not have, the Protocol Discovery and Commerce checks presuppose an auth
+surface or a checkout, and publishing discovery documents for services that
+do not exist is anti-hardening. DNSSEC — the scan's one classic red — is a
+panel action by necessity (DNS is already panel-owned per the wrangler
+custom-domain rationale) and its wire check is written down in RELEASING.md
+next to this feature's.

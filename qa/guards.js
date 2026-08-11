@@ -77,6 +77,7 @@ function blessHtml(next){
      87   A backup carries progress, not settings
      126  A restored path cannot reach the prototype chain
      127  A failed read stops the writes, a failed write does not
+     134  A removal is a fact with a clock, not a hole
      102  A tick burst writes once, and leaving flushes
      103  The tick repaints one group, and cannot drift
 
@@ -180,6 +181,7 @@ function blessHtml(next){
      101  The site answers off the app too
      104  The security headers the tree owns
      105  The catalogue answers in plain text
+     133  The root negotiates markdown, and only the root
      125  robots.txt states a position on AI use
      106  The fonts carry every letter the catalogue uses
      116  The fonts really carry what the page really renders
@@ -2795,17 +2797,22 @@ if(!/kept by 6ummy/.test(HTML)) fail("the credit line is gone from the footer");
 
 (function(){
   var src = optionalFn("rate", "nothing would record a rating");
-  var box = { S:{watched:{}, skipped:{}, rated:{}, log:[]},
+  var box = { S:{watched:{}, skipped:{}, rated:{}, log:[], clk:{w:{}, s:{}, r:{}}},
               persist:function(){}, render:function(){}, now:function(){ return 1; },
               /* 3.0.0 moved rate() onto the tick fast path, so the stub set
                  has to carry it too. A repaint is not what this section is
-                 about; what happens to S is. */
+                 about; what happens to S is. askDurable() is stubbed for the
+                 same reason tickUpdate() is: it reaches a host API
+                 (navigator.storage), and what this section asserts is what
+                 happens to S. */
+              askDurable:function(){},
               tickUpdate:function(){} };
   /* Hand-written copies of clampRating() and markWatched() lived here until
      1.7.5 and quietly diverged from the app: parseInt where the page uses
      Math.floor(Number()), and a markWatched that never cleared S.skipped. This
-     section then validated the copies. Extract, like everything else. */
-  new vm.Script(fn("clampRating") + "\n" + fn("markWatched")).runInContext(vm.createContext(box));
+     section then validated the copies. Extract, like everything else.
+     stampMark() joined the extraction in 3.8.0 with the per-mark clocks. */
+  new vm.Script(fn("clampRating") + "\n" + fn("stampMark") + "\n" + fn("markWatched")).runInContext(vm.createContext(box));
   var rate = new vm.Script(src + "\nrate;").runInNewContext(box);
 
   rate("x", 4);
@@ -9771,6 +9778,251 @@ var ROUTE_VOCAB = [
        "stale cache purged, 200 cached via waitUntil, 500 not cached, " +
        "offline serves cache and the navigate fallback, cross-origin and " +
        "non-GET untouched");
+})();
+
+/* ---------- 133. The root negotiates markdown, and only the root ---------- */
+/* 3.8.0, from the 10 Aug Radar triage: `GET /` with an Accept header that
+   PREFERS text/markdown answers with llms.txt as text/markdown — the one item
+   gating agent-readiness Level 3. The dashboard alternative (managed
+   "Markdown for Agents") was declined for the same reason every panel rule
+   is: undiffable, unguardable, and it strips validators. This one is a file
+   in the repository, so it is executed here, the way sw.js is in 132 —
+   worker.js is written with .then() chains instead of async/await precisely
+   so a sync-thenable can drive it to completion inside one call stack.
+
+   The stakes of the fallthrough branch are the whole tree: every guard above
+   this one asserts things about the bytes docs/ serves, and a Worker sitting
+   in front could quietly serve something else. So the passthrough assertions
+   are IDENTITY checks — the response object the mock assets plane returned,
+   not a copy — which is stronger than byte-for-byte. And run_worker_first is
+   pinned to exactly ["/"]: every other path stays on the assets plane where
+   worker code cannot reach it, slow it, or break it while down. */
+
+(function(){
+  var wpath = path.join(ROOT, "worker.js");
+  if(!fs.existsSync(wpath)){
+    fail("worker.js is gone — the markdown negotiation (Radar Level 3) has " +
+         "no implementation, and wrangler.jsonc points at nothing");
+    return;
+  }
+  if(fs.existsSync(path.join(PUBLIC, "worker.js"))){
+    fail("a worker.js is inside docs/ — the Worker script is infrastructure, " +
+         "not a served asset; a public copy is a second origin of truth");
+  }
+  var wsrc = fs.readFileSync(wpath, "utf8");
+  var wr   = fs.readFileSync(path.join(ROOT, "wrangler.jsonc"), "utf8");
+  if(!/"main":\s*"worker\.js"/.test(wr)){
+    fail("wrangler.jsonc has no main pointing at worker.js — the negotiation " +
+         "ships in the repo but never reaches the edge");
+  }
+  if(!/"binding":\s*"ASSETS"/.test(wr)){
+    fail("the assets plane has no ASSETS binding — worker.js has no way to " +
+         "fall through, and every request it touches dead-ends");
+  }
+  if(!/"run_worker_first":\s*\[\s*"\/"\s*\]/.test(wr)){
+    fail("run_worker_first is not exactly [\"/\"] — either the Worker never " +
+         "runs (no negotiation) or it fronts MORE than the root, and every " +
+         "asset behind it pays the hop and inherits its failure modes");
+  }
+
+  /* Execute it. Real URL; stub Request/Response so the result can be read
+     synchronously; a sync-thenable assets plane, as in 132. */
+  var SyncV = function(v){ this.v = v; };
+  SyncV.prototype.then = function(fn){
+    var r = fn(this.v);
+    return (r && typeof r.then === "function") ? r : new SyncV(r);
+  };
+  function un(p){
+    var out, hit = false;
+    if(p && typeof p.then === "function"){ p.then(function(v){ out = v; hit = true; }); }
+    if(!hit) fail("the worker did not resolve synchronously under the " +
+                  "sync-thenable harness — an await crept in");
+    return out;
+  }
+  var LLMS = "# Night Watcher\n\nmock markdown body\n";
+  var htmlRes = { status: 200, marker: "the blessed HTML, untouched" };
+  var assetLog = [];
+  var env = { ASSETS: { fetch: function(req){
+    var u = typeof req === "string" ? req : req.url;
+    assetLog.push(u);
+    if(/\/llms\.txt$/.test(u)) return new SyncV({ status: 200,
+      text: function(){ return new SyncV(LLMS); } });
+    return new SyncV(htmlRes);
+  } } };
+  var box = { URL: URL,
+              Request: function(u){ this.url = String(u); },
+              Response: function(body, init){ this.body = body; this.init = init || {}; } };
+  var mod;
+  try{
+    mod = new vm.Script(wsrc.replace("export default", "var WORKER =") + "\nWORKER;")
+            .runInNewContext(box);
+  }catch(e){
+    fail("worker.js does not execute: " + e.message);
+    return;
+  }
+  function req(accept, method, urlStr){
+    return { url: urlStr || "https://nightwatcher.life/", method: method || "GET",
+             headers: { get: function(n){ return /accept/i.test(n) ? accept : null; } } };
+  }
+
+  /* The one shape that negotiates. */
+  var md = un(mod.fetch(req("text/markdown"), env));
+  if(!md || md.body !== LLMS){
+    fail("Accept: text/markdown on / did not answer with llms.txt's bytes — " +
+         "the markdown representation must be THE llms.txt, one source, " +
+         "not a second copy of the catalogue prose");
+  } else {
+    var mh = md.init.headers || {};
+    if(!/^text\/markdown/.test(mh["Content-Type"] || "")){
+      fail("the markdown response is not Content-Type: text/markdown — the " +
+           "negotiation answered with the wrong label on the right body");
+    }
+    if((mh["Vary"] || "") !== "Accept"){
+      fail("the markdown response does not carry Vary: Accept — any cache " +
+           "between here and the agent will hand a browser markdown or an " +
+           "agent HTML, whichever came first");
+    }
+    if((mh["Content-Location"] || "") !== "/llms.txt"){
+      fail("the markdown response lost Content-Location: /llms.txt — the " +
+           "one honest pointer to where this representation lives on its own");
+    }
+  }
+
+  /* Everything else is the assets plane's response, BY IDENTITY. */
+  [["a browser", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"],
+   ["curl",      "*/*"],
+   ["no Accept", null],
+   ["a tie — markdown listed but html equal",  "text/markdown,text/html"],
+   ["markdown at lower q than html", "text/markdown;q=0.5,text/html"]
+  ].forEach(function(c){
+    var r = un(mod.fetch(req(c[1]), env));
+    if(r !== htmlRes){
+      fail(c[0] + " (Accept: " + c[1] + ") did not get the assets plane's " +
+           "response by identity — the Worker touched a request it does not own");
+    }
+  });
+  /* Preference expressed through q-values still negotiates. */
+  var q = un(mod.fetch(req("text/html;q=0.4,text/markdown;q=0.8"), env));
+  if(!q || q.body !== LLMS){
+    fail("markdown preferred through q-values (0.8 over html's 0.4) fell " +
+         "through to HTML — the parser reads presence, not preference");
+  }
+  /* Method and path gates: the script itself refuses, even though wrangler
+     scoping already keeps these off the Worker. Belt AND suspenders, because
+     one of them is edge config. */
+  var p = un(mod.fetch(req("text/markdown", "POST"), env));
+  if(p !== htmlRes) fail("a POST negotiated markdown — the branch must be GET-only");
+  var s = un(mod.fetch(req("text/markdown", "GET", "https://nightwatcher.life/sw.js"), env));
+  if(s !== htmlRes){
+    fail("a non-root path negotiated markdown in the script — run_worker_first " +
+         "keeps it off the Worker today, but that is edge config, and the " +
+         "script must refuse on its own");
+  }
+  /* A broken llms.txt must degrade to the page, not to a broken negotiation. */
+  var env404 = { ASSETS: { fetch: function(rq){
+    var u = typeof rq === "string" ? rq : rq.url;
+    if(/\/llms\.txt$/.test(u)) return new SyncV({ status: 404 });
+    return new SyncV(htmlRes);
+  } } };
+  var broken = un(mod.fetch(req("text/markdown"), env404));
+  if(broken !== htmlRes){
+    fail("with llms.txt unreadable the negotiation did not fall through to " +
+         "the page — an agent gets a broken markdown body instead of the app");
+  }
+  note("worker.js executed: markdown negotiation answers llms.txt with " +
+       "Vary/Content-Location, five non-preferring shapes pass through by " +
+       "identity, q-values read, POST and non-root refused in the script, " +
+       "unreadable llms.txt degrades to the page; run_worker_first pinned " +
+       "to [\"/\"]");
+})();
+
+/* ---------- 134. A removal is a fact with a clock, not a hole ---------- */
+/* 3.8.0, premise 1 of the durability review (claude/durability-review-
+   2026-08-11.md): marks are NOT grow-only. toggleWatched unmarks, toggleSkip
+   deletes, rate() clears on a same-star tap — while every merge site was
+   additive. So every individual removal resurrected cross-tab the moment
+   another tab wrote; 3.7.2's resetAt covered only the full erase. Every mark
+   now carries the time it LAST CHANGED, in either direction, in S.clk
+   ({w:{}, s:{}, r:{}}), and the cross-tab merge is last-write-wins wherever
+   a clock exists on either side: a clock whose mark is absent IS the
+   tombstone. This also unblocks any future off-origin copy — the review's
+   precondition for a file mirror or sync layer.
+
+   THE RECORDED "THE MERGE ONLY EVER ADDS" DECISION IS AMENDED, NOT VOIDED:
+   a payload with no clocks (an older build's) still merges additively, and
+   restores/imports still only add — what changed is that a deliberate,
+   clocked removal now outranks an addition nobody re-made. Smoke drives the
+   behavior through the real listener with real StorageEvents; this section
+   holds the shape so a refactor cannot quietly drop a leg of it.
+
+   DELIBERATE: exportJSON() and the NW code carry NO clocks. A backup is a
+   one-shot transport a person applies on purpose; it merges additively at
+   apply time with a fresh clock, and keeping the formats stable is guards
+   7/8/87's promise. Clocks ride only the live payload. */
+
+(function(){
+  var pn = fn("persistNow");
+  if(!/clk:S\.clk/.test(pn)){
+    fail("persistNow() no longer writes the per-mark clocks — the storage " +
+         "payload is the only transport the tombstones ride, and without " +
+         "clk every removal is additive-merge food again");
+  }
+  if(!/S\.clk = clocksOf\(o\.clk\)/.test(fn("restore"))){
+    fail("restore() does not read the clocks back through clocksOf() — a " +
+         "reload forgets every tombstone, and the next cross-tab write " +
+         "resurrects what was removed before it");
+  }
+  var co = optionalFn("clocksOf", "clocks arrive from storage unvalidated");
+  if(co && !/Object\.create\(null\)/.test(co)){
+    fail("clocksOf() builds its maps on the default prototype — a payload " +
+         "key named __proto__ walks the same chain section 126 closed");
+  }
+  if(co && !(/isFinite\(n\)/.test(co) && /n > 0/.test(co))){
+    fail("clocksOf() adopts non-finite or non-positive clocks — a clock of " +
+         "Infinity is a tombstone no future write can ever beat");
+  }
+  var sm2 = optionalFn("stampMark", "removals have no clock and cannot propagate");
+  if(sm2 && !/Date\.now\(\)/.test(sm2)){
+    fail("stampMark() does not stamp wall-clock time — the merge compares " +
+         "clocks across devices, and anything else has no order");
+  }
+  [["unmarkWatched", "w", fn("unmarkWatched")],
+   ["toggleSkip", "s", fn("toggleSkip")],
+   ["rate", "r", fn("rate")]].forEach(function(site){
+    if(site[2].indexOf('stampMark("' + site[1] + '"') < 0){
+      fail(site[0] + "() does not stamp its clock — its removal is a hole " +
+           "again, and a hole refills on the next cross-tab merge");
+    }
+  });
+  var lst = sliceOr('window.addEventListener("storage"', "\ndocument.getElementById(\"tabs\")");
+  if(!lst){
+    fail("cannot locate the storage listener — the merge this section " +
+         "exists to hold has nowhere to live");
+  } else {
+    if(!/clocksOf\(o\.clk\)/.test(lst)){
+      fail("the cross-tab merge never reads the incoming clocks — every " +
+           "branch is additive again, and an unmark lasts until the next " +
+           "storage event");
+    }
+    if(!/!inc\.w\[k\] && !S\.clk\.w\[k\]/.test(lst)){
+      fail("the legacy additive branch lost its clock guard — a clockless " +
+           "payload from an older build resurrects a mark this build " +
+           "removed on purpose, which is the exact defect the clocks fix");
+    }
+    if(!/S\.clk = \{w:Object\.create\(null\)/.test(lst)){
+      fail("a cross-tab erase does not clear the clocks — resetAt is the " +
+           "largest tombstone and the per-mark clocks restart under it, or " +
+           "pre-erase clocks outrank post-erase marks forever");
+    }
+  }
+  if(/clk/.test(fn("exportJSON"))){
+    fail("exportJSON() carries the clocks — a backup is a one-shot transport " +
+         "a person applies on purpose, the formats are guards 7/8/87's " +
+         "stability promise, and the clocks ride the live payload only");
+  }
+  note("removals carry clocks: persistNow writes clk, restore reads it " +
+       "validated, three removal sites stamp, the merge is LWW where a " +
+       "clock exists and additive where none does, backups stay clockless");
 })();
 
 /* ---------- report ---------- */
