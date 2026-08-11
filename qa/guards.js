@@ -4604,7 +4604,7 @@ var ROUTE_VOCAB = [
     "<h1>Every Batman story ever filmed</h1>",
     "<p>Night Watcher lists " + films + " films and " + seasons +
       " seasons of television across " + PATH.length + " continuities, in Batman " +
-      'watch orders that spoil nothing: <a href="#universes">by universe</a>, ' +
+      'watch orders, no spoilers: <a href="#universes">by universe</a>, ' +
       '<a href="#life">by the arc of one life</a>, or <a href="#release">by release</a>. ' +
       '<a href="#next">Next up</a> names the next unwatched entry, and ' +
       '<a href="#progress">Progress</a> keeps the tally. The app needs JavaScript; ' +
@@ -7929,7 +7929,7 @@ var ROUTE_VOCAB = [
   /* Load-bearing phrases: what the sentence CLAIMS, not how it is written. */
   [["every Batman story ever filmed", "the completeness claim"],
    ["animated and live action",       "the both-media claim — the one that went missing"],
-   ["spoil nothing",                  "the spoiler promise"]
+   ["no spoilers",                    "the spoiler promise"]
   ].forEach(function(p){
     /* Both sides folded. The first draft folded only the haystack and went red
        on “every Batman story ever filmed” for the capital B — a check that
@@ -7948,7 +7948,7 @@ var ROUTE_VOCAB = [
     }
   });
 
-  note("llms.txt summary carries the README's claims: filmed, animated and live action, spoils nothing");
+  note("llms.txt summary carries the README's claims: filmed, animated and live action, no spoilers");
 })();
 
 /* ---------- 118. The 404 still reads over its own bat ----------------- */

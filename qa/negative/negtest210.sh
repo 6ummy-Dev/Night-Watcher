@@ -161,8 +161,8 @@ io.open(p,'w',encoding='utf-8').write(s)"
 run_case "one of the 404's bat paths is edited alone" \
   "the 404's bat and BATP have drifted apart" \
   "import io;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
-a='M42 32 L38 17 L49 29 Z';assert a in s
-s=s.replace(a,'M42 32 L38 18 L49 29 Z',1)
+a='M42 32 L49 29 L38 17 Z';assert a in s
+s=s.replace(a,'M42 32 L49 29 L38 18 Z',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
 run_case "the svg namespace comes back" \

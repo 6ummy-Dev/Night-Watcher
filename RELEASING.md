@@ -34,8 +34,8 @@ instead of remembered. Everything here is in execution order.
    the repo's history (scroll clamp, focus loss, group collapse, the 3.6.4
    belt) is the argument that the behavioral layer does not get skipped on
    release day.
-5. **The blurbs are read by a person.** Entry descriptions are the "spoils
-   nothing" promise and no guard can read for spoilers. Any entry whose `d:`
+5. **The blurbs are read by a person.** Entry descriptions are the "no
+   spoilers" promise and no guard can read for spoilers. Any entry whose `d:`
    changed this release gets re-read against the rule: describe the premise,
    never the turn. This is the manual review the guards' coverage map admits
    it cannot automate.

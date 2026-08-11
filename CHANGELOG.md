@@ -28,7 +28,29 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- **The spoiler promise reads "no spoilers".** "Watch orders that spoil
+  nothing" becomes "watch orders, no spoilers" in every sentence that carries
+  it — the intro, the pre-render seed, the meta/OG/Twitter descriptions, the
+  JSON-LD, README's canonical sentence, llms.txt's summary and manifest.json —
+  and "Batman watch orders. No spoilers." on the standalone surfaces: the
+  `<title>`, og:image:alt and the share card's tag (docs/share.png
+  regenerated). Guard 117's load-bearing phrase and guard 108's seed moved
+  with the copy, rule and check together. RELEASING.md's blurb rule now names
+  the "no spoilers" promise. CHANGELOG history keeps the old wording.
+
+### Fixed
+
+- **The story card's left horn no longer shows a bite taken out of it.** The
+  bat's left-ear subpath was wound clockwise while the body, right ear and
+  tail run counter-clockwise. The three SVG copies fill each subpath as its
+  own `<path>`, so nothing showed — but the share card fills BATP as one
+  `Path2D` under the nonzero rule, and where the left ear overlaps the body
+  the windings cancelled into a hole. The ear's vertex order is reversed
+  (`M42 32 L49 29 L38 17 Z`), same triangle, same silhouette everywhere, in
+  all four copies so section 115 still reads one shape; negtest210's
+  edited-alone fixture moves with the string.
 
 ## [3.8.2] — 2026-08-11
 
