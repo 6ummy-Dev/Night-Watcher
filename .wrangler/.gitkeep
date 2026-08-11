@@ -1,0 +1,3 @@
+# Keep .wrangler directory
+
+This file ensures the .wrangler directory is tracked in Git.
