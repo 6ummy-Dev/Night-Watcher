@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 131 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 132 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested.
 - **`README.md`** — what the app promises and what it refuses to do.
 
@@ -92,7 +92,50 @@ copy — the link exists to reach a different device either way.
 ### `store`
 
 Storage adapter: window.storage inside Claude artifacts; localStorage on the
-open web (GitHub Pages etc.); memory-only if neither is available.
+open web — nightwatcher.life since the move, GitHub Pages before it was
+unpublished in 3.3.1; memory-only if neither is available.
+
+### `resetAt`
+
+3.7.2, M-1 of the 10 Aug review. Cross-tab sync is a MERGE, and a merge can
+only add — which meant "Clear all progress" in one tab was quietly resurrected
+by any other open tab: the second tab kept the full state in memory, its next
+action persisted it all back, and the erasing tab's storage listener merged
+its own erased history back into view. On an app whose privacy pitch is that
+what you tick stays yours, an explicit erase that undoes itself is a broken
+promise, not a quirk.
+
+The fix is one monotonic clock. The reset stamps `Date.now()` into `resetAt`,
+persists it inside the payload, and the storage listener treats a payload
+whose `resetAt` is NEWER than this tab's as the wipe it is: adopt the clock,
+drop the in-memory marks, then merge whatever the payload still carries
+(nothing, for a fresh erase). A STALE `resetAt` changes nothing, so the wipe
+cannot re-fire, and a payload with no clock at all merges exactly as before.
+The remaining race — a tab writing marks in the gap before the storage event
+lands — is narrowed to milliseconds from "any later action, forever." Smoke
+drives the listener with real StorageEvents in all three shapes, because the
+listener is anonymous and no guard can extract it.
+
+`resetAt` rides the persisted payload but deliberately NOT the JSON export or
+the backup code: a backup carries progress, not device bookkeeping (guard 87),
+and restoring last year's backup must never bring last year's erase with it.
+
+### `parkFocus()`
+
+3.7.2, L-2 of the 10 Aug review. The parked belt hides its buttons with
+`visibility:hidden`, which removes them from the tab order — correct visually,
+and it left keyboard and switch users with no way into the path switcher
+until they scrolled back to the top, because the strip that remains was a
+click-only div. While the strip is the only affordance it IS a button, so
+`parkFocus()` gives it `role="button"`, an aria-label and `tabindex="0"`,
+and takes all three off the moment the real buttons return — a focusable
+wrapper around live buttons is its own accessibility failure, which is why
+the attributes toggle instead of ship static. It runs from `beltWatch()` (so
+every render re-evaluates it) and from the park observer (whose park/unpark
+never re-renders). The keydown half lives on `#view`: Enter and Space on the
+focused strip call `beltDropOpen()` exactly as a tap does, and only when the
+event target IS the strip, so a key pressed on a button inside it stays the
+button's.
 
 ### `readFailed`
 
@@ -1686,14 +1729,19 @@ worth having.
   work was as small as this said: the asset, four meta tags, a README row, and
   out of the offline shell because it is a crawler asset.
 - **Rating badges** — **shipped across 2.3.x–2.7.2**, and the blocker was
-  exactly what this said it was: sourcing a rating for 200 entries. That pass
-  lives in `catalogue/ratings-findings.md`, every value carrying its source, and
+  exactly what this said it was: sourcing a rating for 200 entries. *(Amended
+  3.7.2: no 2.3.x or 2.4.x was ever cut — the CHANGELOG runs 2.2.x straight to
+  2.5.0 — so the range means "the stretch between 2.2.x and 2.7.2", and the
+  version numbers in it were written from memory.)* That pass
+  lives in `catalogue/ratings-findings.md` (maintainer-local, not in this
+  repository), every value carrying its source, and
   section 92 holds the distribution. The Mature badge it replaced was retired in
   2.7.2, four releases later, which became its own rule: a replacement is two
   changes and only one of them has a natural failure mode.
 - **Master chooser and header magic** — **shipped.** It did want a picture
   first, and it got one; the header has been corrected three times since and the
-  measurements are in `releases/plan-2.8.0.md`.
+  measurements are in `releases/plan-2.8.0.md` (maintainer-local, not in this
+  repository).
 
 ## Where the negative suites' eight minutes actually went
 
@@ -2435,7 +2483,8 @@ assertions go red: the group element is replaced, and the height falls
 
 ## The belt parks as the peek, and what 12px is allowed to say
 
-3.5.0, Stage B of `releases/plan-belt-release.md`. The strip is
+3.5.0, Stage B of `releases/plan-belt-release.md` (maintainer-local, not in
+this repository). The strip is
 `position:sticky` and parks under the header with `--belt-peek` (12px) of
 itself showing — a rail with one lit chunk at left, middle or right. Position
 encodes the path; the band carries no text, no buckle line, no second channel.

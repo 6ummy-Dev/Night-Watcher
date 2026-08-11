@@ -1,5 +1,23 @@
 #!/usr/bin/env python3
-"""Build docs/favicon.ico from docs/icon.png.
+"""Build the raster icon set from docs/icon.png.
+
+3.7.2 GROWS THIS FROM ONE FILE TO SEVEN, and the reasoning is unchanged: every
+raster is DERIVED from the icon that already ships, so none of them can
+disagree with the app the way hand-drawn copies would. Guard 115 holds the
+vector copies in agreement; everything here is downstream of one of them.
+
+  favicon.ico          16/32/48 layers — crawlers that ask the root and accept
+                       nothing else
+  favicon-16x16.png    the tab sizes as plain PNGs, for tools that read <link>
+  favicon-32x32.png    tags rather than probing the root path
+  favicon-48x48.png
+  apple-touch-icon.png 180×180, OPAQUE on the ink ground — iOS ignores the
+                       manifest and composites transparency onto black, so the
+                       ground is chosen here rather than left to Cupertino
+  mstile-144x144.png   transparent — Windows paints msapplication-TileColor
+                       behind it
+
+Original header, still true for the ico:
 
 WHY THIS FILE EXISTS AT ALL. Every modern browser prefers the SVG, and Google
 documents support for any served icon with a content type. This is for the
@@ -49,3 +67,27 @@ b = open(OUT, "rb").read()
 assert b[:4] == b"\x00\x00\x01\x00", "written file is not an ICO"
 print("docs/favicon.ico — %d layers %s, %d bytes"
       % (b[4], ", ".join("%dx%d" % s for s in SIZES), len(b)))
+
+# The tab sizes as their own PNGs, same downscale as the ico's layers.
+for px in (16, 32, 48):
+    out = os.path.join(ROOT, "docs", "favicon-%dx%d.png" % (px, px))
+    src.resize((px, px), Image.LANCZOS).save(out, format="PNG", optimize=True)
+    print("docs/favicon-%dx%d.png — %d bytes" % (px, px, os.path.getsize(out)))
+
+# apple-touch-icon: 180×180, opaque. iOS composites a transparent PNG onto
+# black, so the app's own ink ground (#08090F — manifest background_color)
+# goes behind the bat here, with the glyph at 78% so the silhouette is not
+# wall-to-wall on a rounded-corner tile.
+INK = (8, 9, 15, 255)
+tile = Image.new("RGBA", (180, 180), INK)
+glyph = src.resize((140, 140), Image.LANCZOS)
+tile.paste(glyph, ((180 - 140) // 2, (180 - 140) // 2), glyph)
+atp = os.path.join(ROOT, "docs", "apple-touch-icon.png")
+tile.convert("RGB").save(atp, format="PNG", optimize=True)
+print("docs/apple-touch-icon.png — %d bytes" % os.path.getsize(atp))
+
+# mstile: 144×144, transparent — Windows paints msapplication-TileColor
+# behind it, and that meta pins the same surface the theme-color declares.
+ms = os.path.join(ROOT, "docs", "mstile-144x144.png")
+src.resize((144, 144), Image.LANCZOS).save(ms, format="PNG", optimize=True)
+print("docs/mstile-144x144.png — %d bytes" % os.path.getsize(ms))

@@ -16,8 +16,11 @@
 # dashboard rule can be none of those. The rule is deleted in 3.4.3, so this
 # file becomes the only thing setting these headers. NOTHING GUARDS THAT IT
 # STAYS DELETED — no guard can read a panel, and one that pretended to would be
-# worse than an honest gap — so the wire check lives in the release checklist.
-# qa/sweep-repo-page-dns-2026-08-08.md.
+# worse than an honest gap — so the wire check lives in the release checklist:
+# RELEASING.md, "The wire checks". (Until 3.7.2 this comment delegated to a
+# checklist that did not exist anywhere in the repo — M-3 of the 10 Aug
+# review. It exists now.) qa/sweep-repo-page-dns-2026-08-08.md is the
+# maintainer's local evidence file, not in this repository.
 #
 # HSTS and X-Content-Type-Options are set at the edge instead (SSL/TLS panel
 # and Managed Transforms) and are deliberately not duplicated here.
@@ -27,7 +30,8 @@
 # would split one rule across two files. The 7 Aug 2026 Cloudflare Radar scan
 # reported the CSP MISSING and rated it P0 — a response-header scan cannot see
 # a <meta> policy, and the header it proposed (script-src 'self' 'unsafe-inline')
-# is weaker than the single sha256 that ships. qa/scan-triage-2026-08-07.md.
+# is weaker than the single sha256 that ships. qa/scan-triage-2026-08-07.md
+# (maintainer-local, not in this repository).
 #
 # CACHE POLICY, ADDED IN 3.0.0, AND IT ONLY TAKES EFFECT ON UPLOAD. Nothing in
 # this project declared one, so every file was cached with whatever Workers
@@ -70,7 +74,22 @@
 # produce that row. /icon-192.png reported User-declared canonical: NONE, so a
 # PNG is never evaluated as a document at all, and it too came back available.
 # Only /icon.svg fails, because SVG is a renderable document format that renders
-# with no text. THE SOFT 404 IS SVG-SPECIFIC AND HARMLESS. qa/favicon-serp-2026-08.md.
+# with no text. THE SOFT 404 IS SVG-SPECIFIC AND HARMLESS. qa/favicon-serp-2026-08.md
+# (maintainer-local, not in this repository).
+#
+# 3.7.2 DECLARES THE DOCUMENT'S OWN POLICY AT LAST (L-4 of the 10 Aug review).
+# This file's history above records exactly what an undeclared cache policy
+# cost sw.js; index.html — the entire app — was still riding the platform
+# default for every visitor the service worker cannot help. no-cache means
+# revalidate before use, which is what a single-file app whose only update
+# path is "serve the new file" wants. It rides under / because / is the whole
+# HTML surface: not_found_handling is "404-page", so no other path serves a
+# document.
+#
+# 3.7.2 ALSO ADDS THE REST OF THE ICON SET — the three tab-size PNGs, the iOS
+# home-screen icon and the Windows tile — each a day, for exactly the reasons
+# recorded for the first two icons above: stable names, no content hash, and
+# Google's stability rule.
 #
 # SO THIS MOVE BUYS NOTHING MEASURABLE AND SHIPS ON PRINCIPLE, WHICH IS RECORDED
 # HERE RATHER THAN DRESSED UP: a canonical relation is a statement about a
@@ -95,6 +114,7 @@
 /
   Link: <https://nightwatcher.life/sitemap.xml>; rel="sitemap"
   Link: <https://nightwatcher.life/>; rel="canonical"
+  Cache-Control: no-cache
 
 /sw.js
   Cache-Control: no-cache
@@ -106,4 +126,19 @@
   Cache-Control: public, max-age=86400
 
 /favicon.ico
+  Cache-Control: public, max-age=86400
+
+/favicon-16x16.png
+  Cache-Control: public, max-age=86400
+
+/favicon-32x32.png
+  Cache-Control: public, max-age=86400
+
+/favicon-48x48.png
+  Cache-Control: public, max-age=86400
+
+/apple-touch-icon.png
+  Cache-Control: public, max-age=86400
+
+/mstile-144x144.png
   Cache-Control: public, max-age=86400

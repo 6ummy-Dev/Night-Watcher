@@ -25,10 +25,11 @@ catch(e){
   console.log("skipped — jsdom not installed (npm i -D jsdom)"); process.exit(0);
 }
 
-var html = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8")
-  /* strip network assets so the test is offline and deterministic */
-  .replace(/<link[^>]*fonts\.googleapis[^>]*>/g, "")
-  .replace(/<script[^>]*cloudflareinsights[^>]*><\/script>/g, "");
+/* The two strip-replaces that used to sit here removed Google-CDN font links
+   (self-hosted since 1.4.2) and the Cloudflare beacon (gone in 3.2.0) — both
+   patterns had matched nothing for releases. The page is already offline-
+   deterministic; guard 42 fails the build if a third-party fetch returns. */
+var html = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8");
 
 var fails = [];
 /* 2.2.0, optimization report §5.4: a negative fixture that exists to trip one
@@ -496,7 +497,7 @@ win.addEventListener("load", function(){
        three consecutive rows. If the sort loses its lo: term this falls back to
        the order the file happens to be typed in, which is what 1.7.1 fixed. */
     S.mode = "life"; S.tab = "watch"; S.format = "all"; S.scope = "all";
-    S.watched = {}; S.log = {}; S.log = []; win.render();
+    S.watched = {}; S.log = []; win.render();
     (function(){
       var rows = Array.prototype.map.call(doc.querySelectorAll("#view .grow, #view .qitem, #view [data-id]"),
                                           function(e){ return e.dataset.id; }).filter(Boolean);
@@ -1566,6 +1567,43 @@ win.addEventListener("load", function(){
             !S.path && Object.keys(S.watched).length === 0);
       S.pending = null; S.path = S.mode = "continuity"; win.render();
     })();
+
+    /* --- an erase in another tab stays erased (3.7.2, M-1) ---------------
+       Cross-tab sync merges, and a merge can only add — so "Clear all
+       progress" in tab A used to be resurrected by tab B's in-memory state.
+       The reset now writes a monotonic resetAt and the storage handler adopts
+       a newer one as a wipe. Driven through the real listener with real
+       StorageEvents, because the listener is anonymous and no guard can
+       extract it. */
+    (function(){
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.resetAt = 0;
+      S.watched["batman-begins-2005"] = 1; S.rated["batman-begins-2005"] = 4;
+      S.log = [{id: "batman-begins-2005", ts: 1}];
+      win.render();
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({watched: {}, skipped: {}, rated: {}, log: [],
+                                  resetAt: 1754870400000})}));
+      check("a cross-tab erase wipes this tab's marks too",
+            Object.keys(S.watched).length === 0 && Object.keys(S.rated).length === 0 &&
+            S.log.length === 0,
+            "watched " + Object.keys(S.watched).length + ", rated " +
+            Object.keys(S.rated).length + ", log " + S.log.length);
+      check("the erase's clock is adopted, so a re-fire cannot wipe twice",
+            S.resetAt === 1754870400000, "resetAt=" + S.resetAt);
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({watched: {"the-batman-2022": 1},
+                                  resetAt: 1754870400000})}));
+      check("an ordinary cross-tab payload still merges after the erase",
+            S.watched["the-batman-2022"] === 1,
+            "watched: " + Object.keys(S.watched).join(","));
+      S.watched["batman-1989"] = 1;
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({watched: {}, resetAt: 5})}));
+      check("a STALE resetAt does not erase newer progress",
+            S.watched["batman-1989"] === 1, "resetAt=" + S.resetAt);
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.resetAt = 0;
+      win.render();
+    })();
     tailPhases();
     }
 
@@ -1582,7 +1620,13 @@ win.addEventListener("load", function(){
        matches, and querySelector works here perfectly. It rides along on the
        states this suite already drives. */
     if(wants("css")) (function(){
-      var css = html.match(/<style>([\s\S]*?)<\/style>/g).join("\n")
+      /* The tags come off before the rules are cut: joining full matches used
+         to leave "<style>" glued to each block's first selector, an artifact
+         the old swallow-everything catch hid and 3.7.2's parse check exposed
+         the day it was written. */
+      var css = html.match(/<style>([\s\S]*?)<\/style>/g)
+                    .map(function(m){ return m.replace(/^<style>|<\/style>$/g, ""); })
+                    .join("\n")
                     .replace(/\/\*[\s\S]*?\*\//g, "");
       var rules = css.match(/[^{}]+\{[^}]*\}/g) || [];
       var sels = [];
@@ -1592,6 +1636,7 @@ win.addEventListener("load", function(){
         sels.push(sel);
       });
       var matched = Object.create(null);
+      var unparsable = Object.create(null);
       /* 2.2.0, report §5.5: most rules match within the first few states, so
          once every selector has matched there is nothing left to learn — the
          remaining sweeps would probe an empty worklist ~80 times. The early
@@ -1609,8 +1654,16 @@ win.addEventListener("load", function(){
               .trim();
           }).filter(Boolean).join(",");
           if(!probe){ matched[sel] = 1; unmatched--; return; }
+          /* 3.7.2 (L-9 of the 10 Aug review): a selector jsdom REFUSES used
+             to be marked matched, which permanently exempted a typo'd rule
+             from the dead-rule sweep — the one state this sweep exists to
+             catch, hidden by its own error handling. It is recorded and
+             reported as its own verdict below instead. */
           try{ if(doc.querySelector(probe)){ matched[sel] = 1; unmatched--; } }
-          catch(e){ matched[sel] = 1; unmatched--; }
+          catch(e){
+            if(!unparsable[sel]){ unparsable[sel] = 1; }
+            matched[sel] = 1; unmatched--;
+          }
         });
       }
       S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.open = {}; S.q = "";
@@ -1697,6 +1750,9 @@ win.addEventListener("load", function(){
       var dead = sels.filter(function(sel){ return !matched[sel]; });
       check("every CSS rule matches something in some state",
             dead.length === 0, dead.join("  |  "));
+      var broken = Object.keys(unparsable);
+      check("every CSS selector parses, so the dead-rule sweep can see it",
+            broken.length === 0, broken.join("  |  "));
       S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.open = {};
       S.tab = "home"; S.path = S.mode = "continuity"; win.render();
     })();

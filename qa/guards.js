@@ -20,6 +20,25 @@ var HTML   = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8");
 var SNAP   = path.join(__dirname, "frozen-ids.json");
 var BLESS  = process.argv.indexOf("--bless") >= 0;
 
+/* 3.7.2, H-2 of the 10 Aug review: FIVE WRITERS, ONE STALE STRING. Every
+   index.html bless writer used to call fs.writeFileSync with a replacement
+   made from the HTML string read once at startup — so the SECOND write in a
+   run reverted the first. Reproduced both ways: corrupt the ItemList and the
+   FAQPage together and one `npm run bless` printed "rewrote" twice, exited 0,
+   and left the tree red; any data edit plus bless reverted the CSP-hash fix,
+   so guards failed with "Fix with: npm run bless" immediately after bless had
+   run. Bless required an undocumented run-until-fixed-point loop.
+
+   blessHtml() threads the mutated string through: it updates HTML and writes
+   the same bytes, so every later section — check and writer alike — operates
+   on what is actually on disk. The report at the bottom re-runs the whole
+   check pass in a child process after a clean bless, so bless exiting 0 means
+   the tree it LEFT is green, not the tree it started from. */
+function blessHtml(next){
+  HTML = next;
+  fs.writeFileSync(path.join(PUBLIC, "index.html"), next, "utf8");
+}
+
 /* INDEX
 
    CATALOGUE
@@ -141,6 +160,7 @@ var BLESS  = process.argv.indexOf("--bless") >= 0;
      82   GitHub Pages never gets a custom domain
      83   The manifest id is an identity, not a path
      46   The README states the real weight
+     132  The offline promise is executed, not grepped
 
    DISCOVERY
      38   What a crawler and a shared link see
@@ -182,6 +202,18 @@ var fails = [], warns = [], notes = [];
 function fail(m){ fails.push(m); }
 function warn(m){ warns.push(m); }
 function note(m){ notes.push(m); }
+
+/* 3.7.2 (L-7 of the 10 Aug review): the two "every section can fail" censuses
+   in sections 66 and 107 counted `fail(` wherever it appeared — including
+   inside block comments, which in this file routinely QUOTE fail(...) while
+   narrating a fix. A section whose assertions were commented out still
+   satisfied both meta-guards. They now look at the code with the block
+   comments stripped, so a quoted fail() is prose again. Line comments are
+   left alone on purpose: `//` appears inside URL strings throughout this
+   file, and a stripper that eats those rewrites code rather than comments. */
+function stripBlockComments(src){
+  return String(src).replace(/\/\*[\s\S]*?\*\//g, "");
+}
 
 /* ---------- extract the real data + the real functions ---------- */
 
@@ -362,8 +394,35 @@ if(BLESS){
       warn("retired-ids.json lists " + k + ", which was never frozen");
     }
   });
-  fs.writeFileSync(SNAP, JSON.stringify(filmIds, null, 1) + "\n");
-  note("blessed frozen-ids.json with " + filmIds.length + " ids");
+  /* 3.7.2, H-1 of the 10 Aug review: THE DIFF RUNS BEFORE THE WRITE, IN BLESS
+     TOO. Until now the frozen-ID comparison lived only in the non-bless branch,
+     and this branch rewrote the snapshot unconditionally — so deleting an entry
+     and running `npm run bless` produced no failure, a snapshot that no longer
+     carried the ID, and no later run that could ever ask for a retired-ids.json
+     entry. That is precisely the laundering the comment at the top of this
+     section says blessing must not be able to do. Bless now refuses: an ID may
+     only leave the snapshot through qa/retired-ids.json or qa/renamed-ids.json,
+     which is a diff a reviewer reads. */
+  var laundered = [];
+  if(fs.existsSync(SNAP)){
+    JSON.parse(fs.readFileSync(SNAP, "utf8")).forEach(function(fi){
+      if(filmIds.indexOf(fi) < 0 && !RETIRED[fi] && !RENAMED[fi] &&
+         PREFREEZE.indexOf(fi) < 0){
+        laundered.push(fi);
+      }
+    });
+  }
+  if(laundered.length){
+    fail("FROZEN ID REMOVED OR RENAMED: " + laundered.join(", ") +
+         " — bless refuses to launder a retirement. Saved progress and " +
+         "backup codes in circulation still point at this slug, so removal is " +
+         "recorded, never silent: write it into qa/retired-ids.json (or " +
+         "qa/renamed-ids.json) with a reason, then bless. The snapshot was " +
+         "left untouched");
+  } else {
+    fs.writeFileSync(SNAP, JSON.stringify(filmIds, null, 1) + "\n");
+    note("blessed frozen-ids.json with " + filmIds.length + " ids");
+  }
 } else if(!fs.existsSync(SNAP)){
   warn("no qa/frozen-ids.json yet — run: node qa/guards.js --bless");
 } else {
@@ -637,7 +696,11 @@ if(!importCode("https://nightwatcher.life/#nw=" + code)) fail("parser rejected a
       continue;
     }
     if(!res) continue;
+    /* skipped joined the sweep in 3.7.2 (L-5 of the 10 Aug review): importCode
+       populates three containers, and a fuzz that reads two of them lets a
+       parser defect invent ids into the third without going red. */
     var invented = Object.keys(res.watched || {}).concat(Object.keys(res.rated || {}))
+                     .concat(Object.keys(res.skipped || {}))
                      .filter(function(id){ return !real[id]; });
     if(invented.length){
       bad++;
@@ -778,6 +841,15 @@ if(PUBLIC !== ROOT){
                         nothing about working offline depends on it, and a
                         visitor who is offline already has the tab open. */
                      "favicon.ico",
+                     /* 3.7.2. The rest of the icon set — the tab-size PNGs,
+                        the iOS home-screen icon and the Windows tile. Browser
+                        and OS chrome, same reasoning as favicon.ico: the app
+                        never renders them, nothing about working offline
+                        depends on them, and a visitor who is offline already
+                        has the tab open (or the home-screen icon installed). */
+                     "favicon-16x16.png", "favicon-32x32.png",
+                     "favicon-48x48.png", "apple-touch-icon.png",
+                     "mstile-144x144.png",
                      /* 3.4.0. The IndexNow key. Fetched by search engines to
                         prove this host controls the key it submits under, and
                         by nothing else -- the app never reads it, and a reader
@@ -1516,11 +1588,20 @@ if(gzipKB > 80) fail("index.html is " + gzipKB.toFixed(1) + " KB gzipped, over t
    external script, which is a stronger assertion than the carve-out ever was,
    and the pattern's old blindness no longer has anywhere to hide \u2014 there
    is no allowed tag left for a mis-match to be mistaken for. */
-var ext = HTML.match(/<script[^>]+src=["']https?:\/\/[^"']+["']/g) || [];
+/* 3.7.2 (L-6 of the 10 Aug review): THE OLD PATTERN REQUIRED A QUOTED
+   http(s):// VALUE, so `src="//evil.example/x.js"` \u2014 protocol-relative, an
+   external fetch on any served page \u2014 slipped it, and so did an unquoted src.
+   Section 42's origin sweep missed the same shape (no scheme, no match),
+   leaving the runtime CSP as the only defense. Since 3.2.0 the page may carry
+   NO script element with a src at all \u2014 the one script is inline and hashed \u2014
+   so the attribute itself is now the failure, and there is no value form left
+   for a blind pattern to mis-match. */
+var ext = HTML.match(/<script\b[^>]*\bsrc\s*=[^>]*>/gi) || [];
 ext.forEach(function(tag){
-  fail("index.html loads external script " + tag + " \u2014 the app must run " +
-       "with no network, and since 3.2.0 there is no disclosed exception for " +
-       "it to be");
+  fail("index.html carries a script element with a src (" + tag.slice(0, 90) +
+       ") \u2014 the app must run with no network and its one script is inline " +
+       "and hashed; since 3.2.0 there is no disclosed exception for any src, " +
+       "quoted, unquoted, or protocol-relative");
 });
 
 /* ---------- 30. Documented spoiler order holds ------------------------ */
@@ -2054,8 +2135,11 @@ if(!/<label class="bklab" for="restorebox">/.test(HTML)){
 /* ---------- 42. The page asks nothing of anyone else ------------------ */
 /* Until 1.4.2 the fonts came from Google's CDN, so every visit told a third
    party the page had loaded \u2014 on an app whose own structured data says nothing
-   tracks you. Cloudflare's beacon is the one deliberate exception and is
-   disclosed in the footer. */
+   tracks you. Cloudflare's beacon was the one deliberate, disclosed exception
+   until 3.2.0 removed it; since then NOTHING is fetched from anyone, and the
+   allowlist below is origins the page may NAME, not reach. (This header said
+   "is the one deliberate exception" for four releases after the beacon left \u2014
+   stale prose in the very section that polices staleness. Fixed 3.7.2.) */
 
 (function(){
   /* 3.0.1 split this list, because it had been doing two jobs with one name and
@@ -2278,7 +2362,7 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
      cosmetic failure \u2014 the browser refuses to execute the app at all. --bless
      rewrites it, so the fix is one command rather than a manual paste. */
   if(BLESS){
-    fs.writeFileSync(path.join(PUBLIC, "index.html"), HTML.replace("'sha256-" + declared + "'", "'sha256-" + actual + "'"));
+    blessHtml(HTML.replace("'sha256-" + declared + "'", "'sha256-" + actual + "'"));
     note("blessed the CSP script hash");
     return;
   }
@@ -2403,7 +2487,8 @@ if(!/watchUrl\(f\)/.test(fn("watchLinks"))){
   var onDisk = walk(PUBLIC, "").map(function(f){ return "docs/" + f; });
   /* The root half of the table was maintained by hand and drifted: LICENSE,
      SECURITY.md and package-lock.json all shipped in 1.4.2 undocumented. */
-  ["LICENSE", "SECURITY.md", "README.md", "CHANGELOG.md", "package.json",
+  ["LICENSE", "SECURITY.md", "README.md", "CHANGELOG.md", "RELEASING.md",
+   "package.json",
    "package-lock.json", "wrangler.jsonc", ".gitignore",
    ".github/workflows/qa.yml", "qa/guards.js", "qa/smoke.js",
    "qa/frozen-ids.json"].forEach(function(f){
@@ -3712,8 +3797,14 @@ if(!/function legendBlock/.test(HTML) ||
            is this project's oldest failure wearing a new hat. The alternation
            is the whole change: the moment a third helper exists it belongs
            here, in the same commit that introduces it. */
+        /* Leading whitespace is allowed as of 3.7.2 (L-10 of the 10 Aug
+           review): a fixture wrapped in an `if` runs but sat outside the old
+           column-0 pattern, so it was uncounted — and this guard would then
+           have certified a wrong README number, which is the exact drift it
+           exists to stop. A quoted label still keeps the helper definitions
+           and the commented examples out of the count. */
         fixtures += (fs.readFileSync(path.join(negDir, f), "utf8")
-                       .match(/^(?:run_case|green_case)\s+"/gm) || []).length;
+                       .match(/^[ \t]*(?:run_case|green_case)\s+"/gm) || []).length;
       });
       counts.push(["negative suites", suites.length, /(\d+)\s+negative suites\b/]);
       counts.push(["negative fixtures", fixtures, /(\d+)\s+fixtures\b/]);
@@ -3865,7 +3956,7 @@ if(!/function legendBlock/.test(HTML) ||
   bodies.forEach(function(body, i){
     var end = body.search(/\/\* -{3,} report/);
     if(end >= 0) body = body.slice(0, end);
-    if(!/\bfail\(/.test(body)){
+    if(!/\bfail\(/.test(stripBlockComments(body))){
       fail("section " + nums[i] + " has a header and no assertion under it \u2014 the " +
            "INDEX promises a check that is not there");
     }
@@ -4582,8 +4673,7 @@ var ROUTE_VOCAB = [
   }
   if(got !== want){
     if(BLESS){
-      fs.writeFileSync(path.join(PUBLIC, "index.html"),
-                       HTML.replace(got, want), "utf8");
+      blessHtml(HTML.replace(got, want));
       note("rewrote the crawlable catalogue inside #view");
     } else if(got === '<main id="view"></main>'){
       fail('the crawlable catalogue is gone — <main id="view"> is empty, so a ' +
@@ -4913,7 +5003,27 @@ var ROUTE_VOCAB = [
          "again \u2014 the one-time cost was paid while the install base was " +
          "near zero, and it will not be near zero twice. See NOTES.md");
   }
-  note("manifest id " + mf.id + ", fixed in 2.7.0 and pinned since");
+  /* 3.7.2, M-7 of the 10 Aug review: THE ID WAS PINNED AND NOTHING AROUND IT
+     WAS. start_url is the same "tidied during a refactor" class of value as
+     the id incident above — typo it and every new install opens a 404 while
+     the diff reads like housekeeping. The whole installed surface is a set of
+     decisions, so the whole surface is pinned. Section 12 already holds the
+     icon files; this holds the fields. */
+  [["start_url", "."], ["scope", "."], ["display", "standalone"],
+   ["name", "Night Watcher"], ["short_name", "Night Watcher"],
+   ["background_color", "#08090F"], ["theme_color", "#0C111C"]
+  ].forEach(function(p){
+    if(mf[p[0]] !== p[1]){
+      fail("manifest." + p[0] + " is " + JSON.stringify(mf[p[0]]) + ", not " +
+           JSON.stringify(p[1]) + " — the manifest is the installed app's " +
+           "contract. A drifted field ships green to every new install while " +
+           "looking like a tidy-up in the diff; if the change is deliberate, " +
+           "move this pin in the same commit so it stays something that was " +
+           "decided");
+    }
+  });
+  note("manifest id " + mf.id + ", fixed in 2.7.0 and pinned since; " +
+       "start_url, scope, display, names and colors pinned with it");
 })();
 
 /* ---------- 84. The one slug whose year is deliberately wrong --------- */
@@ -5432,8 +5542,7 @@ var ROUTE_VOCAB = [
   if(BLESS){
     o["@graph"] = graph.filter(function(n){ return n["@type"] !== "ItemList"; });
     o["@graph"].push(want);
-    fs.writeFileSync(path.join(PUBLIC, "index.html"),
-                     HTML.replace(ldm[1], JSON.stringify(o)), "utf8");
+    blessHtml(HTML.replace(ldm[1], JSON.stringify(o)));
     note("rewrote the JSON-LD ItemList");
   } else if(!got){
     fail("the JSON-LD has no ItemList \u2014 the curated titles are in the seed for " +
@@ -5905,8 +6014,7 @@ var ROUTE_VOCAB = [
   if(BLESS){
     o["@graph"] = graph.filter(function(n){ return n["@type"] !== "FAQPage"; });
     o["@graph"].push(want);
-    fs.writeFileSync(path.join(PUBLIC, "index.html"),
-                     HTML.replace(ldm[1], JSON.stringify(o)), "utf8");
+    blessHtml(HTML.replace(ldm[1], JSON.stringify(o)));
     note("rewrote the FAQPage in the JSON-LD");
   } else if(!got){
     fail("the JSON-LD has no FAQPage \u2014 the seed answers the questions and the " +
@@ -6420,7 +6528,31 @@ var ROUTE_VOCAB = [
      "a day — long enough to stop revalidating on every visit, short enough " +
      "that the name can stay stable"],
     ["/favicon.ico", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
-     "a day, for the same reason as /icon.svg"]
+     "a day, for the same reason as /icon.svg"],
+    /* 3.7.2 (L-4 of the 10 Aug review): THE DOCUMENT ITSELF, DECLARED AT
+       LAST. index.html is the entire app, and for non-SW visitors it rode
+       whatever policy Workers Assets emits by default — the exact undeclared
+       state whose consequences this file's own history records for sw.js.
+       no-cache means revalidate before use, which is what a single-file app
+       whose only update path is "serve the new file" wants. / is the whole
+       HTML surface: wrangler.jsonc pins not_found_handling to "404-page", so
+       no other path ever serves a document. */
+    ["/", /^\s+Cache-Control:\s*no-cache\s*$/m,
+     "no-cache — the document IS the app, and a non-SW visitor must " +
+     "revalidate it or a bad deploy is sticky for exactly the readers the " +
+     "service worker cannot help"],
+    /* 3.7.2: the new icons take the same day as the two above, for the same
+       reason — stable names, no content hash, and Google's stability rule. */
+    ["/favicon-16x16.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day, same reasoning as /favicon.ico"],
+    ["/favicon-32x32.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day, same reasoning as /favicon.ico"],
+    ["/favicon-48x48.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day, same reasoning as /favicon.ico"],
+    ["/apple-touch-icon.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day, same reasoning as /favicon.ico"],
+    ["/mstile-144x144.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day, same reasoning as /favicon.ico"]
   ];
   RULES.forEach(function(r){
     var i = D.indexOf("\n" + r[0] + "\n");
@@ -6437,8 +6569,17 @@ var ROUTE_VOCAB = [
     }
   });
   /* A blanket policy under /* would cover sw.js too, and the two want opposite
-     answers. One rule, one path. */
-  var star = D.slice(D.indexOf("\n/*\n"), D.indexOf("\n/sw.js\n") < 0 ? undefined : D.indexOf("\n/sw.js\n"));
+     answers. One rule, one path. The slice ends at the NEXT block, whichever
+     it is — until 3.7.2 it ran to /sw.js, which swept the / block in between
+     and would have called the document's own (correct, scoped) no-cache a
+     blanket rule. */
+  var starA = D.indexOf("\n/*\n");
+  var starB = D.length;
+  ["\n/\n", "\n/sw.js\n"].forEach(function(nb){
+    var i104 = D.indexOf(nb, starA + 4);
+    if(i104 >= 0 && i104 < starB) starB = i104;
+  });
+  var star = D.slice(starA, starB);
   if(/Cache-Control/i.test(star)){
     fail("docs/_headers sets Cache-Control under /*, which covers sw.js — the " +
          "version marker and the fonts want opposite answers, and a blanket " +
@@ -6463,8 +6604,8 @@ var ROUTE_VOCAB = [
      defect as a failure message that does — it is read as evidence, and this
      is the file whose scopes are the thing under test. */
   note("_headers: " + PINNED104.map(function(t){ return t[0] + " on " + t[3]; }).join(", ") +
-       ", no-cache on /sw.js, a year on /fonts/*, and out of the " +
-       "offline shell");
+       ", no-cache on / and /sw.js, a year on /fonts/*, a day on the icon " +
+       "set, and out of the offline shell");
 })();
 
 /* ---------- 105. The catalogue answers in plain text ------------------ */
@@ -6685,7 +6826,19 @@ var ROUTE_VOCAB = [
      "the raster a phone uses for a home-screen tile"],
     ["icon.png",     /sizes="512x512"[^>]*href="icon\.png"/,
      "the large raster — shipped since 1.x, declared in the manifest, and " +
-     "unlinked from the head until 3.3.0"]
+     "unlinked from the head until 3.3.0"],
+    /* 3.7.2 GROWS THE SET BY THREE, closing the classic-size gap: the ico
+       carries 16/32/48 as layers, but tools that read <link> tags rather than
+       probing the root path never saw a plain PNG at tab sizes. All three are
+       derived from icon.png by qa/make-favicon.py — generated, like the ico,
+       so they cannot disagree with the bat that ships. */
+    ["favicon-16x16.png", /sizes="16x16"[^>]*href="favicon-16x16\.png"|href="favicon-16x16\.png"[^>]*sizes="16x16"/,
+     "the tab raster at 1x display scaling, declared for tools that read " +
+     "links rather than probing the root ico"],
+    ["favicon-32x32.png", /sizes="32x32"[^>]*href="favicon-32x32\.png"|href="favicon-32x32\.png"[^>]*sizes="32x32"/,
+     "the tab raster at 2x"],
+    ["favicon-48x48.png", /sizes="48x48"[^>]*href="favicon-48x48\.png"|href="favicon-48x48\.png"[^>]*sizes="48x48"/,
+     "the size legacy crawlers historically expect, served as its own PNG too"]
   ];
   var head = HTML.slice(0, HTML.indexOf("</head>"));
   WANT.forEach(function(w){
@@ -6727,8 +6880,44 @@ var ROUTE_VOCAB = [
     }
   }
 
+  /* 3.7.2: THE PLATFORM ICONS, PINNED THE SAME WAY. apple-touch-icon carried
+     icon-192.png — a transparent PNG that iOS composites onto black — until a
+     dedicated 180×180 with the ink background shipped; the tile metas are for
+     the one platform that reads neither the ico nor the manifest. None of
+     these are rel="icon", so the sweep above cannot see them; each is pinned
+     here with the file it points at. */
+  [["apple-touch-icon.png",
+    /<link rel="apple-touch-icon" href="apple-touch-icon\.png">/,
+    "the 180×180 iOS home-screen icon, opaque on the ink background — iOS " +
+    "ignores the manifest icons and composites transparency onto black"],
+   ["mstile-144x144.png",
+    /<meta name="msapplication-TileImage" content="mstile-144x144\.png">/,
+    "the Windows tile raster, for the one platform that reads neither the " +
+    "ico nor the manifest"]
+  ].forEach(function(w){
+    if(!w[1].test(head)){
+      fail("the head no longer offers " + w[0] + " — " + w[2] +
+           ". If it is genuinely not wanted, take it out of this list in the " +
+           "same commit, so the set stays something that was decided");
+    }
+    if(!fs.existsSync(path.join(PUBLIC, w[0]))){
+      fail("docs/" + w[0] + " is missing and the head points at it");
+    }
+  });
+  [['<meta name="application-name" content="Night Watcher">',
+    "application-name — what Windows and browser task surfaces call the app"],
+   ['<meta name="msapplication-TileColor" content="#0C111C">',
+    "msapplication-TileColor — the tile ground the raster sits on, the same " +
+    "surface color the theme-color declares"]
+  ].forEach(function(m){
+    if(head.indexOf(m[0]) < 0){
+      fail("the head lost " + m[1] + " — expected exactly: " + m[0]);
+    }
+  });
+
   note("favicon: " + links.length + " icon link(s) — " + named.join(", ") +
-       " — all served as files, ico out of the shell");
+       " — plus apple-touch-icon and the tile metas, all served as files, " +
+       "all out of the shell");
 })();
 
 /* ---------- 106. The fonts carry every letter the catalogue uses ------ */
@@ -6889,9 +7078,10 @@ var ROUTE_VOCAB = [
     var end = (i + 1 < marks.length) ? marks[i + 1].line : lines.length;
     var body = lines.slice(mk.line, end);
 
-    if(body.join("\n").indexOf("fail(") < 0){
-      fail("guard section " + mk.n + " contains no fail() — a section that " +
-           "cannot fail is documentation, not a guard");
+    if(stripBlockComments(body.join("\n")).indexOf("fail(") < 0){
+      fail("guard section " + mk.n + " contains no fail() outside a comment — " +
+           "a section that cannot fail is documentation, not a guard, and a " +
+           "fail() quoted in prose is documentation too");
     }
 
     var topLevel = body.some(function(l){
@@ -9387,6 +9577,202 @@ var ROUTE_VOCAB = [
        "watching-truths live on Next up and the machinery notes in Progress");
 })();
 
+/* ---------- 132. The offline promise is executed, not grepped ---------- */
+/* 3.7.2, M-5 of the 10 Aug review. Section 11 compile-checks sw.js and several
+   sections grep it; nothing ever RAN it. Invert `if(res && res.ok)` — caching
+   error pages — break the offline navigate fallback, or delete the activate-
+   time purge, and guards, smoke and all the negative fixtures stayed green
+   while offline — a headline README promise — broke for every installed user.
+
+   This drives the three handlers from the shipped file against the smallest
+   mocks they touch. The promises are synchronous thenables on purpose: this
+   file reports and exits at the bottom of a synchronous run, so an assertion
+   that lands on a real microtask lands after the verdict. The functions under
+   test are still sw.js's own, evaluated, never reimplemented. */
+
+(function(){
+  var swPath132 = path.join(PUBLIC, "sw.js");
+  if(!fs.existsSync(swPath132)){
+    fail("docs/sw.js is missing — offline has no worker to keep its promise");
+    return;
+  }
+  var src132 = fs.readFileSync(swPath132, "utf8");
+
+  function SyncP(v, bad){ this.v = v; this.bad = !!bad; }
+  SyncP.wrap = function(x){ return x instanceof SyncP ? x : new SyncP(x); };
+  SyncP.prototype.then = function(f, r){
+    try{
+      if(this.bad) return r ? SyncP.wrap(r(this.v)) : this;
+      return f ? SyncP.wrap(f(this.v)) : this;
+    }catch(e){ return new SyncP(e, true); }
+  };
+  SyncP.prototype["catch"] = function(r){ return this.then(null, r); };
+  var SyncPromise = {
+    resolve: function(x){ return SyncP.wrap(x); },
+    reject: function(e){ return new SyncP(e, true); },
+    all: function(arr){
+      var out = [], firstErr = null, sawBad = false;
+      arr.forEach(function(p){
+        SyncP.wrap(p).then(function(v){ out.push(v); },
+                           function(e){ if(!sawBad){ sawBad = true; firstErr = e; } });
+      });
+      return sawBad ? new SyncP(firstErr, true) : new SyncP(out);
+    }
+  };
+
+  var store132 = Object.create(null), puts = [], added = [], deletedCaches = [];
+  var cacheObj = {
+    add: function(req){ added.push(req && req.url ? req.url : req); return SyncP.wrap(undefined); },
+    put: function(req, res){
+      puts.push(req && req.url ? req.url : req);
+      store132[req && req.url ? req.url : req] = res;
+      return SyncP.wrap(undefined);
+    },
+    match: function(req){ return SyncP.wrap(store132[req && req.url ? req.url : req]); }
+  };
+  var handlers = {};
+  var nextFetch = null; /* set per drive: function(req) -> SyncP */
+  var sandbox132 = {
+    self: {
+      addEventListener: function(t, f){ handlers[t] = f; },
+      skipWaiting: function(){ return SyncP.wrap(undefined); },
+      clients: { claim: function(){ return SyncP.wrap(undefined); } }
+    },
+    caches: {
+      open: function(){ return SyncP.wrap(cacheObj); },
+      keys: function(){ return SyncP.wrap(["night-watcher-0.0.0-stale", null]); },
+      "delete": function(k){ deletedCaches.push(k); return SyncP.wrap(true); },
+      match: function(req){ return cacheObj.match(req); }
+    },
+    location: { origin: "https://nightwatcher.life" },
+    URL: URL,
+    Request: function(u, o){ this.url = u; this.method = "GET"; this.mode = (o && o.mode) || ""; },
+    Response: { error: function(){ return { ok: false, status: 0, swError: true }; } },
+    Promise: SyncPromise,
+    fetch: function(req){ return nextFetch(req); },
+    console: console
+  };
+  try{ vm.runInNewContext(src132, sandbox132, {filename: "docs/sw.js"}); }
+  catch(e){ fail("sw.js does not evaluate under the harness: " + e.message); return; }
+
+  if(!handlers.install || !handlers.activate || !handlers.fetch){
+    fail("sw.js no longer registers install/activate/fetch handlers — the " +
+         "offline promise has nothing carrying it");
+    return;
+  }
+
+  /* install precaches the whole shell, and skipWaiting is reached. */
+  handlers.install({ waitUntil: function(p){ SyncP.wrap(p); } });
+  var shell132 = sandbox132.SHELL || [];
+  if(!shell132.length || added.length !== shell132.length){
+    fail("the install handler cached " + added.length + " of " + shell132.length +
+         " shell entries — a partial precache is an offline app with holes");
+  }
+  if(added.indexOf("./index.html") < 0){
+    fail("the install handler never cached ./index.html — offline cannot open " +
+         "the app at all");
+  }
+
+  /* activate purges every cache that is not the current one. */
+  sandbox132.caches.keys = function(){
+    return SyncP.wrap(["night-watcher-0.0.0-stale", sandbox132.CACHE]);
+  };
+  handlers.activate({ waitUntil: function(p){ SyncP.wrap(p); } });
+  if(deletedCaches.indexOf("night-watcher-0.0.0-stale") < 0){
+    fail("activate left a stale versioned cache in place — old builds are " +
+         "never retired and storage grows with every release");
+  }
+  if(deletedCaches.indexOf(sandbox132.CACHE) >= 0){
+    fail("activate deleted the CURRENT cache — every activation empties the " +
+         "shell it just installed");
+  }
+
+  function drive(req, fetchImpl){
+    var out = { responded: false, res: undefined, waited: 0 };
+    nextFetch = fetchImpl;
+    handlers.fetch({
+      request: req,
+      respondWith: function(p){ out.responded = true; SyncP.wrap(p).then(function(v){ out.res = v; }); },
+      waitUntil: function(p){ out.waited++; SyncP.wrap(p); }
+    });
+    return out;
+  }
+  var APP = "https://nightwatcher.life/index.html";
+
+  /* a good response is served and lands in the cache — via waitUntil, so the
+     browser cannot kill the worker between the reply and the put (L-3). */
+  var okRes = { ok: true, status: 200, clone: function(){ return this; } };
+  var putsBefore = puts.length;
+  var r1 = drive({ url: APP, method: "GET", mode: "" },
+                 function(){ return SyncP.wrap(okRes); });
+  if(!r1.responded || r1.res !== okRes){
+    fail("a plain same-origin GET is not answered with the network response — " +
+         "network-first is the whole recovery strategy");
+  }
+  if(puts.length !== putsBefore + 1){
+    fail("a 200 response was not written to the runtime cache — offline never " +
+         "learns about anything fetched after install");
+  }
+  if(!r1.waited){
+    fail("the runtime cache write does not ride event.waitUntil — the browser " +
+         "may kill the worker between the reply and the put, so a downloaded " +
+         "update silently misses the offline cache (L-3 of the 10 Aug review)");
+  }
+
+  /* an error response is served but NEVER cached — the M-5 headline. */
+  putsBefore = puts.length;
+  var badRes = { ok: false, status: 500, clone: function(){ return this; } };
+  var r2 = drive({ url: "https://nightwatcher.life/whoops", method: "GET", mode: "" },
+                 function(){ return SyncP.wrap(badRes); });
+  if(!r2.responded || r2.res !== badRes){
+    fail("an error response is not passed through — the reader should see the " +
+         "real failure, not a hung request");
+  }
+  if(puts.length !== putsBefore){
+    fail("an error response was WRITTEN TO THE CACHE — one bad deploy and " +
+         "offline serves the error page forever, which is the exact " +
+         "stickiness the header comment promises this file avoids");
+  }
+
+  /* offline: a cached file is served from cache. */
+  store132["https://nightwatcher.life/icon.png"] = { ok: true, cached: true };
+  var r3 = drive({ url: "https://nightwatcher.life/icon.png", method: "GET", mode: "" },
+                 function(){ return SyncPromise.reject(new Error("offline")); });
+  if(!r3.res || r3.res.cached !== true){
+    fail("with the network down, a cached file is not served from the cache — " +
+         "offline is broken at the one moment it is the product");
+  }
+
+  /* offline: an uncached NAVIGATION still opens the app. */
+  store132["./index.html"] = { ok: true, shell: true };
+  var r4 = drive({ url: "https://nightwatcher.life/some/shared/path", method: "GET", mode: "navigate" },
+                 function(){ return SyncPromise.reject(new Error("offline")); });
+  if(!r4.res || r4.res.shell !== true){
+    fail("an offline navigation to an uncached path does not fall back to the " +
+         "app shell — a shared link opened offline shows a browser error " +
+         "instead of the app");
+  }
+
+  /* the worker never touches other origins or non-GETs. */
+  var r5 = drive({ url: "https://example.com/x", method: "GET", mode: "" },
+                 function(){ return SyncP.wrap(okRes); });
+  if(r5.responded){
+    fail("the fetch handler answered for a cross-origin request — the worker " +
+         "must stay out of traffic it does not own");
+  }
+  var r6 = drive({ url: APP, method: "POST", mode: "" },
+                 function(){ return SyncP.wrap(okRes); });
+  if(r6.responded){
+    fail("the fetch handler answered a non-GET — a POST through the cache " +
+         "layer is a write treated as a read");
+  }
+
+  note("sw.js executed: shell precached (" + shell132.length + " entries), " +
+       "stale cache purged, 200 cached via waitUntil, 500 not cached, " +
+       "offline serves cache and the navigate fallback, cross-origin and " +
+       "non-GET untouched");
+})();
+
 /* ---------- report ---------- */
 
 console.log("\nNight Watcher guards — " + FILMS.length + " entries, " + PATH.length + " continuities");
@@ -9401,5 +9787,17 @@ if(fails.length){
   fails.forEach(function(m){ console.log("  ✗ " + m); });
   console.log("");
   process.exit(1);
+}
+/* 3.7.2, H-2 of the 10 Aug review, second half: A CLEAN BLESS PROVES NOTHING
+   ABOUT THE TREE IT LEAVES BEHIND — the pass above checked the string read at
+   startup and then wrote files. So a bless run re-runs the whole check pass
+   in a child process against what is now on disk, and exits red if the tree
+   it wrote is red. `npm run bless && npm test` used to be the undocumented
+   requirement; the && is now built in. */
+if(BLESS){
+  console.log("\n  · bless pass clean — re-checking the tree it wrote\n");
+  var reverify = require("child_process").spawnSync(process.execPath, [__filename],
+                                                    {stdio: "inherit"});
+  process.exit(reverify.status === 0 ? 0 : 1);
 }
 console.log("\n  ✓ all guards passed" + (warns.length ? " (" + warns.length + " warning(s))" : "") + "\n");

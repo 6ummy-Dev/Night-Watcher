@@ -338,9 +338,28 @@ run_case "sw.js loses its no-cache rule" \
   "docs/_headers has no /sw.js rule" \
   "${H2}import re;s=re.sub(r'\n/sw\.js\n  Cache-Control: no-cache\n','\n',s);${HW2}"
 
+# Targeted at the /sw.js BLOCK since 3.7.2: the document rule under / also
+# says no-cache and sits first in the file, so a bare first-occurrence
+# replace mutated the wrong rule and this fixture reported the wrong failure.
 run_case "sw.js is given a lifetime instead" \
   "no longer sets Cache-Control on /sw.js" \
-  "${H2}s=s.replace('  Cache-Control: no-cache','  Cache-Control: public, max-age=3600',1);${HW2}"
+  "${H2}import re;s2=re.sub(r'(\n/sw\.js\n)  Cache-Control: no-cache\n', r'\g<1>  Cache-Control: public, max-age=3600\n', s)
+assert s2 != s
+s=s2;${HW2}"
+
+# The document's own rule (3.7.2, L-4 of the 10 Aug review) gets the same
+# two-sided coverage as every other pinned cache line.
+run_case "the document loses its no-cache rule" \
+  "no longer sets Cache-Control on / to no-cache" \
+  "${H2}import re;s2=re.sub(r'(\n/\n(?:  Link:[^\n]*\n)+)  Cache-Control: no-cache\n', r'\g<1>', s)
+assert s2 != s
+s=s2;${HW2}"
+
+run_case "the document is given a lifetime instead" \
+  "no longer sets Cache-Control on / to no-cache" \
+  "${H2}import re;s2=re.sub(r'(\n/\n(?:  Link:[^\n]*\n)+)  Cache-Control: no-cache\n', r'\g<1>  Cache-Control: public, max-age=3600\n', s)
+assert s2 != s
+s=s2;${HW2}"
 
 run_case "the fonts lose their year" \
   "no longer sets Cache-Control on /fonts/*" \

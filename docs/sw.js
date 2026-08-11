@@ -6,16 +6,17 @@
  * Strategy, chosen to make a bad deploy recoverable rather than sticky:
  *   same-origin  -> network-first, cache as fallback. A deploy lands on the
  *                   next load while online; offline still opens from cache.
- *   analytics    -> never touched.
  *
- * Fonts were a third case until 1.4.2, cached from Google's CDN. They are
- * self-hosted now, so they are same-origin and need no special handling.
+ * The analytics case left with the beacon in 3.2.0 — nothing cross-origin is
+ * fetched at all now. Fonts were a third case until 1.4.2, cached from
+ * Google's CDN. They are self-hosted now, so they are same-origin and need no
+ * special handling.
  *
  * Deliberately NOT cache-first for HTML: this file ships inside a single
- * ~180 KB index.html, so a stale cache means a stale catalogue AND stale code
+ * ~190 KB index.html, so a stale cache means a stale catalogue AND stale code
  * with no way to push a fix.
  */
-var VERSION = "3.7.1";
+var VERSION = "3.7.2";
 var CACHE   = "night-watcher-" + VERSION;
 /* icon-192.png is in the shell because index.html's <head> now references it
    directly for rel=icon and apple-touch-icon (it used to inline the bytes). */
@@ -89,8 +90,15 @@ self.addEventListener("fetch", function(e){
       if(res && res.ok){
         var copy = res.clone();
         /* c.put() rejects on 206s and on a full quota. Returning it puts the
-           rejection inside the chain the .catch below is actually watching. */
-        caches.open(CACHE).then(function(c){ return c.put(req, copy); }).catch(function(){});
+           rejection inside the chain the .catch below is actually watching.
+           e.waitUntil() joined in 3.7.2 (L-3 of the 10 Aug review): the write
+           was fire-and-forget, so the browser could kill this worker between
+           the reply and the put, and a downloaded update quietly missed the
+           offline cache until some later visit. waitUntil keeps the worker
+           alive until the put settles. Guard 132 executes this path. */
+        e.waitUntil(
+          caches.open(CACHE).then(function(c){ return c.put(req, copy); }).catch(function(){})
+        );
       }
       return res;
     }).catch(function(){

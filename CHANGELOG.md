@@ -30,6 +30,135 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.7.2] — 2026-08-10
+
+**The deep review's round. A three-pass QA review of 3.7.1 (app, harness,
+docs — the report lives with the project) found nothing critical and three
+highs, all in the same place: the machinery that protects the tree was less
+protected than the tree. This release is that fix list, worked top to
+bottom, plus the full favicon surface the head had never declared.**
+
+### Fixed
+
+- **Bless can no longer launder a frozen-ID removal (H-1).** The frozen-ID
+  diff ran only in the non-bless branch, and `--bless` rewrote
+  `qa/frozen-ids.json` unconditionally — so deleting an entry and blessing
+  voided saved progress with no failure and no reviewer-forcing record. The
+  diff now runs before the snapshot write and bless HARD-FAILS on a removal
+  with no `qa/retired-ids.json` entry, leaving the snapshot untouched. The
+  suite's #1 stated invariant is finally enforced against the one tool that
+  could bypass it.
+- **The five bless writers no longer clobber each other (H-2).** Every
+  `index.html` writer rewrote the file from the string read at startup, so
+  the second write in a run reverted the first: bless could print "rewrote"
+  twice, exit 0, and leave the tree red — or revert its own CSP-hash fix and
+  demand to be run again. `blessHtml()` threads the mutated string through
+  all of them, and a clean bless now re-runs the whole check pass against
+  the tree it wrote, exiting red if that tree is red. `npm run bless` means
+  what it says, in one run. The bless path — the only writer with no
+  negative coverage — gets its own suite: `negtest390`, three fixtures.
+- **A cross-tab erase stays erased (M-1).** Multi-tab sync was merge-only,
+  so "Clear all progress" in one tab was resurrected by any other open tab's
+  next write — on an app whose privacy pitch is that what you tick stays
+  yours to keep or destroy. A reset now stamps a monotonic `resetAt` into
+  the payload, and the storage handler adopts a newer one as the wipe it is
+  before merging. Driven end-to-end in smoke with real StorageEvents.
+- **The restore toast stopped promising what NW codes cannot do (M-2).**
+  Unknown ids in a JSON restore genuinely persist — "kept" was true. Unknown
+  hashes in a backup code cannot be inverted and were only counted — the
+  same toast text was a false promise that cost anyone who trusted it and
+  discarded the code. The code path now says: "keep the code to restore them
+  after updating."
+- **JSON restore refuses malformed containers (L-1).** `{"watched":"abc"}`
+  used to iterate string indices, report "Restored 0 · 3 kept," and persist
+  junk ids `"0","1","2"` into every future export. The three containers must
+  now be plain objects or the restore is refused.
+- **The parked belt is reachable by keyboard (L-2).** Parked, the strip hid
+  its buttons (out of the tab order) and the remaining affordance was a
+  click-only div. While it is the only affordance the strip now carries
+  `role="button"`, a name, and a tab stop — Enter and Space open it exactly
+  as a tap does — and the attributes come off the moment the real buttons
+  return.
+- **The runtime cache write rides `event.waitUntil` (L-3).** The put was
+  fire-and-forget, so the browser could kill the worker between the reply
+  and the write and a downloaded update quietly missed the offline cache.
+- **browser-check's "a group opened" axe state actually opens a group
+  (M-4).** The setup read `PATH[0].k` — a field PATH groups never had — so
+  the fold never opened and the axe pass audited the plain view twice. Every
+  axe state now proves it holds before axe runs, a "row expanded" state
+  joins the pass (the app's most complex live DOM, previously never
+  scanned), and the inert check-shaped line in the header drive is gone
+  (I-5).
+- **run_case consults the exit code, and a green match must be caused by the
+  mutation (L-8).** A fixture whose expected text drifted into a warning a
+  healthy run also prints used to report PASS with nothing broken. A green
+  exit now passes only on a warning-line match that a pristine-tree run does
+  not emit. The fixture counter also counts indented fixtures (L-10), the
+  backup-code fuzz sweeps `skipped` for invented ids (L-5), the external-
+  script sweep refuses any `src` on a script element — protocol-relative and
+  unquoted included (L-6) — and both "every section can fail" censuses stop
+  counting `fail(` quoted inside comments (L-7). Smoke's dead-rule sweep
+  reports unparsable selectors instead of marking them matched (L-9), and
+  its two dead strip-replaces and the `S.log = {}` remnant are gone (I-6).
+
+### Added
+
+- **The full favicon surface.** The head now declares the complete set:
+  `favicon-16x16/32x32/48x48.png` (plain PNGs at tab sizes, alongside the
+  ico that carries the same layers), a dedicated 180×180
+  `apple-touch-icon.png` — opaque on the ink ground, because iOS ignores the
+  manifest and composites transparency onto black — `mstile-144x144.png`
+  with `msapplication-TileColor` and `msapplication-TileImage`, and
+  `application-name`. All five rasters are generated from `icon.png` by
+  `qa/make-favicon.py`, so none can disagree with the bat that ships; all
+  five stay out of the offline shell (browser chrome, same reasoning as the
+  ico); all five take the icons' one-day cache policy in `_headers`; and the
+  favicon guard pins every one of them with its reason.
+- **The browser check runs in CI (H-3).** A `browser` job installs Chromium,
+  serves `docs/`, and runs `browser-check.mjs` on every push and nightly —
+  the only instrument that can see scroll restore, focus restore, belt
+  rendering, the axe passes and CSP violations no longer runs only when a
+  person remembers to look.
+- **sw.js is executed, twice over (M-5).** New guard 132 drives the shipped
+  install/activate/fetch handlers against mocks: the shell precaches, stale
+  caches purge, a 200 is cached through `waitUntil`, a 500 is NEVER cached,
+  offline serves from cache with the navigate fallback, and cross-origin and
+  non-GET traffic is left alone. The browser check registers the real worker
+  in a fresh context, cuts the network, and asserts the app still opens.
+- **`RELEASING.md` (M-3).** The checklist `docs/_headers` had delegated its
+  wire check to since 3.4.2 — without the file existing. The wire checks,
+  the bless procedure, the browser-check invocation, the blurb re-read rule
+  (I-10), and the rollback runbook `sw.js` promises, all in one place.
+- **The manifest is pinned whole (M-7).** Guard 83 held only `id`; a
+  `start_url` typo would have shipped green and 404'd every new install.
+  `start_url`, `scope`, `display`, both names and both colors are pinned
+  with it now.
+- **The document's own cache policy (L-4).** `Cache-Control: no-cache` under
+  `/` in `_headers`, guarded — the entire app rode the platform default for
+  every visitor the service worker cannot help, which is the exact
+  undeclared-policy failure this file's own history records for `sw.js`.
+
+### Changed
+
+- **The prose caught up with the tree (L-11, L-12, M-6).** README: the
+  sitemap row says two URLs, the `_headers` row stops repeating the claim
+  the file itself marks superseded, the package row names the whole QA
+  toolchain, the CI row includes the browser job, and the literal `—`
+  escape is fixed. qa.yml's cost comment states the real fixture split —
+  and those counts are now guarded there, so the next drift fails the
+  build. Stale prose fixed in `sw.js`'s header (the analytics case, the
+  weight), guards §42's header (the beacon, gone since 3.2.0), NOTES'
+  storage-adapter note (GitHub Pages), and NOTES' rating-badge version
+  range (amended: no 2.3.x/2.4.x was ever cut). The 3.7.1 fixture
+  arithmetic above is amended — 646, not 642. The eight maintainer-local
+  evidence files cited across README, CHANGELOG, NOTES, `_headers` and the
+  sitemap are annotated as exactly that, so the audit trail stops
+  dead-ending for everyone but the maintainer. The one deliberately-wrong
+  slug (`harley-quinn-season-5-2024`, guard 84) carries an inline comment
+  at the data so nobody "fixes" the id and voids saves (I-4).
+- **Counts:** 44 negative suites, 651 fixtures; 132 guard sections; smoke
+  grows by the erase-propagation and selector-parse checks.
+
 ## [3.7.1] — 2026-08-10
 
 **A canonical relation is a statement about a document, and `/*` was applying
@@ -67,7 +196,7 @@ because nothing on the open web pointed at it.**
   evaluated as a document at all, and it came back available too; only
   `icon.svg` fails, because SVG is a renderable document format that renders
   with no text. **The verdict on the favicon is unchanged — no change, and
-  nothing before 19 Sep.** `qa/favicon-serp-2026-08.md`.
+  nothing before 19 Sep.** `qa/favicon-serp-2026-08.md` (maintainer-local, not in this repository).
 - **Guard section 104 now asserts scope, not presence.** Every entry in
   `PINNED104` tested whether a string existed anywhere in the file, so the
   whole of this release would have shipped green through it. The file is
@@ -79,7 +208,7 @@ because nothing on the open web pointed at it.**
   entered `PINNED104` in 3.4.3 and **neither had ever been seen to fail** —
   five releases of a hand-maintained list nothing tested. Dropped, retargeted,
   re-declared under `/*` (both relations), and the `/` rule deleted outright.
-  636 fixtures → **642**.
+  636 fixtures → **642**. *(Amended 3.7.2: both numbers were hand-written and wrong — the tree at 3.7.1 carried **646**, the figure the guarded README and qa.yml counts already stated. The arithmetic drifted inside the entry that reported it, which is this project's oldest failure wearing its newest hat.)*
 
 ## [3.7.0] — 2026-08-09
 
@@ -334,7 +463,7 @@ peek — and nothing else.** After one scroll the app used to stop saying which
 of the three orderings you were in; now the strip slides up under the header
 and parks with 12px of itself still showing — a dark rail with one lit chunk,
 at left, middle or right. **Position encodes the path.** Tap it and the page
-scrolls calmly home to the whole belt. `releases/plan-belt-release.md` is the
+scrolls calmly home to the whole belt. `releases/plan-belt-release.md` (maintainer-local, not in this repository) is the
 plan; `releases/design-belt-peek.md` holds the seven mock rounds it was built
 from.
 
@@ -548,7 +677,7 @@ and it now has an audit behind it rather than an argument.
 **Corrective, and it is one finding reaching the tree.** **C0 — recorded here
 since 3.3.1 as an injection by Cloudflare's edge — was a TLS-intercepting VPN on
 the author's own machine.** The origin serves what this repository ships, plus
-nothing. `ops/c0-edge-injection.md`.
+nothing. `ops/c0-edge-injection.md` (maintainer-local, not in this repository).
 
 Nothing in the app's logic changed. No catalogue change. No saved progress
 touched.
@@ -620,7 +749,7 @@ here.**
 moved, and one response header value is different. **Everything here is the
 repair of something this project told itself.**
 
-Scoped from `qa/sweep-repo-page-dns-2026-08-08.md`, which read the repository,
+Scoped from `qa/sweep-repo-page-dns-2026-08-08.md` (maintainer-local, not in this repository), which read the repository,
 the panels, the wire and both DNS zones.
 
 ### Fixed
@@ -695,7 +824,7 @@ Headers, robots and four preloads. Nothing in the app's logic changed.
 Scoped from an independent Cloudflare Radar scan of the live `3.4.1` build.
 **Three of that report's eighteen items are not done here, and its
 top-priority one is refused** — the reasoning is in
-`qa/scan-triage-2026-08-07.md`.
+`qa/scan-triage-2026-08-07.md` (maintainer-local, not in this repository).
 
 ### Fixed
 
@@ -965,7 +1094,7 @@ time.
 **Era 7 was named after a building and tested on a man.** 1.7.2 split the old
 62-entry era 7 on one checkable line — is a Robin or a Batgirl on screen as his
 working partner — and then named the residue *The Watchtower years*, which is a
-roster. `catalogue/refile-findings.md` finding 5 has been open since: the name
+roster. `catalogue/refile-findings.md` (maintainer-local, not in this repository) finding 5 has been open since: the name
 describes an institution while the test measures whether anyone is beside him.
 This release fixes the name, moves one entry that was flagged as having no
 Batman in it while a Bruce is on screen in it, puts *Birds of Prey* into
@@ -1893,7 +2022,7 @@ restores identically here, and a code written here restores in 2.7.5.
 
 Skips the rest of the 2.x line on the owner's call. Guard 74 holds the version
 history running one direction, so `2.8.0` and `2.9.0` are gone with it —
-`releases/plan-2.8.0.md` is superseded but kept, because this release cites it
+`releases/plan-2.8.0.md` (maintainer-local, not in this repository) is superseded but kept, because this release cites it
 for the header measurements.
 
 ### Fixed

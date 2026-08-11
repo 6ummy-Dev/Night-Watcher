@@ -38,8 +38,8 @@ These are the constraints the app is built around, not features nobody has got t
 
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
-- **No third-party code** — *guarded.* Not one line vendored, and **nothing fetched at runtime at all** — the last exception, a cookie-free analytics beacon, came out in 3.2.0, and `qa/guards.js` now fails on any external script rather than allowing one by name. The app runs with the network off. **The guard reads this repository, and on 8 August 2026 the served page was read as well: what a visitor receives is this file, plus nothing.** Two `<script>` tags, no injected third, and the Content-Security-Policy on the wire is the one in the file — ten directives, one `sha256`. *(This bullet said for two days that Cloudflare's edge injected a script of its own. It does not; that was a TLS-intercepting VPN on the author's own machine. `ops/c0-edge-injection.md`.)* Open `docs/index.html` from disk, or serve it from any other host, and what runs is exactly what you can read.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 200 KB raw and 80 KB gzipped; it is currently 192 KB / 56 KB (rounded — 3.6.0 added the belt's drop: tap the parked peek and the belt comes down over the list with its pouches open in place, hung off the strip by a CSS anchor rather than a measurement; the reasoning went to NOTES.md, because index.html carries the header and the slug freeze and nothing else). **The page was never the whole story.** 2.7.0 subset five of the six webfonts, taking the fonts from 116 KB to 62 KB, so the first visit costs 241 KB rather than 296 — an 18% cut that the page's own budget could not see, because it does not count them. The ceilings have moved four times — 150 → 160 in 1.9.5 (ratings data), 160 → 165 in 2.0.0 (the progress card), and 165 → 200 raw with the first-ever gzip raise, 50 → 80, in 2.5.0 (the full-catalogue seed) — every raise an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **No third-party code** — *guarded.* Not one line vendored, and **nothing fetched at runtime at all** — the last exception, a cookie-free analytics beacon, came out in 3.2.0, and `qa/guards.js` now fails on any external script rather than allowing one by name. The app runs with the network off. **The guard reads this repository, and on 8 August 2026 the served page was read as well: what a visitor receives is this file, plus nothing.** Two `<script>` tags, no injected third, and the Content-Security-Policy on the wire is the one in the file — ten directives, one `sha256`. *(This bullet said for two days that Cloudflare's edge injected a script of its own. It does not; that was a TLS-intercepting VPN on the author's own machine. `ops/c0-edge-injection.md`, maintainer-local, not in this repository.)* Open `docs/index.html` from disk, or serve it from any other host, and what runs is exactly what you can read.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 200 KB raw and 80 KB gzipped; it is currently 194 KB / 56 KB (rounded — 3.6.0 added the belt's drop: tap the parked peek and the belt comes down over the list with its pouches open in place, hung off the strip by a CSS anchor rather than a measurement; the reasoning went to NOTES.md, because index.html carries the header and the slug freeze and nothing else). **The page was never the whole story.** 2.7.0 subset five of the six webfonts, taking the fonts from 116 KB to 62 KB, so the first visit costs 241 KB rather than 296 — an 18% cut that the page's own budget could not see, because it does not count them. The ceilings have moved four times — 150 → 160 in 1.9.5 (ratings data), 160 → 165 in 2.0.0 (the progress card), and 165 → 200 raw with the first-ever gzip raise, 50 → 80, in 2.5.0 (the full-catalogue seed) — every raise an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -78,15 +78,20 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `docs/icon-192.png` | 192px install icon |
 | `docs/icon.svg` | The favicon, as a real file rather than a `data:` URI — search engines crawl the favicon, and a data URI has no URL to crawl and no content type on the wire |
 | `docs/favicon.ico` | The classic root path, 16/32/48 in one container, for the crawlers and tools that ask for it and accept nothing else. Generated from `icon.png` by `qa/make-favicon.py`; out of the offline shell, because a favicon is browser chrome and the app never renders it |
+| `docs/favicon-16x16.png` | The tab raster at 1x, as its own PNG for tools that read `<link>` tags rather than probing the root ico. Generated by `qa/make-favicon.py`, same downscale as the ico's layers |
+| `docs/favicon-32x32.png` | The tab raster at 2x — same generation, same reasoning |
+| `docs/favicon-48x48.png` | The 48px raster legacy crawlers historically expect, served as its own PNG too |
+| `docs/apple-touch-icon.png` | The 180×180 iOS home-screen icon, opaque on the ink ground — iOS ignores the manifest icons and composites transparency onto black, so the ground is chosen here. Generated by `qa/make-favicon.py` |
+| `docs/mstile-144x144.png` | The Windows tile raster; `msapplication-TileColor` in the head paints the ground behind it. Generated by `qa/make-favicon.py` |
 | `docs/3e6082eed9f040d5bc8ab07531bf58b9.txt` | The IndexNow key. A search engine fetches it to confirm this host controls the key a submission was signed with; the filename and the contents are the same string, and a trailing newline breaks it. Out of the offline shell, for the reason `llms.txt` and `orders.txt` are: written for machines that never run the app |
 | `docs/icon-maskable-512.png` | Full-bleed variant so Android can apply its own mask without cropping |
 | `docs/robots.txt` | Opens the site to crawlers and points at the sitemap |
-| `docs/sitemap.xml` | One URL — the app is a single page |
+| `docs/sitemap.xml` | Two URLs — the single-page app, and `llms.txt` since 3.7.1, because nothing on the open web pointed at the one file written to be found |
 | `docs/share.png` | The 1200×630 share card — social embeds, the repo preview, Batman Day. Generated by `qa/make-share-card.mjs`; guard 91 holds it honest |
 | `docs/google38dc2f1303c788e7.html` | Search Console ownership token. Google re-checks it, so it stays |
 | `docs/llms.txt` | The site described in plain text for generative engines — counts guarded against the data |
 | `docs/orders.txt` | The catalogue as plain text — one order, machine- and human-readable, generated from the data by `npm run bless` |
-| `docs/_headers` | Response headers the edge cannot set on a Worker response — Referrer-Policy, X-Frame-Options, Permissions-Policy, Cross-Origin-Opener-Policy |
+| `docs/_headers` | The security headers and the cache policy, kept in the tree — a file here can be diffed, guarded and shipped inside a release, where a dashboard rule can be none of those. (Edge rules CAN override these — that lesson is recorded in the file itself, and the wire check lives in `RELEASING.md`) |
 | `docs/404.html` | The wrong-alley page. Self-contained, noindexed, served with a real 404 status |
 | `docs/fonts/limelight-latin-400-normal.woff2` | Display face for the wordmark and headings |
 | `docs/fonts/anton-latin-400-normal.woff2` | Condensed face for titles |
@@ -97,8 +102,8 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `docs/fonts/OFL.txt` | SIL Open Font License. Redistribution requires it to travel with them |
 | `wrangler.jsonc` | Cloudflare Workers config (points assets at `docs/`) |
 | `.gitignore` | Ignores `node_modules`, Wrangler state, editor files, etc. |
-| `package.json` | Dev scripts + optional jsdom for smoke tests |
-| `.github/workflows/qa.yml` | Runs every suite on every push, and again nightly — a tampered commit fails in public |
+| `package.json` | Dev scripts + the QA toolchain: jsdom for smoke, playwright and axe-core for the browser check, wrangler for deploys |
+| `.github/workflows/qa.yml` | Runs every suite on every push and again nightly — guards, smoke, the negative shards, and (since 3.7.2) the browser check — so a tampered commit fails in public |
 | `NOTES.md` | Why the code is written the way it is. Not served — `docs/index.html` carries no explanatory comments, and this is where they went |
 | `qa/guards.js` | Build guards — run before every commit (see below) |
 | `qa/frozen-ids.json` | Snapshot of every `i:` slug, so a rename can't slip through |
@@ -116,6 +121,7 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `SECURITY.md` | How to report something privately |
 | `package-lock.json` | Pinned dev dependencies, so CI runs what was reviewed |
 | `README.md` | This file |
+| `RELEASING.md` | The release checklist: the wire checks no guard can run, the bless procedure, the browser check, and the rollback runbook |
 
 ## Checks
 
@@ -135,7 +141,7 @@ Zero dependencies, and every function under test is **extracted from `docs/index
 **Deployment and bookkeeping.** Nothing deployable strays to the repo root, `wrangler.jsonc` points at the served directory with SPA fallback off, and `sw.js`, `index.html` and `CHANGELOG.md` all agree on the version. The four headline counts in this README — and the counts baked into the `<meta>` and `og:` description tags — match the data.
 
 Every guard has been negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 43 negative suites, 646
+trusted. That evidence lives in `qa/negative/` — 44 negative suites, 651
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all — concurrently, one suite per core, since the suites are
@@ -143,7 +149,7 @@ independent — and CI runs them on every push and again nightly. All three
 counts in this paragraph and the one above are themselves guarded, because they
 have drifted twice.
 
-There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. It drives the path end to end: the chooser on first run, choosing through the real click handler, a reload returning on the same path and theme, a 1.1.0 save migrating without being asked again, a shared link that does not change what is stored, and a borrowed ordering that can always be stepped back out of, and every one of the eight shareable link tokens. 293 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
+There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. It drives the path end to end: the chooser on first run, choosing through the real click handler, a reload returning on the same path and theme, a 1.1.0 save migrating without being asked again, a shared link that does not change what is stored, and a borrowed ordering that can always be stepped back out of, and every one of the eight shareable link tokens. 298 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
 
 ## Releasing
 
@@ -209,7 +215,7 @@ AGPL-3.0-only (`SPDX-License-Identifier: AGPL-3.0-only`). Night Watcher is free
 and stays free — fork it, change it, host it. The one condition is that if you
 put a modified version in front of other people, you publish your source too.
 The grant is version 3 and no later version, deliberately. The licence text below
-the divider in `LICENSE` is the canonical one from gnu.org, verbatim \u2014 its own
+the divider in `LICENSE` is the canonical one from gnu.org, verbatim — its own
 terms say changing it is not allowed. The repository URL is carried in the served
 file's header comment rather than in the interface. The AGPL's how-to *suggests*
 a Source link for web applications, and suggests is all it does: the only links

@@ -75,8 +75,8 @@ await page.evaluate(() => {
 /* ---- the header at 0% ------------------------------------------------- */
 const head0 = await page.evaluate(() => {
   const bat = document.querySelector(".mark svg").getBoundingClientRect();
-  const glyph = document.querySelector(".mark svg path").getBBox
-    ? null : null;
+  /* an inert check-shaped line stood here until 3.7.2 (I-5 of the 10 Aug
+     review): `…getBBox ? null : null` — always null, never read. */
   const ring = document.querySelector("#ringArc").getBoundingClientRect();
   const wm = document.querySelector(".wordmark h1").getBoundingClientRect();
   return { pct: document.getElementById("ringPct").textContent,
@@ -558,8 +558,20 @@ await page.screenshot({ path: "qa/shot-header-100.png", clip: {x:0, y:0, width:3
    is the app's most complex live DOM. Injected from the declared devDependency
    rather than a CDN — an accessibility guard that reaches the network to run
    would contradict the page it is checking. */
-async function axeState(name, setup){
+/* 3.7.2 (M-4 of the 10 Aug review): EACH STATE NOW PROVES IT HOLDS BEFORE AXE
+   RUNS. The "group opened" setup read `PATH[0].k` — PATH groups have n, name
+   and films, never .k — so the fold never opened and the pass audited the
+   plain view twice. A check that cannot fail is this repository's own named
+   anti-pattern, and it sat inside the accessibility instrument. The verify
+   callback is the fix's teeth: axe on the wrong state now goes red as "the
+   state did not hold" instead of green as a lie. */
+async function axeState(name, setup, verify){
   await page.evaluate(setup);
+  if(verify){
+    const held = await page.evaluate(verify);
+    ok("axe (" + name + "): the state actually holds", !!held.pass, held.detail);
+    if(!held.pass) return;
+  }
   const r = await page.evaluate(async () => await window.axe.run(document, {
     resultTypes: ["violations"],
     runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] }
@@ -572,12 +584,31 @@ async function axeState(name, setup){
 
 await axeState("first-run chooser", () => {
   localStorage.clear(); S.path = null; S.tab = "home"; render();
+}, () => {
+  const picks = document.querySelectorAll("#view .pick").length;
+  return { pass: picks > 0, detail: picks + " chooser card(s)" };
 });
 await axeState("a group opened", () => {
   S.path = S.mode = "continuity"; S.tab = "watch"; S.open = {};
-  const first = PATH[0] && PATH[0].k;
-  if(first) S.open[first] = 1;
-  render();
+  setAllGroups(false); render();
+  const h = document.querySelector('#view .ghead[data-gk]');
+  if(h) h.click(); /* the app's own path in — aria-expanded flips, the fold renders */
+}, () => {
+  const open = document.querySelectorAll("#view .group.open").length;
+  const rows = document.querySelectorAll("#view .group.open .film").length;
+  return { pass: open === 1 && rows > 0, detail: open + " open group(s), " + rows + " row(s)" };
+});
+/* The expanded row — the app's most complex live DOM, and until 3.7.2 the
+   state nothing ever scanned. */
+await axeState("a row expanded", () => {
+  S.path = S.mode = "continuity"; S.tab = "watch"; S.q = "";
+  setAllGroups(true); render();
+  const row = document.querySelector('#view [data-act="expand"]');
+  if(row){ S.open = {}; S.open[row.dataset.id] = 1; render(); }
+}, () => {
+  const open = document.querySelectorAll("#view .film.open").length;
+  const controls = document.querySelectorAll("#view .film.open .linkrow a, #view .film.open button").length;
+  return { pass: open === 1 && controls > 0, detail: open + " open row(s), " + controls + " control(s)" };
 });
 
 /* ---- what the console said, across every state exercised above -------- */
@@ -589,6 +620,60 @@ ok("no CSP violation in any state", cspHits.length === 0,
    cspHits.length ? cspHits[0].slice(0, 160) : "the policy refused nothing it allows");
 ok("no uncaught page error in any state", pageErrs.length === 0,
    pageErrs.length ? pageErrs[0].slice(0, 160) : "clean");
+
+/* ---- the offline promise, kept by a real worker in a real browser -------
+   3.7.2 (M-5 of the 10 Aug review). Guard 132 executes sw.js's handlers
+   against mocks; this is the other half — the registered worker, a real
+   cache, and the network actually off. A fresh context so the registration
+   and its caches are this drive's own. */
+const swCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const swPage = await swCtx.newPage();
+/* The app registers only on https or the literal hostname "localhost" —
+   127.0.0.1 (this file's default) never registers, and an un-guarded await
+   on serviceWorker.ready would hang this instrument forever. So this drive
+   uses the localhost spelling of the same server, and every wait below
+   carries its own clock. */
+const SWURL = URL.replace("//127.0.0.1", "//localhost");
+await swPage.goto(SWURL, { waitUntil: "load" });
+const swReady = await swPage.evaluate(async () => {
+  if(!("serviceWorker" in navigator)) return { supported: false };
+  try{
+    const reg = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((_, rej) => setTimeout(
+        () => rej(new Error("serviceWorker.ready did not settle in 15s — did the registration condition change?")), 15000))
+    ]);
+    if(!navigator.serviceWorker.controller){
+      await new Promise(res => {
+        navigator.serviceWorker.addEventListener("controllerchange", () => res(1), { once: true });
+        setTimeout(res, 4000);
+      });
+    }
+    return { supported: true, active: !!reg.active,
+             controlled: !!navigator.serviceWorker.controller };
+  }catch(e){ return { supported: false, err: String(e).slice(0, 140) }; }
+});
+ok("the service worker registers, activates, and takes the page",
+   swReady.supported && swReady.active && swReady.controlled, JSON.stringify(swReady));
+if(swReady.supported && swReady.active && swReady.controlled){
+  /* give the install's individually-caught shell puts a beat to settle */
+  await swPage.waitForTimeout(600);
+  await swCtx.setOffline(true);
+  let offline = { booted: false, entries: 0 };
+  try{
+    await swPage.reload({ waitUntil: "load" });
+    await swPage.waitForFunction(() => typeof window.render === "function", { timeout: 8000 });
+    offline = await swPage.evaluate(() => ({
+      booted: typeof window.render === "function",
+      entries: window.FILMS ? window.FILMS.length : 0
+    }));
+  }catch(e){ offline.err = String(e).slice(0, 120); }
+  ok("offline: the app still opens from the worker's cache",
+     offline.booted && offline.entries > 0,
+     offline.err || (offline.entries + " entries with the network off"));
+  await swCtx.setOffline(false);
+}
+await swCtx.close();
 
 await browser.close();
 console.log("\nNight Watcher browser check — 390×844, Chromium\n");

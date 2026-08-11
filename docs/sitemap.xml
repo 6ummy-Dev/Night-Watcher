@@ -10,7 +10,8 @@
   web pointed at it, so the file written to be found by engines could not be
   found by one. That is the first-order constraint — the blanket canonical
   header that prompted the investigation was measured the same hour and does not
-  block indexability at all. qa/favicon-serp-2026-08.md.
+  block indexability at all. qa/favicon-serp-2026-08.md (maintainer-local,
+  not in this repository).
 
   THE PLAIN-TEXT CATALOGUE EXPORT DELIBERATELY DOES NOT APPEAR HERE, and guard
   105 fails the build if it ever does: it carries the same 200 entries as the

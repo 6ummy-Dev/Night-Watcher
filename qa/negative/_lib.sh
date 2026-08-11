@@ -68,6 +68,12 @@ ensure_tree () {
   tar -cf - -C "$SRC" --exclude=node_modules --exclude=.git . | tar -xf - -C "$NEG"
   [ -d "$SRC/node_modules" ] && ln -s "$SRC/node_modules" "$NEG/node_modules"
   ( cd "$NEG" && find . -type f -not -path "./node_modules/*" | sort ) > "$NEG.manifest"
+  # 3.7.2 (L-8): the signature of a PRISTINE guards run, captured while the
+  # tree is provably unmutated. A fixture whose run exits green may only pass
+  # on a warning line the pristine tree does NOT emit — an expected string
+  # that a healthy run also prints proves the mutation broke nothing, which
+  # is the false-pass run_case used to report as PASS.
+  ( cd "$NEG" && node qa/guards.js 2>&1 ) | grep -vE '^  (ok|·) ' > "$NEG.pristine" || true
   touch "$NEG.stamp"
 }
 
@@ -111,10 +117,36 @@ run_case () {
   # fixtures that expect a harness error rather than a guard failure. This
   # regresses exactly three fixtures, and all three turned out to be hiding real
   # holes in their own mutations rather than in the harness.
-  local out sig
-  out=$(cd "$NEG" && SMOKE_ONLY="$phase" node qa/$suite.js 2>&1)
+  # 3.7.2: ${NEG_ARGS:-} lets a suite pass flags to the run — the bless
+  # fixtures (negtest390) run `guards.js --bless`, which run_case had no way
+  # to express. Set NEG_ARGS on its own line above the fixtures so the
+  # column-anchored fixture counter in guards.js still sees every case.
+  local out sig rc
+  out=$(cd "$NEG" && SMOKE_ONLY="$phase" node qa/$suite.js ${NEG_ARGS:-} 2>&1); rc=$?
   sig=$(printf '%s\n' "$out" | grep -vE '^  (ok|·) ')
   if printf '%s' "$sig" | grep -qF "$expect"; then
+    # 3.7.2 (L-8 of the 10 Aug review): THE EXIT CODE IS FINALLY CONSULTED.
+    # A run that exits green fired no guard, so a match there is only honest
+    # if it sits on a warning line ("  ! ") — the three warning-only fixtures
+    # negtest176 carries — AND, for an unscoped guards run, only if the
+    # pristine tree does not print the same text: an expected string a green
+    # healthy run also emits means the mutation broke nothing, and reporting
+    # that as PASS is the exact vacuity this harness exists to prevent.
+    if [ "$rc" -eq 0 ]; then
+      if ! printf '%s\n' "$sig" | grep -F "$expect" | grep -qE '^  ! '; then
+        echo "  FAIL  $label"
+        echo "        expected: $expect"
+        echo "        got: the text matched, but the run exited GREEN and the match is not a warning — the mutation broke nothing this suite can see"
+        FAILED=$((FAILED+1)); return
+      fi
+      if [ "$suite" = "guards" ] && [ -z "$phase" ] && [ -z "${NEG_ARGS:-}" ] &&
+         [ -f "$NEG.pristine" ] && grep -qF "$expect" "$NEG.pristine"; then
+        echo "  FAIL  $label"
+        echo "        expected: $expect"
+        echo "        got: a pristine run prints the same text — the expected string is not caused by the mutation"
+        FAILED=$((FAILED+1)); return
+      fi
+    fi
     echo "  PASS  $label"; PASS=$((PASS+1))
   else
     echo "  FAIL  $label"
@@ -145,7 +177,7 @@ green_case () {
   heal_tree
   ( cd "$NEG" && python3 -c "$pyscript" ) || { echo "  SETUP BROKE  $label"; FAILED=$((FAILED+1)); return; }
   local out
-  if out=$(cd "$NEG" && node qa/$suite.js 2>&1); then
+  if out=$(cd "$NEG" && node qa/$suite.js ${NEG_ARGS:-} 2>&1); then
     echo "  PASS  $label"; PASS=$((PASS+1))
   else
     echo "  FAIL  $label"
