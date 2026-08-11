@@ -297,10 +297,10 @@ to one and not the other made the count stop describing the list.
 ### `groupFilms()`
 
 One definition of "in this group", for Home's grid, Progress's rows and the
-donut. It was written out seven times; a rule added to one of them and not
+chart. It was written out seven times; a rule added to one of them and not
 the others made two tabs quietly disagree about the same group. Keys are
 goToGroup()'s: "c" plus a PATH index, "e" plus an era, and — since 3.8.1,
-when Release order got its donut and its fold — "d" plus a decade's first
+when Release order got its chart and its fold — "d" plus a decade's first
 year. The decade window lived only inside buildGroups() until then, which
 was the same seven-copies mistake one branch smaller: the moment a second
 caller needed it, it moved in here.
@@ -889,9 +889,13 @@ rows stack rather than overflow.
 
 ### `.srow`
 
-Buttons, not divs. The donut slices they mirror are pointer-only — no
+Buttons, not divs. The donut slices they mirrored were pointer-only — no
 tabindex, no role, no key handler — and the universe rows at least had a
-keyboard route through Home's grid. The era rows had none at all.
+keyboard route through Home's grid. The era rows had none at all. 3.8.2
+retired the complaint at its source: the skyline's bars are real buttons on
+the same data-act="jump" path, so the chart itself is finally keyboard-
+reachable — but these rows stay the readable route, since a 3px bar takes
+focus honestly and still cannot be read.
 
 ### `.legend > span`
 
@@ -2961,3 +2965,41 @@ they read as the same fixture (a `foot` modifier on their existing `.note`
 class; negtest131's anchor on the dates note moved with the markup). The
 legend on The Path stayed body type: it is a key to the badges above it,
 content that happens to sit last, not the app signing its name.
+
+
+## The donut becomes the skyline
+
+3.8.1 made the Progress chart the belt's; 3.8.2 makes it legible. The owner's
+observation, verbatim in spirit: when the belt says By universe there are 33
+groups, and 33 slices on a ring is a barcode wearing a circle — the slice
+labels were never there, the tiny arcs were untappable, and the share-of-
+catalogue encoding survived only for the handful of big universes. Past a
+handful of classes a pie stops being a chart; that line is in every honest
+form guide and the universes crossed it long ago.
+
+The replacement keeps the donut's entire grammar and throws away only the
+circle. The skyline is one flex row of bars: each bar's WIDTH is the group's
+share of the catalogue (flex-grow is the film count — layout does the
+arithmetic), its yellow FILL rises bottom-up as the group completes, e0 keeps
+its steel, and tapping a bar jumps to the group. Two mockups lost to it on
+the record: a left-to-right stacked strip (partial fills inside a 5px
+segment read as random stripes — the barcode again) and a per-group bar
+LIST with names (best touch targets of all, but 33 rows deep in universes
+mode and a duplicate of the fold sitting right under it). Bottom-up fill is
+the one treatment where a 5px column still reads: dark means untouched, full
+means done, and a partial height is a partial height at any width.
+
+It is the view's hero and it is sized like one — 88px tall, no percentage
+headline, because the header ring one thumb-width away already says the
+number and a second copy would be guard 121's drift lesson waiting to
+happen. The card's sub carries the counts and the one-line key instead
+(width is size, fill is watched), which is the label the donut never gave
+its slices.
+
+The bars are BUTTONS — data-act="jump", aria-labels with name and count —
+which quietly closes the oldest accessibility note in this file: the chart's
+jumps were pointer-only from the day the donut shipped, and now the chart
+rides the same delegated path as every row. The g[data-seg] branch left the
+view delegate with the SVG; one path, one handler. The thinnest bars are
+still thin — a 1-film universe is ~4px and the fold rows below remain the
+comfortable route to it, which is half of why the folds all stayed.

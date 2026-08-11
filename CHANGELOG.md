@@ -30,6 +30,36 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.8.2] — 2026-08-11
+
+**The donut becomes the skyline, on the owner's call: 33 universes never fit
+a circle. PATCH — same data, same jumps, same card; only the chart's form
+moves.**
+
+### Changed
+
+- **Progress's chart is a skyline of bars, not a donut.** With the belt on
+  By universe the ring had 33 slices — unlabeled, mostly hairline, and
+  untappable, a barcode wearing a circle. The skyline keeps the donut's
+  whole grammar in a form that scales: each bar's width is the group's
+  share of the catalogue, its yellow fill rises bottom-up as the group
+  completes (a partial height reads at any width, which is where the
+  left-to-right alternative failed), e0 keeps its steel, and tapping a bar
+  jumps to the group. Hero-sized at 88px tall with no percentage headline —
+  the header ring already says the number; the sub line carries the counts
+  and the key (width is size, fill is watched) instead.
+- **The chart's jumps gain a keyboard.** The bars are real buttons with
+  aria-labels riding the same `data-act="jump"` path as every row — the
+  donut's slices were pointer-only from the day they shipped. The
+  `g[data-seg]` branch leaves the view delegate with the SVG.
+
+### QA
+
+- Smoke's three follows-the-belt checks and the browser check's three chart
+  drives now find button bars instead of SVG slices (count unchanged, 309).
+  The dead-rule sweep loses `.pcent`/`.plab`/`.pie svg` with the SVG and
+  gains `.sky`/`.seg`.
+
 ## [3.8.1] — 2026-08-11
 
 **A UI coherence pass, owner-directed: one footer voice, one hero scale, and

@@ -248,29 +248,30 @@ async function jump(clickFn, label, tab, mode){
      landed.ok ? landed.cv + ", head " + landed.height.toFixed(1) + "px" : "-");
 }
 
-/* 3.8.1: Progress draws ONE donut, the belt's — so each donut drive sets the
-   mode it expects before looking for its slices. */
+/* 3.8.1: Progress draws ONE chart, the belt's — so each chart drive sets the
+   mode it expects before looking for its bars. 3.8.2: the donut became the
+   skyline; the bars are real buttons on data-act="jump", clicked directly. */
 await jump(() => {
-  const g = document.querySelector('#view .pies g[data-seg^="c"]');
+  const g = document.querySelector('#view .pies .seg[data-gk^="c"]');
   if(!g) return null;
-  const k = g.getAttribute("data-seg");
-  g.querySelector("circle").dispatchEvent(new MouseEvent("click", {bubbles: true}));
+  const k = g.getAttribute("data-gk");
+  g.click();
   return { gk: k, y: window.scrollY };
-}, "the universes donut", "stats", "continuity");
+}, "the universes chart", "stats", "continuity");
 await jump(() => {
-  const g = document.querySelector('#view .pies g[data-seg^="e"]');
+  const g = document.querySelector('#view .pies .seg[data-gk^="e"]');
   if(!g) return null;
-  const k = g.getAttribute("data-seg");
-  g.querySelector("circle").dispatchEvent(new MouseEvent("click", {bubbles: true}));
+  const k = g.getAttribute("data-gk");
+  g.click();
   return { gk: k, y: window.scrollY };
-}, "the eras donut", "stats", "life");
+}, "the eras chart", "stats", "life");
 await jump(() => {
-  const g = document.querySelector('#view .pies g[data-seg^="d"]');
+  const g = document.querySelector('#view .pies .seg[data-gk^="d"]');
   if(!g) return null;
-  const k = g.getAttribute("data-seg");
-  g.querySelector("circle").dispatchEvent(new MouseEvent("click", {bubbles: true}));
+  const k = g.getAttribute("data-gk");
+  g.click();
   return { gk: k, y: window.scrollY };
-}, "the decades donut", "stats", "release");
+}, "the decades chart", "stats", "release");
 await jump(() => {
   const bs = [...document.querySelectorAll('#view [data-act="jump"][data-gk^="c"]')]
     .filter(b => !b.closest(".pies"));

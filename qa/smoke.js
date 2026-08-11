@@ -1075,23 +1075,26 @@ win.addEventListener("load", function(){
     S.tab = "stats"; win.render();
     check("Progress has no ratings list",
           doc.getElementById("view").textContent.indexOf("Your ratings") < 0);
-    check("Progress still shows the donut and backup tools",
+    check("Progress still shows the chart and backup tools",
           !!doc.querySelector("#view .pies") && !!doc.querySelector('[data-act="mkcode"]'));
 
-    /* --- 3.8.1: one donut, the belt's, and it follows the belt. Two donuts
+    /* --- 3.8.1: one chart, the belt's, and it follows the belt. Two donuts
        drew "The universes" and "Bruce's life" whatever was chosen; now the
        single chart is the chosen ordering's, re-rendered on a belt tap, so a
-       mode that is not the donut's is a state that cannot exist. Each mode is
-       driven and the slices must all carry that mode's key prefix. --- */
+       mode that is not the chart's is a state that cannot exist. 3.8.2 turned
+       the donut into the skyline — share-wide bars that fill bottom-up, and
+       the bars are real BUTTONS riding data-act="jump", so the chart gained
+       the keyboard route the slices never had. Each mode is driven and the
+       bars must all carry that mode's key prefix. --- */
     [["continuity","c"], ["life","e"], ["release","d"]].forEach(function(pair){
       S.mode = pair[0]; win.render();
-      var svgs = doc.querySelectorAll("#view .pies svg");
-      var segs = doc.querySelectorAll("#view .pies g[data-seg]");
+      var charts = doc.querySelectorAll("#view .pies .sky");
+      var segs = doc.querySelectorAll("#view .pies .sky button.seg[data-gk]");
       var wrong = [].filter.call(segs, function(g){
-        return g.getAttribute("data-seg").charAt(0) !== pair[1]; });
-      check("the Progress donut follows the belt to " + pair[0],
-            svgs.length === 1 && segs.length > 0 && wrong.length === 0,
-            svgs.length + " chart(s), " + segs.length + " slices, " +
+        return g.getAttribute("data-gk").charAt(0) !== pair[1]; });
+      check("the Progress chart follows the belt to " + pair[0],
+            charts.length === 1 && segs.length > 0 && wrong.length === 0,
+            charts.length + " chart(s), " + segs.length + " bars, " +
             wrong.length + " from another ordering");
     });
     S.mode = "life"; win.render();
