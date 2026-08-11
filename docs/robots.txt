@@ -4,8 +4,10 @@
 #   ai-input  use as real-time input to an AI answer
 #
 # Indexing and live citation are permitted because a spoiler-free watch order is
-# only worth writing if it can be found and cited. Training is not, because the
-# catalogue is the work, and allowing the index is not allowing the copy.
+# only worth writing if it can be found and cited. Training joined them in
+# 3.7.2 — the owner's call, reversed from the 3.4.2 position: the signals are a
+# rights preference, the licence is the actual grant, and AGPL-3.0 with the
+# marks preamble governs copying either way.
 #
 # The prose above deliberately does not restate the values below. It did in the
 # first draft, and a negative fixture aimed at the directive silently mutated

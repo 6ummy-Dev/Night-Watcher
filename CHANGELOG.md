@@ -156,6 +156,13 @@ bottom, plus the full favicon surface the head had never declared.**
   dead-ending for everyone but the maintainer. The one deliberately-wrong
   slug (`harley-quinn-season-5-2024`, guard 84) carries an inline comment
   at the data so nobody "fixes" the id and voids saves (I-4).
+- **Content-Signal: ai-train flips no → yes.** The owner's rights call,
+  reversing the 3.4.2 position — search and live citation were already
+  permitted, and training now is too. The signal is a preference; the
+  licence is the grant, and AGPL-3.0 with the marks preamble governs
+  copying either way. Guard 125 deliberately pins the line's shape and not
+  its values (a rights position is the owner's to change); the negtest340
+  anchor tracks the new line.
 - **Counts:** 44 negative suites, 651 fixtures; 132 guard sections; smoke
   grows by the erase-propagation and selector-parse checks.
 

@@ -93,10 +93,12 @@ run_case "the Content-Signal line is deleted" \
   "declares no Content-Signal line" \
   "${RP}i=s.index('Content-Signal:');j=s.index('\n',i);s=s[:i]+s[j+1:];${HW}"
 
+# The anchor tracks the shipped line — ai-train flipped to yes in 3.7.2, the
+# owner's rights call, and an anchor on the old value reports SETUP BROKE.
 run_case "one of the three signals loses its value" \
   "does not give ai-input a value" \
-  "${RP}a='Content-Signal: ai-train=no, search=yes, ai-input=yes';assert a in s
-s=s.replace(a,'Content-Signal: ai-train=no, search=yes, ai-input=maybe',1);${HW}"
+  "${RP}a='Content-Signal: ai-train=yes, search=yes, ai-input=yes';assert a in s
+s=s.replace(a,'Content-Signal: ai-train=yes, search=yes, ai-input=maybe',1);${HW}"
 
 run_case "the sitemap line leaves robots.txt" \
   "no longer names the sitemap" \
