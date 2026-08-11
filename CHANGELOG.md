@@ -30,6 +30,48 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 Nothing yet.
 
+## [3.8.1] — 2026-08-11
+
+**A UI coherence pass, owner-directed: one footer voice, one hero scale, and
+one progress donut — the belt's. PATCH because nothing new enters the
+catalogue and no stored format moves; the app just stops disagreeing with
+itself about type and about which ordering the donut answers for.**
+
+### Changed
+
+- **Progress draws one donut — the chosen ordering's — and it follows the
+  belt.** Two charts (universes, eras) rendered whatever was chosen, which
+  meant the chosen ordering could be the one WITHOUT a chart: pick Release
+  order and neither donut was yours. Now the single chart is `S.mode`'s —
+  universes, eras, or decades — and a belt tap re-renders it in place, so
+  the donut and the belt cannot disagree. It also doubles in rendered size
+  (148 → 240px cap), which is the touch-target half of the argument: the
+  slices are the tap surface, and slices on a 148px ring split two-up were
+  below any comfortable finger. Release order gets its first donut (decade
+  slices) and, with it, a **By decade** fold below the existing two — the
+  keyboard route the pointer-only slices always relied on, same as
+  universes and eras.
+- **The Path hero matches the other heroes.** `.pathtitle` was
+  `clamp(20px,5.2vw,27px)` against the Next up hero's
+  `clamp(24px,6.5vw,36px)` — the page-level title of the app's main view
+  was its smallest hero. It now carries the hero scale, and `.modenote`
+  (its description) steps up 12.5 → 15px in the hero blurb's colour.
+- **The footers speak in one voice.** Home's footer is mono, 9px,
+  uppercase, tracked; the Progress build line was body type at 12.5px —
+  same role, different typeface, size and casing. `.buildline` now carries
+  the same mono treatment. CSS only: the markup, the guarded
+  `Build · updated · read the source` shape, and the link styling are
+  untouched.
+
+### QA
+
+- Smoke gains three checks (309): each belt position drives Progress and
+  asserts exactly one chart whose every slice carries that ordering's key
+  prefix. The browser check's jump drives grow from five to seven — the
+  decades donut and the decades fold — and the donut drives now set the
+  mode they expect, since a donut that follows the belt is only findable
+  on its own ordering.
+
 ## [3.8.0] — 2026-08-11
 
 **The durability round, plus the one item the Radar scan actually gated on.

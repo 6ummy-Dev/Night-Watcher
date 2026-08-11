@@ -163,7 +163,7 @@ const cv = await page.evaluate(() => {
 });
 ok("content-visibility is on .group", cv.cv === "auto", cv.cv + " / " + cv.cis);
 
-/* ---- jumping to a group, from all five ways in -------------------------- */
+/* ---- jumping to a group, from all seven ways in ------------------------- */
 /* 3.3.2 REWROTE WHAT "IN VIEW" MEANS HERE, BECAUSE THE OLD PHRASING WAS WIDE
    ENOUGH FOR THE BROKEN STATE TO SIT INSIDE IT. Until 3.3.1 the middle
    assertion read `top > -2 && top < 844` — 844 is the whole viewport height,
@@ -194,10 +194,11 @@ ok("content-visibility is on .group", cv.cv === "auto", cv.cv + " / " + cv.cis);
    Home's universe grid joins the drives below; it was never one of the four,
    which is why the one entry point nothing drove is the one a person had to
    find. */
-async function jump(clickFn, label, tab){
-  await page.evaluate((t) => {
-    S.tab = t; S.progOpen = {uni:true, era:true}; render(); window.scrollTo(0,0);
-  }, tab || "stats");
+async function jump(clickFn, label, tab, mode){
+  await page.evaluate((o) => {
+    S.tab = o.t; if(o.m) S.mode = o.m;
+    S.progOpen = {uni:true, era:true, dec:true}; render(); window.scrollTo(0,0);
+  }, {t: tab || "stats", m: mode || ""});
   const before = await page.evaluate(() => window.scrollY);
   const fired = await page.evaluate(clickFn);
   const gk = fired && fired.gk;
@@ -247,20 +248,29 @@ async function jump(clickFn, label, tab){
      landed.ok ? landed.cv + ", head " + landed.height.toFixed(1) + "px" : "-");
 }
 
+/* 3.8.1: Progress draws ONE donut, the belt's — so each donut drive sets the
+   mode it expects before looking for its slices. */
 await jump(() => {
   const g = document.querySelector('#view .pies g[data-seg^="c"]');
   if(!g) return null;
   const k = g.getAttribute("data-seg");
   g.querySelector("circle").dispatchEvent(new MouseEvent("click", {bubbles: true}));
   return { gk: k, y: window.scrollY };
-}, "the universes donut");
+}, "the universes donut", "stats", "continuity");
 await jump(() => {
   const g = document.querySelector('#view .pies g[data-seg^="e"]');
   if(!g) return null;
   const k = g.getAttribute("data-seg");
   g.querySelector("circle").dispatchEvent(new MouseEvent("click", {bubbles: true}));
   return { gk: k, y: window.scrollY };
-}, "the eras donut");
+}, "the eras donut", "stats", "life");
+await jump(() => {
+  const g = document.querySelector('#view .pies g[data-seg^="d"]');
+  if(!g) return null;
+  const k = g.getAttribute("data-seg");
+  g.querySelector("circle").dispatchEvent(new MouseEvent("click", {bubbles: true}));
+  return { gk: k, y: window.scrollY };
+}, "the decades donut", "stats", "release");
 await jump(() => {
   const bs = [...document.querySelectorAll('#view [data-act="jump"][data-gk^="c"]')]
     .filter(b => !b.closest(".pies"));
@@ -273,7 +283,13 @@ await jump(() => {
   if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click();
   return { gk: k, y: window.scrollY };
 }, "the eras fold");
-/* The fifth way in, and the one that had never been driven. */
+await jump(() => {
+  const bs = [...document.querySelectorAll('#view [data-act="jump"][data-gk^="d"]')]
+    .filter(b => !b.closest(".pies"));
+  if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click();
+  return { gk: k, y: window.scrollY };
+}, "the decades fold");
+/* The fifth way in at 3.3.2, and the one that had never been driven. */
 await jump(() => {
   const c = document.querySelector('#view .ucard[data-act="jump"]');
   if(!c) return null; const k = c.dataset.gk; c.click();

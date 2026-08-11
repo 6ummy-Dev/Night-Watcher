@@ -296,10 +296,14 @@ to one and not the other made the count stop describing the list.
 
 ### `groupFilms()`
 
-One definition of "in this group", for Home's grid, Progress's rows and both
-donuts. It was written out seven times; a rule added to one of them and not
+One definition of "in this group", for Home's grid, Progress's rows and the
+donut. It was written out seven times; a rule added to one of them and not
 the others made two tabs quietly disagree about the same group. Keys are
-goToGroup()'s: "c" plus a PATH index, "e" plus an era.
+goToGroup()'s: "c" plus a PATH index, "e" plus an era, and — since 3.8.1,
+when Release order got its donut and its fold — "d" plus a decade's first
+year. The decade window lived only inside buildGroups() until then, which
+was the same seven-copies mistake one branch smaller: the moment a second
+caller needed it, it moved in here.
 
 ### `tierOf()`
 
@@ -2910,3 +2914,47 @@ do not exist is anti-hardening. DNSSEC — the scan's one classic red — is a
 panel action by necessity (DNS is already panel-owned per the wrangler
 custom-domain rationale) and its wire check is written down in RELEASING.md
 next to this feature's.
+
+
+## One donut, the belt's — and the footer finds its voice
+
+The 3.8.1 round is three owner calls about the app agreeing with itself, and
+the donut is the one with an actual defect underneath. Progress drew two
+charts — the universes and the eras — whatever the belt said. Two of three
+orderings had a donut; the third was the hole: choose Release order and
+neither chart was yours, and the "chosen ordering" premise (the 2.0.0 Belt,
+the whole reason `S.mode` exists) stopped one tab short of Progress. The fix
+is subtraction, not addition: ONE chart, keyed off `S.mode` exactly the way
+Home's grid heading already is (`GRIDNAME[S.mode]`), re-rendered by the same
+`render()` a belt tap already fires. There is no listener to add and no state
+to sync — a donut that disagrees with the belt is now a state that cannot be
+rendered, which is the only kind of "reactive" worth shipping in this file.
+
+Two things came with it, both consequences rather than features. The chart
+doubles its rendered cap (148 → 240px) — with one chart the flex row's excuse
+for small is gone, and the slices are tap targets, which puts them under the
+44px conversation the guards already have about everything else; a slice of a
+148px ring split two-up never had a defensible answer there. And Release
+order's donut needed decade groups on Progress, so the "d" kind joined
+`groupFilms()` and a third fold — By decade — joined the two below the chart.
+The fold is not decoration: the slices are pointer-only on the record
+(`.srow`'s own entry, above), so every donut a pointer can tap must have rows
+a keyboard can reach, and until now the decades had neither.
+
+The other two calls are typography agreeing across views. The Path's title
+wore `clamp(20px,5.2vw,27px)` against the Next up hero's
+`clamp(24px,6.5vw,36px)` — the app's main view had its smallest hero — and
+its `.modenote` description sat at 12.5px in `--dim` while both hero blurbs
+speak at 14.5–15px in `--dust`. Both now carry the hero scale. And the two
+lines that read as "footer" — Home's colophon and Progress's build line —
+said the same kind of thing in different typefaces: `.homefoot` is mono, 9px,
+uppercase, tracked; `.buildline` was 12.5px body type. The build line now
+carries the same mono voice, as CSS on the class it already had. Deliberate:
+the markup did not move. Guard 98 pins the `updated `+BUILT+` … read the
+source` shape with no tag between the date and the anchor, negtest273 pins
+the ` · ` before the link at ≤10 characters, and negtest330's fixture anchors
+on `.buildline{display:block;` — so the new declarations are APPENDED to the
+rule, and the byte the fixtures hold onto is exactly where they left it.
+`watchNotes()` on Next up and the legend on The Path stayed body type on
+purpose: they are content that happens to sit last, not the app signing its
+name.
