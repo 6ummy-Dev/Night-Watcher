@@ -2955,6 +2955,9 @@ source` shape with no tag between the date and the anchor, negtest273 pins
 the ` · ` before the link at ≤10 characters, and negtest330's fixture anchors
 on `.buildline{display:block;` — so the new declarations are APPENDED to the
 rule, and the byte the fixtures hold onto is exactly where they left it.
-`watchNotes()` on Next up and the legend on The Path stayed body type on
-purpose: they are content that happens to sit last, not the app signing its
-name.
+`watchNotes()` on Next up joined the same voice on the owner's word — the
+two watching-truths close that view the way the colophon closes Home, so
+they read as the same fixture (a `foot` modifier on their existing `.note`
+class; negtest131's anchor on the dates note moved with the markup). The
+legend on The Path stayed body type: it is a key to the badges above it,
+content that happens to sit last, not the app signing its name.

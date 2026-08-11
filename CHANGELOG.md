@@ -57,11 +57,13 @@ itself about type and about which ordering the donut answers for.**
   was its smallest hero. It now carries the hero scale, and `.modenote`
   (its description) steps up 12.5 → 15px in the hero blurb's colour.
 - **The footers speak in one voice.** Home's footer is mono, 9px,
-  uppercase, tracked; the Progress build line was body type at 12.5px —
-  same role, different typeface, size and casing. `.buildline` now carries
-  the same mono treatment. CSS only: the markup, the guarded
-  `Build · updated · read the source` shape, and the link styling are
-  untouched.
+  uppercase, tracked; the Progress build line was body type at 12.5px, and
+  Next up's closing watching-truths (`watchNotes()`) were body type too —
+  same role, three treatments. `.buildline` and the two watching-truths
+  (now `note foot`) carry the same mono voice. The guarded
+  `Build · updated · read the source` shape and the link styling are
+  untouched; the one markup change is the `foot` modifier on Next up's two
+  notes, and negtest131's byte anchor moved with it.
 
 ### QA
 
