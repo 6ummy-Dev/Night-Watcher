@@ -61,10 +61,10 @@ run_case "the selector creeps into the Belt" \
 b='(S.beltOpen ? includeBlock() : \"\");';assert b in s
 s=s.replace(b,'(S.beltOpen ? includeBlock() + themeRow() : \"\");',1);${W}"
 
-run_case "the theme row goes full width again" \
-  "the theme row is full-width" \
-  "${P}a='.themerow{max-width:230px;';assert a in s
-s=s.replace(a,'.themerow{',1);${W}"
+run_case "the theme row gets capped again" \
+  "the theme row is capped again" \
+  "${P}a='.themerow{';assert a in s
+s=s.replace(a,'.themerow{max-width:230px;',1);${W}"
 
 echo "--- 98: the progress card"
 run_case "share loses the lead" \

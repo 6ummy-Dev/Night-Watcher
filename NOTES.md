@@ -3003,3 +3003,58 @@ rides the same delegated path as every row. The g[data-seg] branch left the
 view delegate with the SVG; one path, one handler. The thinnest bars are
 still thin — a 1-film universe is ~4px and the fold rows below remain the
 comfortable route to it, which is half of why the folds all stayed.
+
+## The box that stood still, and the hat by the door
+
+Three small things shipped as 3.8.3, and each carries a lesson worth keeping.
+
+The search box had been jumping since forever, and soak finally caught it in
+the act. The mechanism was ordinary: every debounced keystroke rebuilds
+`#view`, and the refocus that follows used a bare `focus()` while the button
+path one branch above had carried `{preventScroll:true}` for versions. A bare
+focus is an instruction to the browser to make the element visible, and the
+browser obliges by scrolling — straight into a fight with the `scrollTo(0,
+keep)` restore two lines down. When matches shrank, a second fighter joined:
+the page got shorter than `keep`, the restore clamped, and the box hopped
+again. The fix is symmetric measurement: read the box's viewport `top` before
+the rebuild, refocus without scrolling, restore, then `scrollBy` exactly the
+drift. The box now holds still because we measured where it was and put it
+back — not because we asked the browser nicely.
+
+The darker theme's primaries were the other soak note. Bone (`#E7E9F0`) on
+pure black is a flashlight; on the default theme's near-black it is merely
+bright. Four directions were mocked — signal fill, steel fill, a dark ghost
+with a yellow outline, and dimmed bone — and the owner picked the smallest
+one: dimmed bone (`#AEB6C8`), darker theme only, primaries only. One new
+variable (`--bonebtn`) carries the whole decision, the default theme keeps
+its bone, and every pressed state keeps its meaning. The smallest change
+that ends the glare is the right size of change.
+
+The support element is the hat by the door, not a turnstile — and the door
+got smaller in review. The first cut was a full card: heading, blurb, the
+BTC address truncated-but-verifiable with copy-to-clipboard, a QR behind a
+toggle whose 29×29 matrix was hex-packed into 232 characters and unfolded
+to inline SVG in fifteen lines, because the vendored QR encoder left this
+codebase in 1.2.4 and was not invited back. All of it ran green: guards,
+smoke, 45 negative suites, a browser drive that scanned the rendered QR
+back to the address. And the owner killed it on sight — too big, too loud,
+not centered, wrong for the Home screen — which is the correct fate for a
+support element that draws more attention than the thing it supports. The pill
+that replaced it — 38px, centered, still on Home — lasted one look longer.
+What shipped is four words of mono on Progress's build line, `sponsor ↗`
+riding after `read the source`, and FUNDING.yml carrying one line. The
+build line was always the right seat: it is where the app already tells
+the truth about itself, and support belongs next to the version and the
+source, not on the front porch. The lesson is old and keeps being true: passing the harness is
+necessary and says nothing about whether the thing should exist at that
+size. The theme chooser took the opposite trip in the same review — it sat
+centered at 230px and now spans the column like everything else on Home.
+
+And the weight: the full card did not fit under 200 KB, because 3.8.2 left
+1.8 KB of headroom, so the question went to the owner as arithmetic and the
+answer came back as the fifth raise — 220, sized deliberately past the
+feature to make room for the 4.0.0 swipe work. Then the card shrank to a
+pill and the file walked back under the old line at 199 KB. The ceiling
+stays at 220 anyway: it was set for what is coming, not for what shipped,
+and the guard now fails at 220 exactly as it failed at 200 — a recorded
+decision, never a drift.

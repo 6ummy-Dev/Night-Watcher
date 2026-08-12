@@ -1557,10 +1557,12 @@ note("index.html " + rawKB.toFixed(1) + " KB raw, " + gzipKB.toFixed(1) + " KB g
    list), 160 -> 165 in 2.0.0 (the progress card's drawing code, tightened
    first), and 165 -> 200 in 2.5.0 alongside the FIRST gzip raise, 50 -> 80 —
    both the owner's explicit numbers, on the record 4 Aug 2026, authorizing
-   seed-200 and whatever honest growth follows. The ceilings moved; the
+   seed-200 and whatever honest growth follows. Raised 200 -> 220 in 3.8.3 —
+   the owner's number, on the record 12 Aug 2026: room for the support
+   section now and the 4.0.0 swipe change coming. The ceilings moved; the
    discipline did not: arithmetic still fails the build, and every raise is
    still a recorded owner decision, never a drift. */
-if(rawKB > 200) fail("index.html is " + rawKB.toFixed(1) + " KB raw, over the 200 KB budget");
+if(rawKB > 220) fail("index.html is " + rawKB.toFixed(1) + " KB raw, over the 220 KB budget");
 if(gzipKB > 80) fail("index.html is " + gzipKB.toFixed(1) + " KB gzipped, over the 80 KB budget");
 
 /* Zero runtime dependencies is a promise in the README. There is no
@@ -5761,11 +5763,18 @@ var ROUTE_VOCAB = [
     fail("the theme control is in the Belt \u2014 the one thing the owner said the " +
          "Belt must never hold");
   }
-  /* Compact: narrower and shorter than the full-width rows it used to be. */
+  /* Width has now moved exactly twice, both owner's calls, and this clause
+     flipped with the second. 2.x: "a bit more compact" \u2014 230px, centered,
+     and this guard required the max-width. 3.8.3 review: the chooser spans
+     the column like everything else on Home \u2014 the owner's words, same
+     review that cut the support card to a pill \u2014 so a max-width creeping
+     back is now the regression. Shorter-than-a-full-row stays: the 34px
+     buttons are the compact half that survived. */
   var tr = (HTML.match(/\.themerow\{[^}]*\}/) || [""])[0];
-  if(!/max-width/.test(tr)){
-    fail("the theme row is full-width \u2014 'a bit more compact' was the whole " +
-         "point of the move");
+  if(/max-width/.test(tr)){
+    fail("the theme row is capped again \u2014 3.8.3 spanned it to the column " +
+         "width on the owner's call, and a returning max-width undoes a " +
+         "recorded decision");
   }
 })();
 
@@ -8176,7 +8185,7 @@ var ROUTE_VOCAB = [
 (function(){
   /* Never read here. Any appearance is a new forced-layout site. */
   var REFUSED = ["scrollHeight", "scrollY", "offsetTop", "offsetWidth",
-                 "clientHeight", "clientWidth", "getBoundingClientRect",
+                 "clientHeight", "clientWidth",
                  "getComputedStyle", "innerHeight", "innerWidth"];
 
   /* Read here, exactly this many times, for exactly this reason. The count is
@@ -8202,7 +8211,21 @@ var ROUTE_VOCAB = [
      "blocked (it wrote --ghtop until 3.5.0 derived --ghtop from --hdrh — one " +
      "source, section 128). Read THEN write, which is the correct order and " +
      "not a forced reflow — recorded rather than refused, so that a second " +
-     "appearance has to be argued for"]
+     "appearance has to be argued for"],
+    ["getBoundingClientRect", 2,
+     "3.8.3's search-box anchor, the soak fix for the box that jumped while " +
+     "you typed. Refused since this section existed; admitted now because " +
+     "the fix IS a measurement — hold the box where it was, which cannot be " +
+     "done without knowing where it was. Read ONE: the box's viewport top, " +
+     "hoisted to render()'s opening reads next to pageYOffset, ABOVE the " +
+     "first write — it rides the same layout the keep-read already forces, " +
+     "so it costs nothing (the order clause below stays satisfied). Read " +
+     "TWO: the box's top after the rebuild, taken AFTER scrollTo(0, keep) " +
+     "has already flushed the new layout, so it reads a clean tree and " +
+     "forces nothing; the drift between the two is handed to scrollBy and " +
+     "the box stands still. Both reads are gated on the box being focused — " +
+     "every render that is not mid-typing skips them. A THIRD read is a new " +
+     "site and has to be argued for here"]
   ];
 
   REFUSED.forEach(function(prop){

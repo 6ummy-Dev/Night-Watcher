@@ -26,9 +26,48 @@ to saved progress would also be MAJOR, and should never happen, because every
 > Anything experimental after 3.0.0 takes a pre-release tag — `3.1.0-rc.1` —
 > rather than a plain version.
 
-## [Unreleased]
+## [3.8.3] — 2026-08-12
+
+**The support section arrives, the search box stands still, and the darker
+theme's primaries stop glaring. PATCH — same data, same orders.**
+
+### Added
+
+- **A sponsor link, on Progress's build line.** Four words of mono at the
+  bottom of the last tab: `read the source · sponsor ↗`. It took three cuts
+  to get here, all owner's calls in one review. First a full Home support
+  card — heading, blurb, truncated BTC address with copy-to-clipboard, a
+  hex-packed inline-SVG QR behind a toggle — ran green through the whole
+  harness and died on sight: too big, too loud, wrong for Home. Then a
+  38px centered pill on Home: still Home, still furniture. What shipped is
+  a text link in the line that already names the build and points at the
+  code — the reader who wants the version is the reader who wants the
+  code, and the reader who values the thing is standing in the same spot.
+  It inherits the build line's colour and underline (guard 97's
+  colour-alone lesson, already enforced on that line). Support is GitHub
+  Sponsors only — no BTC, no QR, no handlers.
+- **`.github/FUNDING.yml`** — `github: 6ummy-Dev`, nothing else.
 
 ### Changed
+
+- **The darker theme's big light buttons dim.** "Begin the path", "Mark
+  watched", "Share the night", "Search everything", "Create backup code" —
+  every bone-filled primary drops from `#E7E9F0` to `#AEB6C8` under
+  `data-theme="darker"`, via one new `--bonebtn` variable. The default
+  theme keeps its bone; pressed chips, toggles and ticks keep theirs
+  everywhere. Owner's pick from four mocked directions: dimmed bone,
+  darker theme only.
+- **The theme chooser spans the column.** It sat centered at 230px; it now
+  runs the full card width like everything else on Home — owner's call, same
+  review. The guard clause flipped with it (a returning `max-width` is now
+  the regression) and negtest200's fixture flipped the same way.
+- **The raw weight ceiling rises 200 → 220 KB.** The fifth raise, the
+  owner's number, on the record 2026-08-12: room for the support section
+  now and for the 4.0.0 swipe change coming — and stands at 220 even
+  though the reviewed cut ships at 199 KB, back under the old line once the
+  support card shrank to a pill. Gzip stays at 80 KB — the page ships at 57. The discipline stands: guards still
+  fail the build at the line, and every raise is still an owner's call
+  recorded here, never a drift. negtest195's fixture moves with the number.
 
 - **The spoiler promise reads "no spoilers".** "Watch orders that spoil
   nothing" becomes "watch orders, no spoilers" in every sentence that carries
@@ -41,6 +80,20 @@ to saved progress would also be MAJOR, and should never happen, because every
   the "no spoilers" promise. CHANGELOG history keeps the old wording.
 
 ### Fixed
+
+- **The search box no longer jumps while you type.** Every debounced
+  keystroke re-rendered `#view` and refocused the box with a bare
+  `focus()` — the browser scroll-snapped it into view, fought the scroll
+  restore, and the box visibly hopped; when matches shrank, the shorter
+  page clamped the restore and hopped it again. Soak finding. The refocus
+  now carries `{preventScroll:true}` like the button path always has, and
+  after the restore the box is re-anchored to the viewport position it
+  held before the render — measured before, corrected after, one
+  `scrollBy` of the drift. The before-read is hoisted to render()'s opening
+  reads, above the first write, where it rides the layout the keep-read
+  already forces; section 120 moves `getBoundingClientRect` from REFUSED to
+  PINNED at exactly 2 with the reasons on the record, and negtest330's
+  order fixture moves with the hoist.
 
 - **The story card's left horn no longer shows a bite taken out of it.** The
   bat's left-ear subpath was wound clockwise while the body, right ear and

@@ -55,11 +55,13 @@ run_case "the scroll read slides back below flagSave()" \
   "reads the scroll position after it has already written" \
   "${P}a='''  var keep = window.pageYOffset || document.documentElement.scrollTop || 0;
   if(nwScrollAdjust){ keep = Math.max(0, keep - nwScrollAdjust); nwScrollAdjust = 0; }
-  flagSave();
-  applyTheme();'''
+  var qPrev'''
 assert a in s
-s=s.replace(a,'''  flagSave();
-  applyTheme();
+s=s.replace(a,'''  var qPrev''',1)
+b='''  flagSave();
+  applyTheme();'''
+assert b in s
+s=s.replace(b,b+'''
   var keep = window.pageYOffset || document.documentElement.scrollTop || 0;
   if(nwScrollAdjust){ keep = Math.max(0, keep - nwScrollAdjust); nwScrollAdjust = 0; }''',1);${W}"
 
