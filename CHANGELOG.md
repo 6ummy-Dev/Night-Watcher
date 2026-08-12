@@ -28,25 +28,26 @@ to saved progress would also be MAJOR, and should never happen, because every
 
 ## [3.8.3] — 2026-08-12
 
-**The support section arrives, the search box stands still, and the darker
-theme's primaries stop glaring. PATCH — same data, same orders.**
+**The search box stands still, the darker theme's primaries stop glaring —
+and the support element is built three ways, then not shipped at all.
+PATCH — same data, same orders.**
 
-### Added
+### Not added, on the record
 
-- **A sponsor link, on Progress's build line.** Four words of mono at the
-  bottom of the last tab: `read the source · sponsor ↗`. It took three cuts
-  to get here, all owner's calls in one review. First a full Home support
-  card — heading, blurb, truncated BTC address with copy-to-clipboard, a
-  hex-packed inline-SVG QR behind a toggle — ran green through the whole
-  harness and died on sight: too big, too loud, wrong for Home. Then a
-  38px centered pill on Home: still Home, still furniture. What shipped is
-  a text link in the line that already names the build and points at the
-  code — the reader who wants the version is the reader who wants the
-  code, and the reader who values the thing is standing in the same spot.
-  It inherits the build line's colour and underline (guard 97's
-  colour-alone lesson, already enforced on that line). Support is GitHub
-  Sponsors only — no BTC, no QR, no handlers.
-- **`.github/FUNDING.yml`** — `github: 6ummy-Dev`, nothing else.
+- **No support element ships.** It was built three ways in one day, each cut
+  smaller on the owner's call: a full Home card (heading, blurb, truncated
+  BTC address with copy-to-clipboard, a hex-packed inline-SVG QR behind a
+  toggle — all of it green through the whole harness), then a 38px pill on
+  Home, then four words of mono on Progress's build line pointing at GitHub
+  Sponsors. The last cut died on the facts: Sponsors pays out through
+  Stripe Connect, and Stripe's onboarding wants legal name, date of birth,
+  home address, bank account, government ID and a tax form — the exact
+  personal-info surface that ruled out PayPal and Ko-fi on 2026-08-11. The
+  link, `.github/FUNDING.yml`, the address, the QR and both handlers are
+  all out. The build line reads `read the source` and nothing more. If
+  support returns, the QR technique (29×29 ECC-L matrix hex-packed to 232
+  chars, expanded to inline SVG in fifteen lines, no library) is in this
+  file's history and the release-prep notes.
 
 ### Changed
 
@@ -64,8 +65,9 @@ theme's primaries stop glaring. PATCH — same data, same orders.**
 - **The raw weight ceiling rises 200 → 220 KB.** The fifth raise, the
   owner's number, on the record 2026-08-12: room for the support section
   now and for the 4.0.0 swipe change coming — and stands at 220 even
-  though the reviewed cut ships at 199 KB, back under the old line once the
-  support card shrank to a pill. Gzip stays at 80 KB — the page ships at 57. The discipline stands: guards still
+  though the reviewed cut ships at 198 KB, back under the old line once the
+  support element shrank and then left. Gzip stays at 80 KB — the page
+  ships at 57. The discipline stands: guards still
   fail the build at the line, and every raise is still an owner's call
   recorded here, never a drift. negtest195's fixture moves with the number.
 

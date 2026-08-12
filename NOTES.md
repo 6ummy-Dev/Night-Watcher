@@ -3030,31 +3030,36 @@ variable (`--bonebtn`) carries the whole decision, the default theme keeps
 its bone, and every pressed state keeps its meaning. The smallest change
 that ends the glare is the right size of change.
 
-The support element is the hat by the door, not a turnstile — and the door
-got smaller in review. The first cut was a full card: heading, blurb, the
-BTC address truncated-but-verifiable with copy-to-clipboard, a QR behind a
-toggle whose 29×29 matrix was hex-packed into 232 characters and unfolded
-to inline SVG in fifteen lines, because the vendored QR encoder left this
-codebase in 1.2.4 and was not invited back. All of it ran green: guards,
-smoke, 45 negative suites, a browser drive that scanned the rendered QR
-back to the address. And the owner killed it on sight — too big, too loud,
-not centered, wrong for the Home screen — which is the correct fate for a
-support element that draws more attention than the thing it supports. The pill
-that replaced it — 38px, centered, still on Home — lasted one look longer.
-What shipped is four words of mono on Progress's build line, `sponsor ↗`
-riding after `read the source`, and FUNDING.yml carrying one line. The
-build line was always the right seat: it is where the app already tells
-the truth about itself, and support belongs next to the version and the
-source, not on the front porch. The lesson is old and keeps being true: passing the harness is
-necessary and says nothing about whether the thing should exist at that
-size. The theme chooser took the opposite trip in the same review — it sat
+The support element is the story of the release, and what shipped is
+nothing — which took three builds to earn. The full Home card came first:
+heading, blurb, the BTC address truncated-but-verifiable with
+copy-to-clipboard, a QR behind a toggle whose 29×29 matrix was hex-packed
+into 232 characters and unfolded to inline SVG in fifteen lines, because
+the vendored QR encoder left this codebase in 1.2.4 and was not invited
+back. It ran green through everything — guards, smoke, 45 negative suites,
+a browser drive that scanned the rendered QR back to the address — and the
+owner killed it on sight: too big, too loud, wrong for Home. The 38px pill
+that replaced it lasted one look longer. The four words of mono that
+replaced the pill — `sponsor ↗` riding Progress's build line after `read
+the source` — were the right size at last, and then the owner opened the
+Sponsors signup and found Stripe's onboarding on the other side: legal
+name, date of birth, home address, bank account, government ID, tax form.
+The same personal-info surface that ruled out PayPal and Ko-fi a day
+earlier, wearing a friendlier logo. So the link came out too.
+
+The lessons stack. Passing the harness says nothing about whether a thing
+should exist at that size — the card was flawless and wrong. And a
+support channel is not chosen by its widget but by its custody chain:
+every fiat rail ends in a KYC form somewhere, and if the bar is "no
+personal data", the honest answers are crypto, or nothing. Nothing shipped.
+The theme chooser took the opposite trip in the same review — it sat
 centered at 230px and now spans the column like everything else on Home.
 
 And the weight: the full card did not fit under 200 KB, because 3.8.2 left
 1.8 KB of headroom, so the question went to the owner as arithmetic and the
 answer came back as the fifth raise — 220, sized deliberately past the
-feature to make room for the 4.0.0 swipe work. Then the card shrank to a
-pill and the file walked back under the old line at 199 KB. The ceiling
-stays at 220 anyway: it was set for what is coming, not for what shipped,
-and the guard now fails at 220 exactly as it failed at 200 — a recorded
-decision, never a drift.
+feature to make room for the 4.0.0 swipe work. Then the feature evaporated
+and the file walked back under the old line anyway. The ceiling stays at
+220: it was set for what is coming, not for what shipped, and the guard now
+fails at 220 exactly as it failed at 200 — a recorded decision, never a
+drift.
