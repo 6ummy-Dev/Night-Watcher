@@ -26,6 +26,64 @@ to saved progress would also be MAJOR, and should never happen, because every
 > Anything experimental after 3.0.0 takes a pre-release tag — `3.1.0-rc.1` —
 > rather than a plain version.
 
+## [3.8.4] — 2026-08-13
+
+**The page learns to introduce itself to agents, the darker theme finishes
+what 3.8.3 started, and the last green leaves the palette.
+PATCH — same data, same orders.**
+
+### Added
+
+- **A third `Link:` line under `/`, for agents.** The Cloudflare Agent
+  Readiness panel (12 Aug) read the response and found "Link headers present
+  but no agent-useful relation types". The site has no API, so RFC 9727's
+  `api-catalog` / `service-doc` would be fabrication; `describedby` is the
+  honest registered relation, and `/llms.txt` is the description it points
+  at — the same file the Worker already serves when an Accept header prefers
+  `text/markdown`. The target is site-relative by design where canonical and
+  sitemap are absolute: those name authoritative URLs, this names a sibling
+  of whatever origin served it. Lives in `docs/_headers` — in-repo, diffed,
+  guarded — not in the Transform Rule Cloudflare suggested; the `_headers`
+  history is the whole argument. Guard 104 pins the line, its scope and its
+  relative form. Known risk, accepted on the record: third-party checkers
+  may only credit their own example rels.
+- **`/auth.md` says there is nothing to sign into.** The same panel wants an
+  auth.md telling bots how to register. Night Watcher's answer is that no
+  accounts exist, by design — no registration, no login, no API keys,
+  everything public, progress client-side only — and the new five-line
+  static `docs/auth.md` says exactly that. Zero bytes in index.html. Named
+  in the shell guard's exclusions like llms.txt and orders.txt: written for
+  machines that never run the app.
+
+### Changed
+
+- **The darker theme dims ALL the bone, not just the primaries.** 3.8.3
+  dimmed the three bone-filled primary buttons via `--bonebtn`; the owner
+  wanted the bone-colored text dimmed too, and the theme chooser's pressed
+  button with it. `--bone` itself now drops `#E7E9F0` → `#AEB6C8` under
+  `data-theme="darker"` — body text, pressed chips and toggles, the ticks,
+  the toast, the search text, every consumer of the variable, seventeen in
+  all. Contrast holds everywhere it lands: 10.3:1 on black, 8.7:1 on the
+  lightest card, `--ink` on dimmed-bone fills 10.3:1 — AAA across the
+  board, from 17.3:1 that only ever glared. The default theme keeps its
+  bone untouched.
+- **The INTERACTIVE badge goes crimson.** `--moss` green was the only green
+  on the page — one badge, on one entry (Death in the Family 2020), plus its
+  legend row — and the owner didn't like the palette's odd one out. His
+  first pick was dust; the badge-identity guard refused it on the spot (the
+  rating badges already wear dust outlined, and no colour may carry two
+  meanings), and every other neutral is spoken for — dim is OPTIONAL, bone
+  is SHORT, steel is NOT OUT YET, staroff fails the AA floor on every card.
+  Second pick, on the record: `--crimson2`, the soft red the danger button
+  already trusts — 6.7:1 or better on every surface in both themes, and the
+  one entry wearing it is Jason Todd's. `--moss` leaves `:root`; the
+  palette carries no green at all.
+- **The SHORT badge steps up from opacity .55 to .7.** Found by the fade
+  guard the moment `--bone` dimmed: bone at .55 over the darker theme's
+  cards lands at 3.5:1, under the 4.5:1 AA floor the full-strength checks
+  cannot see. At .7 the worst pair is 4.92:1 — both themes, all four
+  surfaces — and the badge still reads as the quiet one.
+
 ## [3.8.3] — 2026-08-12
 
 **The search box stands still, the darker theme's primaries stop glaring —

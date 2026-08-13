@@ -91,6 +91,7 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `docs/google38dc2f1303c788e7.html` | Search Console ownership token. Google re-checks it, so it stays |
 | `docs/llms.txt` | The site described in plain text for generative engines — counts guarded against the data |
 | `docs/orders.txt` | The catalogue as plain text — one order, machine- and human-readable, generated from the data by `npm run bless` |
+| `docs/auth.md` | The no-auth statement for agents: no accounts exist, by design. Five lines, written for machines that never run the app, same reasoning as `llms.txt` and `orders.txt` |
 | `docs/_headers` | The security headers and the cache policy, kept in the tree — a file here can be diffed, guarded and shipped inside a release, where a dashboard rule can be none of those. (Edge rules CAN override these — that lesson is recorded in the file itself, and the wire check lives in `RELEASING.md`) |
 | `docs/404.html` | The wrong-alley page. Self-contained, noindexed, served with a real 404 status |
 | `docs/fonts/limelight-latin-400-normal.woff2` | Display face for the wordmark and headings |

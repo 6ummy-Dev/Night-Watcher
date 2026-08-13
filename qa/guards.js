@@ -858,7 +858,14 @@ if(PUBLIC !== ROOT){
                         who is offline has no use for it. Same reasoning as
                         llms.txt and orders.txt: written for machines that never
                         run the app. */
-                     "3e6082eed9f040d5bc8ab07531bf58b9.txt"];
+                     "3e6082eed9f040d5bc8ab07531bf58b9.txt",
+                     /* 3.8.4. The no-auth statement for agents. Cloudflare's
+                        Agent Readiness panel wants an auth.md telling bots how
+                        to register; Night Watcher's answer is that no accounts
+                        exist, by design, and this file says exactly that.
+                        Written for machines that never run the app, same
+                        reasoning as llms.txt and orders.txt. */
+                     "auth.md"];
   var served = [];
   (function walk(dir, pre){
     fs.readdirSync(dir).forEach(function(name){
@@ -6434,7 +6441,19 @@ var ROUTE_VOCAB = [
    ["Link: sitemap", /^\s+Link:\s*<https:\/\/nightwatcher\.life\/sitemap\.xml>;\s*rel="sitemap"\s*$/m,
     "an RFC 8288 sitemap relation", "/"],
    ["Link: canonical", /^\s+Link:\s*<https:\/\/nightwatcher\.life\/>;\s*rel="canonical"\s*$/m,
-    "an RFC 8288 canonical relation pointing at the apex", "/"]];
+    "an RFC 8288 canonical relation pointing at the apex", "/"],
+   /* 3.8.4, the agent-discovery relation. Cloudflare's Agent Readiness panel
+      (12 Aug 2026) read the response and found "no agent-useful relation
+      types". The site has no API, so RFC 9727's api-catalog / service-doc
+      would be fabrication; describedby is the honest registered relation and
+      /llms.txt is the description it points at — the same file the Worker
+      (guard 133) already serves when an Accept header prefers text/markdown.
+      The target is site-relative BY DESIGN where the other two are absolute:
+      canonical and sitemap name authoritative URLs; a describedby names a
+      sibling of whatever origin served it. This regex pins the relative form
+      — an absolute rewrite here should be a decision, not a drift. */
+   ["Link: describedby", /^\s+Link:\s*<\/llms\.txt>;\s*rel="describedby"\s*$/m,
+    "an RFC 8288 describedby relation pointing at /llms.txt", "/"]];
   PINNED104.forEach(function(t){
     if(!t[1].test(block104(t[3]))){
       fail("docs/_headers no longer sets " + t[0] + " to " + t[2] +
@@ -6447,7 +6466,8 @@ var ROUTE_VOCAB = [
      present under / satisfies every check above and puts the canonical back on
      every asset — which is exactly the state 3.7.1 exists to leave. */
   [["Link: sitemap",   /^\s+Link:.*rel="sitemap"/m],
-   ["Link: canonical", /^\s+Link:.*rel="canonical"/m]].forEach(function(t){
+   ["Link: canonical", /^\s+Link:.*rel="canonical"/m],
+   ["Link: describedby", /^\s+Link:.*rel="describedby"/m]].forEach(function(t){
     if(t[1].test(block104("/*"))){
       fail("docs/_headers declares " + t[0] + " under /* — a link relation " +
            "describes a document, and /* applies it to the fonts, the icons " +

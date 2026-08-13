@@ -103,6 +103,21 @@
 # routing, so no other path ever serves a document. Section 104 asserts the
 # scope now, not merely the presence — the old regexes matched anywhere in this
 # file and would have stayed green through this very edit.
+#
+# 3.8.4 ADDS THE THIRD Link: LINE UNDER /, FOR AGENTS. The Cloudflare Agent
+# Readiness panel (12 Aug 2026) read the response and said "Link headers
+# present but no agent-useful relation types found". The site has no API, so
+# RFC 9727's api-catalog and service-doc would be fabrication; describedby is
+# the honest registered relation — "a resource that describes this one" — and
+# /llms.txt IS the machine-readable description of this page, the same file
+# the Worker already serves to any client whose Accept prefers text/markdown.
+# The target is site-relative where the other two are absolute: canonical and
+# sitemap name authoritative URLs and must not drift across origins; a
+# describedby points at a sibling of whatever origin served it, which is what
+# a relative reference says. Cloudflare suggested a Worker or Transform Rule
+# for this; the whole history above is why it lives here instead. Known risk,
+# accepted on the record: third-party checkers may only credit their own
+# example rels. Guard 104 pins the line and its scope, same as the other two.
 
 /*
   Referrer-Policy: strict-origin-when-cross-origin
@@ -114,6 +129,7 @@
 /
   Link: <https://nightwatcher.life/sitemap.xml>; rel="sitemap"
   Link: <https://nightwatcher.life/>; rel="canonical"
+  Link: </llms.txt>; rel="describedby"
   Cache-Control: no-cache
 
 /sw.js

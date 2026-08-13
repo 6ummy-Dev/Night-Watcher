@@ -40,9 +40,14 @@ run_case "the format-badge fade comes back (the bug this release fixed)" \
   "renders --dim at opacity 0.8" \
   "${P}a='.bd.fmanim{color:var(--dim);border:1px dashed currentColor;}';assert a in s;s=s.replace(a,'.bd.fmanim{color:var(--dim);border:1px dashed currentColor;opacity:.8;}');${W}"
 
+# 3.8.4 moved the SHORT fade from .55 to .7 — the fade guard itself forced the
+# move the moment --bone dimmed under the darker theme (bone@.55 over the
+# darker cards is 3.5:1). The anchor below is the full .bd.s rule rather than
+# the bare opacity token: "opacity:.7;}" appears four times in the file, and a
+# bare-token replace would mutate rules this case never meant to touch.
 run_case "Short is faded one step further" \
   "renders --bone at opacity 0.5" \
-  "${P}a='opacity:.55;}';assert a in s;s=s.replace(a,'opacity:.5;}');${W}"
+  "${P}a='.bd.s{color:var(--bone);border:1px solid currentColor;opacity:.7;}';assert a in s;s=s.replace(a,'.bd.s{color:var(--bone);border:1px solid currentColor;opacity:.5;}');${W}"
 
 run_case "a modifier is dimmed into the floor" \
   "under the 4.5:1 AA floor" \
