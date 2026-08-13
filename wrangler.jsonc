@@ -34,18 +34,21 @@
   "observability": {
     "enabled": true
   },
-  /* 3.8.0: a `main` script, for ONE request shape — `GET /` with an Accept
-     header that prefers text/markdown gets llms.txt as the markdown
+  /* 3.8.0: a `main` script for the markdown negotiation — `GET /` with an
+     Accept header that prefers text/markdown gets llms.txt as the markdown
      representation (the Radar agent-readiness gate, triaged 10 Aug 2026).
-     run_worker_first is scoped to "/" alone: every other path is served by
-     the assets plane directly and cannot be intercepted, slowed, or altered
-     by worker code. Browsers asking for "/" fall through inside the script,
-     byte-for-byte — guard 133 executes both branches. */
+     3.9.0 adds a second owned path: GET /.well-known/api-catalog answers an
+     empty RFC 9727 linkset (the honest "no API"). run_worker_first is scoped
+     to exactly those two paths: every OTHER path is served by the assets
+     plane directly and cannot be intercepted, slowed, or altered by worker
+     code. "/" has an asset behind it and falls through byte-for-byte for
+     browsers; "/.well-known/api-catalog" has none, so scoping the worker to
+     it costs no asset the hop. Guard 133 executes every branch. */
   "main": "worker.js",
   "assets": {
     "directory": "docs",
     "binding": "ASSETS",
-    "run_worker_first": ["/"],
+    "run_worker_first": ["/", "/.well-known/api-catalog"],
     /* "404-page" as of 2.1.0, still NOT "single-page-application". The app
        is one page with hash routing, so SPA fallback buys nothing — and it
        would turn every missing asset into a cached-as-HTML 200, which is why

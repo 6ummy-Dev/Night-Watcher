@@ -71,7 +71,7 @@ run_case "the collapse keyframes are emptied" \
 
 run_case "reduced motion stops cutting the box collapse" \
   "does not cut .includes.closing" \
-  "${P}s=s.replace('.includes.closing .scope,.includes.closing,.pathseg[data-toast]{animation:none;}','.includes.closing .scope,.pathseg[data-toast]{animation:none;}',1);${W}"
+  "${P}s=s.replace('.includes.closing .scope,.includes.closing,.pathseg[data-toast],.pathseg[data-park]:not([data-drop]){animation:none;}','.includes.closing .scope,.pathseg[data-toast],.pathseg[data-park]:not([data-drop]){animation:none;}',1);${W}"
 
 echo "--- the forced reflow does not come back"
 

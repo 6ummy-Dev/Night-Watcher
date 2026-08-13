@@ -38,8 +38,8 @@ run_case "a widened run_worker_first is caught" \
 import io
 p='wrangler.jsonc'
 s=io.open(p,encoding='utf-8').read()
-assert '\"run_worker_first\": [\"/\"],' in s
-io.open(p,'w',encoding='utf-8').write(s.replace('\"run_worker_first\": [\"/\"],','\"run_worker_first\": true,'))
+assert '\"run_worker_first\": [\"/\", \"/.well-known/api-catalog\"],' in s
+io.open(p,'w',encoding='utf-8').write(s.replace('\"run_worker_first\": [\"/\", \"/.well-known/api-catalog\"],','\"run_worker_first\": true,'))
 "
 
 run_case "a served copy of worker.js is caught" \
@@ -90,6 +90,30 @@ s=io.open(p,encoding='utf-8').read()
 needle='\"Vary\": \"Accept\",'
 assert needle in s
 io.open(p,'w',encoding='utf-8').write(s.replace(needle,'\"Vary\": \"Origin\",'))
+"
+
+# --- guard 133 (3.9.0): the api-catalog is empty and correctly typed ---
+
+run_case "an api-catalog with entries is caught" \
+  "did not answer an empty linkset" \
+"
+import io
+p='worker.js'
+s=io.open(p,encoding='utf-8').read()
+needle='\"linkset\":[]'
+assert needle in s
+io.open(p,'w',encoding='utf-8').write(s.replace(needle,'\"linkset\":[{\"anchor\":\"/\"}]'))
+"
+
+run_case "a mislabeled api-catalog is caught" \
+  "not application/linkset+json" \
+"
+import io
+p='worker.js'
+s=io.open(p,encoding='utf-8').read()
+needle='application/linkset+json'
+assert needle in s
+io.open(p,'w',encoding='utf-8').write(s.replace(needle,'application/json'))
 "
 
 # --- guard 134: the tombstone shape holds ---

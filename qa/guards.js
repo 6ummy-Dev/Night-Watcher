@@ -3059,6 +3059,26 @@ if(!/b\.dataset\.format/.test(HTML)) fail("nothing handles a format tap");
          "deck");
   }
 
+  /* 3.9.0: the first-run page offers scope, not just format. Before this,
+     formatSwitch() sat on Home under "What are you watching" while scopeSwitch()
+     lived only in the belt buckle, so a first-lander could pick Animated / Live
+     / All and never see Movies vs Movies+Series until they opened a closed
+     pouch they had no reason to. The intro even promises it ("Films only, or
+     every series too"). Scope now renders beside format on the first-run
+     surface, the same "what to include" pair the belt groups (section 53). */
+  var fsw = first.indexOf("formatSwitch()");
+  var ssw = first.indexOf("scopeSwitch()");
+  if(ssw < 0){
+    fail("the first-run page renders no scope switch: a first-lander (the one " +
+         "page a crawler ever sees) can choose a format but never Movies vs " +
+         "Movies+Series until they open the belt, the discoverability gap 3.9.0 " +
+         "closes. scopeSwitch() belongs beside formatSwitch() on Home");
+  } else if(fsw >= 0 && deck >= 0 && (ssw < fsw || ssw > deck)){
+    fail("the first-run scope switch is out of place: format then scope, both " +
+         "above the path deck, is the 'what to include' pair (section 53) shown " +
+         "before 'how to order'");
+  }
+
   /* Controls first: they govern what every block below them shows, and reading
      them after the card meant meeting the answer before the question. */
   var order = ["masterChooser()", "introBlock()", "class=\"hero\"", "GRIDNAME"];
@@ -9414,6 +9434,39 @@ var ROUTE_VOCAB = [
          "render animates");
   }
 
+  /* (1b) 3.9.0: the closed belt glows now and then. The parked peek is the
+     app's one persistent handle (the owner's "you don't use it much, but it
+     needs to work perfectly"), and a periodic --signal breath is the reminder
+     it is live — on the CLOSED strip only. Three things keep it honest: it
+     rides data-park:not(data-drop), so an open/dropped belt never glows; it is
+     a box-shadow keyframe, which the *{transition:none} reduced-motion block
+     cannot reach (the section-128 Q2 trap), so the animation:none block must
+     name it; and it breathes in --signaledge, the signal-alpha token already
+     on the peek — no new colour on a palette 3.8.4 spent a release making
+     single-meaning. */
+  if(!/@keyframes beltglow\{/.test(HTML)){
+    fail("the belt glow keyframe is gone — the closed peek stops reminding a " +
+         "returning reader the one handle is live");
+  }
+  if(!/\.pathseg\[data-park\]:not\(\[data-drop\]\)\{[^}]*animation:beltglow /.test(HTML)){
+    fail("the glow is not on .pathseg[data-park]:not([data-drop]) — it must " +
+         "ride the CLOSED, chosen strip: data-park is state (present in every " +
+         "scroll position), and :not([data-drop]) keeps an OPEN belt from " +
+         "glowing while it is in use");
+  }
+  var glowKf = (HTML.match(/@keyframes beltglow\{[\s\S]*?\}\}/) || [""])[0];
+  if(!/var\(--signaledge\)/.test(glowKf)){
+    fail("the glow does not breathe in --signaledge — the peek's own signal " +
+         "token is the one honest colour for it, not a new one on a palette " +
+         "3.8.4 spent a release making single-meaning");
+  }
+  if(!new RegExp("prefers-reduced-motion: reduce\\)\\{[^}]*\\.pathseg\\[data-park\\]:not\\(\\[data-drop\\]\\)[^}]*\\{animation:none;").test(HTML)){
+    fail("reduced motion does not cut the glow — a box-shadow keyframe slips " +
+         "*{transition:none} entirely (the section-128 Q2 trap), so the " +
+         "animation:none block must name .pathseg[data-park]:not([data-drop]) " +
+         "or the closed belt pulses for a reader who asked for no motion");
+  }
+
   /* (2) Every seam in the stack is an overlap. */
   if(!/\.includes \.scope\{position:relative;background:var\(--ink\);margin:0;/.test(HTML)){
     fail("the format row grew a bottom margin back — 6px of margin collapsed " +
@@ -9470,9 +9523,12 @@ var ROUTE_VOCAB = [
          "perfectly. The peek is sticky plus a margin, nothing else: there " +
          "is nothing in it left to lack");
   }
+  /* 3.9.0 lets this rule also carry the glow (animation:beltglow, section 130):
+     cursor:pointer; stays the first declaration, the breath is optional after
+     it. The sliver and the dead buttons are unchanged. */
   if(!/\.pathseg\[data-park\]:not\(\[data-drop\]\)::before,\.pathseg\[data-park\]:not\(\[data-drop\]\)::after\{opacity:1;transform:translateY\(0\);\}/.test(HTML) ||
      !/\.pathseg\[data-park\]:not\(\[data-drop\]\) button\{visibility:hidden;\}/.test(HTML) ||
-     !/\.pathseg\[data-park\]:not\(\[data-drop\]\)\{cursor:pointer;\}/.test(HTML)){
+     !/\.pathseg\[data-park\]:not\(\[data-drop\]\)\{cursor:pointer;(?:animation:beltglow [^}]*)?\}/.test(HTML)){
     fail("the parked strip is not the peek — it must show the sliver, kill " +
          "its buttons (F5: 12px of live re-ordering is the defect the peek " +
          "exists to prevent) and read as one handle; and a DROPPED belt " +
@@ -9838,8 +9894,10 @@ var ROUTE_VOCAB = [
    in front could quietly serve something else. So the passthrough assertions
    are IDENTITY checks — the response object the mock assets plane returned,
    not a copy — which is stronger than byte-for-byte. And run_worker_first is
-   pinned to exactly ["/"]: every other path stays on the assets plane where
-   worker code cannot reach it, slow it, or break it while down. */
+   pinned to exactly ["/", "/.well-known/api-catalog"]: the root (an asset,
+   negotiated) and the api-catalog (no asset, worker-owned), and nothing else,
+   so every other path stays on the assets plane where worker code cannot
+   reach it, slow it, or break it while down. */
 
 (function(){
   var wpath = path.join(ROOT, "worker.js");
@@ -9862,10 +9920,11 @@ var ROUTE_VOCAB = [
     fail("the assets plane has no ASSETS binding — worker.js has no way to " +
          "fall through, and every request it touches dead-ends");
   }
-  if(!/"run_worker_first":\s*\[\s*"\/"\s*\]/.test(wr)){
-    fail("run_worker_first is not exactly [\"/\"] — either the Worker never " +
-         "runs (no negotiation) or it fronts MORE than the root, and every " +
-         "asset behind it pays the hop and inherits its failure modes");
+  if(!/"run_worker_first":\s*\[\s*"\/"\s*,\s*"\/\.well-known\/api-catalog"\s*\]/.test(wr)){
+    fail("run_worker_first is not exactly [\"/\", \"/.well-known/api-catalog\"] " +
+         "— either the Worker never runs (no negotiation, no api-catalog) or " +
+         "it fronts MORE than those two, and every asset behind it pays the " +
+         "hop and inherits its failure modes");
   }
 
   /* Execute it. Real URL; stub Request/Response so the result can be read
@@ -9972,11 +10031,38 @@ var ROUTE_VOCAB = [
     fail("with llms.txt unreadable the negotiation did not fall through to " +
          "the page — an agent gets a broken markdown body instead of the app");
   }
+  /* 3.9.0: the well-known api-catalog is the Worker's second owned path — an
+     empty RFC 9727 linkset on its own URL, GET-only, leaving the root's
+     negotiation and every passthrough untouched. Its response is returned
+     synchronously (no assets hop), so it is read directly, not through un(). */
+  var ac = mod.fetch(req("*/*", "GET", "https://nightwatcher.life/.well-known/api-catalog"), env);
+  if(!ac || ac.body !== '{"linkset":[]}'){
+    fail("GET /.well-known/api-catalog did not answer an empty linkset — the " +
+         "honest 'no API' is {\"linkset\":[]}, and any entry would invent an " +
+         "anchor and a service-desc for an API that does not exist");
+  } else {
+    var ah = ac.init.headers || {};
+    if((ah["Content-Type"] || "") !== "application/linkset+json"){
+      fail("the api-catalog is not application/linkset+json — RFC 9727 names " +
+           "the linkset media type, and the wrong label makes the right body " +
+           "unreadable to the agent that asked");
+    }
+    if(ac.init.status !== 200){
+      fail("the api-catalog did not answer 200 — a 404 there reads as 'no " +
+           "api-catalog' rather than the honest 'no API'");
+    }
+  }
+  var acPost = un(mod.fetch(req("*/*", "POST", "https://nightwatcher.life/.well-known/api-catalog"), env));
+  if(acPost !== htmlRes){
+    fail("a POST to /.well-known/api-catalog did not fall through by identity " +
+         "— the catalog branch must be GET-only, like the markdown branch");
+  }
   note("worker.js executed: markdown negotiation answers llms.txt with " +
        "Vary/Content-Location, five non-preferring shapes pass through by " +
        "identity, q-values read, POST and non-root refused in the script, " +
-       "unreadable llms.txt degrades to the page; run_worker_first pinned " +
-       "to [\"/\"]");
+       "unreadable llms.txt degrades to the page; /.well-known/api-catalog " +
+       "answers an empty linkset, GET-only; run_worker_first pinned to " +
+       "[\"/\", \"/.well-known/api-catalog\"]");
 })();
 
 /* ---------- 134. A removal is a fact with a clock, not a hole ---------- */

@@ -40,9 +40,9 @@ s=s.replace(a,'  S.beltDropping = true; render();',1);${W}"
 
 run_case "reduced motion keeps the entrance" \
   "does not cut the drop's entrance" \
-  "${P}a=',.pathseg[data-toast]{animation:none;}}'
+  "${P}a=',.pathseg[data-toast],.pathseg[data-park]:not([data-drop]){animation:none;}}'
 assert a in s
-s=s.replace(a,'{animation:none;}}',1);${W}"
+s=s.replace(a,',.pathseg[data-park]:not([data-drop]){animation:none;}}',1);${W}"
 
 echo "--- 130: every seam in the stack is an overlap (owner: 'not always almost there')"
 
@@ -127,6 +127,26 @@ run_case "the no-anchor fallback drifts off the strip" \
   "${P}a='top:calc(var(--hdrh) + var(--beltH) - 4px);'
 assert a in s
 s=s.replace(a,'top:100px;',1);${W}"
+
+echo "--- 130 (3.9.0): the closed belt glows, closed only, in the signal token, off under reduced motion"
+
+run_case "the belt glow keyframe leaves" \
+  "belt glow keyframe is gone" \
+  "${P}a='@keyframes beltglow{to{box-shadow:0 0 16px 0 var(--signaledge);}}'
+assert a in s
+s=s.replace(a,'',1);${W}"
+
+run_case "the glow slips reduced motion" \
+  "reduced motion does not cut the glow" \
+  "${P}a='.pathseg[data-toast],.pathseg[data-park]:not([data-drop]){animation:none;}'
+assert a in s
+s=s.replace(a,'.pathseg[data-toast]{animation:none;}',1);${W}"
+
+run_case "the glow drops its signal token" \
+  "does not breathe in --signaledge" \
+  "${P}a='to{box-shadow:0 0 16px 0 var(--signaledge);}'
+assert a in s
+s=s.replace(a,'to{box-shadow:0 0 16px 0 var(--dust);}',1);${W}"
 
 echo "--- the smoke half: the parked selectors must live in some staged state"
 

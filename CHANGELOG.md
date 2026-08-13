@@ -26,6 +26,59 @@ to saved progress would also be MAJOR, and should never happen, because every
 > Anything experimental after 3.0.0 takes a pre-release tag — `3.1.0-rc.1` —
 > rather than a plain version.
 
+## [3.9.0] — 2026-08-13
+
+**The closed belt reminds you it is there, the first-run page asks the whole
+question, and the one well-known path a validator still probes gets an honest
+answer. MINOR — same data, same orders.**
+
+### Added
+
+- **The closed belt glows, now and then.** The utility belt is the app's one
+  persistent control, and the standing note on it is the owner's: "you don't
+  use it much, but it needs to work perfectly" — which is exactly the thing a
+  reader forgets is there. So the parked peek now breathes a soft `--signaledge`
+  glow on a nine-second cycle: a slow swell up and back down, easing almost to
+  a hold at each end. It rides
+  `.pathseg[data-park]:not([data-drop])`, so it is the CLOSED strip only — an
+  open or dropped belt never glows, because a control you are already using does
+  not need to raise its hand. It reuses the signal-alpha token already on the
+  peek, so the palette gains no colour — 3.8.4 spent a release making every one
+  single-meaning, and the belt keeps that. And because it is a box-shadow
+  keyframe, not a transition, it is off under `prefers-reduced-motion` by being
+  named: the `*{transition:none}` block cannot reach a keyframe (the section-128
+  Q2 trap), so the `animation:none` block names the strip. Guard 130 pins the
+  keyframe, the closed-only selector, the token, and the reduced-motion cut.
+- **`/.well-known/api-catalog` answers, honestly and empty.** The Cloudflare
+  Agent Readiness panel probes RFC 9727's well-known api-catalog. Night Watcher
+  has no API, and 3.8.4 refused to fabricate an `api-catalog` Link relation for
+  that reason. But the honest answer to the probe is not silence — a 404, which
+  a validator reads as "no catalogue at all" — it is an EMPTY catalogue: an RFC
+  9264 linkset with zero links, `{"linkset":[]}`, `application/linkset+json`,
+  200. The machine-readable "there is no API", the sibling of 3.8.4's auth.md.
+  It is served from the Worker, not a file: `run_worker_first` widens from
+  `["/"]` to add the one path, which is safe precisely because no asset sits
+  behind it — nothing else pays the hop. What stays refused is an ENTRY: a link
+  would need an anchor and a service-desc (an OpenAPI document) for an API that
+  does not exist. Guard 133 executes the new branch; RELEASING.md reads it on
+  the wire after every deploy. Known risk, accepted on the record: a validator
+  may only credit a catalogue that carries at least one entry, and the honest
+  empty form could still read red.
+
+### Changed
+
+- **The first-run page offers scope, not just format.** A first-lander saw the
+  format switch (Animated / Live action / All) under "What are you watching" but
+  not the scope switch (Movies / Movies+Series): that one lived only inside the
+  belt's closed buckle, so the sixty-seven seasons of television were invisible
+  until a visitor opened a pouch they had no reason to. The intro paragraph even
+  promises it — "Films only, or every series too." Scope now renders beside
+  format on the first-run surface, the same "what to include" pair the belt
+  groups. This is parity, not a second home: format already rendered in both
+  places, and scope only ever belonged beside it. One token in `viewHome`; the
+  existing `data-scope` handler already did the rest. Guard 54 pins scope beside
+  format, above the path deck.
+
 ## [3.8.4] — 2026-08-13
 
 **The page learns to introduce itself to agents, the darker theme finishes
