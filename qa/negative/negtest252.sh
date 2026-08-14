@@ -50,7 +50,7 @@ run_case "the privacy answer is cut from the seed" \
 
 run_case "the Joker answer is cut from the seed" \
   "no longer matches the data" \
-  "${X}i=s.index('<h3>Where do the Joker films fit?</h3>');j=s.index('</main>',i);s=s[:i]+s[j:];${XW}"
+  "${X}i=s.index('<h3>Where do the Joker films fit?</h3>');j=s.index('<p>An unofficial fan guide',i);s=s[:i]+s[j:];${XW}"
 
 run_case "a restored answer is reworded in the seed only" \
   "no longer matches the data" \

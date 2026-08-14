@@ -26,6 +26,38 @@ to saved progress would also be MAJOR, and should never happen, because every
 > Anything experimental after 3.0.0 takes a pre-release tag — `3.1.0-rc.1` —
 > rather than a plain version.
 
+## [3.9.1] — 2026-08-14
+
+**Three lines of copy the seed never carried — what sets the catalogue apart,
+the contract the app runs under, and who stands behind it — plus two straight
+answers the FAQ did not yet hold. PATCH — same data, same orders.**
+
+### Added
+
+- **The seed says what makes it different, and names its own rules.** The
+  crawlable block listed the whole catalogue but never stated, in plain sight,
+  what sets it apart from a ranked list or a forum thread, nor the one-paragraph
+  contract the app runs under. A reader without JavaScript — and the engines
+  that read only that surface — saw the shelf and not the stance. One paragraph
+  after the intro now carries both: three spoiler-safe orderings, a fresh
+  where-to-watch search on every entry, nothing stored about you, and the
+  no-account / offline / progress-stays-put contract. Existing product reaching
+  the surface, not new promises. It rides in guard 78's generated seed, blessed
+  and byte-compared like everything else in `<main id="view">`.
+- **The provenance line reaches the seed.** "An unofficial fan guide, kept by
+  6ummy, AGPL, source public on GitHub" lived only in the app's JS-rendered
+  footer, so a non-rendering crawler — the one place the Human Trust signal is
+  actually graded — never saw who keeps the site or under what licence. It is a
+  visible line in the seed now, prose only: guard 90 keeps the seed's anchors
+  internal, so the claim carries the weight, not an outbound link.
+- **Two straight answers, for the two questions the FAQ did not yet hold.**
+  "Will my progress still be here later — on another device, or if I clear my
+  browser?" and "Is there an app, an account, or an API?" — added to
+  `buildFAQ()`, the one source guard 78 renders into the seed and guard 100
+  mirrors into the FAQPage schema, so both move together or the build fails. The
+  answers say what `auth.md` says to machines: no account, no API, one public
+  page, progress kept only in the visitor's browser.
+
 ## [3.9.0] — 2026-08-13
 
 **The closed belt reminds you it is there, the first-run page asks the whole

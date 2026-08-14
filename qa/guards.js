@@ -299,6 +299,16 @@ function buildFAQ(FILMS, MODENOTE, tierOf){
      "No. There is no account and no sign-in, no advertising, and nothing tracking what you " +
      "watch. What you tick stays in your browser and is never sent anywhere. It works offline, " +
      "and it is free software under the AGPL."],
+    ["Will my progress still be here later — on another device, or if I clear my browser?",
+     "In this browser, yes — what you tick is saved locally and waiting when you come " +
+     "back. It does not travel to other browsers or devices, and clearing this browser’s " +
+     "data clears it, because nothing is ever kept on a server. Progress carries a code you " +
+     "can copy from the Progress tab and paste into another browser to move it or keep a backup."],
+    ["Is there an app, an account, or an API?",
+     "No account and no sign-in — nothing to register and nothing to log into. It is one " +
+     "web page that runs entirely in your browser, and you can install it to your home screen " +
+     "like an app. There is no API; every page and file the site serves is public and identical " +
+     "for everyone."],
     ["Where do the Joker films fit?",
      "In their own continuity, and nowhere near the rest. They are Gotham stories with no " +
      "Batman in them, so they sit in a universe of their own, marked optional \u2014 nothing " +
@@ -4638,6 +4648,18 @@ var ROUTE_VOCAB = [
       '<a href="#next">Next up</a> names the next unwatched entry, and ' +
       '<a href="#progress">Progress</a> keeps the tally. The app needs JavaScript; ' +
       "what follows is what it covers.</p>",
+    /* 3.9.1: the differentiator and the contract, in plain sight. The audits
+       put Competitive Differentiation and On-Page below nine not because the
+       product is thin but because the seed stated the catalogue without ever
+       stating what sets it apart from a ranked list or a forum thread, or the
+       one-paragraph contract the app runs under — both things the app already
+       is. Existing product reaching the surface engines read, not new promises. */
+    "<p>This is not a ranked list or a forum thread argued over once and left to " +
+      "rot — it is three spoiler-safe orderings of every Batman story ever filmed, " +
+      "a fresh where-to-watch search on every entry, and nothing stored about you. " +
+      "Pick an ordering, tick what you have seen, and the next unwatched entry is " +
+      "always waiting: no account, no sign-in, it works offline, and your place is " +
+      "kept in this browser alone.</p>",
     "<h2>The eras of Bruce’s life</h2>",
     /* 2.7.2: the notes joined the names. The fifth audit asked for "a compact
        list of the eras with one-sentence definitions" and the seed carried the
@@ -4693,6 +4715,14 @@ var ROUTE_VOCAB = [
     FAQDATA.map(function(q){
       return "<h3>" + e(q[0]) + "</h3>\n<p>" + e(q[1]) + "</p>";
     }).join("\n"),
+    /* 3.9.1: who stands behind it, in the crawlable seed. The provenance line
+       lived only in the app's JS-rendered footer, so a reader without
+       JavaScript — and the engines that grade Human Trust — never saw who
+       keeps it, that it is unofficial, or that it is AGPL. No outbound link
+       (guard 90 keeps the seed's anchors internal); the claim is the value. */
+    "<p>An unofficial fan guide, kept by 6ummy and free software under the AGPL — " +
+      "the source is public on GitHub. Built in the open by one person and offered " +
+      "as-is; corrections and additions are welcome there.</p>",
     "</main>"
   ].join("\n");
 
