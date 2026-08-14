@@ -126,11 +126,20 @@
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
 
+# VARY: ACCEPT ON / , ADDED IN 3.9.2. worker.js sets it on the markdown branch
+# and nothing set it here, so the HTML fall-through was a second representation
+# of the same URL with no signal that the URL has two — and a shared cache that
+# relaxes no-cache revalidation could hand this HTML to a markdown-preferring
+# agent. It sits under Cache-Control rather than above the Link set because it
+# is a cache-key directive and belongs beside the other one. The negotiation is
+# in worker.js; the declaration belongs in the file that can be diffed and
+# guarded.
 /
   Link: <https://nightwatcher.life/sitemap.xml>; rel="sitemap"
   Link: <https://nightwatcher.life/>; rel="canonical"
   Link: </llms.txt>; rel="describedby"
   Cache-Control: no-cache
+  Vary: Accept
 
 /sw.js
   Cache-Control: no-cache

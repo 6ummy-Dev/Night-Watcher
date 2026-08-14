@@ -26,6 +26,164 @@ to saved progress would also be MAJOR, and should never happen, because every
 > Anything experimental after 3.0.0 takes a pre-release tag — `3.1.0-rc.1` —
 > rather than a plain version.
 
+## [3.9.2] — 2026-08-14
+
+**The 14 August review, worked through: a blurb that named the franchise's most
+famous death, a documented watch order that was backwards for seven minor
+versions, four storage and header seams, and a README claim about test coverage
+that a full mapping proved false. PATCH — same catalogue, same slugs, same
+progress format.**
+
+### Fixed
+
+- **The DCAU order stopped contradicting its own reason, and the reason was
+  wrong.** The universe note, the JLU entry blurb, `README.md` and guard 30 all
+  said the same thing: JLU's "Epilogue" spoils *Batman Beyond*, so save Beyond
+  for the very end. Read once, that is backwards — if "Epilogue" spoils Beyond,
+  putting "Epilogue" first delivers the spoiler before the thing it spoils. It
+  had held since 1.2.3, each of the four citing the others. Two facts settled
+  it. "Epilogue" is JLU **season 2** (2005), not the season 3 (2006) entry the
+  blurb sat on; and it is set fifteen years after Beyond, which makes it
+  Beyond's ending rather than its trailer. The Beyond block — the pilot film,
+  three seasons, Zeta and *Return of the Joker* — now runs **before** Justice
+  League, where release order and chronology both put it. Guard 30's rule is
+  inverted with it, and every Beyond entry is pinned individually rather than
+  the block's ends, so a partial move cannot pass. Entry IDs are frozen, so this
+  reorder does not touch a single saved mark or backup code.
+- **A blurb named Jason Todd's death one row above the film that reveals it.**
+  *Death in the Family*'s description said the film "rewinds to Jason Todd's
+  death" — while the next entry, *Under the Red Hood*, is written as "A dead
+  Robin … the one question Bruce cannot answer" for exactly the reason that
+  blurb ignored, and era 4's note omits Jason on purpose. Rewritten to the
+  premise without the name.
+- **Nine more descriptions and notes stopped saying what happens.** Era 5's note
+  ("the years he is taken off the board") was pure event and sat in the
+  crawlable seed. The Knightfall trilogy narrated Parts 1 and 3 before either
+  exists. *The Batman* season 2 gave away season 1's finale twist; *Long
+  Halloween Part Two* gave away its own climax; *Birds of Prey* gave away *The
+  Killing Joke*, which is in this catalogue; *Batwoman* gave away both its lead
+  handoff and a crossover cameo; *The Penguin* named *The Batman*'s closing
+  event; *Young Justice* season 2 gave away the time skip. *Injustice* keeps its
+  famous premise but no longer names the death outright. The Standalone Films
+  note said "connected to nothing and to each other" where it meant *not* to
+  each other.
+- **`flagSave()` clears the `--hdrh` override again.** It only ever set it: a
+  session that lost storage and then recovered kept the banner-inflated header
+  height for the rest of its life, so `--ghtop`, the belt's sticky top, the drop
+  and the includes panel all parked a banner-height below the real header edge
+  until reload. Clearing rather than re-measuring is deliberate — an inline px
+  value cannot track `env(safe-area-inset-top)` and the stylesheet's `calc()`
+  can.
+- **A JSON restore consults the value of a mark, not just the key.** A
+  hand-edited backup carrying `"some-id": false` imported as watched.
+  `marksOf()` has required truthiness on the storage read path since the shaping
+  work; two import surfaces disagreeing about one shape was the defect.
+- **`dedupeLog()` re-boxes its entries, as `mergeLog()` always has.** An
+  unshaped entry in local storage — an extra field, a string timestamp —
+  persisted through every future `persistNow()` forever. Same hole the import
+  path had fixed, by a shorter route.
+- **`IOSDEVICE` is assigned above the first render.** With storage blocked,
+  `restore()` renders synchronously, and it ran before the declaration — so the
+  iOS install hint was missing from the first paint of a `#progress` deep link.
+- **`HEAD /.well-known/api-catalog` answers.** The branch tested for GET alone,
+  so HEAD fell through to the assets plane and 404'd — a status mismatch on a
+  well-known URI, and HEAD is what a validator probes with first. Guard 133
+  executes both methods now.
+- **`Vary: Accept` on the HTML representation of `/`.** The Worker set it on the
+  markdown branch and nothing set it here, so one URL had two representations
+  and no signal that it did.
+- **Dead `inList()` left `sw.js`.** 3.2.0 removed `NEVER_CACHE` "and the
+  `inList` call that consumed it" and left the body behind.
+- **CSP `img-src` dropped `data:`.** The inline data-URI favicon it existed for
+  moved to files several releases ago; what was left was a standing allowance
+  for any future injection to carry its own image.
+
+### Changed
+
+- **`auth.md` says its own name.** `# Authentication` → `# Night Watcher —
+  auth.md`, so a checker matching the filename against the heading can identify
+  the file it fetched. The body is untouched: there is still nothing to sign
+  into. New guard 135 holds the token.
+- **The deploy config is pinned in the file (new guard 136).** On 14 August the
+  Worker was deleted, recreated from the dashboard, and came back with two
+  overlapping apex bindings — a Custom Domain *and* a Route. Cloudflare cannot
+  serve both, so the site failed for every fresh visitor while a cached PWA
+  masked it in the owner's own browser. Guard 136 asserts `workers_dev: false`
+  and exactly one apex route, bound as a custom domain. It says in its own
+  comment what it cannot do: it reads the file, not the panel.
+- **`RELEASING.md` gained "Recovering a deleted or mis-bound Worker".** The
+  panel half, written down — including the browser-only recovery path and the
+  rule the incident cost a day to learn: **verify a deploy in a private window**,
+  because an installed PWA serves its own shell and makes a dead origin look
+  alive to the one person most likely to check.
+- **"Every guard has been negative-tested" was not true, in four files.**
+  `README.md`, `NOTES.md`, `index.html`'s header block and `guards.js`'s own
+  opening comment all carried the claim since 1.6.x. Mapping all 670 fixtures
+  onto the sections they break found **32 sections with no fixture at all** —
+  including 132, the largest section in the file, which shipped in 3.7.2
+  alongside a negtest suite written for that release's other change. Seven are
+  closed here (7, 10, 21, 27, 30, 42, 132, plus the new sections), all four
+  sentences now say what is true, and **new guard 138** computes the uncovered
+  set on every run and holds it against a written list of 26. A section may
+  leave that list. A section may not join it. The guard states in its own
+  comment that its map is a substring match and approximate in both directions,
+  because a coverage guard that oversells itself is the same failure wearing a
+  new hat.
+- **`--bless` can no longer launder foreign code quietly.** Guard 10 matched two
+  historical signatures, so appending a minified blob inside the app's one
+  `<script>` and running `--bless` re-hashed the CSP around it and went green.
+  Ten patterns now, with a green case proving the app's own three-argument
+  callbacks do not read as minified.
+- **Guard 42 sweeps the files written for agents.** It read the five a browser
+  loads and skipped `llms.txt`, `orders.txt`, `auth.md`, `_headers` and
+  `404.html` — so a foreign URL in the one file an agent actually reads shipped
+  without a failure.
+- **The comment allowlist lost its two dead entries.** Three of four allowed
+  markers named the Cloudflare beacon removed in 3.2.0, and the test is
+  `indexOf` — so any smuggled comment *containing* one of those strings passed.
+  A section whose stated philosophy is "a fifth cannot arrive quietly" was
+  allowing four names for two real comments.
+- **qa.yml's fixture split is guarded like the totals beside it.** The workflow
+  comment claimed "the counts are now guarded in this file the same as the
+  README's" and only the two totals were.
+- **New guard 137** pins the four app fixes above by source shape. Three of them
+  are one-line reverts, and a one-line revert is what survives a review and dies
+  in the next refactor.
+
+### Housekeeping
+
+- CI caches the Playwright browser download (~150 MB re-fetched every run, the
+  browser job's dominant cost) and waits for the static server by polling it
+  rather than `sleep 1`. `browser-check.mjs` polls the cache for the shell
+  instead of sleeping 600 ms before going offline — the file's own rule is
+  measure, don't sleep.
+- `browser-check.mjs` writes its screenshots to a gitignored `qa/.shots/`. It
+  had been overwriting two tracked PNGs on every run that nothing compared and
+  CI discarded, so a local run always dirtied the tree.
+- Stale prose: two negtest suite headers cited guard numbers that moved (53→55,
+  59→66); `run-all.sh` carried a skip that could never fire and now documents
+  the `negtestNNN` naming convention and negtest131's exception;
+  `make-share-card.mjs` still claimed Playwright was deliberately absent from
+  `package.json`, where it has been since 3.7.2; `NOTES.md` said every TV season
+  carries `o:1` (The Penguin does not, deliberately) and counted "thirteen"
+  repeating titles when there are sixteen; `sitemap.xml` cited a byte count for
+  `llms.txt` that had drifted 113 bytes, now no figure at all.
+- Copy: two double-spaced em dashes, one shape for the six "no order between
+  these" notes, `labeled`/`In theaters` brought into line with the catalogue's
+  own dialect, Batman '66's runtime agreeing with itself in the note and the
+  entry, and the `<meta>` description matching `og:` and the JSON-LD.
+
+### Known, not fixed
+
+- **26 guard sections still have no negative fixture**, named in guard 138's
+  `STILL_OWED`. Closing them is a campaign, not a patch, and the list is now
+  visible instead of contradicted by a sentence.
+- ***Death in the Family* still renders before *Under the Red Hood*** in the
+  life ordering and the core route, and the first film's premise is the second
+  film's inciting event. The blurb no longer names it; the ordering is an owner
+  call and is not made here.
+- `404.html` still carries no CSP; a `<meta>` policy does not cover it.
+
 ## [3.9.1] — 2026-08-14
 
 **Three lines of copy the seed never carried — what sets the catalogue apart,

@@ -562,9 +562,9 @@ ok("focus survives rating from inside an open row",
 
 /* Screenshots, so the header can be looked at rather than only measured. */
 await page.evaluate(() => { S.watched = {}; S.tab = "watch"; render(); window.scrollTo(0,0); });
-await page.screenshot({ path: "qa/shot-header-0.png", clip: {x:0, y:0, width:390, height:120} });
+await page.screenshot({ path: "qa/.shots/shot-header-0.png", clip: {x:0, y:0, width:390, height:120} });
 await page.evaluate(() => { pool().forEach(f => S.watched[f.id] = 1); render(); });
-await page.screenshot({ path: "qa/shot-header-100.png", clip: {x:0, y:0, width:390, height:120} });
+await page.screenshot({ path: "qa/.shots/shot-header-100.png", clip: {x:0, y:0, width:390, height:120} });
 
 /* ---- axe-core, in states a static scan cannot reach ------------------- */
 /* 3.2.0. Lighthouse already runs axe against the cold load and passes it, so
@@ -673,8 +673,15 @@ const swReady = await swPage.evaluate(async () => {
 ok("the service worker registers, activates, and takes the page",
    swReady.supported && swReady.active && swReady.controlled, JSON.stringify(swReady));
 if(swReady.supported && swReady.active && swReady.controlled){
-  /* give the install's individually-caught shell puts a beat to settle */
-  await swPage.waitForTimeout(600);
+  /* 3.9.2: POLLED, NOT SLEPT. A fixed 600 ms was a bet on the runner, and this
+     file's own rule is measure, don't sleep. Wait for the shell to actually be
+     in the cache, then go offline. */
+  await swPage.waitForFunction(async () => {
+    for(const n of await caches.keys()){
+      if(await (await caches.open(n)).match("./index.html")) return true;
+    }
+    return false;
+  }, null, {timeout: 10000}).catch(() => {});
   await swCtx.setOffline(true);
   let offline = { booted: false, entries: 0 };
   try{

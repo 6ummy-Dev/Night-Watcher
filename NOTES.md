@@ -11,8 +11,9 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 134 numbered sections, each one a rule with the failure that
-  produced it written above it, and each one negative-tested.
+- **`qa/guards.js`** — 138 numbered sections, each one a rule with the failure that
+  produced it written above it. Most are negative-tested; the ones that are not
+  are named in section 137, which is the list of what is still owed.
 - **`README.md`** — what the app promises and what it refuses to do.
 
 If you are about to change something in `index.html` that looks redundant, look
@@ -308,7 +309,8 @@ caller needed it, it moved in here.
 ### `tierOf()`
 
 Tier membership is EXCLUSIVE: Essential > Optional > Core. The raw o:1 flag
-is a ROUTE marker, not a tier — every TV season carries it. Always resolve
+is a ROUTE marker, not a tier — nearly every TV season carries it (The
+Penguin is the one that resolves to Core, and that is deliberate). Always resolve
 through tierOf(); testing f.o directly drops an essential season from Core
 AND Optional, leaving it in no bucket at all.
 
@@ -329,7 +331,7 @@ staged broken before this.
 The earliest year the title appeared, not the entry's own. Availability is
 sold per show, not per season, so "Batman: The Animated Series 1994" is a
 worse query than "\u2026 1992" for the same answer — and every season of a show
-asking the same question is the point. Thirteen titles repeat across the
+asking the same question is the point. Titles repeat across the
 catalogue; without a year they all resolve to whichever one is more famous.
 
 ### `/* "Rate 3" repeated down a page of films says nothing a…`

@@ -65,7 +65,7 @@ run_case "the old beacon origin comes back to script-src" \
 
 run_case "an unchecked directive is rewritten to a wildcard" \
   "this build was reviewed with" \
-  "${P}s=s.replace(\"img-src 'self' data:\",'img-src *',1);${W}"
+  "${P}s=s.replace(\"img-src 'self'\",'img-src *',1);${W}"
 
 run_case "a pinned directive is opened to anywhere" \
   "this build was reviewed with" \

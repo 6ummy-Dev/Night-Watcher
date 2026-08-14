@@ -6,8 +6,8 @@
    app's own. Nothing on the card is typed by hand, so the card cannot drift
    from the catalogue: regenerate it whenever the counts move.
 
-   Release tooling, not CI. Playwright is deliberately NOT in package.json —
-   the lockfile and both CI jobs stay untouched. To run:
+   Release tooling, not CI. Playwright joined package.json in 3.7.2 with the
+   browser job, so this needs no separate install any more. To run:
 
        npm i --no-save playwright && npx playwright install chromium
        node qa/make-share-card.mjs

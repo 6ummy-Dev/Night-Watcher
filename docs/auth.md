@@ -1,4 +1,4 @@
-# Authentication
+# Night Watcher — auth.md
 
 Night Watcher has no authentication, by design.
 

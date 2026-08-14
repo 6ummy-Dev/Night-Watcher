@@ -4,7 +4,9 @@
    Zero dependencies. Exits 1 on any failure. Functions under test are
    EXTRACTED from docs/index.html and evaluated, never reimplemented here —
    a copy drifts from the app and quietly stops testing it.
-   Every guard is negative-tested: made to fail on purpose before it is trusted. */
+   Guards are negative-tested: made to fail on purpose before they are trusted.
+   Not all of them are yet. Section 137 pins the ones that are not, so the gap
+   is a list that can only shrink rather than a claim nobody checked. */
 "use strict";
 
 var fs   = require("fs");
@@ -180,6 +182,10 @@ function blessHtml(next){
      100  The straight answers are machine-readable
      101  The site answers off the app too
      104  The security headers the tree owns
+     135  The auth.md H1 carries its own name
+     136  One origin, one binding, in the file
+     137  The 3.9.2 storage and header fixes stay fixed
+     138  The negative coverage map, and what it still owes
      105  The catalogue answers in plain text
      133  The root negotiates markdown, and only the root
      125  robots.txt states a position on AI use
@@ -765,10 +771,36 @@ if(!/function routeHash\s*\(/.test(HTML)){
 /* The QR encoder was 20 KB of somebody else's minified JavaScript, 15% of the
    file, carrying a licence obligation, for a feature the link does better. */
 
-var vendored = HTML.match(/qrcode-generator|\(c\) [A-Z][a-z]+ [A-Z][a-z]+ \| MIT/g);
-if(vendored){
-  fail("vendored third-party code is back in index.html (" + vendored[0] + ")");
-}
+/* 3.9.2: WIDENED, because --bless would launder foreign code straight past
+   this. Reproduced in the 14 Aug review: append a minified blob inside the
+   app's one <script>, run --bless, and the CSP hash is re-computed around it
+   \u2014 full suite green. The check was two historical signatures, so the only
+   real backstops were the human diff and the weight headroom.
+
+   The list below will always be behind whatever arrives next; that is what the
+   bless summary underneath is for. A pattern set is a filter, a printed diff of
+   what bless re-hashed is a reader. */
+var VENDOR_MARKS = [
+  [/qrcode-generator/,                         "qrcode-generator"],
+  [/\(c\) [A-Z][a-z]+ [A-Z][a-z]+ \| MIT/,        "an MIT attribution header"],
+  [/\/\*!/,                                     "a /*! banner comment"],
+  [/sourceMappingURL/,                         "a sourceMappingURL"],
+  [/webpack/,                                  "a webpack marker"],
+  [/__esModule/,                               "an __esModule marker"],
+  [/module\.exports/,                          "a module.exports"],
+  [/define\.amd/,                              "an AMD define"],
+  [/[;}]\s*!function\s*\(/,                     "a !function bundler wrapper"],
+  [/function\s*\(\s*[a-z]\s*,\s*[a-z]\s*,\s*[a-z]\s*,\s*[a-z]\s*[,)]/,
+                                               "a run of minified single-letter parameters"]
+];
+VENDOR_MARKS.forEach(function(pair){
+  var hit = HTML.match(pair[0]);
+  if(hit){
+    fail("vendored third-party code is back in index.html \u2014 " + pair[1] +
+         " (" + String(hit[0]).slice(0, 40) + ") \u2014 the app ships one inline " +
+         "script that is ours, and bless will re-hash whatever is inside it");
+  }
+});
 
 /* ---------- 11. BUILD and the service worker agree -------------------- */
 
@@ -1627,21 +1659,39 @@ ext.forEach(function(tag){
 
 /* ---------- 30. Documented spoiler order holds ------------------------ */
 /* By-universe renders in array order, so the array IS the watch order. Group
-   notes make promises about it \u2014 the DCAU note says to save Beyond for the end
-   because JLU's "Epilogue" spoils it, while the array put Beyond third. Prose
-   cannot enforce itself. */
+   notes make promises about it, and prose cannot enforce itself.
+
+   THE FIRST RULE HERE WAS BACKWARDS FROM 1.2.3 UNTIL 3.9.2, AND THIS GUARD
+   HELD THE ARRAY TO IT. It read "JLU 'Epilogue' spoils Batman Beyond" and then
+   required Beyond to come AFTER JLU \u2014 which delivers the spoiler before the
+   thing it spoils. The DCAU note, the JLU entry blurb and README.md all
+   repeated the same inversion for seven minor versions, each one citing the
+   others. Two facts settled it: "Epilogue" is JLU SEASON 2 (2005), not the
+   season 3 entry the blurb sat on, and it is set fifteen years after Batman
+   Beyond \u2014 it is Beyond's ending, not its trailer. 3.9.2 moved the Beyond
+   block ahead of Justice League and inverted the rule.
+
+   Every Beyond entry is pinned individually rather than just the block's ends.
+   A partial move would otherwise pass, and a rule that only answers the easy
+   case is a sentence, not a rule. */
 
 var pos = {};
 sandbox.PATH.forEach(function(g, gi){
   g.films.forEach(function(f, ix){ pos[f.i] = gi * 1000 + ix; });
 });
 
+var JLU_AFTER = ["justice-league-unlimited-season-2-2005",
+                "justice-league-unlimited-season-3-2006"];
+var WHY_BEYOND = "JLU 'Epilogue' (season 2) is Batman Beyond's ending, not its " +
+                 "trailer \u2014 the whole Beyond block runs before Justice League";
+
 var SPOILERS = [
-  ["justice-league-unlimited-season-3-2006",
-   ["batman-beyond-the-movie-1999", "batman-beyond-season-1-1999",
-    "batman-beyond-season-2-2000", "batman-beyond-season-3-2000",
-    "the-zeta-project-seasons-1-2-2001", "batman-beyond-return-of-the-joker-2000"],
-   "JLU 'Epilogue' spoils Batman Beyond"],
+  ["batman-beyond-the-movie-1999",            JLU_AFTER, WHY_BEYOND],
+  ["batman-beyond-season-1-1999",             JLU_AFTER, WHY_BEYOND],
+  ["batman-beyond-season-2-2000",             JLU_AFTER, WHY_BEYOND],
+  ["batman-beyond-season-3-2000",             JLU_AFTER, WHY_BEYOND],
+  ["the-zeta-project-seasons-1-2-2001",       JLU_AFTER, WHY_BEYOND],
+  ["batman-beyond-return-of-the-joker-2000",  JLU_AFTER, WHY_BEYOND],
   ["batman-the-animated-series-season-1-1992",
    ["batman-mask-of-the-phantasm-1993", "batman-mr-freeze-subzero-1998"],
    "Phantasm and SubZero drop into the series, not ahead of it"],
@@ -2188,7 +2238,13 @@ if(!/<label class="bklab" for="restorebox">/.test(HTML)){
      origins in a dead cache branch from 1.4.2 to 1.5.0 because this scan only
      ever read the page. A service worker reaches the network too. */
   var origins = {};
-  ["index.html", "sw.js", "manifest.json", "robots.txt", "sitemap.xml"].forEach(function(f){
+  /* 3.9.2 added the machine-readable files. The sweep read the five a browser
+     loads and skipped every file written FOR an agent \u2014 llms.txt above all,
+     which is the one an agent actually reads, plus orders.txt, auth.md, the
+     header file and the 404 page. A foreign URL in any of them shipped without
+     a failure. */
+  ["index.html", "sw.js", "manifest.json", "robots.txt", "sitemap.xml",
+   "llms.txt", "orders.txt", "auth.md", "_headers", "404.html"].forEach(function(f){
     var fp = path.join(PUBLIC, f);
     if(!fs.existsSync(fp)) return;
     var txt = fs.readFileSync(fp, "utf8");
@@ -2277,7 +2333,10 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
     "default-src":  "'none'",
     "style-src":    "'self' 'unsafe-inline'",
     "font-src":     "'self'",
-    "img-src":      "'self' data:",
+    /* data: LEFT IN 3.9.2 WITH THE FAVICON THAT NEEDED IT. The inline data-URI
+       icon moved to files; the allowance outlived it by several releases as a
+       standing invitation for any future injection to carry its own image. */
+    "img-src":      "'self'",
     "manifest-src": "'self'",
     /* connect-src is DELIBERATELY ABSENT since 3.3.1 and stays absent -- BUT
        NOT FOR THE REASON RECORDED HERE UNTIL 3.4.4, WHICH WAS FALSE.
@@ -3854,6 +3913,18 @@ if(!/function legendBlock/.test(HTML) ||
       });
       counts.push(["negative suites", suites.length, /(\d+)\s+negative suites\b/]);
       counts.push(["negative fixtures", fixtures, /(\d+)\s+fixtures\b/]);
+      /* 3.9.2: THE SPLIT IS GUARDED TOO. qa.yml's cost comment said "the counts
+         are now guarded in this file the same as the README's" and they were
+         not \u2014 only the two totals above were, so the guards/smoke split drifted
+         freely. These are the exact figures whose predecessors drifted before,
+         and the census already computes both. */
+      var smokeFix = 0;
+      suites.forEach(function(f){
+        var txt = fs.readFileSync(path.join(negDir, f), "utf8").replace(/\\\n/g, " ");
+        smokeFix += (txt.match(/^[ \t]*(?:run_case|green_case)\s+"(?:[^"\\]|\\.)*"\s+"(?:[^"\\]|\\.)*"\s+"(?:[^"\\]|\\.)*"\s+"?smoke/gm) || []).length;
+      });
+      counts.push(["run guards.js", fixtures - smokeFix, /(\d+)\s+run guards\.js/, "qa.yml"]);
+      counts.push(["run smoke.js",  smokeFix,            /(\d+)\s+run smoke\.js/,  "qa.yml"]);
     }
 
     /* Every place a live count is stated, not only the README. 1.8.3 fixed the
@@ -3882,7 +3953,11 @@ if(!/function legendBlock/.test(HTML) ||
                  "it counts, which has now happened in three separate files");
           }
         }
-        if(!seen && src[0] === "README.md") warn("README: no " + c[0] + " count to check");
+        /* The split lives in qa.yml's cost comment and nowhere else, so the
+           README is not asked for a number it was never meant to state. */
+        if(!seen && src[0] === "README.md" && c[3] !== "qa.yml"){
+          warn("README: no " + c[0] + " count to check");
+        }
       });
     });
     note("suite counts verified in " + SWEEP.length + " files: " + counts.map(function(c){
@@ -3928,11 +4003,15 @@ if(!/function legendBlock/.test(HTML) ||
      identity line, the notice about marks and lettering, and the two markers
      that bound a vendor snippet. Each is allowed by name, so a fifth cannot
      arrive quietly. */
+  /* 3.9.2 CUT THREE OF THE FOUR. The marks notice and the two beacon bounds
+     had been dead since 3.2.0, and the test is indexOf \u2014 so any smuggled
+     comment CONTAINING one of those strings passed. Reproduced in the 14 Aug
+     review: "<!-- Cloudflare Web Analytics : smuggled prose -->" went green
+     through the whole suite. A section whose stated philosophy is "a fifth
+     cannot arrive quietly" was allowing four names for one real comment. */
   var ALLOWED_HTML_COMMENTS = [
     "Night Watcher \u00b7 https://github.com/6ummy-Dev/Night-Watcher",
-    "No trademarked logos",
-    "Cloudflare Web Analytics",
-    "End Cloudflare Web Analytics"
+    "No trademarked logos"
   ];
   (HTML.match(/<!--[\s\S]*?-->/g) || []).forEach(function(c){
     var ok = ALLOWED_HTML_COMMENTS.some(function(a){ return c.indexOf(a) >= 0; });
@@ -10082,16 +10161,40 @@ var ROUTE_VOCAB = [
            "api-catalog' rather than the honest 'no API'");
     }
   }
+  /* 3.9.2: HEAD IS ANSWERED TOO. The branch tested for GET alone, so HEAD fell
+     through to the assets plane and 404'd — a HEAD/GET status mismatch on a
+     well-known URI, and HEAD is what a validator probes with first. Same
+     headers, no body. */
+  var acHead = mod.fetch(req("*/*", "HEAD", "https://nightwatcher.life/.well-known/api-catalog"), env);
+  if(!acHead || typeof acHead.then === "function"){
+    fail("HEAD /.well-known/api-catalog fell through to the assets plane — it " +
+         "404s there, so a validator that probes with HEAD reads 'no catalogue' " +
+         "from a site that serves one");
+  } else {
+    if(acHead.init.status !== 200){
+      fail("HEAD /.well-known/api-catalog did not answer 200 while GET does — " +
+           "the two methods must agree on the status of a URL that exists");
+    }
+    if(acHead.body){
+      fail("HEAD /.well-known/api-catalog carried a body — HEAD answers the " +
+           "headers of the GET and nothing else");
+    }
+    if(((acHead.init.headers || {})["Content-Type"] || "") !== "application/linkset+json"){
+      fail("HEAD /.well-known/api-catalog did not carry the GET's content type");
+    }
+  }
   var acPost = un(mod.fetch(req("*/*", "POST", "https://nightwatcher.life/.well-known/api-catalog"), env));
   if(acPost !== htmlRes){
     fail("a POST to /.well-known/api-catalog did not fall through by identity " +
-         "— the catalog branch must be GET-only, like the markdown branch");
+         "— the catalog branch must be GET and HEAD only, like the markdown " +
+         "branch is GET only");
   }
   note("worker.js executed: markdown negotiation answers llms.txt with " +
        "Vary/Content-Location, five non-preferring shapes pass through by " +
        "identity, q-values read, POST and non-root refused in the script, " +
        "unreadable llms.txt degrades to the page; /.well-known/api-catalog " +
-       "answers an empty linkset, GET-only; run_worker_first pinned to " +
+       "answers an empty linkset on GET and HEAD and nothing else; " +
+       "run_worker_first pinned to " +
        "[\"/\", \"/.well-known/api-catalog\"]");
 })();
 
@@ -10182,6 +10285,263 @@ var ROUTE_VOCAB = [
   note("removals carry clocks: persistNow writes clk, restore reads it " +
        "validated, three removal sites stamp, the merge is LWW where a " +
        "clock exists and additive where none does, backups stay clockless");
+})();
+
+/* ---------- 135. The auth.md H1 carries its own name ------------------ */
+/* The 14 Aug isitagentready triage's one honest finding. The file opened
+   "# Authentication" — a correct human title, and unreadable as an answer to a
+   checker that matches the filename against the heading to identify the file
+   it fetched. So the H1 says the file's own name.
+
+   THIS GUARD ASSERTS THE TOKEN AND NOTHING ELSE. It is not licence to grow an
+   authentication story later: the body says there is nothing to sign into,
+   that is true, and section 118 is what holds it true. A one-line copy fix
+   with no guard is a one-line copy fix that regresses on the next unrelated
+   edit — which is the whole reason this project turns decisions into failing
+   checks (1.8.5). */
+
+(function(){
+  var fp = path.join(PUBLIC, "auth.md");
+  if(!fs.existsSync(fp)){
+    fail("docs/auth.md is gone — agents ask the question whether or not the " +
+         "site answers it, and no answer is not the same as 'nothing to sign into'");
+    return;
+  }
+  var h1 = (fs.readFileSync(fp, "utf8").split("\n").filter(function(l){
+    return /^#\s+\S/.test(l);
+  })[0] || "").trim();
+  if(!h1){
+    fail("docs/auth.md has no H1 — the file a checker fetches has to say what it is");
+  } else if(h1.indexOf("auth.md") < 0){
+    fail("the auth.md H1 (" + h1 + ") no longer contains the token \"auth.md\" — " +
+         "a checker matching the filename against the heading cannot identify " +
+         "the file, which is the only reason the token is in the title");
+  } else {
+    note("auth.md H1 carries the token: " + h1);
+  }
+})();
+
+/* ---------- 136. One origin, one binding, in the file ------------------ */
+/* 14 AUGUST 2026, AND THIS SECTION IS THE HALF THAT CAN BE CHECKED. The Worker
+   was deleted, recreated from the dashboard, and came back with TWO overlapping
+   apex bindings — a Custom Domain nightwatcher.life AND a Route
+   nightwatcher.life/*. Cloudflare cannot serve both on one host. The site
+   failed for every fresh visitor while a cached PWA masked it in the owner's
+   own browser: loaded normally, failed in incognito. That contrast is the tell,
+   and it is written into RELEASING.md because no guard can see it.
+
+   WHAT THIS PINS IS THE FILE. It cannot see a Custom Domain or a Route added in
+   the Cloudflare panel — which is exactly what took the site down — and a guard
+   that pretended to would be worse than an honest gap. Guard 82 caught the
+   file; nothing could catch the panel. The other half is RELEASING.md,
+   "Recovering a deleted or mis-bound Worker". Neither covers the other, and
+   saying so here is the point. */
+
+(function(){
+  var fp = path.join(ROOT, "wrangler.jsonc");
+  if(!fs.existsSync(fp)){ fail("wrangler.jsonc is gone"); return; }
+  var raw = fs.readFileSync(fp, "utf8");
+  /* The comments in this file are load-bearing prose, not noise — strip them
+     for the parse and leave them on disk. */
+  /* String-aware, because a route pattern legitimately contains "/*" and a
+     regex stripper eats the rest of the file from there. The suite found this
+     the first time it was asked to add a wildcard route \u2014 which is the whole
+     argument for negative fixtures on a guard that ships the same day. */
+  var stripJsonc = function(t){
+    var out = "", inStr = false, i = 0;
+    while(i < t.length){
+      var ch = t.charAt(i);
+      if(inStr){
+        out += ch;
+        if(ch === "\\"){ out += t.charAt(i + 1); i += 2; continue; }
+        if(ch === '"') inStr = false;
+        i++; continue;
+      }
+      if(ch === '"'){ inStr = true; out += ch; i++; continue; }
+      if(ch === "/" && t.charAt(i + 1) === "*"){
+        var end = t.indexOf("*/", i + 2);
+        i = end < 0 ? t.length : end + 2; continue;
+      }
+      if(ch === "/" && t.charAt(i + 1) === "/"){
+        var nl = t.indexOf("\n", i);
+        i = nl < 0 ? t.length : nl; continue;
+      }
+      out += ch; i++;
+    }
+    return out;
+  };
+  var cfg;
+  try{
+    cfg = JSON.parse(stripJsonc(raw));
+  }catch(e){
+    fail("wrangler.jsonc does not parse once its comments are stripped (" +
+         e.message + ") — the deploy config is the one file with no test but " +
+         "the deploy itself");
+    return;
+  }
+
+  if(cfg.workers_dev !== false){
+    fail("wrangler.jsonc no longer sets workers_dev:false — the preview " +
+         "hostname served the whole app and was indexable, so the site " +
+         "competed with itself in search. There is one origin and the apex is " +
+         "the preview (precedent: guard 82's 'no CNAME')");
+  }
+
+  var routes = cfg.routes;
+  if(!Array.isArray(routes) || routes.length !== 1){
+    fail("wrangler.jsonc declares " + (Array.isArray(routes) ? routes.length : "no") +
+         " routes — ONE HOSTNAME IS ONE BINDING. Two apex bindings is the shape " +
+         "that took the site down on 14 Aug 2026, and it is invisible from " +
+         "inside the app");
+  } else {
+    var r = routes[0];
+    if(r.pattern !== "nightwatcher.life"){
+      fail("the apex route pattern is \"" + r.pattern + "\", not " +
+           "\"nightwatcher.life\" — a wildcard pattern here is a Route, and a " +
+           "Route alongside the Custom Domain is the conflict");
+    }
+    if(r.custom_domain !== true){
+      fail("the apex is not bound as a custom domain — as a plain route " +
+           "Cloudflare stops owning the DNS record and the certificate, and " +
+           "there stops being one place to look when either is wrong");
+    }
+  }
+  note("deploy config pinned: workers_dev off, one apex binding, custom domain " +
+       "(the panel half lives in RELEASING.md and cannot be guarded)");
+})();
+
+/* ---------- 137. The 3.9.2 storage and header fixes stay fixed --------- */
+/* Four seams the 14 August review found, none of which any existing section
+   could see. They are pinned by source shape rather than behaviour because
+   three of the four are one-line reverts, and a one-line revert is exactly the
+   thing that survives a review and dies in the next refactor.
+
+   Each assertion names what breaks if the line goes, because "keep this line"
+   is not a reason and this file does not accept one. */
+
+(function(){
+  var fn = (HTML.match(/function flagSave\(\)[\s\S]*?\n\}/) || [""])[0];
+  if(fn.indexOf('removeProperty("--hdrh")') < 0){
+    fail("flagSave() no longer clears the --hdrh override — it only ever SET " +
+         "it before 3.9.2, so a session that lost storage and recovered kept " +
+         "the banner-inflated header height until reload, and --ghtop, the " +
+         "belt's sticky top, the drop and the includes panel all parked a " +
+         "banner below the real header edge. Clearing also hands the height " +
+         "back to the calc() that tracks env(safe-area-inset-top)");
+  }
+
+  if(!/for\(src in \(wBox \|\| \{\}\)\) if\(wBox\[src\]\)/.test(HTML) ||
+     !/for\(src in \(kBox \|\| \{\}\)\) if\(kBox\[src\]\)/.test(HTML)){
+    fail("the JSON import no longer consults the VALUE of a stored mark — " +
+         "marksOf() has required truthiness on the storage read path since the " +
+         "shaping work, and a backup carrying \"some-id\": false imported as " +
+         "watched. Two import surfaces disagreeing about one shape is the defect");
+  }
+
+  var dl = (HTML.match(/function dedupeLog\(log\)[\s\S]*?\n\}/) || [""])[0];
+  if(dl.indexOf("ts:Number(e.ts)") < 0){
+    fail("dedupeLog() no longer re-boxes its entries — mergeLog() has always " +
+         "re-boxed on the import path because an unshaped entry persists " +
+         "through every future persistNow() forever, and own-storage was the " +
+         "same hole with a shorter path to it");
+  }
+
+  var iosAt  = HTML.indexOf("var IOSDEVICE");
+  var restAt = HTML.indexOf("restore(function(){");
+  if(iosAt < 0 || restAt < 0 || iosAt > restAt){
+    fail("var IOSDEVICE is assigned after the restore() call again — with " +
+         "storage blocked restore() renders synchronously, so the iOS install " +
+         "hint went missing from the first paint of a #progress deep link. A " +
+         "declaration the first render depends on belongs above the first render");
+  }
+  note("3.9.2 seams pinned: --hdrh cleared on recovery, import consults mark " +
+       "values, own-storage log re-boxed, IOSDEVICE above the first render");
+})();
+
+/* ---------- 138. The negative coverage map, and what it still owes ----- */
+/* README.md, NOTES.md, index.html's header block and this file's own opening
+   comment all said, from 1.6.x until 3.9.2, that EVERY guard had been
+   negative-tested. A full mapping of the 688 fixtures onto the sections they
+   break showed 32 sections with no fixture at all — including 132, the largest
+   section in the file, which shipped in 3.7.2 next to a negtest suite written
+   for that release's OTHER change. Four releases of that claim were written by
+   people reading the claim.
+
+   3.9.2 closed seven of them and softened all four sentences. This section is
+   what stops the sentence drifting back: the uncovered set is COMPUTED on every
+   run and held against the list below. A section may leave the list — that is
+   the point, and the guard tells you to strike it. A section may not join it.
+
+   HOW THE MAP IS BUILT, AND WHERE IT IS APPROXIMATE. Every run_case/green_case
+   in qa/negative/ declares an expected substring of the failure it is fishing
+   for. That substring is matched against the source of each numbered section
+   after concatenation seams and \u2014-escapes are normalised away. It is a
+   substring match, so it is approximate in BOTH directions: a section whose
+   failure text is assembled from variables can read as uncovered when a fixture
+   does exercise it, and a phrase common to two sections can mark the wrong one
+   covered. That is why the list is pinned rather than merely reported. The
+   guard's job is to keep the SET stable and shrinking, not to certify any
+   individual section \u2014 and claiming otherwise here would be the same kind of
+   sentence this section exists to retire. */
+
+(function(){
+  var negDir = path.join(ROOT, "qa", "negative");
+  if(!fs.existsSync(negDir)){ fail("qa/negative/ is gone"); return; }
+
+  var STILL_OWED = [1, 3, 4, 9, 12, 15, 16, 17, 18, 19, 22, 23, 24, 25, 26, 32,
+                    36, 37, 41, 45, 48, 49, 52, 53, 73, 122];
+
+  var SELF = fs.readFileSync(__filename, "utf8");
+  var re = /\/\* -{3,} (\d+)\./g, m, marks = [];
+  while((m = re.exec(SELF))) marks.push({n: parseInt(m[1], 10), at: m.index});
+  var norm = function(t){
+    return t.replace(/\\u2014/g, "\u2014").replace(/\\u2019/g, "\u2019")
+            .replace(/\\"/g, '"').replace(/"\s*\+\s*\n?\s*"/g, "")
+            .replace(/\s+/g, " ");
+  };
+  var secs = marks.map(function(s, i){
+    return {n: s.n, t: norm(SELF.slice(s.at, i + 1 < marks.length ? marks[i + 1].at : SELF.length))};
+  });
+
+  var expects = [];
+  fs.readdirSync(negDir).filter(function(f){ return /^negtest.*\.sh$/.test(f); }).forEach(function(f){
+    var t = fs.readFileSync(path.join(negDir, f), "utf8").replace(/\\\n/g, " ");
+    var r = /^[ \t]*(?:run_case|green_case)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"/gm, x;
+    while((x = r.exec(t))) expects.push(x[2]);
+  });
+
+  var covered = {};
+  expects.forEach(function(e){
+    var q = norm(e.replace(/\\\$/g, "$"));
+    if(q.length < 8) return;
+    secs.forEach(function(s){ if(s.t.indexOf(q) >= 0) covered[s.n] = 1; });
+  });
+
+  var uncovered = secs.map(function(s){ return s.n; })
+                      .filter(function(n){ return !covered[n]; });
+  var owed = {}; STILL_OWED.forEach(function(n){ owed[n] = 1; });
+
+  uncovered.forEach(function(n){
+    if(!owed[n]){
+      fail("section " + n + " has no negative fixture and is not on the list of " +
+           "sections that owe one \u2014 a guard nobody has ever seen fail is a guard " +
+           "nobody has checked asserts anything. Write the fixture, or add the " +
+           "number to STILL_OWED and say in the commit why it waits");
+    }
+  });
+  STILL_OWED.forEach(function(n){
+    if(covered[n]){
+      fail("section " + n + " is negative-tested now but is still listed as " +
+           "owing a fixture \u2014 strike it from STILL_OWED. The list only shrinks, " +
+           "and a list that does not shrink when the work lands stops being read");
+    }
+    if(!secs.some(function(s){ return s.n === n; })){
+      fail("STILL_OWED names section " + n + ", which does not exist any more");
+    }
+  });
+  note("negative coverage: " + (secs.length - uncovered.length) + "/" + secs.length +
+       " sections mapped from " + expects.length + " fixtures, " + STILL_OWED.length +
+       " still owed");
 })();
 
 /* ---------- report ---------- */

@@ -5,7 +5,7 @@
 
 G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
 
-echo "--- guard 53: levels 2-3 are shorter, at unchanged type size"
+echo "--- guard 55: levels 2-3 are shorter, at unchanged type size"
 run_case "rows the same height again" \
   "levels 2 and 3 are meant to sit shorter than level 1" \
   "${P}a='.includes .scope button{min-height:34px';assert a in s;s=s.replace(a,'.includes .scope button{min-height:44px');${W}"
@@ -61,7 +61,7 @@ run_case "Then loses its numbers" \
   "the Then rows lost their numbers" \
   "${P}a='class=\\\"qn\\\"';assert a in s;s=s.replace(a,'class=\\\"qnum\\\"');${W}"
 
-echo "--- guard 59: the numbering still enforces itself"
+echo "--- guard 66: the numbering still enforces itself"
 run_case "a guard section is renumbered out of order" \
   "guard sections are out of order" \
   "${G}a='/* ---------- 58. Then is the tab';assert a in s;s=s.replace(a,'/* ---------- 60. Then is the tab');${W}"

@@ -17,7 +17,7 @@
   105 fails the build if it ever does: it carries the same 200 entries as the
   crawlable seed in the root page, so submitting both asks a search engine to
   choose between two near-identical bodies on one domain. llms.txt is not that
-  file — 1,892 bytes of summary and pointers, no catalogue. Discoverable is not
+  file — a short page of summary and pointers, no catalogue. Discoverable is not
   indexed, and the two sit on opposite sides of that line.
 
   THAT PARAGRAPH NAMES NO FILENAME ON PURPOSE, and the first draft of it did.

@@ -79,8 +79,12 @@ function markdownResponse(request, env){
    for the same reason. Known risk, accepted on the record: a validator may
    only credit a catalogue with >=1 entry, and the honest empty form could
    still read red. */
-function apiCatalogResponse(){
-  return new Response('{"linkset":[]}', {
+function apiCatalogResponse(head){
+  /* 3.9.2: HEAD is answered as well as GET. The handler tested for GET alone,
+     so HEAD fell through to the assets plane and 404'd \u2014 a status mismatch on
+     a well-known URI that the validators probing it will read as "no catalogue
+     here". Same headers, no body, per HTTP. */
+  return new Response(head ? null : '{"linkset":[]}', {
     status: 200,
     headers: {
       "Content-Type": "application/linkset+json",
@@ -92,8 +96,9 @@ function apiCatalogResponse(){
 export default {
   fetch: function(request, env){
     var url = new URL(request.url);
-    if(url.pathname === "/.well-known/api-catalog" && request.method === "GET"){
-      return apiCatalogResponse();
+    if(url.pathname === "/.well-known/api-catalog" &&
+       (request.method === "GET" || request.method === "HEAD")){
+      return apiCatalogResponse(request.method === "HEAD");
     }
     if(url.pathname === "/" && request.method === "GET" &&
        wantsMarkdown(request.headers.get("Accept"))){

@@ -16,7 +16,7 @@ Source (AGPL, free software): the Night-Watcher repository on GitHub, user 6ummy
 
 ## What it is
 
-- A single-page, single-file web app. 74 titles are curated as the essentials and the core route; the rest is labeled optional side material.
+- A single-page, single-file web app. 74 titles are curated as the essentials and the core route; the rest is labelled optional side material.
 - Progress, ratings and skips stay in the visitor's browser. No accounts, no advertising, nothing tracks what anyone watches, works offline.
 - Content ratings shown are the certified MPA / TV Parental Guidelines values — sourced or absent, never guessed.
 - Availability is never stored; every entry links a fresh where-to-watch search instead.

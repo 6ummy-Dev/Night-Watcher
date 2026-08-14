@@ -52,18 +52,18 @@ in the reader's browser. Free software under the AGPL.
   12. Chase Me (2003) · animated · optional · NR
   13. Gotham Girls — 30 shorts (2000) · animated · optional · NR
   14. Static Shock — Seasons 1–4 (2000) · animated · series · optional · TV-Y7
-  15. Justice League — Season 1 (2001) · animated · series · essential · TV-G
-  16. Justice League — Season 2 (2003) · animated · series · optional · TV-G
-  17. Justice League Unlimited — Season 1 (2004) · animated · series · optional · TV-Y7-FV
-  18. Justice League Unlimited — Season 2 (2005) · animated · series · optional · TV-Y7-FV
-  19. Justice League Unlimited — Season 3 (2006) · animated · series · essential · TV-Y7-FV
-  20. Batman and Harley Quinn (2017) · animated · core · PG-13
-  21. Batman Beyond: The Movie (1999) · animated · optional · NR
-  22. Batman Beyond — Season 1 (1999) · animated · series · essential · TV-PG
-  23. Batman Beyond — Season 2 (2000) · animated · series · optional · TV-PG
-  24. Batman Beyond — Season 3 (2000) · animated · series · optional · TV-PG
-  25. The Zeta Project — Seasons 1–2 (2001) · animated · series · optional · TV-Y7
-  26. Batman Beyond: Return of the Joker (2000) · animated · essential · PG-13
+  15. Batman Beyond: The Movie (1999) · animated · optional · NR
+  16. Batman Beyond — Season 1 (1999) · animated · series · essential · TV-PG
+  17. Batman Beyond — Season 2 (2000) · animated · series · optional · TV-PG
+  18. Batman Beyond — Season 3 (2000) · animated · series · optional · TV-PG
+  19. The Zeta Project — Seasons 1–2 (2001) · animated · series · optional · TV-Y7
+  20. Batman Beyond: Return of the Joker (2000) · animated · essential · PG-13
+  21. Justice League — Season 1 (2001) · animated · series · essential · TV-G
+  22. Justice League — Season 2 (2003) · animated · series · optional · TV-G
+  23. Justice League Unlimited — Season 1 (2004) · animated · series · optional · TV-Y7-FV
+  24. Justice League Unlimited — Season 2 (2005) · animated · series · optional · TV-Y7-FV
+  25. Justice League Unlimited — Season 3 (2006) · animated · series · essential · TV-Y7-FV
+  26. Batman and Harley Quinn (2017) · animated · core · PG-13
 
 05. The Comic Adaptations
 -------------------------

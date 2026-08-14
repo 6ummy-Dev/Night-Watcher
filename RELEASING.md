@@ -116,6 +116,48 @@ The recovery story `sw.js` promises, written down:
 - A rollback is a release: it gets a CHANGELOG line saying what was rolled
   back and why, dated the day it happened.
 
+## Recovering a deleted or mis-bound Worker
+
+Written on 14 August 2026, the day it was needed. The Worker was deleted,
+recreated from the Cloudflare dashboard, and came back serving nothing for
+anybody who had not been there before.
+
+**The symptom that names the fault.** The site loaded normally in the owner's
+own browser and failed in incognito. That contrast is the whole diagnosis: an
+installed PWA serves its own cached shell, so a dead origin looks alive to
+exactly the person most likely to check. **Verify a deploy in a private window,
+always.** A normal window is testing the service worker, not the site.
+
+**The fault itself: two bindings on one hostname.** The recreated Worker had
+both a Custom Domain `nightwatcher.life` *and* a Route `nightwatcher.life/*`.
+Cloudflare cannot serve both on one host and does not warn. **One hostname is
+one binding — a Custom Domain, never also a Route.** To fix: remove the
+**Route** row (••• → Remove) and keep the Custom Domain. Read the confirmation
+modal before accepting it: it must say "Remove **route**". Removing the wrong
+row deletes the Custom Domain and takes the site down.
+
+**Recovery, in order:**
+
+1. `npm run deploy` from a clean checkout of `main`. That recreates the Worker,
+   uploads `docs/` as its assets, re-asserts `workers_dev: false`, and
+   re-attaches the apex as a Custom Domain — all of it from `wrangler.jsonc`,
+   which guard 136 pins.
+2. **No terminal to hand?** Cloudflare → Workers & Pages → Create → Import a
+   repository → `6ummy-Dev/Night-Watcher`, branch `main` → deploy. Then check
+   the two settings the dashboard does not take from the file: workers.dev off,
+   and exactly one apex binding.
+3. DNS: a single **proxied** `Worker` record for the apex pointing at
+   `night-watcher`. Nothing else on the apex.
+4. Certificates need no action. Universal and Advanced SSL are zone-level and
+   survive a Worker being deleted.
+5. Run "The wire checks" above, in a private window.
+
+**What none of this can see.** Guard 136 pins the file and cannot read the
+panel. A Custom Domain or Route added in the dashboard is invisible to every
+test in this repository — guard 82 caught the file in the 8 August incident and
+nothing could catch the panel. That is why the incognito check is a step here
+and not a suggestion.
+
 ## The evidence files
 
 Several CHANGELOG/NOTES/`_headers` passages cite the maintainer's local

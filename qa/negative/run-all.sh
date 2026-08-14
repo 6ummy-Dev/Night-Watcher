@@ -35,9 +35,15 @@ fi
 case "$JOBS" in ''|*[!0-9]*) JOBS=1 ;; esac
 [ "$JOBS" -lt 1 ] && JOBS=1
 
+# NAMING. A suite is negtestNNN.sh where NNN is the release it was written for
+# with the dots removed and trailing zeros kept: negtest390 is 3.9.0, negtest410
+# is 3.9.2's. The mapping is loose on purpose — a suite covers the release that
+# produced it, not a guard number, because guard numbers move and releases do
+# not. negtest131.sh is the one exception: it predates the convention and keeps
+# its name so its history stays greppable. negtest.sh has no number at all and
+# is the original suite.
 SUITES=()
 for f in "$HERE"/negtest*.sh; do
-  [ "$(basename "$f")" = "run-all.sh" ] && continue
   if [ -n "$PICK" ] && ! echo "$f" | grep -Eq "$PICK"; then continue; fi
   SUITES+=("$f")
 done

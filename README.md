@@ -50,7 +50,7 @@ Stories from different continuities can't share a real timeline — they're diff
 - **Bruce's life** — a composite lifetime stitched across every continuity, in eleven eras: *Before Batman → The early years → The Grayson years → Rebuilding → Broken and rebuilt → The League years → No one in the car → The Damian years → The last years → Beyond → After the cowl*. Within an era the entries are ordered too, so the whole thing reads as one timeline rather than eleven shelves. An era may say who is in it and never what happens to them. The handful with no place in a single life — another Bruce, several at once, or none — are collected at the end with the reason given.
 - **Release order** — the only ordering that is objectively complete, decade by decade.
 
-The DC Animated Universe entry also carries the full interleave: where *Mask of the Phantasm* and *SubZero* slot into the series, which *Superman: The Animated Series* episodes to detour into, and why JLU's "Epilogue" has to come before *Batman Beyond*.
+The DC Animated Universe entry also carries the full interleave: where *Mask of the Phantasm* and *SubZero* slot into the series, which *Superman: The Animated Series* episodes to detour into, and why *Batman Beyond* has to come before JLU's "Epilogue".
 
 ## Running it
 
@@ -141,14 +141,21 @@ Zero dependencies, and every function under test is **extracted from `docs/index
 
 **Deployment and bookkeeping.** Nothing servable strays to the repo root — `worker.js` lives there because it is infrastructure, not an asset: it exists for exactly one request shape (`GET /` with an Accept header preferring `text/markdown` answers with `llms.txt` as the markdown representation) and passes everything else through to the assets plane untouched, with `run_worker_first` scoped to `/` alone. `wrangler.jsonc` points at the served directory with SPA fallback off, and `sw.js`, `index.html` and `CHANGELOG.md` all agree on the version. The four headline counts in this README — and the counts baked into the `<meta>` and `og:` description tags — match the data.
 
-Every guard has been negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 45 negative suites, 670
+Guards are negative-tested: made to fail on purpose before being trusted. That
+evidence lives in `qa/negative/` — 46 negative suites, 697
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all — concurrently, one suite per core, since the suites are
 independent — and CI runs them on every push and again nightly. All three
 counts in this paragraph and the one above are themselves guarded, because they
 have drifted twice.
+
+Coverage is not total, and saying so is cheaper than being caught. This README
+claimed that *every* guard had been negative-tested from 1.6.x until 3.9.2; a
+full mapping of fixtures to sections showed otherwise. Rather than soften the
+sentence and move on, guard 137 now computes the uncovered set on every run and
+holds it against a written list. A section may only leave that list. A section
+that joins it fails the build.
 
 There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. It drives the path end to end: the chooser on first run, choosing through the real click handler, a reload returning on the same path and theme, a 1.1.0 save migrating without being asked again, a shared link that does not change what is stored, and a borrowed ordering that can always be stepped back out of, and every one of the eight shareable link tokens. 309 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
 
