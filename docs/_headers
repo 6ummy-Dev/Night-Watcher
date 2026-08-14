@@ -144,6 +144,23 @@
 /sw.js
   Cache-Control: no-cache
 
+# THE FILES WRITTEN FOR AGENTS, ADDED IN 3.9.4. These had no block at all, so
+# they inherited whatever the assets plane emits by default while / and /sw.js
+# declared no-cache. It cost a wrong answer on the 3.9.2 deploy: the first read
+# of /auth.md came back with the PREVIOUS release's heading and a cache-busted
+# read came back correct — a stale answer to a question asked once, by a reader
+# that does not come back to check. An agent reading llms.txt or orders.txt has
+# the same problem and no way to notice it. Same policy as the page they
+# describe, for the same reason.
+/auth.md
+  Cache-Control: no-cache
+
+/llms.txt
+  Cache-Control: no-cache
+
+/orders.txt
+  Cache-Control: no-cache
+
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
 

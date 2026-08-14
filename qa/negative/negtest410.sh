@@ -75,7 +75,7 @@ io.open(p,'w',encoding='utf-8').write(s.replace('\"custom_domain\": true','\"cus
 # --- guard 10, widened: bless must not launder foreign code ---
 
 run_case "a bundler banner comment in the file is caught" \
-  "a /*! banner comment" \
+  "vendored third-party code is back" \
 "
 import io
 p='docs/index.html'
@@ -86,7 +86,7 @@ io.open(p,'w',encoding='utf-8').write(s.replace(anchor,'/*! nwlib v1.0.0 */\n'+a
 "
 
 run_case "a sourceMappingURL in the file is caught" \
-  "a sourceMappingURL" \
+  "the app ships one inline script that is ours" \
 "
 import io
 p='docs/index.html'

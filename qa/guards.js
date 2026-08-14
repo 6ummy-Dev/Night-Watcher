@@ -4,9 +4,11 @@
    Zero dependencies. Exits 1 on any failure. Functions under test are
    EXTRACTED from docs/index.html and evaluated, never reimplemented here —
    a copy drifts from the app and quietly stops testing it.
-   Guards are negative-tested: made to fail on purpose before they are trusted.
-   Not all of them are yet. Section 137 pins the ones that are not, so the gap
-   is a list that can only shrink rather than a claim nobody checked. */
+   Every guard section is negative-tested: made to fail on purpose before it is
+   trusted. Section 138 asserts that on every run rather than asking to be
+   believed \u2014 it maps each fixture's expected failure back to the section that
+   produces it and fails on a section with none. The claim stood here unchecked
+   from 1.6.x until 3.9.2, when a mapping found 32 sections without a fixture. */
 "use strict";
 
 var fs   = require("fs");
@@ -186,6 +188,7 @@ function blessHtml(next){
      136  One origin, one binding, in the file
      137  The 3.9.2 storage and header fixes stay fixed
      138  The negative coverage map, and what it still owes
+     139  The files an agent reads answer fresh
      105  The catalogue answers in plain text
      133  The root negotiates markdown, and only the root
      125  robots.txt states a position on AI use
@@ -1052,7 +1055,9 @@ var actual = {
     if(!got) return warn(t[0] + " no longer states a " + c[2] + " count \u2014 " +
                          "nothing is checking that number any more");
     if(parseInt(got[1], 10) !== c[1]){
-      fail(t[0] + " claims " + got[1] + " " + c[2] + ", data has " + c[1]);
+      fail(t[0] + " claims " + got[1] + " " + c[2] + ", data has " + c[1] +
+           " \u2014 the head is the copy a search engine quotes, and it is the one " +
+           "surface nobody reading the page can see is wrong");
     }
   });
 });
@@ -10532,8 +10537,13 @@ var ROUTE_VOCAB = [
   var negDir = path.join(ROOT, "qa", "negative");
   if(!fs.existsSync(negDir)){ fail("qa/negative/ is gone"); return; }
 
-  var STILL_OWED = [1, 3, 4, 9, 12, 15, 16, 17, 18, 19, 22, 23, 24, 25, 26, 32,
-                    36, 37, 41, 45, 48, 49, 52, 53, 73, 122];
+  /* EMPTY AS OF 3.9.4, and that is the whole point of having had a list. It
+     opened at 26 in 3.9.2 and negtest430 closed the last of them. The array
+     stays because the ratchet is the array: a section arriving without a
+     fixture fails the build, and the only way to quiet it is to write the
+     fixture or to put the number here and say in the commit why it waits. It
+     has never been added to. */
+  var STILL_OWED = [];
 
   var SELF = fs.readFileSync(__filename, "utf8");
   var re = /\/\* -{3,} (\d+)\./g, m, marks = [];
@@ -10543,8 +10553,17 @@ var ROUTE_VOCAB = [
             .replace(/\\"/g, '"').replace(/"\s*\+\s*\n?\s*"/g, "")
             .replace(/\s+/g, " ");
   };
+  /* 3.9.4: THE MATCH IS AGAINST fail() TEXT, NOT THE WHOLE SECTION. Matching
+     section prose credited a section for words that appear in its COMMENT — the
+     expect "_headers" was covering three sections that mention the file and
+     have no fixture between them. Tightening it to failure messages, and
+     raising the minimum expect to 12 characters, uncovered three real gaps
+     (34, 75, 117) that had been reading as covered since the map was written.
+     A coverage guard that is easy to satisfy is worse than no coverage guard,
+     because it is quoted. */
   var secs = marks.map(function(s, i){
-    return {n: s.n, t: norm(SELF.slice(s.at, i + 1 < marks.length ? marks[i + 1].at : SELF.length))};
+    var src = SELF.slice(s.at, i + 1 < marks.length ? marks[i + 1].at : SELF.length);
+    return {n: s.n, t: norm((src.match(/fail\([\s\S]*?\);/g) || []).join(" "))};
   });
 
   var expects = [];
@@ -10557,7 +10576,7 @@ var ROUTE_VOCAB = [
   var covered = {};
   expects.forEach(function(e){
     var q = norm(e.replace(/\\\$/g, "$"));
-    if(q.length < 8) return;
+    if(q.length < 12) return;
     secs.forEach(function(s){ if(s.t.indexOf(q) >= 0) covered[s.n] = 1; });
   });
 
@@ -10586,6 +10605,58 @@ var ROUTE_VOCAB = [
   note("negative coverage: " + (secs.length - uncovered.length) + "/" + secs.length +
        " sections mapped from " + expects.length + " fixtures, " + STILL_OWED.length +
        " still owed");
+})();
+
+/* ---------- 139. The files an agent reads answer fresh --------------- */
+/* 3.9.2 shipped a one-line change to auth.md's H1 so a checker could identify
+   the file by name. The deploy landed and the first read of /auth.md came back
+   with the PREVIOUS release's heading; a cache-busted read came back correct.
+   Nothing was wrong with the deploy. auth.md, llms.txt and orders.txt had no
+   block in _headers at all, so they inherited whatever the assets plane emits
+   by default while / and /sw.js declared no-cache for themselves.
+
+   A browser rereads a page. An agent asks once, writes down the answer, and
+   does not come back to see whether it changed \u2014 which makes a stale
+   representation of these three files worse than a stale representation of the
+   app, not better. They are the only files whose whole purpose is to be read
+   by something that will not check twice.
+
+   404.html joins this section rather than getting its own. Its CSP is a
+   <meta> policy, which covers the document it sits in and nothing else \u2014 the
+   same shape as index.html's, and the same reason: the guards can read a file
+   in the tree and cannot read a dashboard rule. */
+
+(function(){
+  var hp = path.join(PUBLIC, "_headers");
+  if(!fs.existsSync(hp)){ fail("docs/_headers is gone"); return; }
+  var hdr = fs.readFileSync(hp, "utf8");
+
+  ["/auth.md", "/llms.txt", "/orders.txt"].forEach(function(route){
+    var block = hdr.split(/\n(?=\/)/).filter(function(b){
+      return b.split("\n")[0].trim() === route;
+    })[0];
+    if(!block){
+      fail("_headers has no block for " + route + " \u2014 it falls back to the " +
+           "assets plane's default, and an agent that reads it once and caches " +
+           "the answer has no way to learn the answer changed");
+    } else if(!/Cache-Control:\s*no-cache/.test(block)){
+      fail(route + " no longer declares no-cache \u2014 the file exists to be read " +
+           "by something that will not come back to check");
+    }
+  });
+
+  var fp = path.join(PUBLIC, "404.html");
+  if(!fs.existsSync(fp)){ fail("docs/404.html is gone"); return; }
+  var page = fs.readFileSync(fp, "utf8");
+  if(!/<meta http-equiv="Content-Security-Policy"/.test(page)){
+    fail("404.html carries no CSP \u2014 index.html's <meta> policy covers the " +
+         "document it sits in and no other, so the 404 page shipped with none");
+  } else if(!/default-src 'none'/.test(page)){
+    fail("404.html's CSP does not start from default-src 'none' \u2014 the 404 page " +
+         "is served on every wrong URL anyone ever guesses at this origin");
+  }
+  note("agent-readable files declare no-cache (auth.md, llms.txt, orders.txt); " +
+       "404.html carries its own default-src 'none' policy");
 })();
 
 /* ---------- report ---------- */
