@@ -26,6 +26,67 @@ to saved progress would also be MAJOR, and should never happen, because every
 > Anything experimental after 3.0.0 takes a pre-release tag — `3.1.0-rc.1` —
 > rather than a plain version.
 
+## [3.9.4] — 2026-08-14
+
+**The backlog, emptied. Every guard section now has a negative fixture that
+proves it can fail, the coverage map that measures it stopped being easy to
+satisfy, and the three files written for agents stopped being served stale.
+PATCH — no data change, no slug change, no progress-format change.**
+
+### Added
+
+- **`negtest430.sh` — 32 fixtures, one for every section that had none.** Guard
+  138 landed in 3.9.2 with 26 sections on `STILL_OWED`, after a mapping showed
+  that "every guard has been negative-tested" — a sentence standing in four
+  files since 1.6.x — was false. Most of the 26 were the oldest guards in the
+  file, written before the rule that a guard ships with the fixture proving it
+  can fail. **`STILL_OWED` is now empty**, and the array stays because the
+  ratchet is the array: a section arriving without a fixture fails the build.
+- **New guard 139 — the files an agent reads answer fresh.** 3.9.2 shipped a
+  one-line change to `auth.md`'s H1 so a checker could identify the file by
+  name. The deploy landed, and the first read of `/auth.md` came back with the
+  *previous* release's heading; a cache-busted read came back correct. Nothing
+  was wrong with the deploy. `auth.md`, `llms.txt` and `orders.txt` had no block
+  in `_headers` at all, so they inherited the assets plane's default while `/`
+  and `/sw.js` declared `no-cache` for themselves.
+
+  A browser rereads a page. An agent asks once, writes the answer down, and does
+  not come back to see whether it changed — which makes a stale representation
+  of these three worse than a stale representation of the app, not better. All
+  three now declare `no-cache`, and guard 139 holds it.
+- **`404.html` carries its own CSP.** `index.html`'s `<meta>` policy covers the
+  document it sits in and no other, so the 404 page — served on every wrong URL
+  anyone ever guesses at this origin — shipped with none. `default-src 'none'`
+  with `style-src 'unsafe-inline'` for its one inline block. Guard 139 asserts
+  it, since it is the same class of thing: a policy that lives in the tree
+  rather than a panel.
+
+### Changed
+
+- **Guard 138's map stopped being easy to satisfy.** It matched an expect
+  against a section's whole source, so a section was credited for words in its
+  *comment* — the eight-character expect `_headers` was covering three sections
+  that merely mention the file and had no fixture between them. It now matches
+  against `fail()` text only, and the minimum expect is 12 characters.
+
+  That change uncovered **three real gaps that had been reading as covered**
+  since the map was written: 34 (Activity reachable from Next up), 75 (a control
+  is as big as a finger) and 117 (llms.txt says what the README says). All three
+  have fixtures now. A coverage guard that is easy to satisfy is worse than no
+  coverage guard, because it gets quoted.
+- **Four fixtures were re-pointed at strings their guards actually own.** Their
+  expects named a variable's contents or a computed fragment, so they passed
+  while mapping to nothing — the same defect as the sections above, from the
+  other end.
+- **Guard 15 says why it failed.** Its message was pure arithmetic ("claims 132
+  films, data has 133") where every other message in the file explains the
+  consequence. The head is the copy a search engine quotes, and it is the one
+  surface nobody reading the page can see is wrong.
+- **The coverage sentence is back in all four files, as an assertion.** README,
+  NOTES, `index.html`'s header block and this file's opening comment say every
+  guard section is negative-tested — and now point at guard 138, which checks it
+  on every run rather than asking to be believed.
+
 ## [3.9.3] — 2026-08-14
 
 **One reorder, on both shelves. *Death in the Family* now follows *Under the Red

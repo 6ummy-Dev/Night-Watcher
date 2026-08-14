@@ -141,8 +141,8 @@ Zero dependencies, and every function under test is **extracted from `docs/index
 
 **Deployment and bookkeeping.** Nothing servable strays to the repo root — `worker.js` lives there because it is infrastructure, not an asset: it exists for exactly one request shape (`GET /` with an Accept header preferring `text/markdown` answers with `llms.txt` as the markdown representation) and passes everything else through to the assets plane untouched, with `run_worker_first` scoped to `/` alone. `wrangler.jsonc` points at the served directory with SPA fallback off, and `sw.js`, `index.html` and `CHANGELOG.md` all agree on the version. The four headline counts in this README — and the counts baked into the `<meta>` and `og:` description tags — match the data.
 
-Guards are negative-tested: made to fail on purpose before being trusted. That
-evidence lives in `qa/negative/` — 47 negative suites, 699
+Every guard section is negative-tested: made to fail on purpose before being
+trusted. That evidence lives in `qa/negative/` — 48 negative suites, 731
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all — concurrently, one suite per core, since the suites are
@@ -150,12 +150,12 @@ independent — and CI runs them on every push and again nightly. All three
 counts in this paragraph and the one above are themselves guarded, because they
 have drifted twice.
 
-Coverage is not total, and saying so is cheaper than being caught. This README
-claimed that *every* guard had been negative-tested from 1.6.x until 3.9.2; a
-full mapping of fixtures to sections showed otherwise. Rather than soften the
-sentence and move on, guard 137 now computes the uncovered set on every run and
-holds it against a written list. A section may only leave that list. A section
-that joins it fails the build.
+That sentence is asserted, not asked to be believed. It stood here unchecked
+from 1.6.x until 3.9.2, when a full mapping of fixtures onto the sections they
+break found 32 sections with no fixture at all — including the largest section
+in the file. Guard 138 now does that mapping on every run and fails on any
+section without one. The list of sections owing a fixture opened at 26 and was
+emptied in 3.9.4; a section joining it fails the build.
 
 There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. It drives the path end to end: the chooser on first run, choosing through the real click handler, a reload returning on the same path and theme, a 1.1.0 save migrating without being asked again, a shared link that does not change what is stored, and a borrowed ordering that can always be stepped back out of, and every one of the eight shareable link tokens. 309 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
 

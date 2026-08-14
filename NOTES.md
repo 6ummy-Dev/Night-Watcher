@@ -11,9 +11,9 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 138 numbered sections, each one a rule with the failure that
-  produced it written above it. Most are negative-tested; the ones that are not
-  are named in section 137, which is the list of what is still owed.
+- **`qa/guards.js`** — 139 numbered sections, each one a rule with the failure that
+  produced it written above it, and each one negative-tested — asserted by
+  section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
 
 If you are about to change something in `index.html` that looks redundant, look
