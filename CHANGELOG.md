@@ -26,6 +26,56 @@ to saved progress would also be MAJOR, and should never happen, because every
 > Anything experimental after 3.0.0 takes a pre-release tag — `3.1.0-rc.1` —
 > rather than a plain version.
 
+## [3.9.3] — 2026-08-14
+
+**One reorder, on both shelves. *Death in the Family* now follows *Under the Red
+Hood* instead of preceding it, and the spoiler rules are enforced in the life
+ordering as well as by universe. PATCH — same entries, same slugs, same progress
+format.**
+
+### Fixed
+
+- ***Death in the Family* was rendering before *Under the Red Hood*.** It opens
+  at the crowbar, which is chronologically before the film it is built on, and
+  it sat first for that reason — the whole life ordering is chronological where
+  it can be. But it does not end there. Of its three branches, one plays out
+  *Under the Red Hood*'s plot in full: the Lazarus Pit, the resurrection, the
+  Red Hood, the Joker. Ordering by the first scene works for a story that
+  finishes before the next one starts, and this one occupies a superset of the
+  same slot rather than an earlier one. So a viewer on the life ordering or the
+  core route met the second film's third-act reveal inside the first film.
+
+  The rule was already written down and already applied everywhere else: The
+  Comic Adaptations is a declared `WEAVES` group whose reason string reads *"a
+  derivative work has to follow its source whatever era it sits in"*. Same shape
+  as guard 30's *"Phantasm and SubZero drop into the series, not ahead of it"*.
+  The two entries swap `lo` positions inside era 4 and swap places in the array;
+  a new guard 30 rule pins the order. Both IDs are frozen, so no saved mark or
+  backup code moves. Found while building 3.9.2, deliberately left for its own
+  release rather than folded into a patch that was already reordering the DCAU.
+
+### Changed
+
+- **Guard 30 now checks both shelves.** Every rule in it read array position,
+  which is the by-universe order. The life ordering runs on `lo`, and nothing
+  tied the two together — so a rule could be honoured by universe and broken by
+  life through an edit that touched only `lo`, with the whole suite green. The
+  guard now asserts the same rules against `lo` **wherever one era holds both
+  entries**.
+
+  Where a rule spans eras the life ordering cannot comply, and the guard says so
+  in its own comment rather than quietly skipping it: JLU is era 7, *Batman
+  Beyond* is era 10, and Beyond is correctly later in a lifetime, so
+  "Epilogue"'s season renders first there whatever the array says. The app's
+  unit is the season and "Epilogue" is one episode inside one, so no reordering
+  reaches it. That case carries a warning in the JLU season 2 blurb instead —
+  the only honest instrument left when the order cannot be the instrument.
+  Asserting it here would mean a permanently red build or a rule written to
+  pass, and the second is worse.
+- **New suite `negtest420.sh`** — one fixture per shelf, because before this
+  release either could be reverted alone without anything going red. 47 suites,
+  699 fixtures.
+
 ## [3.9.2] — 2026-08-14
 
 **The 14 August review, worked through: a blurb that named the franchise's most

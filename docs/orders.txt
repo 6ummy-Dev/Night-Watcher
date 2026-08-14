@@ -70,8 +70,8 @@ in the reader's browser. Free software under the AGPL.
   1. Batman: Year One (2011) · animated · essential · PG-13
   2. DC Showcase: Catwoman (2011) · animated · optional · NR
   3. Batman: The Killing Joke (2016) · animated · core · R
-  4. Batman: Death in the Family (2020) · animated · core · R
-  5. Batman: Under the Red Hood (2010) · animated · essential · PG-13
+  4. Batman: Under the Red Hood (2010) · animated · essential · PG-13
+  5. Batman: Death in the Family (2020) · animated · core · R
   6. The Dark Knight Returns — Part One (2012) · animated · essential · PG-13
   7. The Dark Knight Returns — Part Two (2013) · animated · essential · PG-13
   8. The Dark Knight Returns — Deluxe Edition (2013) · animated · optional · PG-13

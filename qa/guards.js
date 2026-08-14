@@ -1675,9 +1675,9 @@ ext.forEach(function(tag){
    A partial move would otherwise pass, and a rule that only answers the easy
    case is a sentence, not a rule. */
 
-var pos = {};
+var pos = {}, byId30 = {};
 sandbox.PATH.forEach(function(g, gi){
-  g.films.forEach(function(f, ix){ pos[f.i] = gi * 1000 + ix; });
+  g.films.forEach(function(f, ix){ pos[f.i] = gi * 1000 + ix; byId30[f.i] = f; });
 });
 
 var JLU_AFTER = ["justice-league-unlimited-season-2-2005",
@@ -1697,7 +1697,22 @@ var SPOILERS = [
    "Phantasm and SubZero drop into the series, not ahead of it"],
   ["batman-beyond-season-3-2000",
    ["batman-beyond-return-of-the-joker-2000"],
-   "Return of the Joker closes Beyond"]
+   "Return of the Joker closes Beyond"],
+  /* 3.9.3. Death in the Family OPENS earlier than Under the Red Hood \u2014 at the
+     crowbar, which is chronologically before the film it is built on \u2014 and it
+     sat first for that reason. But it does not END there. One of its three
+     branches plays out Under the Red Hood's plot in full: the Lazarus Pit, the
+     resurrection, the Red Hood, the Joker. Ordering by the first scene works
+     for a story that finishes before the next one starts, and this one does
+     not; it occupies a superset of the slot.
+     The Comic Adaptations already carried the rule in its own WEAVES reason
+     string \u2014 "a derivative work has to follow its source whatever era it sits
+     in" \u2014 written for exactly this and applied everywhere except here. Same
+     shape as the Phantasm/SubZero rule above. */
+  ["batman-under-the-red-hood-2010",
+   ["batman-death-in-the-family-2020"],
+   "Death in the Family is derivative of Under the Red Hood, and one branch " +
+   "plays out its whole plot"]
 ];
 
 SPOILERS.forEach(function(rule){
@@ -1710,7 +1725,36 @@ SPOILERS.forEach(function(rule){
     }
   });
 });
-note("spoiler rules checked: " + SPOILERS.length);
+/* 3.9.3: THE RULES HAVE TO HOLD ON BOTH SHELVES. Everything above reads array
+   position, which is the by-universe order. The life ordering runs on `lo`, and
+   nothing tied the two together \u2014 so a rule could be honoured by universe and
+   broken by life through an edit that touched only `lo`, with every guard green.
+
+   Only same-era pairs are checked, and the exception is the point rather than a
+   convenience. Where a rule spans eras the life ordering CANNOT comply: JLU is
+   era 7, Batman Beyond is era 10, and Beyond is correctly later in a lifetime,
+   so "Epilogue"'s season renders first there whatever the array says. The app's
+   unit is the season and "Epilogue" is one episode inside one, so no reordering
+   reaches it. That case carries a warning in the JLU season 2 blurb instead,
+   which is the only honest instrument left when the order cannot be the
+   instrument. Asserting it here would mean either a permanently red build or a
+   rule quietly written to pass \u2014 and this file does not accept the second. */
+SPOILERS.forEach(function(rule){
+  var first = byId30[rule[0]];
+  if(!first || !first.e) return;
+  rule[1].forEach(function(id){
+    var later = byId30[id];
+    if(!later || later.e !== first.e) return;
+    if(!(later.lo > first.lo)){
+      fail("the life ordering contradicts a spoiler rule: " + id + " sits at lo " +
+           later.lo + " in era " + later.e + ", at or before " + rule[0] + " at lo " +
+           first.lo + " \u2014 both shelves have to agree wherever one era can hold " +
+           "both entries, or the by-universe fix is undone by the life ordering");
+    }
+  });
+});
+note("spoiler rules checked: " + SPOILERS.length + " (array order, and the life " +
+     "ordering wherever one era holds both entries)");
 
 /* ---------- 31. The README describes the app that exists -------------- */
 /* 1.2.4 removed the QR; three README passages kept describing it, including a
