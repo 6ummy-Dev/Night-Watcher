@@ -26,6 +26,8 @@ to saved progress would also be MAJOR, and should never happen, because every
 > Anything experimental after 3.0.0 takes a pre-release tag — `3.1.0-rc.1` —
 > rather than a plain version.
 
+## Unreleased
+
 ## [3.9.1] — 2026-08-14
 
 **Three lines of copy the seed never carried — what sets the catalogue apart,
