@@ -64,7 +64,7 @@ jobs:
   # guards work was produced only on the release machine, by hand — which is the
   # exact situation this workflow was created to end.
   #
-  # Cost, measured rather than averaged: 670 fixtures, of which 622 run guards.js
+  # Cost, measured rather than averaged: 697 fixtures, of which 649 run guards.js
   # at about 0.26s each (halved 6 Aug by memoising idHash) and 48 run smoke.js — most of those scoped to one phase
   # by SMOKE_ONLY (2.2.0, report §5.4) at 2–10s instead of the full run's ~14s.
   # (The previous figures here — "579 guards / 32 smoke" — had drifted AND did
@@ -87,7 +87,7 @@ jobs:
       matrix:
         include:
           - shard: "1"
-            pick: 'negtest(175|164|190|195|200|250|251|273|320|350|380)\.sh'
+            pick: 'negtest(175|164|190|195|200|250|251|273|320|350|380|410)\.sh'
           - shard: "2"
             pick: 'negtest(183|171|166|161|162|252|270|310|330|360|131)\.sh'
           - shard: "3"
@@ -169,11 +169,25 @@ jobs:
 
       - run: npm ci
 
+      # ~150 MB re-downloaded on every run was this job's dominant cost, by the
+      # file's own admission. The key carries the lockfile hash, so a Playwright
+      # bump invalidates it and nothing else does.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - run: npx playwright install chromium --with-deps
 
       # A served copy, not file:// — sw.js registration and the CSP only
       # behave like production over HTTP. The port is browser-check's default.
       - run: |
           python3 -m http.server 8099 --directory docs &
-          sleep 1
+          # `sleep 1` was a bet that the server binds inside a second. It
+          # usually does; a loaded runner is where it does not, and the failure
+          # reads as a browser bug rather than a race.
+          for i in $(seq 1 30); do
+            curl -sf -o /dev/null http://127.0.0.1:8099/index.html && break
+            sleep 0.5
+          done
           npm run browser
