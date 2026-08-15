@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 140 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 142 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -1827,29 +1827,52 @@ on every run and compared byte for byte, blessed like the crawlable seed and the
 ItemList, because a hand-kept copy of 200 entries is stale within one release and
 nobody reads a text file closely enough to notice.
 
-It ships **by universe only**, and that is a decision rather than an unfinished
-job.
+It shipped **by universe only** from 2.6.0 to 3.9.5, and that was a decision
+rather than an unfinished job. **3.9.6 took the other option, which the entry
+below had already named.** The argument is kept in full, because it is the
+reason the fix has the shape it has — a copy of the sorts in `qa/guards.js`
+would still be wrong today, and the entry is the record of why nobody wrote one.
 
 By universe needs no sort. Each continuity's array *is* its spoiler-safe order —
 the same fact guard 78 leans on for the seed — so the export is the data read
-back out. Bruce's life and Release order are not: both are produced by anonymous
-comparators inside `buildGroups()`, and `fn()` can only extract **named**
-functions out of `docs/index.html`. Writing those two sorts into `qa/guards.js`
-would be a second implementation of the app's ordering, which is the exact thing
-the extract-don't-reimplement rule at the top of that file exists to prevent — a
-copy drifts from the app and quietly stops testing it, and here it would quietly
-start *publishing* the drift.
+back out. Bruce's life and Release order are not: both were produced by
+**anonymous** comparators inside `buildGroups()`, and `fn()` can only extract
+**named** functions out of `docs/index.html`. Writing those two sorts into
+`qa/guards.js` would be a second implementation of the app's ordering, which is
+the exact thing the extract-don't-reimplement rule at the top of that file exists
+to prevent — a copy drifts from the app and quietly stops testing it, and here it
+would quietly start *publishing* the drift.
 
-The alternative is to name the two comparators in `index.html` so both sides
-share one source. That is a `buildGroups()` refactor. It is app logic, and app
-logic does not ride a release whose whole claim is that it cannot break the app.
-It is a real option for a round that is allowed to take that risk.
+The alternative was to name the two comparators in `index.html` so both sides
+share one source — a `buildGroups()` refactor, app logic, and therefore not
+something to ride a release whose whole claim is that it cannot break the app.
+It was called "a real option for a round that is allowed to take that risk."
 
-The loss is smaller than it reads. Release order is derivable from the file —
-every entry states its year. Bruce's life is not, and it is also the ordering the
-app itself calls *an interpretation rather than a canon*, so the app is the
-honest place for it. The file's own header says which ordering it carries and
-where the other two live, rather than shipping two thirds of a promise quietly.
+**3.9.6 is that round.** `lifeCmp` and `releaseCmp` are named functions now,
+byte-identical bodies to the anonymous ones, and `buildGroups()` sorts through
+them. Section 105 extracts both and publishes all three orderings; guard 141
+asserts the app still sorts through the named pair rather than quietly
+re-inlining a copy, which would restore the old problem while leaving the export
+looking correct.
+
+**What the refactor had to get right, and what would have gone wrong.** Neither
+comparator is a total order over the catalogue. `lifeCmp` runs inside an era and
+`releaseCmp` inside a decade; the bucket list does the coarse ordering, and the
+comparator only settles ties within one bucket. Sorting all 200 entries with
+either one directly produces a plausible-looking wrong answer — which is exactly
+the failure the export would now be *publishing* rather than merely computing,
+and precisely the risk the old entry was pointing at. So section 105's two new
+loops mirror `buildGroups()`'s bucket-then-sort rather than sorting the flat
+list, and a count check fails the build if any ordering carries fewer than all
+of the entries: an era key or decade bucket that matches nothing would silently
+drop entries, and a reader of a text file has no way to see that ordering 2 came
+up short of ordering 1.
+
+**What the old entry got right about the loss** is worth keeping too: release
+order was always derivable from the file, since every entry states its year.
+Bruce's life was not, and it is the ordering the app itself calls *an
+interpretation rather than a canon* — which is why the file's header still says
+so in the reader's own words rather than presenting three equal answers.
 
 Guard 105 owns the file end to end: the drift check, the pointer in `llms.txt`
 (an export nothing links to is an export nothing reads), and the exclusion from

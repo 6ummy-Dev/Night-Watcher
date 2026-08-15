@@ -26,6 +26,84 @@ to saved progress would also be MAJOR, and should never happen, because every
 > Anything experimental after 3.0.0 takes a pre-release tag — `3.1.0-rc.1` —
 > rather than a plain version.
 
+## [3.9.6] — 2026-08-15
+
+**The two features that were waiting on a round willing to touch app logic. The
+plain-text export carries all three orderings, and a backup can be written to a
+real file on disk instead of only downloaded. The backlog is empty going into
+4.0.0.**
+
+### Added
+
+- **`orders.txt` ships all three orderings.** It carried one — by universe —
+  from 2.6.0 to 3.9.5, and **the reason was never that the other two were
+  unwanted.** By universe needs no sort: each continuity's array *is* its
+  spoiler-safe order. Bruce's life and Release order are computed, and they were
+  computed by two **anonymous** comparators inside `buildGroups()` — while
+  `fn()` can only extract **named** functions out of `index.html`. Writing those
+  sorts out in `qa/guards.js` would have been a second implementation of the
+  app's ordering, the one thing that file exists to prevent: a copy drifts,
+  stops testing the app, and from the export it would have started *publishing*
+  the drift.
+
+  **3.9.6 named them instead.** `lifeCmp` and `releaseCmp` are functions with
+  byte-identical bodies to the anonymous ones, `buildGroups()` sorts through
+  them, and section 105 extracts both. One source, both sides. The file goes
+  from 18 KB to 51 KB and every entry appears once in each ordering.
+
+  **The bucket is part of the ordering, and getting that wrong was the real
+  risk.** Neither comparator is a total order: `lifeCmp` runs inside an era,
+  `releaseCmp` inside a decade, and the bucket list does the coarse ordering.
+  Sorting the flat catalogue with either produces a plausible-looking wrong
+  answer — so the two new loops mirror `buildGroups()`, and a count check fails
+  the build if any ordering carries fewer than all 200 entries. A bucket that
+  matches nothing would drop entries silently, and a reader of a text file has
+  no way to see that ordering 2 came up short of ordering 1.
+- **A backup can be saved to a file on disk — durability review item 4.** Behind
+  `showSaveFilePicker`, with the handle kept in IndexedDB so "Update backup
+  file" rewrites the same file the person chose, with no second dialog. Every
+  browser without the API falls through to the existing download, untouched.
+
+  **A handle is not the IDB mirror the review rejected.** That rejection was
+  right and still is: "a second copy in the same bucket is bookkeeping, not
+  durability" — `clear-site-data`, Safari's ITP wipe and Chromium eviction take
+  localStorage and IndexedDB together. A handle is a *pointer to a file outside
+  the origin bucket*, which is the one place none of those reach. That is the
+  whole durability argument, and it is why item 4 was parked on the clocks
+  rather than dropped.
+- **New guard 141 — the two orderings are named once, and shared.** Re-inlining
+  a comparator would leave every test green while `orders.txt` went on
+  generating from a function the app no longer calls: the export and the screen
+  agreeing on paper and disagreeing in fact. 141 refuses `.sort(function`
+  in `buildGroups()`, pins what each comparator keys on, and checks all three
+  banners reached the file.
+- **New guard 142 — a backup is stamped only when a copy left.** `lastExportAt`
+  is the claim that progress left this browser; the nudge counts marks against
+  it, so a stamp with no file behind it tells somebody they are backed up when
+  they are not. The download path was always careful — `download()` returns a
+  boolean and the stamp sits inside `if(dlOk)` — but **nothing asserted it**: no
+  guard, no smoke check, no browser check touched any of it before now.
+
+  The new path makes the mistake much easier to make. `showSaveFilePicker`
+  **rejects when the person hits cancel**, so a dismissed dialog and a completed
+  save look identical to code that skipped the check. Every helper resolves a
+  boolean and stamps nothing; the stamp stays at the call site, downstream. 142
+  holds that line and asserts the permission query a restored handle needs.
+- **`negtest450.sh` — 12 fixtures.** Both defect classes are ones where nothing
+  looks wrong: no bad pixel, no thrown error. Hence fixtures rather than trust.
+
+### Changed
+
+- **NOTES.md's "The plain-text export carries one ordering" is now the record of
+  that decision reversing, not being deleted.** The argument is kept in full,
+  because it is still why the fix has the shape it has — a copy of the sorts in
+  `qa/guards.js` would be just as wrong today. Section 105's own comment got the
+  same treatment.
+- **`llms.txt` and `README.md` no longer say "by universe".** Both described the
+  export as one ordering. Section 105 pins the llms.txt *pointer* but not that
+  sentence, so it was unguarded prose — the class of thing 3.9.5 spent a release
+  finding.
+
 ## [3.9.5] — 2026-08-15
 
 **A disclosure channel that lives in the repository and expires on a clock the
