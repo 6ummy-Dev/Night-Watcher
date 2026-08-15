@@ -51,9 +51,21 @@ run_case "the entry count in the export's own header drifts" \
   "no longer matches the catalogue" \
   "${T}s=s.replace('133 films','132 films',1);${TW}"
 
-run_case "the header's honesty about the missing orderings is cut" \
+# 3.9.6 REPOINTED THIS FIXTURE AND THE REASON IS THE FIXTURE'S OWN SUBJECT. It
+# used to cut the header's sentence about which ordering the file carried and
+# where the other two lived — honest prose about a deliberate gap. 3.9.6 closed
+# the gap, the sentence went with it, and this case broke with SETUP BROKE on
+# the first full run because its anchor no longer exists.
+#
+# That is the harness working. A fixture whose anchor is gone is a fixture that
+# has stopped testing anything, and the only reason this one announced itself is
+# that a missing anchor is an error rather than a pass. It now cuts the header's
+# description of the three orderings, which is the same claim in the file's new
+# shape: the header tells a reader what is below it, and the byte comparison is
+# what keeps that true.
+run_case "the header's account of the orderings is cut" \
   "no longer matches the catalogue" \
-  "${T}i=s.index(\"Bruce's life\");j=s.index('#life',i);s=s[:i]+s[j+5:];${TW}"
+  "${T}i=s.index('ALL THREE ORDERINGS ARE BELOW');j=s.index('cannot disagree with what the app renders.',i);s=s[:i]+s[j+41:];${TW}"
 
 echo "--- 105: the export stays findable, and stays out of the cache"
 

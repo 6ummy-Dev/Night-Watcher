@@ -9,18 +9,26 @@ NOT OUT YET; nothing is claimed before it exists.
 This file is generated from the same data the app renders, and the build
 fails if the two disagree.
 
-THE ORDERING BELOW is by universe: every continuity kept whole, each in its
-own story order, and the continuities in the order their stories start.
-Nothing spoils anything ahead of it.
+ALL THREE ORDERINGS ARE BELOW, in the order the app offers them. Each is
+the whole catalogue, ordered a different way — read one and ignore the rest.
 
-Release order is derivable from this file — every entry states its year.
-Bruce's life — all 44 continuities blended into one
-chronology — is an interpretation rather than a canon, and lives in the app
-at https://nightwatcher.life/#life
+  1. BY UNIVERSE — every continuity kept whole, each in its own story
+     order, and the continuities in the order their stories start.
+     Nothing spoils anything ahead of it. The completist's way through.
+  2. BRUCE'S LIFE — all 44 continuities blended into one chronology,
+     from before there is a Batman to after there is not. This one is an
+     interpretation rather than a canon, and the app says so too.
+  3. RELEASE ORDER — 1943 to 2028, the only objectively complete ordering.
+
+The two computed orderings are produced by the app's own comparators,
+extracted from index.html rather than reimplemented here, so this file
+cannot disagree with what the app renders.
 
 No account, no advertising, nothing tracking what you watch. Progress stays
 in the reader's browser. Free software under the AGPL.
 
+=========================================================================
+ORDERING 1 OF 3 — BY UNIVERSE
 =========================================================================
 
 01. Pennyworth
@@ -354,3 +362,471 @@ in the reader's browser. Free software under the AGPL.
 -----------
   1. Creature Commandos — Season 1 (2024) · animated · series · optional · TV-MA
   2. Clayface (2026) · live action · optional · NOT OUT YET
+
+=========================================================================
+ORDERING 2 OF 3 — BRUCE'S LIFE
+=========================================================================
+
+1. Before Batman
+----------------
+  1. Pennyworth — Complete series (2019) · live action · series · optional · TV-MA
+  2. Joker (2019) · live action · optional · R
+  3. Joker: Folie à Deux (2024) · live action · optional · R
+  4. Gotham — Complete series (2014) · live action · series · essential · TV-14
+
+2. The early years
+------------------
+  1. Batman: Year One (2011) · animated · essential · PG-13
+  2. Batman Begins (2005) · live action · essential · PG-13
+  3. Batman: Gotham Knight (2008) · animated · core · PG-13
+  4. Batman: Caped Crusader — Season 1 (2024) · animated · series · essential · TV-14
+  5. Batman: Caped Crusader — Season 2 (2026) · animated · series · optional · TV-14
+  6. Batman: Gotham by Gaslight (2018) · animated · essential · R
+  7. Batman of Shanghai — 3 shorts (2012) · animated · optional · NR
+  8. Batman: Strange Days (2014) · animated · optional · NR
+  9. Beware the Batman — Complete series (2013) · animated · series · optional · TV-PG
+  10. The Batman (2022) · live action · essential · PG-13
+  11. The Penguin — Season 1 (2024) · live action · series · core · TV-MA
+  12. The Batman: Part II (2028) · live action · core · NOT OUT YET
+  13. Batman: The Long Halloween — Part One (2021) · animated · essential · PG-13
+  14. Batman: The Long Halloween — Part Two (2021) · animated · essential · R
+  15. The Long Halloween — Deluxe Edition (2022) · animated · optional · R
+  16. The Dark Knight (2008) · live action · essential · PG-13
+  17. Batman (1989) · live action · essential · PG-13
+  18. Batman Returns (1992) · live action · core · PG-13
+  19. Batman: Mask of the Phantasm (1993) · animated · essential · PG
+  20. Batman: Soul of the Dragon (2021) · animated · core · R
+  21. The Batman — Season 1 (2004) · animated · series · optional · TV-G
+  22. The Batman — Season 2 (2005) · animated · series · optional · TV-G
+
+3. The Grayson years
+--------------------
+  1. Dynamic Duo (2028) · animated · core · NOT OUT YET
+  2. Batman Forever (1995) · live action · optional · PG-13
+  3. Batman & Robin (1997) · live action · optional · PG-13
+  4. The LEGO Batman Movie (2017) · animated · essential · PG
+  5. The LEGO Batman Movie — 4 bonus shorts (2017) · animated · optional · NR
+  6. The Doom That Came to Gotham (2023) · animated · core · PG-13
+  7. Batman — 15 chapters (1943) · live action · core · NR
+  8. Batman and Robin — 15 chapters (1949) · live action · optional · NR
+  9. Batman — Complete series (1966) · live action · series · essential · TV-G
+  10. Batman (1966) · live action · essential · PG
+  11. Batgirl — Presentation film (1967) · live action · optional · NR
+  12. Return of the Caped Crusaders (2016) · animated · core · PG
+  13. Batman vs. Two-Face (2017) · animated · core · PG
+  14. The Adventures of Batman — Complete series (1968) · animated · series · optional · TV-G
+  15. Scooby-Doo Meets Batman (2002) · animated · optional · NR
+  16. The New Adventures of Batman — Complete series (1977) · animated · series · optional · TV-Y7
+  17. DC Super Hero Girls — Complete series (2019) · animated · series · optional · TV-Y7
+  18. Mayhem in the Multiverse — with Teen Titans Go! (2022) · animated · optional · PG
+  19. Batman: The Animated Series — Season 1 (1992) · animated · series · essential · TV-PG
+  20. Batman: The Animated Series — Season 2 (1994) · animated · series · optional · TV-PG
+  21. Batman & Mr. Freeze: SubZero (1998) · animated · core · PG
+  22. The Batman — Season 3 (2005) · animated · series · optional · TV-Y7-FV
+  23. The Batman vs. Dracula (2005) · animated · core · NR
+  24. The Batman — Season 4 (2006) · animated · series · optional · TV-Y7-FV
+  25. Teen Titans — Complete series (2003) · animated · series · optional · TV-PG
+  26. Teen Titans: Trouble in Tokyo (2006) · animated · optional · NR
+  27. Teen Titans Go! — All seasons (2013) · animated · series · optional · TV-PG
+  28. Batman: The Killing Joke (2016) · animated · core · R
+
+4. Rebuilding
+-------------
+  1. Batman: Under the Red Hood (2010) · animated · essential · PG-13
+  2. Batman: Death in the Family (2020) · animated · core · R
+  3. Batman: Assault on Arkham (2014) · animated · core · PG-13
+  4. The New Batman Adventures — Season 1 (1997) · animated · series · optional · TV-PG
+  5. The New Batman Adventures — Season 2 (1998) · animated · series · essential · TV-PG
+  6. Batman: Mystery of the Batwoman (2003) · animated · core · PG
+  7. Chase Me (2003) · animated · optional · NR
+  8. Batman Unlimited: Animal Instincts (2015) · animated · optional · TV-PG
+  9. Batman Unlimited: Monster Mayhem (2015) · animated · optional · PG
+  10. Batman Unlimited — 33 shorts (2015) · animated · optional · NR
+  11. Batman Unlimited: Mechs vs. Mutants (2016) · animated · optional · PG
+  12. Batman and Harley Quinn (2017) · animated · core · PG-13
+  13. Titans — Complete series (2018) · live action · series · optional · TV-MA
+  14. Batwheels — Season 1 (2022) · animated · series · optional · TV-Y
+  15. Batwheels — Season 2 (2024) · animated · series · optional · TV-Y
+  16. Batwheels — Season 3 (2025) · animated · series · optional · TV-Y7
+
+5. Broken and rebuilt
+---------------------
+  1. Batman: Knightfall — Part 1 (2026) · animated · core · NOT OUT YET
+  2. Knightfall — Part 2: Knightquest (2026) · animated · core · NOT OUT YET
+  3. Knightfall — Part 3: KnightsEnd (2027) · animated · core · NOT OUT YET
+  4. The Dark Knight Rises (2012) · live action · core · PG-13
+
+6. The League years
+-------------------
+  1. Super Friends — 1973 (1973) · animated · series · optional · TV-G
+  2. The All-New Super Friends Hour — 1977 (1977) · animated · series · optional · TV-G
+  3. Challenge of the Super Friends — 1978 (1978) · animated · series · essential · TV-G
+  4. The World’s Greatest SuperFriends — 1979 (1979) · animated · series · optional · TV-G
+  5. Legends of the Superheroes — 2 specials (1979) · live action · optional · NR
+  6. Super Friends — 1980 (1980) · animated · series · optional · TV-G
+  7. Super Friends — 1981 (1981) · animated · series · optional · TV-G
+  8. Super Friends — 1983 (1983) · animated · series · optional · TV-G
+  9. The Legendary Super Powers Show — 1984 (1984) · animated · series · optional · TV-G
+  10. The Super Powers Team: Galactic Guardians — 1985 (1985) · animated · series · optional · TV-G
+  11. JLA Adventures: Trapped in Time (2014) · animated · optional · NR
+  12. LEGO Batman: DC Super Heroes Unite (2013) · animated · core · G
+  13. Robot Chicken DC Comics Special (2012) · animated · optional · TV-MA
+  14. Robot Chicken DC Comics Special II — Villains in Paradise (2014) · animated · optional · TV-MA
+  15. Batman: The Brave and the Bold — Season 1 (2008) · animated · series · essential · TV-Y7
+  16. Batman: The Brave and the Bold — Season 2 (2010) · animated · series · optional · TV-Y7
+  17. Batman: The Brave and the Bold — Season 3 (2011) · animated · series · optional · TV-Y7
+  18. Scooby-Doo and Batman: The Brave and the Bold (2018) · animated · core · NR
+  19. Teen Titans Go! To the Movies (2018) · animated · optional · PG
+  20. The Batman — Season 5 (2007) · animated · series · optional · TV-Y7-FV
+
+7. No one in the car
+--------------------
+  1. Justice League: The New Frontier (2008) · animated · core · PG-13
+  2. Justice League: The Flashpoint Paradox (2013) · animated · optional · PG-13
+  3. Justice League: War (2014) · animated · optional · PG-13
+  4. Superman: The Animated Series — Season 1 (1996) · animated · series · optional · TV-PG
+  5. Superman: The Animated Series — Season 2 (1997) · animated · series · optional · TV-PG
+  6. The Batman Superman Movie: World's Finest (1997) · animated · optional · TV-PG
+  7. Superman: The Animated Series — Season 3 (1999) · animated · series · optional · TV-PG
+  8. Static Shock — Seasons 1–4 (2000) · animated · series · optional · TV-Y7
+  9. Justice League — Season 1 (2001) · animated · series · essential · TV-G
+  10. Justice League — Season 2 (2003) · animated · series · optional · TV-G
+  11. Justice League Unlimited — Season 1 (2004) · animated · series · optional · TV-Y7-FV
+  12. Justice League Unlimited — Season 2 (2005) · animated · series · optional · TV-Y7-FV
+  13. Justice League Unlimited — Season 3 (2006) · animated · series · essential · TV-Y7-FV
+  14. Justice League vs. the Fatal Five (2019) · animated · optional · PG-13
+  15. Young Justice — Season 1 (2010) · animated · series · essential · TV-PG
+  16. Young Justice — Season 2: Invasion (2012) · animated · series · optional · TV-PG
+  17. Young Justice — Season 3: Outsiders (2019) · animated · series · optional · TV-14
+  18. Young Justice — Season 4: Phantoms (2021) · animated · series · optional · TV-14
+  19. Superman/Batman: Public Enemies (2009) · animated · core · PG-13
+  20. Superman/Batman: Apocalypse (2010) · animated · core · PG-13
+  21. Justice League: Crisis on Two Earths (2010) · animated · core · PG-13
+  22. Justice League: Doom (2012) · animated · essential · PG-13
+  23. Justice League Action — Complete series (2016) · animated · series · optional · TV-Y7
+  24. Justice League Action Shorts — 22 shorts (2017) · animated · optional · NR
+  25. LEGO DC Comics: Batman Be-Leaguered (2014) · animated · core · PG
+  26. Justice League vs. Bizarro League (2015) · animated · optional · TV-Y7
+  27. Justice League: Attack of the Legion of Doom (2015) · animated · optional · NR
+  28. Justice League: Cosmic Clash (2016) · animated · optional · TV-Y7
+  29. LEGO DC Comics Super Heroes: The Flash (2018) · animated · optional · NR
+  30. LEGO DC Shazam!: Magic and Monsters (2020) · animated · optional · NR
+  31. DC Super Heroes vs. Eagle Talon (2017) · animated · optional · NR
+  32. DC League of Super-Pets (2022) · animated · optional · PG
+  33. Justice League x RWBY — Part One (2023) · animated · optional · PG
+  34. Justice League x RWBY — Part Two (2024) · animated · optional · PG
+  35. Injustice (2021) · animated · core · R
+  36. Superman: Man of Tomorrow (2020) · animated · optional · PG-13
+  37. Justice Society: World War II (2021) · animated · optional · PG-13
+  38. Green Lantern: Beware My Power (2022) · animated · optional · PG-13
+  39. Legion of Super-Heroes (2023) · animated · optional · PG-13
+  40. Justice League: Warworld (2023) · animated · core · R
+  41. Crisis on Infinite Earths — Part One (2024) · animated · core · PG-13
+  42. Crisis on Infinite Earths — Part Two (2024) · animated · core · PG-13
+  43. Crisis on Infinite Earths — Part Three (2024) · animated · core · PG-13
+  44. Batman v Superman: Dawn of Justice (2016) · live action · core · PG-13
+  45. Suicide Squad (2016) · live action · optional · PG-13
+  46. Justice League (2017) · live action · core · PG-13
+  47. Zack Snyder’s Justice League (2021) · live action · optional · R
+  48. Birds of Prey — and the Fantabulous Emancipation of One Harley Quinn (2020) · live action · optional · R
+
+8. The Damian years
+-------------------
+  1. Son of Batman (2014) · animated · core · PG-13
+  2. Justice League: Throne of Atlantis (2015) · animated · optional · PG-13
+  3. Batman vs. Robin (2015) · animated · core · PG-13
+  4. Batman: Bad Blood (2016) · animated · core · PG-13
+  5. Justice League vs. Teen Titans (2016) · animated · optional · PG-13
+  6. Justice League Dark (2017) · animated · optional · R
+  7. Teen Titans: The Judas Contract (2017) · animated · optional · NR
+  8. Suicide Squad: Hell to Pay (2018) · animated · optional · R
+  9. The Death of Superman (2018) · animated · optional · PG-13
+  10. Reign of the Supermen (2019) · animated · optional · NR
+  11. Constantine: City of Demons (2018) · animated · optional · R
+  12. Batman: Hush (2019) · animated · core · PG-13
+  13. Wonder Woman: Bloodlines (2019) · animated · optional · PG-13
+  14. Justice League Dark: Apokolips War (2020) · animated · optional · R
+  15. Justice League: Gotham City Breakout (2016) · animated · core · TV-Y7
+  16. Aquaman: Rage of Atlantis (2018) · animated · optional · TV-Y7
+  17. LEGO DC Batman: Family Matters (2019) · animated · core · TV-PG
+  18. Batman vs. Teenage Mutant Ninja Turtles (2019) · animated · core · PG-13
+  19. Batman Ninja (2018) · animated · core · PG-13
+  20. Batman Ninja vs. Yakuza League (2025) · animated · core · PG-13
+  21. Battle of the Super Sons (2022) · animated · optional · PG-13
+  22. Harley Quinn — Season 1 (2019) · animated · series · optional · TV-MA
+  23. Harley Quinn — Season 2 (2020) · animated · series · optional · TV-MA
+  24. Harley Quinn — Season 3 (2022) · animated · series · optional · TV-MA
+  25. Harley Quinn — Valentine’s Day special (2023) · animated · optional · TV-14
+  26. Harley Quinn — Season 4 (2023) · animated · series · optional · TV-MA
+  27. Kite Man: Hell Yeah! (2024) · animated · series · optional · TV-MA
+  28. Harley Quinn — Season 5 (2025) · animated · series · optional · TV-MA
+  29. Merry Little Batman (2023) · animated · essential · PG
+  30. Bat-Fam — Season 1 (2025) · animated · series · optional · TV-Y7
+
+9. The last years
+-----------------
+  1. The Dark Knight Returns — Part One (2012) · animated · essential · PG-13
+  2. The Dark Knight Returns — Part Two (2013) · animated · essential · PG-13
+  3. The Dark Knight Returns — Deluxe Edition (2013) · animated · optional · PG-13
+
+10. Beyond
+----------
+  1. Batman Beyond — DC Nation short (2014) · animated · optional · NR
+  2. Batman Beyond: The Movie (1999) · animated · optional · NR
+  3. Batman Beyond — Season 1 (1999) · animated · series · essential · TV-PG
+  4. Batman Beyond — Season 2 (2000) · animated · series · optional · TV-PG
+  5. Batman Beyond — Season 3 (2000) · animated · series · optional · TV-PG
+  6. The Zeta Project — Seasons 1–2 (2001) · animated · series · optional · TV-Y7
+  7. Batman Beyond: Return of the Joker (2000) · animated · essential · PG-13
+
+11. After the cowl
+------------------
+  1. Birds of Prey — Complete series (2002) · live action · series · optional · TV-14
+  2. Batwoman — Complete series (2019) · live action · series · optional · TV-14
+  3. Gotham Knights — Complete series (2023) · live action · series · optional · TV-14
+
+—. Outside any timeline
+-----------------------
+  1. Gotham Girls — 30 shorts (2000) · animated · optional · NR
+  2. DC Showcase: Catwoman (2011) · animated · optional · NR
+  3. Superman: Red Son (2020) · animated · optional · PG-13
+  4. Catwoman: Hunted (2022) · animated · optional · PG-13
+  5. Suicide Squad Isekai — Complete series (2024) · animated · series · optional · TV-MA
+  6. Aztec Batman: Clash of Empires (2025) · animated · core · R
+  7. The LEGO Movie (2014) · animated · optional · PG
+  8. The LEGO Movie 2: The Second Part (2019) · animated · optional · PG
+  9. Teen Titans Go! vs. Teen Titans (2019) · animated · optional · PG
+  10. Justice League: Gods and Monsters (2015) · animated · core · PG-13
+  11. Justice League: Gods and Monsters Chronicles — 3 shorts (2015) · animated · optional · NR
+  12. Robot Chicken DC Comics Special III — Magical Friendship (2015) · animated · optional · TV-14
+  13. The Flash (2023) · live action · optional · PG-13
+  14. Creature Commandos — Season 1 (2024) · animated · series · optional · TV-MA
+  15. Clayface (2026) · live action · optional · NOT OUT YET
+
+=========================================================================
+ORDERING 3 OF 3 — RELEASE ORDER
+=========================================================================
+
+1940s. The forties
+------------------
+  1. Batman — 15 chapters (1943) · live action · core · NR
+  2. Batman and Robin — 15 chapters (1949) · live action · optional · NR
+
+1960s. The sixties
+------------------
+  1. Batman — Complete series (1966) · live action · series · essential · TV-G
+  2. Batman (1966) · live action · essential · PG
+  3. Batgirl — Presentation film (1967) · live action · optional · NR
+  4. The Adventures of Batman — Complete series (1968) · animated · series · optional · TV-G
+
+1970s. The seventies
+--------------------
+  1. Super Friends — 1973 (1973) · animated · series · optional · TV-G
+  2. The All-New Super Friends Hour — 1977 (1977) · animated · series · optional · TV-G
+  3. The New Adventures of Batman — Complete series (1977) · animated · series · optional · TV-Y7
+  4. Challenge of the Super Friends — 1978 (1978) · animated · series · essential · TV-G
+  5. Legends of the Superheroes — 2 specials (1979) · live action · optional · NR
+  6. The World’s Greatest SuperFriends — 1979 (1979) · animated · series · optional · TV-G
+
+1980s. The eighties
+-------------------
+  1. Super Friends — 1980 (1980) · animated · series · optional · TV-G
+  2. Super Friends — 1981 (1981) · animated · series · optional · TV-G
+  3. Super Friends — 1983 (1983) · animated · series · optional · TV-G
+  4. The Legendary Super Powers Show — 1984 (1984) · animated · series · optional · TV-G
+  5. The Super Powers Team: Galactic Guardians — 1985 (1985) · animated · series · optional · TV-G
+  6. Batman (1989) · live action · essential · PG-13
+
+1990s. The nineties
+-------------------
+  1. Batman Returns (1992) · live action · core · PG-13
+  2. Batman: The Animated Series — Season 1 (1992) · animated · series · essential · TV-PG
+  3. Batman: Mask of the Phantasm (1993) · animated · essential · PG
+  4. Batman: The Animated Series — Season 2 (1994) · animated · series · optional · TV-PG
+  5. Batman Forever (1995) · live action · optional · PG-13
+  6. Superman: The Animated Series — Season 1 (1996) · animated · series · optional · TV-PG
+  7. Batman & Robin (1997) · live action · optional · PG-13
+  8. Superman: The Animated Series — Season 2 (1997) · animated · series · optional · TV-PG
+  9. The Batman Superman Movie: World's Finest (1997) · animated · optional · TV-PG
+  10. The New Batman Adventures — Season 1 (1997) · animated · series · optional · TV-PG
+  11. Batman & Mr. Freeze: SubZero (1998) · animated · core · PG
+  12. The New Batman Adventures — Season 2 (1998) · animated · series · essential · TV-PG
+  13. Batman Beyond — Season 1 (1999) · animated · series · essential · TV-PG
+  14. Batman Beyond: The Movie (1999) · animated · optional · NR
+  15. Superman: The Animated Series — Season 3 (1999) · animated · series · optional · TV-PG
+
+2000s. The 2000s
+----------------
+  1. Batman Beyond — Season 2 (2000) · animated · series · optional · TV-PG
+  2. Batman Beyond — Season 3 (2000) · animated · series · optional · TV-PG
+  3. Batman Beyond: Return of the Joker (2000) · animated · essential · PG-13
+  4. Gotham Girls — 30 shorts (2000) · animated · optional · NR
+  5. Static Shock — Seasons 1–4 (2000) · animated · series · optional · TV-Y7
+  6. Justice League — Season 1 (2001) · animated · series · essential · TV-G
+  7. The Zeta Project — Seasons 1–2 (2001) · animated · series · optional · TV-Y7
+  8. Birds of Prey — Complete series (2002) · live action · series · optional · TV-14
+  9. Scooby-Doo Meets Batman (2002) · animated · optional · NR
+  10. Batman: Mystery of the Batwoman (2003) · animated · core · PG
+  11. Chase Me (2003) · animated · optional · NR
+  12. Justice League — Season 2 (2003) · animated · series · optional · TV-G
+  13. Teen Titans — Complete series (2003) · animated · series · optional · TV-PG
+  14. Justice League Unlimited — Season 1 (2004) · animated · series · optional · TV-Y7-FV
+  15. The Batman — Season 1 (2004) · animated · series · optional · TV-G
+  16. Batman Begins (2005) · live action · essential · PG-13
+  17. Justice League Unlimited — Season 2 (2005) · animated · series · optional · TV-Y7-FV
+  18. The Batman — Season 2 (2005) · animated · series · optional · TV-G
+  19. The Batman — Season 3 (2005) · animated · series · optional · TV-Y7-FV
+  20. The Batman vs. Dracula (2005) · animated · core · NR
+  21. Justice League Unlimited — Season 3 (2006) · animated · series · essential · TV-Y7-FV
+  22. Teen Titans: Trouble in Tokyo (2006) · animated · optional · NR
+  23. The Batman — Season 4 (2006) · animated · series · optional · TV-Y7-FV
+  24. The Batman — Season 5 (2007) · animated · series · optional · TV-Y7-FV
+  25. Batman: Gotham Knight (2008) · animated · core · PG-13
+  26. Batman: The Brave and the Bold — Season 1 (2008) · animated · series · essential · TV-Y7
+  27. Justice League: The New Frontier (2008) · animated · core · PG-13
+  28. The Dark Knight (2008) · live action · essential · PG-13
+  29. Superman/Batman: Public Enemies (2009) · animated · core · PG-13
+
+2010s. The 2010s
+----------------
+  1. Batman: The Brave and the Bold — Season 2 (2010) · animated · series · optional · TV-Y7
+  2. Batman: Under the Red Hood (2010) · animated · essential · PG-13
+  3. Justice League: Crisis on Two Earths (2010) · animated · core · PG-13
+  4. Superman/Batman: Apocalypse (2010) · animated · core · PG-13
+  5. Young Justice — Season 1 (2010) · animated · series · essential · TV-PG
+  6. Batman: The Brave and the Bold — Season 3 (2011) · animated · series · optional · TV-Y7
+  7. Batman: Year One (2011) · animated · essential · PG-13
+  8. DC Showcase: Catwoman (2011) · animated · optional · NR
+  9. Batman of Shanghai — 3 shorts (2012) · animated · optional · NR
+  10. Justice League: Doom (2012) · animated · essential · PG-13
+  11. Robot Chicken DC Comics Special (2012) · animated · optional · TV-MA
+  12. The Dark Knight Returns — Part One (2012) · animated · essential · PG-13
+  13. The Dark Knight Rises (2012) · live action · core · PG-13
+  14. Young Justice — Season 2: Invasion (2012) · animated · series · optional · TV-PG
+  15. Beware the Batman — Complete series (2013) · animated · series · optional · TV-PG
+  16. Justice League: The Flashpoint Paradox (2013) · animated · optional · PG-13
+  17. LEGO Batman: DC Super Heroes Unite (2013) · animated · core · G
+  18. Teen Titans Go! — All seasons (2013) · animated · series · optional · TV-PG
+  19. The Dark Knight Returns — Deluxe Edition (2013) · animated · optional · PG-13
+  20. The Dark Knight Returns — Part Two (2013) · animated · essential · PG-13
+  21. Batman Beyond — DC Nation short (2014) · animated · optional · NR
+  22. Batman: Assault on Arkham (2014) · animated · core · PG-13
+  23. Batman: Strange Days (2014) · animated · optional · NR
+  24. Gotham — Complete series (2014) · live action · series · essential · TV-14
+  25. JLA Adventures: Trapped in Time (2014) · animated · optional · NR
+  26. Justice League: War (2014) · animated · optional · PG-13
+  27. LEGO DC Comics: Batman Be-Leaguered (2014) · animated · core · PG
+  28. Robot Chicken DC Comics Special II — Villains in Paradise (2014) · animated · optional · TV-MA
+  29. Son of Batman (2014) · animated · core · PG-13
+  30. The LEGO Movie (2014) · animated · optional · PG
+  31. Batman Unlimited — 33 shorts (2015) · animated · optional · NR
+  32. Batman Unlimited: Animal Instincts (2015) · animated · optional · TV-PG
+  33. Batman Unlimited: Monster Mayhem (2015) · animated · optional · PG
+  34. Batman vs. Robin (2015) · animated · core · PG-13
+  35. Justice League vs. Bizarro League (2015) · animated · optional · TV-Y7
+  36. Justice League: Attack of the Legion of Doom (2015) · animated · optional · NR
+  37. Justice League: Gods and Monsters (2015) · animated · core · PG-13
+  38. Justice League: Gods and Monsters Chronicles — 3 shorts (2015) · animated · optional · NR
+  39. Justice League: Throne of Atlantis (2015) · animated · optional · PG-13
+  40. Robot Chicken DC Comics Special III — Magical Friendship (2015) · animated · optional · TV-14
+  41. Batman Unlimited: Mechs vs. Mutants (2016) · animated · optional · PG
+  42. Batman v Superman: Dawn of Justice (2016) · live action · core · PG-13
+  43. Batman: Bad Blood (2016) · animated · core · PG-13
+  44. Batman: The Killing Joke (2016) · animated · core · R
+  45. Justice League Action — Complete series (2016) · animated · series · optional · TV-Y7
+  46. Justice League vs. Teen Titans (2016) · animated · optional · PG-13
+  47. Justice League: Cosmic Clash (2016) · animated · optional · TV-Y7
+  48. Justice League: Gotham City Breakout (2016) · animated · core · TV-Y7
+  49. Return of the Caped Crusaders (2016) · animated · core · PG
+  50. Suicide Squad (2016) · live action · optional · PG-13
+  51. Batman and Harley Quinn (2017) · animated · core · PG-13
+  52. Batman vs. Two-Face (2017) · animated · core · PG
+  53. DC Super Heroes vs. Eagle Talon (2017) · animated · optional · NR
+  54. Justice League (2017) · live action · core · PG-13
+  55. Justice League Action Shorts — 22 shorts (2017) · animated · optional · NR
+  56. Justice League Dark (2017) · animated · optional · R
+  57. Teen Titans: The Judas Contract (2017) · animated · optional · NR
+  58. The LEGO Batman Movie (2017) · animated · essential · PG
+  59. The LEGO Batman Movie — 4 bonus shorts (2017) · animated · optional · NR
+  60. Aquaman: Rage of Atlantis (2018) · animated · optional · TV-Y7
+  61. Batman Ninja (2018) · animated · core · PG-13
+  62. Batman: Gotham by Gaslight (2018) · animated · essential · R
+  63. Constantine: City of Demons (2018) · animated · optional · R
+  64. LEGO DC Comics Super Heroes: The Flash (2018) · animated · optional · NR
+  65. Scooby-Doo and Batman: The Brave and the Bold (2018) · animated · core · NR
+  66. Suicide Squad: Hell to Pay (2018) · animated · optional · R
+  67. Teen Titans Go! To the Movies (2018) · animated · optional · PG
+  68. The Death of Superman (2018) · animated · optional · PG-13
+  69. Titans — Complete series (2018) · live action · series · optional · TV-MA
+  70. Batman vs. Teenage Mutant Ninja Turtles (2019) · animated · core · PG-13
+  71. Batman: Hush (2019) · animated · core · PG-13
+  72. Batwoman — Complete series (2019) · live action · series · optional · TV-14
+  73. DC Super Hero Girls — Complete series (2019) · animated · series · optional · TV-Y7
+  74. Harley Quinn — Season 1 (2019) · animated · series · optional · TV-MA
+  75. Joker (2019) · live action · optional · R
+  76. Justice League vs. the Fatal Five (2019) · animated · optional · PG-13
+  77. LEGO DC Batman: Family Matters (2019) · animated · core · TV-PG
+  78. Pennyworth — Complete series (2019) · live action · series · optional · TV-MA
+  79. Reign of the Supermen (2019) · animated · optional · NR
+  80. Teen Titans Go! vs. Teen Titans (2019) · animated · optional · PG
+  81. The LEGO Movie 2: The Second Part (2019) · animated · optional · PG
+  82. Wonder Woman: Bloodlines (2019) · animated · optional · PG-13
+  83. Young Justice — Season 3: Outsiders (2019) · animated · series · optional · TV-14
+
+2020s. The 2020s
+----------------
+  1. Batman: Death in the Family (2020) · animated · core · R
+  2. Birds of Prey — and the Fantabulous Emancipation of One Harley Quinn (2020) · live action · optional · R
+  3. Harley Quinn — Season 2 (2020) · animated · series · optional · TV-MA
+  4. Justice League Dark: Apokolips War (2020) · animated · optional · R
+  5. LEGO DC Shazam!: Magic and Monsters (2020) · animated · optional · NR
+  6. Superman: Man of Tomorrow (2020) · animated · optional · PG-13
+  7. Superman: Red Son (2020) · animated · optional · PG-13
+  8. Batman: Soul of the Dragon (2021) · animated · core · R
+  9. Batman: The Long Halloween — Part One (2021) · animated · essential · PG-13
+  10. Batman: The Long Halloween — Part Two (2021) · animated · essential · R
+  11. Injustice (2021) · animated · core · R
+  12. Justice Society: World War II (2021) · animated · optional · PG-13
+  13. Young Justice — Season 4: Phantoms (2021) · animated · series · optional · TV-14
+  14. Zack Snyder’s Justice League (2021) · live action · optional · R
+  15. Battle of the Super Sons (2022) · animated · optional · PG-13
+  16. Batwheels — Season 1 (2022) · animated · series · optional · TV-Y
+  17. Catwoman: Hunted (2022) · animated · optional · PG-13
+  18. DC League of Super-Pets (2022) · animated · optional · PG
+  19. Green Lantern: Beware My Power (2022) · animated · optional · PG-13
+  20. Harley Quinn — Season 3 (2022) · animated · series · optional · TV-MA
+  21. Mayhem in the Multiverse — with Teen Titans Go! (2022) · animated · optional · PG
+  22. The Batman (2022) · live action · essential · PG-13
+  23. The Long Halloween — Deluxe Edition (2022) · animated · optional · R
+  24. Gotham Knights — Complete series (2023) · live action · series · optional · TV-14
+  25. Harley Quinn — Valentine’s Day special (2023) · animated · optional · TV-14
+  26. Harley Quinn — Season 4 (2023) · animated · series · optional · TV-MA
+  27. Justice League x RWBY — Part One (2023) · animated · optional · PG
+  28. Justice League: Warworld (2023) · animated · core · R
+  29. Legion of Super-Heroes (2023) · animated · optional · PG-13
+  30. Merry Little Batman (2023) · animated · essential · PG
+  31. The Doom That Came to Gotham (2023) · animated · core · PG-13
+  32. The Flash (2023) · live action · optional · PG-13
+  33. Batman: Caped Crusader — Season 1 (2024) · animated · series · essential · TV-14
+  34. Batwheels — Season 2 (2024) · animated · series · optional · TV-Y
+  35. Creature Commandos — Season 1 (2024) · animated · series · optional · TV-MA
+  36. Crisis on Infinite Earths — Part One (2024) · animated · core · PG-13
+  37. Crisis on Infinite Earths — Part Three (2024) · animated · core · PG-13
+  38. Crisis on Infinite Earths — Part Two (2024) · animated · core · PG-13
+  39. Joker: Folie à Deux (2024) · live action · optional · R
+  40. Justice League x RWBY — Part Two (2024) · animated · optional · PG
+  41. Kite Man: Hell Yeah! (2024) · animated · series · optional · TV-MA
+  42. Suicide Squad Isekai — Complete series (2024) · animated · series · optional · TV-MA
+  43. The Penguin — Season 1 (2024) · live action · series · core · TV-MA
+  44. Aztec Batman: Clash of Empires (2025) · animated · core · R
+  45. Bat-Fam — Season 1 (2025) · animated · series · optional · TV-Y7
+  46. Batman Ninja vs. Yakuza League (2025) · animated · core · PG-13
+  47. Batwheels — Season 3 (2025) · animated · series · optional · TV-Y7
+  48. Harley Quinn — Season 5 (2025) · animated · series · optional · TV-MA
+  49. Batman: Caped Crusader — Season 2 (2026) · animated · series · optional · TV-14
+  50. Batman: Knightfall — Part 1 (2026) · animated · core · NOT OUT YET
+  51. Clayface (2026) · live action · optional · NOT OUT YET
+  52. Knightfall — Part 2: Knightquest (2026) · animated · core · NOT OUT YET
+  53. Knightfall — Part 3: KnightsEnd (2027) · animated · core · NOT OUT YET
+  54. Dynamic Duo (2028) · animated · core · NOT OUT YET
+  55. The Batman: Part II (2028) · live action · core · NOT OUT YET

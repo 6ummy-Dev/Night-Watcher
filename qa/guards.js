@@ -82,6 +82,7 @@ function blessHtml(next){
      126  A restored path cannot reach the prototype chain
      127  A failed read stops the writes, a failed write does not
      134  A removal is a fact with a clock, not a hole
+     142  A backup is stamped only when a copy left
      102  A tick burst writes once, and leaving flushes
      103  The tick repaints one group, and cannot drift
 
@@ -191,6 +192,7 @@ function blessHtml(next){
      139  The files an agent reads answer fresh
      140  The disclosure channel is a file, and it has not expired
      105  The catalogue answers in plain text
+     141  The two orderings are named once, and shared
      133  The root negotiates markdown, and only the root
      125  robots.txt states a position on AI use
      106  The fonts carry every letter the catalogue uses
@@ -273,11 +275,16 @@ vm.runInContext(
      needs it to check the chooser derives from the same string. */
   slice("var MODENOTE = {", "var PATHS = [") + "\n" +
   slice("var PATHS = [", "function isPath") + "\n" +
-  fn("idHash") + "\n" + fn("tierOf") + "\n" + fn("clampRating") + "\n" + fn("isPath") + "\n",
+  fn("idHash") + "\n" + fn("tierOf") + "\n" + fn("clampRating") + "\n" + fn("isPath") + "\n" +
+  /* 3.9.6: the app's own two comparators, so section 105 can publish the
+     orderings it used to decline to publish. They are extracted, never
+     rewritten — the whole reason they were given names in index.html. */
+  fn("lifeCmp") + "\n" + fn("releaseCmp") + "\n",
   sandbox
 );
 
 var PATH = sandbox.PATH, ERAS = sandbox.ERAS, DECADES = sandbox.DECADES, BADGE = sandbox.BADGE;
+var lifeCmp = sandbox.lifeCmp, releaseCmp = sandbox.releaseCmp;
 /* The FAQ: one source. Guard 78 renders it into the crawlable seed, guard
    100 mirrors it into the FAQPage schema node, and the two can only move
    together. Q1 derives from MODENOTE so the method answer cannot drift from
@@ -6837,21 +6844,29 @@ var ROUTE_VOCAB = [
    reads text rather than HTML — the same audience llms.txt talks to, given the
    data instead of a description. Separate file, so it costs the page nothing.
 
-   IT CARRIES ONE ORDERING, AND THE REASON IS WORTH READING BEFORE ANYONE
-   "COMPLETES" IT. By universe needs no sort: each continuity's array IS its
-   spoiler-safe order, exactly as guard 78 relies on for the seed. Bruce's life
-   and Release order are produced by two anonymous comparators inside
-   buildGroups() in index.html, and fn() can only extract NAMED functions —
-   so writing them here would be a second implementation of the app's ordering,
-   which is the one thing this file exists to prevent. Naming them in
-   index.html so both sides share one source is a refactor of buildGroups(),
-   which is app logic and therefore 2.5.3 by the standing split rule.
+   IT CARRIED ONE ORDERING UNTIL 3.9.6, AND THE REASON IT DID IS STILL THE
+   REASON THE FIX LOOKS LIKE THIS. By universe needs no sort: each continuity's
+   array IS its spoiler-safe order, exactly as guard 78 relies on for the seed.
+   Bruce's life and Release order are computed, and they were computed by two
+   ANONYMOUS comparators inside buildGroups() — and fn() can only extract NAMED
+   functions. Writing them out here would have been a second implementation of
+   the app's ordering, the one thing this file exists to prevent: a copy drifts,
+   stops testing the app, and from here it would have started PUBLISHING the
+   drift. That is why the export shipped short for thirteen releases rather than
+   being "completed" by someone with a spare afternoon.
 
-   The loss is smaller than it sounds. Release order is derivable from this
-   file — every entry states its year. Bruce's life is not, and it is also the
-   one the app itself calls "an interpretation rather than a canon", so the
-   app is the honest place for it. The file says so in its own words rather
-   than quietly shipping two thirds of a promise.
+   3.9.6 NAMED THEM INSTEAD. lifeCmp and releaseCmp are functions in index.html
+   with byte-identical bodies, buildGroups() sorts through them, and this
+   section extracts both — one source, both sides. Guard 141 asserts the app has
+   not quietly re-inlined a copy, which would put the drift back while leaving
+   this file looking right.
+
+   THE BUCKET IS PART OF THE ORDERING. Neither comparator is a total order:
+   lifeCmp runs inside an era, releaseCmp inside a decade, and the bucket list
+   does the coarse ordering. Sorting the flat catalogue with either would give a
+   plausible-looking wrong answer — so the two loops below mirror buildGroups()
+   rather than the shortcut, and a count check refuses to publish an ordering
+   that carries fewer than every entry.
 
    Generated and blessed like the seed and the ItemList: rebuilt on every run
    and compared, npm run bless writes it. A hand-maintained copy of 200 entries
@@ -6873,39 +6888,108 @@ var ROUTE_VOCAB = [
     "This file is generated from the same data the app renders, and the build",
     "fails if the two disagree.",
     "",
-    "THE ORDERING BELOW is by universe: every continuity kept whole, each in its",
-    "own story order, and the continuities in the order their stories start.",
-    "Nothing spoils anything ahead of it.",
+    "ALL THREE ORDERINGS ARE BELOW, in the order the app offers them. Each is",
+    "the whole catalogue, ordered a different way — read one and ignore the rest.",
     "",
-    "Release order is derivable from this file — every entry states its year.",
-    "Bruce's life — all " + PATH.length + " continuities blended into one",
-    "chronology — is an interpretation rather than a canon, and lives in the app",
-    "at https://nightwatcher.life/#life",
+    "  1. BY UNIVERSE — every continuity kept whole, each in its own story",
+    "     order, and the continuities in the order their stories start.",
+    "     Nothing spoils anything ahead of it. The completist's way through.",
+    "  2. BRUCE'S LIFE — all " + PATH.length + " continuities blended into one chronology,",
+    "     from before there is a Batman to after there is not. This one is an",
+    "     interpretation rather than a canon, and the app says so too.",
+    "  3. RELEASE ORDER — " + Math.min.apply(null, FILMS.map(function(f){ return f.y; })) +
+      " to " + Math.max.apply(null, FILMS.map(function(f){ return f.y; })) +
+      ", the only objectively complete ordering.",
+    "",
+    "The two computed orderings are produced by the app's own comparators,",
+    "extracted from index.html rather than reimplemented here, so this file",
+    "cannot disagree with what the app renders.",
     "",
     "No account, no advertising, nothing tracking what you watch. Progress stays",
     "in the reader's browser. Free software under the AGPL.",
-    "",
-    "=========================================================================",
     ""
   ];
+
+  /* ONE ROW WRITER FOR ALL THREE ORDERINGS. Three copies of this would be three
+     chances for one ordering to describe an entry differently from another, in
+     a file whose whole claim is that it is the same data seen three ways. */
+  function row(f, i){
+    var bits = [f.fmt === "live" ? "live action" : "animated"];
+    if(f.tv) bits.push("series");
+    var tier = tierOf(f);
+    if(tier === "e") bits.push("essential");
+    else if(tier === "k") bits.push("core");
+    else bits.push("optional");
+    if(f.r) bits.push(f.r);
+    if(f.b.indexOf("u") >= 0) bits.push("NOT OUT YET");
+    return "  " + (i + 1) + ". " + f.t + (f.sub ? " — " + f.sub : "") +
+           " (" + f.y + ") · " + bits.join(" · ");
+  }
+  function heading(text){
+    lines.push(text);
+    lines.push("-".repeat(text.length));
+  }
+  function banner(text){
+    lines.push("=========================================================================");
+    lines.push(text);
+    lines.push("=========================================================================");
+    lines.push("");
+  }
+
+  banner("ORDERING 1 OF 3 — BY UNIVERSE");
   PATH.forEach(function(g, gi){
-    lines.push(g.n + ". " + g.name);
-    lines.push("-".repeat((g.n + ". " + g.name).length));
+    heading(g.n + ". " + g.name);
     FILMS.filter(function(f){ return f.gi === gi; }).forEach(function(f, i){
-      var bits = [f.fmt === "live" ? "live action" : "animated"];
-      if(f.tv) bits.push("series");
-      var tier = tierOf(f);
-      if(tier === "e") bits.push("essential");
-      else if(tier === "k") bits.push("core");
-      else bits.push("optional");
-      if(f.r) bits.push(f.r);
-      if(f.b.indexOf("u") >= 0) bits.push("NOT OUT YET");
-      lines.push("  " + (i + 1) + ". " + f.t + (f.sub ? " — " + f.sub : "") +
-                 " (" + f.y + ") · " + bits.join(" · "));
+      lines.push(row(f, i));
     });
     lines.push("");
   });
+
+  /* THE BUCKET IS PART OF THE ORDERING, which is why these two loops mirror
+     buildGroups() rather than sorting the flat catalogue. Neither comparator is
+     a total order on its own: lifeCmp runs inside an era and releaseCmp inside
+     a decade, and the bucket list does the coarse ordering. Sorting all 200
+     entries with either one would produce a plausible-looking wrong answer —
+     the failure this file would be publishing if the comparators had been
+     rewritten here instead of extracted. Empty buckets are dropped and the
+     numbering closes up, the same as the app's own filter-then-renumber. */
+  banner("ORDERING 2 OF 3 — BRUCE'S LIFE");
+  ERAS.forEach(function(era){
+    var fs = FILMS.filter(function(f){ return f.e === era.k; }).slice().sort(lifeCmp);
+    if(!fs.length) return;
+    heading((era.k === 0 ? "—" : String(ERAS.indexOf(era) + 1)) + ". " + era.name);
+    fs.forEach(function(f, i){ lines.push(row(f, i)); });
+    lines.push("");
+  });
+
+  banner("ORDERING 3 OF 3 — RELEASE ORDER");
+  DECADES.forEach(function(dec){
+    var fs = FILMS.filter(function(f){ return f.y >= dec.k && f.y < dec.k + 10; })
+                  .slice().sort(releaseCmp);
+    if(!fs.length) return;
+    heading(dec.k + "s. " + dec.name);
+    fs.forEach(function(f, i){ lines.push(row(f, i)); });
+    lines.push("");
+  });
+
   var want = lines.join("\n");
+
+  /* EVERY ENTRY APPEARS ONCE IN EACH ORDERING, and this is asserted rather than
+     assumed. An era key or a decade bucket that matches nothing silently drops
+     entries from an ordering, and a plain-text file gives a reader no way to
+     notice that ordering 2 is short of ordering 1. */
+  [["Bruce's life", FILMS.filter(function(f){
+      return ERAS.some(function(e){ return e.k === f.e; }); }).length],
+   ["release order", FILMS.filter(function(f){
+      return DECADES.some(function(d){ return f.y >= d.k && f.y < d.k + 10; }); }).length]
+  ].forEach(function(pair){
+    if(pair[1] !== FILMS.length){
+      fail("orders.txt's " + pair[0] + " ordering carries " + pair[1] + " of " +
+           FILMS.length + " entries — a bucket matches nothing and the export " +
+           "drops what falls between, which a reader of a text file has no way " +
+           "to see. Every ordering is the whole catalogue or it is not shipped");
+    }
+  });
 
   /* A plain-text export nothing points at is a file nothing reads. llms.txt is
      the one page written for the audience this file is for, so that is where
@@ -10813,6 +10897,141 @@ var ROUTE_VOCAB = [
   note("security.txt: URL contact, policy at SECURITY.md, expires in " +
        (exp ? Math.floor((Date.parse(exp) - Date.now()) / 86400000) : "?") +
        " days, no-cache declared");
+})();
+
+/* ---------- 141. The two orderings are named once, and shared ---------- */
+/* 3.9.6. orders.txt shipped by universe only for thirteen releases, and the
+   reason was never that the other two orderings were unwanted: they are
+   COMPUTED, they were computed by anonymous functions inside buildGroups(), and
+   fn() can only extract named ones. Writing the sorts out in this file would
+   have been a second implementation of the app's ordering — a copy that drifts,
+   stops testing the app, and from here starts PUBLISHING the drift.
+
+   Naming them fixed that, and this section is what stops the fix being undone
+   by a tidy-up. Inlining `function(a,b){...}` back into the sort call would
+   leave every test green and section 105 still generating from whatever the
+   named functions last said, which is the drift arriving through the back door
+   — the export and the app agreeing on paper and disagreeing on screen.
+
+   It also pins what each comparator keys on, because section 105's buckets
+   depend on it: lifeCmp sorts within an era and releaseCmp within a decade,
+   and neither is a total order on the flat catalogue. */
+
+(function(){
+  var life = fn("lifeCmp"), rel = fn("releaseCmp"), bg = fn("buildGroups");
+
+  if(!/\.sort\(lifeCmp\)/.test(bg)){
+    fail("buildGroups() no longer sorts the life ordering through lifeCmp — an " +
+         "inline comparator here leaves every test green while orders.txt goes " +
+         "on generating from a function the app has stopped using");
+  }
+  if(!/\.sort\(releaseCmp\)/.test(bg)){
+    fail("buildGroups() no longer sorts the release ordering through releaseCmp " +
+         "— same defect as the life branch: the export and the app would agree " +
+         "on paper and disagree on screen");
+  }
+  if(/\.sort\(function/.test(bg)){
+    fail("buildGroups() has an inline comparator again — the two orderings are " +
+         "named so one source feeds the app and the export, and an anonymous " +
+         "one cannot be extracted by fn()");
+  }
+
+  ["lo", "gi", "ix"].forEach(function(k){
+    if(life.indexOf(k) < 0){
+      fail("lifeCmp no longer keys on " + k + " — it settles order inside one " +
+           "era, and section 105 publishes the result as Bruce's life");
+    }
+  });
+  if(rel.indexOf(".y") < 0 || rel.indexOf("localeCompare") < 0){
+    fail("releaseCmp no longer keys on the year and the title — it settles " +
+         "order inside one decade, and section 105 publishes the result as " +
+         "release order");
+  }
+
+  var txt = path.join(PUBLIC, "orders.txt");
+  if(fs.existsSync(txt)){
+    var body = fs.readFileSync(txt, "utf8");
+    ["ORDERING 1 OF 3", "ORDERING 2 OF 3", "ORDERING 3 OF 3"].forEach(function(b){
+      if(body.indexOf(b) < 0){
+        fail("orders.txt is missing " + b + " — the header promises three " +
+             "orderings and a reader of a text file cannot see which one did " +
+             "not render");
+      }
+    });
+  }
+  note("orderings: lifeCmp and releaseCmp named in index.html, sorted through " +
+       "in buildGroups(), extracted by section 105, three banners in orders.txt");
+})();
+
+/* ---------- 142. A backup is stamped only when a copy left -------------- */
+/* 3.9.6, and it guards a rule that was convention until now. lastExportAt is
+   the claim that a copy of the progress LEFT this browser — the backup nudge
+   counts marks against it, so a stamp with no file behind it silently tells
+   somebody they are backed up when they are not. The download path has always
+   been careful about this: download() returns a boolean and the stamp sits
+   inside `if(dlOk)`. Nothing asserted it. Grep the tree before 3.9.6 and there
+   is no guard, no smoke check and no browser check on any of it.
+
+   3.9.6 adds a path where getting it wrong is much easier. showSaveFilePicker
+   REJECTS when the person hits cancel, and a rejected picker looks exactly like
+   a successful one to any code that forgot to check — so the failure mode is a
+   dismissed dialog that marks the backup fresh. The helpers deliberately never
+   touch lastExportAt themselves; every one of them resolves a boolean and the
+   stamp stays at the call site, downstream of it. This section holds that line.
+
+   The handle lives in IndexedDB, which the 11 Aug durability review rejected
+   for progress — "a second copy in the same bucket is bookkeeping, not
+   durability". A handle is not a copy. It is a pointer to a file OUTSIDE the
+   origin bucket, which is the one place clear-site-data and ITP cannot reach,
+   and that is the whole durability argument for item 4. */
+
+(function(){
+  var det = fn("canSaveFile");
+  if(det.indexOf("showSaveFilePicker") < 0 || det.indexOf("indexedDB") < 0){
+    fail("canSaveFile() no longer feature-detects both showSaveFilePicker and " +
+         "indexedDB — the picker without a place to keep the handle is a save " +
+         "dialog, not durability, and every browser without either must fall " +
+         "through to the download path untouched");
+  }
+
+  ["backupToFile", "refreshBackupFile", "fhWrite", "fhAllowed"].forEach(function(name){
+    if(fn(name).indexOf("lastExportAt") >= 0){
+      fail(name + "() stamps lastExportAt itself — the stamp is the claim that " +
+           "a copy left, so it belongs at the call site downstream of the " +
+           "boolean, never inside the thing that might have failed");
+    }
+  });
+
+  if(fn("fhAllowed").indexOf("queryPermission") < 0){
+    fail("fhAllowed() no longer queries the handle's permission before writing " +
+         "— a handle restored from a previous session is not writable until " +
+         "the person says so again, and skipping the check turns a silent " +
+         "denial into a stamped backup that was never written");
+  }
+
+  var stamps = HTML.split("\n").filter(function(l){
+    return l.indexOf("S.lastExportAt = Date.now()") >= 0;
+  });
+  if(!stamps.length){
+    fail("nothing stamps lastExportAt any more — the backup nudge counts marks " +
+         "against it and would never fire again");
+  }
+  stamps.forEach(function(l){
+    if(l.indexOf("exportCode()") >= 0) return;
+    if(!/if\s*\(/.test(l)){
+      fail("a lastExportAt stamp is not gated on the write succeeding: " +
+           l.trim().slice(0, 60) + " — a cancelled save picker rejects, and an " +
+           "ungated stamp tells somebody they have a backup they do not have");
+    }
+  });
+
+  if(!/canSaveFile\(\)\s*\?[^:]*data-act="savefile"/.test(HTML)){
+    fail("the save-to-a-file control is no longer behind canSaveFile() — the " +
+         "button would render in browsers that cannot honour it, which is a " +
+         "dead control on every phone");
+  }
+  note("backups: " + stamps.length + " stamp sites, every one gated on a real " +
+       "write; the handle helpers resolve booleans and stamp nothing");
 })();
 
 /* ---------- report ---------- */

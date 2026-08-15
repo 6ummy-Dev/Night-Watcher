@@ -25,6 +25,6 @@ Source (AGPL, free software): the Night-Watcher repository on GitHub, user 6ummy
 
 - The full crawlable catalogue — the eras of Bruce's life, all 44 continuities, the 74 curated titles, and a FAQ — is in the root page's initial HTML, no JavaScript required.
 - Schema.org on the root: WebSite, WebApplication, ItemList (the 74 curated titles), FAQPage.
-- The whole catalogue as plain text — all 200 entries by universe, each with its year, format, tier and content rating — is at [nightwatcher.life/orders.txt](https://nightwatcher.life/orders.txt), generated from the same data the app renders.
+- The whole catalogue as plain text — all 200 entries in all three orderings, each with its year, format, tier and content rating — is at [nightwatcher.life/orders.txt](https://nightwatcher.life/orders.txt), generated from the same data the app renders and sorted by the app's own comparators.
 - Prefer markdown? Request the root with `Accept: text/markdown` and the answer is this file, served as text/markdown.
 - The catalogue is maintained continuously; sitemap lastmod reflects the latest release.
