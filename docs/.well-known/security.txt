@@ -1,0 +1,29 @@
+# Night Watcher — https://nightwatcher.life/
+#
+# There is no server here, no account, no database and no form: the site is one
+# static page and a service worker. That makes the blast radius of most bugs
+# small, which is a reason to be reachable rather than a reason not to be.
+# SECURITY.md states what is in scope and what is not; this file only says where
+# to knock, in the format a scanner can read.
+#
+# THE CONTACT IS A URL, NOT AN ADDRESS, AND THAT IS THE DECISION. RFC 9116
+# allows https: as a Contact, GitHub's private vulnerability reporting is the
+# channel SECURITY.md already names, and publishing a mailbox here would open a
+# second channel that can drift from the first while adding a permanent scrape
+# target to a page written to be crawled. Section 140 fails the build if a
+# mailto: ever appears below.
+#
+# THIS FILE IS IN THE REPOSITORY, NOT IN THE DASHBOARD. Cloudflare's Security
+# Center offers a managed security.txt and its "not configured" insight is
+# detected by reading the panel — "We evaluated the Security Settings configured
+# for this domain" — not by fetching this URL. So the managed toggle can clear
+# the finding while serving nothing, and this file can serve correctly while the
+# finding stays red. The dashboard is measuring itself. Same reason the response
+# headers live in _headers: a file can be diffed, guarded and shipped inside a
+# release, and a panel can be none of those.
+
+Contact: https://github.com/6ummy-Dev/Night-Watcher/security/advisories/new
+Expires: 2027-08-01T00:00:00.000Z
+Policy: https://github.com/6ummy-Dev/Night-Watcher/blob/main/SECURITY.md
+Canonical: https://nightwatcher.life/.well-known/security.txt
+Preferred-Languages: en, es
