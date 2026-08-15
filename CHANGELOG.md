@@ -26,6 +26,115 @@ to saved progress would also be MAJOR, and should never happen, because every
 > Anything experimental after 3.0.0 takes a pre-release tag — `3.1.0-rc.1` —
 > rather than a plain version.
 
+## [3.9.5] — 2026-08-15
+
+**A disclosure channel that lives in the repository and expires on a clock the
+build watches, plus three pieces of prose that had stopped being true. PATCH —
+no data change, no slug change, no progress-format change.**
+
+### Added
+
+- **`/.well-known/security.txt` — RFC 9116, in the tree.** Cloudflare's Security
+  Center reports it "not configured" for this domain and offers a dashboard form
+  as the remedy. **The finding's own detection method is why it is answered as a
+  file instead**: *"We evaluated the Security Settings configured for this domain"*
+  — it reads the panel, not the origin. So the managed toggle can clear the
+  finding while nothing is served, and this file can serve correctly while the
+  finding stays red. Neither outcome is a statement about this site. The dot is
+  not the target; a reachable channel is, and the same argument that keeps the
+  response headers in `_headers` keeps this here: a file can be diffed, guarded
+  and shipped inside a release, and a panel can be none of those.
+
+  **The Contact is a URL, not an address.** RFC 9116 permits `https:`, and
+  GitHub's private vulnerability reporting is the channel `SECURITY.md` already
+  names. A `mailto:` would open a second channel able to drift from the first
+  and add a permanent scrape target to a page whose whole job is to be crawled.
+  Guard 140 refuses one by name rather than trusting the next editor to remember
+  why it is absent.
+- **New guard 140 — the disclosure channel is a file, and it has not expired.**
+  This one guards a failure mode almost nothing else here has: **the file is
+  correct when it ships and becomes incorrect on a date written inside itself.**
+  RFC 9116 makes `Expires` mandatory and wants it inside a year, so a correct
+  `security.txt` rots by nobody doing anything — and an expired disclosure file
+  reads as an abandoned project, which is worse than never having published one.
+  A courtesy nobody is reminded to renew is a promise with a timer on it.
+
+  So the timer runs against the build. **Section 140 goes red thirty days before
+  the date**, while there is still a month to ship the renewal, rather than on
+  the morning the file starts lying. It also pins the URL contact, the absence of
+  a `mailto:`, the `Canonical` against the apex, the `Policy` against
+  `SECURITY.md`, that `SECURITY.md` still names the channel `security.txt`
+  advertises, and the `no-cache` block below.
+- **`negtest440.sh` — 14 fixtures.** The three clock cases compute their dates
+  relative to the run rather than hardcoding one: a fixture pinned to 2026 would
+  start passing for the wrong reason in 2027, asserting that the guard fires on
+  an expired file when what it was written to prove is that it fires *early*.
+- **`_headers` declares `no-cache` for `/.well-known/security.txt`.** It joins
+  `auth.md`, `llms.txt` and `orders.txt` for a sharper version of their reason:
+  the file carries an `Expires` date, so a stale copy does not merely answer
+  late, it answers with a freshness claim that has stopped being true. Nothing
+  declares a `Content-Type` — the assets plane already emits
+  `text/plain; charset=utf-8`, and `_headers` cannot unset a header it
+  duplicates.
+
+### Fixed
+
+- **NOTES.md asserted two bugs as current that had been fixed for releases.**
+  *Cross-tab merging only ever adds* still said there was "no timestamp on a mark
+  to reconcile with" and that the fix, if it were ever wanted, would be a
+  per-mark timestamp — **3.8.0 shipped exactly that** (`clk`, LWW-where-clocked,
+  guard 134). The same entry still called **"Clear all progress" silently false
+  with a second tab open**, which `resetAt` closed in **3.7.2** — and the account
+  of that fix is at the top of the same file. One document described the fix in
+  one passage and the bug as current in another, and the two never met.
+
+  Nothing in the build can catch this. The count guard excludes NOTES.md and
+  CHANGELOG.md on purpose, because both are records and a history that updates
+  itself is not a history — which is right, and is exactly why a *claim* in here
+  going stale has no control but somebody reading it. That is the control that
+  failed, and the entry now says so in place.
+- **Guard 138 was harvesting `green_case`'s mutation as if it were an expect.**
+  The two helpers do not share a signature — `run_case` is
+  *(label, expect, mutation)* and `green_case` is *(label, mutation)*, because a
+  green case asserts an exit code rather than a string. The parser took "the
+  second quoted argument" from both, so five fixtures were feeding **python
+  source into the coverage map** as expected failure text.
+
+  Nothing broke, and that is the point: the map is a substring test and python
+  source almost never appears inside a `fail()` string, so those five
+  contributed nothing while looking like they contributed. The failure it could
+  have produced is the exact one section 138 exists to prevent — a section
+  credited as covered by a fixture that cannot cover it, since a `green_case`
+  asserts the guards stay *quiet* and therefore proves no section can fail. The
+  map now reads 732 fixtures where it read 737, and coverage is unchanged at
+  140/140: no section was relying on one.
+- **Section 140 could take the whole run down with it.** It read `_headers`
+  without an existence check, so on a tree where the file is missing it threw
+  before section 104 could report the file missing — `negtest251` caught it on
+  the first full run. A guard that crashes the suite is worse than one that
+  fails it, because the message the reader needs belongs to a different section.
+- **NOTES.md quoted the weight ceiling as 200 KB.** It has been 220 since 3.8.3;
+  `README.md` and the guard both say so. Only the gzip half was still right. Now
+  reads 220 since 3.8.3, 200 before it, 80 KB gzipped throughout.
+- **`run-all.sh`'s naming convention got both of its own examples wrong.** It
+  claimed suites are named for their release with the dots removed — "negtest390
+  is 3.9.0, negtest410 is 3.9.2's" — when `negtest390` says in its own header it
+  is 3.7.2's, and 3.9.2 with the dots removed is 392, not 410. A rule stated in
+  one sentence and contradicted by the example in the next. **The encoding held
+  through `negtest300` (3.0.0) and broke at `negtest340` (3.4.2); from 340 on it
+  is a plain +10 counter with no relationship to the version.** The comment
+  arrived in 3.9.2 as part of a stale-prose cleanup and shipped stale, which is
+  the failure mode that cleanup existed to fix.
+
+### Changed
+
+- **`security.txt` is named in the offline shell's exclusions, not added to it.**
+  Read by scanners and by a researcher who has already found something, neither
+  of which runs the service worker — and it is the one file here that goes stale
+  on a date rather than on an edit, so a cached copy could outlive its own
+  `Expires` with nothing to say so. The exclusion is a decision, written down,
+  the same as `llms.txt` and `orders.txt`.
+
 ## [3.9.4] — 2026-08-14
 
 **The backlog, emptied. Every guard section now has a negative fixture that

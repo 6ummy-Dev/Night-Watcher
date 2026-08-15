@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 139 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 140 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -1559,25 +1559,43 @@ guard, and a crashing suite says nothing about the app.
 Each section extracts what it needs now. Extraction is a regex over a 122 KB
 string; doing it twice costs nothing worth this kind of coupling.
 
-### Cross-tab merging only ever adds
+### Cross-tab merging only ever added
 
-The `storage` listener merges another tab's marks in and never takes any out.
-Untick a film in one tab and the other — which still has it — writes it back on
-its next save.
+**SUPERSEDED 15 AUG 2026, AND BOTH HALVES HAD BEEN FIXED FOR SOME TIME BEFORE
+ANYONE NOTICED THIS STILL SAID OTHERWISE.** The entry is kept rather than
+deleted, because the reasoning is still why the code has the shape it has — but
+what follows was being read as current long after it stopped being true.
 
-That is deliberate. Losing a tick is a worse failure than an unexpected one
-reappearing, and there is no timestamp on a mark to reconcile with. If it ever
-becomes a real complaint, the fix is a per-mark timestamp, not a smarter merge.
+The `storage` listener merged another tab's marks in and never took any out.
+Untick a film in one tab and the other — which still had it — wrote it back on
+its next save. That was deliberate: losing a tick is a worse failure than an
+unexpected one reappearing, and there was no timestamp on a mark to reconcile
+with. This entry then said, in as many words, that if it ever became a real
+complaint the fix was a per-mark timestamp rather than a smarter merge.
 
-**Two consequences of the same bias, measured in the 3.4.4 audit and recorded
-here rather than fixed.** Writes are whole-payload last-writer-wins, so a tab
-that merges a foreign tick into memory and is never touched again leaves that
-tick out of storage — the flush is a no-op with no pending timer. And **"Clear
-all progress" is silently false with a second tab open**: the reset writes an
-empty payload, the stale tab still holds everything in memory, and its next
-write puts all of it back. Both follow from the anti-loss bias above and neither
-is a defect in the merge. The reset one is worth knowing because the app says
-"Progress cleared" and means it about this tab only.
+**3.8.0 shipped exactly that.** Every removal is stamped — `clk` in the payload,
+`S.clk` in state — and the merge is last-writer-wins where a clock exists and
+additive where none does, so an untick survives the other tab while a backup
+written before clocks existed still merges the old way. Guard 134 pins it.
+
+**3.7.2 had already closed the other half.** "Clear all progress" was silently
+false with a second tab open: the reset wrote an empty payload, the stale tab
+still held everything in memory, and its next write put all of it back.
+`resetAt` fixed it — and the account of that fix is at the top of THIS FILE,
+which is where the real failure was. One document described the fix in one
+passage and the bug as current in another, and the two never met.
+
+**What survives from the original entry** is the third consequence, which is
+unchanged: writes are whole-payload last-writer-wins, so a tab that merges a
+foreign tick into memory and is never touched again leaves that tick out of
+storage, because the flush is a no-op with no pending timer. That one follows
+from the anti-loss bias and is not a defect in the merge.
+
+**Why it sat: the standing blind spot recorded above.** The count guard excludes
+NOTES.md and CHANGELOG.md on purpose — both are records, and a history that
+updates itself is not a history. That is right, and it is also exactly why
+nothing in the build can notice when a *claim* in here stops being true. The
+only control is somebody reading it, which is the control that failed.
 
 ### A restore link is held, not applied
 
@@ -1960,8 +1978,9 @@ second one fails the build until somebody makes the same argument for it.
 
 ## Why the fonts were 39% of the payload and nobody noticed
 
-The weight budget guards `docs/index.html` — 200 KB raw, 80 KB gzipped — and it
-has been the project's most-cited discipline. It also could not see the fonts.
+The weight budget guards `docs/index.html` — 220 KB raw since 3.8.3, 200 KB
+before it, 80 KB gzipped throughout — and it has been the project's most-cited
+discipline. It also could not see the fonts.
 
 Six faces at 118,860 bytes against a page that compresses to 52 KB: the
 typography was more than twice the weight of the app, and every arithmetic
