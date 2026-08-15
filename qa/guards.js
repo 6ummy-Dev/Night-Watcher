@@ -189,6 +189,7 @@ function blessHtml(next){
      137  The 3.9.2 storage and header fixes stay fixed
      138  The negative coverage map, and what it still owes
      139  The files an agent reads answer fresh
+     140  The disclosure channel is a file, and it has not expired
      105  The catalogue answers in plain text
      133  The root negotiates markdown, and only the root
      125  robots.txt states a position on AI use
@@ -910,7 +911,16 @@ if(PUBLIC !== ROOT){
                         exist, by design, and this file says exactly that.
                         Written for machines that never run the app, same
                         reasoning as llms.txt and orders.txt. */
-                     "auth.md"];
+                     "auth.md",
+                     /* 3.9.5. The disclosure pointer. Read by scanners and by
+                        a researcher who has already found something, neither
+                        of which runs the service worker — and it is the one
+                        file in this tree that goes stale on a date rather than
+                        on an edit, so an offline copy of it is a copy that can
+                        outlive its own Expires with nothing to say so. Section
+                        140 keeps the live one honest; the shell stays out of
+                        it. Same reasoning as llms.txt and orders.txt. */
+                     ".well-known/security.txt"];
   var served = [];
   (function walk(dir, pre){
     fs.readdirSync(dir).forEach(function(name){
@@ -10569,7 +10579,21 @@ var ROUTE_VOCAB = [
   var expects = [];
   fs.readdirSync(negDir).filter(function(f){ return /^negtest.*\.sh$/.test(f); }).forEach(function(f){
     var t = fs.readFileSync(path.join(negDir, f), "utf8").replace(/\\\n/g, " ");
-    var r = /^[ \t]*(?:run_case|green_case)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"/gm, x;
+    /* 3.9.5: green_case IS NOT HARVESTED, AND HARVESTING IT WAS A BUG. The two
+       helpers do not share a signature — run_case is (label, expect, mutation)
+       and green_case is (label, mutation), because a green case asserts an exit
+       code rather than a string. This regex took "the second quoted argument"
+       from both, so the five green_case fixtures were feeding PYTHON SOURCE
+       into the coverage map as though it were expected failure text.
+
+       Nothing broke, which is the point: the map is a substring test, and
+       python source almost never appears inside a fail() string, so those five
+       contributed nothing and looked like they contributed. The failure mode it
+       could have produced is the one section 138 exists to prevent — a section
+       credited as covered by a fixture that cannot cover it, since a green_case
+       asserts the guards stay QUIET and so proves no section can fail. Reading
+       an expect off it is a category error however harmless the strings are. */
+    var r = /^[ \t]*run_case\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"/gm, x;
     while((x = r.exec(t))) expects.push(x[2]);
   });
 
@@ -10657,6 +10681,138 @@ var ROUTE_VOCAB = [
   }
   note("agent-readable files declare no-cache (auth.md, llms.txt, orders.txt); " +
        "404.html carries its own default-src 'none' policy");
+})();
+
+/* ---------- 140. The disclosure channel is a file, and it has not expired --- */
+/* 3.9.5. Cloudflare's Security Center reports security.txt "not configured" on
+   this domain and offers a dashboard form as the remedy. The finding's own
+   detection method is the reason it is answered here instead: "We evaluated the
+   Security Settings configured for this domain" — it reads the panel, not the
+   origin. A managed record can therefore clear the finding while nothing is
+   served, and this file can serve correctly while the finding stays red.
+   Neither outcome is a statement about this site, so the dot is not the target;
+   a reachable channel is. Same argument as _headers, one layer up: a file can
+   be diffed, guarded and shipped inside a release, and a panel can be none of
+   those.
+
+   WHAT ROTS HERE IS THE DATE, NOT THE FILE. RFC 9116 makes Expires mandatory
+   and wants it inside a year, so a correct security.txt becomes an incorrect
+   one by nobody doing anything — and an expired disclosure file reads as an
+   abandoned project, which is worse than never having published one. A courtesy
+   nobody is reminded to renew is a promise with a timer on it. So the timer runs
+   against the build: this section goes red 30 days BEFORE the date, while there
+   is still a month to ship the renewal, rather than on the morning the file
+   starts lying. That is the whole reason this section exists — the fields could
+   be eyeballed, the clock cannot.
+
+   THE CONTACT IS A URL ON PURPOSE. SECURITY.md routes reports to GitHub's
+   private vulnerability reporting. A mailto: here would be a second channel
+   able to drift from the first, and a permanent scrape target on a page whose
+   entire job is to be crawled. This section refuses one by name rather than
+   trusting the next editor to remember why it is absent. */
+
+(function(){
+  var wk = path.join(PUBLIC, ".well-known", "security.txt");
+  if(!fs.existsSync(wk)){
+    fail("docs/.well-known/security.txt is gone — the disclosure pointer ships " +
+         "as a file in this tree, and the only other place it could live is a " +
+         "dashboard record no guard in here can read");
+    return;
+  }
+  var txt = fs.readFileSync(wk, "utf8");
+  var body = txt.split("\n").filter(function(l){ return !/^\s*#/.test(l); }).join("\n");
+  var field = function(name){
+    var m = body.match(new RegExp("^" + name + ":[ \\t]*(\\S.*)$", "mi"));
+    return m ? m[1].trim() : "";
+  };
+
+  var contact = field("Contact");
+  if(!contact){
+    fail("security.txt declares no Contact — it is the one field RFC 9116 " +
+         "exists to carry, and a disclosure file without it is a page that " +
+         "says nothing at the address researchers are told to look");
+  } else if(contact.indexOf("/security/advisories/new") < 0){
+    fail("security.txt's Contact no longer points at GitHub private " +
+         "vulnerability reporting, which is the channel SECURITY.md tells " +
+         "people to use — two files naming two channels is how one of them " +
+         "stops being read");
+  }
+  if(/mailto:/i.test(body)){
+    fail("security.txt publishes a mailto: address — 3.9.5 chose a URL " +
+         "contact so this file adds no scrape target to a page written to be " +
+         "crawled, and so there is exactly one disclosure channel to keep true");
+  }
+
+  var exp = field("Expires");
+  if(!exp){
+    fail("security.txt declares no Expires — RFC 9116 requires it, and a " +
+         "disclosure file with no freshness claim cannot be told apart from " +
+         "one that was abandoned");
+  } else {
+    var when = Date.parse(exp);
+    if(isNaN(when)){
+      fail("security.txt's Expires is not a date this build can read — " +
+           "RFC 9116 wants an ISO 8601 timestamp, and a value only a human " +
+           "can parse is one no scanner will honour");
+    } else {
+      var days = Math.floor((when - Date.now()) / 86400000);
+      if(days < 30){
+        fail("security.txt expires in " + days + " days — renew the Expires " +
+             "field and ship it. This fires a month early on purpose: an " +
+             "expired disclosure file reads as an abandoned site, and the " +
+             "point of dating it in the repository is that the build reminds " +
+             "you while there is still time");
+      } else if(days > 366){
+        fail("security.txt expires in " + days + " days — RFC 9116 asks for " +
+             "less than a year so the file is re-read rather than left, and a " +
+             "date far enough out to outlive the project proves nothing about " +
+             "whether anyone is still listening");
+      }
+    }
+  }
+
+  var canon = field("Canonical");
+  if(canon !== "https://nightwatcher.life/.well-known/security.txt"){
+    fail("security.txt's Canonical is not the apex URL it is served from — " +
+         "one origin is the standing decision, and a disclosure file that " +
+         "names a different home is the workers.dev argument coming back");
+  }
+  if(field("Policy").indexOf("SECURITY.md") < 0){
+    fail("security.txt's Policy no longer points at SECURITY.md — the scope " +
+         "of a report lives in one place, and this file is the pointer to it " +
+         "rather than a second copy that can disagree");
+  }
+
+  var sec = path.join(ROOT, "SECURITY.md");
+  if(fs.existsSync(sec) && !/private vulnerability reporting/i.test(fs.readFileSync(sec, "utf8"))){
+    fail("SECURITY.md stopped naming GitHub private vulnerability reporting " +
+         "while security.txt still points every scanner at it — the two " +
+         "files describe one channel and have to move together");
+  }
+
+  /* The existence check is not ceremony: section 139 returns quietly when
+     _headers is gone, so without this one the read below throws and takes the
+     whole run down BEFORE section 104 can say the file is missing. negtest251
+     caught exactly that on the first full run of this section. A guard that
+     crashes the suite is worse than a guard that fails it, because the message
+     the reader needs belongs to a different section. */
+  var hpath = path.join(PUBLIC, "_headers");
+  if(!fs.existsSync(hpath)) return;
+  var hdr = fs.readFileSync(hpath, "utf8");
+  var blk = hdr.split(/\n(?=\/)/).filter(function(b){
+    return b.split("\n")[0].trim() === "/.well-known/security.txt";
+  })[0];
+  if(!blk){
+    fail("_headers has no block for /.well-known/security.txt — the file " +
+         "carries an Expires date, so a cached copy does not answer late, it " +
+         "answers with a freshness claim that has stopped being true");
+  } else if(!/Cache-Control:\s*no-cache/.test(blk)){
+    fail("/.well-known/security.txt no longer declares no-cache — it is read " +
+         "once by a scanner that writes down the answer and never asks again");
+  }
+  note("security.txt: URL contact, policy at SECURITY.md, expires in " +
+       (exp ? Math.floor((Date.parse(exp) - Date.now()) / 86400000) : "?") +
+       " days, no-cache declared");
 })();
 
 /* ---------- report ---------- */

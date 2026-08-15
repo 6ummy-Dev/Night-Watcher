@@ -161,6 +161,20 @@
 /orders.txt
   Cache-Control: no-cache
 
+# THE DISCLOSURE POINTER, ADDED IN 3.9.5, AND IT JOINS THE THREE ABOVE FOR THE
+# SAME REASON THEY ARE THERE. /.well-known/security.txt carries an Expires date,
+# so a stale copy does not merely answer late — it answers with a freshness
+# claim that was true when it was cached and is not any more. The reader is a
+# scanner or a researcher who fetches once and writes down what it said, which
+# is the auth.md failure exactly.
+#
+# Nothing here declares Content-Type: the assets plane already emits
+# text/plain; charset=utf-8 for .txt, RFC 9116 asks for no more than that, and
+# _headers cannot unset a header it duplicates. Declaring a correct default
+# twice is how you get two of it.
+/.well-known/security.txt
+  Cache-Control: no-cache
+
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
 

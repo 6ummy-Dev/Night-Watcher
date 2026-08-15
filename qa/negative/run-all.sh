@@ -35,13 +35,23 @@ fi
 case "$JOBS" in ''|*[!0-9]*) JOBS=1 ;; esac
 [ "$JOBS" -lt 1 ] && JOBS=1
 
-# NAMING. A suite is negtestNNN.sh where NNN is the release it was written for
-# with the dots removed and trailing zeros kept: negtest390 is 3.9.0, negtest410
-# is 3.9.2's. The mapping is loose on purpose — a suite covers the release that
-# produced it, not a guard number, because guard numbers move and releases do
-# not. negtest131.sh is the one exception: it predates the convention and keeps
-# its name so its history stays greppable. negtest.sh has no number at all and
-# is the original suite.
+# NAMING, CORRECTED IN 3.9.5 — THE OLD TEXT GOT BOTH OF ITS OWN EXAMPLES WRONG.
+# It read: "NNN is the release it was written for with the dots removed and
+# trailing zeros kept: negtest390 is 3.9.0, negtest410 is 3.9.2's." negtest390
+# says in its own header that it is 3.7.2's, and 3.9.2 with the dots removed is
+# 392, not 410 — a rule stated in one sentence and contradicted by the example
+# in the next. It arrived in 3.9.2 as part of a stale-prose cleanup and shipped
+# stale, which is the failure mode that cleanup was for.
+#
+# WHAT IS ACTUALLY TRUE. The release encoding held through negtest300 (3.0.0)
+# and broke at negtest340, which is 3.4.2's. From 340 on the number is a plain
+# +10 counter with no relationship to the version: 340=3.4.2, 350=3.4.5,
+# 360=3.5.0, 370=3.6.0, 380=3.6.4, 390=3.7.2, 400=3.8.0, 410=3.9.2, 420=3.9.3,
+# 430=3.9.4, 440=3.9.5. The next suite is +10 from the last one, and which
+# release it belongs to is written in its header comment — the only place that
+# has ever been reliable. negtest131.sh predates all of it and keeps its name so
+# its history stays greppable. negtest.sh has no number at all and is the
+# original suite.
 SUITES=()
 for f in "$HERE"/negtest*.sh; do
   if [ -n "$PICK" ] && ! echo "$f" | grep -Eq "$PICK"; then continue; fi
