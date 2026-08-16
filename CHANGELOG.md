@@ -76,6 +76,29 @@ the header's bottom.**
   scroll listeners are now pinned where one was: the one-shot retraction,
   and `swipeTick` on `#view`.
 
+### Fixed
+
+- **The installed app's tab bar no longer floats above the home indicator.**
+  The owner's standalone screenshot showed the footer sitting a toolbar's
+  height too high: iOS standalone can resolve a `position:fixed` bottom
+  anchor (and `svh`/`dvh`) against browser-chrome metrics for chrome that
+  does not exist there. The bar is now the frame's third flex member — it
+  ends where `#app` ends, no anchor to misplace — and a
+  `(display-mode: standalone)` override pins `#app` to `100vh`, the one
+  viewport unit with nothing dynamic to get wrong in standalone. Content no
+  longer passes under the bar, so the panels' runway padding is a plain
+  28px, and the vertical scrollbar now terminates at the bar's top edge —
+  the same symmetry the header got.
+- **The home-screen icon fills its tile.** `apple-touch-icon.png` carried
+  the bat at ~56% × 42% of the tile, because the generator pasted
+  `icon.png`'s whole canvas at 78% and the canvas is an opaque rounded tile
+  with its own margins — `getbbox()` answers the tile, not the bat. The
+  generator now finds the signal-yellow ink by colour, crops to it, and
+  scales that to 80% of the tile's width on the tile's own sampled ground.
+  (The greyscale look in the dock is iOS's tinted-icons mode, not the
+  icon — left alone on purpose.) Re-add the app to the home screen to pick
+  it up; iOS copies the icon at install time.
+
 ### QA
 
 - **Guards: 142 → 143 sections.** New section 143 holds the deck's contract

@@ -3196,3 +3196,25 @@ adjacent gestures on iOS, which is why the viewport contains its
 overscroll-x — a swipe past Home stops at Home instead of leaving the app.
 The chips rail contains its own overscroll-x for the same reason one level
 down: the end of the universe chips must not hand the fling to the deck.
+
+The same afternoon, the owner's phone filed the release's first two soak
+notes before the tag was cut, and both were the install surface — the one
+place no instrument in this repository runs. The installed app's footer
+floated a toolbar's height above the home indicator: `position:fixed;
+bottom:0` in iOS standalone can anchor against browser-chrome metrics for
+chrome that is not there, and so can `svh`/`dvh`. The fix removes the
+question instead of answering it — the bar is the frame's third flex member
+now, ending where `#app` ends, and a `(display-mode: standalone)` media rule
+pins `#app` to `100vh`, the one unit with nothing dynamic to get wrong when
+there is no dynamic chrome. The panels stop underneath it, so the runway
+padding lost its tab-h arithmetic and the scrollbar now terminates at the
+bar the way it terminates at the header — the symmetry the release was named
+for, completed by a bug. And the home-screen icon was a quarter of its tile:
+`make-favicon.py` pasted the 512 canvas at 78% and trusted its proportions,
+but `icon.png` is an opaque rounded tile with margins of its own — 95% of
+its pixels carry alpha, so `getbbox()` answers the tile and not the bat. The
+generator finds the signal-yellow ink by colour now, crops to it, and scales
+that to 80% of the tile on the tile's own sampled ground (the first cut
+declared the ground and got a faint rectangle — two near-blacks are still
+two blacks; the second samples it). The greyscale dock icon was iOS's
+tinted-icons mode and was left exactly alone.
