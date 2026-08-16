@@ -78,6 +78,16 @@ the header's bottom.**
 
 ### Fixed
 
+- **A skip finishes a Home card.** Skipping is a decision about an entry —
+  an Optional you'll never want, a Not out yet — so a universe, era or
+  decade whose every entry is watched OR skipped has nothing left to offer
+  and now reads complete: signal edge, check on the name. The card's bar
+  fills honestly rather than pretending — watched in signal, skipped in
+  steel beside it — and the count names the skips ("12 of 14 · 2 skipped")
+  instead of a full card claiming a number it never reaches. An entry
+  neither watched nor skipped still holds the card open, and un-skipping
+  reopens it, because completion is computed, never stored.
+
 - **The installed app's tab bar no longer floats above the home indicator.**
   The owner's standalone screenshot showed the footer sitting a toolbar's
   height too high: iOS standalone can resolve a `position:fixed` bottom
