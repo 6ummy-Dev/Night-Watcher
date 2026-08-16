@@ -92,6 +92,27 @@ the header's bottom.**
   neither watched nor skipped still holds a card open, and un-skipping
   reopens it, because completion is computed, never stored.
 
+- **A footer tap with the belt dropped no longer strands the pouches.**
+  `closeBelt("auto")` renders the new panel only, so the departed panel
+  kept its dropped strip and its `position:fixed` pouches — fixed paints
+  over every tab, and a far panel never receives the idle refill that
+  would have cleaned them ("belt opened hit a tab, it breaks drops").
+  Both tab doors — the footer button and the swipe — now scrub the
+  departed panel's drop DOM in the same breath (`scrubBelt`), and the
+  drop arms again cleanly afterward. Guarded on both doors, driven in
+  Chromium through the exact reported sequence.
+
+- **Progress speaks the same skip language as the rest.** The skyline's
+  columns and the fold rows now carry the steel skip share exactly like
+  the Home cards and The path's bars — watched fills in signal, skipped
+  stacks above it in steel — and a group of watched + skipped counts
+  complete in the fold tallies. The columns grew 25% taller (88 → 110px)
+  while they were open. And steel now means skipped, nowhere else: era 0
+  ("outside any timeline") used to draw its column and its fold row in
+  steel, which made a cataloguing decision look like a leftover skip —
+  it wears the same signal as every other era now, matching the colour
+  language the scoreboard's numbers already speak.
+
 - **The installed app's tab bar no longer floats above the home indicator.**
   The owner's standalone screenshot showed the footer sitting a toolbar's
   height too high: iOS standalone can resolve a `position:fixed` bottom
