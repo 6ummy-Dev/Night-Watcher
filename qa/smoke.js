@@ -1325,6 +1325,29 @@ win.addEventListener("load", function(){
       check("an unwatched, unskipped entry still holds the card open",
             !!skCard2 && skCard2.className.indexOf("full") < 0,
             skCard2 ? skCard2.className : "(card not found)");
+
+      /* --- and The path's own bar behaves the same (the owner's follow-up).
+         Both doors are driven: the full render, and the surgical tick path —
+         gSub()/gBarFill() are shared between them (guard 103), and this is
+         the run that proves the sharing shows on screen. */
+      S.tab = "watch"; S.filter = "all"; S.q = ""; win.render();
+      var skHead = doc.querySelector('#view .panel:not([inert]) .ghead[data-gk="' + sg.key + '"]');
+      check("the path head names the skips",
+            !!skHead && / · 1 skipped$/.test(skHead.querySelector(".meta").textContent),
+            skHead ? skHead.querySelector(".meta").textContent : "(head not found)");
+      check("the path bar carries the steel share",
+            !!skHead && !!skHead.querySelector(".gbar .sk"));
+      win.toggleSkip(f0.id); /* the surgical door: tickUpdate, not render */
+      check("a surgical skip updates the head's count in place",
+            / · 2 skipped$/.test(skHead.querySelector(".meta").textContent),
+            skHead.querySelector(".meta").textContent);
+      check("a surgical skip widens the steel share in place",
+            skHead.querySelectorAll(".gbar .sk").length === 1);
+      win.toggleSkip(f0.id);
+      check("a surgical un-skip narrows it back",
+            / · 1 skipped$/.test(skHead.querySelector(".meta").textContent),
+            skHead.querySelector(".meta").textContent);
+      S.tab = "home";
       S.watched = {}; S.skipped = {}; win.render();
 
       S.tab = "watch"; win.render();

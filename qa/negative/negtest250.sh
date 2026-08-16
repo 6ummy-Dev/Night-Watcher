@@ -152,10 +152,10 @@ run_case "the group head grows a second copy of its own tally" \
   "${P}a='  if(gm) gm.textContent = gSub(g);';assert a in s
 s=s.replace(a,'  if(gm) gm.textContent = gDone(g) + \" of \" + g.films.length;',1);${W}"
 
-run_case "the group head grows a second copy of its own bar" \
+run_case "the tick bar stops going through gBarFill" \
   "no longer writes the group head through gSub()" \
-  "${P}a='\"width:\" + gPct(g) + \"%\"';assert a in s
-s=s.replace(a,'\"width:\" + pct(gDone(g), g.films.length) + \"%\"',1);${W}"
+  "${P}a='  if(gbar) gbar.innerHTML = gBarFill(g);';assert a in s
+s=s.replace(a,'  if(gbar) gbar.innerHTML = gbar.innerHTML;',1);${W}"
 
 run_case "a second place learns how to build a group" \
   "is built in 2 places" \

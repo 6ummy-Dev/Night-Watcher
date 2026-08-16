@@ -6663,17 +6663,18 @@ var ROUTE_VOCAB = [
          "it does instead is a second implementation of the row, and the smoke " +
          "gate exists because that is how the two drift");
   }
-  if(!/gSub\(g\)/.test(tu) || !/gPct\(g\)/.test(tu)){
-    fail("tickUpdate() no longer writes the group head through gSub()/gPct() " +
-         "\u2014 those are the helpers groupBlock() builds the head from, and a " +
-         "second copy of either means the count under your thumb and the count " +
-         "after a redraw can disagree");
+  if(!/gSub\(g\)/.test(tu) || !/gBarFill\(g\)/.test(tu)){
+    fail("tickUpdate() no longer writes the group head through gSub()/" +
+         "gBarFill() \u2014 those are the helpers groupBlock() builds the head " +
+         "from (gBarFill since 4.0.0, when the bar grew its steel skip " +
+         "segment), and a second copy of either means the count under your " +
+         "thumb and the count after a redraw can disagree");
   }
   var gb = optionalFn("groupBlock", "the head helpers cannot be checked");
-  if(gb && (!/gSub\(g\)/.test(gb) || !/gPct\(g\)/.test(gb))){
-    fail("groupBlock() no longer builds the head from gSub()/gPct() \u2014 the " +
-         "shared helpers are the whole reason the tick path and the full " +
-         "render cannot disagree about a group's tally");
+  if(gb && (!/gSub\(g\)/.test(gb) || !/gBarFill\(g\)/.test(gb))){
+    fail("groupBlock() no longer builds the head from gSub()/gBarFill() \u2014 " +
+         "the shared helpers are the whole reason the tick path and the full " +
+         "render cannot disagree about a group's tally, in count or in fill");
   }
   if(!/groupBlock\(g, q\)/.test(optionalFn("viewWatch",
        "the tick path would have nothing to compose from"))){
