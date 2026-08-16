@@ -163,7 +163,7 @@ s=s.replace(a,'#tabs{position:fixed;left:0;right:0;bottom:0;',1);${W}"
 
 run_case "the standalone height override is dropped" \
   "the standalone height override is gone" \
-  "${P}a='@media (display-mode: standalone){#app{height:100vh;}}\n';assert a in s
+  "${P}a='@media (display-mode: standalone){#app{height:100%;}}\n';assert a in s
 s=s.replace(a,'',1);${W}"
 
 run_case "somebody reaches for scrollend" \

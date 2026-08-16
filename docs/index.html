@@ -88,7 +88,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 :focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px;}
 
 #app{display:flex;flex-direction:column;height:100svh;height:100dvh;overflow:hidden;overscroll-behavior:none;}
-@media (display-mode: standalone){#app{height:100vh;}}
+@media (display-mode: standalone){#app{height:100%;}}
 #view,.panel{overflow-anchor:none;}
 header{position:sticky;top:0;z-index:30;background:var(--hdr);-webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
 .hrow{display:flex;align-items:center;gap:14px;max-width:760px;margin:0 auto;}

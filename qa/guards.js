@@ -4014,11 +4014,15 @@ if(!/function legendBlock/.test(HTML) ||
      anchor (and svh/dvh) against browser-chrome metrics for chrome that is
      not there. A flex child at the bottom of a clipped, height-locked #app
      needs no anchor at all — it ends where #app ends. The standalone media
-     override pins #app to 100vh for the same report: in standalone there is
-     no dynamic chrome, so vh is the one viewport unit with nothing to get
-     wrong. Content no longer passes under the bar, so the panels' runway
-     padding is a plain 28px — the tab-h + safe-area arithmetic left with
-     the overlap. */
+     override pins #app to 100% — NOT a vh unit. The first cut used 100vh
+     and the owner's second screenshot paid for it the same day: iOS handed
+     the installed WebView a viewport ~48pt shorter than the screen, vh
+     reported the screen anyway, and the bar's label row rendered below the
+     fold ("footer is worst, no text seen"). Every viewport unit is a claim
+     about the screen; height:100% is the ICB — the viewport iOS actually
+     laid out — and cannot overshoot by construction. Content no longer
+     passes under the bar, so the panels' runway padding is a plain 28px —
+     the tab-h + safe-area arithmetic left with the overlap. */
   var tabsCss = (HTML.match(/#tabs\{[^}]*\}/) || [""])[0];
   if(/position:fixed/.test(tabsCss) || !/flex:none/.test(tabsCss)){
     fail("#tabs is fixed again (or lost flex:none) — the bar is the frame's " +
@@ -4030,11 +4034,14 @@ if(!/function legendBlock/.test(HTML) ||
     fail("#tabs no longer pads for the bottom safe area — on a notched " +
          "phone the Progress button sits under the home indicator");
   }
-  if(HTML.indexOf("@media (display-mode: standalone){#app{height:100vh;}}") < 0){
-    fail("the standalone height override is gone — installed, #app must be " +
-         "100vh: there is no dynamic chrome in standalone, and svh/dvh have " +
-         "been seen resolving against Safari's browser metrics there, which " +
-         "is the floating-footer report this rule closed");
+  if(HTML.indexOf("@media (display-mode: standalone){#app{height:100%;}}") < 0){
+    fail("the standalone height override is gone or is a viewport unit " +
+         "again — installed, #app must be height:100%: the ICB is the one " +
+         "measure of the WebView that cannot overshoot it. svh/dvh were " +
+         "seen resolving against Safari's browser metrics in standalone " +
+         "(the floating footer), and 100vh overshot a short-viewport grant " +
+         "and cut the bar's labels off the screen (the no-text footer). " +
+         "Both reports are the owner's, both 16 Aug");
   }
   /* The window is not the scroller any more, so a window scroll call is a
      call to the element that no longer moves — a silent no-op in every
