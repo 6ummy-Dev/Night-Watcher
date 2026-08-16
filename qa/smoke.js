@@ -1294,6 +1294,39 @@ win.addEventListener("load", function(){
             descs.every(function(t){ return t.length <= 90; }),
             (descs.filter(function(t){ return t.length > 90; })[0] || "").slice(0, 40));
 
+      /* --- a skip finishes a card (16 Aug, the owner's report) ---------- */
+      /* Skipping is a decision about an entry — an Optional you'll never
+         want, a Not-out-yet — so a group whose every entry is watched OR
+         skipped has nothing left to offer and must read complete. The bar
+         says how: watched fills in signal, skipped in steel (.sk), and the
+         count names the skips instead of leaving a full card claiming a
+         number it never reaches. */
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
+      var sg = win.buildGroups()[0];
+      sg.films.forEach(function(f, i){
+        if(i === 0) S.skipped[f.id] = 1; else S.watched[f.id] = 1;
+      });
+      win.render();
+      var skCard = doc.querySelector('#view .panel:not([inert]) .ucard[data-gk="' + sg.key + '"]');
+      check("a group of watched + skipped reads complete",
+            !!skCard && skCard.className.indexOf("full") >= 0,
+            skCard ? skCard.className : "(card not found)");
+      check("the skipped share fills the bar in its own colour",
+            !!skCard && !!skCard.querySelector(".ubar .sk"));
+      check("the count names the skips",
+            !!skCard && / · 1 skipped$/.test(skCard.querySelector(".ucount").textContent),
+            skCard ? skCard.querySelector(".ucount").textContent : "-");
+      /* ...and a group with an entry still waiting does NOT read complete,
+         skipped or not — the inverse, so this cannot pass vacuously. */
+      var f0 = sg.films[1];
+      delete S.watched[f0.id];
+      win.render();
+      var skCard2 = doc.querySelector('#view .panel:not([inert]) .ucard[data-gk="' + sg.key + '"]');
+      check("an unwatched, unskipped entry still holds the card open",
+            !!skCard2 && skCard2.className.indexOf("full") < 0,
+            skCard2 ? skCard2.className : "(card not found)");
+      S.watched = {}; S.skipped = {}; win.render();
+
       S.tab = "watch"; win.render();
       var numbered = 0;
       Array.prototype.forEach.call(doc.querySelectorAll("#view .panel:not([inert]) .ghead .gnum"), function(n){
