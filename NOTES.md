@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 142 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 143 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -3123,3 +3123,76 @@ and the file walked back under the old line anyway. The ceiling stays at
 220: it was set for what is coming, not for what shipped, and the guard now
 fails at 220 exactly as it failed at 200 — a recorded decision, never a
 drift.
+
+## The deck goes sideways, and the scrollbar finally learns its place
+
+4.0.0 is release two of the tab swipe, the half the 3.9.7 record promised:
+release one moved scrolling off the document onto `#app` so that this one
+could change *what swipes* without touching *where scrolling lives* in the
+same breath. Now `#view` is a horizontal scroll-snap viewport (`x mandatory`,
+`scroll-snap-stop:always` so a hard fling crosses one tab and never three)
+holding four persistent panels, one per footer tab, and each panel is its own
+vertical scroller. `#app` is pure frame. The footer tabs stay plain buttons
+with `aria-current` — a swipe and a tap are two doors into the same state,
+and the swipe door adopts the chosen path exactly the way the tap door
+always has.
+
+The owner's one styling ask rode along free: the scrollbar now hides below
+the header the way it always hid below the footer. That is not a scrollbar
+style — it is the scrollport's top edge moving to the header's bottom, which
+is also why every sticky offset became panel-relative in the same commit
+(`--ghtop` is just the peek now; `--hdrh` remains only for the dropped
+pouches' fixed fallback and flagSave's banner override — both measure from
+the viewport, which still contains a header). Before the deck is built,
+`main` itself scrolls, so a no-JS reader gets the seed, and the same
+below-the-header scrollbar.
+
+Rendering is dirty-flag: `render()` fills only the active panel
+synchronously and marks the other three dirty; `queueNeighbors()` re-fills
+the adjacent panels in idle time (`requestIdleCallback`, `setTimeout`
+fallback); the far panel waits until a swipe makes it a neighbor, which
+snap-stop guarantees happens before it can be seen. `tickUpdate`'s surgical
+path does the same bookkeeping, because a tick repaints one row in The path
+while Home, Next up and Progress all changed underneath it. Background fills
+never render the belt's open or dropped state — the drop is a way of
+standing in the panel you are holding, and two live copies of one belt is
+the defect negtest250 was written after — and a background panel's strip
+drops its `anchor-name`, so the pouches can never hang off a copy one
+viewport to the right.
+
+The active tab is read off the swipe by the app's second-ever pinned scroll
+listener: `swipeTick` on `#view`, passive, rAF-throttled, reading
+`scrollLeft` exactly once per frame (section 120 pins that read) and
+dividing by a width a `ResizeObserver` *delivered* rather than one anybody
+read — `clientWidth` stays refused. There is no `scrollend` (Safari shipped
+it years late; the settle is the snap arithmetic `|x − i·w| < 2`) and no CSS
+`scroll-behavior:smooth` (it fights snap in some engines; deliberate smooth
+scrolls already route through `calmScroll()`, which honors reduced motion).
+Settling is when `inert` sweeps: non-active panels are out of the tab order
+and the accessibility tree in one attribute, and mid-swipe the outgoing
+panel stays live until the snap lands. The programmatic tab change is
+`scrollIntoView` on the panel — the browser's own alignment, no arithmetic
+to drift, no write for section 120 to count. Resize re-snaps from the same
+observer that delivers the width, so rotation cannot strand the deck
+between panels.
+
+Two seams were widened rather than added. `scrollKeep`/`scrollPut` take an
+optional element so background fills can preserve their panel's place
+through an innerHTML swap — still one `scrollTop` read and one write in the
+whole file. And the drop's one-shot retraction gained a disarm
+(`disarmDropScroll`): the listener arms on the *active panel* now, and
+`{once:true}` only removes a listener that fired — without the disarm, a
+tab change strands it armed on the old panel and `dropArmed` never resets,
+so every later drop would arm nothing and never retract. The belt's
+auto-close observer rebuilds when the active panel changes, because an
+IntersectionObserver's root is fixed at construction, and its threshold
+compares against `rootBounds.top` — the panel's top, where "scrolled out of
+view" actually happens now — instead of the viewport's 0.
+
+The accepted iOS cost is unchanged from 3.9.7 (the toolbar never collapses;
+the document it collapses for never moves), with one addition named in the
+plan: horizontal swipe on the deck and horizontal swipe-back-from-edge are
+adjacent gestures on iOS, which is why the viewport contains its
+overscroll-x — a swipe past Home stops at Home instead of leaving the app.
+The chips rail contains its own overscroll-x for the same reason one level
+down: the end of the universe chips must not hand the fling to the deck.

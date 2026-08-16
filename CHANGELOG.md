@@ -26,6 +26,67 @@ to saved progress would also be MAJOR, and should never happen, because every
 > Anything experimental after 3.0.0 takes a pre-release tag — `3.1.0-rc.1` —
 > rather than a plain version.
 
+## [4.0.0] — 2026-08-16
+
+**The tabs swipe. Release two of two: 3.9.7 moved scrolling onto `#app` so
+this release could change only what swipes — `#view` is now a horizontal
+scroll-snap viewport holding four persistent panels, one per tab, and each
+panel is its own vertical scroller. One gesture arrives, and one bar detail
+rides along: the scrollbar now hides below the header, the same way it has
+always hidden below the footer, because the scrollport's top edge moved to
+the header's bottom.**
+
+### Added
+
+- **Swipe between tabs.** Home, Next up, The path and Progress sit side by
+  side in a snap viewport — `scroll-snap-type:x mandatory` with
+  `scroll-snap-stop:always`, so a hard fling crosses one tab, never three.
+  Each panel keeps its own scroll position across swipes; the footer tabs
+  stay plain buttons with `aria-current` and still reset the view they open,
+  and swiping into The path adopts the chosen path exactly as tapping it
+  does. Non-active panels are `inert` once a swipe settles, so nothing
+  off-screen answers the keyboard or the screen reader. The active panel
+  renders synchronously on every state change; its neighbors re-render in
+  idle time behind dirty flags; the far panel waits until a swipe makes it a
+  neighbor. The settle is computed from the snap arithmetic — no `scrollend`
+  (Safari shipped it late) and no CSS `scroll-behavior:smooth` (it fights
+  snap; deliberate smooth scrolls already route through `calmScroll()`).
+
+### Changed
+
+- **Scroll lives in the panels now, and the scrollbar starts below the
+  header.** `#app` is pure frame — header, viewport, tab bar, clipped. Every
+  sticky offset became panel-relative in the same move: `--ghtop` is just the
+  peek, the Belt parks at `calc(--ghtop - --beltH)`, and a dropped strip pins
+  at the panel's top edge, which IS the header's bottom. `--hdrh` remains for
+  the two consumers that really do measure from the viewport: the dropped
+  pouches' no-anchor fallback and flagSave()'s banner override. Before
+  JavaScript runs, `main` itself scrolls, so the crawlable seed reads the
+  same as ever — with the same below-the-header scrollbar.
+
+- **The seam widened without growing.** `scroller()` answers the active
+  panel; `scrollKeep()`/`scrollPut()` take an optional element so background
+  fills preserve their panel's place — still one `scrollTop` read and one
+  write in the whole file (section 120), joined by exactly one `scrollLeft`
+  read: `swipeRead()`, rAF-throttled, dividing by a width the
+  `ResizeObserver` delivered rather than one anybody read. The Belt's
+  auto-close observer roots on the active panel and compares against its
+  `rootBounds.top`; the drop's one-shot retraction gained a disarm so a tab
+  change cannot strand it armed on a panel that stopped scrolling. Two
+  scroll listeners are now pinned where one was: the one-shot retraction,
+  and `swipeTick` on `#view`.
+
+### QA
+
+- **Guards: 142 → 143 sections.** New section 143 holds the deck's contract
+  — four panels in footer order, dirty-flag rendering from both render()
+  and tickUpdate()'s surgical path, the inert sweep and its mid-swipe
+  exception, belt suppression in background copies (the negtest250
+  two-copies defect, now with an anchor to lose), snap via
+  `scrollIntoView`, resize re-snap. The unnumbered scroll-owner block was
+  rewritten for the new ownership; section 128's offset pins moved to the
+  panel-relative bases; section 120 pins `scrollLeft` at one appearance.
+
 ## [3.9.7] — 2026-08-16
 
 **Scroll moves off the document and onto `#app`. Nothing looks different, and
