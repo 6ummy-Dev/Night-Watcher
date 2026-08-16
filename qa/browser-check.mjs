@@ -608,6 +608,22 @@ ok("deck: the scrollport starts at the header's bottom — the scrollbar hides "
    "below the header the way it hides below the footer",
    Math.abs(geo.headerBottom - geo.paneTop) < 1,
    "header bottom " + geo.headerBottom.toFixed(1) + ", panel top " + geo.paneTop.toFixed(1));
+/* The bar is the frame's third member since the 16 Aug installed-app report:
+   in the flow, ending exactly where the viewport does, with the panels ending
+   exactly where it begins — no fixed anchor for iOS standalone to misplace. */
+const barGeo = await page.evaluate(() => {
+  const t = document.getElementById("tabs").getBoundingClientRect();
+  const p = document.getElementById("panel-watch").getBoundingClientRect();
+  return { tabsBottom: t.bottom, tabsTop: t.top, paneBottom: p.bottom,
+           vpH: window.innerHeight,
+           fixed: getComputedStyle(document.getElementById("tabs")).position };
+});
+ok("deck: the tab bar sits in the flow, flush with the viewport's bottom",
+   barGeo.fixed !== "fixed" && Math.abs(barGeo.tabsBottom - barGeo.vpH) < 1,
+   barGeo.fixed + ", bar bottom " + barGeo.tabsBottom.toFixed(1) + " of " + barGeo.vpH);
+ok("deck: the panels end where the bar begins",
+   Math.abs(barGeo.paneBottom - barGeo.tabsTop) < 1,
+   "panel bottom " + barGeo.paneBottom.toFixed(1) + ", bar top " + barGeo.tabsTop.toFixed(1));
 ok("deck: four panels, each exactly one viewport wide",
    geo.panels === 4 && Math.abs(geo.paneW - geo.vpW) < 1 &&
    Math.abs(geo.span - 4 * geo.vpW) < 4,

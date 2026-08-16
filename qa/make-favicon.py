@@ -76,15 +76,51 @@ for px in (16, 32, 48):
 
 # apple-touch-icon: 180×180, opaque. iOS composites a transparent PNG onto
 # black, so the app's own ink ground (#08090F — manifest background_color)
-# goes behind the bat here, with the glyph at 78% so the silhouette is not
-# wall-to-wall on a rounded-corner tile.
-INK = (8, 9, 15, 255)
-tile = Image.new("RGBA", (180, 180), INK)
-glyph = src.resize((140, 140), Image.LANCZOS)
-tile.paste(glyph, ((180 - 140) // 2, (180 - 140) // 2), glyph)
+# goes behind the bat here.
+#
+# 4.0.0: SCALE THE INK, NOT THE CANVAS. The first cut pasted the 512 canvas
+# at 78% and trusted its proportions — but the bat is a wide, short glyph
+# sitting on a square with its own margins, so the visible silhouette landed
+# at ~56% × 42% of the tile and the installed icon read as a small mark
+# floating on a dark square (the owner's 16 Aug report, next to an X icon
+# that fills its tile). The glyph's real ink bounding box is measured and
+# THAT is scaled to 80% of the tile's width, centred; the canvas's margins
+# no longer get a vote.
+# The ground is SAMPLED from the source tile rather than declared: the crop
+# below carries icon.png's own dark ground with it, and a tile filled with
+# any other dark reads as a faint rectangle around the bat (seen in the
+# first preview of this block — two near-blacks are still two blacks).
+tile_ground = Image.open(SRC).convert("RGBA").getpixel((40, 40))
+tile = Image.new("RGBA", (180, 180), tile_ground)
+# The bbox is found by COLOUR, not by alpha: icon.png is not a bat on
+# transparency, it is an opaque dark tile with rounded corners and the bat
+# inside it — 95% of its pixels carry alpha, so getbbox() answers the TILE
+# and the first 4.0.0 cut of this block scaled the tile's margins along
+# with the bat. The bat is the signal-yellow ink; find that.
+w, h = src.size
+xs, ys = [], []
+for i, p in enumerate(src.convert("RGBA").getdata()):
+    if p[3] > 64 and p[0] > 150 and p[1] > 100 and p[2] < 120:
+        xs.append(i % w)
+        ys.append(i // w)
+if not xs:
+    sys.exit("no signal-yellow ink found in docs/icon.png — the bat has "
+             "changed colour and this crop needs re-aiming, not guessing")
+PAD = 4
+ink_box = (max(0, min(xs) - PAD), max(0, min(ys) - PAD),
+           min(w, max(xs) + 1 + PAD), min(h, max(ys) + 1 + PAD))
+bat = src.crop(ink_box)
+tw = 144  # 80% of 180
+th = max(1, round(bat.size[1] * tw / bat.size[0]))
+if th > 144:  # a taller-than-wide source would overflow; fit the long side
+    th = 144
+    tw = max(1, round(bat.size[0] * th / bat.size[1]))
+glyph = bat.resize((tw, th), Image.LANCZOS)
+tile.paste(glyph, ((180 - tw) // 2, (180 - th) // 2), glyph)
 atp = os.path.join(ROOT, "docs", "apple-touch-icon.png")
 tile.convert("RGB").save(atp, format="PNG", optimize=True)
-print("docs/apple-touch-icon.png — %d bytes" % os.path.getsize(atp))
+print("docs/apple-touch-icon.png — %d bytes, glyph %dx%d of 180 (%.0f%% wide)"
+      % (os.path.getsize(atp), tw, th, 100.0 * tw / 180))
 
 # mstile: 144×144, transparent — Windows paints msapplication-TileColor
 # behind it, and that meta pins the same surface the theme-color declares.

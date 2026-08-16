@@ -4007,6 +4007,35 @@ if(!/function legendBlock/.test(HTML) ||
          "viewport — reaching the end of the universe chips and pulling " +
          "further would swipe the whole tab away under the reader's finger");
   }
+  /* The tab bar is the frame's third member, IN THE FLOW — not fixed. It
+     was position:fixed from 1.x through the first cut of 4.0.0, and the
+     owner's installed-app screenshot (16 Aug) showed it floating a toolbar's
+     height above the home indicator: iOS standalone can resolve the fixed
+     anchor (and svh/dvh) against browser-chrome metrics for chrome that is
+     not there. A flex child at the bottom of a clipped, height-locked #app
+     needs no anchor at all — it ends where #app ends. The standalone media
+     override pins #app to 100vh for the same report: in standalone there is
+     no dynamic chrome, so vh is the one viewport unit with nothing to get
+     wrong. Content no longer passes under the bar, so the panels' runway
+     padding is a plain 28px — the tab-h + safe-area arithmetic left with
+     the overlap. */
+  var tabsCss = (HTML.match(/#tabs\{[^}]*\}/) || [""])[0];
+  if(/position:fixed/.test(tabsCss) || !/flex:none/.test(tabsCss)){
+    fail("#tabs is fixed again (or lost flex:none) — the bar is the frame's " +
+         "third flex member since 4.0.0, and a fixed bar re-inherits the iOS " +
+         "standalone anchor bug that had it floating above the home " +
+         "indicator in the owner's 16 Aug screenshot");
+  }
+  if(!/padding-bottom:env\(safe-area-inset-bottom\)/.test(tabsCss)){
+    fail("#tabs no longer pads for the bottom safe area — on a notched " +
+         "phone the Progress button sits under the home indicator");
+  }
+  if(HTML.indexOf("@media (display-mode: standalone){#app{height:100vh;}}") < 0){
+    fail("the standalone height override is gone — installed, #app must be " +
+         "100vh: there is no dynamic chrome in standalone, and svh/dvh have " +
+         "been seen resolving against Safari's browser metrics there, which " +
+         "is the floating-footer report this rule closed");
+  }
   /* The window is not the scroller any more, so a window scroll call is a
      call to the element that no longer moves — a silent no-op in every
      browser, and the exact bug this migration invites for as long as muscle

@@ -156,6 +156,16 @@ run_case "the chips hand their fling to the deck" \
   "${P}a='overflow-x:auto;overscroll-behavior-x:contain;padding:2px 0 12px;';assert a in s
 s=s.replace(a,'overflow-x:auto;padding:2px 0 12px;',1);${W}"
 
+run_case "the tab bar gets pinned again" \
+  "#tabs is fixed again" \
+  "${P}a='#tabs{flex:none;';assert a in s
+s=s.replace(a,'#tabs{position:fixed;left:0;right:0;bottom:0;',1);${W}"
+
+run_case "the standalone height override is dropped" \
+  "the standalone height override is gone" \
+  "${P}a='@media (display-mode: standalone){#app{height:100vh;}}\n';assert a in s
+s=s.replace(a,'',1);${W}"
+
 run_case "somebody reaches for scrollend" \
   "something listens for scrollend" \
   "${P}a='vp.addEventListener(\"scroll\", swipeTick, {passive:true});';assert a in s
