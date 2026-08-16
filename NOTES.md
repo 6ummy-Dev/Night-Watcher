@@ -3205,8 +3205,13 @@ bottom:0` in iOS standalone can anchor against browser-chrome metrics for
 chrome that is not there, and so can `svh`/`dvh`. The fix removes the
 question instead of answering it — the bar is the frame's third flex member
 now, ending where `#app` ends, and a `(display-mode: standalone)` media rule
-pins `#app` to `100vh`, the one unit with nothing dynamic to get wrong when
-there is no dynamic chrome. The panels stop underneath it, so the runway
+pins `#app` to `100%` — the second phone screenshot of the day corrected the
+first cut of this rule, which used `100vh` and cut the bar's labels below
+the fold: iOS granted the installed WebView a viewport ~48pt shorter than
+the screen, and every vh-family unit reported the screen anyway. The ICB is
+the viewport iOS actually laid out, and cannot overshoot it; if iOS grants a
+short WebView, a short frame with a whole footer beats a full-height frame
+with its footer cut mid-button. The panels stop underneath it, so the runway
 padding lost its tab-h arithmetic and the scrollbar now terminates at the
 bar the way it terminates at the header — the symmetry the release was named
 for, completed by a bug. And the home-screen icon was a quarter of its tile:

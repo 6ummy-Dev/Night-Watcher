@@ -84,8 +84,11 @@ the header's bottom.**
   anchor (and `svh`/`dvh`) against browser-chrome metrics for chrome that
   does not exist there. The bar is now the frame's third flex member — it
   ends where `#app` ends, no anchor to misplace — and a
-  `(display-mode: standalone)` override pins `#app` to `100vh`, the one
-  viewport unit with nothing dynamic to get wrong in standalone. Content no
+  `(display-mode: standalone)` override pins `#app` to `100%`: the second
+  screenshot showed iOS granting the installed WebView a viewport shorter
+  than the screen while `100vh` claimed the screen anyway, cutting the
+  bar's labels below the fold — the containing block is the one measure
+  that cannot overshoot what iOS actually laid out. Content no
   longer passes under the bar, so the panels' runway padding is a plain
   28px, and the vertical scrollbar now terminates at the bar's top edge —
   the same symmetry the header got.
