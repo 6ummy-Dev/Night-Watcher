@@ -68,7 +68,7 @@ s=s.replace(a,'''' data-held=\"\"''',1);${W}"
 
 run_case "the parked offset loses its one source" \
   "not sticky at calc" \
-  "${P}a='top:calc(var(--hdrh) + var(--belt-peek) - var(--beltH))'
+  "${P}a='top:calc(var(--ghtop) - var(--beltH))'
 assert a in s
 s=s.replace(a,'top:37px',1);${W}"
 
@@ -81,10 +81,10 @@ assert a in s
 s=s.replace(a,'--hdrh:calc(env(safe-area-inset-top) + 70px);',1);${W}"
 
 run_case "--ghtop stops deriving" \
-  "no longer derives from --hdrh" \
-  "${P}a='--ghtop:calc(var(--hdrh) + var(--belt-peek));'
+  "no longer the peek alone" \
+  "${P}a='--ghtop:var(--belt-peek);'
 assert a in s
-s=s.replace(a,'--ghtop:calc(env(safe-area-inset-top) + 82px);',1);${W}"
+s=s.replace(a,'--ghtop:calc(var(--hdrh) + var(--belt-peek));',1);${W}"
 
 run_case "a local fallback creeps back into a call site" \
   "its own --ghtop fallback constant" \
@@ -148,11 +148,11 @@ run_case "the sentinel disappears" \
 assert a in s
 s=s.replace(a,'',1);${W}"
 
-run_case "a second scroll listener arrives" \
-  "reviewed with exactly 1" \
-  "${P}a='var beltIO = null, beltIncIO = null, dropArmed = false, nwScrollAdjust = 0, dropSquelch = false;'
+run_case "a third scroll listener arrives here too" \
+  "reviewed with exactly 2" \
+  "${P}a='var beltIO = null, beltIncIO = null, beltIncRoot = null, dropArmed = false, dropArmedEl = null, nwScrollAdjust = 0, dropSquelch = false;'
 assert a in s
-s=s.replace(a,'window.addEventListener(\"scroll\", function(){});\\nvar beltIO = null, beltIncIO = null, dropArmed = false, nwScrollAdjust = 0, dropSquelch = false;',1);${W}"
+s=s.replace(a,'window.addEventListener(\"scroll\", function(){});\\n'+a,1);${W}"
 
 run_case "render stops re-pointing the observer" \
   "does not re-point the belt observer" \
@@ -162,7 +162,7 @@ s=s.replace(a,'\\n}',1);${W}"
 
 run_case "beltWatch loses sight of the sentinel" \
   "does not observe the sentinel" \
-  "${P}a='var g = document.querySelector(\".beltguide\");'
+  "${P}a='var g = pane.querySelector(\".beltguide\");'
 assert a in s
 s=s.replace(a,'var g = null;',1);${W}"
 

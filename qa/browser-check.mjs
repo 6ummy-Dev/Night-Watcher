@@ -155,11 +155,18 @@ ok("header at 100%: the subtitle holds one line at 390px",
    head100.subWraps === 1, head100.subWraps + " line box(es)");
 
 /* ---- content-visibility is actually on ---------------------------------- */
+/* Two frames first: render() and the idle neighbor fills both hold .settling
+   (content-visibility:visible) until the frame after their scroll restore,
+   so a read that lands inside that frame reports the override, not the
+   resting state. The override IS the mechanism (section 122); the resting
+   state is what this check is about. */
+await page.evaluate(() => new Promise(r =>
+  requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 50)))));
 const cv = await page.evaluate(() => {
-  const g = document.querySelector("#view .group");
+  const g = document.querySelector("#view .panel:not([inert]) .group");
   return { cv: getComputedStyle(g).contentVisibility,
            cis: getComputedStyle(g).containIntrinsicSize,
-           groups: document.querySelectorAll("#view .group").length };
+           groups: document.querySelectorAll("#view .panel:not([inert]) .group").length };
 });
 ok("content-visibility is on .group", cv.cv === "auto", cv.cv + " / " + cv.cis);
 
@@ -220,13 +227,17 @@ async function jump(clickFn, label, tab, mode){
        and can. */
     const wrap = h.closest(".ghwrap") || h;
     const a = scroller();
+    /* 4.0.0: the scrollport's top edge is the panel's, below the header, and
+       every sticky offset is panel-relative — so the landing is measured from
+       the panel's own top, not the viewport's. */
+    const paneTop = a.getBoundingClientRect().top;
     return { ok: true, tab: S.tab, open: grp.classList.contains("open"),
-             top: r.top, height: r.height, scrollY: scrollKeep(),
-             groupDocTop: grp.getBoundingClientRect().top + scrollKeep(),
+             top: r.top - paneTop, height: r.height, scrollY: scrollKeep(),
+             groupDocTop: grp.getBoundingClientRect().top - paneTop + scrollKeep(),
              stick: parseFloat(getComputedStyle(wrap).top) || 0,
              atEnd: a.scrollTop + a.clientHeight >= a.scrollHeight - 2,
              cv: getComputedStyle(grp).contentVisibility,
-             onlyOpen: document.querySelectorAll("#view .group.open").length };
+             onlyOpen: document.querySelectorAll("#view .panel:not([inert]) .group.open").length };
   }, gk);
   ok("jump from " + label + " lands on the right group",
      landed.ok && landed.tab === "watch" && landed.open && landed.onlyOpen === 1,
@@ -258,47 +269,47 @@ async function jump(clickFn, label, tab, mode){
    mode it expects before looking for its bars. 3.8.2: the donut became the
    skyline; the bars are real buttons on data-act="jump", clicked directly. */
 await jump(() => {
-  const g = document.querySelector('#view .pies .seg[data-gk^="c"]');
+  const g = document.querySelector('#view .panel:not([inert]) .pies .seg[data-gk^="c"]');
   if(!g) return null;
   const k = g.getAttribute("data-gk");
   g.click();
   return { gk: k, y: scrollKeep() };
 }, "the universes chart", "stats", "continuity");
 await jump(() => {
-  const g = document.querySelector('#view .pies .seg[data-gk^="e"]');
+  const g = document.querySelector('#view .panel:not([inert]) .pies .seg[data-gk^="e"]');
   if(!g) return null;
   const k = g.getAttribute("data-gk");
   g.click();
   return { gk: k, y: scrollKeep() };
 }, "the eras chart", "stats", "life");
 await jump(() => {
-  const g = document.querySelector('#view .pies .seg[data-gk^="d"]');
+  const g = document.querySelector('#view .panel:not([inert]) .pies .seg[data-gk^="d"]');
   if(!g) return null;
   const k = g.getAttribute("data-gk");
   g.click();
   return { gk: k, y: scrollKeep() };
 }, "the decades chart", "stats", "release");
 await jump(() => {
-  const bs = [...document.querySelectorAll('#view [data-act="jump"][data-gk^="c"]')]
+  const bs = [...document.querySelectorAll('#view .panel:not([inert]) [data-act="jump"][data-gk^="c"]')]
     .filter(b => !b.closest(".pies"));
   if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click();
   return { gk: k, y: scrollKeep() };
 }, "the universes fold");
 await jump(() => {
-  const bs = [...document.querySelectorAll('#view [data-act="jump"][data-gk^="e"]')]
+  const bs = [...document.querySelectorAll('#view .panel:not([inert]) [data-act="jump"][data-gk^="e"]')]
     .filter(b => !b.closest(".pies"));
   if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click();
   return { gk: k, y: scrollKeep() };
 }, "the eras fold");
 await jump(() => {
-  const bs = [...document.querySelectorAll('#view [data-act="jump"][data-gk^="d"]')]
+  const bs = [...document.querySelectorAll('#view .panel:not([inert]) [data-act="jump"][data-gk^="d"]')]
     .filter(b => !b.closest(".pies"));
   if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click();
   return { gk: k, y: scrollKeep() };
 }, "the decades fold");
 /* The fifth way in at 3.3.2, and the one that had never been driven. */
 await jump(() => {
-  const c = document.querySelector('#view .ucard[data-act="jump"]');
+  const c = document.querySelector('#view .panel:not([inert]) .ucard[data-act="jump"]');
   if(!c) return null; const k = c.dataset.gk; c.click();
   return { gk: k, y: scrollKeep() };
 }, "Home's universe grid", "home");
@@ -309,17 +320,17 @@ await page.evaluate(() => {
   setAllGroups(true); render(); scrollPut(0);
 });
 const grp = await page.evaluate(() => {
-  const h = document.querySelector("#view .ghead");
+  const h = document.querySelector("#view .panel:not([inert]) .ghead");
   const body = h.closest(".group").querySelector(".gbody");
   return { gk: h.dataset.gk, open: h.getAttribute("aria-expanded"),
            bodyShown: getComputedStyle(body).display };
 });
 ok("a group starts open", grp.open === "true" && grp.bodyShown === "block",
    grp.open + " / " + grp.bodyShown);
-await page.click("#view .ghead");
+await page.click("#view .panel:not([inert]) .ghead");
 await page.waitForTimeout(120);
 const closed = await page.evaluate(() => {
-  const h = document.querySelector("#view .ghead");
+  const h = document.querySelector("#view .panel:not([inert]) .ghead");
   const g = h.closest(".group");
   return { aria: h.getAttribute("aria-expanded"), cls: g.className,
            body: getComputedStyle(g.querySelector(".gbody")).display,
@@ -329,10 +340,10 @@ const closed = await page.evaluate(() => {
 ok("closing a group hides its rows",
    closed.aria === "false" && closed.cls === "group" && closed.body === "none",
    JSON.stringify(closed));
-await page.click("#view .ghead");
+await page.click("#view .panel:not([inert]) .ghead");
 await page.waitForTimeout(120);
 const reopened = await page.evaluate(() => {
-  const h = document.querySelector("#view .ghead");
+  const h = document.querySelector("#view .panel:not([inert]) .ghead");
   const g = h.closest(".group");
   return { aria: h.getAttribute("aria-expanded"), cls: g.className,
            body: getComputedStyle(g.querySelector(".gbody")).display,
@@ -450,14 +461,14 @@ async function tickDrive(filter, label, mode){
      green against the defect — this one was, before it was rewritten, which is
      the whole reason it is written this way. */
   const r = await page.evaluate(() => {
-    const btn = Array.from(document.querySelectorAll('#view [data-act="watched"]'))
+    const btn = Array.from(document.querySelectorAll('#view .panel:not([inert]) [data-act="watched"]'))
       .find(el => { const q = el.getBoundingClientRect();
                     return q.top > 100 && q.bottom < window.innerHeight - 60; });
     if(!btn) return null;
     const before = Math.round(scrollKeep());
     const gk = btn.closest(".group").querySelector(".ghead").dataset.gk;
     const elByKey = () => {
-      const h = document.querySelector('#view .ghead[data-gk="' + gk + '"]');
+      const h = document.querySelector('#view .panel:not([inert]) .ghead[data-gk="' + gk + '"]');
       return h ? h.closest(".group") : null;
     };
     /* TWO ASSERTIONS, AND THE SECOND ONE IS THE READER'S. Element identity is
@@ -525,12 +536,12 @@ const foc = await page.evaluate(() => {
   S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = "all"; S.q = "";
   S.watched = {}; S.skipped = {}; S.rated = {}; S.open = {};
   window.setAllGroups(true); render();
-  const row = document.querySelector('#view [data-act="expand"]');
+  const row = document.querySelector('#view .panel:not([inert]) [data-act="expand"]');
   if(!row) return { err: "no expandable row" };
   const id = row.dataset.id;
   S.open[id] = 1; render();
   const inRow = Array.from(
-    document.querySelectorAll('#view [data-act="watched"][data-id="' + id + '"]')).pop();
+    document.querySelectorAll('#view .panel:not([inert]) [data-act="watched"][data-id="' + id + '"]')).pop();
   if(!inRow) return { err: "no Mark watched inside the open row" };
   inRow.focus();
   const started = document.activeElement === inRow;
@@ -548,11 +559,11 @@ const focStar = await page.evaluate(() => {
   S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = "all"; S.q = "";
   S.watched = {}; S.rated = {}; S.open = {};
   window.setAllGroups(true); render();
-  const row = document.querySelector('#view [data-act="expand"]');
+  const row = document.querySelector('#view .panel:not([inert]) [data-act="expand"]');
   if(!row) return { err: "no expandable row" };
   const id = row.dataset.id;
   S.open[id] = 1; render();
-  const star = document.querySelector('#view [data-act="rate"][data-id="' + id + '"]');
+  const star = document.querySelector('#view .panel:not([inert]) [data-act="rate"][data-id="' + id + '"]');
   if(!star) return { err: "no star in the open row" };
   star.focus();
   const started = document.activeElement === star;
@@ -571,6 +582,124 @@ await page.evaluate(() => { S.watched = {}; S.tab = "watch"; render(); scrollPut
 await page.screenshot({ path: "qa/.shots/shot-header-0.png", clip: {x:0, y:0, width:390, height:120} });
 await page.evaluate(() => { pool().forEach(f => S.watched[f.id] = 1); render(); });
 await page.screenshot({ path: "qa/.shots/shot-header-100.png", clip: {x:0, y:0, width:390, height:120} });
+
+/* ---- the deck (4.0.0): geometry, the swipe, and what survives it ------ */
+/* jsdom cannot swipe and the guards read the tree, so everything here is the
+   half only a browser can answer: the panels stand where the layout says,
+   a horizontal scroll of #view changes the active tab, a panel's place
+   survives being swiped away from, the footer door still resets, and the
+   belt's auto-close — whose observer root moved to the panel — still fires
+   when the pouches scroll out under the header. */
+const geo = await page.evaluate(() => {
+  S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = "all"; S.q = "";
+  S.watched = {}; S.open = {}; setAllGroups(true); render(); snapTo(S.tab); scrollPut(0);
+  const vp = document.getElementById("view");
+  const hdr = document.querySelector("header").getBoundingClientRect();
+  const pane = document.getElementById("panel-watch").getBoundingClientRect();
+  const cs = getComputedStyle(vp);
+  const ps = getComputedStyle(document.getElementById("panel-watch"));
+  return { headerBottom: hdr.bottom, paneTop: pane.top, paneW: pane.width,
+           vpW: vp.clientWidth, span: vp.scrollWidth,
+           snapType: cs.scrollSnapType, snapStop: ps.scrollSnapStop,
+           snapAlign: ps.scrollSnapAlign,
+           panels: document.querySelectorAll("#view > .panel").length };
+});
+ok("deck: the scrollport starts at the header's bottom — the scrollbar hides " +
+   "below the header the way it hides below the footer",
+   Math.abs(geo.headerBottom - geo.paneTop) < 1,
+   "header bottom " + geo.headerBottom.toFixed(1) + ", panel top " + geo.paneTop.toFixed(1));
+ok("deck: four panels, each exactly one viewport wide",
+   geo.panels === 4 && Math.abs(geo.paneW - geo.vpW) < 1 &&
+   Math.abs(geo.span - 4 * geo.vpW) < 4,
+   geo.panels + " panels, " + geo.paneW + "px in a " + geo.vpW + "px viewport, span " + geo.span);
+ok("deck: the computed snap is x mandatory, start, always",
+   /x mandatory/.test(geo.snapType) && geo.snapAlign === "start" && geo.snapStop === "always",
+   geo.snapType + " / " + geo.snapAlign + " / " + geo.snapStop);
+
+/* The swipe: scroll #view sideways one viewport and read what followed. The
+   place kept in The path must survive the trip away and back. */
+const swipe = await page.evaluate(async () => {
+  scrollPut(2600);
+  const kept = scrollKeep();
+  const vp = document.getElementById("view");
+  vp.scrollBy({ left: -vp.clientWidth, behavior: "instant" });
+  await new Promise(r => setTimeout(r, 250));
+  const afterLeft = {
+    tab: S.tab,
+    current: document.querySelector("#tabs button[aria-current]").dataset.tab,
+    watchInert: document.getElementById("panel-watch").hasAttribute("inert"),
+    nextInert: document.getElementById("panel-next").hasAttribute("inert")
+  };
+  vp.scrollBy({ left: vp.clientWidth, behavior: "instant" });
+  await new Promise(r => setTimeout(r, 250));
+  return { kept, afterLeft,
+           back: { tab: S.tab, pos: scrollKeep(),
+                   watchInert: document.getElementById("panel-watch").hasAttribute("inert") } };
+});
+ok("swipe: scrolling the deck left lands on Next up — tab, aria-current and inert all move",
+   swipe.afterLeft.tab === "next" && swipe.afterLeft.current === "next" &&
+   swipe.afterLeft.watchInert && !swipe.afterLeft.nextInert,
+   JSON.stringify(swipe.afterLeft));
+ok("swipe: The path keeps its place across a swipe away and back",
+   swipe.back.tab === "watch" && !swipe.back.watchInert &&
+   swipe.kept > 2000 && Math.abs(swipe.back.pos - swipe.kept) < 150,
+   "kept " + swipe.kept + ", back at " + swipe.back.pos);
+
+/* The footer door: a tap resets the view it opens and aligns the deck. */
+await page.click('#tabs button[data-tab="stats"]');
+await page.waitForTimeout(150);
+await page.click('#tabs button[data-tab="watch"]');
+await page.waitForTimeout(150);
+const door = await page.evaluate(() => {
+  const vp = document.getElementById("view");
+  return { tab: S.tab, pos: scrollKeep(),
+           aligned: Math.abs(vp.scrollLeft - 2 * vp.clientWidth) < 2,
+           stale: document.getElementById("panel-stats").hasAttribute("inert") };
+});
+ok("footer tap: goTab resets the panel, aligns the deck, inerts the one it left",
+   door.tab === "watch" && door.pos === 0 && door.aligned && door.stale,
+   JSON.stringify(door));
+
+/* The belt's auto-close, on its new root. Open the pouches in the flow, then
+   scroll the panel until they pass under the header — the observer roots on
+   the panel now, so this is the exact threshold that moved. */
+const beltClose = await page.evaluate(async () => {
+  S.tab = "watch"; S.beltOpen = false; S.beltDrop = false; render(); snapTo(S.tab); scrollPut(0);
+  document.querySelector("#view .panel:not([inert]) .pathseg").click();
+  document.querySelector('#view .panel:not([inert]) [data-act="belt"]').click();
+  /* opened dropped from the peek; close the drop into the flow state */
+  closeBelt("drop");
+  await new Promise(r => setTimeout(r, 300));
+  openBelt();
+  await new Promise(r => setTimeout(r, 100));
+  const openBefore = S.beltOpen && !!document.querySelector("#view .panel:not([inert]) .includes");
+  scrollPut(1200);
+  await new Promise(r => setTimeout(r, 450));
+  return { openBefore, openAfter: S.beltOpen,
+           includesGone: !document.querySelector("#view .panel:not([inert]) .includes:not(.closing)") };
+});
+ok("belt: the flow auto-close still fires with the observer rooted on the panel",
+   beltClose.openBefore && !beltClose.openAfter && beltClose.includesGone,
+   JSON.stringify(beltClose));
+
+/* Paint, looked at rather than inferred — the transparent-pouch lesson. */
+await page.evaluate(() => {
+  S.beltOpen = false; S.beltDrop = false; S.tab = "watch"; render(); snapTo(S.tab); scrollPut(0);
+});
+await page.waitForTimeout(120);
+await page.screenshot({ path: "qa/.shots/shot-deck-watch.png" });
+await page.evaluate(() => {
+  const vp = document.getElementById("view");
+  vp.scrollBy({ left: -Math.round(vp.clientWidth / 2), behavior: "instant" });
+});
+await page.waitForTimeout(80);
+await page.screenshot({ path: "qa/.shots/shot-deck-midswipe.png" });
+await page.evaluate(async () => {
+  const vp = document.getElementById("view");
+  vp.scrollBy({ left: vp.clientWidth, behavior: "instant" });
+  await new Promise(r => setTimeout(r, 250));
+  goTab("watch");
+});
 
 /* ---- axe-core, in states a static scan cannot reach ------------------- */
 /* 3.2.0. Lighthouse already runs axe against the cold load and passes it, so
@@ -608,17 +737,17 @@ async function axeState(name, setup, verify){
 await axeState("first-run chooser", () => {
   localStorage.clear(); S.path = null; S.tab = "home"; render();
 }, () => {
-  const picks = document.querySelectorAll("#view .pick").length;
+  const picks = document.querySelectorAll("#view .panel:not([inert]) .pick").length;
   return { pass: picks > 0, detail: picks + " chooser card(s)" };
 });
 await axeState("a group opened", () => {
   S.path = S.mode = "continuity"; S.tab = "watch"; S.open = {};
   setAllGroups(false); render();
-  const h = document.querySelector('#view .ghead[data-gk]');
+  const h = document.querySelector('#view .panel:not([inert]) .ghead[data-gk]');
   if(h) h.click(); /* the app's own path in — aria-expanded flips, the fold renders */
 }, () => {
-  const open = document.querySelectorAll("#view .group.open").length;
-  const rows = document.querySelectorAll("#view .group.open .film").length;
+  const open = document.querySelectorAll("#view .panel:not([inert]) .group.open").length;
+  const rows = document.querySelectorAll("#view .panel:not([inert]) .group.open .film").length;
   return { pass: open === 1 && rows > 0, detail: open + " open group(s), " + rows + " row(s)" };
 });
 /* The expanded row — the app's most complex live DOM, and until 3.7.2 the
@@ -626,11 +755,11 @@ await axeState("a group opened", () => {
 await axeState("a row expanded", () => {
   S.path = S.mode = "continuity"; S.tab = "watch"; S.q = "";
   setAllGroups(true); render();
-  const row = document.querySelector('#view [data-act="expand"]');
+  const row = document.querySelector('#view .panel:not([inert]) [data-act="expand"]');
   if(row){ S.open = {}; S.open[row.dataset.id] = 1; render(); }
 }, () => {
-  const open = document.querySelectorAll("#view .film.open").length;
-  const controls = document.querySelectorAll("#view .film.open .linkrow a, #view .film.open button").length;
+  const open = document.querySelectorAll("#view .panel:not([inert]) .film.open").length;
+  const controls = document.querySelectorAll("#view .panel:not([inert]) .film.open .linkrow a, #view .film.open button").length;
   return { pass: open === 1 && controls > 0, detail: open + " open row(s), " + controls + " control(s)" };
 });
 

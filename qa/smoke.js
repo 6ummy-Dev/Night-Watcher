@@ -124,7 +124,7 @@ win.addEventListener("load", function(){
     check("no path is set on a fresh device", S.path === "", 'path="' + S.path + '"');
     check("Home shows the three path cards", doc.querySelectorAll(".pick").length === 3,
           doc.querySelectorAll(".pick").length + " cards");
-    check("Home shows no hero until a path is chosen", !doc.querySelector("#view .hero"));
+    check("Home shows no hero until a path is chosen", !doc.querySelector("#view .panel:not([inert]) .hero"));
     check("chooser cards all carry a blurb",
           Array.prototype.every.call(doc.querySelectorAll(".pick"), function(b){
             return b.querySelector("span") && b.querySelector("span").textContent.length > 20;
@@ -138,13 +138,13 @@ win.addEventListener("load", function(){
     var view0 = doc.getElementById("view");
     check("the landing page says Batman", view0.textContent.indexOf("Batman") >= 0,
           view0.textContent.slice(0, 60));
-    var intro0 = doc.querySelector("#view .intro"), deck0 = doc.querySelector("#view .deck");
+    var intro0 = doc.querySelector("#view .panel:not([inert]) .intro"), deck0 = doc.querySelector("#view .panel:not([inert]) .deck");
     check("the landing page carries the intro", !!intro0);
     check("it tells before it asks",
           !!intro0 && !!deck0 && !!(intro0.compareDocumentPosition(deck0) &
                                     win.Node.DOCUMENT_POSITION_FOLLOWING));
-    check("the intro paragraph renders once", doc.querySelectorAll("#view .ibody").length === 1,
-          doc.querySelectorAll("#view .ibody").length + " copies");
+    check("the intro paragraph renders once", doc.querySelectorAll("#view .panel:not([inert]) .ibody").length === 1,
+          doc.querySelectorAll("#view .panel:not([inert]) .ibody").length + " copies");
 
     /* --- 1.8.6: the crawlable seed boots away, and stands in before boot --- */
     /* The seed is the initial content of #view; the first render must replace
@@ -191,8 +191,8 @@ win.addEventListener("load", function(){
 
     /* --- The Path stops asking --- */
     S.tab = "watch"; win.render();
-    check("The Path has no mode switcher", doc.querySelectorAll("#view [data-mode]").length === 0,
-          doc.querySelectorAll("#view [data-mode]").length + " switcher buttons");
+    check("The Path has no mode switcher", doc.querySelectorAll("#view .panel:not([inert]) [data-mode]").length === 0,
+          doc.querySelectorAll("#view .panel:not([inert]) [data-mode]").length + " switcher buttons");
     check("The Path titles the chosen ordering",
           !!doc.querySelector(".pathtitle") && /Bruce/.test(doc.querySelector(".pathtitle").textContent));
     check("no adopt banner while mode agrees with path", !doc.querySelector(".viewing"));
@@ -386,8 +386,8 @@ win.addEventListener("load", function(){
     S.path = S.mode = "life"; S.tab = "home"; win.persist(); win.flushPersist(); win.render();
     check("Home names the grid for the path it is on",
           /The eras/.test(doc.querySelector("#view").textContent),
-          (doc.querySelector("#view .qhead") || {textContent:"-"}).textContent);
-    doc.querySelector('#view [data-act="jump"]').click();
+          (doc.querySelector("#view .panel:not([inert]) .qhead") || {textContent:"-"}).textContent);
+    doc.querySelector('#view .panel:not([inert]) [data-act="jump"]').click();
     check("a Home card stays in your own ordering",
           S.mode === "life" && S.path === "life", "mode=" + S.mode);
     check("and raises no borrowed-view banner", !doc.querySelector(".viewing"));
@@ -400,7 +400,7 @@ win.addEventListener("load", function(){
     S.path = S.mode = "release"; S.tab = "home"; win.persist(); win.flushPersist(); win.render();
     check("Home names the grid in release order",
           /The decades/.test(doc.querySelector("#view").textContent));
-    doc.querySelector('#view [data-act="jump"]').click();
+    doc.querySelector('#view .panel:not([inert]) [data-act="jump"]').click();
     check("a decade card stays in release order", S.mode === "release", "mode=" + S.mode);
 
     /* --- and a borrowed view is still reversible without a reload (1.2.1) --- */
@@ -410,14 +410,14 @@ win.addEventListener("load", function(){
     /* 1.9.5: the two lists fold, closed by default. The jump rows exist only
        behind an opened fold, so open it the way a reader would. */
     check("the Progress lists are closed for a fresh eye",
-          !doc.querySelector('#view [data-act="jump"][data-gk^="c"]'));
+          !doc.querySelector('#view .panel:not([inert]) [data-act="jump"][data-gk^="c"]'));
     var uniFold = doc.querySelector('.sfhead[data-pk="uni"]');
     check("the By-universe fold is there to open", !!uniFold);
     if(uniFold){ uniFold.click(); }
     check("opening the fold renders the rows and remembers it",
-          !!doc.querySelector('#view [data-act="jump"][data-gk^="c"]') &&
+          !!doc.querySelector('#view .panel:not([inert]) [data-act="jump"][data-gk^="c"]') &&
           S.progOpen.uni === true);
-    var eraJump = doc.querySelector('#view [data-act="jump"][data-gk^="c"]');
+    var eraJump = doc.querySelector('#view .panel:not([inert]) [data-act="jump"][data-gk^="c"]');
     if(!eraJump){ check("Progress offers a jump into another ordering", false, "none found"); }
     else {
       eraJump.click();
@@ -447,18 +447,18 @@ win.addEventListener("load", function(){
     check("default theme is dark", S.theme === "dark" &&
           doc.documentElement.getAttribute("data-theme") === "dark", bar());
     S.tab = "home"; win.render();
-    check("the theme selector lives on Home now", !!doc.querySelector('#view .themerow'));
-    doc.querySelector('#view [data-theme="darker"]').click();
+    check("the theme selector lives on Home now", !!doc.querySelector('#view .panel:not([inert]) .themerow'));
+    doc.querySelector('#view .panel:not([inert]) [data-theme="darker"]').click();
     check("darker sets the document attribute",
           doc.documentElement.getAttribute("data-theme") === "darker");
     check("darker repaints the status bar", bar() === "#000000", bar());
     win.flushPersist();
     check("darker is persisted", /"theme":"darker"/.test(win.localStorage.getItem("batwatch-v3") || ""));
-    doc.querySelector('#view [data-theme="dark"]').click();
+    doc.querySelector('#view .panel:not([inert]) [data-theme="dark"]').click();
     check("switching back restores the bar", bar() === "#0C111C", bar());
     S.tab = "stats"; win.render();
     check("Progress no longer carries the theme selector",
-          !doc.querySelector('#view [data-theme]'));
+          !doc.querySelector('#view .panel:not([inert]) [data-theme]'));
     S.tab = "home"; win.render();
 
     /* --- tier partition closes in BOTH scopes (the 9-season gap) --- */
@@ -483,7 +483,7 @@ win.addEventListener("load", function(){
        release view read 1, 3, 4, 5. */
     ["life", "release"].forEach(function(m){
       S.mode = m; S.tab = "watch"; S.format = "all"; S.scope = "all"; win.render();
-      var tags = Array.prototype.map.call(doc.querySelectorAll("#view .gnum"), function(e){
+      var tags = Array.prototype.map.call(doc.querySelectorAll("#view .panel:not([inert]) .gnum"), function(e){
         return e.textContent.trim();
       }).filter(function(t){ return t !== "\u2014"; });
       var gaps = tags.filter(function(t, i){ return t !== String(i + 1); });
@@ -499,7 +499,7 @@ win.addEventListener("load", function(){
     S.mode = "life"; S.tab = "watch"; S.format = "all"; S.scope = "all";
     S.watched = {}; S.log = []; win.render();
     (function(){
-      var rows = Array.prototype.map.call(doc.querySelectorAll("#view .grow, #view .qitem, #view [data-id]"),
+      var rows = Array.prototype.map.call(doc.querySelectorAll("#view .panel:not([inert]) .grow, #view .qitem, #view [data-id]"),
                                           function(e){ return e.dataset.id; }).filter(Boolean);
       var seen = [], want = ["batman-year-one-2011", "batman-begins-2005", "batman-gotham-knight-2008"];
       want.forEach(function(id){ seen.push(rows.indexOf(id)); });
@@ -552,10 +552,10 @@ win.addEventListener("load", function(){
     S.tab = "next"; win.render();
     check("no Activity block before anything is watched", !doc.querySelector(".activity"));
 
-    var wasShowing = doc.querySelector("#view .hero h2").textContent;
-    doc.querySelector("#view .heroacts .go").dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    var wasShowing = doc.querySelector("#view .panel:not([inert]) .hero h2").textContent;
+    doc.querySelector("#view .panel:not([inert]) .heroacts .go").dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("the hero advances after marking watched",
-          doc.querySelector("#view .hero h2").textContent !== wasShowing);
+          doc.querySelector("#view .panel:not([inert]) .hero h2").textContent !== wasShowing);
 
     var act = doc.querySelector(".activity");
     check("Activity appears once something is logged", !!act);
@@ -566,14 +566,14 @@ win.addEventListener("load", function(){
           !!act && act.querySelector(".arow .at").textContent === wasShowing,
           act ? act.querySelector(".arow .at").textContent : "(none)");
     check("Activity sits below Then",
-          !!act && !!doc.querySelector("#view .queue") &&
-          (doc.querySelector("#view .queue").compareDocumentPosition(act) & 4) !== 0);
+          !!act && !!doc.querySelector("#view .panel:not([inert]) .queue") &&
+          (doc.querySelector("#view .panel:not([inert]) .queue").compareDocumentPosition(act) & 4) !== 0);
     check("Activity is not the queue list",
           !!act && act.querySelectorAll(".qitem").length === 0);
 
     /* Baseline is the hero as it stands NOW, not the title marked earlier \u2014
        comparing against that one passes even if the hero advances again. */
-    var heroBefore = doc.querySelector("#view .hero h2").textContent;
+    var heroBefore = doc.querySelector("#view .panel:not([inert]) .hero h2").textContent;
     /* One line, everything on it, nothing behind a tap (1.6.3). */
     var arow0 = doc.querySelectorAll(".activity .arow")[0];
     check("an Activity row is a tick, a title and stars",
@@ -590,8 +590,8 @@ win.addEventListener("load", function(){
           Object.keys(S.rated).length === 1 && S.rated[Object.keys(S.rated)[0]] === 4,
           JSON.stringify(S.rated));
     check("rating from Activity does not move the hero",
-          doc.querySelector("#view .hero h2").textContent === heroBefore,
-          "was " + heroBefore + ", now " + doc.querySelector("#view .hero h2").textContent);
+          doc.querySelector("#view .panel:not([inert]) .hero h2").textContent === heroBefore,
+          "was " + heroBefore + ", now " + doc.querySelector("#view .panel:not([inert]) .hero h2").textContent);
     check("rating from Activity logs nothing new", S.log.length === 1,
           S.log.length + " entries");
     check("Activity reflects the rating",
@@ -601,9 +601,9 @@ win.addEventListener("load", function(){
     /* The hero rates in place, and rating marks it watched (1.4.1). */
     S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.open = {};
     S.tab = "next"; win.render();
-    var heroStars = doc.querySelector("#view .herorate .stars");
+    var heroStars = doc.querySelector("#view .panel:not([inert]) .herorate .stars");
     check("the hero carries a star row", !!heroStars);
-    var heroTitle = doc.querySelector("#view .hero h2").textContent;
+    var heroTitle = doc.querySelector("#view .panel:not([inert]) .hero h2").textContent;
     heroStars.querySelectorAll("button")[2]
              .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("rating the hero marks it watched", Object.keys(S.watched).length === 1,
@@ -611,7 +611,7 @@ win.addEventListener("load", function(){
     check("rating the hero records the rating",
           S.rated[Object.keys(S.watched)[0]] === 3, JSON.stringify(S.rated));
     check("rating the hero advances the queue",
-          doc.querySelector("#view .hero h2").textContent !== heroTitle);
+          doc.querySelector("#view .panel:not([inert]) .hero h2").textContent !== heroTitle);
     check("what was rated is now the top of Recent activity",
           doc.querySelector(".activity .arow .at").textContent === heroTitle,
           doc.querySelector(".activity .arow .at").textContent);
@@ -620,8 +620,8 @@ win.addEventListener("load", function(){
     var undo = doc.querySelector(".activity .arow .tick");
     check("each activity row carries a tick", !!undo);
     check("the hero puts stars and the watch link in one row",
-          !!doc.querySelector("#view .herorow .herorate") &&
-          !!doc.querySelector("#view .herorow .linkrow"));
+          !!doc.querySelector("#view .panel:not([inert]) .herorow .herorate") &&
+          !!doc.querySelector("#view .panel:not([inert]) .herorow .linkrow"));
     /* One row, three parts, aligned (1.5.8). */
     var arow = doc.querySelector(".activity .arow");
     check("the row is one line: tick, title, stars",
@@ -639,7 +639,7 @@ win.addEventListener("load", function(){
     /* Then holds only unwatched entries and Activity only watched ones, so the
        two reveals can share S.open without ever colliding on an id. */
     check("no id is in the queue and the history at once",
-          Array.prototype.every.call(doc.querySelectorAll("#view .qitem"), function(q){
+          Array.prototype.every.call(doc.querySelectorAll("#view .panel:not([inert]) .qitem"), function(q){
             return !S.watched[q.dataset.id];
           }));
     check("the tick says what it does",
@@ -650,15 +650,15 @@ win.addEventListener("load", function(){
           JSON.stringify(Object.keys(S.watched)));
     check("the tick clears the log entry too", S.log.length === 0, S.log.length + " left");
     check("the hero goes back to what it was",
-          doc.querySelector("#view .hero h2").textContent === heroTitle,
-          doc.querySelector("#view .hero h2").textContent);
+          doc.querySelector("#view .panel:not([inert]) .hero h2").textContent === heroTitle,
+          doc.querySelector("#view .panel:not([inert]) .hero h2").textContent);
     check("Recent activity disappears with nothing in it", !doc.querySelector(".activity"));
 
     /* Clearing a rating must not put progress back (1.4.4). */
     S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
     S.tab = "next"; win.render();
-    var hs = doc.querySelector("#view .herorate .stars");
-    var heroWas = doc.querySelector("#view .hero h2").textContent;
+    var hs = doc.querySelector("#view .panel:not([inert]) .herorate .stars");
+    var heroWas = doc.querySelector("#view .panel:not([inert]) .hero h2").textContent;
     hs.querySelectorAll("button")[2].dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     var ratedId = Object.keys(S.rated)[0];
     check("rating from the hero marks it watched", !!S.watched[ratedId]);
@@ -666,10 +666,10 @@ win.addEventListener("load", function(){
     doc.querySelector(".activity .arow .tick")
        .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("unticking rewinds the hero",
-          doc.querySelector("#view .hero h2").textContent === heroWas);
+          doc.querySelector("#view .panel:not([inert]) .hero h2").textContent === heroWas);
     check("unticking keeps the rating", S.rated[ratedId] === 3, JSON.stringify(S.rated));
 
-    var stars2 = doc.querySelector("#view .herorate .stars");
+    var stars2 = doc.querySelector("#view .panel:not([inert]) .herorate .stars");
     stars2.querySelectorAll("button")[2].dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("clearing the rating clears it", S.rated[ratedId] === undefined, JSON.stringify(S.rated));
     check("clearing the rating does not re-mark it watched",
@@ -680,10 +680,10 @@ win.addEventListener("load", function(){
     /* The legend defines Path badges and now lives on The Path (1.4.1). */
     S.watched = {}; S.rated = {}; S.log = [];
     S.tab = "watch"; S.filter = "all"; S.q = ""; win.render();
-    var leg = doc.querySelector("#view .legend");
+    var leg = doc.querySelector("#view .panel:not([inert]) .legend");
     check("The Path carries the legend", !!leg);
     check("the legend is the last thing on The Path",
-          !!leg && leg === doc.getElementById("view").lastElementChild);
+          !!leg && leg === doc.querySelector("#view .panel:not([inert]) .pcol").lastElementChild);
     /* The key is drawn out of the badges themselves. It used to be nine
        coloured words, which stopped matching the moment 1.5.9 made tier filled,
        modifiers outlined and format dashed. */
@@ -701,7 +701,7 @@ win.addEventListener("load", function(){
           !!leg && leg.querySelector(".bd.e").textContent === win.BADGE.e &&
                    leg.querySelector(".bd.o").textContent === win.BADGE.o);
     S.tab = "stats"; win.render();
-    check("Progress no longer carries the legend", !doc.querySelector("#view .legend"));
+    check("Progress no longer carries the legend", !doc.querySelector("#view .panel:not([inert]) .legend"));
     S.tab = "next"; S.watched = {}; S.rated = {}; S.log = []; win.render();
 
     /* ACTIVITYMAX rows, newest first, no matter how long the log gets. The
@@ -740,7 +740,7 @@ win.addEventListener("load", function(){
 
     /* Home ends at the universe grid. */
     S.tab = "home"; win.render();
-    check("Home has no Activity block", !doc.querySelector("#view .activity"));
+    check("Home has no Activity block", !doc.querySelector("#view .panel:not([inert]) .activity"));
     check("Home has no Recently logged",
           doc.getElementById("view").textContent.indexOf("Recently logged") < 0);
 
@@ -749,7 +749,7 @@ win.addEventListener("load", function(){
 
     /* --- one source for path copy (1.3.9) --- */
     S.path = ""; S.tab = "home"; win.render();
-    var cards = doc.querySelectorAll("#view .pick");
+    var cards = doc.querySelectorAll("#view .panel:not([inert]) .pick");
     check("the chooser shows a card per path", cards.length === 3, cards.length + " cards");
     Array.prototype.forEach.call(cards, function(b){
       var id = b.dataset.path, card = b.querySelector("span").textContent;
@@ -770,22 +770,22 @@ win.addEventListener("load", function(){
 
     /* --- Home order, chooser, format badges (1.5.2) --- */
     S.path = ""; S.tab = "home"; S.watched = {}; S.log = []; win.render();
-    var blocks = doc.querySelectorAll("#view .pick.big");
+    var blocks = doc.querySelectorAll("#view .panel:not([inert]) .pick.big");
     check("the chooser is three cards", blocks.length === 3);
-    check("they sit in a deck", !!doc.querySelector("#view .deck"));
+    check("they sit in a deck", !!doc.querySelector("#view .panel:not([inert]) .deck"));
     check("the first card leads", blocks[0].classList.contains("lead"));
-    check("only one card leads", doc.querySelectorAll("#view .pick.big.lead").length === 1);
+    check("only one card leads", doc.querySelectorAll("#view .panel:not([inert]) .pick.big.lead").length === 1);
     /* 1.7.2 moved the lead to Bruce's life. By universe is the completist's path
        \u2014 it opens on Alfred in 1960s London, which is correct for the reader who
        chose it and a strange front door for the reader who has not chosen yet. */
     check("the lead is the one life", blocks[0].dataset.path === "life",
           blocks[0].dataset.path);
-    check("and it says why", !!doc.querySelector("#view .lead .leadkick"),
-          doc.querySelector("#view .leadkick") ? doc.querySelector("#view .leadkick").textContent : "(none)");
+    check("and it says why", !!doc.querySelector("#view .panel:not([inert]) .lead .leadkick"),
+          doc.querySelector("#view .panel:not([inert]) .leadkick") ? doc.querySelector("#view .panel:not([inert]) .leadkick").textContent : "(none)");
 
     S.path = "continuity"; S.mode = "continuity"; win.render();
-    var v = doc.getElementById("view");
-    function posOf(sel){ var n = v.querySelector(sel); return n ? Array.prototype.indexOf.call(v.children, n.closest("#view > *")) : -1; }
+    function posOf(sel){ var pc = doc.querySelector("#view .panel:not([inert]) .pcol");
+      var n = pc.querySelector(sel); return n ? Array.prototype.indexOf.call(pc.children, n.closest(".pcol > *")) : -1; }
     /* The master chooser opens every tab (1.5.6). */
     ["home", "next", "watch", "stats"].forEach(function(tab){
       S.tab = tab; S.beltOpen = false; win.render();
@@ -794,39 +794,39 @@ win.addEventListener("load", function(){
          own parking and reading its geometry is the layout read section 120
          refuses. The sentinel is part of the belt, so "opens with the belt"
          now means both of them, in order. */
-      var kids = doc.getElementById("view").children;
+      var kids = doc.querySelector("#view .panel:not([inert]) .pcol").children;
       check(tab + " opens with the belt",
             !!kids[0] && kids[0].className === "beltguide" &&
             !!kids[1] && kids[1].className.indexOf("pathseg") >= 0,
             (kids[0] ? kids[0].className : "(none)") + " / " +
             (kids[1] ? kids[1].className : "(none)"));
       check(tab + " keeps the pouches closed until asked",
-            !doc.querySelector("#view .includes"));
+            !doc.querySelector("#view .panel:not([inert]) .includes"));
       /* 3.6.4: once a path is chosen the strip is the permanent peek, so the
          buckle lives behind the drop — the strip's own tap drops the belt
          (closed), and the buckle opens the pouches from there. Two clicks,
          both through the real handler, exactly the reader's route. */
-      doc.querySelector("#view .pathseg").click();
-      doc.querySelector('#view [data-act="belt"]').click();
+      doc.querySelector("#view .panel:not([inert]) .pathseg").click();
+      doc.querySelector('#view .panel:not([inert]) [data-act="belt"]').click();
       check(tab + " opens the pouches from the buckle",
-            !!doc.querySelector("#view .includes") && S.beltOpen === true &&
+            !!doc.querySelector("#view .panel:not([inert]) .includes") && S.beltOpen === true &&
             S.beltDrop === true);
       check(tab + " has no lone scope switch left",
-            !doc.querySelector("#view > .scope"));
+            !doc.querySelector("#view .panel:not([inert]) > .scope"));
       S.beltOpen = false; S.beltDrop = false;
     });
     S.tab = "watch"; win.render();
     /* Switching paths now goes through the drop: tap the peek, then the
        segment — a segment inside the peek is not a control (F5). */
-    doc.querySelector("#view .pathseg").click();
-    doc.querySelector('#view .pathseg button[data-path="release"]')
+    doc.querySelector("#view .panel:not([inert]) .pathseg").click();
+    doc.querySelector('#view .panel:not([inert]) .pathseg button[data-path="release"]')
        .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("switching path from another tab works", S.path === "release", S.path);
     S.path = "continuity"; S.mode = "continuity"; S.beltDrop = false;
     S.tab = "home"; win.render();
 
-    doc.querySelector("#view .pathseg").click();
-    doc.querySelector('#view [data-act="belt"]').click();
+    doc.querySelector("#view .panel:not([inert]) .pathseg").click();
+    doc.querySelector('#view .panel:not([inert]) [data-act="belt"]').click();
     var iSeg = posOf(".pathseg"), iInc = posOf(".includes"), iHero = posOf(".hero");
     check("the controls come first", iSeg === 1 && posOf(".beltguide") === 0,
           "pathseg at " + iSeg + ", beltguide at " + posOf(".beltguide"));
@@ -847,15 +847,15 @@ win.addEventListener("load", function(){
        purpose, because "one per row plus two in the key" is the shape and a
        single number could hide either half going wrong. */
     function fmCount(scope){ return doc.querySelectorAll(scope + " .bd.fmlive, " + scope + " .bd.fmanim").length; }
-    var fmLegend = fmCount("#view .legend");
+    var fmLegend = fmCount("#view .panel:not([inert]) .legend");
     check("All labels every row with its format",
-          fmCount("#view") - fmLegend === win.pool().length,
-          (fmCount("#view") - fmLegend) + " of " + win.pool().length);
+          fmCount("#view .panel:not([inert])") - fmLegend === win.pool().length,
+          (fmCount("#view .panel:not([inert])") - fmLegend) + " of " + win.pool().length);
     check("the legend explains them", fmLegend === 2, fmLegend + " format swatches in the key");
     S.format = "anim"; win.render();
     check("one format means no badge on any row",
-          fmCount("#view") - fmCount("#view .legend") === 0);
-    check("and no legend row for it", fmCount("#view .legend") === 0);
+          fmCount("#view .panel:not([inert])") - fmCount("#view .panel:not([inert]) .legend") === 0);
+    check("and no legend row for it", fmCount("#view .panel:not([inert]) .legend") === 0);
     S.format = "all"; S.tab = "home"; win.render();
 
     /* --- format is the second axis (1.5.0) --- */
@@ -876,7 +876,7 @@ win.addEventListener("load", function(){
             return g.films.every(function(f){ return f.fmt === "live"; }); }));
     /* The master chooser is compact, so the note lives with the intro on Home. */
     S.tab = "home"; S.watched = {}; S.log = []; win.render();
-    var stats = doc.querySelector("#view .istats");
+    var stats = doc.querySelector("#view .panel:not([inert]) .istats");
     check("the intro counts what is in view, not the catalogue",
           !stats || stats.textContent.indexOf("58") < 0,
           stats ? stats.textContent.replace(/\s+/g, " ") : "(no intro)");
@@ -916,11 +916,11 @@ win.addEventListener("load", function(){
     /* Then rows reveal one line on request (1.5.9). */
     S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.open = {};
     S.tab = "next"; win.render();
-    var qi = doc.querySelector("#view .qitem");
+    var qi = doc.querySelector("#view .panel:not([inert]) .qitem");
     check("a Then row is tappable", qi.tagName === "BUTTON", qi.tagName);
     check("nothing is revealed until asked", !qi.querySelector(".qpeek"));
     qi.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
-    var qi2 = doc.querySelector("#view .qitem");
+    var qi2 = doc.querySelector("#view .panel:not([inert]) .qitem");
     check("tapping reveals one line", !!qi2.querySelector(".qpeek"));
     check("it shows badges", qi2.querySelectorAll(".qpeek .bd").length > 0);
     check("it names the continuity", !!qi2.querySelector(".qpeek .qg"),
@@ -931,7 +931,7 @@ win.addEventListener("load", function(){
             f && qi2.textContent.indexOf(f.d.slice(0, 24)) < 0);
     })();
     qi2.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
-    check("tapping again closes it", !doc.querySelector("#view .qitem .qpeek"));
+    check("tapping again closes it", !doc.querySelector("#view .panel:not([inert]) .qitem .qpeek"));
     S.open = {}; S.peek = {};
 
     /* --- watched and skipped cannot both be true (3.0.0) --- */
@@ -1013,10 +1013,10 @@ win.addEventListener("load", function(){
        realigns it to the path and the keys legitimately stop matching. */
     S.path = S.mode = "continuity";
     S.tab = "watch"; S.filter = "all"; S.q = ""; win.render();
-    var groupsShown = doc.querySelectorAll("#view .group").length;
+    var groupsShown = doc.querySelectorAll("#view .panel:not([inert]) .group").length;
     check("The Path renders groups", groupsShown > 1, groupsShown + " groups");
     check("groups start expanded",
-          doc.querySelectorAll("#view .group.open").length === groupsShown);
+          doc.querySelectorAll("#view .panel:not([inert]) .group.open").length === groupsShown);
     var allBtn = doc.querySelector('[data-act="allgroups"]');
     check("the collapse control is present", !!allBtn);
     check("it offers to collapse while things are open",
@@ -1024,13 +1024,13 @@ win.addEventListener("load", function(){
 
     allBtn.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("collapse all closes every group",
-          doc.querySelectorAll("#view .group.open").length === 0,
-          doc.querySelectorAll("#view .group.open").length + " still open");
+          doc.querySelectorAll("#view .panel:not([inert]) .group.open").length === 0,
+          doc.querySelectorAll("#view .panel:not([inert]) .group.open").length + " still open");
     check("the control flips to expand",
           doc.querySelector('[data-act="allgroups"]').textContent === "Expand all",
           doc.querySelector('[data-act="allgroups"]').textContent);
     check("a collapsed group reports aria-expanded=false",
-          doc.querySelector("#view .ghead").getAttribute("aria-expanded") === "false");
+          doc.querySelector("#view .panel:not([inert]) .ghead").getAttribute("aria-expanded") === "false");
 
     /* Persistence: the whole reason the state stopped being session-only. */
     win.flushPersist();
@@ -1042,7 +1042,7 @@ win.addEventListener("load", function(){
 
     doc.querySelector('[data-act="allgroups"]').dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("expand all reopens every group",
-          doc.querySelectorAll("#view .group.open").length === groupsShown);
+          doc.querySelectorAll("#view .panel:not([inert]) .group.open").length === groupsShown);
 
     /* revealHero must not undo a deliberate collapse-all. */
     doc.querySelector('[data-act="allgroups"]').dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
@@ -1050,8 +1050,8 @@ win.addEventListener("load", function(){
     doc.querySelector('#tabs button[data-tab="watch"]')
        .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("returning to The Path leaves a deliberate collapse-all alone",
-          doc.querySelectorAll("#view .group.open").length === 0,
-          doc.querySelectorAll("#view .group.open").length + " reopened");
+          doc.querySelectorAll("#view .panel:not([inert]) .group.open").length === 0,
+          doc.querySelectorAll("#view .panel:not([inert]) .group.open").length + " reopened");
 
     /* ...but it does open the hero's group when something is open. */
     /* Every group shut, then one deleted back out: absent means open. */
@@ -1076,7 +1076,7 @@ win.addEventListener("load", function(){
     check("Progress has no ratings list",
           doc.getElementById("view").textContent.indexOf("Your ratings") < 0);
     check("Progress still shows the chart and backup tools",
-          !!doc.querySelector("#view .pies") && !!doc.querySelector('[data-act="mkcode"]'));
+          !!doc.querySelector("#view .panel:not([inert]) .pies") && !!doc.querySelector('[data-act="mkcode"]'));
 
     /* --- 3.8.1: one chart, the belt's, and it follows the belt. Two donuts
        drew "The universes" and "Bruce's life" whatever was chosen; now the
@@ -1088,8 +1088,8 @@ win.addEventListener("load", function(){
        bars must all carry that mode's key prefix. --- */
     [["continuity","c"], ["life","e"], ["release","d"]].forEach(function(pair){
       S.mode = pair[0]; win.render();
-      var charts = doc.querySelectorAll("#view .pies .sky");
-      var segs = doc.querySelectorAll("#view .pies .sky button.seg[data-gk]");
+      var charts = doc.querySelectorAll("#view .panel:not([inert]) .pies .sky");
+      var segs = doc.querySelectorAll("#view .panel:not([inert]) .pies .sky button.seg[data-gk]");
       var wrong = [].filter.call(segs, function(g){
         return g.getAttribute("data-gk").charAt(0) !== pair[1]; });
       check("the Progress chart follows the belt to " + pair[0],
@@ -1157,14 +1157,14 @@ win.addEventListener("load", function(){
     })());
     check("every rendered link comes from the builder", (function(){
       S.tab = "next"; win.render();
-      var a = doc.querySelector("#view .linkrow .lnk");
+      var a = doc.querySelector("#view .panel:not([inert]) .linkrow .lnk");
       return !!a && a.href.indexOf("search.brave.com") > 0;
     })());
     check("the link renders in an expanded row too", (function(){
       S.tab = "watch"; win.render();
-      var r = doc.querySelector('#view [data-act="expand"]');
+      var r = doc.querySelector('#view .panel:not([inert]) [data-act="expand"]');
       if(r) r.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
-      var a = doc.querySelector("#view .fdetail .linkrow .lnk");
+      var a = doc.querySelector("#view .panel:not([inert]) .fdetail .linkrow .lnk");
       return !!a && a.href.indexOf("search.brave.com") > 0;
     })());
     S.tab = "home"; win.render();
@@ -1221,9 +1221,9 @@ win.addEventListener("load", function(){
       S.tab = "watch"; S.format = "live"; S.scope = "movies";
       S.q = "batwheels";               /* an animated series: no live-action match at all */
       win.render();
-      var empty = doc.querySelector("#view .empty");
+      var empty = doc.querySelector("#view .panel:not([inert]) .empty");
       check("a search with no live-action match shows the empty state", !!empty);
-      var offer = doc.querySelector('#view [data-act="searchall"]');
+      var offer = doc.querySelector('#view .panel:not([inert]) [data-act="searchall"]');
       check("and does not offer to find series the format filter would hide", !offer,
             offer ? empty.textContent : "");
       S.format = f0; S.scope = s0; S.q = q0; S.tab = t0; win.render();
@@ -1234,7 +1234,7 @@ win.addEventListener("load", function(){
       var s0 = S.scope, m0 = S.mode, t0 = S.tab;
       function chipFor(name){
         var out = "";
-        Array.prototype.forEach.call(doc.querySelectorAll("#view .ghead"), function(h){
+        Array.prototype.forEach.call(doc.querySelectorAll("#view .panel:not([inert]) .ghead"), function(h){
           if(h.querySelector(".gtitle").textContent === name){
             out = h.querySelector(".gnum").textContent;
           }
@@ -1281,11 +1281,11 @@ win.addEventListener("load", function(){
        reversed on purpose; this block is the record that it was on purpose. */
     (function(){
       S.tab = "home"; S.mode = "continuity"; win.render();
-      var cards = doc.querySelectorAll("#view .ucard");
+      var cards = doc.querySelectorAll("#view .panel:not([inert]) .ucard");
       check("home cards carry no number", cards.length > 20 &&
-            !doc.querySelector("#view .ucard .unum"),
-            doc.querySelectorAll("#view .ucard .unum").length + " numbered of " + cards.length);
-      var descs = Array.prototype.map.call(doc.querySelectorAll("#view .ucard .udesc"),
+            !doc.querySelector("#view .panel:not([inert]) .ucard .unum"),
+            doc.querySelectorAll("#view .panel:not([inert]) .ucard .unum").length + " numbered of " + cards.length);
+      var descs = Array.prototype.map.call(doc.querySelectorAll("#view .panel:not([inert]) .ucard .udesc"),
         function(d){ return d.textContent.trim(); });
       check("every home card carries a description",
             descs.length === cards.length && descs.every(function(t){ return t.length > 5; }),
@@ -1296,7 +1296,7 @@ win.addEventListener("load", function(){
 
       S.tab = "watch"; win.render();
       var numbered = 0;
-      Array.prototype.forEach.call(doc.querySelectorAll("#view .ghead .gnum"), function(n){
+      Array.prototype.forEach.call(doc.querySelectorAll("#view .panel:not([inert]) .ghead .gnum"), function(n){
         if(n.textContent.trim()) numbered++;
       });
       check("the path still numbers every universe", numbered > 20, numbered + " numbered");
@@ -1304,7 +1304,7 @@ win.addEventListener("load", function(){
          number left home, so the real-not-invented half lands here instead:
          the rendered chip must be eraTag()'s own answer. */
       var dcau = null;
-      Array.prototype.forEach.call(doc.querySelectorAll("#view .ghead"), function(h){
+      Array.prototype.forEach.call(doc.querySelectorAll("#view .panel:not([inert]) .ghead"), function(h){
         if(h.querySelector(".gtitle").textContent === "DC Animated Universe"){
           dcau = h.querySelector(".gnum").textContent;
         }
@@ -1318,8 +1318,8 @@ win.addEventListener("load", function(){
 
     /* --- transfer without a QR (1.2.4) --- */
     S.tab = "stats"; win.render();
-    doc.querySelector('#view [data-act="mkcode"]').click();
-    check("making a code shows Copy link", !!doc.querySelector('#view [data-act="copylink"]'));
+    doc.querySelector('#view .panel:not([inert]) [data-act="mkcode"]').click();
+    check("making a code shows Copy link", !!doc.querySelector('#view .panel:not([inert]) [data-act="copylink"]'));
     check("the link it copies is absolute and carries the code",
           /^https?:\/\/.+#nw=NW3W/.test(win.restoreLink(S.code)), win.restoreLink(S.code).slice(0, 46) + "…");
     check("that link restores when opened",
@@ -1337,14 +1337,14 @@ win.addEventListener("load", function(){
     /* --- detail panels are built on demand, not for all 151 entries --- */
     S.tab = "watch"; S.scope = "all"; S.filter = "all"; S.q = ""; S.open = {};
     win.render();
-    var view = win.document.getElementById("view");
+    var view = win.document.querySelector("#view .panel:not([inert])");
     var closedSize = view.innerHTML.length;
     check("no detail panels rendered while every row is closed",
           view.querySelectorAll(".fdetail").length === 0,
           view.querySelectorAll(".fdetail").length + " found");
     S.open["batman-mask-of-the-phantasm-1993"] = true;
     win.render();
-    view = win.document.getElementById("view");
+    view = win.document.querySelector("#view .panel:not([inert])");
     check("opening one row renders exactly one detail panel",
           view.querySelectorAll(".fdetail").length === 1,
           view.querySelectorAll(".fdetail").length + " found");
@@ -1373,9 +1373,55 @@ win.addEventListener("load", function(){
     check("no invalid aria-selected on tab buttons",
           win.document.querySelectorAll("#tabs button[aria-selected]").length === 0);
 
+    /* --- the deck (4.0.0): four panels, one live, the rest inert --- */
+    /* jsdom cannot swipe — no layout, no scroll events — so what it CAN see
+       is asserted instead: the deck's shape, the inert bookkeeping on the
+       tab-change path, and the dirty flags doing their one job (a state
+       change reaching a panel that was filled before it). The swipe itself
+       belongs to the browser drive. */
+    var deckPanels = win.document.querySelectorAll("#view > .panel");
+    check("the deck holds exactly four panels", deckPanels.length === 4,
+          deckPanels.length + " panels");
+    check("the panels sit in footer order",
+          Array.prototype.map.call(deckPanels, function(p){ return p.id; }).join(",") ===
+          "panel-home,panel-next,panel-watch,panel-stats",
+          Array.prototype.map.call(deckPanels, function(p){ return p.id; }).join(","));
+    check("every panel wraps its content in a .pcol",
+          Array.prototype.every.call(deckPanels, function(p){
+            return p.firstChild && p.firstChild.className === "pcol";
+          }));
+    S.tab = "stats"; win.render();
+    check("the active panel is the one live panel",
+          !win.document.getElementById("panel-stats").hasAttribute("inert") &&
+          ["home", "next", "watch"].every(function(t){
+            return win.document.getElementById("panel-" + t).hasAttribute("inert");
+          }));
+    check("scroller() answers the active panel",
+          win.scroller() === win.document.getElementById("panel-stats"));
+    win.goTab("next");
+    check("goTab moves the live panel with the state",
+          S.tab === "next" &&
+          !win.document.getElementById("panel-next").hasAttribute("inert") &&
+          win.document.getElementById("panel-stats").hasAttribute("inert"));
+    /* The dirty flag's one job: a tick from Next up reaches the Progress
+       panel that was already filled. Fill stats, tick from next, return —
+       the count on the scoreboard must be the new one, not the stale one. */
+    S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; win.render();
+    win.goTab("stats");
+    var doneBefore = win.document.querySelector("#panel-stats b.sc-done").textContent;
+    win.goTab("next");
+    var goBtn = win.document.querySelector("#panel-next .heroacts .go");
+    goBtn.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+    win.goTab("stats");
+    var doneAfter = win.document.querySelector("#panel-stats b.sc-done").textContent;
+    check("a tick from Next up reaches the already-filled Progress panel",
+          doneBefore === "0" && doneAfter === "1",
+          doneBefore + " -> " + doneAfter);
+    S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.tab = "stats"; win.render();
+
     /* --- no <div> or <h2> nested inside a <button> (invalid HTML) --- */
     S.tab = "watch"; win.render();
-    var bad = win.document.querySelectorAll("#view button div, #view button h2");
+    var bad = win.document.querySelectorAll("#view .panel:not([inert]) button div, #view button h2");
     check("no flow content nested inside a button", bad.length === 0, bad.length + " found");
 
     /* --- memoised groups stay correct across a scope flip --- */
@@ -1389,9 +1435,9 @@ win.addEventListener("load", function(){
     /* --- Home and Next up render the SAME title; it must not resize --- */
     S.scope = "movies"; S.q = ""; S.filter = "all";
     S.tab = "home"; win.render();
-    var homeH2 = win.document.querySelector("#view .hero h2");
+    var homeH2 = win.document.querySelector("#view .panel:not([inert]) .hero h2");
     S.tab = "next"; win.render();
-    var nextH2 = win.document.querySelector("#view .hero h2");
+    var nextH2 = win.document.querySelector("#view .panel:not([inert]) .hero h2");
     check("Home and Next up show the same hero title",
           homeH2 && nextH2 && homeH2.textContent === nextH2.textContent,
           homeH2 && nextH2 ? homeH2.textContent + " vs " + nextH2.textContent : "missing hero");
@@ -1408,12 +1454,12 @@ win.addEventListener("load", function(){
        own terms below. */
     var sized = 0;
     S.tab = "home"; win.render();
-    Array.prototype.forEach.call(win.document.querySelectorAll("#view .hero h2"), function(el){
+    Array.prototype.forEach.call(win.document.querySelectorAll("#view .panel:not([inert]) .hero h2"), function(el){
       if(/font-size/.test(el.getAttribute("style") || "")) sized++;
     });
     check("the completed-catalogue hero on Home is unsized too", sized === 0, sized + " sized");
     S.tab = "next"; win.render();
-    var closed = win.document.querySelector("#view .empty .big");
+    var closed = win.document.querySelector("#view .panel:not([inert]) .empty .big");
     check("a finished Next up says so in the shared display size",
           !!closed && !/font-size/.test(closed.getAttribute("style") || ""),
           closed ? (closed.getAttribute("style") || "(no inline style)") : "(no .empty .big)");
@@ -1512,10 +1558,10 @@ win.addEventListener("load", function(){
     reboot(win.localStorage.getItem("batwatch-v3"), "collapse", function(w3, d3){
       w3.S.tab = "watch"; w3.render();
       check("a reload comes back collapsed",
-            d3.querySelectorAll("#view .group").length > 1 &&
-            d3.querySelectorAll("#view .group.open").length === 0,
-            d3.querySelectorAll("#view .group.open").length + " of " +
-            d3.querySelectorAll("#view .group").length + " open");
+            d3.querySelectorAll("#view .panel:not([inert]) .group").length > 1 &&
+            d3.querySelectorAll("#view .panel:not([inert]) .group.open").length === 0,
+            d3.querySelectorAll("#view .panel:not([inert]) .group.open").length + " of " +
+            d3.querySelectorAll("#view .panel:not([inert]) .group").length + " open");
     });
     S.groupOpen = {};
 
@@ -1571,7 +1617,7 @@ win.addEventListener("load", function(){
       S.rated = {}; S.log = []; S.pending = null;
       S.pending = win.importCode(code);
       S.tab = "home"; win.render();
-      var banner = doc.querySelector("#view .viewing");
+      var banner = doc.querySelector("#view .panel:not([inert]) .viewing");
       check("a restore link shows its banner on a device with no path", !!banner);
       check("the banner says a path is coming",
             !!banner && /path/i.test(banner.textContent), banner && banner.textContent);
@@ -1582,12 +1628,12 @@ win.addEventListener("load", function(){
             S.path === "life", "path=" + S.path);
       check("restoring on a fresh device lands the marks",
             Object.keys(S.watched).length === 12, Object.keys(S.watched).length + " marks");
-      check("the banner is gone once it is answered", !doc.querySelector("#view .viewing"));
+      check("the banner is gone once it is answered", !doc.querySelector("#view .panel:not([inert]) .viewing"));
 
       /* Declining leaves everything alone. */
       S.path = ""; S.mode = "continuity"; S.watched = {}; S.log = []; S.rated = {};
       S.pending = win.importCode(code); S.tab = "home"; win.render();
-      var drop = doc.querySelector('#view .viewing [data-act="droplink"]');
+      var drop = doc.querySelector('#view .panel:not([inert]) .viewing [data-act="droplink"]');
       check("the banner offers to decline", !!drop);
       if(drop) drop.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
       check("declining leaves the device untouched",

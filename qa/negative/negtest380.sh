@@ -66,11 +66,11 @@ run_case "the pull drifts by the sentinel's pixel" \
 assert a in s
 s=s.replace(a,'.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px) 0 10px;}',1);${W}"
 
-run_case "main's padding walks away from the pull" \
+run_case "the column's padding walks away from the pull" \
   "no longer starts 18px 18px" \
-  "${P}a='main{flex:1;padding:18px 18px '
+  "${P}a='.pcol{padding:18px 18px '
 assert a in s
-s=s.replace(a,'main{flex:1;padding:17px 18px ',1);${W}"
+s=s.replace(a,'.pcol{padding:17px 18px ',1);${W}"
 
 run_case "the parked strip grows a position rule again" \
   "grew a position rule or an anchor" \
@@ -92,9 +92,9 @@ s=s.replace(a,'document.documentElement.hasAttribute(\"data-beltpark\")',1);${W}
 
 run_case "a dropped belt keeps its shadow across the change" \
   "keep its shadow on the new tab" \
-  "${P}a='  if(S.beltDrop) closeBelt(\"auto\"); else render();'
+  "${P}a='  scrollPut(0);\n  if(S.beltDrop) closeBelt(\"auto\"); else render();'
 assert a in s
-s=s.replace(a,'  render();',1);${W}"
+s=s.replace(a,'  scrollPut(0);\n  render();',1);${W}"
 
 run_case "the ring wires around goTab" \
   "bypasses goTab" \
@@ -104,9 +104,9 @@ s=s.replace(a,'  S.tab = \"stats\"; scrollPut(0); render();',1);${W}"
 
 run_case "the hidden-state bookkeeping creeps back" \
   "bookkeeping is back" \
-  "${P}a='var beltIO = null, beltIncIO = null, dropArmed = false,'
+  "${P}a='var beltIO = null, beltIncIO = null, beltIncRoot = null, dropArmed = false,'
 assert a in s
-s=s.replace(a,'var beltFix = false;\\nvar beltIO = null, beltIncIO = null, dropArmed = false,',1);${W}"
+s=s.replace(a,'var beltFix = false;\\nvar beltIO = null, beltIncIO = null, beltIncRoot = null, dropArmed = false,',1);${W}"
 
 run_case "the JS anchor probe returns" \
   "the JS anchor probe is back" \

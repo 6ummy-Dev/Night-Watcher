@@ -159,7 +159,7 @@ run_case "73: the worst-case restore link grows past the ceiling" \
 
 run_case "122: the scroll restore stops settling the layout" \
   "no longer adds .settling" \
-  "${H}old='v.classList.add(\"settling\");';assert old in s;s=s.replace(old,'void 0;',1);${HW}"
+  "${H}old='vp.classList.add(\"settling\");\n    scrollPut(keep);';assert old in s;s=s.replace(old,'void 0;\n    scrollPut(keep);',1);${HW}"
 
 run_case "34: ratePrompt comes back after Activity replaced it" \
   "ratePrompt survives" \

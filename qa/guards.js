@@ -135,6 +135,7 @@ function blessHtml(next){
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
      124  Every face is asked for before the CSS finds it
+     143  Four panels, one live, the rest kept warm
 
    ACCESSIBILITY
      123  Focus restores never move the viewport
@@ -1115,11 +1116,26 @@ if(!/\.hero h2\{[^}]*font-size:/.test(HTML)){
 
 /* ---------- 18. Short views must not shift the centred column --------- */
 /* Next up is the only view short enough to fit a desktop screen; without a
-   reserved gutter the centred column slides ~7.5px sideways. */
+   reserved gutter the centred column slides ~7.5px sideways. The gutter has
+   followed the scroll twice now: it sat on html while the document scrolled,
+   rode along through 3.9.7 (#app clipped inside html, so html's reservation
+   still framed the one scroller), and in 4.0.0 it belongs to the scrollers
+   themselves — each panel reserves it whether or not it overflows, so Next
+   up's column agrees with The path's, which is this section's original
+   defect one level down. On html it is now a dead 15px column at the window
+   edge that pushes every panel's scrollbar inboard. */
 
-if(!/scrollbar-gutter:\s*stable/.test(HTML)){
-  fail("html is missing scrollbar-gutter:stable — Next up will jump sideways " +
-       "relative to the other tabs on any desktop viewport");
+if(!/main,\.panel\{scrollbar-gutter:\s*stable;\}/.test(HTML)){
+  fail("the scrollers are missing scrollbar-gutter:stable — Next up will " +
+       "jump sideways relative to the other tabs on any desktop viewport, " +
+       "because a panel too short to scroll centres its column against a " +
+       "wider box than its neighbors'");
+}
+if(/html\{[^}]*scrollbar-gutter/.test(HTML)){
+  fail("html carries scrollbar-gutter again — the document is clipped and " +
+       "the panels own the scrollbars, so a gutter on html is a dead 15px " +
+       "column at the window edge with every real scrollbar sitting " +
+       "inboard of it");
 }
 
 /* ---------- 19. Rating writes go through the clamp -------------------- */
@@ -3881,27 +3897,29 @@ if(!/function legendBlock/.test(HTML) ||
   note("meta lines checked for a repeated year: " + FILMS.length);
 })();
 
-/* The document does not scroll. Until 3.9.6 scroll lived on the document, and
-   this block held #app at min-height:calc(100svh + 1px) — the pixel that kept
-   Next up, the one view that can be shorter than the screen, scrolling like
-   the other three so the mobile chrome did not resize between tabs. 3.9.7
-   retires the pixel by retiring the thing it managed: html and body are
-   clipped, #app is height-locked to the viewport and is the app's ONE
-   vertical scroller (the tab-swipe groundwork — the swipe viewport of
-   release two needs a document that holds still). The chrome now never
-   collapses on any tab, which is the same uniformity the pixel bought,
-   reached from the other side — and the cost, accepted on purpose, is that
-   iOS Safari's toolbar no longer shrinks away on scroll, because the
-   document it shrinks for never moves.
+/* The document does not scroll — and since 4.0.0, neither does #app. Until
+   3.9.6 scroll lived on the document; 3.9.7 clipped html and body and made
+   #app the one vertical scroller (release one of the tab swipe: the half
+   that moved WHERE scrolling lives). 4.0.0 is release two — the half that
+   changes WHAT SWIPES — and it pushes scroll one level deeper again, exactly
+   where the 3.9.7 record said it would go: #view is a horizontal scroll-snap
+   viewport holding four persistent panels, one per tab, and EACH PANEL is
+   its own vertical scroller. #app is now pure frame: header, viewport,
+   tabs, clipped.
+
+   The owner's ask rode along: the scrollbar hides below the header the way
+   it always hid below the footer. That is not a styling trick — it is the
+   scrollport's top edge moving to the header's bottom, which is also why
+   every sticky offset in the stylesheet became panel-relative (section 128).
 
    svh THEN dvh, in that order: dvh tracks the chrome and is the value that
-   is right, svh the fallback for engines that predate it. With the document
-   locked the chrome holds still, so the two agree wherever the fallback is
-   not needed and the cascade picks dvh wherever it is known. */
+   is right, svh the fallback for engines that predate it. The accepted iOS
+   cost from 3.9.7 stands unchanged: the toolbar never collapses, because
+   the document it collapses for never moves. */
 (function(){
   var hb = (HTML.match(/html,body\{[^}]*\}/) || [""])[0];
   if(!/overflow:hidden/.test(hb)){
-    fail("html,body no longer clip \u2014 the document can scroll again, so " +
+    fail("html,body no longer clip — the document can scroll again, so " +
          "there are two vertical scrollers and every scroll site in the app " +
          "(scrollKeep/scrollPut, section 120) reads and writes the one that " +
          "is not the one moving");
@@ -3909,23 +3927,85 @@ if(!/function legendBlock/.test(HTML) ||
   var app = (HTML.match(/#app\{[^}]*\}/) || [""])[0];
   if(!app){ fail("#app has no styling of its own"); return; }
   if(/min-height/.test(app)){
-    fail("#app carries a min-height again \u2014 the +1px trick belonged to " +
+    fail("#app carries a min-height again — the +1px trick belonged to " +
          "document scrolling and left with it in 3.9.7. A scroller that can " +
          "grow past the viewport hands its overflow back to the document");
   }
   if(!/height:100svh;height:100dvh/.test(app)){
     fail("#app is not height-locked to the viewport (svh fallback, then " +
-         "dvh) \u2014 the app's one scroller has to end where the screen does, " +
-         "or nothing overflows it and nothing scrolls at all");
+         "dvh) — the frame has to end where the screen does, or the " +
+         "panels inside it have nothing to be sized against");
   }
-  if(!/overflow-y:auto/.test(app)){
-    fail("#app does not scroll its own overflow \u2014 scroll lives on #app " +
-         "since 3.9.7, and every keep, restore and go-to-top assumes it");
+  if(!/overflow:hidden/.test(app) || /overflow-y:auto/.test(app)){
+    fail("#app scrolls — since 4.0.0 it is the frame and nothing else. " +
+         "A scrolling #app on top of scrolling panels is two vertical " +
+         "scrollers again, and the seam (scroller(), section 120) would " +
+         "read the one that is not the one moving");
   }
-  if(!/overscroll-behavior:none/.test(app)){
-    fail("#app chains its overscroll \u2014 with the document locked the chain " +
-         "lands on the browser's own gestures, and the nearest one is " +
+  /* The viewport: horizontal only, snap mandatory, one panel per stop, its
+     own scrollbar hidden (the panels carry the visible one), overscroll
+     contained so a swipe past either end never reaches browser gestures. */
+  var sw = (HTML.match(/main\.sw\{[^}]*\}/) || [""])[0];
+  if(!sw){ fail("main.sw has no styling — there is no swipe viewport"); return; }
+  if(!/overflow-x:auto/.test(sw) || !/overflow-y:hidden/.test(sw)){
+    fail("the swipe viewport does not scroll horizontally and only " +
+         "horizontally — vertical overflow belongs to the panels");
+  }
+  if(!/scroll-snap-type:x mandatory/.test(sw)){
+    fail("the swipe viewport does not snap — without x mandatory a swipe " +
+         "can rest between tabs, showing two half-panels and no whole one");
+  }
+  if(!/overscroll-behavior-x:contain/.test(sw)){
+    fail("the swipe viewport chains horizontal overscroll — a swipe past " +
+         "Home or Progress lands on the browser's own back/forward gesture, " +
+         "which navigates away from the app mid-gesture");
+  }
+  if(!/scrollbar-width:none/.test(sw) ||
+     HTML.indexOf("main.sw::-webkit-scrollbar{display:none;}") < 0){
+    fail("the swipe viewport shows its own scrollbar — the visible " +
+         "scrollbar belongs to the panels; a second bar under the tabs is " +
+         "chrome nobody asked for, in both engines' spellings");
+  }
+  var pn = (HTML.match(/\n\.panel\{[^}]*\}/) || [""])[0];
+  if(!pn){ fail(".panel has no styling — there are no panels to swipe"); return; }
+  if(!/flex:0 0 100%/.test(pn) || !/min-width:100%/.test(pn)){
+    fail("a panel is not exactly one viewport wide — the snap arithmetic " +
+         "(index = scrollLeft / width, swipeRead) divides by the viewport's " +
+         "width and only works while every panel IS that width");
+  }
+  if(!/overflow-y:auto/.test(pn)){
+    fail("the panels do not scroll their own overflow — scroll lives in " +
+         "the panels since 4.0.0, and every keep, restore and go-to-top " +
+         "goes through scroller(), which answers the active panel");
+  }
+  if(!/overscroll-behavior:none/.test(pn)){
+    fail("a panel chains its overscroll — the chain lands on the swipe " +
+         "viewport or the browser's own gestures, and the nearest one is " +
          "pull-to-refresh, which reloads the app under the reader's finger");
+  }
+  if(!/scroll-snap-align:start/.test(pn) || !/scroll-snap-stop:always/.test(pn)){
+    fail("the panels do not snap one at a time — snap-align:start puts a " +
+         "panel flush in the viewport, and snap-stop:always is the agreed " +
+         "rule that a hard fling crosses ONE tab, not three: sequential " +
+         "swipes, never a skip");
+  }
+  /* The seed's no-JS fallback: before the deck is built, main itself is the
+     vertical scroller, so a reader without JavaScript can still scroll the
+     crawlable catalogue — and gets the below-the-header scrollbar too. */
+  var mn = (HTML.match(/\nmain\{[^}]*\}/) || [""])[0];
+  if(!/overflow-y:auto/.test(mn) || !/min-height:0/.test(mn)){
+    fail("main is not a vertical scroller before the deck is built — " +
+         "without JavaScript the seed is the page, and a clipped main makes " +
+         "the catalogue unreadable past the first fold (min-height:0 is what " +
+         "lets a flex child shrink to be scrollable at all)");
+  }
+  /* The chips rail contains its own horizontal overscroll, or a hard fling
+     along it continues into the swipe viewport and changes tabs. */
+  var chips = (HTML.match(/\.chips\{[^}]*\}/) || [""])[0];
+  if(!/overscroll-behavior-x:contain/.test(chips)){
+    fail("the chips rail chains horizontal overscroll into the swipe " +
+         "viewport — reaching the end of the universe chips and pulling " +
+         "further would swipe the whole tab away under the reader's finger");
   }
   /* The window is not the scroller any more, so a window scroll call is a
      call to the element that no longer moves — a silent no-op in every
@@ -3933,18 +4013,32 @@ if(!/function legendBlock/.test(HTML) ||
      memory lasts. */
   ["window.scrollTo", "window.scrollBy"].forEach(function(s){
     if(HTML.indexOf(s) >= 0){
-      fail("index.html calls " + s + " \u2014 the document is locked, so this " +
+      fail("index.html calls " + s + " — the document is locked, so this " +
            "scrolls nothing and fails in silence. Scroll goes through " +
-           "scrollPut() and scroller().scrollTo() on #app");
+           "scrollPut() and scroller().scrollTo() on the active panel");
     }
   });
   if(HTML.indexOf('window.addEventListener("scroll"') >= 0){
-    fail("a scroll listener is bound to window \u2014 the document never fires " +
-         "scroll now. The drop's one-shot retraction listens on #app, and " +
-         "section 128's pin counts the app's only scroll listener");
+    fail("a scroll listener is bound to window — the document never fires " +
+         "scroll now. The two pinned listeners (section 128) live on the " +
+         "active panel and on #view");
   }
-  note("scroll owner: document clipped, #app height-locked (svh then dvh), " +
-       "one scroller, overscroll contained, no window scroll calls");
+  if(HTML.indexOf("scrollend") >= 0){
+    fail("something listens for scrollend — declined in the 16 Aug plan: " +
+         "Safari shipped it late and the settle is computed from the snap " +
+         "arithmetic in swipeRead instead, which works in every engine the " +
+         "same way");
+  }
+  if(/scroll-behavior:smooth/.test(HTML)){
+    fail("scroll-behavior:smooth is in the stylesheet — declined in the " +
+         "16 Aug plan: CSS smooth scrolling fights scroll-snap during a " +
+         "programmatic tab change in some engines, and every deliberate " +
+         "smooth scroll this app makes already goes through calmScroll(), " +
+         "which honors reduced motion");
+  }
+  note("scroll owner: document clipped, #app is frame, #view snaps x " +
+       "mandatory one panel at a stop, panels scroll y, chips contained, " +
+       "no window scroll calls, no scrollend, no CSS smooth");
 })();
 
 /* ---------- 65. The file points at where its reasoning went ------ */
@@ -8568,7 +8662,17 @@ var ROUTE_VOCAB = [
      "forces nothing; the drift between the two is handed to scrollBy and " +
      "the box stands still. Both reads are gated on the box being focused — " +
      "every render that is not mid-typing skips them. A THIRD read is a new " +
-     "site and has to be argued for here"]
+     "site and has to be argued for here"],
+    ["scrollLeft", 1,
+     "4.0.0's swipe viewport, read in exactly one place: swipeRead(), " +
+     "inside the rAF the throttled listener schedules, so it rides a frame " +
+     "boundary and never lands mid-task after a write. It is divided by a " +
+     "width the ResizeObserver DELIVERED rather than a width anybody read " +
+     "— clientWidth stays refused above — and the quotient is the active " +
+     "tab. Nothing ever WRITES scrollLeft: the programmatic tab change goes " +
+     "through scrollIntoView (snapTo), which is the browser's own arithmetic " +
+     "and no layout read of ours. A second appearance is a new swipe site " +
+     "and has to be argued for here"]
   ];
 
   REFUSED.forEach(function(prop){
@@ -9237,10 +9341,13 @@ var ROUTE_VOCAB = [
      is the treatment-for-one-state-applied-to-all mistake arriving early. */
   var strip = (HTML.match(/\.pathseg\{[^}]*\}/) || [""])[0];
   if(!/position:sticky/.test(strip) ||
-     !/top:calc\(var\(--hdrh\) \+ var\(--belt-peek\) - var\(--beltH\)\)/.test(strip)){
-    fail("the strip is not sticky at calc(--hdrh + --belt-peek - --beltH) — " +
-         "either the belt no longer parks as the peek, or its parked offset " +
-         "stopped deriving from the one source section 128 pins");
+     !/top:calc\(var\(--ghtop\) - var\(--beltH\)\)/.test(strip)){
+    fail("the strip is not sticky at calc(--ghtop - --beltH) — either the " +
+         "belt no longer parks as the peek, or its parked offset stopped " +
+         "deriving from the one source section 128 pins. 4.0.0 made every " +
+         "sticky offset PANEL-relative: the scrollport's top edge sits at " +
+         "the header's bottom now, so the header's height belongs to layout " +
+         "and only --ghtop (the peek) remains in the offset");
   }
   if(!/\.pathseg\[data-held\]\{position:relative;top:auto;margin-bottom:0;\}/.test(HTML)){
     fail("an open belt parks, or sinks — .pathseg[data-held]{position:" +
@@ -9281,10 +9388,15 @@ var ROUTE_VOCAB = [
          "1px border. 70 is the group-header arithmetic that loses nothing by " +
          "parking 1px behind the border; the belt loses a twelfth of its peek");
   }
-  if(!/--ghtop:calc\(var\(--hdrh\) \+ var\(--belt-peek\)\);/.test(HTML)){
-    fail("--ghtop no longer derives from --hdrh + --belt-peek — F3: a pinned " +
-         "era header must park exactly one peek below the header, or the belt " +
-         "clips the era title it parks over");
+  if(!/--ghtop:var\(--belt-peek\);/.test(HTML)){
+    fail("--ghtop is no longer the peek alone — F3 still holds: a pinned era " +
+         "header must park exactly one peek below the top of its scrollport, " +
+         "or the belt clips the era title it parks over. Since 4.0.0 the " +
+         "scrollport is the panel and its top edge IS the header's bottom, " +
+         "so --hdrh has left this offset: putting it back would park the " +
+         "headers a whole header-height too low. --hdrh still exists for " +
+         "the one consumer that measures from the VIEWPORT — the dropped " +
+         "pouches' no-anchor fallback — and for flagSave()'s banner override");
   }
   if(/--ghtop, calc\(/.test(HTML)){
     fail("a call site carries its own --ghtop fallback constant — the one " +
@@ -9408,20 +9520,44 @@ var ROUTE_VOCAB = [
          "data-beltpark — the parked flag has to come from an observer, " +
          "live outside #view, and follow the sentinel across renders");
   }
-  /* 3.6.0: ONE scroll listener is now pinned, the way section 120 pins its
-     layout reads — the drop's retraction trigger. It is {once:true}: it fires
-     a single time, calls the one close path, and is gone until the next drop
-     arms it. Everything else stays refused: the parked flag, the auto-close
-     and the entrance all come from observers that fire when the answer
-     changes, not on every frame of every scroll forever. */
+  /* 3.6.0: ONE scroll listener was pinned, the way section 120 pins its
+     layout reads — the drop's retraction trigger, {once:true}: it fires a
+     single time, calls the one close path, and is gone until the next drop
+     arms it. 4.0.0 WIDENS THE PIN TO TWO, and the second is the swipe
+     viewport's only ear: swipeTick on #view, passive and rAF-throttled, the
+     one place the active tab can be read off a horizontal swipe — there is
+     no scrollend event by decision (Safari shipped it late and a settle can
+     be computed from the snap arithmetic instead). Everything else stays
+     refused: the parked flag, the auto-close and the entrance all come from
+     observers that fire when the answer changes, not on every frame of
+     every scroll forever. A THIRD site has to be argued for here. */
   var scrollSites = HTML.split('addEventListener("scroll"').length - 1;
-  if(scrollSites !== 1 ||
-     !/addEventListener\("scroll", dropScrollOnce, \{once:true, passive:true\}\)/.test(HTML)){
+  if(scrollSites !== 2 ||
+     !/addEventListener\("scroll", dropScrollOnce, \{once:true, passive:true\}\)/.test(HTML) ||
+     !/addEventListener\("scroll", swipeTick, \{passive:true\}\)/.test(HTML)){
     fail("index.html carries " + scrollSites + " scroll listener(s); this " +
-         "build was reviewed with exactly 1 — the drop's one-shot retraction, " +
-         "{once:true, passive:true}, armed only while dropped. A second site " +
-         "(or a persistent first one) is the every-frame cost the observers " +
+         "build was reviewed with exactly 2, both named — the drop's one-shot " +
+         "retraction ({once:true, passive:true}, armed only while dropped) " +
+         "and the swipe viewport's rAF-throttled swipeTick ({passive:true} " +
+         "on #view). Any other site is the every-frame cost the observers " +
          "exist to avoid");
+  }
+  var swt = optionalFn("swipeTick", "there is no swipe listener to throttle");
+  if(!/requestAnimationFrame/.test(swt) || !/nwSwipeRaf/.test(swt)){
+    fail("swipeTick is not rAF-throttled — a horizontal swipe fires scroll " +
+         "at input rate, and reading scrollLeft in every one of them is the " +
+         "every-frame cost this section's pin was written to refuse");
+  }
+  /* The one-shot is armed per PANEL now, and a tab change strands it on the
+     panel it was armed in — {once:true} only removes a listener that fired.
+     disarmDropScroll() is the other half of the arm, wired into goTab and
+     the swipe's tab-change, or dropArmed sticks true and every later drop
+     arms nothing. */
+  if(!/function disarmDropScroll\(\)/.test(HTML) ||
+     !/removeEventListener\("scroll", dropScrollOnce\)/.test(HTML)){
+    fail("the drop's one-shot has no disarm path — scroll moved into the " +
+         "panels in 4.0.0, so a listener armed on one panel goes stale the " +
+         "moment the active panel changes, and dropArmed never resets");
   }
   if(!/beltWatch\(\);/.test(fn("render"))){
     fail("render() does not re-point the belt observer — #view.innerHTML is " +
@@ -9826,10 +9962,13 @@ var ROUTE_VOCAB = [
          "margin this negative. Wrong by one and the fresh-tab peek is 13px " +
          "— the F1 twelfth, earned back");
   }
-  if(!/\nmain\{[^}]*padding:18px 18px /.test(HTML)){
-    fail("main's padding no longer starts 18px 18px — the parked strip's " +
-         "pull hardcodes that 18, so the two must move together or every " +
-         "fresh-tab peek shifts by the difference");
+  if(!/\nmain\{[^}]*padding:18px 18px /.test(HTML) ||
+     !/\n\.pcol\{padding:18px 18px /.test(HTML)){
+    fail("the column padding no longer starts 18px 18px in both rules — " +
+         "the parked strip's pull hardcodes that 18, and since 4.0.0 the " +
+         "live column is .pcol while main carries the same padding for the " +
+         "no-JS seed: all three must move together or every fresh-tab peek " +
+         "shifts by the difference");
   }
   if(/\.pathseg\[data-park\]\{[^}]*(position:|anchor)/.test(HTML)){
     fail("the parked strip grew a position rule or an anchor — the first " +
@@ -11095,6 +11234,182 @@ var ROUTE_VOCAB = [
   }
   note("backups: " + stamps.length + " stamp sites, every one gated on a real " +
        "write; the handle helpers resolve booleans and stamp nothing");
+})();
+
+/* ---------- 143. Four panels, one live, the rest kept warm -------------- */
+/* 4.0.0, release two of the tab swipe (the plan agreed 16 Aug; release one
+   is 3.9.7's ownership move). The unnumbered scroll-owner block above pins
+   WHERE scrolling lives; this section pins how the four tabs LIVE INSIDE the
+   viewport — because every defect this feature can produce is a state
+   defect, not a geometry defect: a stale panel shown as fresh, a background
+   panel answering the screen reader, two live copies of the belt, a swipe
+   that renders nothing because nobody marked anything dirty.
+
+   THE CONTRACT. The deck is built once (buildDeck), four sections in tab
+   order, each carrying its own scroll box and a .pcol column; render() fills
+   ONLY the active panel synchronously and marks the other three dirty;
+   queueNeighbors() re-fills the adjacent panels in idle time; the far panel
+   waits until a swipe makes it a neighbor — snap-stop:always (the block
+   above) is what guarantees it always becomes one first. Non-active panels
+   are inert — that is the accessibility model: the tabs stay plain buttons,
+   aria-current says where you are, and everything off-screen is out of the
+   tab order and the accessibility tree in one attribute. */
+
+(function(){
+  var bd = optionalFn("buildDeck", "there is no swipe deck to check");
+
+  /* Four panels, in the tab order the footer states, built inert — the
+     first render un-inerts the active one, so nothing is ever live before
+     it has content. */
+  var nav = (HTML.match(/<nav id="tabs"[\s\S]*?<\/nav>/) || [""])[0];
+  var navTabs = [];
+  var nre = /data-tab="([a-z]+)"/g, nm;
+  while((nm = nre.exec(nav))) navTabs.push(nm[1]);
+  var order = (HTML.match(/var NWTABS = \[([^\]]*)\]/) || ["", ""])[1]
+              .replace(/["\s]/g, "").split(",").filter(Boolean);
+  if(order.join(",") !== navTabs.join(",")){
+    fail("NWTABS [" + order.join(", ") + "] does not match the footer's own " +
+         "tab order [" + navTabs.join(", ") + "] — the swipe's index " +
+         "arithmetic and the tab bar are two statements of one order, and " +
+         "if they drift a swipe right highlights the wrong button");
+  }
+  if(!/id="panel-' \+ t \+ '" inert/.test(bd) || !/class="panel"/.test(bd)){
+    fail("buildDeck() does not build the four panels inert with their ids — " +
+         "panel-<tab> is the seam's address (scroller() resolves the active " +
+         "panel by it) and starting live is a screen reader reading four " +
+         "tabs at once before the first render sorts them out");
+  }
+  if(!/class="pcol"/.test(bd)){
+    fail("the panels have no .pcol column — the 760px centred column moved " +
+         "off <main> when it became the viewport, and without the wrapper " +
+         "every panel renders edge to edge on desktop");
+  }
+
+  /* The seam answers the active panel. */
+  var sc = fn("scroller");
+  if(sc.indexOf('"panel-" + S.tab') < 0){
+    fail("scroller() does not resolve the active panel — every keep, " +
+         "restore, go-to-top and belt query goes through this one function, " +
+         "and pointing it anywhere else revives the 3.9.7 class of bug " +
+         "(reading the scroller that is not the one moving) for all of them");
+  }
+
+  /* Dirty flags: render() fills the active panel and dirties the rest;
+     something re-fills neighbors in idle time; a tick's surgical path does
+     the same bookkeeping (it repaints one row, but Home, Next up and
+     Progress all changed). */
+  var rb = fn("render");
+  var dirtyMarks = (HTML.match(/NWTABS\.forEach\(function\(t\)\{ if\(t !== S\.tab\) nwDirty\[t\] = true; \}\)/g) || []).length;
+  if(rb.indexOf("fillPanel(S.tab, c)") < 0 || dirtyMarks !== 2){
+    fail("render() no longer fills the active panel and dirties the other " +
+         "three — the dirty mark must appear exactly twice, render() and " +
+         "tickUpdate()'s surgical path (found " + dirtyMarks + ") — a state " +
+         "change that leaves a background panel clean is a stale tab " +
+         "waiting one swipe away, which no jsdom test can see because " +
+         "jsdom never swipes");
+  }
+  if(rb.indexOf("queueNeighbors()") < 0 ||
+     fn("tickUpdate").indexOf("queueNeighbors()") < 0){
+    fail("neighbors are not queued for idle re-fill from both render() and " +
+         "tickUpdate()'s surgical path — the surgical path is the easy one " +
+         "to forget: it repaints one row in The path while Home, Next up " +
+         "and Progress all changed underneath");
+  }
+  var qn = fn("queueNeighbors");
+  if(!/requestIdleCallback/.test(qn) || !/setTimeout/.test(qn)){
+    fail("queueNeighbors() does not defer to idle time (with a setTimeout " +
+         "fallback) — filling three panels synchronously on every tick is " +
+         "the render cost the dirty flags exist to avoid");
+  }
+  if(!/nwDirty\[t\]/.test(qn)){
+    fail("queueNeighbors() re-fills without consulting the dirty flags — " +
+         "an idle pass that repaints clean panels turns every render into " +
+         "four");
+  }
+
+  /* Inert bookkeeping: one sweep function, applied on render except
+     mid-swipe, and applied when a swipe settles. */
+  if(!/function panelsInert\(\)/.test(HTML) ||
+     rb.indexOf("if(!nwSwiping) panelsInert()") < 0){
+    fail("render() does not sweep inert onto the background panels (except " +
+         "mid-swipe, where the outgoing panel stays live until the snap " +
+         "settles) — without the sweep, background panels stay in the tab " +
+         "order and the accessibility tree, and a keyboard user tabs into " +
+         "a panel that is not on screen");
+  }
+  var sr = fn("swipeRead");
+  if(!/nwSwiping && Math\.abs\(x - i \* nwVW\) < 2/.test(sr) ||
+     sr.indexOf("panelsInert()") < 0){
+    fail("the swipe's settle does not sweep inert — 'once a swipe settles' " +
+         "is the agreed rule, computed from the snap arithmetic (|x − i·w| " +
+         "< 2) rather than from scrollend, and skipping the sweep leaves " +
+         "BOTH panels live after every swipe");
+  }
+  /* The swipe adopts the path the way a tab tap does — one behavior, two
+     doors. */
+  if(!/t === "watch" && S\.path/.test(sr)){
+    fail("swiping into The path skips the mode adoption the tab button " +
+         "performs — two doors into one tab must agree, or the tab shows a " +
+         "foreign ordering only when you arrive by swipe, which is " +
+         "unreproducible from the button");
+  }
+
+  /* Background fills never render the belt's transient states, and the
+     anchor never resolves to a background copy. */
+  var fp = fn("fillPanel");
+  if(!/S\.beltOpen = S\.beltDrop = S\.beltOpening = S\.beltDropping = false/.test(fp)){
+    fail("fillPanel() renders background copies with the belt's transient " +
+         "state — the drop is a way of standing in the panel you are " +
+         "holding, and a second live copy is the two-copies defect " +
+         "negtest250 was written after, now with an anchor: the pouches " +
+         "would hang off whichever strip wins the name");
+  }
+  if(HTML.indexOf(".panel[inert] .pathseg{anchor-name:none;}") < 0){
+    fail("a background panel's strip still carries the anchor name — " +
+         "anchor resolution takes the LAST acceptable element in tree " +
+         "order, so a dropped belt in Next up would hang its pouches off " +
+         "The path's strip, one whole viewport to the right");
+  }
+
+  /* The programmatic tab change is scrollIntoView, not arithmetic. */
+  var st = fn("snapTo");
+  if(!/scrollIntoView/.test(st) || /scrollLeft/.test(st)){
+    fail("snapTo() does not go through scrollIntoView — writing scrollLeft " +
+         "is a second scroll site for section 120 to pin and a width " +
+         "multiplication that drifts the day a panel is not exactly one " +
+         "viewport wide; the browser's own alignment cannot drift");
+  }
+  if(fn("goTab").indexOf("snapTo(t)") < 0){
+    fail("goTab() does not snap the viewport — the footer buttons are the " +
+         "accessible door to the tabs, and without the snap they change " +
+         "state while the deck keeps showing the old panel");
+  }
+  /* Both async doors into a tab snap too — a hash arrives with the deck at
+     whatever panel it was on. Counted, not merely found: there are exactly
+     two (boot restore and hashchange), and losing either leaves one door
+     rendering a tab into a deck still showing the old one. */
+  var snapDoors = (HTML.match(/render\(\);\n  snapTo\(S\.tab\);/g) || []).length;
+  if(snapDoors !== 3){
+    fail("the doors that change the tab outside goTab (boot restore, " +
+         "hashchange, goToGroup's jump) snap the viewport after rendering " +
+         "at " + snapDoors + " site(s); this build was reviewed with " +
+         "exactly 3 — #progress in a shared link must not render Progress " +
+         "into a deck still showing Home, and a jump from Home must not " +
+         "scroll a panel the deck never moved to");
+  }
+
+  /* Resize re-snap, from the observer that also delivers the width. */
+  if(!/ResizeObserver/.test(bd) || !/contentRect\.width/.test(bd) ||
+     bd.indexOf("snapTo(S.tab)") < 0){
+    fail("buildDeck() has no ResizeObserver delivering the viewport width " +
+         "and re-snapping on change — rotation leaves the deck resting " +
+         "between panels, and reading the width instead (clientWidth) is " +
+         "refused by section 120");
+  }
+
+  note("swipe deck: four panels in footer order, active fills sync + " +
+       "dirties three, neighbors idle, inert swept on settle, belt " +
+       "suppressed in background copies, snap via scrollIntoView");
 })();
 
 /* ---------- report ---------- */

@@ -74,9 +74,9 @@ echo "--- 129/96: every close routes through one function (F12)"
 
 run_case "the buckle closes by hand again" \
   "no longer routes through closeBelt" \
-  "${P}a='else if(!document.querySelector(\".includes.closing\")){ closeBelt(\"buckle\"); }'
+  "${P}a='else if(!scroller().querySelector(\".includes.closing\")){ closeBelt(\"buckle\"); }'
 assert a in s
-s=s.replace(a,'else if(!document.querySelector(\".includes.closing\")){ S.beltOpen = false; render(); }',1);${W}"
+s=s.replace(a,'else if(!scroller().querySelector(\".includes.closing\")){ S.beltOpen = false; render(); }',1);${W}"
 
 run_case "a second door out of the open state" \
   "site(s) outside" \
@@ -174,9 +174,9 @@ echo "--- the smoke half: the dropped state is staged, and its selectors must li
 
 run_case "the dropped strip selector goes dead (smoke css)" \
   "every CSS rule matches something in some state" \
-  "${P}a='.pathseg[data-drop]{top:var(--hdrh);'
+  "${P}a='.pathseg[data-drop]{top:0;'
 assert a in s
-s=s.replace(a,'.pathseg[data-dropped]{top:var(--hdrh);',1);${W}" \
+s=s.replace(a,'.pathseg[data-dropped]{top:0;',1);${W}" \
   "smoke" "css"
 
 finish "negtest370"
