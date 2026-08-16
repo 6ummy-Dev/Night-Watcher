@@ -92,7 +92,7 @@ s=s.replace(a,'document.documentElement.hasAttribute(\"data-beltpark\")',1);${W}
 
 run_case "a dropped belt keeps its shadow across the change" \
   "keep its shadow on the new tab" \
-  "${P}a='  scrollPut(0);\n  if(S.beltDrop) closeBelt(\"auto\"); else render();'
+  "${P}a='  scrollPut(0);\n  if(S.beltDrop){ closeBelt(\"auto\"); scrubBelt(prev); } else render();'
 assert a in s
 s=s.replace(a,'  scrollPut(0);\n  render();',1);${W}"
 

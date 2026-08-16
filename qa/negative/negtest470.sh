@@ -96,10 +96,10 @@ s=s.replace(a,'''    try{ p.parentNode.scrollLeft = 0; }catch(e){}''',1);${W}"
 
 run_case "goTab stops snapping the deck" \
   "goTab() does not snap the viewport" \
-  "${P}a='''  if(S.beltDrop) closeBelt(\"auto\"); else render();
+  "${P}a='''  if(S.beltDrop){ closeBelt(\"auto\"); scrubBelt(prev); } else render();
   snapTo(t);'''
 assert a in s
-s=s.replace(a,'''  if(S.beltDrop) closeBelt(\"auto\"); else render();''',1);${W}"
+s=s.replace(a,'''  if(S.beltDrop){ closeBelt(\"auto\"); scrubBelt(prev); } else render();''',1);${W}"
 
 run_case "the hash door stops snapping" \
   "snap the viewport after rendering at 2 site(s)" \
@@ -118,6 +118,18 @@ run_case "rotation stops re-snapping" \
   "no ResizeObserver delivering the viewport width" \
   "${P}a='if(w && w !== nwVW){ nwVW = w; snapTo(S.tab); }';assert a in s
 s=s.replace(a,'if(w && w !== nwVW){ nwVW = w; }',1);${W}"
+
+run_case "the swipe door keeps the shadow" \
+  "the swipe door lets a dropped belt" \
+  "${P}a='    if(S.beltDrop){ closeBelt(\"auto\"); scrubBelt(prev); } else render();';assert a in s
+s=s.replace(a,'    if(S.beltDrop){ closeBelt(\"auto\"); } else render();',1);${W}"
+
+run_case "the scrub forgets the pouches" \
+  "no longer removes both halves of the drop" \
+  "${P}a='''  var inc = p.querySelector(\".includes\");
+  if(inc && inc.parentNode) inc.parentNode.removeChild(inc);'''
+assert a in s
+s=s.replace(a,'',1);${W}"
 
 echo "--- the scroll owner: the viewport, the panels, the rails"
 

@@ -1326,6 +1326,68 @@ win.addEventListener("load", function(){
             !!skCard2 && skCard2.className.indexOf("full") < 0,
             skCard2 ? skCard2.className : "(card not found)");
 
+      /* --- Progress speaks the same language (16 Aug, the owner's third
+         round): the skyline's columns and the fold rows carry the steel
+         skip share, a group of watched+skipped counts complete, and NOTHING
+         but a skip wears steel — era 0 ("outside any timeline") used to,
+         which made a decision look like a leftover. --- */
+      S.watched = {}; S.skipped = {};
+      sg.films.forEach(function(f, i){
+        if(i === 0) S.skipped[f.id] = 1; else S.watched[f.id] = 1;
+      });
+      S.tab = "stats"; win.render();
+      var seg0 = doc.querySelector('#view .panel:not([inert]) .sky .seg[data-gk="' + sg.key + '"]');
+      check("a skyline column carries the steel skip share",
+            !!seg0 && !!seg0.querySelector("i.sk"),
+            seg0 ? seg0.innerHTML.slice(0, 80) : "(column not found)");
+      check("skyline fills carry no inline colour — steel means skipped, nowhere else",
+            !/background:var\(--steel\)/.test(
+              doc.querySelector("#view .panel:not([inert]) .sky").innerHTML) ||
+            !!seg0.querySelector("i.sk"),
+            "only .sk may be steel");
+      S.mode = "life"; win.render();
+      var eraSegs = doc.querySelectorAll('#view .panel:not([inert]) .sky .seg');
+      check("the outside-any-timeline column wears no colour of its own",
+            eraSegs.length > 0 && ![].some.call(eraSegs, function(sgel){
+              return /background:var\(--steel\)/.test(sgel.innerHTML.replace(/class="sk"[^>]*/g, ""));
+            }));
+      S.progOpen = {era: true}; win.render();
+      var eraRows = doc.querySelectorAll('#view .panel:not([inert]) .sfbody .srow');
+      check("the era fold rows carry no per-row colour either",
+            eraRows.length > 0 && ![].some.call(eraRows, function(r){
+              return /background:var\(--steel\)/.test(
+                r.querySelector(".sb").innerHTML.replace(/class="sk"[^>]*>/g, ""));
+            }), eraRows.length + " rows");
+      S.mode = "continuity"; S.progOpen = {uni: true}; win.render();
+      var skRow = doc.querySelector('#view .panel:not([inert]) .sfbody .srow[data-gk="' + sg.key + '"]');
+      check("a fold row carries the steel skip share",
+            !!skRow && !!skRow.querySelector(".sb .sk"));
+      check("the fold counts watched+skipped as complete",
+            /^[1-9]\d* of \d+ complete/.test(
+              doc.querySelector('#view .panel:not([inert]) .sfhead[data-pk="uni"] .sfmeta').textContent.trim()),
+            doc.querySelector('#view .panel:not([inert]) .sfhead[data-pk="uni"] .sfmeta').textContent);
+      S.progOpen = {};
+
+      /* --- and the drop is scrubbed at the tab door (16 Aug: "belt opened
+         hit a tab, it breaks drops"). The departed panel must not keep its
+         dropped strip or its position:fixed pouches — fixed paints over
+         every tab, and a far panel never gets the idle refill. --- */
+      S.tab = "watch"; win.render();
+      win.beltDropOpen(); win.openBelt();
+      var hadDrop = doc.querySelector('#panel-watch .pathseg[data-drop]') &&
+                    doc.querySelector('#panel-watch .includes');
+      win.goTab("home");
+      check("a tab tap with the drop out scrubs the departed panel",
+            !!hadDrop && S.beltDrop === false &&
+            !doc.querySelector('#panel-watch .pathseg[data-drop]') &&
+            !doc.querySelector('#panel-watch .includes'),
+            hadDrop ? "drop stood before the tap" : "the drop never stood");
+      /* hand the next block the state it was written against: films[0]
+         skipped, nothing watched */
+      S.watched = {}; S.skipped = {};
+      S.skipped[sg.films[0].id] = 1;
+      S.tab = "home"; win.render();
+
       /* --- and The path's own bar behaves the same (the owner's follow-up).
          Both doors are driven: the full render, and the surgical tick path —
          gSub()/gBarFill() are shared between them (guard 103), and this is

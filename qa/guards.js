@@ -10035,13 +10035,33 @@ var ROUTE_VOCAB = [
   }
 
   /* Every tab change routes through one door, and a dropped belt does not
-     cross it. */
+     cross it. 4.0.0 added the second half, from the owner's report ("belt
+     opened hit a tab, it breaks drops"): closeBelt("auto") renders the NEW
+     panel only, so the departed panel kept its dropped strip and its
+     position:fixed pouches — fixed is viewport-wide, so they painted over
+     every tab, and a far panel never receives the idle refill that would
+     have cleaned them. scrubBelt(prev) removes the departed panel's drop
+     DOM in the same breath, on both doors (goTab and the swipe). */
   var gt = optionalFn("goTab", "tab changes have no policy");
-  if(!/if\(S\.beltDrop\) closeBelt\("auto"\); else render\(\);/.test(gt)){
+  if(!/if\(S\.beltDrop\)\{ closeBelt\("auto"\); scrubBelt\(prev\); \} else render\(\);/.test(gt)){
     fail("goTab() lets a dropped belt keep its shadow on the new tab — the " +
          "drop is a way of standing in one list; leaving the tab retracts " +
-         "it through the one close path (F12), and the new tab greets you " +
-         "with the peek");
+         "it through the one close path (F12) AND scrubs the departed " +
+         "panel's drop DOM (scrubBelt), or the fixed pouches float over " +
+         "the new tab until an idle refill that a far panel never gets");
+  }
+  if(!/if\(S\.beltDrop\)\{ closeBelt\("auto"\); scrubBelt\(prev\); \} else render\(\);/
+      .test(optionalFn("swipeRead", "the swipe door cannot be checked"))){
+    fail("the swipe door lets a dropped belt keep its shadow — same defect " +
+         "as goTab's, one gesture over: the departed panel keeps its " +
+         "dropped strip and fixed pouches until an idle refill");
+  }
+  var sb = optionalFn("scrubBelt", "there is no scrub to check");
+  if(!/removeAttribute\("data-drop"\)/.test(sb) || !/\.includes/.test(sb)){
+    fail("scrubBelt() no longer removes both halves of the drop — the " +
+         "strip's data-drop and the pouches element. Half a scrub leaves " +
+         "either a mis-parked strip or floating pouches in the departed " +
+         "panel");
   }
   ["goTab(b.dataset.tab)", 'goTab("stats")', 'goTab("home")',
    'goTab("next")', 'goTab("watch")'].forEach(function(site){
