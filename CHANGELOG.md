@@ -78,14 +78,18 @@ the header's bottom.**
 
 ### Fixed
 
-- **A skip finishes a Home card.** Skipping is a decision about an entry —
-  an Optional you'll never want, a Not out yet — so a universe, era or
-  decade whose every entry is watched OR skipped has nothing left to offer
-  and now reads complete: signal edge, check on the name. The card's bar
-  fills honestly rather than pretending — watched in signal, skipped in
-  steel beside it — and the count names the skips ("12 of 14 · 2 skipped")
-  instead of a full card claiming a number it never reaches. An entry
-  neither watched nor skipped still holds the card open, and un-skipping
+- **A skip finishes a Home card, and The path's bars agree.** Skipping is a
+  decision about an entry — an Optional you'll never want, a Not out yet —
+  so a universe, era or decade whose every entry is watched OR skipped has
+  nothing left to offer and now reads complete: signal edge, check on the
+  name. Both bars fill honestly rather than pretending — watched in
+  signal, skipped in steel beside it — and both counts name the skips
+  ("12 of 14 · 2 skipped") instead of a full card claiming a number it
+  never reaches: the Home grid cards, and The path's own group heads,
+  which build from the same two helpers (`gSub`/`gBarFill`, guard 103) on
+  the full render and the surgical tick path alike, so the count under
+  your thumb and the count after a redraw cannot disagree. An entry
+  neither watched nor skipped still holds a card open, and un-skipping
   reopens it, because completion is computed, never stored.
 
 - **The installed app's tab bar no longer floats above the home indicator.**
