@@ -53,7 +53,7 @@ s=s.replace(a,'.stars bttn',1);${W}"
 echo "--- 120: the scroll read comes before the first write"
 run_case "the scroll read slides back below flagSave()" \
   "reads the scroll position after it has already written" \
-  "${P}a='''  var keep = window.pageYOffset || document.documentElement.scrollTop || 0;
+  "${P}a='''  var keep = scrollKeep();
   if(nwScrollAdjust){ keep = Math.max(0, keep - nwScrollAdjust); nwScrollAdjust = 0; }
   var qPrev'''
 assert a in s
@@ -62,7 +62,7 @@ b='''  flagSave();
   applyTheme();'''
 assert b in s
 s=s.replace(b,b+'''
-  var keep = window.pageYOffset || document.documentElement.scrollTop || 0;
+  var keep = scrollKeep();
   if(nwScrollAdjust){ keep = Math.max(0, keep - nwScrollAdjust); nwScrollAdjust = 0; }''',1);${W}"
 
 run_case "render() stops opening with the write it is measured against" \

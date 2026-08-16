@@ -531,8 +531,23 @@ announced. The fact is about announced dates, not about which ones.
 
 ### `v`
 
-Scroll lives on the document, not <main>: <main> has no overflow, so its
-scrollTop is always 0 and every re-render threw the position away.
+Scroll lived on the document until 3.9.6 — <main> has no overflow, so its
+scrollTop is always 0 and every re-render threw the position away. 3.9.7
+moves it to #app: the document is clipped and #app is height-locked, the
+app's one vertical scroller, so the swipe viewport of the next stage has a
+page that holds still under it. The 3.3.x lesson is the same in both worlds:
+read the scroller that actually moves, which is what `scrollKeep()` exists
+to name.
+
+### `scrollKeep()` / `scrollPut()` / `scroller()`
+
+Three names so the layout-read census (guards section 120) stays a census:
+scrollKeep is the one place the position is read, scrollPut the one place it
+is written, and every keep, restore, go-to-top and belt retraction goes
+through them. The cost of the lock, accepted on purpose: the mobile browser
+chrome never collapses, because the document it collapses for never moves —
+which also retires #app's `+ 1px`, whose whole job was keeping that chrome
+behaviour uniform across tabs.
 
 ### `qWasFocused`
 
@@ -590,7 +605,8 @@ here.
 ### `document.getElementById("topBtn").addEventListener("clic…`
 
 The wordmark is the one element on every screen, so it is the natural
-"back to the top" — scroll lives on the document, not on <main>.
+"back to the top" — scroll lives on #app as of 3.9.7 (the document before
+that), never on <main>.
 
 ### `/* Activity carries no badges. 1.5.9 added them because …`
 

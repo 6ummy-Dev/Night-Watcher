@@ -193,13 +193,19 @@ ok("content-visibility is on .group", cv.cv === "auto", cv.cv + " / " + cv.cis);
 
    Home's universe grid joins the drives below; it was never one of the four,
    which is why the one entry point nothing drove is the one a person had to
-   find. */
+   find.
+
+   3.9.7: scroll lives on #app, not the document, so every drive here reads
+   and writes through the app's own seam — scrollKeep()/scrollPut() — and
+   measures #app's scrollHeight. window.scrollY is pinned at 0 now and a
+   drive that read it would be green against anything, which is the exact
+   shape of blindness this file exists to end. */
 async function jump(clickFn, label, tab, mode){
   await page.evaluate((o) => {
     S.tab = o.t; if(o.m) S.mode = o.m;
-    S.progOpen = {uni:true, era:true, dec:true}; render(); window.scrollTo(0,0);
+    S.progOpen = {uni:true, era:true, dec:true}; render(); scrollPut(0);
   }, {t: tab || "stats", m: mode || ""});
-  const before = await page.evaluate(() => window.scrollY);
+  const before = await page.evaluate(() => scrollKeep());
   const fired = await page.evaluate(clickFn);
   const gk = fired && fired.gk;
   if(!gk){ ok("jump from " + label, false, "found nothing to click"); return; }
@@ -213,12 +219,12 @@ async function jump(clickFn, label, tab, mode){
        clamped and cannot answer "how far away was this". The group is static
        and can. */
     const wrap = h.closest(".ghwrap") || h;
-    const de = document.documentElement;
+    const a = scroller();
     return { ok: true, tab: S.tab, open: grp.classList.contains("open"),
-             top: r.top, height: r.height, scrollY: window.scrollY,
-             groupDocTop: grp.getBoundingClientRect().top + window.scrollY,
+             top: r.top, height: r.height, scrollY: scrollKeep(),
+             groupDocTop: grp.getBoundingClientRect().top + scrollKeep(),
              stick: parseFloat(getComputedStyle(wrap).top) || 0,
-             atEnd: window.scrollY + window.innerHeight >= de.scrollHeight - 2,
+             atEnd: a.scrollTop + a.clientHeight >= a.scrollHeight - 2,
              cv: getComputedStyle(grp).contentVisibility,
              onlyOpen: document.querySelectorAll("#view .group.open").length };
   }, gk);
@@ -256,51 +262,51 @@ await jump(() => {
   if(!g) return null;
   const k = g.getAttribute("data-gk");
   g.click();
-  return { gk: k, y: window.scrollY };
+  return { gk: k, y: scrollKeep() };
 }, "the universes chart", "stats", "continuity");
 await jump(() => {
   const g = document.querySelector('#view .pies .seg[data-gk^="e"]');
   if(!g) return null;
   const k = g.getAttribute("data-gk");
   g.click();
-  return { gk: k, y: window.scrollY };
+  return { gk: k, y: scrollKeep() };
 }, "the eras chart", "stats", "life");
 await jump(() => {
   const g = document.querySelector('#view .pies .seg[data-gk^="d"]');
   if(!g) return null;
   const k = g.getAttribute("data-gk");
   g.click();
-  return { gk: k, y: window.scrollY };
+  return { gk: k, y: scrollKeep() };
 }, "the decades chart", "stats", "release");
 await jump(() => {
   const bs = [...document.querySelectorAll('#view [data-act="jump"][data-gk^="c"]')]
     .filter(b => !b.closest(".pies"));
   if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click();
-  return { gk: k, y: window.scrollY };
+  return { gk: k, y: scrollKeep() };
 }, "the universes fold");
 await jump(() => {
   const bs = [...document.querySelectorAll('#view [data-act="jump"][data-gk^="e"]')]
     .filter(b => !b.closest(".pies"));
   if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click();
-  return { gk: k, y: window.scrollY };
+  return { gk: k, y: scrollKeep() };
 }, "the eras fold");
 await jump(() => {
   const bs = [...document.querySelectorAll('#view [data-act="jump"][data-gk^="d"]')]
     .filter(b => !b.closest(".pies"));
   if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click();
-  return { gk: k, y: window.scrollY };
+  return { gk: k, y: scrollKeep() };
 }, "the decades fold");
 /* The fifth way in at 3.3.2, and the one that had never been driven. */
 await jump(() => {
   const c = document.querySelector('#view .ucard[data-act="jump"]');
   if(!c) return null; const k = c.dataset.gk; c.click();
-  return { gk: k, y: window.scrollY };
+  return { gk: k, y: scrollKeep() };
 }, "Home's universe grid", "home");
 
 /* ---- a group opens and closes, and the rows really disappear ------------ */
 await page.evaluate(() => {
   S.tab = "watch"; S.mode = "continuity"; S.filter = "all"; S.q = "";
-  setAllGroups(true); render(); window.scrollTo(0, 0);
+  setAllGroups(true); render(); scrollPut(0);
 });
 const grp = await page.evaluate(() => {
   const h = document.querySelector("#view .ghead");
@@ -433,10 +439,10 @@ async function tickDrive(filter, label, mode){
   await page.evaluate(({f, m}) => {
     S.path = S.mode = m; S.tab = "watch"; S.filter = f; S.q = "";
     S.watched = {}; S.skipped = {}; S.rated = {}; S.open = {};
-    render(); window.scrollTo(0, 0);
+    render(); scrollPut(0);
   }, { f: filter, m: mode || "continuity" });
   await page.waitForTimeout(250);
-  await page.evaluate(() => window.scrollTo(0, Math.round(document.body.scrollHeight * 0.55)));
+  await page.evaluate(() => scrollPut(Math.round(scroller().scrollHeight * 0.55)));
   await page.waitForTimeout(350);
   /* Measured inside the click's own task, for the reason the jump drives are:
      the clamp happens during the repaint, and Chromium's scroll anchoring pulls
@@ -448,7 +454,7 @@ async function tickDrive(filter, label, mode){
       .find(el => { const q = el.getBoundingClientRect();
                     return q.top > 100 && q.bottom < window.innerHeight - 60; });
     if(!btn) return null;
-    const before = Math.round(window.scrollY);
+    const before = Math.round(scrollKeep());
     const gk = btn.closest(".group").querySelector(".ghead").dataset.gk;
     const elByKey = () => {
       const h = document.querySelector('#view .ghead[data-gk="' + gk + '"]');
@@ -471,20 +477,20 @@ async function tickDrive(filter, label, mode){
     const stamp = elByKey();
     stamp.dataset.nwprobe = "1";
     const grpH = Math.round(stamp.getBoundingClientRect().height);
-    const docH = Math.round(document.documentElement.scrollHeight);
+    const docH = Math.round(scroller().scrollHeight);
     btn.click();
     const after = elByKey();
-    return { before, sameTask: Math.round(window.scrollY), grpH, docH,
+    return { before, sameTask: Math.round(scrollKeep()), grpH, docH,
              replaced: !(after && after.dataset.nwprobe === "1"),
              grpH2: after ? Math.round(after.getBoundingClientRect().height) : -1,
-             docH2: Math.round(document.documentElement.scrollHeight) };
+             docH2: Math.round(scroller().scrollHeight) };
   });
   if(!r){
     ok("tick keeps your place (filter " + label + ")", false, "no tick in view to click");
     return;
   }
   await page.waitForTimeout(450);
-  const settled = await page.evaluate(() => Math.round(window.scrollY));
+  const settled = await page.evaluate(() => Math.round(scrollKeep()));
   ok("tick keeps your place (filter " + label + ")",
      r.before > 300 && Math.abs(r.sameTask - r.before) < 150,
      "same-task " + r.before + " → " + r.sameTask + ", settled " + settled);
@@ -561,7 +567,7 @@ ok("focus survives rating from inside an open row",
    (focStar.act ? ' [data-act="' + focStar.act + '"]' : ""));
 
 /* Screenshots, so the header can be looked at rather than only measured. */
-await page.evaluate(() => { S.watched = {}; S.tab = "watch"; render(); window.scrollTo(0,0); });
+await page.evaluate(() => { S.watched = {}; S.tab = "watch"; render(); scrollPut(0); });
 await page.screenshot({ path: "qa/.shots/shot-header-0.png", clip: {x:0, y:0, width:390, height:120} });
 await page.evaluate(() => { pool().forEach(f => S.watched[f.id] = 1); render(); });
 await page.screenshot({ path: "qa/.shots/shot-header-100.png", clip: {x:0, y:0, width:390, height:120} });

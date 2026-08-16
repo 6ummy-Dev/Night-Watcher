@@ -3881,26 +3881,70 @@ if(!/function legendBlock/.test(HTML) ||
   note("meta lines checked for a repeated year: " + FILMS.length);
 })();
 
-/* Every tab scrolls, by at least a hair. Next up is the only view whose content
-   can be shorter than the screen, and a page that does not scroll keeps the
-   browser chrome expanded while every other tab collapses it — so arriving at
-   Next up changed the height of the visible area and leaving changed it back.
-   svh is the viewport with the chrome showing; a pixel over it makes all four
-   behave the same. */
+/* The document does not scroll. Until 3.9.6 scroll lived on the document, and
+   this block held #app at min-height:calc(100svh + 1px) — the pixel that kept
+   Next up, the one view that can be shorter than the screen, scrolling like
+   the other three so the mobile chrome did not resize between tabs. 3.9.7
+   retires the pixel by retiring the thing it managed: html and body are
+   clipped, #app is height-locked to the viewport and is the app's ONE
+   vertical scroller (the tab-swipe groundwork — the swipe viewport of
+   release two needs a document that holds still). The chrome now never
+   collapses on any tab, which is the same uniformity the pixel bought,
+   reached from the other side — and the cost, accepted on purpose, is that
+   iOS Safari's toolbar no longer shrinks away on scroll, because the
+   document it shrinks for never moves.
+
+   svh THEN dvh, in that order: dvh tracks the chrome and is the value that
+   is right, svh the fallback for engines that predate it. With the document
+   locked the chrome holds still, so the two agree wherever the fallback is
+   not needed and the cascade picks dvh wherever it is known. */
 (function(){
+  var hb = (HTML.match(/html,body\{[^}]*\}/) || [""])[0];
+  if(!/overflow:hidden/.test(hb)){
+    fail("html,body no longer clip \u2014 the document can scroll again, so " +
+         "there are two vertical scrollers and every scroll site in the app " +
+         "(scrollKeep/scrollPut, section 120) reads and writes the one that " +
+         "is not the one moving");
+  }
   var app = (HTML.match(/#app\{[^}]*\}/) || [""])[0];
   if(!app){ fail("#app has no styling of its own"); return; }
-  var mh = app.match(/min-height:\s*([^;}]+)/);
-  if(!mh){
-    fail("#app sets no min-height \u2014 Next up can end up shorter than the screen, " +
-         "and it is the only tab that does");
-    return;
+  if(/min-height/.test(app)){
+    fail("#app carries a min-height again \u2014 the +1px trick belonged to " +
+         "document scrolling and left with it in 3.9.7. A scroller that can " +
+         "grow past the viewport hands its overflow back to the document");
   }
-  if(!/calc\(\s*100svh\s*\+/.test(mh[1])){
-    fail("#app is " + mh[1].trim() + " \u2014 it has to clear the small viewport by a " +
-         "pixel, or the one tab that fits without scrolling resizes the chrome " +
-         "around it");
+  if(!/height:100svh;height:100dvh/.test(app)){
+    fail("#app is not height-locked to the viewport (svh fallback, then " +
+         "dvh) \u2014 the app's one scroller has to end where the screen does, " +
+         "or nothing overflows it and nothing scrolls at all");
   }
+  if(!/overflow-y:auto/.test(app)){
+    fail("#app does not scroll its own overflow \u2014 scroll lives on #app " +
+         "since 3.9.7, and every keep, restore and go-to-top assumes it");
+  }
+  if(!/overscroll-behavior:none/.test(app)){
+    fail("#app chains its overscroll \u2014 with the document locked the chain " +
+         "lands on the browser's own gestures, and the nearest one is " +
+         "pull-to-refresh, which reloads the app under the reader's finger");
+  }
+  /* The window is not the scroller any more, so a window scroll call is a
+     call to the element that no longer moves — a silent no-op in every
+     browser, and the exact bug this migration invites for as long as muscle
+     memory lasts. */
+  ["window.scrollTo", "window.scrollBy"].forEach(function(s){
+    if(HTML.indexOf(s) >= 0){
+      fail("index.html calls " + s + " \u2014 the document is locked, so this " +
+           "scrolls nothing and fails in silence. Scroll goes through " +
+           "scrollPut() and scroller().scrollTo() on #app");
+    }
+  });
+  if(HTML.indexOf('window.addEventListener("scroll"') >= 0){
+    fail("a scroll listener is bound to window \u2014 the document never fires " +
+         "scroll now. The drop's one-shot retraction listens on #app, and " +
+         "section 128's pin counts the app's only scroll listener");
+  }
+  note("scroll owner: document clipped, #app height-locked (svh then dvh), " +
+       "one scroller, overscroll contained, no window scroll calls");
 })();
 
 /* ---------- 65. The file points at where its reasoning went ------ */
@@ -8472,32 +8516,39 @@ var ROUTE_VOCAB = [
    read, it does not remove it, so the count is 1 before and 1 after and the
    pins stay exactly where they are. A count answers "how many" and can never
    answer "in what order" -- and order is the whole of this defect. The ORDER
-   clause below is the half that can see the fix. */
+   clause below is the half that can see the fix.
+
+   3.9.7 MOVES THE SCROLL OFF THE DOCUMENT (the tab-swipe groundwork). The
+   keep-read is scrollKeep() on #app now: window.pageYOffset appears nowhere
+   and joins REFUSED, and the scrollTop pin widens to 2 for the seam every
+   scroll site goes through -- scrollKeep() the one read, scrollPut() the one
+   write. Reading an element's scrollTop forces layout exactly the way the
+   window read did when a write has already landed in the same task, so the
+   ORDER clause keeps its job and tracks scrollKeep(). */
 
 (function(){
   /* Never read here. Any appearance is a new forced-layout site. */
-  var REFUSED = ["scrollHeight", "scrollY", "offsetTop", "offsetWidth",
-                 "clientHeight", "clientWidth",
+  var REFUSED = ["scrollHeight", "scrollY", "pageYOffset", "offsetTop",
+                 "offsetWidth", "clientHeight", "clientWidth",
                  "getComputedStyle", "innerHeight", "innerWidth"];
 
   /* Read here, exactly this many times, for exactly this reason. The count is
      the assertion: one more is a new site, one fewer means the fix landed and
      this entry moves to REFUSED. */
   var PINNED = [
-    ["pageYOffset", 1,
-     "render()'s scroll keep, and it is now the FIRST line of render() — " +
-     "hoisted in 3.3.0 above flagSave(), applyTheme() and renderHead(). It cut " +
-     "the forced reflow, it did not end it: PageSpeed against live 3.3.1 " +
-     "measures 46ms at this exact line, down from 64.1ms mobile before the " +
-     "hoist, and the earlier wording here claimed the removal was total. The " +
-     "residue is inherent — render() is called after other code has already " +
-     "written in the same task, so its first line forces a layout wherever it " +
-     "sits. Not worth chasing: TBT is 0ms. qa/pagespeed-3.3.1.md. The count " +
-     "stays 1 because the read is still needed; what changed is where it sits"],
-    ["scrollTop", 1,
-     "the second half of the same expression on the same line as pageYOffset " +
-     "above — one read, two property names, which is the whole reason this " +
-     "section counts property names rather than statements"],
+    ["scrollTop", 2,
+     "the whole of the app's scroll seam, and the only two places the name " +
+     "may appear: scrollKeep() reads #app's position — render()'s keep, " +
+     "still the FIRST line of the function (hoisted in 3.3.0; the ORDER " +
+     "clause below still holds it there, because the hoist cut a 106.6ms " +
+     "desktop / 64.1ms mobile forced reflow and a residue of ~46ms is " +
+     "inherent to being called after other code has written in the same " +
+     "task, qa/pagespeed-3.3.1.md) — and scrollPut() writes it, and every " +
+     "restore, go-to-top and belt retraction goes through the pair. 3.9.7 " +
+     "moved scroll off the document onto #app: window.pageYOffset appears " +
+     "nowhere and sits in REFUSED above, and the element read took over its " +
+     "pin. A third appearance is a scroll site outside the seam and has to " +
+     "be argued for here"],
     ["offsetHeight", 1,
      "the header's own height, measured once to set --hdrh when the store is " +
      "blocked (it wrote --ghtop until 3.5.0 derived --ghtop from --hdrh — one " +
@@ -8512,7 +8563,7 @@ var ROUTE_VOCAB = [
      "hoisted to render()'s opening reads next to pageYOffset, ABOVE the " +
      "first write — it rides the same layout the keep-read already forces, " +
      "so it costs nothing (the order clause below stays satisfied). Read " +
-     "TWO: the box's top after the rebuild, taken AFTER scrollTo(0, keep) " +
+     "TWO: the box's top after the rebuild, taken AFTER scrollPut(keep) " +
      "has already flushed the new layout, so it reads a clean tree and " +
      "forces nothing; the drift between the two is handed to scrollBy and " +
      "the box stands still. Both reads are gated on the box being focused — " +
@@ -8566,11 +8617,11 @@ var ROUTE_VOCAB = [
          "cannot be checked — section 120's ORDER clause is blind, which is " +
          "worse than absent");
   } else {
-    var readAt  = rbody.search(/pageYOffset|documentElement\.scrollTop/);
+    var readAt  = rbody.search(/scrollKeep\(/);
     var writeAt = rbody.indexOf("flagSave()");
     if(readAt < 0){
       note("render() no longer reads the scroll position at all — if that is " +
-           "deliberate, move pageYOffset and scrollTop into REFUSED above");
+           "deliberate, move scrollTop into REFUSED above");
     } else if(writeAt < 0){
       fail("render() no longer opens with flagSave(), so the first write in the " +
            "function is unknown and the scroll read cannot be placed against it");
@@ -8670,7 +8721,14 @@ var ROUTE_VOCAB = [
 
    Asserted on source, because jsdom has no layout and nothing in this harness
    can watch a scroll clamp -- the same limitation section 120 works around,
-   and the same one that let this walk in. */
+   and the same one that let this walk in.
+
+   3.9.7: the restore is scrollPut(keep) on #app, not window.scrollTo -- the
+   window is checked as a banned scroller where the lock is asserted. The
+   clamp is #app's own maximum now, and #app is exactly as short under
+   content-visibility as the document used to be, so .settling keeps its job
+   unchanged: the class has to be on #view when the browser computes the
+   element's maximum scroll offset. */
 (function(){
   var rbody = (HTML.match(/function render\(\)\{[\s\S]*?\n\}/) || [""])[0];
   if(!rbody){
@@ -8678,10 +8736,10 @@ var ROUTE_VOCAB = [
          "— section 122 is blind, which is worse than absent");
     return;
   }
-  if(/if\s*\(\s*keep\s*\)\s*window\.scrollTo/.test(rbody)){
-    fail("render() restores the scroll with a bare window.scrollTo again. That " +
+  if(/if\s*\(\s*keep\s*\)\s*(window\.scrollTo|scrollPut)/.test(rbody)){
+    fail("render() restores the scroll with a bare restore again. That " +
          "is the 3.3.2 defect exactly: content-visibility:auto means the " +
-         "document is short at this instant and the browser clamps the restore. " +
+         "scroller is short at this instant and the browser clamps the restore. " +
          "The scroll must land while .settling is on #view");
   }
   if(rbody.indexOf('classList.add("settling")') < 0){
@@ -8699,7 +8757,12 @@ var ROUTE_VOCAB = [
          "to outlive the layout the scroll forces, or it has bought nothing");
   }
   var addAt = rbody.indexOf('classList.add("settling")');
-  var scrollAt = rbody.indexOf("window.scrollTo");
+  var scrollAt = rbody.indexOf("scrollPut(");
+  if(scrollAt < 0){
+    fail("render() never calls scrollPut — the restore is gone, or it is " +
+         "reaching the scroller some other way; either way section 122 can " +
+         "no longer see the one call it exists to order");
+  }
   if(addAt >= 0 && scrollAt >= 0 && addAt > scrollAt){
     fail("render() scrolls before it adds .settling — the order is the fix. " +
          "The class has to be on the element when the browser computes the " +
@@ -9585,7 +9648,7 @@ var ROUTE_VOCAB = [
      wordmark's job (guard 47), not a side effect of choosing. */
   var pathTap = HTML.indexOf("if(b.dataset.path){");
   var ptBlock = HTML.slice(pathTap, pathTap + 400);
-  if(!/if\(!S\.beltDrop\) window\.scrollTo\(0,0\);/.test(ptBlock)){
+  if(!/if\(!S\.beltDrop\) scrollPut\(0\);/.test(ptBlock)){
     fail("a path tap from a dropped belt goes home — it is a selector, and " +
          "home is above, in the app name (the wordmark, guard 47). The " +
          "unconditional scroll-to-top predates the drop; from a dropped belt " +

@@ -100,7 +100,7 @@ run_case "the ring wires around goTab" \
   "bypasses goTab" \
   "${P}a='  goTab(\"stats\");'
 assert a in s
-s=s.replace(a,'  S.tab = \"stats\"; window.scrollTo(0,0); render();',1);${W}"
+s=s.replace(a,'  S.tab = \"stats\"; scrollPut(0); render();',1);${W}"
 
 run_case "the hidden-state bookkeeping creeps back" \
   "bookkeeping is back" \

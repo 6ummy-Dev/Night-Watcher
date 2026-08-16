@@ -26,6 +26,81 @@ to saved progress would also be MAJOR, and should never happen, because every
 > Anything experimental after 3.0.0 takes a pre-release tag — `3.1.0-rc.1` —
 > rather than a plain version.
 
+## [3.9.7] — 2026-08-16
+
+**Scroll moves off the document and onto `#app`. Nothing looks different, and
+nothing is supposed to: this is release one of two for the tab swipe — the
+half that changes where scrolling lives, shipped alone so the half that adds
+the gesture changes only what swipes. If something regresses, it is known
+which half did it.**
+
+### Changed
+
+- **The document is locked and `#app` is the app's one vertical scroller.**
+  `html,body` clip; `#app` is height-locked to the viewport — `100svh` with a
+  `100dvh` override where dvh is known — with `overflow-y:auto`. Everything
+  that made document scrolling work moves with the scroll, and nothing else
+  moves: the header is the same sticky bar, its scroll container now #app
+  instead of the document; the group heads and the Belt keep their sticky
+  offsets to the pixel; the fixed drop and the toast were viewport-positioned
+  and still are; and #app's clip edge sits exactly where the viewport edge
+  sat, so both IntersectionObservers — the parked flag and the pouch
+  auto-close, `bottom <= 0` included — keep their thresholds without a number
+  changing. That coordinate identity is why this shape was chosen over a
+  flex-clipped scroller between the bars, which would have moved every sticky
+  offset and both observer thresholds in the same release as the ownership
+  change.
+
+- **Every scroll site goes through a three-name seam.** `scroller()` names
+  the element, `scrollKeep()` is the one read, `scrollPut()` the one write;
+  render()'s keep and restore, every go-to-top, the Belt's one-shot
+  retraction listener and the search box's drift anchor all route through
+  them. Section 120's census follows: `pageYOffset` appears nowhere and joins
+  REFUSED, the `scrollTop` pin widens to 2 — one read, one write, and the
+  seam is the only place the name may appear — and the ORDER clause tracks
+  `scrollKeep()`, still the first line of render(), because an element read
+  forces layout exactly the way the window read did. The `.settling` restore
+  is untouched: #app is exactly as short under `content-visibility` as the
+  document used to be, so section 122 keeps its whole argument and retargets
+  one call name.
+
+- **`#app`'s `+ 1px` retires with the reason for it.** The extra pixel kept
+  Next up — the one view that can be shorter than the screen — scrolling like
+  the other three, so the mobile chrome did not resize between tabs. With the
+  document locked the chrome never collapses on any tab: the same uniformity,
+  reached from the other side. **That is also the accepted cost of this
+  release:** iOS Safari's toolbar no longer shrinks away as you read, because
+  the document it shrinks for never moves. Decided in the swipe plan, not
+  discovered after — and the block that guarded the pixel now guards the
+  lock.
+
+- **`overscroll-behavior:none` lands on the scroller it protects.** On the
+  body it guarded the document; #app carries it now, so hitting the top of a
+  long list does not chain into pull-to-refresh and reload the app under the
+  reader's finger. The body keeps its copy — it costs nothing and covers the
+  document if anything ever overflows it again.
+
+### Added
+
+- **The scroll-owner guard.** The rewritten block asserts the lock: document
+  clipped, #app height-locked and scrolling, overscroll contained — and
+  `window.scrollTo`, `window.scrollBy` and window scroll listeners are
+  refused outright. Each would address the element that no longer moves and
+  fail in silence — no wrong pixel, no thrown error — which is the exact bug
+  this migration invites for as long as muscle memory lasts, and exactly the
+  class of defect (three green instruments, one regression) that sections 120
+  and 122 exist for.
+
+- **`negtest460.sh` — 8 fixtures.** Unlock the document, stop #app
+  scrolling, reopen the overscroll chain, bring back a window scroll call or
+  listener, strip `.settling` from the restore, remove the restore entirely
+  — each breaks one thing in a throwaway tree and asserts the right guard
+  goes red for the right reason. The fixtures in negtest164, 320, 330, 370
+  and 380 that gripped the old code — `pageYOffset`, the `+ 1px`,
+  `window.scrollTo` — are retargeted at the seam, proving the same shapes
+  against the new names; negtest164 keeps the two height-lock fixtures
+  because that suite has always owned that block's shape.
+
 ## [3.9.6] — 2026-08-15
 
 **The two features that were waiting on a round willing to touch app logic. The

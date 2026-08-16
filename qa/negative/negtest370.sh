@@ -166,9 +166,9 @@ s=s.replace(a,'function beltDropOpen(){\n  S.beltDrop = true;\n  if(!S.beltOpen)
 
 run_case "the path tap goes home from a dropped belt" \
   "path tap from a dropped belt goes home" \
-  "${P}a='    if(!S.beltDrop) window.scrollTo(0,0);'
+  "${P}a='    if(!S.beltDrop) scrollPut(0);'
 assert a in s
-s=s.replace(a,'    window.scrollTo(0,0);',1);${W}"
+s=s.replace(a,'    scrollPut(0);',1);${W}"
 
 echo "--- the smoke half: the dropped state is staged, and its selectors must live"
 

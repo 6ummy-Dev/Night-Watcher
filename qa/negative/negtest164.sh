@@ -2,14 +2,18 @@
 # Negative-test every guard added or changed in 1.6.4.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-echo "--- 62: every tab clears the viewport"
-run_case "the app goes back to exactly one viewport" \
-  "it has to clear the small viewport by a pixel" \
-  "${P}a='min-height:calc(100svh + 1px)';assert a in s;s=s.replace(a,'min-height:100dvh');${W}"
+echo "--- 62: every tab clears the viewport (3.9.7: the block owns the scroll now)"
+# 1.6.4 pinned min-height:calc(100svh + 1px). 3.9.7 locked the document and
+# made #app the scroller, so the same block asserts the lock instead. These
+# two fixtures moved with it — same block, same job, new failure text; the
+# rest of the lock is negtest460's.
+run_case "the app grows a min-height again" \
+  "#app carries a min-height again" \
+  "${P}a='height:100svh;height:100dvh;';assert a in s;s=s.replace(a,'min-height:calc(100svh + 1px);');${W}"
 
-run_case "the app sets no min-height at all" \
-  "#app sets no min-height" \
-  "${P}a='min-height:calc(100svh + 1px);';assert a in s;s=s.replace(a,'');${W}"
+run_case "the height lock loses its lock" \
+  "is not height-locked to the viewport" \
+  "${P}a='height:100svh;height:100dvh;';assert a in s;s=s.replace(a,'height:100dvh;');${W}"
 
 echo "--- 64: one filter, every reader"
 run_case "subOf stops skipping a sub that is only the year" \
