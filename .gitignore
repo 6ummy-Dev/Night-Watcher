@@ -22,3 +22,6 @@ Thumbs.db
 
 # Test / temp
 coverage/
+
+# Browser-check scratch screenshots (written per run, read by a person)
+qa/.shots/
