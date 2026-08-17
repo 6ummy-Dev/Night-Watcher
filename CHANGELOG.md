@@ -11,6 +11,43 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.0.3] — 2026-08-17
+
+### Fixed
+
+- **The belt closes to a peek that is part of the header — really locked
+  this time.** 4.0.2 counter-translated the strips from the scroll read,
+  and it was wrong the honest way: the deck's scroll is composited and the
+  correction is main-thread, so the belt trailed the finger by a frame or
+  two and still read as movement — worst on a fast fling, invisible to any
+  probe that samples a held position. A composited scroll cannot be chased
+  from JavaScript, so 4.0.3 stops chasing: the moment a gesture crosses the
+  2px threshold, the panels' strips hide and a real header element
+  (`#beltpeek` — pixel-matched to the parked peek: same width and
+  centring as the strip, same card ground, borders, bottom radius, and lit
+  segment) shows in their place. It lives outside the deck, so it cannot
+  move; at the settle the swap reverses and the strip returns in whatever
+  state it held. The gesture is flagged on `<html>` (`data-swiping`, the
+  `data-beltpark` precedent), `renderHead()` keeps the peek's lit segment
+  in step with `S.mode`, and the dropped belt stays visible and rides —
+  its pouches are anchor-positioned, and the drop retracts at the door
+  anyway. The 4.0.2 machinery (`--swx`/`--pi`/`--vw` and the transform
+  rule) is removed; the rotation squelch and the no-observer degrade stay.
+
+### QA
+
+- Section 143's anchor pins rewritten for the swap — the peek element and
+  its show rule, the strips' hide rule, `swipeRead()`'s flag-and-clear on
+  the document, and `renderHead()`'s lit sync — with the three `negtest470`
+  fixtures rewritten to break each leg. The smoke sweep stages
+  `html[data-swiping]` the way it stages `data-beltpark`, and walks release
+  mode so all three lit segments match. Fixture count unchanged.
+- **The reset's handle drop reuses `fhKeep(null)`** instead of 4.0.1's
+  separate `fhDrop()` — same store, same key, one code path, ~300 bytes
+  back. Found the honest way: the page had drifted to 4 bytes under the
+  README size claim's rounding line, and the bless green-fixtures (which
+  add a few bytes before healing) started flipping it to red.
+
 ## [4.0.2] — 2026-08-17
 
 ### Fixed

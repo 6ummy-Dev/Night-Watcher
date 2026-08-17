@@ -11536,44 +11536,49 @@ var ROUTE_VOCAB = [
          "refused by section 120");
   }
 
-  /* 4.0.2: THE BELT IS ANCHORED TO THE HEADER, NOT TO ITS PANEL. Every
-     panel carries the same parked strip directly under the header, so
-     4.0.0's gesture showed the belt sliding out with the page — two copies
-     crossing the seam — while the header held still. Mid-gesture every
-     non-dropped strip is counter-translated by the deck's own arithmetic:
-     --swx from the ONE scrollLeft read (section 120 unchanged), --pi
-     stamped on each panel at build, --vw delivered by the observer that
-     also delivers nwVW. The writes clear at the settle, so no transform —
-     and none of the horizontal overflow a transform can mint inside a
-     panel — survives the gesture. The dropped belt is excluded: its
-     pouches are anchor-positioned, and anchors do not track transforms,
-     so a translated dropped strip would leave its pouches behind. */
-  if(!/main\.sw\[data-swiping\] \.pathseg:not\(\[data-drop\]\)\{transform:translateX\(calc\(var\(--swx,0px\) - var\(--pi,0\)\*var\(--vw,0px\)\)\);\}/.test(HTML)){
-    fail("the belt is not anchored to the header during a swipe — every " +
-         "panel carries the same parked strip, and without the " +
-         "counter-translate the belt slides out with the page while the " +
-         "header holds still; anchored means the strips hold the viewport " +
-         "position and the content slides beneath them");
+  /* 4.0.3: THE BELT CLOSES TO A PEEK THAT IS PART OF THE HEADER. 4.0.2
+     tried to anchor the strips by counter-translating them from the scroll
+     read; the scroll is composited and the correction is main-thread, so
+     the belt trailed the finger by a frame and still read as movement. A
+     composited scroll cannot be chased \u2014 so mid-gesture the strips hide and
+     a real header element (#beltpeek, outside the deck, pixel-matched to
+     the parked peek) shows in their place: it cannot move because it never
+     scrolls. swipeRead() flags the gesture on <html> (the data-beltpark
+     precedent) and clears it at the settle; renderHead() keeps the peek's
+     lit segment in step with S.mode. The dropped belt stays visible and
+     rides: its pouches are anchor-positioned, and the drop retracts at the
+     door anyway. */
+  if(HTML.indexOf('<div id="beltpeek"') < 0 ||
+     !/html\[data-swiping\] #beltpeek\{display:block;\}/.test(HTML)){
+    fail("the header peek is gone or never shows \u2014 mid-gesture the belt " +
+         "closes to a peek that is PART OF THE HEADER, outside the deck; " +
+         "without it the strips ride the swipe, or vanish with nothing in " +
+         "their place");
   }
-  if(sr.indexOf('setProperty("--swx"') < 0 ||
-     sr.indexOf('removeProperty("--swx")') < 0){
-    fail("swipeRead() does not drive the belt anchor — --swx is written " +
-         "mid-gesture from the one scrollLeft read and removed at the " +
-         "settle; losing either leaves the strips riding the gesture " +
-         "again, or a stale transform (and the overflow it mints) parked " +
-         "on the belt after the gesture ends");
+  if(!/html\[data-swiping\] \.pathseg:not\(\[data-drop\]\)\{visibility:hidden;\}/.test(HTML)){
+    fail("the panels' strips stay visible through a swipe \u2014 they live " +
+         "inside the deck and ride the gesture a frame ahead of any " +
+         "main-thread correction, which is exactly the movement 4.0.3 " +
+         "removed; mid-gesture the header's own peek is the belt");
   }
-  if(bd.indexOf("--pi:' + j + '") < 0 || bd.indexOf('setProperty("--vw"') < 0){
-    fail("the deck no longer stamps the anchor's terms — --pi at build and " +
-         "--vw from the observer are the two numbers the counter-translate " +
-         "multiplies; without either the belt anchors to the wrong " +
-         "panel's arithmetic, or to nothing");
+  if(sr.indexOf('setAttribute("data-swiping"') < 0 ||
+     sr.indexOf('removeAttribute("data-swiping")') < 0){
+    fail("swipeRead() does not flag the gesture on the document \u2014 the swap " +
+         "to the header peek is driven by html[data-swiping], written " +
+         "mid-gesture and cleared at the settle; losing either leaves the " +
+         "belt riding the swipe, or the peek stuck over the settled tab");
+  }
+  if(optionalFn("renderHead", "the header renderer is gone")
+      .indexOf("beltpeek") < 0){
+    fail("renderHead() no longer keeps #beltpeek's lit segment in step " +
+         "with S.mode \u2014 the peek that appears mid-gesture would light the " +
+         "segment of whatever ordering was chosen when the page loaded");
   }
 
   note("swipe deck: four panels in footer order, active fills sync + " +
        "dirties three, neighbors idle, inert swept on settle, belt " +
-       "suppressed in background copies and anchored to the header " +
-       "through the gesture, snap via scrollIntoView");
+       "suppressed in background copies and closed to the header's own " +
+       "peek through the gesture, snap via scrollIntoView");
 })();
 
 /* ---------- report ---------- */

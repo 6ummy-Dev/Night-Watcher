@@ -123,22 +123,21 @@ s=s.replace(a,'        nwRszSquelch = true;',1);${W}"
 echo "--- 143: the belt anchored to the header"
 
 run_case "the belt rides the gesture again" \
-  "the belt is not anchored to the header during a swipe" \
-  "${P}a='main.sw[data-swiping] .pathseg:not([data-drop]){transform:translateX(calc(var(--swx,0px) - var(--pi,0)*var(--vw,0px)));}';assert a in s
+  "strips stay visible through a swipe" \
+  "${P}a='html[data-swiping] .pathseg:not([data-drop]){visibility:hidden;}';assert a in s
 s=s.replace(a,'',1);${W}"
 
-run_case "the anchor survives the settle" \
-  "swipeRead() does not drive the belt anchor" \
-  "${P}a='''  } else if(vp.hasAttribute(\"data-swiping\")){
-    vp.style.removeProperty(\"--swx\");
-    vp.removeAttribute(\"data-swiping\");
+run_case "the peek never shows" \
+  "the header peek is gone or never shows" \
+  "${P}a='html[data-swiping] #beltpeek{display:block;}';assert a in s
+s=s.replace(a,'',1);${W}"
+
+run_case "the swap survives the settle" \
+  "does not flag the gesture on the document" \
+  "${P}a='''  } else if(document.documentElement.hasAttribute(\"data-swiping\")){
+    document.documentElement.removeAttribute(\"data-swiping\");
   }''';assert a in s
 s=s.replace(a,'  }',1);${W}"
-
-run_case "the panels lose their index" \
-  "the deck no longer stamps the anchor's terms" \
-  "${P}a=''' style=\"--pi:' + j + '\"''';assert a in s
-s=s.replace(a,'',1);${W}"
 
 run_case "the swipe door keeps the shadow" \
   "the swipe door lets a dropped belt" \

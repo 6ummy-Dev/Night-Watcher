@@ -44,8 +44,8 @@ s=s[:m.start()]+seed+s[m.end():];${W}"
 echo "--- smoke: the first render replaces the seed"
 run_case "boot appends instead of replacing" \
   "FAIL the seed catalogue is gone after boot" \
-  "${P}a='vp.innerHTML = NWTABS.map(function(t, j){';assert a in s
-s=s.replace(a,'vp.innerHTML += NWTABS.map(function(t, j){',1);${W}" \
+  "${P}a='vp.innerHTML = NWTABS.map(function(t){';assert a in s
+s=s.replace(a,'vp.innerHTML += NWTABS.map(function(t){',1);${W}" \
   "smoke" "main"
 
 finish "  negtest186"
