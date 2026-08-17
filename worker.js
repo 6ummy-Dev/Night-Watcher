@@ -1,7 +1,7 @@
 /* Night Watcher — the Worker in front of the assets.
  *
- * This file's original purpose is one request shape: `GET /` from a client whose
- * Accept header PREFERS text/markdown. Those get the markdown representation
+ * This file's original purpose is one request shape: `GET /` (and, since
+ * 4.0.1, its `HEAD`) from a client whose Accept header PREFERS text/markdown. Those get the markdown representation
  * of the site — docs/llms.txt, the same file already served at /llms.txt —
  * because an agent that asks for markdown is asking not to parse 198 KB of
  * HTML for what llms.txt says in 29 lines. (The 10 Aug 2026 Radar scan's
@@ -49,14 +49,18 @@ function wantsMarkdown(accept){
   return md > 0 && md > html;
 }
 
-function markdownResponse(request, env){
+function markdownResponse(request, env, head){
   var url = new URL(request.url);
   return env.ASSETS.fetch(new Request(url.origin + "/llms.txt")).then(function(res){
     /* If llms.txt cannot be read, the negotiation quietly does not exist:
        fall through to the page rather than invent a broken markdown body. */
     if(!res || res.status !== 200) return env.ASSETS.fetch(request);
     return res.text().then(function(md){
-      return new Response(md, {
+      /* 4.0.1: HEAD is answered as well as GET, the same way api-catalog
+         answers it — same headers, no body, per HTTP. A HEAD probe used to
+         fall through to the assets plane and read as HTML, a HEAD/GET
+         representation mismatch on the one negotiated URL. */
+      return new Response(head ? null : md, {
         status: 200,
         headers: {
           "Content-Type": "text/markdown; charset=utf-8",
@@ -100,9 +104,10 @@ export default {
        (request.method === "GET" || request.method === "HEAD")){
       return apiCatalogResponse(request.method === "HEAD");
     }
-    if(url.pathname === "/" && request.method === "GET" &&
+    if(url.pathname === "/" &&
+       (request.method === "GET" || request.method === "HEAD") &&
        wantsMarkdown(request.headers.get("Accept"))){
-      return markdownResponse(request, env);
+      return markdownResponse(request, env, request.method === "HEAD");
     }
     return env.ASSETS.fetch(request);
   }

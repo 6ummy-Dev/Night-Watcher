@@ -116,8 +116,9 @@ s=s.replace(a,'''window.addEventListener(\"hashchange\", function(){
 
 run_case "rotation stops re-snapping" \
   "no ResizeObserver delivering the viewport width" \
-  "${P}a='if(w && w !== nwVW){ nwVW = w; snapTo(S.tab); }';assert a in s
-s=s.replace(a,'if(w && w !== nwVW){ nwVW = w; }',1);${W}"
+  "${P}a='''        nwRszSquelch = true;
+        snapTo(S.tab);''';assert a in s
+s=s.replace(a,'        nwRszSquelch = true;',1);${W}"
 
 run_case "the swipe door keeps the shadow" \
   "the swipe door lets a dropped belt" \

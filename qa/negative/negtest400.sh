@@ -65,9 +65,9 @@ run_case "a lost pathname gate is caught" \
 import io
 p='worker.js'
 s=io.open(p,encoding='utf-8').read()
-needle='url.pathname === \"/\" && request.method === \"GET\" &&'
-assert needle in s
-io.open(p,'w',encoding='utf-8').write(s.replace(needle,'request.method === \"GET\" &&'))
+needle='url.pathname === \"/\" &&'
+assert s.count(needle) == 1
+io.open(p,'w',encoding='utf-8').write(s.replace(needle,''))
 "
 
 run_case "a second copy of the markdown body is caught" \
@@ -76,7 +76,7 @@ run_case "a second copy of the markdown body is caught" \
 import io
 p='worker.js'
 s=io.open(p,encoding='utf-8').read()
-needle='return new Response(md, {'
+needle='return new Response(head ? null : md, {'
 assert needle in s
 io.open(p,'w',encoding='utf-8').write(s.replace(needle,'return new Response(\"# a second copy of the catalogue prose\", {'))
 "

@@ -9,7 +9,7 @@
    Release tooling, not CI. Playwright joined package.json in 3.7.2 with the
    browser job, so this needs no separate install any more. To run:
 
-       npm i --no-save playwright && npx playwright install chromium
+       npx playwright install chromium
        node qa/make-share-card.mjs
 
    A pre-installed Chromium can be pointed at directly instead:
@@ -42,7 +42,7 @@ let chromium;
 try { ({ chromium } = await import("playwright")); }
 catch {
   console.error("make-share-card: playwright is not installed.\n" +
-    "  npm i --no-save playwright && npx playwright install chromium");
+    "  npm install && npx playwright install chromium");
   process.exit(1);
 }
 

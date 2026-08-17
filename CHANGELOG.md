@@ -11,6 +11,89 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.0.1] — 2026-08-17
+
+**The 16 August review of 4.0.0, applied. No entries added, removed or
+renamed — still 200 entries, 133 films and 67 seasons across 44
+continuities, every `i:` untouched.**
+
+### Fixed
+
+- **A pasted backup code survives a swipe.** `render()` has preserved
+  `#restorebox` since the storage-event wipe (section 112) — but 4.0.0's idle
+  refill rebuilds a background panel through `fillPanel()`, which did not
+  carry the box: paste a code on Progress, swipe away, and the paste was
+  wiped milliseconds later by a path the guard could not see, because it
+  only read `render()`. `fillPanel()` now carries the value across, and
+  section 112 pins both fill paths.
+
+- **The frame has a height everywhere.** `#app` was sized by
+  `100svh`/`100dvh` alone. Engines that predate the new viewport units parse
+  neither declaration, and 3.9.7's document lock (`html,body
+  overflow:hidden`) turned that from a graceful degrade into one unreachable
+  viewport with the tab bar below the fold. A plain `height:100%` now
+  precedes the pair — `html` and `body` already carry `100%`, and the modern
+  declarations still win wherever they parse. The svh/dvh pair could never
+  back each other up: every engine shipped both units in the same release.
+
+- **Rotation cannot commit a wrong tab.** `swipeRead()` pairs a fresh
+  `scrollLeft` with a width only the ResizeObserver delivers, and nothing
+  enforced the pairing: a mid-rotation read could misround by a whole panel
+  and the observer's own re-snap would then cement it. The observer now
+  squelches swipe reads for two frames around its re-snap — the same shape
+  as `dropSquelch` — and reads once more when the squelch lifts, so a settle
+  is never missed.
+
+- **No observer, no gesture.** Without ResizeObserver the deck was built
+  swipeable but could never commit (`nwVW` stays 0) — a drag stranded the
+  reader on an inert panel while the tab bar named the old tab. The viewport
+  now refuses horizontal scrolling when the observer is absent
+  (`main.sw.nosw`): the footer tabs still snap programmatically, and the
+  gesture simply does not exist on engines that cannot support it honestly.
+
+- **"Clear all progress" lets go of the backup file.** The reset cleared
+  every mark but kept the file handle, so Progress still offered "Update
+  backup file" and one tap would overwrite the only external copy with the
+  post-wipe state. The reset now drops the handle — `S.fh` and the
+  IndexedDB store both — and the button honestly offers "Save to a file"
+  again.
+
+- **`HEAD /` negotiates like `GET /`.** A HEAD probe preferring markdown
+  fell through to the assets plane and read as HTML — the same HEAD/GET
+  mismatch api-catalog fixed in 3.9.2, on the one URL that negotiates. Same
+  headers, no body, asserted in section 133.
+
+- **The Penguin's description is a sentence again.** The 4.0.0 spoiler cut
+  removed its opening clause and shipped "and the underworld has a
+  vacancy…" starting mid-sentence in the hero, the rows and the peeks. And
+  the file speaks one dialect again: "cruellest" and "labelled" join the
+  rest of the British spelling — the seed FAQ, the schema and llms.txt now
+  agree on the word.
+
+### QA
+
+- **Bless prints what it re-hashed.** Guard 10's comment promised a summary
+  as the compensating control for its vendor-mark filter, and the summary
+  did not exist — a signature-free foreign blob still blessed to green with
+  one quiet line. Every CSP re-hash now records the script's byte size in
+  `qa/script-bytes.json` and prints the delta since the last bless:
+  laundered code has to arrive as a visible size jump in the one line a
+  launderer cannot avoid.
+- **The comment allowlist matches whole bodies.** 3.9.2 cut the dead names
+  but kept `indexOf`, so a comment *beginning* with a live name could still
+  smuggle prose in behind it (reproduced 16 August). The allowlist now
+  carries each comment's full text, whitespace-collapsed, and matches
+  exactly.
+- **Section 143 counts on collapsed whitespace.** The dirty-mark and
+  snap-door counts required exact formatting — blind to a reformatted new
+  site, red on a benign reindent.
+- **Sections 141–143 fail readably.** Their extractions went through
+  `fn()`, which throws — deleting a function under test ended the run in a
+  stack trace instead of a `fail()`. They route through `optionalFn()` now,
+  as `buildDeck` already did.
+- `make-share-card.mjs` no longer instructs the separate Playwright install
+  its own header says is unnecessary.
+
 Adding catalogue entries is a MINOR bump. Fixes and copy changes are PATCH.
 MAJOR marks a change to the app's shape — 2.0.0 is the Belt. A breaking change
 to saved progress would also be MAJOR, and should never happen, because every

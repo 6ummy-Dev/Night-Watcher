@@ -306,7 +306,7 @@ function buildFAQ(FILMS, MODENOTE, tierOf){
      " films, animated and live action both, and a switch narrows the shelf whenever you want it narrower."],
     ["Do I have to watch everything?",
      "No. " + curated + " titles are marked as the essentials and the core route \u2014 the spine of " +
-     "the thing. Everything else is optional side material, labeled as exactly that."],
+     "the thing. Everything else is optional side material, labelled as exactly that."],
     ["Is it really spoiler-safe?",
      "That is the whole premise. Universes stay whole, and every ordering is built so nothing " +
      "renders ahead of an entry it would give away."],
@@ -790,8 +790,9 @@ if(!/function routeHash\s*\(/.test(HTML)){
    real backstops were the human diff and the weight headroom.
 
    The list below will always be behind whatever arrives next; that is what the
-   bless summary underneath is for. A pattern set is a filter, a printed diff of
-   what bless re-hashed is a reader. */
+   bless summary is for: since 4.0.1 every CSP re-hash prints the script's byte
+   size and its delta against the last blessed size (qa/script-bytes.json). A
+   pattern set is a filter; a printed size jump is a reader. */
 var VENDOR_MARKS = [
   [/qrcode-generator/,                         "qrcode-generator"],
   [/\(c\) [A-Z][a-z]+ [A-Z][a-z]+ \| MIT/,        "an MIT attribution header"],
@@ -2525,7 +2526,27 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
      rewrites it, so the fix is one command rather than a manual paste. */
   if(BLESS){
     blessHtml(HTML.replace("'sha256-" + declared + "'", "'sha256-" + actual + "'"));
-    note("blessed the CSP script hash");
+    /* 4.0.1: THE SUMMARY GUARD 10 LEANS ON. The vendor-mark list is a filter
+       and will always be behind whatever arrives next; the reader is this
+       line: every re-hash prints the script's size and the delta against the
+       last blessed size (qa/script-bytes.json, written here), so foreign code
+       riding in on a bless is a visible jump in the one place a launderer
+       cannot avoid. The hash is one-way, so a content diff is impossible from
+       the file alone \u2014 size is what can be carried across honestly. */
+    var ledgerPath = path.join(ROOT, "qa", "script-bytes.json");
+    var prevBytes = null;
+    try{ prevBytes = JSON.parse(fs.readFileSync(ledgerPath, "utf8")).bytes; }catch(e){}
+    var nowBytes = Buffer.byteLength(body, "utf8");
+    try{
+      fs.writeFileSync(ledgerPath,
+        JSON.stringify({bytes: nowBytes, sha256: actual}) + "\n");
+    }catch(e){}
+    var deltaTxt = (typeof prevBytes === "number")
+      ? " (" + (nowBytes >= prevBytes ? "+" : "") + (nowBytes - prevBytes) +
+        " B since the last bless)"
+      : " (no prior blessed size on record)";
+    note("blessed the CSP script hash \u2014 script " + nowBytes + " B" + deltaTxt +
+         ", sha256 " + actual.slice(0, 12) + "\u2026 was " + declared.slice(0, 12) + "\u2026");
     return;
   }
   fail("the CSP script hash is stale \u2014 declared " + declared.slice(0, 12) +
@@ -4249,12 +4270,25 @@ if(!/function legendBlock/.test(HTML) ||
      review: "<!-- Cloudflare Web Analytics : smuggled prose -->" went green
      through the whole suite. A section whose stated philosophy is "a fifth
      cannot arrive quietly" was allowing four names for one real comment. */
+  /* 4.0.1: THE WHOLE BODY, NOT A SUBSTRING. 3.9.2 cut the dead names but
+     kept indexOf, so a smuggled comment BEGINNING with a live name still rode
+     in — reproduced in the 16 Aug review: "<!-- No trademarked logos :
+     smuggled prose -->" went green. The allowlist now carries each comment's
+     full text, whitespace-collapsed, and a comment passes only by matching
+     one exactly. Editing an allowed comment means editing it here too, which
+     is the section's own philosophy: allowed by name, and by nothing less
+     than the whole name. */
   var ALLOWED_HTML_COMMENTS = [
     "Night Watcher \u00b7 https://github.com/6ummy-Dev/Night-Watcher",
-    "No trademarked logos"
+    "No trademarked logos, symbols, or proprietary lettering are used " +
+    "anywhere in this file. The favicon is an original bat-animal silhouette " +
+    "drawn for this project; it is not a DC mark. Fonts and palette: see " +
+    "NOTES.md."
   ];
   (HTML.match(/<!--[\s\S]*?-->/g) || []).forEach(function(c){
-    var ok = ALLOWED_HTML_COMMENTS.some(function(a){ return c.indexOf(a) >= 0; });
+    var cBody = c.replace(/^<!--/, "").replace(/-->$/, "")
+                 .replace(/\s+/g, " ").trim();
+    var ok = ALLOWED_HTML_COMMENTS.some(function(a){ return cBody === a; });
     if(!ok){
       fail("an explanatory HTML comment is back in index.html (" +
            c.replace(/\s+/g, " ").slice(4, 60).trim() + "\u2026) \u2014 the no-comments " +
@@ -7908,7 +7942,19 @@ var ROUTE_VOCAB = [
     fail("render() no longer preserves the search box either — #q and " +
          "#restorebox are the two inputs a render must not empty");
   }
-  note("render() carries #q and #restorebox across a repaint");
+  /* 4.0.1: THE SECOND DOOR. render() preserved the paste, and the 4.0.0 idle
+     refill (queueNeighbors → fillPanel) rebuilt the same panel WITHOUT it —
+     paste a code on Progress, swipe away, and the paste was wiped
+     milliseconds later by a path this section could not see because it only
+     read render(). Both fill paths carry the box now, and both are pinned. */
+  var fpr = optionalFn("fillPanel", "the background refill cannot be checked");
+  if(fpr.indexOf("restorebox") < 0 || !/restorebox[\s\S]{0,240}\.value/.test(fpr)){
+    fail("fillPanel() rebuilds a background panel without carrying " +
+         "#restorebox — render() preserves the paste but the idle refill " +
+         "after a swipe does not, and a pasted backup code vanishes the " +
+         "moment the reader swipes away");
+  }
+  note("render() and fillPanel() carry #q and #restorebox across a repaint");
 })();
 
 /* ---------- 113. Every negative suite runs in CI ---------------------- */
@@ -10514,6 +10560,27 @@ var ROUTE_VOCAB = [
            "response by identity — the Worker touched a request it does not own");
     }
   });
+  /* 4.0.1: HEAD ON THE NEGOTIATED URL. The branch tested for GET alone, so
+     a HEAD probe preferring markdown fell through to the assets plane and
+     read as HTML — the same HEAD/GET representation mismatch api-catalog had
+     (3.9.2), on the one URL that negotiates. Same headers, no body. */
+  var mdHead = un(mod.fetch(req("text/markdown", "HEAD"), env));
+  if(!mdHead || mdHead === htmlRes){
+    fail("HEAD / with Accept: text/markdown fell through to the assets " +
+         "plane — the negotiated URL answers HEAD as HTML while GET answers " +
+         "markdown, and HEAD is what a validator probes with first");
+  } else {
+    if(mdHead.body){
+      fail("HEAD / negotiated markdown but carried a body — HEAD answers " +
+           "the headers of the GET and nothing else");
+    }
+    var mhh = mdHead.init.headers || {};
+    if(!/^text\/markdown/.test(mhh["Content-Type"] || "") ||
+       (mhh["Vary"] || "") !== "Accept"){
+      fail("HEAD /'s markdown response does not carry the GET's headers — " +
+           "the two methods must describe the same representation");
+    }
+  }
   /* Preference expressed through q-values still negotiates. */
   var q = un(mod.fetch(req("text/html;q=0.4,text/markdown;q=0.8"), env));
   if(!q || q.body !== LLMS){
@@ -10524,7 +10591,7 @@ var ROUTE_VOCAB = [
      scoping already keeps these off the Worker. Belt AND suspenders, because
      one of them is edge config. */
   var p = un(mod.fetch(req("text/markdown", "POST"), env));
-  if(p !== htmlRes) fail("a POST negotiated markdown — the branch must be GET-only");
+  if(p !== htmlRes) fail("a POST negotiated markdown — the branch answers GET and HEAD only");
   var s = un(mod.fetch(req("text/markdown", "GET", "https://nightwatcher.life/sw.js"), env));
   if(s !== htmlRes){
     fail("a non-root path negotiated markdown in the script — run_worker_first " +
@@ -10588,8 +10655,8 @@ var ROUTE_VOCAB = [
   var acPost = un(mod.fetch(req("*/*", "POST", "https://nightwatcher.life/.well-known/api-catalog"), env));
   if(acPost !== htmlRes){
     fail("a POST to /.well-known/api-catalog did not fall through by identity " +
-         "— the catalog branch must be GET and HEAD only, like the markdown " +
-         "branch is GET only");
+         "— the catalog branch must be GET and HEAD only, exactly like the " +
+         "markdown branch (4.0.1)");
   }
   note("worker.js executed: markdown negotiation answers llms.txt with " +
        "Vary/Content-Location, five non-preferring shapes pass through by " +
@@ -11177,7 +11244,9 @@ var ROUTE_VOCAB = [
    and neither is a total order on the flat catalogue. */
 
 (function(){
-  var life = fn("lifeCmp"), rel = fn("releaseCmp"), bg = fn("buildGroups");
+  var life = optionalFn("lifeCmp", "the life ordering has no comparator to check"),
+      rel = optionalFn("releaseCmp", "the release ordering has no comparator to check"),
+      bg = optionalFn("buildGroups", "there is no group builder to check");
 
   if(!/\.sort\(lifeCmp\)/.test(bg)){
     fail("buildGroups() no longer sorts the life ordering through lifeCmp — an " +
@@ -11245,7 +11314,7 @@ var ROUTE_VOCAB = [
    and that is the whole durability argument for item 4. */
 
 (function(){
-  var det = fn("canSaveFile");
+  var det = optionalFn("canSaveFile", "the backup-file feature detection is gone");
   if(det.indexOf("showSaveFilePicker") < 0 || det.indexOf("indexedDB") < 0){
     fail("canSaveFile() no longer feature-detects both showSaveFilePicker and " +
          "indexedDB — the picker without a place to keep the handle is a save " +
@@ -11261,7 +11330,8 @@ var ROUTE_VOCAB = [
     }
   });
 
-  if(fn("fhAllowed").indexOf("queryPermission") < 0){
+  if(optionalFn("fhAllowed", "the backup-file permission gate is gone")
+      .indexOf("queryPermission") < 0){
     fail("fhAllowed() no longer queries the handle's permission before writing " +
          "— a handle restored from a previous session is not writable until " +
          "the person says so again, and skipping the check turns a silent " +
@@ -11355,8 +11425,10 @@ var ROUTE_VOCAB = [
      something re-fills neighbors in idle time; a tick's surgical path does
      the same bookkeeping (it repaints one row, but Home, Next up and
      Progress all changed). */
-  var rb = fn("render");
-  var dirtyMarks = (HTML.match(/NWTABS\.forEach\(function\(t\)\{ if\(t !== S\.tab\) nwDirty\[t\] = true; \}\)/g) || []).length;
+  var rb = optionalFn("render", "the deck contract cannot be checked");
+  /* 4.0.1: counted on collapsed whitespace — the exact-string count was
+     blind to a reformatted third site and red on a benign reindent. */
+  var dirtyMarks = (HTML.match(/NWTABS\.forEach\(function\(t\)\{\s*if\(t !== S\.tab\) nwDirty\[t\] = true;\s*\}\)/g) || []).length;
   if(rb.indexOf("fillPanel(S.tab, c)") < 0 || dirtyMarks !== 2){
     fail("render() no longer fills the active panel and dirties the other " +
          "three — the dirty mark must appear exactly twice, render() and " +
@@ -11366,13 +11438,13 @@ var ROUTE_VOCAB = [
          "jsdom never swipes");
   }
   if(rb.indexOf("queueNeighbors()") < 0 ||
-     fn("tickUpdate").indexOf("queueNeighbors()") < 0){
+     optionalFn("tickUpdate", "the surgical path is gone").indexOf("queueNeighbors()") < 0){
     fail("neighbors are not queued for idle re-fill from both render() and " +
          "tickUpdate()'s surgical path — the surgical path is the easy one " +
          "to forget: it repaints one row in The path while Home, Next up " +
          "and Progress all changed underneath");
   }
-  var qn = fn("queueNeighbors");
+  var qn = optionalFn("queueNeighbors", "there is no idle refill to check");
   if(!/requestIdleCallback/.test(qn) || !/setTimeout/.test(qn)){
     fail("queueNeighbors() does not defer to idle time (with a setTimeout " +
          "fallback) — filling three panels synchronously on every tick is " +
@@ -11394,7 +11466,7 @@ var ROUTE_VOCAB = [
          "order and the accessibility tree, and a keyboard user tabs into " +
          "a panel that is not on screen");
   }
-  var sr = fn("swipeRead");
+  var sr = optionalFn("swipeRead", "there is no swipe commit to check");
   if(!/nwSwiping && Math\.abs\(x - i \* nwVW\) < 2/.test(sr) ||
      sr.indexOf("panelsInert()") < 0){
     fail("the swipe's settle does not sweep inert — 'once a swipe settles' " +
@@ -11413,7 +11485,7 @@ var ROUTE_VOCAB = [
 
   /* Background fills never render the belt's transient states, and the
      anchor never resolves to a background copy. */
-  var fp = fn("fillPanel");
+  var fp = optionalFn("fillPanel", "there is no panel fill to check");
   if(!/S\.beltOpen = S\.beltDrop = S\.beltOpening = S\.beltDropping = false/.test(fp)){
     fail("fillPanel() renders background copies with the belt's transient " +
          "state — the drop is a way of standing in the panel you are " +
@@ -11429,14 +11501,14 @@ var ROUTE_VOCAB = [
   }
 
   /* The programmatic tab change is scrollIntoView, not arithmetic. */
-  var st = fn("snapTo");
+  var st = optionalFn("snapTo", "there is no programmatic snap to check");
   if(!/scrollIntoView/.test(st) || /scrollLeft/.test(st)){
     fail("snapTo() does not go through scrollIntoView — writing scrollLeft " +
          "is a second scroll site for section 120 to pin and a width " +
          "multiplication that drifts the day a panel is not exactly one " +
          "viewport wide; the browser's own alignment cannot drift");
   }
-  if(fn("goTab").indexOf("snapTo(t)") < 0){
+  if(optionalFn("goTab", "the footer door is gone").indexOf("snapTo(t)") < 0){
     fail("goTab() does not snap the viewport — the footer buttons are the " +
          "accessible door to the tabs, and without the snap they change " +
          "state while the deck keeps showing the old panel");
@@ -11445,7 +11517,7 @@ var ROUTE_VOCAB = [
      whatever panel it was on. Counted, not merely found: there are exactly
      two (boot restore and hashchange), and losing either leaves one door
      rendering a tab into a deck still showing the old one. */
-  var snapDoors = (HTML.match(/render\(\);\n  snapTo\(S\.tab\);/g) || []).length;
+  var snapDoors = (HTML.match(/render\(\);\s*snapTo\(S\.tab\);/g) || []).length;
   if(snapDoors !== 3){
     fail("the doors that change the tab outside goTab (boot restore, " +
          "hashchange, goToGroup's jump) snap the viewport after rendering " +
