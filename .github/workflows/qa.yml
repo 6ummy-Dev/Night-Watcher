@@ -155,7 +155,7 @@ jobs:
   # that, by their own admission, cannot observe behavior. It runs on every
   # push and nightly like everything else: the workflow exists so that no
   # suite's evidence is produced only by hand on the release machine.
-browser:
+  browser:
     # Pinned, not latest: `playwright install --with-deps` runs apt with a
     # package list the pinned Playwright (1.56) must know. Every time GitHub
     # advances ubuntu-latest, this job dies at ~40s until the pin catches up
