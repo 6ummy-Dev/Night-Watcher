@@ -46,7 +46,7 @@ s=s.replace(a,'',1);${W}"
 
 run_case "the animation ignores reduced motion" \
   "does not cut .includes.opening .scope" \
-  "${P}a='@media (prefers-reduced-motion: reduce){.includes.opening .scope,.includes.closing .scope,.includes.closing,.pathseg[data-toast],.pathseg[data-park]:not([data-drop]){animation:none;}}';assert a in s
+  "${P}a='@media (prefers-reduced-motion: reduce){.includes.opening .scope,.includes.closing .scope,.includes.closing,.pathseg[data-toast]{animation:none;}}';assert a in s
 s=s.replace(a,'@media (prefers-reduced-motion: reduce){}',1);${W}"
 
 echo "--- 97: theme lives on Home, compact, and nowhere else"

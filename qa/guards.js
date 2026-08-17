@@ -4091,9 +4091,16 @@ if(!/function legendBlock/.test(HTML) ||
          "standalone anchor bug that had it floating above the home " +
          "indicator in the owner's 16 Aug screenshot");
   }
-  if(!/padding-bottom:env\(safe-area-inset-bottom\)/.test(tabsCss)){
-    fail("#tabs no longer pads for the bottom safe area — on a notched " +
-         "phone the Progress button sits under the home indicator");
+  if(!/padding-bottom:max\(0px, calc\(env\(safe-area-inset-bottom\) - var\(--vpdead, 0px\)\)\)/.test(tabsCss)){
+    fail("#tabs's bottom pad is not the reclaim form — it must be " +
+         "max(0px, calc(env(safe-area-inset-bottom) - var(--vpdead, 0px))): " +
+         "in a browser --vpdead is unset and the pad is the full inset " +
+         "(Progress stays above the home indicator), but the owner's probe " +
+         "measured the installed webview ending 62pt ABOVE the screen " +
+         "bottom while env(bottom) still said 34 — an inset for an " +
+         "indicator that is not over the page. vpSync() writes the " +
+         "measured gap and the pad collapses to what is actually owed " +
+         "(4.0.9, vp.html numbers in the release prep)");
   }
   if(HTML.indexOf("@media (display-mode: standalone){#app{height:100%;}}") < 0){
     fail("the standalone height override is gone or is a viewport unit " +
@@ -4142,11 +4149,24 @@ if(!/function legendBlock/.test(HTML) ||
          "scroll position through the seam and the deck's snap both zero " +
          "when #app leaves the tree");
   }
-  if(!/document\.addEventListener\("focusout"/.test(HTML) || HTML.indexOf("setTimeout(vpHeal, 300)") < 0){
-    fail("vpHeal() lost its triggers — it must run at standalone boot (the " +
-         "cold-start stale grant) and after every input blur (the " +
-         "keyboard-shrink bug), or the band returns on the exact paths " +
-         "that made it");
+  if(!/document\.addEventListener\("focusout"/.test(HTML) || HTML.indexOf("setTimeout(vpTick, 300)") < 0){
+    fail("the viewport triggers are gone — vpTick (heal, then sync) must " +
+         "run at standalone boot and after every input blur, or the band " +
+         "returns on the exact paths that made it and the pad reclaim " +
+         "never learns the gap");
+  }
+  if(!/setProperty\("--vpdead"/.test(HTML) || !/removeProperty\("--vpdead"\)/.test(HTML)){
+    fail("vpSync()/--vpdead is gone — the pad reclaim's one source of " +
+         "truth: the measured gap between screen and granted viewport, " +
+         "written as a CSS var in standalone and absent everywhere else " +
+         "(4.0.9)");
+  }
+  if(!/if\(vpGap\(\) === before\) vpTries = 6;/.test(HTML)){
+    fail("vpHeal() no longer gives up when a toggle changes nothing — the " +
+         "owner's probe proved the short render is REAL on iOS 26 " +
+         "(vh/lvh stripes below the render edge), so a heal that cannot " +
+         "move innerHeight must stop at one attempt, not burn its cap " +
+         "toggling #app");
   }
   /* The window is not the scroller any more, so a window scroll call is a
      call to the element that no longer moves — a silent no-op in every

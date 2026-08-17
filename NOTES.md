@@ -3287,3 +3287,21 @@ The glow is static now: the owner-tuned two-layer corner hug, permanently on
 while parked. Nothing repaints, nothing glitches, reduced-motion needs no
 carve-out. A keyframe returning to the peek must be argued against the
 repaint bill — the guard refuses it by name.
+
+
+## The probe's verdict: the render is short, and the pad was the part we owned
+
+4.0.9. `vp.html` on the owner's phone, installed: screen 874pt, granted 812 —
+`svh`/`dvh`/`innerHeight` agree at 812, `vh`/`lvh` claim 874, and the stripes
+prove it: nothing paints below 812. The short render is REAL on iOS 26; the
+16 Aug `height:100%` decision was correct; the heal cannot cure the cold
+start and now gives up after one unchanged re-measure (it stays for the
+keyboard bug). What the app owned: `env(safe-area-inset-bottom)` still says
+34 inside a viewport that ends 28pt above the home indicator, so the bar was
+padding for hardware it cannot reach — `vpSync()` writes the measured gap to
+`--vpdead` and the pad pays it back. And the canvas below the app is black
+now (`body{background:#000}`, `#app` carries `--ink`), because iOS frosts the
+bottom edge: navy frosted to the owner's grey stripe, black frosts to black —
+the one region the app cannot render reads as hardware bezel. If Apple ever
+returns the 62pt, `--vpdead` goes unset by its own measurement and every one
+of these reverts to a no-op without an edit.

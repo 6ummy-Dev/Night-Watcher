@@ -11,6 +11,51 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.0.9] — 2026-08-17
+
+**The footer, measured.** The owner ran `vp.html` on the installed app and the
+numbers ended three days of guessing: screen 874pt, granted viewport 812 —
+`svh`/`dvh`/`innerHeight` all agree at 812, `vh`/`lvh` claim 874, and the
+painted stripes prove the webview renders NOTHING below 812. The short render
+is real; the 16 Aug `height:100%` decision was right; no height unit and no
+heal will ever reach the bottom 62pt on iOS 26. What CAN be fixed, is:
+
+### Fixed
+
+- **The 34pt phantom pad is reclaimed.** `env(safe-area-inset-bottom)` still
+  reports 34 inside a viewport whose bottom edge sits 28pt ABOVE the home
+  indicator — an inset for an indicator that is not over the page. The tab
+  bar's pad is now `max(0px, calc(env(safe-area-inset-bottom) -
+  var(--vpdead, 0px)))`, where `vpSync()` writes `--vpdead` (the measured
+  screen-minus-viewport gap) in standalone and nothing else ever sets it: a
+  browser keeps the full inset, a healthy install keeps the full inset, and
+  the short-granted install stops padding for a bezel it cannot reach. The
+  visible footer drops by a third.
+
+- **The dead band reads as bezel now.** The canvas below the app was
+  `--ink`, and iOS frosts whatever sits at the bottom edge — navy frosts to
+  the owner's grey stripe; black frosts to black (proven live by the darker
+  theme). `body` is `#000` and `#app` carries `var(--ink)` as its own
+  ground: every visible pixel of the app is unchanged, and the one region
+  the app cannot render — iOS's 62pt — now shows frosted black and reads as
+  hardware.
+
+- **The heal gives up when a toggle changes nothing.** vpHeal() stays for
+  the documented keyboard-shrink bug, but the probe proved the cold-start
+  gap is not stale — so a heal whose re-measure moves nothing now spends
+  its whole cap at once instead of toggling `#app` six times per session.
+
+### QA
+
+- **negtest200/210/270 repaired — the three red CI shards.** Each quoted a
+  reduced-motion list from a mid-4.0.4 draft that never shipped; each sat in
+  a different shard, which is why shards 1, 2 and 3 were red and 4 was
+  green. Retargeted to the list the tree actually carries. (The `browser`
+  job's 42s failure is the Playwright `--with-deps` apt step on the runner —
+  environmental; re-run it.) Guard: the tabs-pad clause moves to the
+  reclaim form, vpSync/--vpdead and the give-up line are pinned, and
+  negtest478's fixtures follow vpTick.
+
 ## [4.0.8] — 2026-08-17
 
 ### Fixed

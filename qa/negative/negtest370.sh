@@ -92,9 +92,9 @@ s=s.replace(a,'closeBelt(\"later\");',1);${W}"
 
 run_case "the strip keeps its drop through the close" \
   "breaks the ride home" \
-  "${P}a='  if(endDrop && seg) seg.removeAttribute(\"data-drop\");'
+  "${P}a='  if(endDrop && seg){ seg.setAttribute(\"data-ride\", \"\"); seg.removeAttribute(\"data-drop\"); }'
 assert a in s
-s=s.replace(a,'',1);${W}"
+s=s.replace(a,'  if(endDrop && seg){ seg.setAttribute(\"data-ride\", \"\"); }',1);${W}"
 
 echo "--- 129: the exit is a distance, not an animation (F12)"
 
