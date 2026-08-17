@@ -1641,6 +1641,20 @@ if(HTML.split("applyTheme()").length - 1 < 2){
 if(!/background:var\(--hdr\)/.test(HTML) || !/background:var\(--tabbg\)/.test(HTML)){
   fail("the header or tab bar is back on a hardcoded rgba — a theme cannot reach it");
 }
+/* iOS 26 standalone grants the installed app a viewport short of the screen
+   and paints the dead band below the webview from this same meta — frosted,
+   so the dark theme's navy came out as a grey stripe under the tab bar. Black
+   is the one colour the frosting returns unchanged (owner-verified on device,
+   2026-08-17: the darker theme's band blended, the dark theme's showed). The
+   band is outside the webview — no layout reclaims it — so the standalone
+   branch in applyTheme() is the only thing standing between the tab bar and
+   that stripe, and it is exactly the kind of special case a tidy refactor
+   collapses back into the table lookup. */
+if(!/isStandalone\(\)\s*\?\s*"#000000"/.test(HTML)){
+  fail("applyTheme() no longer announces #000000 when installed — iOS paints " +
+       "the phantom band below the webview from this meta, and the dark " +
+       "theme's navy frosts to a visible grey stripe (see CHANGELOG 4.0.5)");
+}
 
 /* ---------- 29. Weight budget ----------------------------------------- */
 /* The premise is arithmetic, so: arithmetic. It should hurt to add a library. */

@@ -11,6 +11,48 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.0.5] — 2026-08-17
+
+### Fixed
+
+- **The installed app's grey stripe under the tab bar is painted over — by
+  the only hand that can reach it.** The owner's screenshot showed a dead
+  band between the tab bar and the screen's bottom edge on iOS 26, in the
+  installed app only, surviving a relaunch. Two on-device tests settled
+  what three releases of layout work could not: the band is **outside the
+  webview** — a touch there moves nothing — so it is iOS's, not the
+  page's, and no height, anchor or padding will ever reclaim it. But
+  switching to the darker theme turned the band black, which proves iOS
+  paints it from `<meta name="theme-color">` — frosted, so the dark
+  theme's navy `#0C111C` came out as a visibly lighter grey stripe, while
+  black came through unchanged. So `applyTheme()` now answers the meta
+  with `#000000` whenever the app runs installed, both themes: the band
+  reads as bezel and the browser keeps the theme's own tint, because in a
+  browser the meta paints real toolbar chrome and the band does not
+  exist. The band's height is still lost to iOS — the tab bar sits a
+  phantom toolbar above the true bottom until Apple resolves the granted
+  viewport against chrome that is not there (the same misreporting 4.0.x
+  fought from the other side). This release makes the loss invisible;
+  it cannot make it untrue.
+
+- **The 4.0.4 release zip was uploaded into `docs/` as well as the root,
+  and the census caught it.** `docs/CHANGELOG.md`, `docs/README.md`, a
+  full second copy of the app at `docs/docs/`, and five QA files under
+  `docs/qa/` — 26,054 lines of accidental duplicates, all publicly
+  routable in principle (the Cloudflare layer answered 403, so nothing
+  actually leaked). Deleted. Guard 13's census is why a stray upload
+  cannot survive a release: every file `docs/` serves is either in the
+  shell or named as a decision.
+
+### QA
+
+- **Guard 28 pins the standalone branch.** `applyTheme()`'s installed-app
+  arm is exactly the kind of special case a tidy refactor collapses back
+  into the table lookup, so the guard fails the build the moment
+  `isStandalone() ? "#000000"` stops appearing. **negtest475** proves the
+  pin bites from both directions — branch deleted, branch answering navy —
+  and a green_case proves a reworded browser-arm fallback does not trip it.
+
 ## [4.0.4] — 2026-08-17
 
 ### Added

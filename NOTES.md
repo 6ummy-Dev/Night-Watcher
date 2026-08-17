@@ -3223,3 +3223,28 @@ that to 80% of the tile on the tile's own sampled ground (the first cut
 declared the ground and got a faint rectangle — two near-blacks are still
 two blacks; the second samples it). The greyscale dock icon was iOS's
 tinted-icons mode and was left exactly alone.
+
+
+## The band iOS paints under the installed app, and the one hand that reaches it
+
+4.0.5. The dead band under the tab bar — installed app only, surviving a
+force-quit — is the endgame of the viewport story above. Two ten-second tests
+on the owner's phone did what three releases of layout reasoning could not.
+A finger dragged inside the band moves nothing: the band is OUTSIDE the
+webview, so it belongs to iOS and no height, anchor, padding or unit in this
+file will ever paint a pixel of it. And switching the app to the darker theme
+turned the band black: iOS paints it from `<meta name="theme-color">`,
+through a Liquid Glass frosting that lightened the dark theme's `#0C111C`
+into a visible grey stripe — and returned `#000000` unchanged.
+
+So `applyTheme()` answers the meta with black whenever `isStandalone()` —
+both themes — and keeps the theme's own colour in a browser, where the meta
+paints real toolbar chrome and the band does not exist. The band reads as
+bezel now. Its height is still lost: the tab bar sits a phantom toolbar
+above the true bottom until Apple stops resolving the standalone viewport
+against chrome that is not there. If a future release is tempted to reclaim
+that height with `lvh` or `screen.height`, read the 4.0.2–4.0.4 story first:
+every vh-family unit reported the full screen while iOS granted less, and
+laying out into the ungrated remainder cut the bar's labels below the fold.
+The ICB is the only measure that cannot overshoot what iOS laid out. Guard
+28 pins the branch; negtest475 proves the pin bites.
