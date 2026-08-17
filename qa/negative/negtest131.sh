@@ -56,9 +56,12 @@ run_case "Progress loses the saves-line" \
   "Progress lost the saves-line" \
   "${P}a='Progress saves automatically in this browser and follows you across all three orderings.';assert a in s;s=s.replace(a,'Progress is saved.');${W}"
 
+# 4.1.0: the support line joined the footer as a second span.buildline, so
+# renaming only the first left the word "buildline" in viewStats and the
+# guard rightly stayed quiet. The mutation now renames every buildline span.
 run_case "the build line leaves Progress" \
   "the build line left Progress" \
-  "${P}a='<p class=\"note\"><span class=\"buildline\">';assert a in s;s=s.replace(a,'<p class=\"note\"><span class=\"buildref\">');${W}"
+  "${P}a='<span class=\"buildline\">';assert a in s;s=s.replace(a,'<span class=\"buildref\">');${W}"
 
 rm -rf "$NEG"
 finish "131 negative tests"

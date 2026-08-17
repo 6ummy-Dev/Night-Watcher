@@ -11,6 +11,47 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.1.0] — 2026-08-17
+
+**The story card learns the app's own chart.** Since 3.8.2 the Progress tab
+has drawn the skyline — every universe a bar as wide as its share of the
+catalogue, filling bottom-up as you watch — while the share card kept drawing
+an older cousin: equal-width bars, height standing for size, a 50% yellow
+wash. Two charts claiming to be the same picture. Now the card draws the
+skyline too, from mockups the owner reviewed against three alternatives.
+
+### Added
+
+- **The support line.** The standing open item, closed: one line in the
+  Progress footer, under the build line — `Keep the path lit. Support` —
+  with the one word carrying the link to the owner's Brave Creators page
+  (verified since 4.0.4; the only rail). The host joins the guard's NAMED
+  allowlist — origins the page may mention, never fetch — the anchor
+  inherits the same guarded underline as "read the source", and the line
+  gets its own guard clauses plus three negative fixtures in negtest273
+  (gone / reworded / above the build line). Fixture counts move 822 → 825
+  (774 → 777 guards-running) in the README and qa.yml.
+
+### Changed
+
+- The share card's bottom chart is the Progress skyline at card scale: bar
+  width is the universe's share of the catalogue (8px floor for the one-film
+  continuities, the rest squeezed proportionally, same as the app's flexbox
+  does), the track is the app's line color, the fill rises bottom-up in
+  **solid** signal yellow — the half-alpha wash is gone, and with it the
+  62%-alpha "complete" variant; a finished card is every tower fully lit
+  plus the yellow bat, which says it louder. Skipped entries cap their bar
+  in steel, exactly as on Progress. Corners rounded via `roundRect` where
+  the browser has it, square where it doesn't.
+- A key line under the rule, in the scope line's voice: `44 UNIVERSES ·
+  WIDTH IS SIZE · FILL IS WATCHED` — the count is live, the reading lesson
+  travels with the picture.
+- The Limelight wordmark grows 64 → 96px, on the owner's call from the same
+  mock round ("Limelight wordmark but bigger"). Baseline holds at 300; the
+  word grows upward into space that was empty.
+- The card's bottom block does not move: rule at 1590, strapline at 1700,
+  domain at 1750, bat at its 2.7.1 seat — guard 108 still holds all four.
+
 ## [4.0.9] — 2026-08-17
 
 **The footer, measured.** The owner ran `vp.html` on the installed app and the

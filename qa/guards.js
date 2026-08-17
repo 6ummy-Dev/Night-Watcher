@@ -2354,8 +2354,13 @@ if(!/<label class="bklab" for="restorebox">/.test(HTML)){
      \u2014 which were two strings in two CSP directives, and that is exactly how
      one of them survives a removal that only remembers the other. */
   var FETCHED = ["nightwatcher.life"];
+  /* 4.1.0: publishers.basicattentiontoken.org joins on the NAMED footing —
+     the support line on Progress links the owner's Brave Creators page, a
+     link the reader may choose to follow. Nothing fetches it; a tip that
+     phones home about the page being opened would be worse than no tip. */
   var NAMED   = ["search.brave.com", "schema.org", "www.w3.org",
-                 "www.sitemaps.org", "github.com", "x.com"];
+                 "www.sitemaps.org", "github.com", "x.com",
+                 "publishers.basicattentiontoken.org"];
   var ALLOWED = FETCHED.concat(NAMED);
   /* Every file that ships, not just index.html. sw.js kept Google's font
      origins in a dead cache branch from 1.4.2 to 1.5.0 because this scan only
@@ -6409,6 +6414,29 @@ var ROUTE_VOCAB = [
     fail("the source link is not underlined \u2014 it inherits its line's colour on " +
          "purpose, so the underline is the only thing marking it as a control. " +
          "2.7.3 shipped it unstyled and it came back as browser-default blue");
+  }
+  /* The support line. Open item closed in 4.1.0: donations settled on Brave
+     Creators (verified since 4.0.4 \u2014 no BTC, no fiat rails), and the owner
+     specified the shape \u2014 one line, one word, a link \u2014 then supplied the
+     words: "Keep the path lit." with Support carrying the link. Its seat is
+     under the build line, because the reader who has scrolled to the app's
+     machinery is the reader deciding whether it deserves keeping alive. The
+     anchor sits inside the .note so it inherits the guarded underline \u2014
+     the same colour-blind affordance "read the source" earned in 2.7.3. */
+  if(!/<a href="https:\/\/publishers\.basicattentiontoken\.org\/en\/c\/nightwatcher" target="_blank" rel="noopener noreferrer">Support<\/a>/.test(HTML)){
+    fail("the support line is gone \u2014 one line, one word, a link was the " +
+         "owner's shape for the only ask the app makes, and Brave Creators " +
+         "is the only rail");
+  }
+  if(!/Keep the path lit\. <a href="https:\/\/publishers\.basicattentiontoken\.org/.test(HTML)){
+    fail("the support line lost its words \u2014 \"Keep the path lit.\" is the " +
+         "owner's line, and Support is the one word that carries the link");
+  }
+  var slAt = HTML.indexOf("Keep the path lit.");
+  if(slAt >= 0 && slAt < HTML.indexOf(">read the source</a>")){
+    fail("the support line sits above the build line \u2014 its seat is under " +
+         "it: the last line of the last tab, after the machinery, never " +
+         "before it");
   }
   if(!/Drawn in your browser, nothing uploaded\./.test(HTML)){
     fail("the local-only line is gone \u2014 the card's privacy promise is stated " +

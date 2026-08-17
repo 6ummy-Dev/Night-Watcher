@@ -113,6 +113,28 @@ run_case "the underline goes and only colour is left to mark it" \
   "${P}s=s.replace('.homefoot a,.note a{color:inherit;text-decoration:underline;','.homefoot a,.note a{color:var(--steel);',1);${W}"
 
 
+echo "--- the support line holds its seat, its words and its link"
+
+# 4.1.0 closed the standing open item: one line under the build line, one
+# word, a link to the owner's Brave Creators page. Same section of guards.js
+# as the source link, so the fixtures live in this suite with their kin.
+
+run_case "the support line disappears entirely" \
+  "the support line is gone" \
+  "${P}import re;a=re.search(r'<span class=\"buildline\">Keep the path lit[^<]*<a [^>]*>Support</a></span>',s)
+assert a;s=s.replace(a.group(0),'',1);${W}"
+
+run_case "the words change under the link" \
+  "the support line lost its words" \
+  "${P}s=s.replace('Keep the path lit.','Feed the meter.',1);${W}"
+
+run_case "the line climbs above the build line" \
+  "sits above the build line" \
+  "${P}import re;a=re.search(r'<span class=\"buildline\">Keep the path lit.*?</span>',s)
+assert a;s=s.replace(a.group(0),'',1)
+b='<span class=\"buildline\">Build '
+assert b in s;s=s.replace(b,a.group(0)+b,1);${W}"
+
 echo "--- the page's own script parses"
 
 run_case "a quote is dropped from a concatenated string" \

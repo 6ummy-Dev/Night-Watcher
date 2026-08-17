@@ -3305,3 +3305,33 @@ bottom edge: navy frosted to the owner's grey stripe, black frosts to black —
 the one region the app cannot render reads as hardware bezel. If Apple ever
 returns the 62pt, `--vpdead` goes unset by its own measurement and every one
 of these reverts to a no-op without an edit.
+
+
+## The card's two charts become one
+
+4.1.0. Since 3.8.2 the app has had one progress picture — the skyline: every
+universe a bar as wide as its share of the catalogue, yellow rising bottom-up
+as the group completes. The share card kept drawing an older cousin: equal
+widths, height standing for size, a 50% wash. Anyone who read the app's chart
+and then the card's had to learn two grammars for one fact. The owner ran a
+mock round (four cards side by side: as-shipped, a deco-free mono swap, a
+full-bleed "Gotham hero", an Anton masthead) and chose the smallest true
+change: keep the composition, keep Limelight — bigger, 96px — and put the
+real skyline in the card.
+
+The canvas skyline earns its arithmetic the way the app's flexbox does: ideal
+width is the group's share of the 1048px band, one-film continuities get an
+8px floor, and the wide bars pay for it pro-rata (`squeeze`) — one pass,
+exact, because clamping only ever raises the thin and shrinking the wide
+never pushes them under the floor. The fill is SOLID signal now, where the
+old chart washed it to 50% and told completion apart by nudging alpha to 62%.
+That tell is gone on purpose: a finished card is every tower lit plus the
+yellow bat, and the app's own chart never dimmed its yellow either — the card
+stops being the one place the signal color arrives diluted. Skips cap their
+bar in steel, same stacking as `skyline()`. `roundRect` clips the corners
+where it exists and the card stays square where it doesn't, because a 5px
+radius is a nicety and a hard requirement would cost the toBlob browsers
+nothing was wrong with. The bottom block did not move — rule 1590, strapline
+1700, domain 1750, the bat at its 2.7.1 seat — so guard 108 held through the
+whole change, which is the point of pinning a composition: the chart could be
+rethought inside it without the frame drifting.
