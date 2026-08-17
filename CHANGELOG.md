@@ -11,6 +11,40 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.0.6] — 2026-08-17
+
+### Fixed
+
+- **The peek sits on the column again.** On any desktop with classic
+  scrollbars the peek rode 7.5px right of the strip it retracts into:
+  `scrollbar-gutter:stable` reserves the gutter on one side, so a panel's
+  column centres against viewport-minus-scrollbar while the header-anchored
+  `#beltpeek` centres against the viewport itself. `stable both-edges`
+  reserves the gutter symmetrically and the two centres agree to the pixel
+  (measured 640/640 in the harness at 1280px). The original stable-alone
+  defect stays fixed — a panel too short to scroll still reserves what its
+  scrolling neighbors do — and browsers without `both-edges` degrade to
+  exactly the 4.0.5 behaviour, not to something new. Owner-reported.
+
+- **The glow lights the handle, not the page.** The 4.0.4 halo
+  (`0 0 16px` all round) did two things nobody asked of a 12px handle: its
+  upward lobe passed behind the header's translucent bar and the
+  backdrop-filter smeared it into a full-width glowing seam, and its
+  downward lobe washed 16px into whatever card was passing beneath — both
+  surfaces, owner-reported, and the harness reproduced both. The pulse is
+  now a faint under-edge — `0 2px 8px -3px var(--signaledge)` — picked by
+  the owner from rendered candidates: below the strip, tight, spread pulled
+  in so nothing reaches sideways. Same keyframe, same 4.5s breath, same
+  token, same reduced-motion cut.
+
+### QA
+
+- **The gutter guard requires `both-edges` and says why; section 130 pins
+  the shadow's SHAPE, not just its token** — an all-round halo is exactly
+  what a designer reaching for "make it glow" writes first. **negtest476**
+  proves all of it bites: gutter reverted, gutter deleted, halo restored,
+  token swapped. **negtest380's** quoted keyframe retargeted.
+
 ## [4.0.5] — 2026-08-17
 
 ### Fixed

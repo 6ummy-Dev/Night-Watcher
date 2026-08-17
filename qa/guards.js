@@ -1134,11 +1134,16 @@ if(!/\.hero h2\{[^}]*font-size:/.test(HTML)){
    defect one level down. On html it is now a dead 15px column at the window
    edge that pushes every panel's scrollbar inboard. */
 
-if(!/main,\.panel\{scrollbar-gutter:\s*stable;\}/.test(HTML)){
-  fail("the scrollers are missing scrollbar-gutter:stable — Next up will " +
-       "jump sideways relative to the other tabs on any desktop viewport, " +
-       "because a panel too short to scroll centres its column against a " +
-       "wider box than its neighbors'");
+if(!/main,\.panel\{scrollbar-gutter:\s*stable both-edges;\}/.test(HTML)){
+  fail("the scrollers are missing scrollbar-gutter:stable both-edges — " +
+       "stable alone reserves the gutter on one side, so a panel's column " +
+       "centres against (viewport - scrollbar) while the header-anchored " +
+       "#beltpeek centres against the viewport: 7.5px of daylight between " +
+       "the peek and the strip it rides home to, on any desktop with " +
+       "classic scrollbars (measured 4.0.6). both-edges reserves the " +
+       "gutter symmetrically and the two centres agree again — and the " +
+       "original defect stays fixed, because a short panel still reserves " +
+       "what its scrolling neighbors do");
 }
 if(/html\{[^}]*scrollbar-gutter/.test(HTML)){
   fail("html carries scrollbar-gutter again — the document is clipped and " +
@@ -10051,6 +10056,22 @@ var ROUTE_VOCAB = [
          "dropped), so an open or dropped belt never glows by construction");
   }
   var glowKf = (HTML.match(/@keyframes beltglow\{[\s\S]*?\}\}/) || [""])[0];
+  /* The SHAPE of the shadow is load-bearing, not just its colour. 4.0.4
+     shipped an all-round halo (0 0 16px 0) and the header's own
+     backdrop-filter smeared its upward lobe into a full-width glowing seam
+     under the bar, while the downward lobe washed 16px into whatever card
+     was passing beneath — on every surface, owner-reported. The glow is an
+     attention pulse on a 12px handle, not a light source for the page:
+     y-offset 2 keeps it below the strip, blur 8 keeps it tight, spread -3
+     pulls it in so nothing reaches sideways past the corners. An all-round
+     halo is exactly what a designer reaching for "make it glow" writes
+     first, which is why the shape is pinned and not just the token. */
+  if(!/@keyframes beltglow\{to\{box-shadow:0 2px 8px -3px var\(--signaledge\);\}\}/.test(HTML)){
+    fail("the belt glow is not the tight under-edge (0 2px 8px -3px) — an " +
+         "all-round halo bleeds through the header's backdrop-filter into a " +
+         "full-width seam and washes into the content below the peek " +
+         "(the 4.0.6 fix, owner-reported on both surfaces)");
+  }
   if(!/var\(--signaledge\)/.test(glowKf)){
     fail("the glow does not breathe in --signaledge — the peek's own signal " +
          "token is the one honest colour for it, not a new one on a palette " +
