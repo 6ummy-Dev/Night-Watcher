@@ -124,7 +124,7 @@ echo "--- 143: the belt parked as the header's own permanent peek"
 
 run_case "the peek never shows" \
   "the header peek is gone or never shows" \
-  "${P}a='#beltpeek[data-on]{display:block;pointer-events:auto;cursor:pointer;animation:beltglow 4.5s ease-in-out infinite alternate;}';assert a in s
+  "${P}a='#beltpeek[data-on]{display:block;pointer-events:auto;cursor:pointer;box-shadow:0 1px 5px -1px var(--signaledge), 0 3px 12px -3px var(--signaledge);}';assert a in s
 s=s.replace(a,'',1);${W}"
 
 run_case "the gesture flag returns" \

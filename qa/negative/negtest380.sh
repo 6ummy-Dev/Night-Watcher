@@ -40,9 +40,9 @@ s=s.replace(a,'  S.beltDropping = true; render();',1);${W}"
 
 run_case "reduced motion keeps the entrance" \
   "does not cut the drop's entrance" \
-  "${P}a=',.pathseg[data-toast],#beltpeek[data-on]{animation:none;}}'
+  "${P}a=',.pathseg[data-toast]{animation:none;}}'
 assert a in s
-s=s.replace(a,',#beltpeek[data-on]{animation:none;}}',1);${W}"
+s=s.replace(a,'{animation:none;}}',1);${W}"
 
 echo "--- 130: every seam in the stack is an overlap (owner: 'not always almost there')"
 
@@ -134,25 +134,19 @@ run_case "the no-anchor fallback drifts off the strip" \
 assert a in s
 s=s.replace(a,'top:100px;',1);${W}"
 
-echo "--- 130 (3.9.0): the closed belt glows, closed only, in the signal token, off under reduced motion"
+echo "--- 130 (3.9.0, static since 4.0.8): the closed belt glows, closed only, still"
 
-run_case "the belt glow keyframe leaves" \
-  "belt glow keyframe is gone" \
-  "${P}a='@keyframes beltglow{to{box-shadow:0 1px 5px -1px var(--signaledge), 0 3px 12px -3px var(--signaledge);}}'
+run_case "the static glow leaves #beltpeek[data-on]" \
+  "not the static two-layer corner hug" \
+  "${P}a='box-shadow:0 1px 5px -1px var(--signaledge), 0 3px 12px -3px var(--signaledge);}'
 assert a in s
-s=s.replace(a,'',1);${W}"
+s=s.replace(a,'}',1);${W}"
 
-run_case "the glow slips reduced motion" \
-  "reduced motion does not cut the glow" \
-  "${P}a='.pathseg[data-toast],#beltpeek[data-on]{animation:none;}'
+run_case "the pulse comes back as a keyframe" \
+  "animated again" \
+  "${P}a='#beltpeek{display:none;'
 assert a in s
-s=s.replace(a,'.pathseg[data-toast]{animation:none;}',1);${W}"
-
-run_case "the glow drops its signal token" \
-  "does not breathe in --signaledge" \
-  "${P}a='to{box-shadow:0 1px 5px -1px var(--signaledge), 0 3px 12px -3px var(--signaledge);}'
-assert a in s
-s=s.replace(a,'to{box-shadow:0 1px 5px -1px var(--dust), 0 3px 12px -3px var(--dust);}',1);${W}"
+s=s.replace(a,'@keyframes beltglow{to{opacity:.7;}}#beltpeek{display:none;',1);${W}"
 
 echo "--- the smoke half: the parked selectors must live in some staged state"
 

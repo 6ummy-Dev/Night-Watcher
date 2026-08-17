@@ -3248,3 +3248,42 @@ every vh-family unit reported the full screen while iOS granted less, and
 laying out into the ungrated remainder cut the bar's labels below the fold.
 The ICB is the only measure that cannot overshoot what iOS laid out. Guard
 28 pins the branch; negtest475 proves the pin bites.
+
+
+## The heal: the band was a viewport nobody ever re-asked about
+
+4.0.8. The owner named the mechanism before the research did: the band under
+the installed bar was never a problem while the document scrolled, because a
+document scroll is the event that makes WebKit re-resolve its viewport. 3.9.7
+moved scroll onto `#app` and the document went silent — so the stale grant
+WebKit hands a standalone app at cold start (a collapsed-browser-chrome
+height, for chrome that does not exist there) simply sticks. `height:100%`
+fills the short number honestly, and the remainder is the band. Three fixes
+missed because each changed what the frame believes; none made WebKit
+re-measure.
+
+`vpHeal()` is the re-measure: hide `#app`, force one layout, show it — all in
+one task, so nothing paints in between and there is no flash. The same move
+heals the documented iOS bug where the keyboard shrinks the viewport for good
+(this app has a search box and an import panel). The gates are load-bearing,
+not caution: standalone only; portrait shrink over 24px, because iPad windows
+and desktop installs are legitimately short; never while an input holds focus,
+because `display:none` blurs it and eats the keyboard mid-word; tries capped,
+because if the short render is REAL the heal is a no-op and must not spin. The
+scroll survives through the seam (`scrollKeep`/`scrollPut`) and the deck
+re-snaps (`snapTo`) because `display:none` zeroes a scroller's positions. The
+census admits `innerWidth`/`innerHeight` (window metrics, the two gate reads)
+and argues `offsetHeight`'s second appearance: that forced reflow IS the fix.
+
+## The glow stopped pulsing, and the history of why it kept being almost right
+
+Same release. "Why was it OK before the swipe?" — because before 4.0.0 the
+glow sat on the belt strip, on opaque card, in the content column, where an
+animated box-shadow is cheap. The swipe rework moved the handle onto the
+header's live backdrop-filter, and an ANIMATED box-shadow over a blur layer
+repaints the blur every frame — the on-device glitch. Four shape tweaks in a
+row could not fix it because the shape was never the fault; the animation was.
+The glow is static now: the owner-tuned two-layer corner hug, permanently on
+while parked. Nothing repaints, nothing glitches, reduced-motion needs no
+carve-out. A keyframe returning to the peek must be argued against the
+repaint bill — the guard refuses it by name.

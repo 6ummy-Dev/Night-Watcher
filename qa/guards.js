@@ -4104,6 +4104,50 @@ if(!/function legendBlock/.test(HTML) ||
          "and cut the bar's labels off the screen (the no-text footer). " +
          "Both reports are the owner's, both 16 Aug");
   }
+  /* 4.0.8: the heal. The band under the installed bar outlived three fixes
+     because the document never scrolls (3.9.7 moved scroll onto #app), so
+     WebKit never re-resolves a viewport it granted stale — the collapsed
+     browser-chrome number sticks forever, 100% honestly fills the short
+     grant, and the remainder shows as a dead band the owner can see and
+     nothing here could reach. vpHeal() is the community re-measure: hide
+     #app, force one layout, show it — WebKit re-resolves the viewport in
+     the same task (no paint in between, so no flash), and the same move
+     heals the documented keyboard bug where the viewport shrinks for good
+     after typing (this app has a search box). Gates, each load-bearing:
+     standalone only (a browser's short viewport is the browser's own
+     chrome, correct and none of ours); portrait shrink over 24px (iPad
+     windows and desktop installs are legitimately short); never while an
+     INPUT/TEXTAREA holds focus (display:none blurs it and eats the
+     keyboard mid-word); capped tries (if the short render is REAL, the
+     heal is a no-op and must not spin); and the scroll survives through
+     the seam — scrollKeep before, scrollPut after, snapTo(S.tab) because
+     display:none zeroed the deck's own scroll. */
+  if(!/function vpHeal\(\)\{/.test(HTML)){
+    fail("vpHeal() is gone — the installed app's stale-viewport band has no " +
+         "cure again: the document never scrolls, so nothing else ever asks " +
+         "WebKit to re-resolve a stale standalone grant (4.0.8)");
+  }
+  var healBody = (HTML.match(/function vpHeal\(\)\{[\s\S]*?\n\}/) || [""])[0];
+  if(!/isStandalone\(\)/.test(healBody) || !/vpShrunk\(\)/.test(healBody)){
+    fail("vpHeal() lost its standalone or shrink gate — it would toggle " +
+         "#app in plain browsers or on legitimately-short windows (iPad, " +
+         "desktop installs), where the short viewport is not a defect");
+  }
+  if(!/INPUT/.test(healBody) || !/TEXTAREA/.test(healBody)){
+    fail("vpHeal() no longer checks the focused element — display:none on " +
+         "#app blurs a focused input and eats the keyboard mid-word");
+  }
+  if(!/scrollKeep\(\)/.test(healBody) || !/scrollPut\(keep\)/.test(healBody) || !/snapTo\(S\.tab\)/.test(healBody)){
+    fail("vpHeal() no longer restores what the display toggle destroys — " +
+         "scroll position through the seam and the deck's snap both zero " +
+         "when #app leaves the tree");
+  }
+  if(!/document\.addEventListener\("focusout"/.test(HTML) || HTML.indexOf("setTimeout(vpHeal, 300)") < 0){
+    fail("vpHeal() lost its triggers — it must run at standalone boot (the " +
+         "cold-start stale grant) and after every input blur (the " +
+         "keyboard-shrink bug), or the band returns on the exact paths " +
+         "that made it");
+  }
   /* The window is not the scroller any more, so a window scroll call is a
      call to the element that no longer moves — a silent no-op in every
      browser, and the exact bug this migration invites for as long as muscle
@@ -8747,12 +8791,26 @@ var ROUTE_VOCAB = [
   /* Never read here. Any appearance is a new forced-layout site. */
   var REFUSED = ["scrollHeight", "scrollY", "pageYOffset", "offsetTop",
                  "offsetWidth", "clientHeight", "clientWidth",
-                 "getComputedStyle", "innerHeight", "innerWidth"];
+                 "getComputedStyle"];
 
   /* Read here, exactly this many times, for exactly this reason. The count is
      the assertion: one more is a new site, one fewer means the fix landed and
      this entry moves to REFUSED. */
   var PINNED = [
+    ["innerWidth", 1,
+     "vpShrunk()'s orientation gate, argued in 4.0.8. WINDOW metrics, not " +
+     "element layout — reading them forces nothing — but they sat in " +
+     "REFUSED because sizing layout from them is how viewport bugs get " +
+     "hand-rolled. The heal is the one caller: it compares the window to " +
+     "the screen to DETECT a stale standalone grant, off the render path, " +
+     "behind the standalone gate. A second appearance has to be argued for"],
+    ["innerHeight", 2,
+     "both in vpShrunk(), argued in 4.0.8: once against innerWidth (the " +
+     "portrait gate) and once against screen.height (the shrink test) — " +
+     "the two comparisons that decide the heal may run at all. Window " +
+     "metrics, no reflow; the danger they were refused for is sizing " +
+     "layout from them, and nothing here sizes anything. A third " +
+     "appearance has to be argued for"],
     ["scrollTop", 2,
      "the whole of the app's scroll seam, and the only two places the name " +
      "may appear: scrollKeep() reads #app's position — render()'s keep, " +
@@ -8766,12 +8824,17 @@ var ROUTE_VOCAB = [
      "nowhere and sits in REFUSED above, and the element read took over its " +
      "pin. A third appearance is a scroll site outside the seam and has to " +
      "be argued for here"],
-    ["offsetHeight", 1,
-     "the header's own height, measured once to set --hdrh when the store is " +
-     "blocked (it wrote --ghtop until 3.5.0 derived --ghtop from --hdrh — one " +
-     "source, section 128). Read THEN write, which is the correct order and " +
-     "not a forced reflow — recorded rather than refused, so that a second " +
-     "appearance has to be argued for"],
+    ["offsetHeight", 2,
+     "ONE: the header's own height, measured once to set --hdrh when the " +
+     "store is blocked (it wrote --ghtop until 3.5.0 derived --ghtop from " +
+     "--hdrh — one source, section 128). Read THEN write, correct order, " +
+     "not a forced reflow. TWO, argued in 4.0.8: vpHeal()'s read of " +
+     "documentElement.offsetHeight after writing display:none — a forced " +
+     "reflow ON PURPOSE, because the reflow IS the mechanism: it is the " +
+     "one thing that makes WebKit re-resolve a stale standalone viewport " +
+     "grant, runs at most a handful of times per session behind four " +
+     "gates, and never on the render path. A third appearance has to be " +
+     "argued for"],
     ["getBoundingClientRect", 2,
      "3.8.3's search-box anchor, the soak fix for the box that jumped while " +
      "you typed. Refused since this section existed; admitted now because " +
@@ -10046,58 +10109,44 @@ var ROUTE_VOCAB = [
          "render animates");
   }
 
-  /* (1b) 3.9.0: the closed belt glows now and then. The parked peek is the
-     app's one persistent handle (the owner's "you don't use it much, but it
-     needs to work perfectly"), and a periodic --signal breath is the reminder
-     it is live — on the CLOSED, parked handle only, which since 4.0.4 is the
-     header's #beltpeek. Three things keep it honest: it rides
-     #beltpeek[data-on], parkFocus()'s computed truth, so an open/dropped
-     belt never glows; it is
-     a box-shadow keyframe, which the *{transition:none} reduced-motion block
-     cannot reach (the section-128 Q2 trap), so the animation:none block must
-     name it; and it breathes in --signaledge, the signal-alpha token already
-     on the peek — no new colour on a palette 3.8.4 spent a release making
-     single-meaning. */
-  if(!/@keyframes beltglow\{/.test(HTML)){
-    fail("the belt glow keyframe is gone — the closed peek stops reminding a " +
-         "returning reader the one handle is live");
+  /* (1b) 3.9.0 gave the closed belt a glow; 4.0.8 took away its pulse.
+     The parked peek is the app's one persistent handle (the owner's "you
+     don't use it much, but it needs to work perfectly"), and the glow is the
+     reminder it is live — on the CLOSED, parked handle only, which since
+     4.0.4 is the header's #beltpeek. It was a 4.5s box-shadow keyframe from
+     3.9.0 to 4.0.7, and that was fine while the strip sat on opaque card in
+     the content column; the swipe rework moved the handle onto the header's
+     live backdrop-filter, and an ANIMATED box-shadow over a blur layer
+     repaints the blur every frame — the owner's "glitchy", on device, four
+     shape-tweaks in a row, because the shape was never the fault. The glow
+     is STATIC now: same two-layer corner hug, nothing to repaint, nothing
+     to glitch, and nothing for reduced-motion to cut — a still image is
+     compliant by construction. Three things stay honest: it rides
+     #beltpeek[data-on] (parkFocus()'s computed truth, so an open or dropped
+     belt never glows); its SHAPE is pinned, because 4.0.4's all-round halo
+     bled through the backdrop-filter into a full-width seam and washed into
+     passing cards, and a halo is what "make it glow" writes first; and it
+     is --signaledge, the peek's own token, on a palette 3.8.4 spent a
+     release making single-meaning. A keyframe returning here must be argued
+     against the repaint bill it reintroduces. */
+  if(/@keyframes beltglow/.test(HTML)){
+    fail("the belt glow is animated again — a box-shadow keyframe over the " +
+         "header's backdrop-filter repaints the blur every frame, which is " +
+         "the owner-reported on-device glitch 4.0.8 removed. The glow is " +
+         "static; a pulse must be argued against that repaint bill");
   }
-  if(!/#beltpeek\[data-on\]\{[^}]*animation:beltglow /.test(HTML)){
-    fail("the glow is not on #beltpeek[data-on] — it must ride the CLOSED, " +
-         "parked handle, and since 4.0.4 that handle is the header's peek: " +
-         "data-on is parkFocus()'s computed truth (parked, not held, not " +
-         "dropped), so an open or dropped belt never glows by construction");
+  if(!/#beltpeek\[data-on\]\{[^}]*box-shadow:0 1px 5px -1px var\(--signaledge\), 0 3px 12px -3px var\(--signaledge\);\}/.test(HTML)){
+    fail("the glow is not the static two-layer corner hug on " +
+         "#beltpeek[data-on] (0 1px 5px -1px + 0 3px 12px -3px, both " +
+         "--signaledge) — data-on is parkFocus()'s computed truth, so the " +
+         "closed parked handle glows and nothing else does; anything " +
+         "bigger re-runs 4.0.4's full-width backdrop seam, any new colour " +
+         "breaks the single-meaning palette, and any animation re-runs " +
+         "the 4.0.7 glitch");
   }
-  var glowKf = (HTML.match(/@keyframes beltglow\{[\s\S]*?\}\}/) || [""])[0];
-  /* The SHAPE of the shadow is load-bearing, not just its colour. 4.0.4
-     shipped an all-round halo (0 0 16px 0) and the header's own
-     backdrop-filter smeared its upward lobe into a full-width glowing seam
-     under the bar, while the downward lobe washed 16px into whatever card
-     was passing beneath — on every surface, owner-reported. The glow is an
-     attention pulse on a 12px handle, not a light source for the page:
-     y-offset 2 keeps it below the strip, blur 8 keeps it tight, spread -3
-     pulls it in so nothing reaches sideways past the corners. An all-round
-     halo is exactly what a designer reaching for "make it glow" writes
-     first, which is why the shape is pinned and not just the token. */
-  if(!/@keyframes beltglow\{to\{box-shadow:0 1px 5px -1px var\(--signaledge\), 0 3px 12px -3px var\(--signaledge\);\}\}/.test(HTML)){
-    fail("the belt glow is not the two-layer corner hug (0 1px 5px -1px + " +
-         "0 3px 12px -3px) — the tight layer lights the strip's rounded " +
-         "corners and the down-biased bloom keeps the brightness below the " +
-         "strip. Anything bigger re-runs 4.0.4: an all-round halo bleeds " +
-         "through the header's backdrop-filter into a full-width seam and " +
-         "washes into the content passing beneath (owner-reported, both " +
-         "surfaces; brightness and corners owner-tuned in 4.0.7)");
-  }
-  if(!/var\(--signaledge\)/.test(glowKf)){
-    fail("the glow does not breathe in --signaledge — the peek's own signal " +
-         "token is the one honest colour for it, not a new one on a palette " +
-         "3.8.4 spent a release making single-meaning");
-  }
-  if(!new RegExp("prefers-reduced-motion: reduce\\)\\{[^}]*#beltpeek\\[data-on\\][^}]*\\{animation:none;").test(HTML)){
-    fail("reduced motion does not cut the glow — a box-shadow keyframe slips " +
-         "*{transition:none} entirely (the section-128 Q2 trap), so the " +
-         "animation:none block must name #beltpeek[data-on] " +
-         "or the closed belt pulses for a reader who asked for no motion");
+  if(/#beltpeek\[data-on\]\{[^}]*animation:/.test(HTML)){
+    fail("#beltpeek[data-on] carries an animation — the 4.0.8 decision is " +
+         "a still glow; see the block comment above before bringing one back");
   }
 
   /* (2) Every seam in the stack is an overlap. */

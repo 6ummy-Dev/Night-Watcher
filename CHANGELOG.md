@@ -11,6 +11,54 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.0.8] — 2026-08-17
+
+### Fixed
+
+- **The installed app's dead band, healed at the root this time.** The owner
+  called the mechanism before the research confirmed it: the band was never a
+  problem while the document scrolled, because a scroll is what makes WebKit
+  re-resolve its viewport. 3.9.7 moved scroll onto `#app` and the document
+  went silent — so a stale standalone grant (the collapsed browser-chrome
+  height, granted at cold start for chrome that does not exist) just sticks,
+  `height:100%` honestly fills the short number, and the remainder shows as
+  a band nothing in CSS could reach. Three fixes missed because they changed
+  what the frame believes; none made WebKit re-measure. `vpHeal()` does: hide
+  `#app`, force one layout, show it — same task, no paint in between, no
+  flash — and WebKit re-resolves the viewport. It runs at standalone boot,
+  on app resume, and after every input blur, which also heals the documented
+  iOS bug where the keyboard shrinks the viewport for good (this app has a
+  search box). Four gates keep it honest: standalone only, portrait shrink
+  over 24px (iPad windows and desktop installs are legitimately short),
+  never while an input holds focus (`display:none` would eat the keyboard
+  mid-word), and capped tries — if the short render is real, the heal is a
+  no-op and must not spin. Scroll survives through the seam
+  (`scrollKeep`/`scrollPut`) and the deck re-snaps (`snapTo`). If the band
+  still shows after this, it is iOS's own render and `vp.html` will say so.
+
+- **The glow does not pulse any more, and that is the fix.** "Why was it OK
+  before the swipe?" — because before 4.0.0 the glow sat on the belt strip,
+  on opaque card, in the content column, where animating a box-shadow is
+  cheap. The swipe rework moved the handle onto the header's live
+  backdrop-filter, and an ANIMATED box-shadow over a blur layer repaints the
+  blur every frame — the on-device glitch, four shape-tweaks in a row,
+  because the shape was never the fault. The glow is now STATIC: the same
+  owner-tuned two-layer corner hug, permanently on while the handle is
+  parked. Nothing repaints, nothing glitches, and reduced-motion needs no
+  carve-out — a still image is compliant by construction. The keyframe is
+  deleted and guarded against return: a pulse must be argued against the
+  repaint bill it reintroduces.
+
+### QA
+
+- Section 120's census admits `innerWidth`/`innerHeight` (pinned 1/2, window
+  metrics, the heal's two gates) and argues `offsetHeight`'s second
+  appearance — vpHeal()'s forced reflow IS the mechanism. The standalone
+  block grows five vpHeal clauses; section 130's glow block is rewritten for
+  the static shape with the keyframe REFUSED. **negtest478** proves the new
+  clauses bite; 380/476's glow fixtures retargeted to the static form;
+  negtest320's census message follows the new count.
+
 ## [4.0.7] — 2026-08-17
 
 ### Changed

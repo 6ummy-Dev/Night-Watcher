@@ -31,7 +31,7 @@ run_case "a pinned read multiplies" \
 s=s.replace(a,'var also = document.body.scrollTop; var keep = scrollKeep();',1);${W}"
 
 run_case "the header measurement multiplies" \
-  "reads offsetHeight 2 times" \
+  "reads offsetHeight 3 times" \
   "${P}a='h.offsetHeight';assert a in s
 s=s.replace(a,'h.offsetHeight + h.offsetHeight',1);${W}"
 
