@@ -138,7 +138,7 @@ echo "--- 130 (3.9.0): the closed belt glows, closed only, in the signal token, 
 
 run_case "the belt glow keyframe leaves" \
   "belt glow keyframe is gone" \
-  "${P}a='@keyframes beltglow{to{box-shadow:0 2px 8px -3px var(--signaledge);}}'
+  "${P}a='@keyframes beltglow{to{box-shadow:0 1px 5px -1px var(--signaledge), 0 3px 12px -3px var(--signaledge);}}'
 assert a in s
 s=s.replace(a,'',1);${W}"
 
@@ -150,9 +150,9 @@ s=s.replace(a,'.pathseg[data-toast]{animation:none;}',1);${W}"
 
 run_case "the glow drops its signal token" \
   "does not breathe in --signaledge" \
-  "${P}a='to{box-shadow:0 2px 8px -3px var(--signaledge);}'
+  "${P}a='to{box-shadow:0 1px 5px -1px var(--signaledge), 0 3px 12px -3px var(--signaledge);}'
 assert a in s
-s=s.replace(a,'to{box-shadow:0 2px 8px -3px var(--dust);}',1);${W}"
+s=s.replace(a,'to{box-shadow:0 1px 5px -1px var(--dust), 0 3px 12px -3px var(--dust);}',1);${W}"
 
 echo "--- the smoke half: the parked selectors must live in some staged state"
 

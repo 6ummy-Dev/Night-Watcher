@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NW VP">
+<meta name="robots" content="noindex">
+<title>NW viewport probe</title>
+<style>
+/* One question, answered by paint: how far down can this webview actually
+   draw, and what does each height unit believe? Five lanes, one per unit;
+   each lane's stripe ENDS at that unit's bottom. Lanes that agree line up.
+   A stripe you cannot see is a unit that reaches below what iOS renders. */
+html,body{margin:0;padding:0;height:100%;background:#08090F;color:#E7E9F0;
+  font:12px/1.5 ui-monospace,Menlo,monospace;overflow:hidden;}
+#wrap{position:relative;height:100%;}
+.stripe{position:fixed;width:19%;height:22px;display:flex;align-items:center;
+  justify-content:center;font-weight:600;font-size:10px;color:#000;}
+#s-pct{position:absolute;left:0.5%;bottom:0;background:#FF5A4E;}
+#s-vh {left:20.5%;top:calc(100vh  - 22px);background:#FFCF1F;}
+#s-svh{left:40.5%;top:calc(100svh - 22px);background:#39D98A;}
+#s-dvh{left:60.5%;top:calc(100dvh - 22px);background:#4DC4FF;}
+#s-lvh{left:80.5%;top:calc(100lvh - 22px);background:#FF7AD9;}
+#sab{position:fixed;left:0;right:0;bottom:0;height:env(safe-area-inset-bottom,0px);
+  background:rgba(255,255,255,.18);outline:1px dashed rgba(255,255,255,.5);
+  pointer-events:none;}
+#grid{position:fixed;left:0;top:0;width:100%;height:100lvh;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0,transparent 49px,rgba(115,149,204,.25) 49px,rgba(115,149,204,.25) 50px);}
+#nums{position:relative;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 0;
+  white-space:pre;font-size:13px;}
+#nums b{color:#FFCF1F;}
+#how{padding:10px 16px;color:#93A0B8;max-width:340px;}
+input{margin:8px 16px;padding:10px;font:inherit;background:#141B2C;color:#E7E9F0;
+  border:1px solid #33405C;border-radius:8px;width:60%;}
+button{margin:8px 4px;padding:10px 14px;font:inherit;background:#FFCF1F;color:#000;
+  border:0;border-radius:8px;font-weight:600;}
+/* probes: real rendered px for each unit, read back by JS */
+.probe{position:absolute;left:-9999px;top:0;width:1px;visibility:hidden;}
+#p-vh{height:100vh;}#p-svh{height:100svh;}#p-dvh{height:100dvh;}#p-lvh{height:100lvh;}
+#p-sab{height:env(safe-area-inset-bottom,0px);}#p-sat{height:env(safe-area-inset-top,0px);}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="grid"></div>
+  <div id="nums">measuring…</div>
+  <div id="how">Add this page to the Home Screen, open it from there, take a
+  screenshot, send it. Then tap the box below, close the keyboard, and send a
+  second screenshot. HEAL re-measures the viewport.</div>
+  <input id="kb" type="text" placeholder="tap, type a letter, close keyboard">
+  <button id="heal">HEAL</button>
+  <div class="probe" id="p-vh"></div><div class="probe" id="p-svh"></div>
+  <div class="probe" id="p-dvh"></div><div class="probe" id="p-lvh"></div>
+  <div class="probe" id="p-sab"></div><div class="probe" id="p-sat"></div>
+  <div class="stripe" id="s-pct">100%</div>
+  <div class="stripe" id="s-vh">VH</div>
+  <div class="stripe" id="s-svh">SVH</div>
+  <div class="stripe" id="s-dvh">DVH</div>
+  <div class="stripe" id="s-lvh">LVH</div>
+  <div id="sab"></div>
+</div>
+<script>
+function n(id){ return document.getElementById(id); }
+function standalone(){
+  try{ if(matchMedia("(display-mode: standalone)").matches) return true; }catch(e){}
+  return navigator.standalone === true;
+}
+function read(){
+  var vv = window.visualViewport;
+  n("nums").textContent =
+    "standalone  " + (standalone() ? "YES" : "no") + "\n" +
+    "screen      " + screen.width + " x " + screen.height + "  dpr " + devicePixelRatio + "\n" +
+    "inner       " + innerWidth + " x " + innerHeight + "\n" +
+    "visualVp    " + (vv ? Math.round(vv.width) + " x " + Math.round(vv.height) + "  offTop " + Math.round(vv.offsetTop) : "n/a") + "\n" +
+    "docElem     " + document.documentElement.clientWidth + " x " + document.documentElement.clientHeight + "\n" +
+    "100vh " + n("p-vh").offsetHeight + " · svh " + n("p-svh").offsetHeight +
+    " · dvh " + n("p-dvh").offsetHeight + " · lvh " + n("p-lvh").offsetHeight + "\n" +
+    "safe-area   top " + n("p-sat").offsetHeight + " · bottom " + n("p-sab").offsetHeight;
+}
+n("heal").addEventListener("click", function(){
+  var w = n("wrap");
+  w.style.display = "none";
+  void w.offsetHeight;
+  w.style.display = "";
+  setTimeout(read, 60);
+});
+n("kb").addEventListener("blur", function(){ setTimeout(read, 200); });
+if(window.visualViewport) visualViewport.addEventListener("resize", read);
+addEventListener("resize", read);
+setInterval(read, 800);
+read();
+</script>
+</body>
+</html>

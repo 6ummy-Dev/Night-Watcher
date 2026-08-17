@@ -94,6 +94,7 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `docs/auth.md` | The no-auth statement for agents: no accounts exist, by design. Five lines, written for machines that never run the app, same reasoning as `llms.txt` and `orders.txt` |
 | `docs/_headers` | The security headers and the cache policy, kept in the tree — a file here can be diffed, guarded and shipped inside a release, where a dashboard rule can be none of those. (Edge rules CAN override these — that lesson is recorded in the file itself, and the wire check lives in `RELEASING.md`) |
 | `docs/404.html` | The wrong-alley page. Self-contained, noindexed, served with a real 404 status |
+| `docs/vp.html` | The viewport probe — five height units painted as stripes plus the numbers iOS actually grants, for the standalone bottom-band investigation. Owner-facing, noindexed, never linked from the app, out of the offline shell; leaves with the question it answers |
 | `docs/fonts/limelight-latin-400-normal.woff2` | Display face for the wordmark and headings |
 | `docs/fonts/anton-latin-400-normal.woff2` | Condensed face for titles |
 | `docs/fonts/ibm-plex-sans-latin-400-normal.woff2` | Body text |

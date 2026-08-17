@@ -28,16 +28,16 @@ s=s.replace(a,'',1);${W}"
 echo "--- 130: the halo comes back and lights the page instead of the handle"
 
 run_case "the glow reverts to the 4.0.4 all-round halo" \
-  "not the tight under-edge" \
-  "${P}a='@keyframes beltglow{to{box-shadow:0 2px 8px -3px var(--signaledge);}}'
+  "not the two-layer corner hug" \
+  "${P}a='@keyframes beltglow{to{box-shadow:0 1px 5px -1px var(--signaledge), 0 3px 12px -3px var(--signaledge);}}'
 assert a in s
 s=s.replace(a,'@keyframes beltglow{to{box-shadow:0 0 16px 0 var(--signaledge);}}',1);${W}"
 
 run_case "the glow keeps the shape but swaps in a new colour" \
   "does not breathe in --signaledge" \
-  "${P}a='@keyframes beltglow{to{box-shadow:0 2px 8px -3px var(--signaledge);}}'
+  "${P}a='@keyframes beltglow{to{box-shadow:0 1px 5px -1px var(--signaledge), 0 3px 12px -3px var(--signaledge);}}'
 assert a in s
-s=s.replace(a,'@keyframes beltglow{to{box-shadow:0 2px 8px -3px rgba(255,207,31,.55);}}',1);${W}"
+s=s.replace(a,'@keyframes beltglow{to{box-shadow:0 1px 5px -1px rgba(255,207,31,.55), 0 3px 12px -3px rgba(255,207,31,.55);}}',1);${W}"
 
 rm -rf "$NEG"
 finish "negtest476"

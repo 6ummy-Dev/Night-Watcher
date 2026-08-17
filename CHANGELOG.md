@@ -11,6 +11,37 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.0.7] — 2026-08-17
+
+### Changed
+
+- **The glow is a little brighter and reaches the corners.** 4.0.6's single
+  under-edge left the strip's rounded corners dark; the owner asked for
+  brighter, corners included. Two layers now, both in `--signaledge`: a tight
+  hug (`0 1px 5px -1px`) that lights the outline and both bottom corners, and
+  a down-biased bloom (`0 3px 12px -3px`) that carries the brightness below
+  the strip. Verified against the 4.0.4 failure before shipping: no
+  full-width seam through the header's backdrop-filter, no wash over the
+  cards passing beneath. Section 130's pin moves to the new shape.
+
+### Added
+
+- **`docs/vp.html` — the viewport probe, because the next standalone fix will
+  be measured, not guessed.** The bottom band in the installed iOS app has
+  now outlived three fixes, and the research splits into two documented
+  failure modes with OPPOSITE prescriptions: a stale short *grant* (webview
+  renders full height, `100%` believes the lie — fix is `100vh` and a
+  re-measure heal) versus a true short *render* (`100vh` overshoots and cuts
+  the tab bar — the owner's own 16 Aug screenshot). One page answers it from
+  the device: five height units, one painted stripe each, ending exactly at
+  the bottom that unit believes in — the stripes that are visible mark what
+  iOS actually renders — plus the numbers (`screen`, `innerHeight`,
+  `visualViewport`, safe-area insets) and a keyboard round-trip to expose the
+  documented shrink-for-good bug. Out of the offline shell (an offline copy
+  of a measuring instrument is a contradiction), named in guard 13's
+  exclusions with its own removal condition, `noindex`, never linked from
+  the app. The height decision waits on its screenshot.
+
 ## [4.0.6] — 2026-08-17
 
 ### Fixed

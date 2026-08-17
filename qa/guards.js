@@ -937,7 +937,20 @@ if(PUBLIC !== ROOT){
                         name and bytes are Brave's contract, not this repo's.
                         Written for a machine that never runs the app, same
                         reasoning as the IndexNow key. */
-                     ".well-known/brave-rewards-verification.txt"];
+                     ".well-known/brave-rewards-verification.txt",
+                     /* 4.0.7. The viewport probe. Five height units, one
+                        painted stripe each, and the numbers iOS actually
+                        grants — the instrument for the standalone bottom-band
+                        question, because the two documented failure modes
+                        (stale short grant vs true short render) prescribe
+                        OPPOSITE fixes and three releases have now guessed.
+                        Owner-facing, reached by typing the URL once and
+                        adding to the home screen; the app never links it,
+                        never reads it, and an offline copy of a measuring
+                        instrument is a contradiction — it must answer for
+                        the wire it rode in on. Delete the exclusion with the
+                        file once the question is closed. */
+                     "vp.html"];
   var served = [];
   (function walk(dir, pre){
     fs.readdirSync(dir).forEach(function(name){
@@ -10066,11 +10079,14 @@ var ROUTE_VOCAB = [
      pulls it in so nothing reaches sideways past the corners. An all-round
      halo is exactly what a designer reaching for "make it glow" writes
      first, which is why the shape is pinned and not just the token. */
-  if(!/@keyframes beltglow\{to\{box-shadow:0 2px 8px -3px var\(--signaledge\);\}\}/.test(HTML)){
-    fail("the belt glow is not the tight under-edge (0 2px 8px -3px) — an " +
-         "all-round halo bleeds through the header's backdrop-filter into a " +
-         "full-width seam and washes into the content below the peek " +
-         "(the 4.0.6 fix, owner-reported on both surfaces)");
+  if(!/@keyframes beltglow\{to\{box-shadow:0 1px 5px -1px var\(--signaledge\), 0 3px 12px -3px var\(--signaledge\);\}\}/.test(HTML)){
+    fail("the belt glow is not the two-layer corner hug (0 1px 5px -1px + " +
+         "0 3px 12px -3px) — the tight layer lights the strip's rounded " +
+         "corners and the down-biased bloom keeps the brightness below the " +
+         "strip. Anything bigger re-runs 4.0.4: an all-round halo bleeds " +
+         "through the header's backdrop-filter into a full-width seam and " +
+         "washes into the content passing beneath (owner-reported, both " +
+         "surfaces; brightness and corners owner-tuned in 4.0.7)");
   }
   if(!/var\(--signaledge\)/.test(glowKf)){
     fail("the glow does not breathe in --signaledge — the peek's own signal " +
