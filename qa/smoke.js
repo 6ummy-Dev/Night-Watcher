@@ -802,11 +802,11 @@ win.addEventListener("load", function(){
             (kids[1] ? kids[1].className : "(none)"));
       check(tab + " keeps the pouches closed until asked",
             !doc.querySelector("#view .panel:not([inert]) .includes"));
-      /* 3.6.4: once a path is chosen the strip is the permanent peek, so the
-         buckle lives behind the drop — the strip's own tap drops the belt
-         (closed), and the buckle opens the pouches from there. Two clicks,
-         both through the real handler, exactly the reader's route. */
-      doc.querySelector("#view .panel:not([inert]) .pathseg").click();
+      /* 3.6.4: once a path is chosen the buckle lives behind the drop; 4.0.4
+         moved the closed handle to the header — the peek's own tap drops the
+         belt, and the buckle opens the pouches from there. Two clicks, both
+         through the real handlers, exactly the reader's route. */
+      doc.getElementById("beltpeek").click();
       doc.querySelector('#view .panel:not([inert]) [data-act="belt"]').click();
       check(tab + " opens the pouches from the buckle",
             !!doc.querySelector("#view .panel:not([inert]) .includes") && S.beltOpen === true &&
@@ -816,16 +816,17 @@ win.addEventListener("load", function(){
       S.beltOpen = false; S.beltDrop = false;
     });
     S.tab = "watch"; win.render();
-    /* Switching paths now goes through the drop: tap the peek, then the
-       segment — a segment inside the peek is not a control (F5). */
-    doc.querySelector("#view .panel:not([inert]) .pathseg").click();
+    /* Switching paths now goes through the drop: tap the peek — the
+       header's own since 4.0.4 — then the segment; a hidden parked strip
+       is not a control (F5). */
+    doc.getElementById("beltpeek").click();
     doc.querySelector('#view .panel:not([inert]) .pathseg button[data-path="release"]')
        .dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("switching path from another tab works", S.path === "release", S.path);
     S.path = "continuity"; S.mode = "continuity"; S.beltDrop = false;
     S.tab = "home"; win.render();
 
-    doc.querySelector("#view .panel:not([inert]) .pathseg").click();
+    doc.getElementById("beltpeek").click();
     doc.querySelector('#view .panel:not([inert]) [data-act="belt"]').click();
     var iSeg = posOf(".pathseg"), iInc = posOf(".includes"), iHero = posOf(".hero");
     check("the controls come first", iSeg === 1 && posOf(".beltguide") === 0,
@@ -1963,15 +1964,17 @@ win.addEventListener("load", function(){
          already are. */
       doc.getElementById("view").classList.add("settling"); sweep();
       doc.getElementById("view").classList.remove("settling");
-      /* 4.0.3: the gesture flag is written on <html> by swipeRead, and
-         jsdom never swipes \u2014 staged the way .settling and data-beltpark
-         are. The sweep asks whether the selector can match, not whether a
-         finger moved the deck. The peek's third lit segment needs the one
-         mode the sweep does not otherwise walk. */
-      doc.documentElement.setAttribute("data-swiping", ""); sweep();
+      /* 4.0.4: the peek is permanent header chrome when parked \u2014
+         parkFocus() toggles data-on from the strip's own attributes on
+         every render, but this stretch of the sweep holds the belt open,
+         so the flag is staged the way data-beltpark is. The sweep asks
+         whether the selector can match, not whether the belt was parked.
+         The peek's third lit segment needs the one mode the sweep does
+         not otherwise walk. */
+      doc.getElementById("beltpeek").setAttribute("data-on", ""); sweep();
       S.mode = "release"; win.render(); sweep();
       S.mode = "continuity"; win.render();
-      doc.documentElement.removeAttribute("data-swiping");
+      doc.getElementById("beltpeek").removeAttribute("data-on");
       S.beltOpen = false;
       /* The states a sweep cannot reach by walking the tabs. */
       S.tab = "watch"; S.mode = "life"; win.render(); sweep();

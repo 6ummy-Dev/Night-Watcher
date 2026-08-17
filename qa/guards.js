@@ -929,7 +929,15 @@ if(PUBLIC !== ROOT){
                         outlive its own Expires with nothing to say so. Section
                         140 keeps the live one honest; the shell stays out of
                         it. Same reasoning as llms.txt and orders.txt. */
-                     ".well-known/security.txt"];
+                     ".well-known/security.txt",
+                     /* 4.0.4. The Brave Creators verification token. Fetched
+                        once (and re-checked occasionally) by Brave's publisher
+                        service to prove this host is claimed by its owner, and
+                        by nothing else — the app never reads it, and its exact
+                        name and bytes are Brave's contract, not this repo's.
+                        Written for a machine that never runs the app, same
+                        reasoning as the IndexNow key. */
+                     ".well-known/brave-rewards-verification.txt"];
   var served = [];
   (function walk(dir, pre){
     fs.readdirSync(dir).forEach(function(name){
@@ -9405,9 +9413,12 @@ var ROUTE_VOCAB = [
          "committed, lit means current, and viewWatch()'s two-line banner is " +
          "the reason they are different variables on purpose");
   }
-  /* The chunk's three positions are the segments' own thirds, in PATHS order. */
+  /* The chunk's three positions are the segments' own thirds, in PATHS order.
+     4.0.4: the chunk lives on the header's #beltpeek — the strips' own band
+     left with the swap (a parked strip hides whole now), so the peek is the
+     one element that still says where you are. */
   [["life", "0"], ["continuity", "26%"], ["release", "52%"]].forEach(function(p){
-    if(!new RegExp("\\.pathseg\\[data-lit=\"" + p[0] + "\"\\]::after\\{left:" +
+    if(!new RegExp("#beltpeek\\[data-lit=\"" + p[0] + "\"\\]::after\\{left:" +
                    p[1].replace("%", "%") + ";\\}").test(HTML)){
       fail("the peek's lit chunk has no position for \"" + p[0] + "\" at left:" +
            p[1] + " — position encodes the path, left/middle/right at the " +
@@ -9494,27 +9505,37 @@ var ROUTE_VOCAB = [
          "border included, through the same variable");
   }
 
-  /* (Q2) The peek's entrance is a mechanism reduced motion actually covers.
-     The reduced-motion block is *{transition:none} — and * does not match
-     pseudo-elements, so an entrance authored as a transition on ::before/
-     ::after slips it unless the block names them. An entrance authored as a
-     keyframe slips it entirely. Assert the mechanism, not the motion. */
-  var band = (HTML.match(/\.pathseg::before,\.pathseg::after\{[^}]*\}/) || [""])[0];
-  if(!band){
-    fail("the peek band is gone — no ::before rail and ::after chunk on the " +
-         "strip means the parked 12px shows the segments' own bottoms, which " +
-         "light from aria-pressed, which is S.path: Q1's lie by another route");
+  /* (Q2, rewritten in 4.0.4) The peek is the header's own #beltpeek — the
+     strips' ::before/::after band left with the mid-gesture swap. Off, it is
+     display:none (out of paint, hit-testing and the accessibility tree in
+     one declaration) and pointer-events:none besides, so the header never
+     grows a dead 12px tap zone; on, it is a block that takes the pointer
+     and shows the hand. There is no entrance mechanism left for reduced
+     motion to miss: a display flip does not animate. */
+  var peekBase = (HTML.match(/#beltpeek\{[^}]*\}/) || [""])[0];
+  if(!peekBase || !/display:none/.test(peekBase) ||
+     !/position:absolute/.test(peekBase) ||
+     !/top:calc\(100% \+ 1px\)/.test(peekBase)){
+    fail("the header peek's base rule is gone or unmoored — #beltpeek must " +
+         "start display:none and hang absolutely off the header's bottom " +
+         "border (top:calc(100% + 1px)), or the parked belt has no peek at " +
+         "all: the strips hide when parked and the header element is the " +
+         "one thing left saying the belt exists");
     return;
   }
-  if(!/transition:transform [^;]*,opacity [^;}]*/.test(band) || /animation:/.test(band)){
-    fail("the peek's entrance is not a transition — Q2's trap: the " +
-         "reduced-motion block cuts transitions, and an @keyframes entrance " +
-         "slides down for the reader who asked it not to");
+  if(!/pointer-events:none/.test(peekBase)){
+    fail("the peek's base rule takes pointer events — off is off: the " +
+         "element is display:none today, but the base rule is the one a " +
+         "future state forgets, and a hidden-ish peek that eats header taps " +
+         "is a dead zone exactly where the header's own controls live");
   }
-  if(!/pointer-events:none/.test(band)){
-    fail("the peek band takes pointer events — the strip is the handle, and a " +
-         "band that eats the tap makes the handle a dead zone exactly where " +
-         "it is visible");
+  var peekOn = (HTML.match(/#beltpeek\[data-on\]\{[^}]*\}/) || [""])[0];
+  if(!/display:block/.test(peekOn) || !/pointer-events:auto/.test(peekOn) ||
+     !/cursor:pointer/.test(peekOn)){
+    fail("the peek's on state is not a working handle — #beltpeek[data-on] " +
+         "must display:block, take the pointer back and show the hand; " +
+         "missing any of the three is a peek that is visible, labelled a " +
+         "button, and answering nothing");
   }
   if(!/@media \(prefers-reduced-motion:reduce\)\{\*,::before,::after\{transition:none!important;\}\}/.test(HTML)){
     fail("the reduced-motion block does not reach pseudo-elements — " +
@@ -9544,33 +9565,37 @@ var ROUTE_VOCAB = [
          "the other");
   }
 
-  /* (F5) While parked, the strip is not a control — the peek is ONE handle.
-     The parked band is 12px of the most destructive-feeling action in the
-     app; the fix is that its buttons leave the tree (visibility:hidden takes
-     them out of hit-testing AND the focus order AND the accessibility tree),
-     and the strip's own tap goes home. */
-  if(!/html\[data-beltpark\] \.pathseg:not\(\[data-held\]\):not\(\[data-drop\]\) button\{visibility:hidden;\}/.test(HTML)){
-    fail("the parked strip's buttons are still live — elementFromPoint across " +
-         "the parked band read BUTTON life · continuity · release · buckle in " +
-         "the mock: a 12px touch target against the 44px floor, wired to " +
-         "silently re-ordering the entire list. visibility:hidden is the " +
-         "whole of F5: no hit-testing, no tab stop, no phantom in the " +
-         "accessibility tree. The :not([data-drop]) half is F7: a DROPPED " +
-         "belt is a working belt, and its buttons come back");
+  /* (F5, widened in 4.0.4) While parked, the strip is not a control — and
+     not even a paint: the WHOLE strip hides, and the header's #beltpeek is
+     the one handle. visibility:hidden still does the whole of F5 in one
+     line — no hit-testing, no tab stop, no phantom in the accessibility
+     tree — it just covers the buttons' box along with the buttons now,
+     because a strip that paints inside the deck rides every swipe. */
+  if(!/html\[data-beltpark\] \.pathseg:not\(\[data-held\]\):not\(\[data-drop\]\):not\(\[data-ride\]\)\{visibility:hidden;\}/.test(HTML)){
+    fail("the scroll-parked strip still paints inside the deck — it must " +
+         "hide whole: visibility:hidden is the whole of F5 (no hit-testing, " +
+         "no tab stop, no phantom in the accessibility tree), and a strip " +
+         "that paints in the deck rides every swipe, which is the 4.0.x " +
+         "flicker back. The :not([data-drop]) half is F7: a DROPPED belt is " +
+         "a working belt; :not([data-ride]) lets the retraction play before " +
+         "the swap");
   }
-  var vh = HTML.indexOf('getElementById("view").addEventListener("click"');
-  var vhBlock = HTML.slice(vh, vh + 900);
-  if(!/data-beltpark/.test(vhBlock) || !/closest\(".pathseg"\)/.test(vhBlock) ||
-     !/beltDropOpen\(\)/.test(vhBlock)){
-    fail("a tap on the parked strip does not drop the belt — the drop is the " +
+  var ph = HTML.indexOf('getElementById("beltpeek").addEventListener("click"');
+  var phBlock = ph < 0 ? "" : HTML.slice(ph, ph + 500);
+  if(ph < 0 || !/beltDropOpen\(\)/.test(phBlock)){
+    fail("a tap on the peek does not drop the belt — the drop is the " +
          "locked answer from the mock round: the belt comes down over the " +
-         "list and works in place, which is the thing it cannot do today at " +
-         "any price. The tap drops UNCONDITIONALLY since 3.6.4: the dropped " +
-         "strip is plain sticky CSS, and the pouches carry their own " +
-         "@supports gate in the stylesheet (section 129) — a JS probe " +
-         "guarding a tap that no longer needs anchors was the owner's dead " +
-         "peek: every browser outside the probe got no belt at all once the " +
-         "peek became the only door");
+         "list and works in place. The peek is the header's own #beltpeek " +
+         "since 4.0.4 and its tap drops UNCONDITIONALLY: parkFocus() only " +
+         "shows it when the belt is closed and parked, so the handler " +
+         "carries no second copy of that condition to drift");
+  }
+  if(!/addEventListener\("keydown"/.test(phBlock) ||
+     !/preventDefault/.test(phBlock)){
+    fail("the peek is not a keyboard door — role=button and tabindex " +
+         "promise Enter and Space, and a handle that only answers a " +
+         "pointer is a silent dead end for exactly the reader the role " +
+         "was declared for");
   }
   if(/supportsAnchor/.test(HTML)){
     fail("the JS anchor probe is back — 3.6.4 moved the gate into the " +
@@ -9579,11 +9604,25 @@ var ROUTE_VOCAB = [
          "stylesheet is two answers to one question, and the register's " +
          "one-property lesson was earned against exactly this function");
   }
-  if(!/hasAttribute\("data-held"\)/.test(vhBlock) ||
-     !/hasAttribute\("data-drop"\)/.test(vhBlock)){
-    fail("the parked tap handler ignores data-held or data-drop — with the " +
-         "belt open or dropped the strip is a working control, and swallowing " +
-         "those taps is the drop failing at the only thing it is for");
+  var pf = optionalFn("parkFocus", "nothing decides when the peek shows");
+  if(!/hasAttribute\("data-beltpark"\)/.test(pf) ||
+     !/hasAttribute\("data-park"\)/.test(pf)){
+    fail("parkFocus() no longer reads both parked truths — data-beltpark " +
+         "covers the scroll-parked pre-choice strip and data-park the " +
+         "chosen one; losing either is a peek that never shows for half " +
+         "the states it exists for");
+  }
+  if(!/hasAttribute\("data-held"\)/.test(pf) ||
+     !/hasAttribute\("data-drop"\)/.test(pf)){
+    fail("parkFocus() ignores data-held or data-drop — F14 still holds: " +
+         "there is no state in which a peek and a pouch are on screen " +
+         "together, and a peek over an open or dropped belt is exactly " +
+         "that state");
+  }
+  if(!/setAttribute\("data-on"/.test(pf) || !/removeAttribute\("data-on"\)/.test(pf)){
+    fail("parkFocus() does not toggle the peek — data-on is the one switch " +
+         "#beltpeek answers to, and a computed truth that never reaches " +
+         "the attribute is a peek stuck however it last was");
   }
 
   /* The flag is written by an IntersectionObserver on the belt's own sentinel
@@ -9602,6 +9641,13 @@ var ROUTE_VOCAB = [
     fail("beltWatch() does not observe the sentinel onto <html>'s " +
          "data-beltpark — the parked flag has to come from an observer, " +
          "live outside #view, and follow the sentinel across renders");
+  }
+  if(!/parkFocus\(\);\s*if\(!\("IntersectionObserver" in window\)\) return;/.test(bw)){
+    fail("beltWatch() gates parkFocus() behind IntersectionObserver — a " +
+         "browser without the observer still parks by STATE (data-park " +
+         "renders from S.path), and with the peek as the only handle, " +
+         "gating the toggle leaves those browsers a belt with no door: " +
+         "strips hidden by CSS, peek never switched on");
   }
   /* 3.6.0: ONE scroll listener was pinned, the way section 120 pins its
      layout reads — the drop's retraction trigger, {once:true}: it fires a
@@ -9971,8 +10017,10 @@ var ROUTE_VOCAB = [
   /* (1b) 3.9.0: the closed belt glows now and then. The parked peek is the
      app's one persistent handle (the owner's "you don't use it much, but it
      needs to work perfectly"), and a periodic --signal breath is the reminder
-     it is live — on the CLOSED strip only. Three things keep it honest: it
-     rides data-park:not(data-drop), so an open/dropped belt never glows; it is
+     it is live — on the CLOSED, parked handle only, which since 4.0.4 is the
+     header's #beltpeek. Three things keep it honest: it rides
+     #beltpeek[data-on], parkFocus()'s computed truth, so an open/dropped
+     belt never glows; it is
      a box-shadow keyframe, which the *{transition:none} reduced-motion block
      cannot reach (the section-128 Q2 trap), so the animation:none block must
      name it; and it breathes in --signaledge, the signal-alpha token already
@@ -9982,11 +10030,11 @@ var ROUTE_VOCAB = [
     fail("the belt glow keyframe is gone — the closed peek stops reminding a " +
          "returning reader the one handle is live");
   }
-  if(!/\.pathseg\[data-park\]:not\(\[data-drop\]\)\{[^}]*animation:beltglow /.test(HTML)){
-    fail("the glow is not on .pathseg[data-park]:not([data-drop]) — it must " +
-         "ride the CLOSED, chosen strip: data-park is state (present in every " +
-         "scroll position), and :not([data-drop]) keeps an OPEN belt from " +
-         "glowing while it is in use");
+  if(!/#beltpeek\[data-on\]\{[^}]*animation:beltglow /.test(HTML)){
+    fail("the glow is not on #beltpeek[data-on] — it must ride the CLOSED, " +
+         "parked handle, and since 4.0.4 that handle is the header's peek: " +
+         "data-on is parkFocus()'s computed truth (parked, not held, not " +
+         "dropped), so an open or dropped belt never glows by construction");
   }
   var glowKf = (HTML.match(/@keyframes beltglow\{[\s\S]*?\}\}/) || [""])[0];
   if(!/var\(--signaledge\)/.test(glowKf)){
@@ -9994,10 +10042,10 @@ var ROUTE_VOCAB = [
          "token is the one honest colour for it, not a new one on a palette " +
          "3.8.4 spent a release making single-meaning");
   }
-  if(!new RegExp("prefers-reduced-motion: reduce\\)\\{[^}]*\\.pathseg\\[data-park\\]:not\\(\\[data-drop\\]\\)[^}]*\\{animation:none;").test(HTML)){
+  if(!new RegExp("prefers-reduced-motion: reduce\\)\\{[^}]*#beltpeek\\[data-on\\][^}]*\\{animation:none;").test(HTML)){
     fail("reduced motion does not cut the glow — a box-shadow keyframe slips " +
          "*{transition:none} entirely (the section-128 Q2 trap), so the " +
-         "animation:none block must name .pathseg[data-park]:not([data-drop]) " +
+         "animation:none block must name #beltpeek[data-on] " +
          "or the closed belt pulses for a reader who asked for no motion");
   }
 
@@ -10060,24 +10108,25 @@ var ROUTE_VOCAB = [
          "perfectly. The peek is sticky plus a margin, nothing else: there " +
          "is nothing in it left to lack");
   }
-  /* 3.9.0 lets this rule also carry the glow (animation:beltglow, section 130):
-     cursor:pointer; stays the first declaration, the breath is optional after
-     it. The sliver and the dead buttons are unchanged. */
-  if(!/\.pathseg\[data-park\]:not\(\[data-drop\]\)::before,\.pathseg\[data-park\]:not\(\[data-drop\]\)::after\{opacity:1;transform:translateY\(0\);\}/.test(HTML) ||
-     !/\.pathseg\[data-park\]:not\(\[data-drop\]\) button\{visibility:hidden;\}/.test(HTML) ||
-     !/\.pathseg\[data-park\]:not\(\[data-drop\]\)\{cursor:pointer;(?:animation:beltglow [^}]*)?\}/.test(HTML)){
-    fail("the parked strip is not the peek — it must show the sliver, kill " +
-         "its buttons (F5: 12px of live re-ordering is the defect the peek " +
-         "exists to prevent) and read as one handle; and a DROPPED belt " +
-         "gets its buttons back (F7), which is what the :not([data-drop]) " +
-         "halves are");
+  /* 4.0.4: the parked strip is NOT the peek any more — the header's
+     #beltpeek is (sections 128 and 143). The strip's job while parked is to
+     hold its box: it hides whole, :not([data-drop]) keeps a DROPPED belt
+     working (F7), and :not([data-ride]) keeps the retraction visible while
+     the top transition plays it home. */
+  if(!/\.pathseg\[data-park\]:not\(\[data-drop\]\):not\(\[data-ride\]\)\{visibility:hidden;\}/.test(HTML)){
+    fail("the chosen parked strip still paints inside the deck — it must " +
+         "hide whole (the header's #beltpeek is the peek since 4.0.4, and " +
+         "a strip that paints in the deck rides every swipe, which is the " +
+         "4.0.x flicker back); :not([data-drop]) keeps a dropped belt " +
+         "working (F7) and :not([data-ride]) lets the retraction play " +
+         "before the swap");
   }
-  var vh3 = HTML.indexOf('getElementById("view").addEventListener("click"');
-  if(!/hasAttribute\("data-park"\)/.test(HTML.slice(vh3, vh3 + 900))){
-    fail("a tap on the parked peek does not drop the belt — data-beltpark " +
-         "only covers the scroll-parked pre-choice strip, so without the " +
-         "data-park half the permanent peek is 12px of dead pixels: " +
-         "visible, labelled a handle, answering nothing");
+  if(!/seg\.setAttribute\("data-ride", ""\); seg\.removeAttribute\("data-drop"\);/.test(fn("closeBelt"))){
+    fail("closeBelt() ends the drop without staging the ride — removing " +
+         "data-drop alone leaves the strip [data-park] and hidden IN THE " +
+         "SAME FRAME, so the retraction the top transition promises becomes " +
+         "a blink; data-ride keeps the strip visible until the deferred " +
+         "render swaps the header peek back in");
   }
 
   /* Every tab change routes through one door, and a dropped belt does not
@@ -11536,49 +11585,43 @@ var ROUTE_VOCAB = [
          "refused by section 120");
   }
 
-  /* 4.0.3: THE BELT CLOSES TO A PEEK THAT IS PART OF THE HEADER. 4.0.2
-     tried to anchor the strips by counter-translating them from the scroll
-     read; the scroll is composited and the correction is main-thread, so
-     the belt trailed the finger by a frame and still read as movement. A
-     composited scroll cannot be chased \u2014 so mid-gesture the strips hide and
-     a real header element (#beltpeek, outside the deck, pixel-matched to
-     the parked peek) shows in their place: it cannot move because it never
-     scrolls. swipeRead() flags the gesture on <html> (the data-beltpark
-     precedent) and clears it at the settle; renderHead() keeps the peek's
-     lit segment in step with S.mode. The dropped belt stays visible and
-     rides: its pouches are anchor-positioned, and the drop retracts at the
-     door anyway. */
+  /* 4.0.4: THE PEEK IS PART OF THE HEADER, FULL STOP. 4.0.3 built #beltpeek
+     but showed it only mid-gesture, swapped in by a scroll-driven flag
+     (html[data-swiping]) \u2014 and the swap itself flickered: the 2px threshold
+     and the rAF hop showed the strips riding for the first frame or two of
+     a gesture, and the seam played again at the settle. A scroll listener
+     cannot beat the compositor to the first frame any more than 4.0.2's
+     counter-translation could chase it, so 4.0.4 stops swapping on gestures
+     at all: parked is STATE \u2014 parkFocus() reads data-beltpark/data-park,
+     excludes held and dropped, and toggles #beltpeek's data-on \u2014 the peek
+     is permanent header chrome whenever the belt is parked, and the strips
+     hide whenever they are parked. Unparked strips are content and ride
+     their panels, which is what content should do. Nothing swaps
+     mid-gesture, so nothing is left to flicker. */
   if(HTML.indexOf('<div id="beltpeek"') < 0 ||
-     !/html\[data-swiping\] #beltpeek\{display:block;\}/.test(HTML)){
-    fail("the header peek is gone or never shows \u2014 mid-gesture the belt " +
-         "closes to a peek that is PART OF THE HEADER, outside the deck; " +
-         "without it the strips ride the swipe, or vanish with nothing in " +
-         "their place");
+     !/#beltpeek\[data-on\]\{display:block;/.test(HTML)){
+    fail("the header peek is gone or never shows \u2014 the parked belt IS the " +
+         "header's #beltpeek since 4.0.4; without it the parked strips " +
+         "hide with nothing in their place");
   }
-  if(!/html\[data-swiping\] \.pathseg:not\(\[data-drop\]\)\{visibility:hidden;\}/.test(HTML)){
-    fail("the panels' strips stay visible through a swipe \u2014 they live " +
-         "inside the deck and ride the gesture a frame ahead of any " +
-         "main-thread correction, which is exactly the movement 4.0.3 " +
-         "removed; mid-gesture the header's own peek is the belt");
-  }
-  if(sr.indexOf('setAttribute("data-swiping"') < 0 ||
-     sr.indexOf('removeAttribute("data-swiping")') < 0){
-    fail("swipeRead() does not flag the gesture on the document \u2014 the swap " +
-         "to the header peek is driven by html[data-swiping], written " +
-         "mid-gesture and cleared at the settle; losing either leaves the " +
-         "belt riding the swipe, or the peek stuck over the settled tab");
+  if(/data-swiping/.test(HTML)){
+    fail("the gesture flag is back \u2014 4.0.4 deleted the mid-gesture swap " +
+         "because a scroll-driven hide cannot beat the compositor to the " +
+         "first frame (the 4.0.3 flicker); parked is state, the peek is " +
+         "permanent header chrome, and a swap keyed to scrolling re-adds " +
+         "the seam it took three releases to remove");
   }
   if(optionalFn("renderHead", "the header renderer is gone")
       .indexOf("beltpeek") < 0){
     fail("renderHead() no longer keeps #beltpeek's lit segment in step " +
-         "with S.mode \u2014 the peek that appears mid-gesture would light the " +
-         "segment of whatever ordering was chosen when the page loaded");
+         "with S.mode \u2014 the permanent peek would light the segment of " +
+         "whatever ordering was chosen when the page loaded");
   }
 
   note("swipe deck: four panels in footer order, active fills sync + " +
        "dirties three, neighbors idle, inert swept on settle, belt " +
-       "suppressed in background copies and closed to the header's own " +
-       "peek through the gesture, snap via scrollIntoView");
+       "suppressed in background copies and parked as the header's own " +
+       "permanent peek, snap via scrollIntoView");
 })();
 
 /* ---------- report ---------- */

@@ -120,24 +120,25 @@ run_case "rotation stops re-snapping" \
         snapTo(S.tab);''';assert a in s
 s=s.replace(a,'        nwRszSquelch = true;',1);${W}"
 
-echo "--- 143: the belt anchored to the header"
-
-run_case "the belt rides the gesture again" \
-  "strips stay visible through a swipe" \
-  "${P}a='html[data-swiping] .pathseg:not([data-drop]){visibility:hidden;}';assert a in s
-s=s.replace(a,'',1);${W}"
+echo "--- 143: the belt parked as the header's own permanent peek"
 
 run_case "the peek never shows" \
   "the header peek is gone or never shows" \
-  "${P}a='html[data-swiping] #beltpeek{display:block;}';assert a in s
+  "${P}a='#beltpeek[data-on]{display:block;pointer-events:auto;cursor:pointer;animation:beltglow 4.5s ease-in-out infinite alternate;}';assert a in s
 s=s.replace(a,'',1);${W}"
 
-run_case "the swap survives the settle" \
-  "does not flag the gesture on the document" \
-  "${P}a='''  } else if(document.documentElement.hasAttribute(\"data-swiping\")){
-    document.documentElement.removeAttribute(\"data-swiping\");
-  }''';assert a in s
-s=s.replace(a,'  }',1);${W}"
+run_case "the gesture flag returns" \
+  "the gesture flag is back" \
+  "${P}a='  var t = NWTABS[i];';assert a in s
+s=s.replace(a,'  if(Math.abs(x - i * nwVW) >= 2) document.documentElement.setAttribute(\"data-swiping\", \"\");\n  var t = NWTABS[i];',1);${W}"
+
+run_case "parkFocus hides behind the observer" \
+  "gates parkFocus() behind IntersectionObserver" \
+  "${P}a='''  parkFocus();
+  if(!(\"IntersectionObserver\" in window)) return;'''
+assert a in s
+s=s.replace(a,'''  if(!(\"IntersectionObserver\" in window)) return;
+  parkFocus();''',1);${W}"
 
 run_case "the swipe door keeps the shadow" \
   "the swipe door lets a dropped belt" \

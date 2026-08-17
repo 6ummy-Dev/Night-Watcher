@@ -681,7 +681,7 @@ ok("footer tap: goTab resets the panel, aligns the deck, inerts the one it left"
    the panel now, so this is the exact threshold that moved. */
 const beltClose = await page.evaluate(async () => {
   S.tab = "watch"; S.beltOpen = false; S.beltDrop = false; render(); snapTo(S.tab); scrollPut(0);
-  document.querySelector("#view .panel:not([inert]) .pathseg").click();
+  document.getElementById("beltpeek").click();
   document.querySelector('#view .panel:not([inert]) [data-act="belt"]').click();
   /* opened dropped from the peek; close the drop into the flow state */
   closeBelt("drop");

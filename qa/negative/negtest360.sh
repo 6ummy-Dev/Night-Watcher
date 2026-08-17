@@ -36,9 +36,9 @@ s=s.replace(a,'''data-path=\"'+m[0]+'\" aria-pressed=\"'+(S.mode===m[0])+'\"''',
 
 run_case "the middle chunk drifts off its third" \
   "has no position for" \
-  "${P}a='.pathseg[data-lit=\"continuity\"]::after{left:26%;}'
+  "${P}a='#beltpeek[data-lit=\"continuity\"]::after{left:26%;}'
 assert a in s
-s=s.replace(a,'.pathseg[data-lit=\"continuity\"]::after{left:30%;}',1);${W}"
+s=s.replace(a,'#beltpeek[data-lit=\"continuity\"]::after{left:30%;}',1);${W}"
 
 echo "--- 128: position carries exactly one condition (F14)"
 
@@ -98,13 +98,25 @@ run_case "the JS override reverts to --ghtop" \
 assert a in s
 s=s.replace(a,'document.documentElement.style.setProperty(\"--ghtop\", h.offsetHeight',1);${W}"
 
-echo "--- 128: the entrance is a mechanism reduced motion covers (Q2)"
+echo "--- 128: the peek is the header's own element, off means off (Q2, 4.0.4)"
 
-run_case "the entrance becomes a keyframe" \
-  "entrance is not a transition" \
-  "${P}a='transition:transform .2s ease-out,opacity .2s ease-out;'
+run_case "the peek's base rule comes unmoored" \
+  "base rule is gone or unmoored" \
+  "${P}a='#beltpeek{display:none;position:absolute;'
 assert a in s
-s=s.replace(a,'animation:peekin .2s ease-out;',1);${W}"
+s=s.replace(a,'#beltpeek{position:absolute;',1);${W}"
+
+run_case "the off peek eats header taps" \
+  "base rule takes pointer events" \
+  "${P}a='border-radius:0 0 10px 10px;overflow:hidden;pointer-events:none;}'
+assert a in s
+s=s.replace(a,'border-radius:0 0 10px 10px;overflow:hidden;}',1);${W}"
+
+run_case "the on peek answers nothing" \
+  "on state is not a working handle" \
+  "${P}a='#beltpeek[data-on]{display:block;pointer-events:auto;cursor:pointer;'
+assert a in s
+s=s.replace(a,'#beltpeek[data-on]{display:block;cursor:pointer;',1);${W}"
 
 run_case "reduced motion loses the pseudo-elements" \
   "does not reach pseudo-elements" \
@@ -120,25 +132,36 @@ run_case "one --hdr moves without the other" \
 assert a in s
 s=s.replace(a,'--hdr:rgba(10,12,17,.9);',1);${W}"
 
-echo "--- 128: the parked strip is not a control (F5)"
+echo "--- 128: the parked strip is not a control, not even a paint (F5, 4.0.4)"
 
-run_case "the parked buttons stay live" \
-  "buttons are still live" \
-  "${P}a='html[data-beltpark] .pathseg:not([data-held]):not([data-drop]) button{visibility:hidden;}'
+run_case "the scroll-parked strip stays painted" \
+  "still paints inside the deck" \
+  "${P}a='html[data-beltpark] .pathseg:not([data-held]):not([data-drop]):not([data-ride]){visibility:hidden;}'
 assert a in s
 s=s.replace(a,'',1);${W}"
 
 run_case "the parked tap goes nowhere" \
   "does not drop the belt" \
-  "${P}a='var pk = e.target.closest ? e.target.closest(\".pathseg\") : null;'
+  "${P}a='document.getElementById(\"beltpeek\").addEventListener(\"click\"'
 assert a in s
-s=s.replace(a,'var pk = null;',1);${W}"
+s=s.replace(a,'document.getElementById(\"beltpeek\").addEventListener(\"clack\"',1);${W}"
 
-run_case "the open belt's tap goes home too" \
+run_case "the peek shows over the pouches" \
   "ignores data-held" \
-  "${P}a='if(!pk.hasAttribute(\"data-held\") && !pk.hasAttribute(\"data-drop\")){'
+  "${P}a='!pk.hasAttribute(\"data-held\") && !pk.hasAttribute(\"data-drop\");'
 assert a in s
-s=s.replace(a,'if(1){',1);${W}"
+s=s.replace(a,'true;',1);${W}"
+
+run_case "the peek goes mouse-only" \
+  "not a keyboard door" \
+  "${P}a='''document.getElementById(\"beltpeek\").addEventListener(\"keydown\", function(e){
+  if(e.key !== \"Enter\" && e.key !== \" \") return;
+  e.preventDefault();
+  beltDropOpen();
+});
+'''
+assert a in s
+s=s.replace(a,'',1);${W}"
 
 echo "--- 128: an observer on the sentinel, never a listener, never a read"
 
@@ -177,9 +200,9 @@ s=s.replace(a,'',1);${W}" \
 
 run_case "the parked selectors go dead (smoke css)" \
   "every CSS rule matches something in some state" \
-  "${P}a='html[data-beltpark] .pathseg:not([data-held]):not([data-drop]) button{visibility:hidden;}'
+  "${P}a='html[data-beltpark] .pathseg:not([data-held]):not([data-drop]):not([data-ride]){visibility:hidden;}'
 assert a in s
-s=s.replace(a,'html[data-beltparked] .pathseg:not([data-held]) button{visibility:hidden;}',1);${W}" \
+s=s.replace(a,'html[data-beltparked] .pathseg:not([data-held]):not([data-ride]){visibility:hidden;}',1);${W}" \
   "smoke" "css"
 
 finish "negtest360"

@@ -40,9 +40,9 @@ s=s.replace(a,'  S.beltDropping = true; render();',1);${W}"
 
 run_case "reduced motion keeps the entrance" \
   "does not cut the drop's entrance" \
-  "${P}a=',.pathseg[data-toast],.pathseg[data-park]:not([data-drop]){animation:none;}}'
+  "${P}a=',.pathseg[data-toast],#beltpeek[data-on]{animation:none;}}'
 assert a in s
-s=s.replace(a,',.pathseg[data-park]:not([data-drop]){animation:none;}}',1);${W}"
+s=s.replace(a,',#beltpeek[data-on]{animation:none;}}',1);${W}"
 
 echo "--- 130: every seam in the stack is an overlap (owner: 'not always almost there')"
 
@@ -78,17 +78,23 @@ run_case "the parked strip grows a position rule again" \
 assert a in s
 s=s.replace(a,'.pathseg[data-park]{position:fixed;margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 10px;}',1);${W}"
 
-run_case "the peek grows live buttons" \
-  "the parked strip is not the peek" \
-  "${P}a='.pathseg[data-park]:not([data-drop]) button{visibility:hidden;}'
+run_case "the chosen parked strip stays painted" \
+  "still paints inside the deck" \
+  "${P}a='.pathseg[data-park]:not([data-drop]):not([data-ride]){visibility:hidden;}'
 assert a in s
 s=s.replace(a,'',1);${W}"
 
-run_case "the peek tap goes dead" \
-  "tap on the parked peek does not drop" \
-  "${P}a='(document.documentElement.hasAttribute(\"data-beltpark\") || pk.hasAttribute(\"data-park\"))'
+run_case "the retraction becomes a blink" \
+  "ends the drop without staging the ride" \
+  "${P}a='if(endDrop && seg){ seg.setAttribute(\"data-ride\", \"\"); seg.removeAttribute(\"data-drop\"); }'
 assert a in s
-s=s.replace(a,'document.documentElement.hasAttribute(\"data-beltpark\")',1);${W}"
+s=s.replace(a,'if(endDrop && seg){ seg.removeAttribute(\"data-drop\"); }',1);${W}"
+
+run_case "the peek loses the chosen half of its truth" \
+  "no longer reads both parked truths" \
+  "${P}a='pk.hasAttribute(\"data-park\")) &&'
+assert a in s
+s=s.replace(a,'false) &&',1);${W}"
 
 run_case "a dropped belt keeps its shadow across the change" \
   "keep its shadow on the new tab" \
@@ -138,7 +144,7 @@ s=s.replace(a,'',1);${W}"
 
 run_case "the glow slips reduced motion" \
   "reduced motion does not cut the glow" \
-  "${P}a='.pathseg[data-toast],.pathseg[data-park]:not([data-drop]){animation:none;}'
+  "${P}a='.pathseg[data-toast],#beltpeek[data-on]{animation:none;}'
 assert a in s
 s=s.replace(a,'.pathseg[data-toast]{animation:none;}',1);${W}"
 

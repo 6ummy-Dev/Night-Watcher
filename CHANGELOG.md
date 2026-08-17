@@ -11,6 +11,77 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.0.4] — 2026-08-17
+
+### Added
+
+- **`/.well-known/brave-rewards-verification.txt`.** The Brave Creators
+  verification token, at the exact name and bytes Brave's publisher
+  service expects. Served as a static asset — the Worker's
+  `run_worker_first` paths are untouched — out of the offline shell with
+  the IndexNow key's reasoning (fetched by a machine that never runs the
+  app), and named in guard 13's exclusions so the omission stays a
+  decision instead of an oversight.
+
+### Fixed
+
+- **The peek is part of the header, full stop — and the flicker at the
+  gesture's edges goes with the swap.** 4.0.3 built `#beltpeek` but showed
+  it only mid-gesture, swapped in by a scroll-driven flag — and the swap
+  itself was the last movement left: the 2px threshold and the rAF hop
+  showed the strips riding for the first frame or two of a gesture, and
+  the seam played again at the settle. A scroll listener cannot beat the
+  compositor to the first frame any more than 4.0.2's counter-translation
+  could chase it, so 4.0.4 stops swapping on gestures at all. Parked is
+  STATE: `parkFocus()` reads the two parked truths (`data-beltpark`,
+  `data-park`), excludes held and dropped, and toggles the peek's
+  `data-on` — the peek is permanent header chrome whenever the belt is
+  parked, and the parked strips hide whole inside the deck
+  (`visibility:hidden`: out of paint, hit-testing and the accessibility
+  tree in one line, F5 entire). Unparked strips are content and ride
+  their panels, which is what content should do. Nothing swaps
+  mid-gesture, so nothing is left to flicker. The tap and the keyboard
+  door move onto the peek itself — a real `role=button` in the header,
+  outside `render()`'s innerHTML churn — and the strips' own 12px band
+  (`::before` rail, `::after` chunk, the entrance transition) is deleted
+  rather than orphaned; the glow rides `#beltpeek[data-on]`. Two seams
+  kept honest: `closeBelt()` stages the retraction with `data-ride`, so
+  ending a drop still rides the strip home over the `top` transition
+  instead of blinking out (removing `data-drop` alone would leave it
+  `[data-park]` and hidden in the same frame); and `beltWatch()` calls
+  `parkFocus()` before its IntersectionObserver gate, because a browser
+  without the observer still parks by state — with the peek as the only
+  handle, gating the toggle would have left those browsers a belt with
+  no door. `data-swiping`, the 2px test and the whole mid-gesture
+  machinery are removed, and a guard fails the build if the flag ever
+  comes back.
+
+- **`sw.js`'s shell comment stopped lying about the touch icon.** It still
+  said `icon-192.png` is referenced "for rel=icon and apple-touch-icon";
+  the head has linked a dedicated 180×180 `apple-touch-icon.png` since the
+  favicon surface shipped in 3.9.x. Comment only — the shell list itself
+  was already right, and the touch icon stays out of it on purpose: iOS
+  copies it at install time and never asks the worker for it.
+
+### QA
+
+- Section 128's Q2/F5 blocks rewritten for the header-resident peek: the
+  base rule pinned `display:none` + `pointer-events:none` (off is off),
+  the `data-on` rule pinned as a working handle (block, pointer, hand),
+  the parked strips pinned hidden whole, `parkFocus()` pinned on both
+  truths and both exclusions plus the pre-gate call, and the peek's click
+  and keydown doors pinned where the view handler's branch used to be.
+  Section 130's strip-is-the-peek trio now asserts the inverse — the
+  strip hides, the ride is staged — and the lit-chunk thirds moved from
+  the strips' dead band to `#beltpeek`. Section 143 asserts `data-swiping`
+  stays deleted.
+- **negtest360** trades the band-entrance fixtures for unmoored-base,
+  taps-eaten and mouse-only-peek ones; **negtest380** gains the
+  blink-retraction and half-truth fixtures; **negtest470** trades the
+  swap fixtures for the returning-flag and gated-parkFocus ones. The
+  smoke sweep stages `data-on` where it staged the gesture flag, and the
+  browser check opens the drop from the header peek.
+
 ## [4.0.3] — 2026-08-17
 
 ### Fixed

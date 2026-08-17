@@ -16,10 +16,13 @@
  * ~190 KB index.html, so a stale cache means a stale catalogue AND stale code
  * with no way to push a fix.
  */
-var VERSION = "4.0.3";
+var VERSION = "4.0.4";
 var CACHE   = "night-watcher-" + VERSION;
-/* icon-192.png is in the shell because index.html's <head> now references it
-   directly for rel=icon and apple-touch-icon (it used to inline the bytes). */
+/* icon-192.png is in the shell because index.html's <head> references it
+   directly for rel=icon (it used to inline the bytes). The apple-touch icon
+   has been its own 180×180 file since 3.9.x and stays out of the shell with
+   the rest of the browser-chrome rasters — iOS copies it at install time and
+   never asks the worker for it. */
 /* The fonts join the shell in 1.5.9. They used to rely on the runtime
    network-first path, which works on any normal first visit \u2014 but if a font
    request failed on that one visit, offline rendered fallback type silently
