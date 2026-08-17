@@ -155,8 +155,14 @@ jobs:
   # that, by their own admission, cannot observe behavior. It runs on every
   # push and nightly like everything else: the workflow exists so that no
   # suite's evidence is produced only by hand on the release machine.
-  browser:
-    runs-on: ubuntu-latest
+browser:
+    # Pinned, not latest: `playwright install --with-deps` runs apt with a
+    # package list the pinned Playwright (1.56) must know. Every time GitHub
+    # advances ubuntu-latest, this job dies at ~40s until the pin catches up
+    # (the 24.04 rollover did the same to half of GitHub). 24.04 is the newest
+    # image Playwright 1.56 knows. Move this pin only together with a
+    # Playwright bump in package-lock.json.
+    runs-on: ubuntu-24.04
     # The check itself takes ~1 minute; the browser download dominates.
     timeout-minutes: 15
     steps:
