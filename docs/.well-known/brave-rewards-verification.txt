@@ -1,0 +1,4 @@
+This is a Brave Creators publisher verification file.
+
+Domain: nightwatcher.life
+Token: aabdb919fbbd8e58e4b412e1cc6dde9b5564dab2f6299b02cffe430980f4c39f
