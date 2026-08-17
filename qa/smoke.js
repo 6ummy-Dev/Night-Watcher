@@ -1963,6 +1963,12 @@ win.addEventListener("load", function(){
          already are. */
       doc.getElementById("view").classList.add("settling"); sweep();
       doc.getElementById("view").classList.remove("settling");
+      /* 4.0.2: the belt anchor is written mid-gesture by swipeRead, and
+         jsdom never swipes \u2014 staged the way .settling and data-beltpark
+         are. The sweep asks whether the selector can match, not whether a
+         finger moved the deck. */
+      doc.getElementById("view").setAttribute("data-swiping", ""); sweep();
+      doc.getElementById("view").removeAttribute("data-swiping");
       S.beltOpen = false;
       /* The states a sweep cannot reach by walking the tabs. */
       S.tab = "watch"; S.mode = "life"; win.render(); sweep();

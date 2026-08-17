@@ -11,6 +11,33 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.0.2] — 2026-08-17
+
+### Fixed
+
+- **The belt is anchored to the header, not to its panel.** Every panel
+  carries the same parked strip directly under the header, so a swipe
+  showed the belt sliding out with the page — two identical copies crossing
+  the seam — while the header held still above it. Mid-gesture, every
+  non-dropped strip is now counter-translated by the deck's own arithmetic:
+  `--swx` written from the one `scrollLeft` read the deck already makes
+  (section 120's pin is unchanged), `--pi` stamped on each panel at build,
+  `--vw` delivered by the same observer that delivers `nwVW`. The outgoing
+  and incoming copies hold the identical viewport position, so the gesture
+  reads as one belt fixed under the header with the content sliding beneath
+  it — and the panels' own clip edges do the reveal. The writes clear at
+  the settle, so no transform (and none of the horizontal overflow a
+  transform can mint inside a panel) survives the gesture. The dropped belt
+  is excluded on purpose: its pouches are anchor-positioned, and anchors do
+  not track transforms, so a translated dropped strip would leave its
+  pouches behind — the drop already retracts at the door.
+
+### QA
+
+- Section 143 pins all three legs — the CSS rule, `swipeRead()`'s
+  write-and-clear, and the build-time terms — and `negtest470` proves each
+  can go red (three new fixtures).
+
 ## [4.0.1] — 2026-08-17
 
 **The 16 August review of 4.0.0, applied. No entries added, removed or

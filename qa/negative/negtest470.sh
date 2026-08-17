@@ -120,6 +120,26 @@ run_case "rotation stops re-snapping" \
         snapTo(S.tab);''';assert a in s
 s=s.replace(a,'        nwRszSquelch = true;',1);${W}"
 
+echo "--- 143: the belt anchored to the header"
+
+run_case "the belt rides the gesture again" \
+  "the belt is not anchored to the header during a swipe" \
+  "${P}a='main.sw[data-swiping] .pathseg:not([data-drop]){transform:translateX(calc(var(--swx,0px) - var(--pi,0)*var(--vw,0px)));}';assert a in s
+s=s.replace(a,'',1);${W}"
+
+run_case "the anchor survives the settle" \
+  "swipeRead() does not drive the belt anchor" \
+  "${P}a='''  } else if(vp.hasAttribute(\"data-swiping\")){
+    vp.style.removeProperty(\"--swx\");
+    vp.removeAttribute(\"data-swiping\");
+  }''';assert a in s
+s=s.replace(a,'  }',1);${W}"
+
+run_case "the panels lose their index" \
+  "the deck no longer stamps the anchor's terms" \
+  "${P}a=''' style=\"--pi:' + j + '\"''';assert a in s
+s=s.replace(a,'',1);${W}"
+
 run_case "the swipe door keeps the shadow" \
   "the swipe door lets a dropped belt" \
   "${P}a='    if(S.beltDrop){ closeBelt(\"auto\"); scrubBelt(prev); } else render();';assert a in s
@@ -198,8 +218,8 @@ echo "--- 120/128: the pins around the swipe"
 
 run_case "a second scrollLeft read arrives" \
   "index.html reads scrollLeft 2 times" \
-  "${P}a='  var x = document.getElementById(\"view\").scrollLeft;';assert a in s
-s=s.replace(a,'  var vv = document.getElementById(\"view\");\n  var x = vv.scrollLeft; void vv.scrollLeft;',1);${W}"
+  "${P}a='  var x = vp.scrollLeft;';assert a in s
+s=s.replace(a,'  var x = vp.scrollLeft; void vp.scrollLeft;',1);${W}"
 
 run_case "a third scroll listener arrives" \
   "this build was reviewed with exactly 2" \

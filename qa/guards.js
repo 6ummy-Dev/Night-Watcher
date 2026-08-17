@@ -11536,9 +11536,44 @@ var ROUTE_VOCAB = [
          "refused by section 120");
   }
 
+  /* 4.0.2: THE BELT IS ANCHORED TO THE HEADER, NOT TO ITS PANEL. Every
+     panel carries the same parked strip directly under the header, so
+     4.0.0's gesture showed the belt sliding out with the page — two copies
+     crossing the seam — while the header held still. Mid-gesture every
+     non-dropped strip is counter-translated by the deck's own arithmetic:
+     --swx from the ONE scrollLeft read (section 120 unchanged), --pi
+     stamped on each panel at build, --vw delivered by the observer that
+     also delivers nwVW. The writes clear at the settle, so no transform —
+     and none of the horizontal overflow a transform can mint inside a
+     panel — survives the gesture. The dropped belt is excluded: its
+     pouches are anchor-positioned, and anchors do not track transforms,
+     so a translated dropped strip would leave its pouches behind. */
+  if(!/main\.sw\[data-swiping\] \.pathseg:not\(\[data-drop\]\)\{transform:translateX\(calc\(var\(--swx,0px\) - var\(--pi,0\)\*var\(--vw,0px\)\)\);\}/.test(HTML)){
+    fail("the belt is not anchored to the header during a swipe — every " +
+         "panel carries the same parked strip, and without the " +
+         "counter-translate the belt slides out with the page while the " +
+         "header holds still; anchored means the strips hold the viewport " +
+         "position and the content slides beneath them");
+  }
+  if(sr.indexOf('setProperty("--swx"') < 0 ||
+     sr.indexOf('removeProperty("--swx")') < 0){
+    fail("swipeRead() does not drive the belt anchor — --swx is written " +
+         "mid-gesture from the one scrollLeft read and removed at the " +
+         "settle; losing either leaves the strips riding the gesture " +
+         "again, or a stale transform (and the overflow it mints) parked " +
+         "on the belt after the gesture ends");
+  }
+  if(bd.indexOf("--pi:' + j + '") < 0 || bd.indexOf('setProperty("--vw"') < 0){
+    fail("the deck no longer stamps the anchor's terms — --pi at build and " +
+         "--vw from the observer are the two numbers the counter-translate " +
+         "multiplies; without either the belt anchors to the wrong " +
+         "panel's arithmetic, or to nothing");
+  }
+
   note("swipe deck: four panels in footer order, active fills sync + " +
        "dirties three, neighbors idle, inert swept on settle, belt " +
-       "suppressed in background copies, snap via scrollIntoView");
+       "suppressed in background copies and anchored to the header " +
+       "through the gesture, snap via scrollIntoView");
 })();
 
 /* ---------- report ---------- */

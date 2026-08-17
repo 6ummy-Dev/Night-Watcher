@@ -16,7 +16,7 @@
  * ~190 KB index.html, so a stale cache means a stale catalogue AND stale code
  * with no way to push a fix.
  */
-var VERSION = "4.0.1";
+var VERSION = "4.0.2";
 var CACHE   = "night-watcher-" + VERSION;
 /* icon-192.png is in the shell because index.html's <head> now references it
    directly for rel=icon and apple-touch-icon (it used to inline the bytes). */
