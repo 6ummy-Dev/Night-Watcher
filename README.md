@@ -2,25 +2,24 @@
 
 **One path through every Batman.**
 
+[![QA](https://github.com/6ummy-Dev/Night-Watcher/actions/workflows/qa.yml/badge.svg)](https://github.com/6ummy-Dev/Night-Watcher/actions/workflows/qa.yml)
+
 A single-file web app mapping every Batman story ever filmed — animated and live action — **133 films and 67 seasons of television across 44 continuities** — into watch orders, no spoilers, with progress tracking and a where-to-watch link for every entry.
 
 **Live:** https://nightwatcher.life/
 
-Versions prior to 3.0.0 were public betas, shipped straight to the live origin.
-3.0.0 marks the first stable release.
+![Night Watcher share card — the skyline chart, one bar per universe](docs/share.png)
 
 Served from Cloudflare Workers (static assets). **`nightwatcher.life` is the
-only address.** The old GitHub Pages mirror was unpublished on 6 August 2026. It
-had been an unadvertised copy marked `noindex` since 2.5.1, when the offer to
-carry progress across from it was retired — guard 77 fails the build if that
-offer comes back. Progress is stored per-origin, so anything saved only on the
-old address can no longer be read there; a backup code, a restore link or a JSON
-export taken while it was up still restores anywhere.
+only address.** The old GitHub Pages mirror was unpublished on 6 August 2026.
+Progress is stored per-origin, so anything saved only on the old address can no
+longer be read there; a backup code, a restore link or a JSON export taken
+while it was up still restores anywhere.
 
 ## What it does
 
 - **Two switches, one catalogue.** **Animated**, **Live action** or **All** decides which kind of Batman; **Movies** or **Movies + Series** decides how much of it. 133 films and 67 seasons — 1,900+ episodes, from *Batman* (1943) to *Dynamic Duo* (2028) — weave into the same orders either way. Tiers are judged inside a format, so nothing has to be ranked against a different medium.
-- **Where to watch, without picking a side.** Every entry links to a search rather than a service, because availability rotates by country and by month and no stored answer survives that. Three attempts at an aggregator URL shipped or staged broken before this.
+- **Where to watch, without picking a side.** Every entry links to a search rather than a service, because availability rotates by country and by month and no stored answer survives that.
 - **One path, chosen once.** Pick by universe (spoiler-safe), the composite chronology of Bruce's life, or straight release order from 1943 to 2028 — and the whole app follows it. No switcher to re-answer on every visit; the header carries the path name and Home leads with its completion ring. Change it whenever you like: switching re-sorts, it never clears a tick.
 - **Shared links are views, not takeovers.** Following someone's `#life` link shows you their ordering and offers to adopt it, rather than silently rewriting yours.
 - **Three tiers.** Everything is tagged **Essential**, **Core**, or **Optional** — tiers are exclusive, with Essential outranking Optional — plus modifiers (Short, Interactive, Not out yet). Nothing is untagged.
@@ -30,7 +29,7 @@ export taken while it was up still restores anywhere.
 - **Shareable views.** Link straight to a view: [`#life`](https://nightwatcher.life/#life) for the chronology of Bruce's life, `#release`, `#universes`, `#progress` — combine with scope like `#life-series`.
 - **Progress that sticks.** Watched, skipped and star ratings saved in your browser (localStorage). No accounts, no server; your watch data never leaves your device — and if the browser refuses to save (Private Browsing, a full quota, some in-app webviews) the app says so in the header instead of losing your evening silently.
 - **Darker.** An optional pure-black variant for watching in an actually dark room, including the system status bar. Surfaces only — the palette, type and accents are unchanged.
-- **Anonymous visit counts, server-side only.** Cloudflare counts requests as the host answering them — no script on the page, no cookies, no fingerprinting, nothing added to what you download. The client-side beacon was removed in 3.2.0; what remains is what any host can see by answering a request at all.
+- **Anonymous visit counts, server-side only.** Cloudflare counts requests as the host answering them — no script on the page, no cookies, no fingerprinting, nothing added to what you download — only what any host can see by answering a request at all.
 
 ## Non-goals
 
@@ -38,8 +37,8 @@ These are the constraints the app is built around, not features nobody has got t
 
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
-- **No third-party code** — *guarded.* Not one line vendored, and **nothing fetched at runtime at all** — the last exception, a cookie-free analytics beacon, came out in 3.2.0, and `qa/guards.js` now fails on any external script rather than allowing one by name. The app runs with the network off. **The guard reads this repository, and on 8 August 2026 the served page was read as well: what a visitor receives is this file, plus nothing.** Two `<script>` tags, no injected third, and the Content-Security-Policy on the wire is the one in the file — ten directives, one `sha256`. *(This bullet said for two days that Cloudflare's edge injected a script of its own. It does not; that was a TLS-intercepting VPN on the author's own machine. `ops/c0-edge-injection.md`, maintainer-local, not in this repository.)* Open `docs/index.html` from disk, or serve it from any other host, and what runs is exactly what you can read.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 220 KB raw and 80 KB gzipped; it is currently 212 KB / 61 KB (rounded — 3.6.0 added the belt's drop: tap the parked peek and the belt comes down over the list with its pouches open in place, hung off the strip by a CSS anchor rather than a measurement; the reasoning went to NOTES.md, because index.html carries the header and the slug freeze and nothing else). **The page was never the whole story.** 2.7.0 subset five of the six webfonts, taking the fonts from 116 KB to 62 KB, so the first visit costs 241 KB rather than 296 — an 18% cut that the page's own budget could not see, because it does not count them. The ceilings have moved five times — 150 → 160 in 1.9.5 (ratings data), 160 → 165 in 2.0.0 (the progress card), 165 → 200 raw with the first-ever gzip raise, 50 → 80, in 2.5.0 (the full-catalogue seed), and 200 → 220 raw in 3.8.3 (room for 4.0.0) — every raise an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **No third-party code** — *guarded.* Not one line vendored, and **nothing fetched at runtime at all** — `qa/guards.js` fails on any external script rather than allowing one by name, and the app runs with the network off. Two `<script>` tags, no injected third, and the Content-Security-Policy on the wire is the one in the file — ten directives, one `sha256`. Open `docs/index.html` from disk, or serve it from any other host, and what runs is exactly what you can read.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 220 KB raw and 80 KB gzipped; it is currently 212 KB / 61 KB. The subset webfonts sit outside that budget and are held by their own manifest (`qa/font-subset.json`). Every raise of the ceiling is an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -69,43 +68,45 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 
 ## Files
 
+The reasoning behind each file's shape lives in `NOTES.md`; this table says what each one is.
+
 | File | Purpose |
 | --- | --- |
 | `docs/index.html` | The entire app — markup, styles, data and logic |
 | `docs/sw.js` | Service worker — offline support. `VERSION` must match `BUILD` in `index.html` and the newest version in `CHANGELOG.md` |
 | `docs/manifest.json` | Web app manifest — lets Android install it with the right name and icon |
-| `docs/icon.png` | 512px icon, used for social cards and as the install icon |
+| `docs/icon.png` | 512px icon — social cards and the install icon |
 | `docs/icon-192.png` | 192px install icon |
-| `docs/icon.svg` | The favicon, as a real file rather than a `data:` URI — search engines crawl the favicon, and a data URI has no URL to crawl and no content type on the wire |
-| `docs/favicon.ico` | The classic root path, 16/32/48 in one container, for the crawlers and tools that ask for it and accept nothing else. Generated from `icon.png` by `qa/make-favicon.py`; out of the offline shell, because a favicon is browser chrome and the app never renders it |
-| `docs/favicon-16x16.png` | The tab raster at 1x, as its own PNG for tools that read `<link>` tags rather than probing the root ico. Generated by `qa/make-favicon.py`, same downscale as the ico's layers |
-| `docs/favicon-32x32.png` | The tab raster at 2x — same generation, same reasoning |
-| `docs/favicon-48x48.png` | The 48px raster legacy crawlers historically expect, served as its own PNG too |
-| `docs/apple-touch-icon.png` | The 180×180 iOS home-screen icon, opaque on the ink ground — iOS ignores the manifest icons and composites transparency onto black, so the ground is chosen here. Generated by `qa/make-favicon.py` |
-| `docs/mstile-144x144.png` | The Windows tile raster; `msapplication-TileColor` in the head paints the ground behind it. Generated by `qa/make-favicon.py` |
-| `docs/3e6082eed9f040d5bc8ab07531bf58b9.txt` | The IndexNow key. A search engine fetches it to confirm this host controls the key a submission was signed with; the filename and the contents are the same string, and a trailing newline breaks it. Out of the offline shell, for the reason `llms.txt` and `orders.txt` are: written for machines that never run the app |
-| `docs/icon-maskable-512.png` | Full-bleed variant so Android can apply its own mask without cropping |
+| `docs/icon.svg` | The favicon, as a real crawlable file |
+| `docs/favicon.ico` | The classic root path, 16/32/48 in one container. Generated by `qa/make-favicon.py` |
+| `docs/favicon-16x16.png` | Tab raster at 1x, for tools that read `<link>` tags. Same generator |
+| `docs/favicon-32x32.png` | Tab raster at 2x. Same generator |
+| `docs/favicon-48x48.png` | The 48px raster legacy crawlers expect. Same generator |
+| `docs/apple-touch-icon.png` | The 180×180 iOS home-screen icon, opaque on the ink ground. Same generator |
+| `docs/mstile-144x144.png` | The Windows tile raster. Same generator |
+| `docs/3e6082eed9f040d5bc8ab07531bf58b9.txt` | The IndexNow key — filename and contents are the same string |
+| `docs/icon-maskable-512.png` | Full-bleed variant so Android can apply its own mask |
 | `docs/robots.txt` | Opens the site to crawlers and points at the sitemap |
-| `docs/sitemap.xml` | Two URLs — the single-page app, and `llms.txt` since 3.7.1, because nothing on the open web pointed at the one file written to be found |
-| `docs/share.png` | The 1200×630 share card — social embeds, the repo preview, Batman Day. Generated by `qa/make-share-card.mjs`; guard 91 holds it honest |
+| `docs/sitemap.xml` | Two URLs — the single-page app and `llms.txt` |
+| `docs/share.png` | The 1200×630 share card. Generated by `qa/make-share-card.mjs`; guard 91 holds it honest |
 | `docs/google38dc2f1303c788e7.html` | Search Console ownership token. Google re-checks it, so it stays |
 | `docs/llms.txt` | The site described in plain text for generative engines — counts guarded against the data |
-| `docs/orders.txt` | The catalogue as plain text — all three orderings, machine- and human-readable, generated from the data by `npm run bless` |
-| `docs/auth.md` | The no-auth statement for agents: no accounts exist, by design. Five lines, written for machines that never run the app, same reasoning as `llms.txt` and `orders.txt` |
-| `docs/_headers` | The security headers and the cache policy, kept in the tree — a file here can be diffed, guarded and shipped inside a release, where a dashboard rule can be none of those. (Edge rules CAN override these — that lesson is recorded in the file itself, and the wire check lives in `RELEASING.md`) |
+| `docs/orders.txt` | The catalogue as plain text, all three orderings, generated by `npm run bless` |
+| `docs/auth.md` | The no-auth statement for agents: no accounts exist, by design |
+| `docs/_headers` | The security headers and cache policy, kept in the tree so they can be diffed, guarded and shipped |
 | `docs/404.html` | The wrong-alley page. Self-contained, noindexed, served with a real 404 status |
-| `docs/vp.html` | The viewport probe — five height units painted as stripes plus the numbers iOS actually grants, for the standalone bottom-band investigation. Owner-facing, noindexed, never linked from the app, out of the offline shell; leaves with the question it answers |
+| `docs/vp.html` | The viewport probe for the standalone bottom-band investigation. Owner-facing, noindexed |
 | `docs/fonts/limelight-latin-400-normal.woff2` | Display face for the wordmark and headings |
 | `docs/fonts/anton-latin-400-normal.woff2` | Condensed face for titles |
 | `docs/fonts/ibm-plex-sans-latin-400-normal.woff2` | Body text |
 | `docs/fonts/ibm-plex-sans-latin-600-normal.woff2` | Body text, semibold |
 | `docs/fonts/ibm-plex-mono-latin-400-normal.woff2` | Labels, counts, and every uppercase micro-line |
 | `docs/fonts/ibm-plex-mono-latin-600-normal.woff2` | The same, semibold |
-| `docs/fonts/OFL.txt` | SIL Open Font License. Redistribution requires it to travel with them |
+| `docs/fonts/OFL.txt` | SIL Open Font License — redistribution requires it to travel with the fonts |
 | `wrangler.jsonc` | Cloudflare Workers config (points assets at `docs/`) |
 | `.gitignore` | Ignores `node_modules`, Wrangler state, editor files, etc. |
 | `package.json` | Dev scripts + the QA toolchain: jsdom for smoke, playwright and axe-core for the browser check, wrangler for deploys |
-| `.github/workflows/qa.yml` | Runs every suite on every push and again nightly — guards, smoke, the negative shards, and (since 3.7.2) the browser check — so a tampered commit fails in public |
+| `.github/workflows/qa.yml` | Runs every suite on every push and again nightly, so a tampered commit fails in public |
 | `NOTES.md` | Why the code is written the way it is. Not served — `docs/index.html` carries no explanatory comments, and this is where they went |
 | `qa/guards.js` | Build guards — run before every commit (see below) |
 | `qa/frozen-ids.json` | Snapshot of every `i:` slug, so a rename can't slip through |
@@ -117,7 +118,7 @@ The static files live in `docs/`. `wrangler.jsonc` points the assets directory t
 | `qa/subset-fonts.py` | Rebuilds the subset faces from the catalogue's own codepoints |
 | `qa/make-share-card.mjs` | Draws `docs/share.png` from the tree, so the card cannot drift |
 | `qa/share-card.html` | The card's layout, rendered headless by the script above |
-| `qa/browser-check.mjs` | A real browser at 390×844, for the header, the jumps and the tick — the things jsdom cannot see. It measures inside the click's own task, because a scroll clamp and a lost focus both self-correct within a few hundred milliseconds and a drive that waits is green against either |
+| `qa/browser-check.mjs` | A real browser at 390×844, for the header, the jumps and the tick — the things jsdom cannot see |
 | `CHANGELOG.md` | Every shipped change, newest first. Enforced by the guards |
 | `LICENSE` | AGPL-3.0 for the code, with the writing, DC's marks and the fonts set out separately |
 | `SECURITY.md` | How to report something privately |
@@ -134,31 +135,17 @@ node qa/guards.js --bless  # re-snapshot frozen IDs after adding entries
 
 Zero dependencies, and every function under test is **extracted from `docs/index.html` and evaluated**, never reimplemented here — a copy drifts from the app and quietly stops testing it, which is the exact failure this file exists to prevent.
 
-**Data and progress.** Every `i:` is present, unique and unchanged since the last snapshot. The path vocabulary agrees with itself — every ordering has a label, a chooser blurb and a backup-code letter that round-trips, because two paths sharing a letter would restore as each other. No two backup-code hashes collide, with the birthday risk reported on every run. Every entry lands in exactly one tier, and Core route + Optional accounts for the whole catalogue. Every era and year has a bucket. The backup code round-trips losslessly, still reads a forward-dated code carrying segments this build has never seen, still reads a pasted restore URL, and still rejects junk. The restore link, its Copy control and the hash handler that receives it must all exist.
-
-**Interface.** Text contrast is computed from the palette and measured against the surface it sits on, for every theme rather than just the default. The mode switcher may not return to The Path, the chooser and path card must exist, and `persist()` may not write the currently-viewed ordering as the chosen path — that is how a shared link would quietly overwrite it. Every theme needs a status-bar colour, and the header and tab bar must stay on tokens so a theme can reach them. The storage-blocked warning must exist, must sit inside the sticky header where it cannot scroll away, and must be wired to every path that can turn saving off. No `\uXXXX` escape may appear in the static markup — inside a script that is an em dash, in markup it is six literal characters. One hero size, declared once. The centred column may not shift between tabs.
-
-**Weight.** `index.html` must stay inside the size budget above, and no external script may be loaded at runtime.
-
-**Deployment and bookkeeping.** Nothing servable strays to the repo root — `worker.js` lives there because it is infrastructure, not an asset: it exists for exactly one request shape (`GET /` with an Accept header preferring `text/markdown` answers with `llms.txt` as the markdown representation) and passes everything else through to the assets plane untouched, with `run_worker_first` scoped to `/` alone. `wrangler.jsonc` points at the served directory with SPA fallback off, and `sw.js`, `index.html` and `CHANGELOG.md` all agree on the version. The four headline counts in this README — and the counts baked into the `<meta>` and `og:` description tags — match the data.
+What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
 trusted. That evidence lives in `qa/negative/` — 55 negative suites, 825
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
-runs them all — concurrently, one suite per core, since the suites are
-independent — and CI runs them on every push and again nightly. All three
-counts in this paragraph and the one above are themselves guarded, because they
-have drifted twice.
+runs them all, and CI runs them on every push and again nightly. Guard 138 maps
+every fixture onto the section it breaks and fails the build on any section
+without one, and the counts in this paragraph are themselves guarded.
 
-That sentence is asserted, not asked to be believed. It stood here unchecked
-from 1.6.x until 3.9.2, when a full mapping of fixtures onto the sections they
-break found 32 sections with no fixture at all — including the largest section
-in the file. Guard 138 now does that mapping on every run and fails on any
-section without one. The list of sections owing a fixture opened at 26 and was
-emptied in 3.9.4; a section joining it fails the build.
-
-There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, and the in-page backup parser against old, forward-dated, pasted and malformed codes. It boots a second copy with `localStorage` throwing, which is the only way to observe the silent-save failure at all. It drives the path end to end: the chooser on first run, choosing through the real click handler, a reload returning on the same path and theme, a 1.1.0 save migrating without being asked again, a shared link that does not change what is stored, and a borrowed ordering that can always be stepped back out of, and every one of the eight shareable link tokens. 332 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
+There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, and the path end to end — 332 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
 
 ## Releasing
 
@@ -166,12 +153,8 @@ There is also `qa/smoke.js`, a headless render test that boots the real page and
 heading in `CHANGELOG.md` are one version string in three places. Change all
 three together, or `qa/guards.js` fails the build.
 
-**Verify a new state from a cold start, never from the state that produced it.**
-Three releases in a row were checked by driving the app into the new condition
-and looking at it, which confirms the transition and says nothing about what a
-reader who arrives fresh sees. 1.6.5 was the third and the last: reload, or boot
-a clean document, and look again. `qa/smoke.js` boots several documents for
-exactly this reason.
+The full checklist — the wire checks, the bless procedure, the browser check
+and the rollback runbook — is `RELEASING.md`.
 
 Write the changelog entry in the same commit as the change. Catalogue additions
 are a MINOR bump, fixes and copy are PATCH, and MAJOR is reserved for a breaking

@@ -403,11 +403,14 @@ run_case "the workflow is deleted outright" \
 
 echo "--- 114: the README describes the origin that actually serves"
 
+# 4.1.1: the anchor was 'guard 77 fails the build if that' — a sentence the
+# README diet removed. The fixture's point survives any wording: inject a
+# present-tense offer into the old-origin paragraph and the guard must object.
 run_case "the retired move offer returns to the README" \
   "in the present tense" \
   "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
-a='guard 77 fails the build if that'
-assert a in s;s=s.replace(a,'the app offers to carry it across when opened there, and guard 77 fails the build if that',1)
+a='Progress is stored per-origin'
+assert a in s;s=s.replace(a,'The app offers to carry progress across from the old address. '+a,1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
 # 3.3.1: the paragraph used to have to say what the app DID to the mirror.

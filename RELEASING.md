@@ -40,6 +40,14 @@ instead of remembered. Everything here is in execution order.
    never the turn. This is the manual review the guards' coverage map admits
    it cannot automate.
 
+**Throughout: verify a new state from a cold start, never from the state that
+produced it.** Three releases in a row were checked by driving the app into the
+new condition and looking at it, which confirms the transition and says nothing
+about what a reader who arrives fresh sees. 1.6.5 was the third and the last:
+reload, or boot a clean document, and look again. `qa/smoke.js` boots several
+documents for exactly this reason. (This rule lived in the README's release
+section until 4.1.1; it belongs in the checklist that runs.)
+
 ## Ship
 
 6. **Deploy.** `npm run deploy` (wrangler, to the Worker that serves

@@ -3335,3 +3335,53 @@ nothing was wrong with. The bottom block did not move — rule 1590, strapline
 1700, domain 1750, the bat at its 2.7.1 seat — so guard 108 held through the
 whole change, which is the point of pinning a composition: the chart could be
 rethought inside it without the frame drifting.
+
+## The README goes on a diet
+
+4.1.1 cut over a thousand words of history from the README, and this section
+is where the trimmed reasoning landed, because the rule is that nothing moves
+out of the tree — it moves here.
+
+**What left, and where it already lived.** The beta-era note, the mirror
+unpublishing narrative, the aggregator attempts, the beacon's retirement, the
+five weight-ceiling raises, the 2.7.0 font subsetting arithmetic, the guard-138
+origin story and the 1.6.5 cold-start lesson were all prose retellings of
+CHANGELOG entries. A history that lives in two files drifts in one of them;
+the CHANGELOG's copy is the record and now the only copy. The edge-injection
+correction (a TLS-intercepting VPN on the author's machine, not Cloudflare) is
+recorded in the 3.4.4 CHANGELOG entry and `ops/c0-edge-injection.md`,
+maintainer-local. The cold-start verification rule — verify a new state from a
+cold start, never from the state that produced it — is a live release rule,
+not history, so it moved to `RELEASING.md` where the release checklist lives.
+
+**The file table's reasoning, moved from the table.** `icon.svg` is a real
+file rather than a `data:` URI because search engines crawl the favicon, and a
+data URI has no URL to crawl and no content type on the wire. `favicon.ico`
+keeps the classic root path — 16/32/48 in one container — for the crawlers
+that ask for it and accept nothing else, and sits out of the offline shell
+because a favicon is browser chrome the app never renders. The three favicon
+PNGs exist for tools that read `<link>` tags rather than probing the root ico,
+same downscale as the ico's layers. `apple-touch-icon.png` is opaque on the
+ink ground because iOS ignores the manifest icons and composites transparency
+onto black — the ground is chosen there, not by iOS. `mstile-144x144.png`
+pairs with `msapplication-TileColor`, which paints the ground behind it. The
+IndexNow key file's name and contents are the same string and a trailing
+newline breaks the match; it sits out of the offline shell for the reason
+`llms.txt`, `orders.txt` and `auth.md` do — written for machines that never
+run the app. `sitemap.xml` gained its second URL in 3.7.1 because nothing on
+the open web pointed at the one file written to be found. `_headers` lives in
+the tree because a file here can be diffed, guarded and shipped inside a
+release, where a dashboard rule can be none of those — edge rules CAN override
+it, the lesson is recorded in the file itself, and the wire check lives in
+`RELEASING.md`. `vp.html` paints five height units as stripes plus the numbers
+iOS actually grants, for the standalone bottom-band investigation; owner-facing,
+never linked, and it leaves with the question it answers. `qa/browser-check.mjs`
+measures inside the click's own task because a scroll clamp and a lost focus
+both self-correct within a few hundred milliseconds, and a drive that waits is
+green against either.
+
+**What the guards hold, moved from the Checks section.** The README's four
+paragraphs restating guard sections in prose were a third copy of rules that
+exist as numbered, negative-tested sections in `qa/guards.js` with their
+reasoning attached. The README now points there; the guards file was always
+the honest statement, because it is the one that runs.

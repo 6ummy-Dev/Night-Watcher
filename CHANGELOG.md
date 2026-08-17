@@ -11,6 +11,41 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.1.1] — 2026-08-17
+
+**The README goes on a diet.** Documentation only — nothing served changes
+beyond the build string. The README had grown to ~4,500 words by narrating,
+in place, history this file already records: the beta era, the mirror
+unpublishing, the aggregator attempts, the beacon, all five weight-ceiling
+raises, the guard-138 origin story, the 1.6.5 cold-start lesson, and a file
+table whose every row carried an essay. A history that lives in two files
+drifts in one of them, and this file is the record.
+
+### Changed
+
+- **README.md loses over a thousand words of history.** Every retelling
+  removed in favour of the CHANGELOG entry that already records it; the file
+  table keeps every row (guard 45 still holds it against the tree) with
+  one-line purposes; the four prose paragraphs restating guard sections in
+  the Checks section collapse to an outline pointing at `qa/guards.js`,
+  where each rule lives beside the code that enforces it, negative-tested.
+  Every guarded anchor stayed and stayed green: the canonical sentence, the
+  headline counts, the era run, the old-origin paragraph (still marked
+  unpublished, still no present-tense offer), the visit-counts bullet, the
+  catalogue hard cases, the tagline, the size figure, and the 55 / 825 / 332
+  counts.
+- **README gains the CI badge and the share card as a first image** — the
+  badge is served by GitHub itself; the repo page fetches nothing from a
+  third party, same as the app.
+- **The cold-start verification rule moved to `RELEASING.md`** ("Before the
+  version moves"), because it is a live release rule, not history — the
+  checklist that runs is where it can be followed.
+- **The file table's reasoning moved to `NOTES.md`** ("The README goes on a
+  diet"), not deleted — the favicon family, the IndexNow key, `vp.html`,
+  `_headers`, the browser check's inside-the-click measurement. The rule is
+  the same as 1.6.3's: reasoning moves out of the shipped surface and into
+  the file that exists to carry it.
+
 ## [4.1.0] — 2026-08-17
 
 **The story card learns the app's own chart.** Since 3.8.2 the Progress tab
