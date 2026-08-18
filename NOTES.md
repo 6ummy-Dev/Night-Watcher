@@ -577,6 +577,22 @@ taken back out, for the reason under `target` below.
 groupOpen persists as of 1.3.5; tab, filter, query and mode remain session
 state by design. Jumping is a deliberate act, so its collapse sticks.
 
+### `drift`
+
+The head is sticky and scroll anchoring is off — `overflow-anchor:none` is
+deliberate, so the app pays its own compensation or the defect is visible.
+Here it was visible: closing a long group from deep inside was a collapse
+nothing was paying for. The body under
+the stuck head disappeared, the panel's scrollTop kept its number, and the
+reader landed ~1,300px later in the path with the head they had just clicked
+1,200px above the fold — with focus still on it, off-screen. Measured before
+and after the class toggle in the click's own task, and the difference handed
+to `scrollPut()`: the head stays exactly where it was clicked, which for a
+stuck head is the sticky offset and for a short group is no movement at all,
+because an unstuck head does not move when its body folds. Opening drifts 0 —
+the body grows below the head — so the write never fires. The two reads are
+pinned and argued in guards section 120.
+
 ### `target`
 
 A collapsed group is still a 56px sticky header, so scrolling to the top

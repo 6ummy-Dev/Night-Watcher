@@ -11,6 +11,32 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.1.2] — 2026-08-18
+
+**Closing a group no longer throws the reader down the path.** The group
+head is `position:sticky` and scroll anchoring is off by design
+(`overflow-anchor:none` — the app pays its own compensation or the defect
+is visible). This was the one collapse nothing paid for: close a long group
+from deep inside — the head stuck at the top of the viewport, under your
+finger — and the body vanished while the panel's scrollTop kept its number.
+Measured at 390×844 on the largest universe: the list lost ~1,300px, the
+clicked head landed 1,206px above the viewport, and the reader landed
+somewhere else in the path entirely, with keyboard focus still on the
+now-off-screen head.
+
+### Fixed
+
+- **`groupUpdate()` anchors the clicked head.** Its viewport top is read
+  before the class toggle and again after, in the click's own task, and the
+  drift is handed to `scrollPut()` — the head stays exactly where it was
+  clicked. A short, unstuck head measures a drift of 0 and nothing moves;
+  opening a group grows the body below the head, drifts 0, and never
+  writes. The two `getBoundingClientRect` reads are pinned and argued in
+  guards section 120 (2 → 4, the same shape as 3.8.3's search-box anchor),
+  and `qa/negative/negtest320.sh`'s multiply fixture now expects 5.
+- **`NOTES.md`** records the mechanism under `drift`, beside the sticky-head
+  and scroll-seam notes it belongs with.
+
 ## [4.1.1] — 2026-08-17
 
 **The README goes on a diet.** Documentation only — nothing served changes

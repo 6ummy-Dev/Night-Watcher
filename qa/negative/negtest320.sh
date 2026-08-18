@@ -11,7 +11,7 @@ echo "--- 120: the page does not read layout after writing it"
 # shapes these fixtures prove are unchanged — a refused property arriving, a
 # pinned read multiplying, a pin going unsatisfied — only the names moved.
 run_case "a pinned read multiplies past its pin" \
-  "reads getBoundingClientRect 3 times" \
+  "reads getBoundingClientRect 5 times" \
   "${P}a='var keep = scrollKeep();';assert a in s
 s=s.replace(a,'var box = document.body.getBoundingClientRect(); var keep = scrollKeep();',1);${W}"
 

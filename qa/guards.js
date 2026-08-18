@@ -8883,7 +8883,7 @@ var ROUTE_VOCAB = [
      "grant, runs at most a handful of times per session behind four " +
      "gates, and never on the render path. A third appearance has to be " +
      "argued for"],
-    ["getBoundingClientRect", 2,
+    ["getBoundingClientRect", 4,
      "3.8.3's search-box anchor, the soak fix for the box that jumped while " +
      "you typed. Refused since this section existed; admitted now because " +
      "the fix IS a measurement — hold the box where it was, which cannot be " +
@@ -8895,8 +8895,21 @@ var ROUTE_VOCAB = [
      "has already flushed the new layout, so it reads a clean tree and " +
      "forces nothing; the drift between the two is handed to scrollBy and " +
      "the box stands still. Both reads are gated on the box being focused — " +
-     "every render that is not mid-typing skips them. A THIRD read is a new " +
-     "site and has to be argued for here"],
+     "every render that is not mid-typing skips them. READS THREE AND FOUR, " +
+     "argued in 4.1.2: groupUpdate()'s collapse anchor — the same shape as " +
+     "the search-box pair, applied to the sticky group head. The panel " +
+     "scrolls, the head is position:sticky, and overflow-anchor is off by " +
+     "design, so closing a long group from deep inside left scrollTop " +
+     "pointing ~1,300px past the list that remained: the clicked head landed " +
+     "1,200px above the viewport and the reader somewhere else in the path. " +
+     "Read THREE takes the head's viewport top before the class toggle — the " +
+     "first layout touch in the click's task, so the tree is clean and it " +
+     "forces nothing. Read FOUR re-reads it after the toggle — a forced " +
+     "reflow ON PURPOSE, because the drift between the two IS the fix, " +
+     "handed to scrollPut so the head stays under the finger that closed it. " +
+     "Once per head click, never on the render path; opening a group drifts " +
+     "0 and writes nothing. A FIFTH read is a new site and has to be argued " +
+     "for here"],
     ["scrollLeft", 1,
      "4.0.0's swipe viewport, read in exactly one place: swipeRead(), " +
      "inside the rAF the throttled listener schedules, so it rides a frame " +
