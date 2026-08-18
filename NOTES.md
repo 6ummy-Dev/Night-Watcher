@@ -524,6 +524,16 @@ Built ONLY for the open row. Emitting it for every entry and hiding it was
 The path row here duplicated Home's Change. What is left is progress in
 portable form, which is why it stays in Progress.
 
+### `var pm = S.path || S.mode;`
+
+The card's skyline follows the CHOSEN path, not the browsed one — `S.path`
+first, `S.mode` only when no choice exists — because that is what the card's
+own mode line has printed since 2.x, and a card whose caption and chart
+disagree is a card that lies in a screenshot. The Progress tab's on-page
+skyline follows `S.mode` instead, deliberately: browsing is a question, the
+card is a statement. From 4.1.0 to 4.2.0 the skyline ignored both and always
+drew the universes cut; the mode line was the only honest row on it.
+
 ### `'<p class="note">Announced dates can move. \u00b7 Build …`
 
 Named titles here went stale every time one landed or another was

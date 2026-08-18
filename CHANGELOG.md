@@ -11,6 +11,24 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.2.1] — 2026-08-18
+
+**The story card draws YOUR skyline.** Since 4.1.0 the card has drawn the
+Progress tab's chart — but always the universes cut of it, whatever path the
+reader had chosen. `drawShareCard()` hardcoded `PATH` and `"c"+gi` keys, so a
+reader on *Bruce's life* got a card whose mode line said their path and whose
+skyline said somebody else's. Reported by the owner the day 4.2.0 was cut.
+
+### Fixed
+
+- **`drawShareCard()` picks its groups the way its own mode line already
+  did** — from `S.path || S.mode`: eras on *Bruce's life*, decades on
+  *release order*, universes otherwise, through the same `groupFilms()`
+  keys `viewStats()` uses. The closed-count line and the key line under the
+  rule speak the same word ("N of M eras closed", "N ERAS · WIDTH IS SIZE ·
+  FILL IS WATCHED"). A fresh visitor with no path chosen still gets
+  universes — the old behavior was only wrong once a choice existed.
+
 ## [4.2.0] — 2026-08-18
 
 **The numbers get their own voice.** Anton has carried every title AND every
