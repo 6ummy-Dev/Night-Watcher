@@ -11,6 +11,46 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.2.0] — 2026-08-18
+
+**The numbers get their own voice.** Anton has carried every title AND every
+big count since the beginning, so a score never read as a score — the owner
+noticed the same face doing double duty across the scoreboard and the cards,
+reviewed four OFL candidates side by side against the current face, and chose
+Big Shoulders Display. It was already family: the `--deco` stack has named it
+as Limelight's fallback since 1.0 — Chicago deco-industrial, the same era and
+city as the wordmark.
+
+### Added
+
+- **`big-shoulders-display-latin-700-normal.woff2`** joins `docs/fonts/`:
+  subset through `qa/subset-fonts.py` like the rest (9,964 bytes; its OFL
+  carries no Reserved Font Name, so Limelight's keep-whole rule does not
+  apply), blessed into `qa/font-subset.json`, preloaded with the other six
+  (guard 124's set equality holds), precached by `sw.js`, licence section
+  appended to `docs/fonts/OFL.txt`, row added to the README file table.
+- **`--num`** — the numeral stack: Big Shoulders Display 700, falling back
+  to the title stack so a failed load degrades to exactly what 4.1.x
+  looked like.
+
+### Changed
+
+- **The scoreboard tiles** (`.bigstat b`) and **the story card's count**
+  (`drawShareCard`'s 230px figure) set in the numeral face; every title
+  stays Anton.
+- **`docs/share.png` regenerated** with the new numerals — and the stats
+  row's three columns are now equal-width, which centers the middle count
+  on the card's own centerline: the old flex box was centered as a group,
+  but "CONTINUITIES" is a wider column than "FILMS", so the middle number
+  sat 27.7px left of the wordmark's axis. Measured, not eyeballed, at the
+  owner's "check alignment" — the same pass verified the Brave banner
+  lockup centers at exactly x=1350 with symmetric 84px margins inside the
+  2:1 crop window.
+- **The Brave Creators banner** rebuilt to the recorded spec (2700×528,
+  crop-critical content inside the center 1056px) with the numeral face on
+  its three stats; delivered to the owner for the dashboard — the banner is
+  not a served file of this repo.
+
 ## [4.1.2] — 2026-08-18
 
 **Closing a group no longer throws the reader down the path.** The group

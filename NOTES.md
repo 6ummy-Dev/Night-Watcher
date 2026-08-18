@@ -54,8 +54,8 @@ identical optical centres.
 
 ### Fonts and palette
 
-Limelight, Anton and IBM Plex, all under the SIL Open Font License, served from
-`fonts/` rather than a CDN — the app makes a promise about asking nothing of
+Limelight, Anton, Big Shoulders Display and IBM Plex, all under the SIL Open
+Font License, served from `fonts/` rather than a CDN — the app makes a promise about asking nothing of
 anyone else, and guards section 42 enforces it. The palette is original hex,
 styled after the classic black / blue-grey / belt-yellow scheme.
 
@@ -692,6 +692,18 @@ animated-sky red, AA-adjusted
 ### `--deco:"Limelight","Big Shoulders Display",serif;`
 
 interactive badge
+
+### `--num`
+
+4.2.0 gives the numbers their own voice. Anton had been doing double duty —
+every title AND every big count — so a score never read as a score. The
+numerals (the scoreboard tiles, the story card's count, the share image's
+three stats) now set in Big Shoulders Display at 700: same Chicago-deco
+family the --deco stack has named as Limelight's fallback since the
+beginning, so the taste was already on record. One weight ships, subset like
+the rest (its OFL carries no Reserved Font Name — Limelight's rule does not
+apply), preloaded like the rest, and the stack falls back to the title face
+so a failed load degrades to exactly what 4.1.x looked like.
 
 ### `:root[data-theme="darker"]{`
 

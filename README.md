@@ -98,6 +98,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `docs/vp.html` | The viewport probe for the standalone bottom-band investigation. Owner-facing, noindexed |
 | `docs/fonts/limelight-latin-400-normal.woff2` | Display face for the wordmark and headings |
 | `docs/fonts/anton-latin-400-normal.woff2` | Condensed face for titles |
+| `docs/fonts/big-shoulders-display-latin-700-normal.woff2` | Numeral face — scoreboard tiles and the story card's count |
 | `docs/fonts/ibm-plex-sans-latin-400-normal.woff2` | Body text |
 | `docs/fonts/ibm-plex-sans-latin-600-normal.woff2` | Body text, semibold |
 | `docs/fonts/ibm-plex-mono-latin-400-normal.woff2` | Labels, counts, and every uppercase micro-line |
@@ -221,7 +222,7 @@ they always were — titles, years and episode counts belong to nobody.
 
 ## Credits & legal
 
-- Fonts: Limelight, Anton, IBM Plex Sans and IBM Plex Mono, self-hosted in `docs/fonts/` under the SIL Open Font License. Their licence ships with them at `docs/fonts/OFL.txt`.
+- Fonts: Limelight, Anton, Big Shoulders Display, IBM Plex Sans and IBM Plex Mono, self-hosted in `docs/fonts/` under the SIL Open Font License. Their licence ships with them at `docs/fonts/OFL.txt`.
 - The favicon and app icon are original bat silhouettes drawn for this project. They are not DC marks.
 - This is an unofficial fan-made tracker. It contains no trademarked logos, symbols or artwork. Batman and all related characters are property of DC / Warner Bros. Discovery; this project is not affiliated with or endorsed by them.
 - Catalogue compiled from public sources. Release dates for unreleased titles are as announced and may change.
