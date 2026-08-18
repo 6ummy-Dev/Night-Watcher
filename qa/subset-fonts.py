@@ -26,6 +26,8 @@ SOURCES. The originals are the @fontsource packages, unmodified:
     @fontsource/ibm-plex-mono   ibm-plex-mono-latin-{400,600}-normal.woff2
     @fontsource/anton           anton-latin-400-normal.woff2
     @fontsource/limelight       limelight-latin-400-normal.woff2
+    @fontsource/big-shoulders-display
+                                big-shoulders-display-latin-700-normal.woff2
 They are not kept in the repo; re-fetch from npm to regenerate.
 
 Guard 106 does not run this. It checks the blessed manifest against the files on

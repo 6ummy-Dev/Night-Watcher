@@ -2394,6 +2394,7 @@ if(!/<label class="bklab" for="restorebox">/.test(HTML)){
 
 /* Self-hosting is redistribution, and OFL requires the licence to travel. */
 ["limelight-latin-400-normal", "anton-latin-400-normal",
+ "big-shoulders-display-latin-700-normal",
  "ibm-plex-sans-latin-400-normal", "ibm-plex-sans-latin-600-normal",
  "ibm-plex-mono-latin-400-normal", "ibm-plex-mono-latin-600-normal"].forEach(function(f){
   if(HTML.indexOf("fonts/" + f + ".woff2") < 0) fail("@font-face lost " + f);

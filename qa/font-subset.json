@@ -5,6 +5,11 @@
       "sha256": "077f4b9cee155a601f56ab61d472f6c838172606b62e4ca20992190a7015f9ce",
       "subset": true
     },
+    "big-shoulders-display-latin-700-normal.woff2": {
+      "bytes": 9964,
+      "sha256": "4e09a96e51c3bc40d6942bf3928089759a2ef9fbb0a1fb4a3a246921ea90d851",
+      "subset": true
+    },
     "ibm-plex-mono-latin-400-normal.woff2": {
       "bytes": 7696,
       "sha256": "bf4c3cffb6f4fd407234ca548bd9a34737ae3d7af61f33605e7cf0891c4d1fd5",

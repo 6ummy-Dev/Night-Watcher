@@ -195,3 +195,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 IBM Plex Sans and IBM Plex Mono
 Copyright 2017 IBM Corp. Licensed under the SIL Open Font License, Version 1.1.
 https://github.com/IBM/plex
+
+---
+
+Big Shoulders Display
+Copyright 2019 The Big Shoulders Project Authors (https://github.com/xotypeco/big_shoulders)
+Licensed under the SIL Open Font License, Version 1.1 (text above).
