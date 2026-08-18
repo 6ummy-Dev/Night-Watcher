@@ -69,7 +69,13 @@ await page.evaluate(() => {
   localStorage.clear();
   S.path = S.mode = "continuity"; S.watched = {}; S.skipped = {}; S.rated = {};
   S.log = []; S.open = {}; S.peek = {}; S.tab = "watch"; S.filter = "all"; S.q = "";
-  setAllGroups(true); render();
+  setAllGroups(true); render(); snapTo(S.tab);
+  /* snapTo: setting S.tab directly leaves the deck parked where it was, a
+     state no real door produces — goTab and the hash handlers all snap. The
+     app self-corrects it (swipeRead reads the deck as truth), and WHEN that
+     correction fires moved between Chromium builds: rev 1234 fired it before
+     the content-visibility read below and flipped the app back to Home, which
+     has no .group to read. Align the deck like every real door does. */
 });
 
 /* ---- the header at 0% ------------------------------------------------- */
@@ -162,13 +168,26 @@ ok("header at 100%: the subtitle holds one line at 390px",
    state is what this check is about. */
 await page.evaluate(() => new Promise(r =>
   requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 50)))));
+await page.waitForFunction(
+  () => document.querySelector("#view .panel:not([inert]) .group"),
+  null, { timeout: 5000 }).catch(() => {});
 const cv = await page.evaluate(() => {
   const g = document.querySelector("#view .panel:not([inert]) .group");
+  /* Crashed here as a raw TypeError on Chromium rev 1234 while every build
+     before it passed — a null read is a real finding about the deck's state,
+     so it fails as a check that says what the state was, not as a stack. */
+  if(!g) return { missing: true, tab: S.tab,
+                  sl: document.getElementById("view").scrollLeft,
+                  panels: Array.prototype.map.call(
+                    document.querySelectorAll("#view .panel"),
+                    p => p.id + (p.hasAttribute("inert") ? "[inert]" : "")) };
   return { cv: getComputedStyle(g).contentVisibility,
            cis: getComputedStyle(g).containIntrinsicSize,
            groups: document.querySelectorAll("#view .panel:not([inert]) .group").length };
 });
-ok("content-visibility is on .group", cv.cv === "auto", cv.cv + " / " + cv.cis);
+ok("content-visibility is on .group", !cv.missing && cv.cv === "auto",
+   cv.missing ? "no .group in a non-inert panel — " + JSON.stringify(cv)
+              : cv.cv + " / " + cv.cis);
 
 /* ---- jumping to a group, from all seven ways in ------------------------- */
 /* 3.3.2 REWROTE WHAT "IN VIEW" MEANS HERE, BECAUSE THE OLD PHRASING WAS WIDE
@@ -210,7 +229,7 @@ ok("content-visibility is on .group", cv.cv === "auto", cv.cv + " / " + cv.cis);
 async function jump(clickFn, label, tab, mode){
   await page.evaluate((o) => {
     S.tab = o.t; if(o.m) S.mode = o.m;
-    S.progOpen = {uni:true, era:true, dec:true}; render(); scrollPut(0);
+    S.progOpen = {uni:true, era:true, dec:true}; render(); snapTo(S.tab); scrollPut(0);
   }, {t: tab || "stats", m: mode || ""});
   const before = await page.evaluate(() => scrollKeep());
   const fired = await page.evaluate(clickFn);
@@ -317,7 +336,7 @@ await jump(() => {
 /* ---- a group opens and closes, and the rows really disappear ------------ */
 await page.evaluate(() => {
   S.tab = "watch"; S.mode = "continuity"; S.filter = "all"; S.q = "";
-  setAllGroups(true); render(); scrollPut(0);
+  setAllGroups(true); render(); snapTo(S.tab); scrollPut(0);
 });
 const grp = await page.evaluate(() => {
   const h = document.querySelector("#view .panel:not([inert]) .ghead");
@@ -356,7 +375,7 @@ ok("re-opening a group brings its rows back",
 /* ---- the whole point of Stage 2: one tap on The Batman (2022) ----------- */
 const link = await page.evaluate(() => {
   S.tab = "watch"; S.mode = "continuity"; S.filter = "all";
-  S.q = "The Batman"; setAllGroups(true); render();
+  S.q = "The Batman"; setAllGroups(true); render(); snapTo(S.tab);
   const f = FILMS.filter(x => x.t === "The Batman" && x.y === 2022)[0];
   if(!f) return { err: "The Batman (2022) is not in the catalogue" };
   S.open = {}; S.open[f.id] = true; render();
@@ -392,7 +411,7 @@ const edges = await page.evaluate(() => {
   localStorage.clear();
   S.path = S.mode = "continuity"; S.watched = {}; S.skipped = {}; S.rated = {};
   S.log = []; S.open = {}; S.peek = {}; S.tab = "next"; S.filter = "all"; S.q = "";
-  render();
+  render(); snapTo(S.tab);
   const lnk  = document.querySelector(".herorow .lnk");
   const skip = document.querySelector(".heroacts .no");
   if(!lnk || !skip) return { err: "the hero link or Skip is not rendered" };
@@ -413,7 +432,7 @@ ok("hero: the watch link is filled, lit, and read in bone",
    edges.fill + " · label " + edges.label + " · edge " + edges.edge);
 
 const detail = await page.evaluate(() => {
-  S.tab = "watch"; S.q = ""; setAllGroups(true); render();
+  S.tab = "watch"; S.q = ""; setAllGroups(true); render(); snapTo(S.tab);
   const f = document.querySelector(".film");
   const id = f.getAttribute("data-id") ||
             (f.querySelector("[data-id]") || {}).getAttribute?.("data-id");
@@ -450,7 +469,7 @@ async function tickDrive(filter, label, mode){
   await page.evaluate(({f, m}) => {
     S.path = S.mode = m; S.tab = "watch"; S.filter = f; S.q = "";
     S.watched = {}; S.skipped = {}; S.rated = {}; S.open = {};
-    render(); scrollPut(0);
+    render(); snapTo(S.tab); scrollPut(0);
   }, { f: filter, m: mode || "continuity" });
   await page.waitForTimeout(250);
   await page.evaluate(() => scrollPut(Math.round(scroller().scrollHeight * 0.55)));
@@ -535,7 +554,7 @@ await tickDrive("all", "all, life", "life");
 const foc = await page.evaluate(() => {
   S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = "all"; S.q = "";
   S.watched = {}; S.skipped = {}; S.rated = {}; S.open = {};
-  window.setAllGroups(true); render();
+  window.setAllGroups(true); render(); snapTo(S.tab);
   const row = document.querySelector('#view .panel:not([inert]) [data-act="expand"]');
   if(!row) return { err: "no expandable row" };
   const id = row.dataset.id;
@@ -558,7 +577,7 @@ ok("focus survives a tick inside an open row",
 const focStar = await page.evaluate(() => {
   S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = "all"; S.q = "";
   S.watched = {}; S.rated = {}; S.open = {};
-  window.setAllGroups(true); render();
+  window.setAllGroups(true); render(); snapTo(S.tab);
   const row = document.querySelector('#view .panel:not([inert]) [data-act="expand"]');
   if(!row) return { err: "no expandable row" };
   const id = row.dataset.id;
@@ -578,7 +597,7 @@ ok("focus survives rating from inside an open row",
    (focStar.act ? ' [data-act="' + focStar.act + '"]' : ""));
 
 /* Screenshots, so the header can be looked at rather than only measured. */
-await page.evaluate(() => { S.watched = {}; S.tab = "watch"; render(); scrollPut(0); });
+await page.evaluate(() => { S.watched = {}; S.tab = "watch"; render(); snapTo(S.tab); scrollPut(0); });
 await page.screenshot({ path: "qa/.shots/shot-header-0.png", clip: {x:0, y:0, width:390, height:120} });
 await page.evaluate(() => { pool().forEach(f => S.watched[f.id] = 1); render(); });
 await page.screenshot({ path: "qa/.shots/shot-header-100.png", clip: {x:0, y:0, width:390, height:120} });
@@ -751,14 +770,14 @@ async function axeState(name, setup, verify){
 }
 
 await axeState("first-run chooser", () => {
-  localStorage.clear(); S.path = null; S.tab = "home"; render();
+  localStorage.clear(); S.path = null; S.tab = "home"; render(); snapTo(S.tab);
 }, () => {
   const picks = document.querySelectorAll("#view .panel:not([inert]) .pick").length;
   return { pass: picks > 0, detail: picks + " chooser card(s)" };
 });
 await axeState("a group opened", () => {
   S.path = S.mode = "continuity"; S.tab = "watch"; S.open = {};
-  setAllGroups(false); render();
+  setAllGroups(false); render(); snapTo(S.tab);
   const h = document.querySelector('#view .panel:not([inert]) .ghead[data-gk]');
   if(h) h.click(); /* the app's own path in — aria-expanded flips, the fold renders */
 }, () => {
@@ -770,7 +789,7 @@ await axeState("a group opened", () => {
    state nothing ever scanned. */
 await axeState("a row expanded", () => {
   S.path = S.mode = "continuity"; S.tab = "watch"; S.q = "";
-  setAllGroups(true); render();
+  setAllGroups(true); render(); snapTo(S.tab);
   const row = document.querySelector('#view .panel:not([inert]) [data-act="expand"]');
   if(row){ S.open = {}; S.open[row.dataset.id] = 1; render(); }
 }, () => {
