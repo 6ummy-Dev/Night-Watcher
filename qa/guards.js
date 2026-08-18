@@ -10429,9 +10429,12 @@ var ROUTE_VOCAB = [
          "sentence will drift; that is guard 121's lesson, applied here " +
          "before the drift instead of after");
   }
-  if(!/Progress saves automatically in this browser/.test(vs)){
-    fail("Progress lost the saves-line — the machinery notes stay with the " +
-         "machinery");
+  if(/Progress saves automatically in this browser/.test(HTML)){
+    fail("the saves-line is back in Progress — 4.2.2 removed it as a second " +
+         "copy of the Your-data card's own first sentence, and two copies " +
+         "of one fact drift; guard 121's lesson, applied here the same way " +
+         "the watching-truths were. The no-save case is the header's " +
+         "#nosave banner, not a footer line");
   }
   if(vs.indexOf("buildline") < 0){
     fail("the build line left Progress — it names the build and points at " +
@@ -10441,7 +10444,7 @@ var ROUTE_VOCAB = [
               (HTML.match(/function installBlock\(\)/g) || []).length;
   if(seats !== 1){
     fail(seats + " install seats — the seat is one quiet block in Progress " +
-         "under the saves-line, and a second call site is the first step " +
+         "under the data card, and a second call site is the first step " +
          "back toward a banner");
   }
 

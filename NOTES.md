@@ -958,6 +958,18 @@ focus honestly and still cannot be read.
 The swatches are real badges, so the row has to align them against the note
 beside them rather than sit them on a text baseline.
 
+### `.note.foot`
+
+4.2.2 makes the footer one system. Until then each tab had grown its own:
+Home centered with no line, Next up centered with no line, The Path's legend
+left-aligned with the only separator on the site, and Progress left-aligned
+at 12.5px two steps from its own centered build line. Now every tab's footer
+carries the legend's hairline (`border-top` + 18px) and centers — the legend
+included — and consecutive foot-notes suppress the line so a stack of truths
+reads as one footer, not a pile of rules. The saves-line went entirely: it
+restated the Your Data card's first sentence, and its no-save variant was
+already the header's #nosave banner. Two copies of one fact drift.
+
 ### `.ugrid`
 
 minmax(0,1fr), not 1fr. A bare 1fr is minmax(auto,1fr), and that auto floor

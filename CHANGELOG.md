@@ -11,6 +11,31 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.2.2] — 2026-08-18
+
+**Four tabs, one footer.** The owner's punch list: the footers weren't all
+centered, only The Path's carried a separator line, and Progress had a
+saves-line under "Clear all progress" restating what the Your Data card says
+two blocks up.
+
+### Changed
+
+- **Every tab's footer now carries the legend's hairline** — `border-top:
+  var(--line)`, 18px of air — and centers: Home's colophon and Next up's
+  watching-truths gain the line, Progress's build/support block joins the
+  `.note.foot` system, and The Path's legend (which had the only line)
+  centers its rows. Consecutive foot-notes share one line, not one each.
+
+### Removed
+
+- **The saves-line.** "Progress saves automatically in this browser…" under
+  the Clear button was a second copy of the Your Data card's own first
+  sentence, and two copies of one fact drift — guard 121's lesson, applied
+  the way the watching-truths were in 3.7.0. The no-save case was already
+  the header's #nosave banner, which renders whether or not Progress is
+  open. The guard that required the line now refuses it;
+  `qa/negative/negtest131.sh`'s fixture flips with it (same case count).
+
 ## [4.2.1] — 2026-08-18
 
 **The story card draws YOUR skyline.** Since 4.1.0 the card has drawn the

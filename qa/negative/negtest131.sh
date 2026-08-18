@@ -52,9 +52,9 @@ run_case "the availability note comes back to Progress" \
   "a watching-truth is back in Progress" \
   "${P}a='installBlock()+';assert a in s;s=s.replace(a,'\\'<p class=\"note\">Announced dates can move.</p>\\'+installBlock()+');${W}"
 
-run_case "Progress loses the saves-line" \
-  "Progress lost the saves-line" \
-  "${P}a='Progress saves automatically in this browser and follows you across all three orderings.';assert a in s;s=s.replace(a,'Progress is saved.');${W}"
+run_case "the saves-line comes back to Progress" \
+  "the saves-line is back in Progress" \
+  "${P}a='Keep the path lit.';assert a in s;s=s.replace(a,'Progress saves automatically in this browser. Keep the path lit.');${W}"
 
 # 4.1.0: the support line joined the footer as a second span.buildline, so
 # renaming only the first left the word "buildline" in viewStats and the
