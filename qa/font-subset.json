@@ -1,10 +1,5 @@
 {
   "files": {
-    "anton-latin-400-normal.woff2": {
-      "bytes": 8156,
-      "sha256": "077f4b9cee155a601f56ab61d472f6c838172606b62e4ca20992190a7015f9ce",
-      "subset": true
-    },
     "big-shoulders-display-latin-700-normal.woff2": {
       "bytes": 9964,
       "sha256": "4e09a96e51c3bc40d6942bf3928089759a2ef9fbb0a1fb4a3a246921ea90d851",

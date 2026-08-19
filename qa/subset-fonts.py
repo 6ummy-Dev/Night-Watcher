@@ -16,7 +16,7 @@ catalogue takes data patches by design. The safe superset costs 21 KB and
 removes the failure mode.
 
 WHY LIMELIGHT IS NOT SUBSET. Its OFL header reads "with Reserved Font Name
-Limelight" — Anton's and IBM Plex's do not. Under OFL 1.1 a Modified Version may
+Limelight" — the other faces' headers do not. Under OFL 1.1 a Modified Version may
 not carry the reserved name as presented to users, so subsetting it means
 renaming the family in the name table, in @font-face and in --deco. Real CSS
 churn and a licensing judgement, for 10.3 KB. Left whole on purpose.
@@ -24,7 +24,6 @@ churn and a licensing judgement, for 10.3 KB. Left whole on purpose.
 SOURCES. The originals are the @fontsource packages, unmodified:
     @fontsource/ibm-plex-sans   ibm-plex-sans-latin-{400,600}-normal.woff2
     @fontsource/ibm-plex-mono   ibm-plex-mono-latin-{400,600}-normal.woff2
-    @fontsource/anton           anton-latin-400-normal.woff2
     @fontsource/limelight       limelight-latin-400-normal.woff2
     @fontsource/big-shoulders-display
                                 big-shoulders-display-latin-700-normal.woff2

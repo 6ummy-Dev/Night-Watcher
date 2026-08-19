@@ -552,6 +552,17 @@ win.addEventListener("load", function(){
     S.tab = "next"; win.render();
     check("no Activity block before anything is watched", !doc.querySelector(".activity"));
 
+    /* --- The deco hero (4.3.0) --- */
+    var hc = doc.querySelector("#view .panel:not([inert]) .hero .hcont");
+    check("the hero draws the diamond rule",
+          !!doc.querySelector("#view .panel:not([inert]) .hero .drule"));
+    check("the hero meta line separates with the diamond, not the dot",
+          !!(hc && hc.querySelector(".dsep")) && hc.textContent.indexOf("·") < 0,
+          hc && hc.textContent);
+    check("the hero ornament is hidden from the reader",
+          !!(hc && hc.querySelector('.dsep[aria-hidden="true"]')) &&
+          !!doc.querySelector('#view .panel:not([inert]) .hero .drule[aria-hidden="true"]'));
+
     var wasShowing = doc.querySelector("#view .panel:not([inert]) .hero h2").textContent;
     doc.querySelector("#view .panel:not([inert]) .heroacts .go").dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
     check("the hero advances after marking watched",
@@ -1577,6 +1588,8 @@ win.addEventListener("load", function(){
       if(/font-size/.test(el.getAttribute("style") || "")) sized++;
     });
     check("the completed-catalogue hero on Home is unsized too", sized === 0, sized + " sized");
+    check("the Case closed card keeps the diamond rule",
+          !!win.document.querySelector("#view .panel:not([inert]) .hero .drule"));
     S.tab = "next"; win.render();
     var closed = win.document.querySelector("#view .panel:not([inert]) .empty .big");
     check("a finished Next up says so in the shared display size",

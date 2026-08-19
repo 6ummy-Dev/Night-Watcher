@@ -24,15 +24,18 @@ run_case "the blessed range is narrowed under the catalogue" \
   "fall outside the font subset" \
   "import io,json;p='qa/font-subset.json';d=json.load(io.open(p,encoding='utf-8'));d['ranges']=['U+0041-005A'];io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2,sort_keys=True))"
 
+# 4.3.0 retired Anton, which these fixtures were anchored on; they mutate the
+# big-shoulders face now — any shipped woff2 serves, the guard under test is
+# the same.
 run_case "a font is swapped for a different one of the same size" \
   "does not match its blessed hash" \
   "import io,os
-p='docs/fonts/anton-latin-400-normal.woff2';b=bytearray(open(p,'rb').read());b[-1]^=0xFF;open(p,'wb').write(bytes(b))"
+p='docs/fonts/big-shoulders-display-latin-700-normal.woff2';b=bytearray(open(p,'rb').read());b[-1]^=0xFF;open(p,'wb').write(bytes(b))"
 
 run_case "a font is replaced by the full unsubset face" \
   "the font moved and the record of what it contains did not" \
   "import io
-p='docs/fonts/anton-latin-400-normal.woff2';b=open(p,'rb').read();open(p,'wb').write(b+b'\x00'*64)"
+p='docs/fonts/big-shoulders-display-latin-700-normal.woff2';b=open(p,'rb').read();open(p,'wb').write(b+b'\x00'*64)"
 
 run_case "the manifest of what the fonts contain is deleted" \
   "qa/font-subset.json is missing" \
@@ -40,7 +43,7 @@ run_case "the manifest of what the fonts contain is deleted" \
 
 run_case "a face ships that nothing blessed" \
   "a face nobody blessed is a face nobody checked" \
-  "import shutil;shutil.copy('docs/fonts/anton-latin-400-normal.woff2','docs/fonts/extra-latin-400-normal.woff2')"
+  "import shutil;shutil.copy('docs/fonts/big-shoulders-display-latin-700-normal.woff2','docs/fonts/extra-latin-400-normal.woff2')"
 
 echo "--- 106: the favicon stays crawlable"
 

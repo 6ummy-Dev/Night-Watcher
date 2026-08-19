@@ -134,6 +134,7 @@ function blessHtml(next){
      129  The Belt drops in place, and leaves the way it came
      130  The Belt toasts down, stacks tight, and is the peek once chosen
      131  The install seat, and the two watching-truths
+     146  The hero wears the cut
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -143,6 +144,7 @@ function blessHtml(next){
    ACCESSIBILITY
      123  Focus restores never move the viewport
      20   Text contrast against the surface it sits on
+     147  The surfaces keep their order
      41   The restore box has a real label
      61   Contrast is measured on the ink that renders
      62   Nothing focusable is small enough to zoom
@@ -2572,13 +2574,24 @@ if(!/<label class="bklab" for="restorebox">/.test(HTML)){
 })();
 
 /* Self-hosting is redistribution, and OFL requires the licence to travel. */
-["limelight-latin-400-normal", "anton-latin-400-normal",
+["limelight-latin-400-normal",
  "big-shoulders-display-latin-700-normal",
  "ibm-plex-sans-latin-400-normal", "ibm-plex-sans-latin-600-normal",
  "ibm-plex-mono-latin-400-normal", "ibm-plex-mono-latin-600-normal"].forEach(function(f){
   if(HTML.indexOf("fonts/" + f + ".woff2") < 0) fail("@font-face lost " + f);
   if(!fs.existsSync(path.join(PUBLIC, "fonts", f + ".woff2"))) fail("missing font file: " + f + ".woff2");
 });
+/* 4.3.0 RETIRED ANTON — the row titles moved to Big Shoulders Display, which
+   was already loaded for the scorecard numbers, so the page dropped a face,
+   its preload and 8.2 KB. A face that comes back by accident (a pasted stack,
+   a restored @font-face) re-adds a request nothing renders. The file itself
+   is enforced by section 106's manifest equality: anton on disk without a
+   manifest entry is already red there. This pins the page. */
+if(/anton/i.test(HTML)){
+  fail("Anton is back in index.html — 4.3.0 retired it; the display face " +
+       "is Big Shoulders Display and the anton woff2, its preload and its " +
+       "@font-face all left the page together");
+}
 if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
   fail("fonts/OFL.txt is gone \u2014 OFL requires the licence to ship with the fonts");
 }
@@ -7831,7 +7844,7 @@ var ROUTE_VOCAB = [
    the ItemList and orders.txt already make.
 
    Limelight is in the manifest but marked unsubset. Its OFL header reads "with
-   Reserved Font Name Limelight"; Anton's and IBM Plex's do not. Under OFL 1.1 a
+   Reserved Font Name Limelight"; the other faces' headers do not. Under OFL 1.1 a
    Modified Version may not carry the reserved name as presented to users, so
    subsetting it means renaming the family in the name table, in @font-face and
    in --deco — real CSS churn and a licensing judgement, for 10.3 KB. Left
@@ -8616,7 +8629,8 @@ var ROUTE_VOCAB = [
     0x2605: "the rating star",
     0x25B6: "the group caret",
     0x2197: "the external-link arrow",
-    0x203A: "the breadcrumb guillemet"
+    0x203A: "the breadcrumb guillemet",
+    0x25C6: "the deco diamond"
   };
 
   function base128(buf, p){
@@ -12131,6 +12145,96 @@ var ROUTE_VOCAB = [
   }
   note("every top-level function is a declaration; the index cannot be " +
        "emptied by a style shift");
+})();
+
+/* ---------- 146. The hero wears the cut --------------------------------- */
+/* 4.3.0, the deco release. The owner's pick from the mock round: 45° cut
+   corners on the hero — and on the hero ONLY; list cards, buttons and the
+   watch pill keep their radius — plus the diamond rule, with the double
+   hairline and the sunburst both ruled out. The cut is a wrapper-clip: a
+   straight clip-path on the old bordered card would eat the border at the
+   corners, so the .hero itself is the frame (background var(--line2), the
+   same line the old border used at hero rank) clipped to the cut polygon,
+   and ::before carries the gradient inset 1px behind the content with the
+   same cuts. isolation:isolate is what keeps ::before at z-index:-1 UNDER
+   the text but OVER the frame paint — remove it and the hero's stacking
+   context is whoever's nearest ancestor, which on some panels puts the
+   gradient over its own words. */
+
+(function(){
+  var hero = (HTML.match(/\n\.hero\{[^}]*\}/) || [""])[0];
+  if(!hero){ fail("the .hero rule is gone"); return; }
+  if(/border-radius/.test(hero) || !/clip-path:polygon/.test(hero)){
+    fail("the hero corner is rounded again — 4.3.0 cut it at 45° with a " +
+         "clip-path polygon, the owner's pick over the hairline, the sunburst " +
+         "and the rounded card it replaced");
+  }
+  if(!/background:var\(--line2\)/.test(hero)){
+    fail("the hero frame is not drawn in --line2 — the wrapper IS the frame: " +
+         "its background is the hairline the clip reveals, and losing it " +
+         "leaves the cut edges naked on --ink");
+  }
+  if(!/isolation:isolate/.test(hero)){
+    fail("the hero ornament paints over its own text — without " +
+         "isolation:isolate the ::before's z-index:-1 resolves against some " +
+         "ancestor's stacking context instead of the hero's own");
+  }
+  var before = (HTML.match(/\.hero::before\{[^}]*\}/) || [""])[0];
+  if(!/inset:1px/.test(before) || !/linear-gradient\(175deg,var\(--card2\),var\(--card\) 60%\)/.test(before) ||
+     !/clip-path:polygon/.test(before) || !/z-index:-1/.test(before)){
+    fail("the hero hairline no longer survives the cut — ::before must carry " +
+         "the card gradient inset 1px behind the content with its own cut " +
+         "polygon, or the frame is either invisible or the whole card");
+  }
+  /* The diamond is the separator now. The meta line's plain dot was the one
+     the mock replaced; the rule under the badges is the one deco ornament
+     that shipped. Both render ◆ from the system font by decision —
+     section 116 names it in SYSTEM_MARKS. */
+  var head = fn("heroHead");
+  if(!/class="dsep"[^>]*>\\u25c6</.test(head) || /f\.gn\+' \\u00b7 '/.test(head)){
+    fail("the hero meta line is back on the plain dot — 4.3.0 set a gold " +
+         "◆ between the continuity number and its name (class dsep, " +
+         "aria-hidden: it is an ornament, not a word)");
+  }
+  if(!/class="drule"/.test(head)){
+    fail("the diamond rule left the hero — heroHead() draws it between the " +
+         "badges and the blurb: one gold ◆ on a gradient hairline, " +
+         "aria-hidden, the one deco ornament the owner kept");
+  }
+  var closed = HTML.match(/<p class="kick">Case closed<\/p>[\s\S]{0,400}?class="blurb"/);
+  if(!closed || !/class="drule"/.test(closed[0])){
+    fail("the diamond rule left the hero — the Case closed card lost it; " +
+         "the finished state wears the same ornament as the patrol");
+  }
+})();
+
+/* ---------- 147. The surfaces keep their order --------------------------- */
+/* 4.3.0 rebuilt the Darker theme on recipe C — true dark: surfaces drop
+   (#04060C / #0A0E18, hairlines up to #20283C) while the dimmed bone stays,
+   so contrast climbs instead of everything dimming together. No literal is
+   pinned here, deliberately: the next honest retune should not go red for
+   moving a hex. What must NEVER reorder is the ladder the components stand
+   on — pressed states lighten (--card to --card2), the hero gradient falls
+   from --card2 to --card, and sunken panels sit between the page and its
+   cards. Section 20 already measures ink-on-surface per theme; this is the
+   surfaces measured against each other, per theme, using its palettes. */
+
+(function(){
+  themes.forEach(function(t){
+    var name = t[0], p = t[1];
+    var ladder = ["ink", "sunk", "card", "card2"];
+    for(var i = 1; i < ladder.length; i++){
+      var lo = p[ladder[i - 1]], hi = p[ladder[i]];
+      if(!lo || !hi){ fail(name + ": surface token --" + ladder[i - 1] + " or --" + ladder[i] + " is missing"); return; }
+      if(lum(hi) <= lum(lo)){
+        fail(name + ": surface luminance runs out of order — --" + ladder[i] +
+             " (" + hi + ") is not lighter than --" + ladder[i - 1] + " (" + lo +
+             "); pressed states lighten and the hero gradient falls from " +
+             "card2 to card, so ink < sunk < card < card2 or both stop " +
+             "meaning anything");
+      }
+    }
+  });
 })();
 
 /* ---------- report ---------- */

@@ -72,10 +72,13 @@ run_case "a face loses its preload" \
   "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/ibm-plex-mono-latin-600-normal.woff2\">\n';assert a in s
 s=s.replace(a,'',1);${W}"
 
+# 4.3.0 retired Anton, which these fixtures were anchored on; they mutate the
+# big-shoulders face now — any shipped woff2 serves, the guard under test is
+# the same.
 run_case "a preload loses its crossorigin attribute" \
   "has no crossorigin attribute" \
-  "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/anton-latin-400-normal.woff2\">';assert a in s
-s=s.replace(a,'<link rel=\"preload\" as=\"font\" type=\"font/woff2\" href=\"fonts/anton-latin-400-normal.woff2\">',1);${W}"
+  "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/big-shoulders-display-latin-700-normal.woff2\">';assert a in s
+s=s.replace(a,'<link rel=\"preload\" as=\"font\" type=\"font/woff2\" href=\"fonts/big-shoulders-display-latin-700-normal.woff2\">',1);${W}"
 
 run_case "a preload loses its as=font" \
   "without it the browser cannot prioritise" \
@@ -84,7 +87,7 @@ s=s.replace(a,'<link rel=\"preload\" type=\"font/woff2\" crossorigin href=\"font
 
 run_case "a preload survives the face it was for" \
   "which no @font-face uses" \
-  "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/anton-latin-400-normal.woff2\">';assert a in s
+  "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/big-shoulders-display-latin-700-normal.woff2\">';assert a in s
 s=s.replace(a,a+'\n<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/retired-latin-400-normal.woff2\">',1);${W}"
 
 echo "--- 125: robots.txt states a position on AI use"
