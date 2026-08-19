@@ -34,6 +34,20 @@ instead of remembered. Everything here is in execution order.
    the repo's history (scroll clamp, focus loss, group collapse, the 3.6.4
    belt) is the argument that the behavioral layer does not get skipped on
    release day.
+
+   **The gate, stated as a rule (4.2.4, Q-2 of the 19 Aug re-audit): for any
+   change touching the belt, scrolling, focus, sticky, content-visibility,
+   or the service worker, the browser check is the test and `npm test` is
+   only the tripwire.** `npm test` runs jsdom, which has no layout — it can
+   prove the fix is still spelled in the file and nothing about whether it
+   works. A green `npm test` is never, by itself, permission to ship a
+   change in that list; a red browser check blocks it exactly as a red
+   guard would. The suite runs at three speeds and each answers its own
+   question: FAST (`npm test` — identity, codec, catalogue, CSP, the
+   persist doors), SLOW (`npm run browser` — layout, focus, belt, CV,
+   axe-in-a-state, SW), MUTATE (CI negatives — the watcher still fires).
+   Keep FAST fast; do not fold the other two into it, because a suite that
+   takes half an hour locally is a suite that gets skipped.
 5. **The blurbs are read by a person.** Entry descriptions are the "no
    spoilers" promise and no guard can read for spoilers. Any entry whose `d:`
    changed this release gets re-read against the rule: describe the premise,

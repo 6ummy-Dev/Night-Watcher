@@ -11,6 +11,47 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.2.4] — 2026-08-19
+
+**The parser release.** The re-audit of 4.2.3 said the remaining P1-shaped
+risk was all in the instruments, and named the cut: make extraction a fact,
+caller-proof the two import helpers, ratchet the section anchor, and write
+the two-speed rule where releases are cut. Smaller than 4.2.3, as asked.
+
+### Changed
+
+- **`fn()` is a parser, not a regex** (re-audit Q-fn, the founding claim's
+  weak joint). Acorn — dev-only, beside jsdom and Playwright; the page
+  keeps zero runtime deps — parses the inline script once and indexes every
+  top-level function declaration. An extract is the AST node's exact source
+  slice: balanced by construction, immune to the column-0 assumption, the
+  `)` -in-a-default-param case, and one-liners. A missing REQUIRED extract
+  is now a readable `§`-attributed failure plus a stub, never a stack
+  trace — and a new crash guard prints everything already collected if a
+  section still throws on what the stub can no longer do, so the report
+  survives the crash it is reporting. Without `node_modules` the file
+  falls back to the legacy regex with a warning. `npm test` semantics are
+  unchanged.
+- **`applyImport` and `mergeLog` consult `BYID` themselves** (C-4). Both
+  were safe only by the grace of their callers — importCode is fuzzed and
+  cannot invent an id; Activity skips unknown logged ids at render. A
+  future caller routing JSON through either would have reopened the door
+  4.2.3 closed. The gates are theirs now; smoke drives an invented id at
+  each and watches it bounce. The log is a subset of the catalogue.
+- **The sect ratchet** (Q-3b). Guard 138 counts guards fixtures that pass
+  no section number and pins the figure at 762 — the corpus written before
+  4.2.4, which keeps the substring-anywhere semantics it was written
+  against. A fixture added without `sect` fails the build; the pin may
+  only move in a commit that says why. negtest490 plants one and watches
+  the ratchet catch it.
+- **RELEASING.md states the gate** (Q-2). For belt / scroll / focus /
+  content-visibility / service-worker changes, browser-check is the test
+  and `npm test` is only the tripwire — with the FAST / SLOW / MUTATE
+  split written down so the sentence survives the person who knows it.
+- New suite `qa/negative/negtest490.sh` (4 fixtures). Counts: 57 suites,
+  833 fixtures — 781 guards / 52 smoke — and smoke's run is 344 checks.
+  `.wrangler/state` is out of the index (H-1, the last open morning item).
+
 ## [4.2.3] — 2026-08-19
 
 **The audit release.** The 19 Aug full QA (code, QA code, efficiency — one

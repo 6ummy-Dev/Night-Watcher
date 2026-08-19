@@ -1741,6 +1741,33 @@ win.addEventListener("load", function(){
                   !!proto && proto.unknown === 1 && proto.found === 0 &&
                   !("polluted" in w4.S.watched) && !w4.S.watched.polluted,
                   proto ? proto.found + " found, " + proto.unknown + " unknown" : "REJECTED");
+
+            /* 4.2.4, C-4 of the re-audit: the gates stop depending on the
+               call graph. applyImport was safe only because importCode is
+               fuzzed and cannot invent an id; mergeLog was safe only because
+               Activity skips unknown ids at render. Both now consult BYID
+               themselves, so a future caller cannot reopen the door. */
+            var apRes = {watched:Object.create(null), skipped:Object.create(null),
+                         rated:Object.create(null), path:""};
+            apRes.watched["an-id-no-caller-should-trust"] = 1;
+            apRes.watched[FILMS[1].id] = 1;
+            apRes.rated["another-invented-one"] = 4;
+            w4.applyImport(apRes);
+            check("applyImport refuses an id the catalogue does not carry",
+                  !("an-id-no-caller-should-trust" in w4.S.watched) &&
+                  !("another-invented-one" in w4.S.rated) &&
+                  !w4.S.log.some(function(e){ return e.id === "an-id-no-caller-should-trust"; }),
+                  "watched keys: " + Object.keys(w4.S.watched).join(","));
+            check("applyImport still lands the known id beside it",
+                  w4.S.watched[FILMS[1].id] === 1);
+            var moved = w4.mergeLog([{id:"a-logged-id-that-never-existed", ts:1754700000000},
+                                     {id:FILMS[2].id, ts:1754700000001}]);
+            check("mergeLog keeps the log a subset of the catalogue",
+                  moved === 1 &&
+                  !w4.S.log.some(function(e){ return e.id === "a-logged-id-that-never-existed"; }),
+                  moved + " moved, log: " + w4.S.log.length);
+            check("mergeLog still merges a real entry with a valid clock",
+                  w4.S.log.some(function(e){ return e.id === FILMS[2].id; }));
           })();
 
           /* --- 4.2.3, C-1: a store that READS but does not PARSE. The old

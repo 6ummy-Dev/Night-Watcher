@@ -139,14 +139,14 @@ Zero dependencies, and every function under test is **extracted from `docs/index
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 56 negative suites, 829
+trusted. That evidence lives in `qa/negative/` — 57 negative suites, 833
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
 every fixture onto the section it breaks and fails the build on any section
 without one, and the counts in this paragraph are themselves guarded.
 
-There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, and the path end to end — 340 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
+There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, and the path end to end — 344 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
 
 ## Releasing
 

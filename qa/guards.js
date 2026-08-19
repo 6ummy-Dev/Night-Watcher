@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 /* Night Watcher build guards.  node qa/guards.js [--bless]
-   
-   Zero dependencies. Exits 1 on any failure. Functions under test are
-   EXTRACTED from docs/index.html and evaluated, never reimplemented here —
-   a copy drifts from the app and quietly stops testing it.
+
+   Exits 1 on any failure. Functions under test are EXTRACTED from
+   docs/index.html and evaluated, never reimplemented here — a copy drifts
+   from the app and quietly stops testing it. Extraction is AST-based since
+   4.2.4 (Acorn, dev-only — the served page keeps zero runtime deps); with
+   no node_modules this file still runs, on the legacy regex matcher, with
+   a warning that says exactly that.
    Every guard section is negative-tested: made to fail on purpose before it is
    trusted. Section 138 asserts that on every run rather than asking to be
    believed \u2014 it maps each fixture's expected failure back to the section that
@@ -227,7 +230,7 @@ var fails = [], warns = [], notes = [];
    A fail() from the shared helpers above section 1 keeps walking the stack
    until it lands in a numbered section; one that never does prints bare. */
 var SECTLINES = null;
-function sectOf(){
+function sectOfLine(line){
   if(!SECTLINES){
     SECTLINES = [];
     fs.readFileSync(__filename, "utf8").split("\n").forEach(function(l, i){
@@ -235,17 +238,43 @@ function sectOf(){
       if(m) SECTLINES.push([i + 1, parseInt(m[1], 10)]);
     });
   }
+  var s = 0;
+  for(var k = 0; k < SECTLINES.length && SECTLINES[k][0] < line; k++) s = SECTLINES[k][1];
+  return s;
+}
+function sectOf(){
   var frames = String(new Error().stack).split("\n");
   for(var j = 2; j < frames.length; j++){
     var mm = frames[j].match(/guards\.js:(\d+):\d+/);
     if(!mm) continue;
-    var line = parseInt(mm[1], 10), s = 0;
-    for(var k = 0; k < SECTLINES.length && SECTLINES[k][0] < line; k++) s = SECTLINES[k][1];
+    var s = sectOfLine(parseInt(mm[1], 10));
     if(s) return s;
   }
   return 0;
 }
 function fail(m){ var s = sectOf(); fails.push(s ? "§" + s + " " + m : m); }
+
+/* 4.2.4, the other half of "a fail(), not a stack trace" (H-10 / Q-fn):
+   this file is a straight-line script, so an exception in section 7 used to
+   skip the report entirely — every failure already collected, including the
+   readable one explaining the crash, died unprinted, and the reader got a
+   bare stack. A required extract that goes missing now stubs and fails
+   readably (see fn() below), but the section driving the stub may still
+   throw on what it can no longer do — and that throw must not eat the
+   report. The crash prints as one more §-attributed failure after
+   everything already collected, and the run exits red. */
+process.on("uncaughtException", function(e){
+  var line = parseInt((String(e && e.stack).match(/guards\.js:(\d+):\d+/) || [])[1] || "0", 10);
+  var s = line ? sectOfLine(line) : 0;
+  console.log("\n" + (fails.length + 1) + " FAILURE" + (fails.length ? "S" : "") + ":");
+  fails.forEach(function(m){ console.log("  ✗ " + m); });
+  console.log("  ✗ " + (s ? "§" + s + " " : "") + "the run crashed mid-file and " +
+              "the sections after it never ran — " +
+              String((e && e.message) || e).slice(0, 200) +
+              (line ? " (guards.js:" + line + ")" : ""));
+  console.log("");
+  process.exit(1);
+});
 function warn(m){ warns.push(m); }
 function note(m){ notes.push(m); }
 
@@ -285,18 +314,97 @@ function sliceOr(from, to){
    fixed in place three times \u2014 activityBlock, dedupeLog, pathBlurb \u2014 before
    becoming this. optionalFn() reports the absence and returns a stub, so the
    guard below it still runs and still says something useful. */
+/* 4.2.4, Q-fn of the 19 Aug re-audit: EXTRACTION IS A PARSER NOW, NOT A
+   REGEX. The old fn() was a non-greedy brace matcher that only worked
+   because top-level functions close at column 0 and inners indent \u2014 a
+   nested `function foo(){\n}` at column 0, a default parameter containing
+   ")", or a one-line function truncated the extract (loud) or ran a prefix
+   of it (quiet). optionalFn existed because throws used to abort the run
+   and silence every later section. The founding claim at the top of this
+   file \u2014 "extracted, never reimplemented" \u2014 rested on that regex.
+
+   Acorn (dev-only, same tree as jsdom and Playwright; the PAGE keeps zero
+   runtime deps) parses the inline script once and indexes every top-level
+   FunctionDeclaration by name. An extract is the AST node's exact source
+   slice \u2014 balanced by construction, whatever the formatting. The flatten
+   pin in section 70 was the model: a checkable relationship, not a memoir.
+
+   A missing REQUIRED extract is a readable fail() plus a stub \u2014 the
+   sections that drive it then fail on what it can no longer do \u2014 never a
+   stack trace (H-10 of the morning report). Without node_modules this file
+   still runs: it warns once and falls back to the legacy regex matcher,
+   so a bare clone keeps a working (if weaker) guard set; CI and any tree
+   that can run smoke always have the parser. */
+var FN_INDEX = null;   /* null until built; false = acorn unavailable */
+function fnIndex(){
+  if(FN_INDEX !== null) return FN_INDEX;
+  var acorn = null;
+  try { acorn = require("acorn"); } catch(e){}
+  /* ALL bare <script> blocks, concatenated — the browser runs them as one
+     shared global scope, and section 43's block census is the guard that
+     keeps their number honest. Scoping this to the first block would let a
+     script planted above the app blind every extraction below (negtest300
+     plants exactly that). */
+  var script = (HTML.match(/<script>[\s\S]*?<\/script>/g) || [])
+    .map(function(b){ return b.slice("<script>".length, -"</script>".length); })
+    .join("\n;\n");
+  if(!acorn || !script){
+    if(!acorn) warn("acorn is not installed (npm ci) \u2014 function extraction is " +
+                    "running on the legacy regex matcher, which truncates on " +
+                    "formatting the parser handles");
+    else fail("the inline <script> block is gone from index.html \u2014 there is " +
+              "nothing to extract functions from");
+    return (FN_INDEX = false);
+  }
+  var ast;
+  try { ast = acorn.parse(script, {ecmaVersion: "latest"}); }
+  catch(e){
+    fail("index.html's inline script does not parse: " +
+         String(e.message || e).slice(0, 140) + " \u2014 the app would not run, " +
+         "and every extraction below is running on the legacy regex");
+    return (FN_INDEX = false);
+  }
+  FN_INDEX = Object.create(null);
+  ast.body.forEach(function(node){
+    if(node.type === "FunctionDeclaration" && node.id && node.id.name){
+      /* last declaration wins, same as the runtime it is standing in for */
+      FN_INDEX[node.id.name] = script.slice(node.start, node.end);
+    }
+  });
+  return FN_INDEX;
+}
+function fnRegexLegacy(name){
+  var re = new RegExp("function\\s+" + name + "\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\}", "m");
+  var m = HTML.match(re);
+  return m ? m[0] : null;
+}
 function optionalFn(name, why){
-  if(!new RegExp("function\\s+" + name + "\\s*\\(").test(HTML)){
+  var idx = fnIndex();
+  var src = idx ? idx[name] : fnRegexLegacy(name);
+  if(!src){
     fail(name + "() is gone" + (why ? " \u2014 " + why : ""));
     return "function " + name + "(){ return undefined; }";
   }
-  return fn(name);
+  return src;
 }
 function fn(name){
-  var re = new RegExp("function\\s+" + name + "\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\}", "m");
-  var m = HTML.match(re);
-  if(!m) throw new Error("cannot locate function " + name + "() in index.html");
-  return m[0];
+  var idx = fnIndex();
+  var src = idx ? idx[name] : fnRegexLegacy(name);
+  if(!src){
+    fail("cannot locate function " + name + "() in index.html \u2014 a required " +
+         "extract is missing, so every section that drives it is now running " +
+         "against a stub that returns undefined");
+    return "function " + name + "(){ return undefined; }";
+  }
+  return src;
+}
+/* For the call sites that treat absence as THEIR OWN finding (a warn, or a
+   differently-worded fail). fn() used to throw, and three sections caught
+   that throw to speak in their own voice; fn() no longer throws, so they
+   ask first instead. */
+function hasFn(name){
+  var idx = fnIndex();
+  return idx ? !!idx[name] : !!fnRegexLegacy(name);
 }
 
 var sandbox = {};
@@ -5373,7 +5481,8 @@ var ROUTE_VOCAB = [
   var BUILDERS = ["viewWatch", "viewHome", "viewNext", "viewStats"];
   BUILDERS.forEach(function(name){
     var src;
-    try { src = fn(name); } catch(e){ return warn("guard 79: no " + name + "() to check"); }
+    if(!hasFn(name)) return warn("guard 79: no " + name + "() to check");
+    src = fn(name);
     var bad = src.match(/\.replace\(\s*["'][^"']*["']\s*,/g) || [];
     if(bad.length){
       fail(name + "() calls " + bad[0].trim() + " on markup it assembled — that " +
@@ -5749,8 +5858,8 @@ var ROUTE_VOCAB = [
 
 (function(){
   var src;
-  try { src = fn("exportJSON"); }
-  catch(e){ return fail("there is no exportJSON() — the JSON backup is gone"); }
+  if(!hasFn("exportJSON")) return fail("there is no exportJSON() — the JSON backup is gone");
+  src = fn("exportJSON");
   ["format", "scope", "theme", "scopePref"].forEach(function(k){
     if(new RegExp("\\b" + k + "\\b").test(src)){
       fail("exportJSON() carries \"" + k + "\" — a backup restores progress onto " +
@@ -5776,8 +5885,8 @@ var ROUTE_VOCAB = [
 
 (function(){
   var src;
-  try { src = fn("buildGroups"); }
-  catch(e){ return fail("there is no buildGroups()"); }
+  if(!hasFn("buildGroups")) return fail("there is no buildGroups()");
+  src = fn("buildGroups");
   var calls = src.match(/eraTag\(([^)]*)\)/g) || [];
   if(!calls.length){
     fail("buildGroups() no longer tags a group with its era — the universe " +
@@ -11301,7 +11410,11 @@ var ROUTE_VOCAB = [
     return {n: s.n, t: norm((src.match(/fail\([\s\S]*?\);/g) || []).join(" "))};
   });
 
-  var expects = [];
+  var expects = [], noSect = 0;
+  /* Guards fixtures written before 4.2.4, which keep substring-anywhere
+     semantics. The ratchet below holds this number exactly; see the census
+     comment for the three legitimate reasons it may move. */
+  var NO_SECT_PINNED = 762;
   fs.readdirSync(negDir).filter(function(f){ return /^negtest.*\.sh$/.test(f); }).forEach(function(f){
     var t = fs.readFileSync(path.join(negDir, f), "utf8").replace(/\\\n/g, " ");
     /* 3.9.5: green_case IS NOT HARVESTED, AND HARVESTING IT WAS A BUG. The two
@@ -11320,7 +11433,37 @@ var ROUTE_VOCAB = [
        an expect off it is a category error however harmless the strings are. */
     var r = /^[ \t]*run_case\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"/gm, x;
     while((x = r.exec(t))) expects.push(x[2]);
+
+    /* 4.2.4, Q-3b of the re-audit: THE SECT RATCHET. run_case's sixth
+       argument (4.2.3) pins a fixture's match to its section's §-prefixed
+       line — but only two fixtures used it, and nothing stopped the next
+       hundred from arriving without one. Same shape as STILL_OWED: the
+       census below counts guards fixtures that pass NO section number and
+       holds the figure to a pin. The 762 written before 4.2.4 keep the
+       substring-anywhere semantics they were written against — rewriting
+       them wholesale is how you invent 762 false-reds — but a fixture ADDED
+       without sect is the Q-3 hole reopening, and it fails here. The pin
+       may only move in a commit that says why: a struck fixture, a
+       retrofitted sect (lower it), or a failure genuinely emitted before
+       section 1, where no § exists to name (raise it, and say so). */
+    var sr = /^[ \t]*run_case\s+"(?:[^"\\]|\\.)*"\s+"(?:[^"\\]|\\.)*"\s+"(?:[^"\\]|\\.)*"((?:[ \t]+(?:"[^"\n]*"|[^\s"]+))*)/gm, sx;
+    while((sx = sr.exec(t))){
+      var toks = (sx[1].match(/"[^"\n]*"|[^\s"]+/g) || []).map(function(s){
+        return s.replace(/^"|"$/g, "");
+      });
+      if((toks[0] || "guards") !== "guards") continue;
+      if(!/^\d+$/.test(toks[2] || "")) noSect++;
+    }
   });
+
+  if(noSect !== NO_SECT_PINNED){
+    fail("the corpus holds " + noSect + " guards fixtures that pass no section " +
+         "number and the pin says " + NO_SECT_PINNED + " — a fixture added " +
+         "without sect is the substring-anywhere hole reopening: name the " +
+         "section it is aimed at, or move the pin in the same commit and say " +
+         "why (struck fixture, retrofitted sect, or a failure emitted before " +
+         "section 1 where no § exists)");
+  }
 
   var covered = {};
   expects.forEach(function(e){
@@ -11353,7 +11496,7 @@ var ROUTE_VOCAB = [
   });
   note("negative coverage: " + (secs.length - uncovered.length) + "/" + secs.length +
        " sections mapped from " + expects.length + " fixtures, " + STILL_OWED.length +
-       " still owed");
+       " still owed, " + noSect + " pre-4.2.4 fixtures without sect (pinned)");
 })();
 
 /* ---------- 139. The files an agent reads answer fresh --------------- */
