@@ -212,9 +212,9 @@ run_case "the import ignoring a mark's value is caught" \
 import io
 p='docs/index.html'
 s=io.open(p,encoding='utf-8').read()
-old='for(src in (wBox || {})) if(wBox[src]) res.watched[src] = 1;'
+old='for(src in (wBox || {})) if(HAS.call(wBox, src) && wBox[src]) res.watched[src] = 1;'
 assert old in s
-io.open(p,'w',encoding='utf-8').write(s.replace(old,'for(src in (wBox || {})) res.watched[src] = 1;'))
+io.open(p,'w',encoding='utf-8').write(s.replace(old,'for(src in (wBox || {})) if(HAS.call(wBox, src)) res.watched[src] = 1;'))
 "
 
 run_case "dedupeLog pushing entries unboxed is caught" \

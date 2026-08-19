@@ -1713,7 +1713,58 @@ win.addEventListener("load", function(){
         reboot(ancient, "no mode", function(w4, d4){
           check("a save with no ordering at all falls back to the chooser",
                 w4.S.path === "" && !!d4.querySelector(".pick"));
-          runBlocked();
+
+          /* --- 4.2.3, C-2 of the 19 Aug audit: the JSON door next to the vault.
+             Backup codes are fuzzed against inventing IDs and JSON import was
+             not — doRestore counted unknown keys and then wrote every key into
+             S anyway, so an unknown ID inflated the counts, survived into
+             storage, and sat waiting to collide with a future real slug. These
+             drive the function, not its source shape. */
+          (function(){
+            var realId = FILMS[0].id;
+            var wIn = {}; wIn["a-slug-that-does-not-exist"] = 1; wIn[realId] = 1;
+            var res = w4.doRestore(JSON.stringify({watched:wIn,
+                                                   skipped:{"another-invented-slug":1},
+                                                   rated:{"a-third-fake":5}}));
+            check("a JSON import counts unknown ids without keeping them",
+                  !!res && res.unknown === 3 && res.found === 1,
+                  res ? res.found + " found, " + res.unknown + " unknown" : "REJECTED");
+            check("an unknown id never reaches live state through JSON restore",
+                  !("a-slug-that-does-not-exist" in w4.S.watched) &&
+                  !("another-invented-slug" in w4.S.skipped) &&
+                  !("a-third-fake" in w4.S.rated),
+                  "watched keys: " + Object.keys(w4.S.watched).join(","));
+            check("the known id in the same payload still lands",
+                  w4.S.watched[realId] === 1);
+            var proto = w4.doRestore('{"watched":{"__proto__":{"polluted":1}}}');
+            check("a __proto__ key in a JSON payload counts as unknown and is dropped",
+                  !!proto && proto.unknown === 1 && proto.found === 0 &&
+                  !("polluted" in w4.S.watched) && !w4.S.watched.polluted,
+                  proto ? proto.found + " found, " + proto.unknown + " unknown" : "REJECTED");
+          })();
+
+          /* --- 4.2.3, C-1: a store that READS but does not PARSE. The old
+             behaviour booted as a first visit, kept saving on, and the first
+             tick overwrote the reader's unread bytes with a near-empty
+             payload — silent loss on the exact page whose pitch is that the
+             data never leaves the device. A failed parse is a failed read:
+             latch, stop the writes, show the banner, leave the bytes. */
+          var corrupt = '{"watched":{"half-a-payload';
+          reboot(corrupt, "corrupt store", function(w5, d5){
+            check("a store that reads but does not parse latches readFailed",
+                  w5.readFailed === true, "readFailed=" + w5.readFailed);
+            check("a corrupt store turns saving off and says so",
+                  w5.canSave === false && !d5.getElementById("nosave").hidden,
+                  "canSave=" + w5.canSave);
+            check("a corrupt store still boots the app",
+                  !!d5.querySelector(".pick") || !!d5.getElementById("app"));
+            w5.S.watched[FILMS[0].id] = 1;
+            w5.persist(); w5.flushPersist();
+            check("a tick after a corrupt read does not overwrite the unread bytes",
+                  w5.localStorage.getItem("batwatch-v3") === corrupt,
+                  "stored: " + String(w5.localStorage.getItem("batwatch-v3")).slice(0, 40));
+            runBlocked();
+          });
         });
       });
     });

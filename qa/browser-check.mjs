@@ -5,8 +5,11 @@
    in a STATE rather than on a cold load.
 
    Run against a served copy of docs/ at 390x844 (iPhone 12/13/14 logical size).
-   Not committed to CI: it needs a browser, and the point of it is that a person
-   would otherwise have to look.
+   Not part of npm test — jsdom cannot see any of this — but it IS in CI: the
+   browser job in qa.yml has run it on every push since 3.7.2. This header
+   claimed "not committed to CI" for four minor releases after that (H-2 of
+   the 19 Aug audit) — a comment about what watches the tree, wrong about
+   what watches the tree, in the file being watched.
 
    3.2.0 FIXED WHAT THIS FILE COULD NOT SAY ABOUT ITSELF. It imported playwright
    while package.json declared only jsdom and wrangler, and it launched a
@@ -89,13 +92,19 @@ const head0 = await page.evaluate(() => {
            aria: document.getElementById("ringBtn").getAttribute("aria-label"),
            batBox: bat.width, ringInk: ring.width, wmTop: wm.top,
            offset: document.getElementById("ringArc").getAttribute("stroke-dashoffset"),
+           r: document.getElementById("ringArc").getAttribute("r"),
            wraps: document.querySelector(".wordmark h1").getClientRects().length };
 });
 ok("header at 0%: the ring reads 0%", head0.pct === "0%", head0.pct);
 ok("header at 0%: the accessible name carries the number",
    (head0.aria || "").indexOf("0%") === 0, head0.aria);
+/* 4.2.3, Q-9 of the 19 Aug audit: the retracted offset was hardcoded 109.96
+   while guard 80 computes 2πr from the served markup — one radius edit and
+   this file would have failed a correct page. Same arithmetic now, same
+   source: the r the page actually ships. */
 ok("header at 0%: the arc is fully retracted",
-   Math.abs(parseFloat(head0.offset) - 109.96) < 0.05, head0.offset);
+   Math.abs(parseFloat(head0.offset) - 2 * Math.PI * parseFloat(head0.r)) < 0.05,
+   head0.offset + " vs 2π·" + head0.r);
 ok("header at 0%: the ring's ink is narrower than the bat's box",
    head0.ringInk < head0.batBox, head0.ringInk.toFixed(2) + " vs " + head0.batBox.toFixed(2));
 ok("header at 0%: the wordmark holds one line at 390px",
@@ -168,9 +177,16 @@ ok("header at 100%: the subtitle holds one line at 390px",
    state is what this check is about. */
 await page.evaluate(() => new Promise(r =>
   requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 50)))));
-await page.waitForFunction(
+/* 4.2.3, Q-4 of the 19 Aug audit: this wait was `.catch(() => {})` — a
+   timeout fell through silently and the CV read below reported on a deck
+   that had never settled. A swallowed wait is a check that cannot say why
+   it failed; it says now. */
+const cvSettled = await page.waitForFunction(
   () => document.querySelector("#view .panel:not([inert]) .group"),
-  null, { timeout: 5000 }).catch(() => {});
+  null, { timeout: 5000 }).then(() => true, () => false);
+ok("the group list settles before the content-visibility read",
+   cvSettled, cvSettled ? "settled" :
+   "no .group within 5s — the CV state below is a deck that never settled");
 const cv = await page.evaluate(() => {
   const g = document.querySelector("#view .panel:not([inert]) .group");
   /* Crashed here as a raw TypeError on Chromium rev 1234 while every build
@@ -846,12 +862,23 @@ if(swReady.supported && swReady.active && swReady.controlled){
   /* 3.9.2: POLLED, NOT SLEPT. A fixed 600 ms was a bet on the runner, and this
      file's own rule is measure, don't sleep. Wait for the shell to actually be
      in the cache, then go offline. */
-  await swPage.waitForFunction(async () => {
+  /* 4.2.3, Q-4 of the 19 Aug audit: this wait's timeout was swallowed too —
+     going offline against a cold cache made the reload check fail as a
+     mystery instead of naming the cache that never filled. */
+  const shellCached = await swPage.waitForFunction(async () => {
     for(const n of await caches.keys()){
       if(await (await caches.open(n)).match("./index.html")) return true;
     }
     return false;
-  }, null, {timeout: 10000}).catch(() => {});
+  }, null, {timeout: 10000}).then(() => true, () => false);
+  ok("the shell reaches the worker's cache before the offline test",
+     shellCached, shellCached ? "cached" :
+     "10s and ./index.html is in no cache — the offline reload below is against a cold cache");
+  /* 4.2.3, Q-13: entries > 0 proved A build boots offline, not that THIS
+     build does — a stale cached shell passes that bar (2.5.1 shipped
+     exactly that). The BUILD the worker serves offline must be the BUILD
+     the network served online. */
+  const onlineBuild = await swPage.evaluate(() => window.BUILD);
   await swCtx.setOffline(true);
   let offline = { booted: false, entries: 0 };
   try{
@@ -859,12 +886,16 @@ if(swReady.supported && swReady.active && swReady.controlled){
     await swPage.waitForFunction(() => typeof window.render === "function", { timeout: 8000 });
     offline = await swPage.evaluate(() => ({
       booted: typeof window.render === "function",
-      entries: window.FILMS ? window.FILMS.length : 0
+      entries: window.FILMS ? window.FILMS.length : 0,
+      build: window.BUILD
     }));
   }catch(e){ offline.err = String(e).slice(0, 120); }
   ok("offline: the app still opens from the worker's cache",
      offline.booted && offline.entries > 0,
      offline.err || (offline.entries + " entries with the network off"));
+  ok("offline: the shell the worker serves is THIS build",
+     offline.booted && offline.build === onlineBuild,
+     offline.err || ("online " + onlineBuild + " vs offline " + offline.build));
   await swCtx.setOffline(false);
 }
 await swCtx.close();

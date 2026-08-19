@@ -11,6 +11,85 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.2.3] — 2026-08-19
+
+**The audit release.** The 19 Aug full QA (code, QA code, efficiency — one
+document) found no P0 but named the two persistence doors and four ways the
+instruments were greener than the tree. One release, no new features:
+instruments and the two persist doors, exactly as §8 of that report asked.
+The report is cited here once and then left behind.
+
+### Fixed
+
+- **A corrupt store no longer loses your marks** (audit C-1, P1). A
+  `localStorage` body that *read* fine but did not *parse* fell through
+  `restore()`'s catch as "no state": the app booted as a first visit, kept
+  saving on, and the next tick overwrote the unread bytes with a near-empty
+  payload — silent loss on the page whose pitch is that the data never
+  leaves the device. A failed parse is now a failed read, the split the
+  code already knew: `readFailed` latches, writes stop for the session, the
+  #nosave banner shows, and the bytes stay on disk for restore-from-code.
+  Guard 127 pins all three failure paths; smoke boots a document with a
+  truncated payload, ticks, and asserts the old bytes survive.
+- **JSON import can no longer write unknown IDs into live state** (audit
+  C-2/C-3, P1). `doRestore()` counted known-versus-unknown against `BYID`
+  and then wrote every key into `S` anyway — an invented slug inflated the
+  counts, survived into storage, and waited to collide with a future real
+  ID. Backup codes were fuzzed against exactly this; JSON was the unguarded
+  door beside the vault. Unknown keys now increment `unknown` and stop
+  there, and the `for…in` over parsed payloads goes through `HAS.call`, the
+  same hardening `marksOf()` has had since the shaping work — a `__proto__`
+  key counts as unknown and is dropped. Driven in smoke, not grepped.
+- **The guards' flatten is the app's flatten again** (audit Q-1, P1).
+  `qa/guards.js` said "Flatten exactly as index.html does" and did not: its
+  copy carried an `out:` field the app never puts on `FILMS` and dropped
+  the `d:` the app carries, so section 70 asserted `f.out` on an object the
+  page never builds. The copy now matches byte-for-byte, section 70 reads
+  `out:` off the raw `PATH` entries where the app does, and a new pin
+  compares the two `FILMS.push` field lists on every run — the founding
+  "extracted, never reimplemented" claim is finally checkable one screen
+  down from where it is made.
+- **The INDEX titles are pinned to their headers** (audit Q-7/H-3). Guard
+  66 pinned the numbering in 1.4.2 and never the titles; 77, 82 and 103
+  had all drifted, and 103 still narrated a *group* repaint two releases
+  after the tick became a *row* paint — the exact "optimization" the 3.3.x
+  scroll-jump class shipped as. All three entries now match their headers
+  and the pin fails the build on the next drift.
+- **`run-all.sh` counts every smoke fixture** (audit Q-6). Longest-first
+  dispatch weighed suites with `grep -c '"smoke"'`, and the suite argument
+  does not have to be quoted — negtest400's three bare `smoke main`
+  fixtures counted as zero, so a heavy suite could start last. The pattern
+  now matches the argument where it sits, quoted or bare, and agrees with
+  guard 65's census over the same files.
+- **`browser-check.mjs` stops lying about itself** (audit Q-9/Q-4/H-2/Q-13).
+  The header said "not committed to CI" four minor releases after the
+  browser job started running it on every push. The retracted-ring check
+  hardcoded `109.96` while guard 80 computes 2πr — one radius edit would
+  have failed a correct page; it now computes from the `r` the page ships.
+  The two swallowed waits (`.catch(() => {})` on the CV settle and the
+  cache fill) are named checks that say what never arrived. And the
+  offline reload now asserts the worker serves *this* BUILD, not just any
+  shell with entries — a stale cached shell passed the old bar, which is
+  the 2.5.1 incident restated as a test.
+
+### Changed
+
+- **Every guards failure names its section** (audit Q-3). Failures print as
+  `✗ §NN message`, with the section read off the call stack against the
+  file's own headers — nothing hand-maintained. `run_case` gains an
+  optional sixth argument naming the section a fixture is aimed at: when
+  given, the expected string must land on that section's own `§`-prefixed
+  line, so a mutation that breaks four sections can no longer pass a
+  fixture from the wrong one. The 825 existing fixtures keep the semantics
+  they were written against; new fixtures should name their section.
+  `qa/negative/negtest480.sh` carries the four new fixtures (two drive
+  smoke behaviour, two use the section anchor), and the counts move:
+  56 suites, 829 fixtures — 779 guards / 50 smoke — and smoke's own run is
+  340 checks.
+- **qa.yml stops quoting a wall clock.** The cost comment's "~14 s full
+  run" was measured on one machine and narrated on all of them (the audit
+  host measured ~43 s). The guarded split counts stay; the figure is gone.
+
 ## [4.2.2] — 2026-08-18
 
 **Four tabs, one footer.** The owner's punch list: the footers weren't all

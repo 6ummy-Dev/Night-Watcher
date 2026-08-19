@@ -46,7 +46,16 @@ else
 fi
 PASS=0; FAILED=0
 
-# run_case <label> <expected-failure-substring> <python-mutation> [suite] [phase]
+# run_case <label> <expected-failure-substring> <python-mutation> [suite] [phase] [sect]
+#
+# 4.2.3, Q-3 of the 19 Aug audit: the sixth argument names the guards SECTION
+# the fixture is aimed at. guards.js prefixes every failure line with "§NN",
+# so when sect is given the expected string must sit on that section's own
+# line — a mutation that breaks four sections can no longer pass a fixture by
+# printing the phrase from the wrong one. Older fixtures that pass no sect
+# keep the substring-anywhere semantics they were written against; new
+# fixtures should name their section. Pass "" for phase when the suite is
+# guards and a sect is wanted.
 # Applies one mutation to a scratch copy of the tree, runs qa/<suite>.js
 # (guards by default) and requires the exact expected message in its output.
 # The optional fifth argument scopes a smoke run via SMOKE_ONLY (2.2.0, report
@@ -94,7 +103,7 @@ heal_tree () {
 }
 
 run_case () {
-  local label="$1"; local expect="$2"; local pyscript="$3"; local suite="${4:-guards}"; local phase="${5:-}"
+  local label="$1"; local expect="$2"; local pyscript="$3"; local suite="${4:-guards}"; local phase="${5:-}"; local sect="${6:-}"
   ensure_tree
   heal_tree
   ( cd "$NEG" && python3 -c "$pyscript" ) || { echo "  SETUP BROKE  $label"; FAILED=$((FAILED+1)); return; }
@@ -125,6 +134,14 @@ run_case () {
   out=$(cd "$NEG" && SMOKE_ONLY="$phase" node qa/$suite.js ${NEG_ARGS:-} 2>&1); rc=$?
   sig=$(printf '%s\n' "$out" | grep -vE '^  (ok|·) ')
   if printf '%s' "$sig" | grep -qF "$expect"; then
+    # 4.2.3 (Q-3): a fixture that names its section requires the match on that
+    # section's own §-prefixed failure line, not anywhere in the dump.
+    if [ -n "$sect" ] && ! printf '%s\n' "$sig" | grep -F "$expect" | grep -qF "§$sect "; then
+      echo "  FAIL  $label"
+      echo "        expected: $expect  (on a §$sect line)"
+      echo "        got: the text matched, but not on section $sect's failure line — another section printed it"
+      FAILED=$((FAILED+1)); return
+    fi
     # 3.7.2 (L-8 of the 10 Aug review): THE EXIT CODE IS FINALLY CONSULTED.
     # A run that exits green fired no guard, so a match there is only honest
     # if it sits on a warning line ("  ! ") — the three warning-only fixtures

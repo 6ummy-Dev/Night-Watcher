@@ -86,8 +86,17 @@ export WORK
 # (descending; name as tiebreak, so the order is deterministic) starts the heavy
 # suites first and packs the cheap ones behind them. The report below still
 # prints in file order — only the dispatch moves.
+#
+# 4.2.3, Q-6 of the 19 Aug audit: THE COUNT WAS `grep -c '"smoke"'` AND THE
+# SUITE ARGUMENT DOES NOT HAVE TO BE QUOTED. negtest400 passes `smoke main`
+# bare, counted as zero, and its three smoke fixtures started whenever xargs
+# got around to them — a correctness bug in a scheduler, which is the one
+# place a miscount is not cosmetic. The pattern below matches the suite
+# argument where it actually sits — quoted or bare, at the end of the call,
+# comments excluded — and agrees with the census guard 65 runs over the same
+# files. The guard holds the number; this comment deliberately does not.
 DISPATCH="$(for f in "${SUITES[@]}"; do
-  printf '%03d %s\n' "$(grep -c '"smoke"' "$f")" "$f"
+  printf '%03d %s\n' "$(grep -vE '^[[:space:]]*#' "$f" | grep -cE '[" ]smoke"?( +("[a-z]+"|main|css|blocked|everything))? *$')" "$f"
 done | sort -k1,1r -k2,2 | cut -d' ' -f2-)"
 
 echo "  ${#SUITES[@]} suites, $JOBS at a time, longest first"

@@ -54,8 +54,8 @@ run_case "the async rejection leaves saving on" \
   "${P}a='function(){ readFailed = true; canSave = false; finish(null); }';assert a in s
 s=s.replace(a,'function(){ finish(null); }',1);${W}"
 
-run_case "only one of the two failure paths latches" \
-  "latches readFailed on only one of its two failure paths" \
+run_case "one of the three failure paths stops latching" \
+  "latches readFailed on all three of its failure paths" \
   "${P}a='}catch(e){ readFailed = true; canSave = false; finish(null); }';assert a in s
 s=s.replace(a,'}catch(e){ canSave = false; finish(null); }',1);${W}"
 

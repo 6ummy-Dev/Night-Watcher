@@ -70,7 +70,7 @@ function blessHtml(next){
      7    Backup code round-trips losslessly
      8    The parser tolerates codes it was not written for
      9    The restore link stays reachable
-     77   The way back across is only visible from the far side
+     77   The move offer stays retired
      72   Every shareable route token still routes
      73   The worst-case restore link cannot get longer
      19   Rating writes go through the clamp
@@ -84,7 +84,7 @@ function blessHtml(next){
      134  A removal is a fact with a clock, not a hole
      142  A backup is stamped only when a copy left
      102  A tick burst writes once, and leaving flushes
-     103  The tick repaints one group, and cannot drift
+     103  The tick repaints one row, and cannot drift
 
    COPY
      14   README headline counts match the data
@@ -164,7 +164,7 @@ function blessHtml(next){
      45   The README lists every served file
      114  The README describes the origin that actually serves
      117  llms.txt says what the README says
-     82   GitHub Pages never gets a custom domain
+     82   No CNAME file, ever
      83   The manifest id is an identity, not a path
      46   The README states the real weight
      132  The offline promise is executed, not grepped
@@ -214,7 +214,38 @@ function blessHtml(next){
 
 
 var fails = [], warns = [], notes = [];
-function fail(m){ fails.push(m); }
+/* 4.2.3, Q-3 of the 19 Aug audit: EVERY FAILURE NOW NAMES ITS SECTION.
+   run_case only ever required the expected string to appear SOMEWHERE in a
+   red run's output — a mutation that also broke three unrelated sections
+   still PASSED if the phrase sat anywhere in the dump, so 825/825 was never
+   proof that the named section fired. Section 138's substring map is the
+   paper over that hole and says of itself that it is approximate in both
+   directions. Failures now print as "✗ §NN message": the section number is
+   read off the call stack against this file's own header lines, so no call
+   site changes, nothing is hand-maintained, and run_case's optional sect
+   argument can require the match to sit on the named section's own line.
+   A fail() from the shared helpers above section 1 keeps walking the stack
+   until it lands in a numbered section; one that never does prints bare. */
+var SECTLINES = null;
+function sectOf(){
+  if(!SECTLINES){
+    SECTLINES = [];
+    fs.readFileSync(__filename, "utf8").split("\n").forEach(function(l, i){
+      var m = l.match(/^\/\* -{3,} (\d+)\./);
+      if(m) SECTLINES.push([i + 1, parseInt(m[1], 10)]);
+    });
+  }
+  var frames = String(new Error().stack).split("\n");
+  for(var j = 2; j < frames.length; j++){
+    var mm = frames[j].match(/guards\.js:(\d+):\d+/);
+    if(!mm) continue;
+    var line = parseInt(mm[1], 10), s = 0;
+    for(var k = 0; k < SECTLINES.length && SECTLINES[k][0] < line; k++) s = SECTLINES[k][1];
+    if(s) return s;
+  }
+  return 0;
+}
+function fail(m){ var s = sectOf(); fails.push(s ? "§" + s + " " + m : m); }
 function warn(m){ warns.push(m); }
 function note(m){ notes.push(m); }
 
@@ -342,14 +373,20 @@ function eraRank(k){
 }
 var idHash = sandbox.idHash, tierOf = sandbox.tierOf, clampRating = sandbox.clampRating;
 
-/* Flatten exactly as index.html does. */
+/* Flatten exactly as index.html does — and 4.2.3 makes "exactly" checkable.
+   Q-1 of the 19 Aug audit: this copy carried out:(f.out||"") that the app
+   never puts on FILMS, and dropped the d: the app carries — so section 70
+   asserted f.out on an object the page never builds, and the founding claim
+   ("extracted, never reimplemented") was already false one screen down from
+   where it is made. The field list below is byte-compared against the app's
+   own FILMS.push in section 70; out: stays on the RAW PATH entries, which is
+   where the app reads it too. */
 var FILMS = [];
 PATH.forEach(function(g, gi){
   g.films.forEach(function(f, fx){
     FILMS.push({id:f.i, gi:gi, ix:fx, gn:g.n, gname:g.name, fmt:(f.fmt || g.fmt || "anim"),
-                t:f.t, sub:f.sub||"", ep:f.ep||0,
-                tv:(f.k === "tv"), y:f.y, e:(f.e||0), lo:(f.lo||0), out:(f.out||""),
-                r:f.r||"", b:f.b||[], o:!!f.o});
+                t:f.t, sub:f.sub||"", ep:f.ep||0, tv:(f.k==="tv"),
+                y:f.y, d:f.d, e:(f.e||0), lo:(f.lo||0), r:f.r||"", b:f.b||[], o:!!f.o});
   });
 });
 var FAQDATA = buildFAQ(FILMS, sandbox.MODENOTE, tierOf);
@@ -4457,6 +4494,30 @@ if(!/function legendBlock/.test(HTML) ||
       fail("section " + n + " is missing from the INDEX at the top of guards.js");
     }
   });
+  /* 4.2.3, Q-7 of the 19 Aug audit: THE NUMBERS WERE PINNED IN 1.4.2 AND THE
+     TITLES NEVER WERE. 77, 82 and 103 had all drifted — 103 still narrated a
+     GROUP repaint two releases after the tick became a row paint, which is
+     exactly the "optimization" 3.3.x shipped as a scroll-jump bug. An INDEX
+     that describes the previous instrument sends the reader to the wrong
+     story; the header over the code is the one that gets rewritten with it,
+     so the header is the truth and the INDEX is held to it. A "(was: …)"
+     aside in a header is history, not title, and is not compared. */
+  var headerTitle = {};
+  (src.match(/\/\* -{3,} \d+\.[^\n]*/g) || []).forEach(function(h){
+    var hm = h.match(/(\d+)\.\s*(.*?)\s*-*\s*\*\/\s*$/);
+    if(hm) headerTitle[hm[1]] = hm[2].replace(/\s*\(was:[^)]*\)\s*$/, "");
+  });
+  var squash = function(t){ return t.replace(/\s+/g, " ").trim().toLowerCase(); };
+  nums.forEach(function(n){
+    var im = idx.match(new RegExp("\\n\\s+" + n + "[ \\t]+([^\\n]*)"));
+    var it = im ? im[1].trim() : "";
+    var ht = headerTitle[n] || "";
+    if(it && ht && squash(it) !== squash(ht)){
+      fail("the INDEX titles section " + n + " “" + it + "” but its header " +
+           "says “" + ht + "” — one of them is describing a previous " +
+           "instrument. The header is rewritten with the code; fix the INDEX");
+    }
+  });
   /* A header with no assertions under it. Section 48 stood empty from 1.6.5,
      its checks stranded after the last section, and every check in this block
      passed: the numbering ran clean and the INDEX listed 48. A heading is a
@@ -4642,11 +4703,17 @@ if(!/function legendBlock/.test(HTML) ||
     tbd:  "a real continuity whose place is not decided yet"
   };
   var missing = [], stray = [], bad = [];
-  FILMS.forEach(function(f){
-    var why = f.out;
-    if(f.e === 0 && !why) missing.push(f.id);
-    if(f.e !== 0 && why) stray.push(f.id);
-    if(why && !WHY[why]) bad.push(f.id + ' says out:"' + why + '"');
+  /* 4.2.3, Q-1 of the 19 Aug audit: this loop used to read f.out off the
+     guards' own FILMS — which carried a fabricated out: field the app never
+     puts there. The invariant was real, the object was not. out: lives on the
+     raw PATH entries and is read there, same as the app. */
+  PATH.forEach(function(g){
+    g.films.forEach(function(f){
+      var why = f.out, e = (f.e || 0);
+      if(e === 0 && !why) missing.push(f.i);
+      if(e !== 0 && why) stray.push(f.i);
+      if(why && !WHY[why]) bad.push(f.i + ' says out:"' + why + '"');
+    });
   });
   if(missing.length){
     fail(missing.length + " entries sit outside the timeline without saying why (" +
@@ -4659,10 +4726,32 @@ if(!/function legendBlock/.test(HTML) ||
   }
   if(bad.length) fail(bad.slice(0, 3).join("; "));
   var tally = {};
-  FILMS.forEach(function(f){ if(f.out) tally[f.out] = (tally[f.out] || 0) + 1; });
+  PATH.forEach(function(g){ g.films.forEach(function(f){
+    if(f.out) tally[f.out] = (tally[f.out] || 0) + 1;
+  }); });
   note("outside the timeline: " + Object.keys(tally).sort().map(function(k){
     return tally[k] + " " + k;
   }).join(", "));
+
+  /* The flatten pin. "Flatten exactly as index.html does" was a comment for
+     four releases and a falsehood for at least one — the copy up top had
+     grown out: and lost d:, and nothing could say so. The two FILMS.push
+     field lists are now compared byte-for-byte after whitespace collapse:
+     a future app change that starts reading a field this file's copy does
+     not carry goes red here instead of untested. */
+  var pushRe = /FILMS\.push\(\{[\s\S]*?\}\);/;
+  var appPush = (HTML.match(pushRe) || [""])[0];
+  var ownPush = (fs.readFileSync(__filename, "utf8").match(pushRe) || [""])[0];
+  var shape = function(s){ return s.replace(/\s+/g, " ").trim(); };
+  if(!appPush){
+    fail("cannot locate the app's FILMS.push — the flatten moved, and the " +
+         "copy at the top of this file can no longer be checked against it");
+  } else if(shape(appPush) !== shape(ownPush)){
+    fail("the guards' flatten no longer matches index.html's flatten — the two " +
+         "FILMS.push field lists have drifted, so the sections below are " +
+         "checking an object the page does not build. App: " + shape(appPush) +
+         " · guards: " + shape(ownPush));
+  }
 })();
 
 /* ---------- 71. Tier resolution is checked against real entries ---------- */
@@ -9503,9 +9592,21 @@ var ROUTE_VOCAB = [
          "empty and the first tick overwrote the reader's whole saved state " +
          "with one entry. A read that failed means the stored state is unknown");
   }
-  if((rbody.match(/readFailed = true/g) || []).length !== 2){
-    fail("restore() latches readFailed on only one of its two failure paths — " +
-         "the async rejection and the synchronous throw are the same event");
+  if((rbody.match(/readFailed = true/g) || []).length !== 3){
+    fail("restore() no longer latches readFailed on all three of its failure " +
+         "paths — the async rejection, the synchronous throw, and a body that " +
+         "reads but does not parse are the same event: the stored state is " +
+         "unknown, so the writes stop");
+  }
+  /* 4.2.3, C-1 of the 19 Aug audit: a successful read whose body is not JSON
+     used to fall through the parse catch as "no state" — the session booted as
+     a first visit and the next tick overwrote the unread bytes. A failed PARSE
+     is a failed READ: latch, stop the writes, surface the banner, and leave
+     the bytes on disk for the reader. */
+  if(!/\}catch\(e\)\{ readFailed = true; canSave = false; \}/.test(rbody)){
+    fail("restore() swallows a JSON.parse failure without latching readFailed " +
+         "— a corrupt but readable store boots as a first visit and the next " +
+         "tick overwrites the reader's unread bytes with a near-empty payload");
   }
   ["persist", "persistNow"].forEach(function(name){
     var b = (HTML.match(new RegExp("function " + name + "\\([^)]*\\)\\{[\\s\\S]*?\\n\\}")) || [""])[0];
@@ -11113,8 +11214,8 @@ var ROUTE_VOCAB = [
          "back to the calc() that tracks env(safe-area-inset-top)");
   }
 
-  if(!/for\(src in \(wBox \|\| \{\}\)\) if\(wBox\[src\]\)/.test(HTML) ||
-     !/for\(src in \(kBox \|\| \{\}\)\) if\(kBox\[src\]\)/.test(HTML)){
+  if(!/for\(src in \(wBox \|\| \{\}\)\) if\(HAS\.call\(wBox, src\) && wBox\[src\]\)/.test(HTML) ||
+     !/for\(src in \(kBox \|\| \{\}\)\) if\(HAS\.call\(kBox, src\) && kBox\[src\]\)/.test(HTML)){
     fail("the JSON import no longer consults the VALUE of a stored mark — " +
          "marksOf() has required truthiness on the storage read path since the " +
          "shaping work, and a backup carrying \"some-id\": false imported as " +
