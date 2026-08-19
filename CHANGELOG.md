@@ -11,6 +11,51 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.2.5] — 2026-08-19
+
+**The hygiene commit.** The 4.2.4 re-audit found one miss and named it in
+bold: the changelog said `.wrangler/state` was out of the index and the
+live tree still tracked it — a sentence claiming a fact the tree does not
+hold, this project's most-repeated bug class, in the release note of the
+release meant to close the audit loop. This cut makes that lie impossible
+and lands the report's three optional hardenings. No features.
+
+### Fixed
+
+- **Guard 144: the wrangler state stays out of the index.** The section
+  reads the git index file directly (no git binary, no child process) and
+  fails while `.wrangler/state` objects are tracked — so the claim can
+  only be made by a tree where it is true. Where no `.git` exists (a
+  zip-applied copy, a negative scratch tree) it notes and stands down.
+  **On the live tree this section is red until `git rm -r --cached
+  .wrangler/state` is run — that is the point.** The false 4.2.4 sentence
+  is struck above, not erased.
+- **`dedupeLog` consults `BYID`** (C-5, the restore-path half of 4.2.4's
+  gates). A previously polluted or hostile store could keep phantom ids in
+  `S.log` through every restore — no loss, but a count lie, and one more
+  path shaped differently from the other three. All four import/restore
+  surfaces now agree: the log is a subset of the catalogue. Guard 35
+  drives the drop; smoke drives it on the real page.
+
+### Changed
+
+- **A missing parser fails CI instead of warning** (Q-fn2). `fnIndex()`
+  falling back to the legacy regex is fine on a bare laptop clone and a
+  silent downgrade of every extraction under CI — the same lesson smoke's
+  jsdom skip taught in 3.0.2. Under `CI` the absence of Acorn is now a
+  failure.
+- **Guard 145: the extract shape is pinned.** `fnIndex()` indexes
+  FunctionDeclarations, which is every function this file has — but a
+  future style shift to `var foo = function(){}` would *empty* the index
+  without one red. Top-level function-valued variables are refused at the
+  door: write a declaration, or teach the indexer the new shape in the
+  same commit.
+- New suite `qa/negative/negtest500.sh` (4 fixtures — three
+  section-anchored; the acorn-under-CI one fires before section 1, so the
+  sect pin in guard 138 moves 762 → 763 for the documented reason).
+  Counts: 58 suites, 837 fixtures — 785 guards / 52 smoke — smoke 345
+  checks, guard sections 145.
+
 ## [4.2.4] — 2026-08-19
 
 **The parser release.** The re-audit of 4.2.3 said the remaining P1-shaped
@@ -50,7 +95,11 @@ the two-speed rule where releases are cut. Smaller than 4.2.3, as asked.
   split written down so the sentence survives the person who knows it.
 - New suite `qa/negative/negtest490.sh` (4 fixtures). Counts: 57 suites,
   833 fixtures — 781 guards / 52 smoke — and smoke's run is 344 checks.
-  `.wrangler/state` is out of the index (H-1, the last open morning item).
+  ~~`.wrangler/state` is out of the index (H-1, the last open morning
+  item).~~ *Corrected in 4.2.5: that was true of the release branch and
+  false of the live tree — a zip cannot carry a git operation, and this
+  sentence was exactly the bug class the audits name. Guard 144 now
+  refuses the claim until the index agrees.*
 
 ## [4.2.3] — 2026-08-19
 

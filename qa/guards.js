@@ -171,6 +171,7 @@ function blessHtml(next){
      83   The manifest id is an identity, not a path
      46   The README states the real weight
      132  The offline promise is executed, not grepped
+     144  The wrangler state stays out of the index
 
    DISCOVERY
      38   What a crawler and a shared link see
@@ -208,6 +209,7 @@ function blessHtml(next){
      65   The file points at where its reasoning went
      66   The guards are navigable
      113  Every negative suite runs in CI
+     145  Every top-level function is a declaration the extractor can see
 
    Sections are numbered in file order. Groups are for finding things;
    they do not affect what runs. Guard 66 enforces the numbering, that every
@@ -336,6 +338,8 @@ function sliceOr(from, to){
    so a bare clone keeps a working (if weaker) guard set; CI and any tree
    that can run smoke always have the parser. */
 var FN_INDEX = null;   /* null until built; false = acorn unavailable */
+var FN_VARSHAPE = null; /* null until the parser runs; then names of
+                           top-level function-valued vars (section 145) */
 function fnIndex(){
   if(FN_INDEX !== null) return FN_INDEX;
   var acorn = null;
@@ -349,7 +353,16 @@ function fnIndex(){
     .map(function(b){ return b.slice("<script>".length, -"</script>".length); })
     .join("\n;\n");
   if(!acorn || !script){
-    if(!acorn) warn("acorn is not installed (npm ci) \u2014 function extraction is " +
+    if(!acorn && process.env.CI){
+      /* 4.2.5, Q-fn2: same lesson smoke's jsdom skip taught in 3.0.2 \u2014 a
+         broken `npm ci` must not silently downgrade every extraction to
+         the weaker matcher and stay green. Local clones may run bare;
+         CI may not. */
+      fail("acorn is not installed and this is CI \u2014 every extraction below " +
+           "would silently downgrade to the legacy regex, and a downgraded " +
+           "parser is not a passing parser");
+    }
+    else if(!acorn) warn("acorn is not installed (npm ci) \u2014 function extraction is " +
                     "running on the legacy regex matcher, which truncates on " +
                     "formatting the parser handles");
     else fail("the inline <script> block is gone from index.html \u2014 there is " +
@@ -365,10 +378,23 @@ function fnIndex(){
     return (FN_INDEX = false);
   }
   FN_INDEX = Object.create(null);
+  FN_VARSHAPE = [];
   ast.body.forEach(function(node){
     if(node.type === "FunctionDeclaration" && node.id && node.id.name){
       /* last declaration wins, same as the runtime it is standing in for */
       FN_INDEX[node.id.name] = script.slice(node.start, node.end);
+    }
+    /* 4.2.5: section 145 pins the shape. A top-level function written as a
+       variable assignment is invisible to the index above — recorded here,
+       refused there. */
+    if(node.type === "VariableDeclaration"){
+      node.declarations.forEach(function(d){
+        if(d.init && d.id && d.id.name &&
+           (d.init.type === "FunctionExpression" ||
+            d.init.type === "ArrowFunctionExpression")){
+          FN_VARSHAPE.push(d.id.name);
+        }
+      });
     }
   });
   return FN_INDEX;
@@ -2224,11 +2250,14 @@ if(!amax || amax[1] !== "3"){
 /* Not reproducible through any reachable write, but saved payloads also arrive
    hand-edited and from other builds. Enforced on read, so it holds regardless. */
 
+/* 4.2.5, C-5: dedupeLog consults BYID now (the restore-path half of the
+   4.2.4 gates), so the sandbox carries one — the letters this section has
+   always tested with, plus nothing, so the drop case is testable too. */
 var dedupeLog = new vm.Script(
   optionalFn("validTs", "nothing would say what a usable timestamp is") + "\n" +
   optionalFn("dedupeLog", "a saved payload could hold two entries for one id") +
   "\ntypeof dedupeLog === 'function' ? dedupeLog : function(a){ return a; };"
-).runInNewContext({});
+).runInNewContext({BYID: {a: 1, b: 1}});
 var dl = dedupeLog([{id:"a",ts:300},{id:"b",ts:200},{id:"a",ts:100},{id:"a",ts:900}]);
 if(dl.length !== 2) fail("dedupeLog left " + dl.length + " entries, expected 2");
 if(dl.map(function(e){ return e.id; }).join(",") !== "a,b"){
@@ -2242,6 +2271,11 @@ if(!dl.length) fail("dedupeLog returned nothing for four well-formed entries");
 else if(dl[0].ts !== 100) fail("dedupeLog kept ts " + dl[0].ts + ", expected the earliest (100)");
 if(JSON.stringify(dedupeLog(dl)) !== JSON.stringify(dl)) fail("dedupeLog is not idempotent");
 if(dedupeLog([null, {ts:1}, {id:"a",ts:1}]).length !== 1) fail("dedupeLog admitted a junk entry");
+if(dedupeLog([{id:"not-in-the-catalogue",ts:1}, {id:"a",ts:1}]).length !== 1){
+  fail("dedupeLog kept a logged id the catalogue does not carry — a polluted " +
+       "or hostile store keeps its phantoms through every restore, and the " +
+       "log stops being a subset of the catalogue");
+}
 /* 3.4.5. mergeLog got validTs() for the ts:null case and this path did not,
    which left the hole exactly where the audit had found it: restore() reads a
    saved log through dedupeLog(), NOT through mergeLog(), so an entry with no
@@ -11414,7 +11448,10 @@ var ROUTE_VOCAB = [
   /* Guards fixtures written before 4.2.4, which keep substring-anywhere
      semantics. The ratchet below holds this number exactly; see the census
      comment for the three legitimate reasons it may move. */
-  var NO_SECT_PINNED = 762;
+  /* 763 as of 4.2.5: negtest500's acorn-under-CI fixture expects a failure
+     emitted before section 1 (fnIndex runs at extraction time), where no §
+     exists to name — the raise case this comment block documents. */
+  var NO_SECT_PINNED = 763;
   fs.readdirSync(negDir).filter(function(f){ return /^negtest.*\.sh$/.test(f); }).forEach(function(f){
     var t = fs.readFileSync(path.join(negDir, f), "utf8").replace(/\\\n/g, " ");
     /* 3.9.5: green_case IS NOT HARVESTED, AND HARVESTING IT WAS A BUG. The two
@@ -12031,6 +12068,69 @@ var ROUTE_VOCAB = [
        "dirties three, neighbors idle, inert swept on settle, belt " +
        "suppressed in background copies and parked as the header's own " +
        "permanent peek, snap via scrollIntoView");
+})();
+
+/* ---------- 144. The wrangler state stays out of the index ------------- */
+/* H-1 stood open through three audits in one day, and the 4.2.4 CHANGELOG
+   then said it was closed — true of the release branch, false of the live
+   tree, because releases here ship by unzipping files and a zip cannot
+   carry a git operation. A sentence claiming a fact the tree does not hold
+   is this project's most-repeated bug class, and that one landed in the
+   release note of the release meant to close the audit loop. So the fact
+   gets a guard. The four sqlite/WAL/SHM objects under .wrangler/state/
+   are local Miniflare cache; .gitignore has listed .wrangler/ since they
+   leaked in; they are tracked only because they predate the rule. This
+   section reads the git index file directly — no git binary, no child
+   process — and refuses the claim until the index agrees. Where no .git
+   exists (a zip-applied tree, a negative scratch copy) it says so and
+   stands down; CI and the release machine always have one. */
+
+(function(){
+  var gidx = path.join(ROOT, ".git", "index");
+  if(!fs.existsSync(gidx)){
+    note("no .git here (zip or scratch tree) — the wrangler-state index check " +
+         "runs where one exists");
+    return;
+  }
+  if(fs.readFileSync(gidx).includes(".wrangler/state")){
+    fail(".wrangler/state is still in the git index — run `git rm -r --cached " +
+         ".wrangler/state` and keep .wrangler/.gitkeep. .gitignore already " +
+         "lists .wrangler/; the files predate the rule. The 4.2.4 release " +
+         "note claimed this was done; this section exists so that sentence " +
+         "cannot be wrong again");
+    return;
+  }
+  note("the git index carries no .wrangler/state objects");
+})();
+
+/* ---------- 145. Every top-level function is a declaration the extractor can see - */
+/* The parser indexes FunctionDeclaration nodes, which is correct for this
+   file today — every extracted function is written `function name(){}`.
+   The pin the 4.2.4 re-audit asked for: a future style shift to
+   `var foo = function(){}` or `const foo = () => {}` would not break the
+   index, it would EMPTY it silently — optionalFn would report a wall of
+   "is gone" for functions that are right there, or worse, a section would
+   quietly check a stub. The shape is therefore refused at the door: write
+   a declaration, or teach fnIndex() the new shape in the same commit. */
+
+(function(){
+  fnIndex();
+  if(FN_VARSHAPE === null){
+    note("parser unavailable on this run — the extract shape is unpinned " +
+         "(the fallback warning above already says why)");
+    return;
+  }
+  if(FN_VARSHAPE.length){
+    fail("top-level function(s) written as variable assignments: " +
+         FN_VARSHAPE.slice(0, 5).join(", ") + " — fnIndex() indexes " +
+         "FunctionDeclarations only, so these are invisible to every " +
+         "extraction below: a style shift empties the index without one red. " +
+         "Write `function name(){}`, or teach fnIndex() the new shape in the " +
+         "same commit");
+    return;
+  }
+  note("every top-level function is a declaration; the index cannot be " +
+       "emptied by a style shift");
 })();
 
 /* ---------- report ---------- */

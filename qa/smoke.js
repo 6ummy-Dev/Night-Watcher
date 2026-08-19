@@ -1768,6 +1768,14 @@ win.addEventListener("load", function(){
                   moved + " moved, log: " + w4.S.log.length);
             check("mergeLog still merges a real entry with a valid clock",
                   w4.S.log.some(function(e){ return e.id === FILMS[2].id; }));
+            /* 4.2.5, C-5: the restore-path half of the same invariant — a
+               previously polluted or hostile store cannot keep phantom ids
+               in S.log through dedupeLog. */
+            var dl = w4.dedupeLog([{id:"a-phantom-logged-id", ts:1754700000000},
+                                   {id:FILMS[3].id, ts:1754700000001}]);
+            check("dedupeLog drops a logged id the catalogue does not carry",
+                  dl.length === 1 && dl[0].id === FILMS[3].id,
+                  dl.map(function(e){ return e.id; }).join(","));
           })();
 
           /* --- 4.2.3, C-1: a store that READS but does not PARSE. The old

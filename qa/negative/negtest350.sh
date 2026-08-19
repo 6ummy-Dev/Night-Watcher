@@ -156,7 +156,7 @@ a2='\"tf\", \"src\"';assert a2 in s;s=s.replace(a2,'\"tf\"',1);${W}"
 
 run_case "dedupeLog stops asking about the timestamp" \
   "admitted an entry with no usable timestamp" \
-  "${P}a='if(!e || !e.id || !validTs(e.ts)) return;';assert a in s
-s=s.replace(a,'if(!e || !e.id) return;',1);${W}"
+  "${P}a='if(!e || !e.id || !BYID[e.id] || !validTs(e.ts)) return;';assert a in s
+s=s.replace(a,'if(!e || !e.id || !BYID[e.id]) return;',1);${W}"
 
 finish "negtest350"
