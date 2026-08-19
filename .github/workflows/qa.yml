@@ -64,8 +64,8 @@ jobs:
   # guards work was produced only on the release machine, by hand — which is the
   # exact situation this workflow was created to end.
   #
-  # Cost, measured rather than averaged: 829 fixtures, of which 779 run guards.js
-  # at about 0.26s each (halved 6 Aug by memoising idHash) and 50 run smoke.js — most of those scoped to one phase
+  # Cost, measured rather than averaged: 833 fixtures, of which 781 run guards.js
+  # at about 0.26s each (halved 6 Aug by memoising idHash) and 52 run smoke.js — most of those scoped to one phase
   # by SMOKE_ONLY (2.2.0, report §5.4) at a fraction of a full run — wall clocks are machine-bound, so no figure is quoted here; the split counts above are the guarded part.
   # (The previous figures here — "579 guards / 32 smoke" — had drifted AND did
   # not sum to their own total; corrected 3.7.2. The counts are now guarded in
@@ -91,7 +91,7 @@ jobs:
           - shard: "2"
             pick: 'negtest(183|171|166|161|162|252|270|310|330|360|131|420|460|480)\.sh'
           - shard: "3"
-            pick: 'negtest(165|170|172|187|163|210|260|271|340|370|390|430|470|476)\.sh'
+            pick: 'negtest(165|170|172|187|163|210|260|271|340|370|390|430|470|476|490)\.sh'
           - shard: "4"
             pick: 'negtest(300|185|182|186|180|176|177|181|220|272|400|440|475)\.sh|negtest\.sh'
     steps:
