@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 145 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 147 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -54,7 +54,7 @@ identical optical centres.
 
 ### Fonts and palette
 
-Limelight, Anton, Big Shoulders Display and IBM Plex, all under the SIL Open
+Limelight, Big Shoulders Display and IBM Plex (Anton until 4.3.0), all under the SIL Open
 Font License, served from `fonts/` rather than a CDN — the app makes a promise about asking nothing of
 anyone else, and guards section 42 enforces it. The palette is original hex,
 styled after the classic black / blue-grey / belt-yellow scheme.
@@ -3435,3 +3435,51 @@ paragraphs restating guard sections in prose were a third copy of rules that
 exist as numbered, negative-tested sections in `qa/guards.js` with their
 reasoning attached. The README now points there; the guards file was always
 the honest statement, because it is the one that runs.
+
+## The deco release: one face, a real dark, and the cut
+
+4.3.0 is the feature the whole 19 August audit cycle kept clearing the runway
+for, and all three of its changes are one idea: the page finally commits to
+the deco it has been gesturing at since Limelight arrived.
+
+**One face.** Anton was hired in 1.0.0 to be "condensed and loud" and spent
+four months reading sports-poster in an Empire State lobby. 4.2.0 already
+took the numbers away from it; 4.3.0 takes the titles too, and the face that
+takes them is the one the numbers went to — Big Shoulders Display, the same
+Chicago-deco family `--deco` has named as Limelight's fallback from the
+beginning, so the taste was on record before the swap was. Big Shoulders sets
+narrower and lighter than Anton, which is why the swap is not one line: every
+row-title consumer takes about ten percent more size and doubles its
+tracking, or the titles would have arrived looking starved. The payoff beyond
+the look is subtraction — a face, a preload and 8.2 KB leave a page whose
+whole premise is that one file opens instantly.
+
+**A real dark.** Darker's recipe since 3.8.4 was to dim the bone while every
+surface kept its hue — and lowering text luminance at constant surfaces is
+literally what a brightness slider does, which is why the theme read as "the
+same room with the lights low." A dark that reads as night does the opposite:
+the surfaces drop and the structure comes up. Recipe C drops the cards toward
+true black and raises the hairlines to carry the depth the fills no longer
+can. The owner kept the dimmed bone — that part of 3.8.4 stays — and because
+the surfaces fell under it, every measured pair still lands AAA and none
+moved down. Guard 147 pins what actually matters and nothing else: not one
+hex literal, but the ladder — ink under sunk under card under card2, per
+theme — because pressed states lighten and the hero gradient falls, and a
+theme that reorders the ladder breaks both without failing a single
+colour-contrast check.
+
+**The cut.** The mock round tried the full deco wardrobe — double hairline
+frames, diamond rules, a sunburst, chamfered corners — and the panels made
+the argument the style guide always makes: deco dies of ornament faster than
+any other style. What survived is the 45° cut on the hero, the diamond rule
+under its badges, and a gold ◆ where the meta line's plain dot was. The
+hairline frame lost because the cut and the frame are two competing frame
+statements; the sunburst lost outright. The cut stays on the hero because
+propagating it is not a border-radius edit — a straight clip-path eats the
+border it clips, so the shipped construction is a wrapper-clip (the card IS
+the frame, clipped; the gradient rides a ::before inset 1px with the same
+cuts, isolated under the text), and putting that on every list card means
+rebuilding the card system for an ornament that works best said once.
+Section 146 holds each piece of the construction separately, because every
+piece — the isolation, the inset, the frame colour — fails invisibly if
+"tidied."

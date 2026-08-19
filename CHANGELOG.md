@@ -11,6 +11,80 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.3.0] — 2026-08-19
+
+**The deco release.** The feature the audit cycle kept clearing the runway
+for: three changes from the mock round, all owner-picked. The row titles
+move to the face that was already in the building, Darker stops being a
+dimmer and becomes a dark, and the hero card gets the one deco ornament
+that survived the panel round — 45° cuts and a gold diamond, with the
+double hairline and the sunburst both ruled out on the record. The
+catalogue is unchanged; nothing anyone has ticked moves.
+
+### Changed
+
+- **The display face is Big Shoulders Display.** Anton had been the row-title
+  face (`.pick b`, `.ftitle`, activity and queue titles, universe names)
+  since 1.0.0; Big Shoulders 700 was already loaded for the scorecard
+  numbers, and it is the more deco of the two — tall, geometric, condensed —
+  where Anton reads sports-poster. Big Shoulders sets narrower and lighter,
+  so every consumer takes ~10% more size (`.ftitle` 17.5 → 19.5px) and
+  tracking opens `.025em` → `.05em`. `--disp` and `--num` now name one face.
+- **Darker is a dark, not a dimmer** (recipe C from the mock round). The
+  theme used to drop the ink and keep the room; lowering text luminance at
+  the same hue is what a brightness slider does. Now the surfaces drop
+  instead — `--sunk` `#05070C` → `#04060C`, `--card` `#0B101B` → `#0A0E18` —
+  and the hairlines come up (`--line` `#1B2233` → `#20283C`) so structure
+  carries the depth on what is now effectively pure black. The dimmed bone
+  `#AEB6C8` stays, owner's call: bone measures 10.32:1 on ink, 9.96 on sunk,
+  9.48 on card, 8.73 on card2 — every pair AAA, every one at or above where
+  it stood. Default theme untouched.
+- **The hero wears the cut.** Corners are chamfered at 45° — on the hero
+  only; list cards, buttons and the watch pill keep their radius. A straight
+  `clip-path` would eat the old border at the corners, so the card is built
+  as a wrapper-clip: `.hero` itself is the frame (background `--line2`, the
+  line the frame was always drawn in — `#33405C` default, a touch lighter
+  than Darker's new `#20283C` so the cuts stay legible on black) clipped to
+  the cut polygon, with `::before` carrying the gradient inset 1px behind
+  the content, `isolation:isolate` holding it under the text. The meta
+  line's plain `·` becomes a small gold `◆` (`.dsep`), and a diamond rule —
+  one `◆` on a gradient gold hairline — sits between the badges and the
+  blurb, on the patrol hero and the Case closed card alike. Both are
+  `aria-hidden`: ornament, not words. The diamond renders from the system
+  font by decision, named in section 116's SYSTEM_MARKS beside the star.
+
+### Removed
+
+- **Anton.** Its woff2 (8.2 KB), its preload and its `@font-face` all leave
+  the page — one request fewer against the budget — and it leaves the
+  `--num` and share-card fallback stacks, `qa/font-subset.json` and the
+  README's file table with it. `docs/share.png` is untouched: Big Shoulders
+  has rendered the card's numbers since its `@font-face` landed, so Anton
+  was a fallback that never fired there. **Operator note: apply the zip,
+  then delete `docs/fonts/anton-latin-400-normal.woff2` — guard 106's
+  manifest equality is red while the orphan ships, which is the guard
+  working.** Guard 42 gains the retirement clause: any Anton reference
+  returning to the page fails the build.
+
+### Added — guards
+
+- **Section 146: the hero wears the cut.** The polygon and the absent
+  radius, the `--line2` frame, the 1px `::before` hairline, the isolation,
+  the `dsep` separator and the diamond rule on both heroes — each with its
+  own failure.
+- **Section 147: the surfaces keep their order.** No literal is pinned —
+  the next honest retune should not go red for moving a hex — but
+  `ink < sunk < card < card2` must hold per theme, measured with section
+  20's own palettes, because pressed states lighten and the hero gradient
+  falls from `card2` to `card`.
+- Smoke drives the ornament in the rendered DOM (4 new checks: the rule on
+  the patrol hero, the diamond-not-dot meta line, `aria-hidden` on both,
+  the rule on Case closed) — 349 checks.
+- New suite `qa/negative/negtest510.sh` (10 fixtures: the four halves of
+  the cut construction, the three ornament strips, the ladder reorder,
+  Anton's return, and the ornament driven through smoke). Counts: 59
+  suites, 847 fixtures — 794 guards / 53 smoke — guard sections 147.
+
 ## [4.2.5] — 2026-08-19
 
 **The hygiene commit.** The 4.2.4 re-audit found one miss and named it in

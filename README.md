@@ -97,8 +97,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `docs/404.html` | The wrong-alley page. Self-contained, noindexed, served with a real 404 status |
 | `docs/vp.html` | The viewport probe for the standalone bottom-band investigation. Owner-facing, noindexed |
 | `docs/fonts/limelight-latin-400-normal.woff2` | Display face for the wordmark and headings |
-| `docs/fonts/anton-latin-400-normal.woff2` | Condensed face for titles |
-| `docs/fonts/big-shoulders-display-latin-700-normal.woff2` | Numeral face — scoreboard tiles and the story card's count |
+| `docs/fonts/big-shoulders-display-latin-700-normal.woff2` | Display face for row titles, scoreboard tiles and the story card's count |
 | `docs/fonts/ibm-plex-sans-latin-400-normal.woff2` | Body text |
 | `docs/fonts/ibm-plex-sans-latin-600-normal.woff2` | Body text, semibold |
 | `docs/fonts/ibm-plex-mono-latin-400-normal.woff2` | Labels, counts, and every uppercase micro-line |
@@ -139,14 +138,14 @@ Zero dependencies, and every function under test is **extracted from `docs/index
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 58 negative suites, 837
+trusted. That evidence lives in `qa/negative/` — 59 negative suites, 847
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
 every fixture onto the section it breaks and fails the build on any section
 without one, and the counts in this paragraph are themselves guarded.
 
-There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, and the path end to end — 345 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
+There is also `qa/smoke.js`, a headless render test that boots the real page and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, and the path end to end — 349 checks. It needs jsdom (`npm i -D jsdom`) and skips itself if that isn't installed.
 
 ## Releasing
 
@@ -222,7 +221,7 @@ they always were — titles, years and episode counts belong to nobody.
 
 ## Credits & legal
 
-- Fonts: Limelight, Anton, Big Shoulders Display, IBM Plex Sans and IBM Plex Mono, self-hosted in `docs/fonts/` under the SIL Open Font License. Their licence ships with them at `docs/fonts/OFL.txt`.
+- Fonts: Limelight, Big Shoulders Display, IBM Plex Sans and IBM Plex Mono, self-hosted in `docs/fonts/` under the SIL Open Font License. Their licence ships with them at `docs/fonts/OFL.txt`.
 - The favicon and app icon are original bat silhouettes drawn for this project. They are not DC marks.
 - This is an unofficial fan-made tracker. It contains no trademarked logos, symbols or artwork. Batman and all related characters are property of DC / Warner Bros. Discovery; this project is not affiliated with or endorsed by them.
 - Catalogue compiled from public sources. Release dates for unreleased titles are as announced and may change.
