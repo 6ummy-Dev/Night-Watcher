@@ -544,7 +544,7 @@ io.open(p,'w',encoding='utf-8').write(s+chr(10)+'A title with an unsubset glyph:
 run_case "a recorded system mark turns up in a subset face" \
   "the exception is stale" \
   "import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read()
-a='0x203A: \"the breadcrumb guillemet\"';assert a in s
+a='0x203A: \"the chevron (carets, breadcrumbs, the deco pointer)\"';assert a in s
 s=s.replace(a,'0x0041: \"a letter that is obviously in every face\"',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 

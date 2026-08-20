@@ -25,15 +25,15 @@ run_case "a variant re-pads itself" \
 echo "--- 60: one left edge for the group chips"
 run_case "the chip loses its min-width" \
   "the group number chip has no min-width" \
-  "${P}a='flex:none;min-width:26px;text-align:center;}';assert a in s;s=s.replace(a,'flex:none;}');${W}"
+  "${P}a='flex:none;min-width:26px;text-align:center;position:relative;}';assert a in s;s=s.replace(a,'flex:none;position:relative;}');${W}"
 
 run_case "the chip stops centring its tag" \
   "the group number is not centred in its chip" \
-  "${P}a='min-width:26px;text-align:center;}';assert a in s;s=s.replace(a,'min-width:26px;}');${W}"
+  "${P}a='min-width:26px;text-align:center;position:relative;}';assert a in s;s=s.replace(a,'min-width:26px;position:relative;}');${W}"
 
 run_case "the chip is narrowed below two characters" \
   "under the 26px a two-character tag" \
-  "${P}a='min-width:26px;text-align:center;}';assert a in s;s=s.replace(a,'min-width:20px;text-align:center;}');${W}"
+  "${P}a='min-width:26px;text-align:center;position:relative;}';assert a in s;s=s.replace(a,'min-width:20px;text-align:center;position:relative;}');${W}"
 
 echo "--- 61: contrast measured on the ink that renders"
 run_case "the format-badge fade comes back (the bug this release fixed)" \

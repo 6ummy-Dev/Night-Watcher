@@ -1560,6 +1560,40 @@ win.addEventListener("load", function(){
     var bad = win.document.querySelectorAll("#view .panel:not([inert]) button div, #view button h2");
     check("no flow content nested inside a button", bad.length === 0, bad.length + " found");
 
+    /* --- 4.4.0: the cut is rank, driven through the rendered DOM --------
+       The here-group is a render-path claim, and static pins cannot see a
+       render path drop a class. Fresh state: upNext() is the first film of
+       the first group, so exactly one group carries the mark and it is the
+       one holding that film's row. All-watched: no next, no mark — Case
+       closed stands square. The caret and the tier fills ride along here
+       because they are also render output, not stylesheet. */
+    S.watched = {}; S.skipped = {}; S.q = ""; S.filter = "all"; S.tab = "watch"; win.render();
+    var heres = win.document.querySelectorAll("#view .group.here");
+    check("exactly one group wears the here mark", heres.length === 1,
+          heres.length + " marked");
+    var nxtId = (win.upNext() || {}).id;
+    check("the here-group holds the film upNext() names",
+          !!(heres[0] && nxtId && heres[0].querySelector('[data-id="' + nxtId + '"]')),
+          "next is " + nxtId);
+    var carets = win.document.querySelectorAll("#view .caret");
+    check("every rendered caret is the chevron pair",
+          carets.length > 0 && Array.prototype.every.call(carets, function(c){
+            return c.textContent === "\u203A\u203A" || c.textContent === "\u203A";
+          }), carets.length + " carets");
+    var savedW44 = S.watched; S.watched = {};
+    win.FILMS.forEach(function(f){ S.watched[f.id] = 1; });
+    win.render();
+    check("Case closed marks no group", win.document.querySelectorAll("#view .group.here").length === 0);
+    S.watched = savedW44; win.render();
+    S.tab = "home"; win.render();
+    var tfills = win.document.querySelectorAll("#view .tbar i");
+    check("tier fills carry a colour token and no inline fill",
+          tfills.length === 2 && Array.prototype.every.call(tfills, function(i){
+            var st = i.getAttribute("style") || "";
+            return st.indexOf("color:var(--") >= 0 && st.indexOf("background") < 0;
+          }), tfills.length + " tier fills");
+    S.tab = "watch"; win.render();
+
     /* --- memoised groups stay correct across a scope flip --- */
     S.scope = "movies"; var movieCount = win.pool().length;
     S.scope = "all";    var allCount   = win.pool().length;

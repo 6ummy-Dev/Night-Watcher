@@ -20,7 +20,7 @@
    it never executed. Both dependencies are declared now, and the executable is
    resolved by Playwright with an env override kept for sandboxes that place it
    somewhere unusual. */
-import { chromium } from "playwright";
+import { chromium, webkit } from "playwright";
 import { createRequire } from "node:module";
 import fs from "node:fs";
 
@@ -31,6 +31,12 @@ const axeSrc = fs.readFileSync(
 /* Playwright resolves its own browser. NW_CHROME is the escape hatch, not the
    default — a pinned path IS the bug this replaced. */
 const EXE = process.env.NW_CHROME || undefined;
+/* 4.4.0: the WebKit CI job. iOS is where the clip-path ornaments actually
+   ship, and the deco pass multiplied the clip sites (CTA, lead pick) — the
+   standing note from the 4.3.x audits is now load-bearing. NW_ENGINE=webkit
+   runs this same file on WebKit; the default stays Chromium, and NW_CHROME
+   (an executablePath escape hatch) applies to Chromium only. */
+const WK = process.env.NW_ENGINE === "webkit";
 const out = [];
 let bad = 0;
 function ok(name, pass, detail){
@@ -38,7 +44,8 @@ function ok(name, pass, detail){
   if(!pass) bad++;
 }
 
-const browser = await chromium.launch(
+const browser = WK ? await webkit.launch()
+  : await chromium.launch(
   EXE ? { executablePath: EXE, args: ["--no-sandbox"] } : { args: ["--no-sandbox"] });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 },
                                      deviceScaleFactor: 3 });
@@ -251,7 +258,28 @@ async function jump(clickFn, label, tab, mode){
   const fired = await page.evaluate(clickFn);
   const gk = fired && fired.gk;
   if(!gk){ ok("jump from " + label, false, "found nothing to click"); return; }
-  await page.waitForTimeout(700);
+  /* 4.4.0, the parked rider, landed: this was waitForTimeout(700) — a bet
+     that every smooth scroll finishes inside 700ms on every runner. Settled
+     scroll is observable, so it is observed: the position is read across two
+     frames until it stops moving, capped at 2s so a wedged scroll fails the
+     landing assertions below instead of hanging the file. */
+  await page.evaluate(() => new Promise((res) => {
+    const t0 = performance.now();
+    let last = scrollKeep(), still = 0;
+    (function loop(){
+      requestAnimationFrame(() => {
+        const now = scrollKeep();
+        still = (now === last) ? still + 1 : 0;
+        last = now;
+        const t = performance.now() - t0;
+        /* 18 stable frames (~300ms) with a 300ms floor: a smooth scroll has
+           not begun in its first frames, and a settle that reads two equal
+           positions there would resolve before the ride starts. */
+        if((still >= 18 && t >= 300) || t > 2000) return res();
+        loop();
+      });
+    })();
+  }));
   const landed = await page.evaluate((k) => {
     const h = document.querySelector('.ghead[data-gk="' + k + '"]');
     if(!h) return { ok: false, why: "the target group did not render" };
@@ -776,6 +804,72 @@ await page.evaluate(async () => {
   goTab("watch");
 });
 
+/* ---- 4.4.0: the cut family, measured ---------------------------------- */
+/* Section 148 pins the source shapes; this is the half a regex cannot see —
+   what the engine actually computes. The clip resolves to a polygon, the
+   tick's rotation resolves to a matrix and widens its box by exactly the
+   rotation's arithmetic, the here mark lands on one group with painted
+   overlays, and the sticky header still sticks inside a group that carries
+   them — the interaction the corner-overlay construction was chosen FOR. */
+{
+  const deco = await page.evaluate(() => {
+    S.tab = "home"; S.q = ""; S.filter = "all"; render(); snapTo("home"); scrollPut(0);
+    const go = document.querySelector(".heroacts .go");
+    const cg = go ? getComputedStyle(go) : null;
+    S.tab = "watch"; render(); snapTo("watch"); scrollPut(0);
+    const heres = document.querySelectorAll(".group.here");
+    const h0 = heres[0] || null;
+    const hb = h0 ? getComputedStyle(h0, "::before").backgroundImage : "none";
+    const ha = h0 ? getComputedStyle(h0, "::after").backgroundImage : "none";
+    /* The Path row's tick, by name — the first .tick in the document can be
+       Activity's 24px one inside a warm Home panel. */
+    const tick = document.querySelector(".gbody .film .tick");
+    const tr = tick ? tick.getBoundingClientRect() : { width: 0 };
+    const tc = tick ? getComputedStyle(tick) : null;
+    const chip = document.querySelector(".chip");
+    return {
+      goClip: cg ? cg.clipPath : "none", goRadius: cg ? cg.borderRadius : "?",
+      heres: heres.length, hereBefore: hb, hereAfter: ha,
+      tickTransform: tc ? tc.transform : "none",
+      tickBox: +tr.width.toFixed(1),
+      chipRadius: chip ? getComputedStyle(chip).borderRadius : "?"
+    };
+  });
+  ok("the CTA computes the cut", /polygon/.test(deco.goClip) && deco.goRadius === "0px",
+     deco.goClip.slice(0, 40) + " r=" + deco.goRadius);
+  ok("exactly one group wears the here mark", deco.heres === 1, deco.heres + " marked");
+  ok("both here overlays paint their gradients",
+     /linear-gradient/.test(deco.hereBefore) && /linear-gradient/.test(deco.hereAfter),
+     (deco.hereBefore + " / " + deco.hereAfter).slice(0, 80));
+  /* 30px box × scale .78 × √2 ≈ 33.1 — the rotation read back out of layout. */
+  ok("the tick's diamond widens its box by the rotation's arithmetic",
+     deco.tickTransform !== "none" && deco.tickBox > 31 && deco.tickBox < 35.5,
+     deco.tickTransform + " box " + deco.tickBox + "px");
+  ok("the chips compute square", deco.chipRadius === "0px", deco.chipRadius);
+
+  /* The sticky header inside the marked group. Scroll until the here-group's
+     head is stuck, then require it to hold the panel-relative offset every
+     other group's head holds — the corner overlays must not unstick it. */
+  const stick = await page.evaluate(async () => {
+    const grp = document.querySelector(".group.here");
+    if(!grp) return { err: "no here-group rendered" };
+    const gk = grp.querySelector(".ghead").dataset.gk;
+    if(S.groupOpen[gk] === false){ S.groupOpen[gk] = true; render(); }
+    const grp2 = document.querySelector(".group.here");
+    const wrap = grp2.querySelector(".ghwrap"), a = scroller();
+    const paneTop = a.getBoundingClientRect().top;
+    const want = wrap ? parseFloat(getComputedStyle(wrap).top) : NaN;
+    scrollPut(scrollKeep(a) + grp2.getBoundingClientRect().top - paneTop + 120, a);
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const r = wrap.getBoundingClientRect();
+    return { got: +(r.top - paneTop).toFixed(1), want: +want.toFixed(1) };
+  });
+  ok("the here-group's header still sticks at its offset",
+     !stick.err && Math.abs(stick.got - stick.want) <= 1,
+     stick.err || (stick.got + " vs " + stick.want));
+  await page.evaluate(() => { scrollPut(0); });
+}
+
 /* ---- axe-core, in states a static scan cannot reach ------------------- */
 /* 3.2.0. Lighthouse already runs axe against the cold load and passes it, so
    repeating that buys nothing — TEN of its accessibility checks are manual and
@@ -925,7 +1019,7 @@ if(swReady.supported && swReady.active && swReady.controlled){
 await swCtx.close();
 
 await browser.close();
-console.log("\nNight Watcher browser check — 390×844, Chromium\n");
+console.log("\nNight Watcher browser check — 390×844, " + (WK ? "WebKit" : "Chromium") + "\n");
 out.forEach(l => console.log(l));
 console.log(bad ? "\n  ✗ " + bad + " browser check(s) failed\n"
                 : "\n  ✓ browser checks passed\n");

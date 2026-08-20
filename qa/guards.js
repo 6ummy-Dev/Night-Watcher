@@ -135,6 +135,7 @@ function blessHtml(next){
      130  The Belt toasts down, stacks tight, and is the peek once chosen
      131  The install seat, and the two watching-truths
      146  The hero wears the cut
+     148  The cut is rank, and everyone else stands square
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -7093,7 +7094,10 @@ var ROUTE_VOCAB = [
          "the shared helpers are the whole reason the tick path and the full " +
          "render cannot disagree about a group's tally, in count or in fill");
   }
-  if(!/groupBlock\(g, q\)/.test(optionalFn("viewWatch",
+  /* 4.4.0: the call grew a third argument — upNext()'s id, computed once per
+     render, so the here-group mark (the cut corners) never scans the pool 44
+     times. The composition is the same; only the signature moved. */
+  if(!/groupBlock\(g, q, nid\)/.test(optionalFn("viewWatch",
        "the tick path would have nothing to compose from"))){
     fail("viewWatch() no longer composes from groupBlock() \u2014 the tick path " +
          "and the full render just became two implementations");
@@ -8632,9 +8636,8 @@ var ROUTE_VOCAB = [
      subset grew and this exception is stale. */
   var SYSTEM_MARKS = {
     0x2605: "the rating star",
-    0x25B6: "the group caret",
     0x2197: "the external-link arrow",
-    0x203A: "the breadcrumb guillemet",
+    0x203A: "the chevron (carets, breadcrumbs, the deco pointer)",
     0x25C6: "the deco diamond"
   };
 
@@ -9011,8 +9014,12 @@ var ROUTE_VOCAB = [
   }
 
   /* S1b — the hero pill and Skip, read from both rules rather than remembered. */
+  /* 4.4.0 note: the deco pass squared the family, and a square corner is
+     written border-radius:0 — no unit. The reader accepts the bare zero so the
+     pairing keeps being READ from the two rules rather than remembered; what
+     it asserts is unchanged: whatever edge one declares, both declare. */
   function px(rule, prop){
-    var m = String(rule).match(new RegExp(prop + ":\\s*(\\d+)px"));
+    var m = String(rule).match(new RegExp(prop + ":\\s*(\\d+(?:px)?)(?=[;}])"));
     return m ? m[1] : null;
   }
   ["min-height", "border-radius"].forEach(function(prop){
@@ -9044,7 +9051,7 @@ var ROUTE_VOCAB = [
   });
 
   note("watch link rank: own fill and edge, hero pill matches Skip at " +
-       px(skip, "min-height") + "px/" + px(skip, "border-radius") + "px, linkrow starts");
+       px(skip, "min-height") + "/" + px(skip, "border-radius") + ", linkrow starts");
 })();
 
 /* ---------- 120. The page does not read layout after writing it ------- */
@@ -12197,9 +12204,10 @@ var ROUTE_VOCAB = [
 
 /* ---------- 146. The hero wears the cut --------------------------------- */
 /* 4.3.0, the deco release. The owner's pick from the mock round: 45° cut
-   corners on the hero — and on the hero ONLY; list cards, buttons and the
-   watch pill keep their radius — plus the diamond rule, with the double
-   hairline and the sunburst both ruled out. The cut is a wrapper-clip: a
+   corners on the hero — hero-only when it shipped; 4.4.0 extended the cut
+   to rank (section 148), and this section keeps holding the hero's own
+   construction exactly as 4.3.0 built it — plus the diamond rule, with the
+   double hairline and the sunburst both ruled out. The cut is a wrapper-clip: a
    straight clip-path on the old bordered card would eat the border at the
    corners, so the .hero itself is the frame (background var(--line2), the
    same line the old border used at hero rank) clipped to the cut polygon,
@@ -12283,6 +12291,186 @@ var ROUTE_VOCAB = [
       }
     }
   });
+})();
+
+/* ---------- 148. The cut is rank, and everyone else stands square --------- */
+/* 4.4.0, the deco pass. The owner's direction, locked over three mock rounds:
+   the 45° cut stopped being the hero's private ornament and became RANK —
+   "where you stand tonight" is the only thing that earns it. The hero keeps
+   its 16px cut (section 146, untouched); the CTA that begins the night wears
+   8px; the lead chooser card and the group holding upNext()'s film wear 12px.
+   Everything else — chips, pills, cards, bars, the belt — stands square, and
+   the progress fills went from solid washes to one ribbing formula.
+
+   Three constructions, each chosen by what the element is, not by habit:
+   the CTA and the lead are SOLID fills, so a straight clip-path is the whole
+   cut (no frame to lose — the wrapper-clip §146 documents exists because the
+   hero has a 1px frame to keep). The here-group is a bordered card with a
+   sticky header and content-visibility, where a clip-path would clip the
+   stuck header and fight paint containment — so its cut is two corner
+   overlays painting the page ink back over the corner, with the 1px --line
+   diagonal drawn in the same gradient. Fake by construction, honest by
+   assertion: this section pins all three shapes.
+
+   The tick arithmetic, so nobody has to re-derive it: the halo is inset
+   -14px around the 30px box (58px), the whole button scales .78 → a 45.2px
+   rotated square, whose width across the centre is 45.2px ≥ 44. The .arow
+   tick stays under the path tick (section 76 holds the relation). */
+
+(function(){
+  var css = HTML.slice(HTML.indexOf("<style>"), HTML.indexOf("</style>"));
+
+  /* -- the square family: every corner in the sheet is 0, inherit, or the
+     one named exception. A radius that comes back anywhere is the deco pass
+     un-shipping one property at a time, which is exactly how the gapped
+     belt look tried to return in 2.0.x. -- */
+  var re = /([^{}]+)\{([^{}]*)\}/g, m;
+  while((m = re.exec(css))){
+    var sel = m[1].trim().replace(/\s+/g, " ");
+    var body = m[2], rm, rre = /border-radius:([^;}]*)/g;
+    while((rm = rre.exec(body))){
+      var v = rm[1].trim();
+      if(v === "0" || v === "inherit") continue;
+      if(sel === ":focus-visible" && v === "4px") continue; /* feedback chrome,
+         not a control: the focus ring hugs whatever it lands on, and a 0px
+         ring on a square family reads as a second border rather than focus */
+      fail("`" + sel + "` declares border-radius:" + v + " — the 4.4.0 deco " +
+           "pass squared the family (0 or inherit everywhere; :focus-visible " +
+           "alone keeps 4px, named here with its reason). A corner creeping " +
+           "back is the pass un-shipping one property at a time");
+    }
+  }
+
+  /* -- the CTA wears the cut: solid fill, straight clip, no radius -- */
+  var go = (css.match(/\.heroacts \.go\{[^}]*\}/) || [""])[0];
+  if(!/clip-path:polygon\(8px 0,100% 0,100% calc\(100% - 8px\),calc\(100% - 8px\) 100%,0 100%,0 8px\)/.test(go)){
+    fail("the CTA lost the cut — .heroacts .go carries the 8px two-corner " +
+         "polygon (the hero's construction at button rank, solid fill so the " +
+         "clip alone is the whole cut), and the one button that begins the " +
+         "night is the only button that earns it");
+  }
+  if(!/\.heroacts button\{[^}]*border-radius:0/.test(css)){
+    fail("the hero action row is rounded again — .heroacts button declares " +
+         "the family's border-radius:0, and the CTA's clip only reads as a " +
+         "cut against square neighbours");
+  }
+
+  /* -- the lead pick wears the cut, top corners only: the deck overlaps its
+     bottom edge (margin:-9px), so bottom cuts would be painted over by the
+     next card and read as a rendering bug -- */
+  var lead = (css.match(/\.pick\.big\.lead\{[^}]*\}/) || [""])[0];
+  if(!/clip-path:polygon\(12px 0,calc\(100% - 12px\) 0,100% 12px,100% 100%,0 100%,0 12px\)/.test(lead)){
+    fail("the lead pick lost the cut — .pick.big.lead carries the 12px " +
+         "top-corner polygon; “start here” is a rank and wears the rank marker, " +
+         "top corners only because the deck overlaps its bottom edge");
+  }
+
+  /* -- the here-group: the group holding upNext()'s film wears corner
+     overlays, and exactly the mechanics that make that true are pinned -- */
+  if(!/\.group\.here::before,\.group\.here::after\{content:"";position:absolute;width:13px;height:13px;z-index:3;pointer-events:none;\}/.test(css) ||
+     !/\.group\.here::before\{top:0;left:0;background:linear-gradient\(135deg,var\(--ink\)/.test(css) ||
+     !/\.group\.here::after\{bottom:0;right:0;background:linear-gradient\(315deg,var\(--ink\)/.test(css)){
+    fail("the here-group overlays are gone or reshaped — the cut on the group " +
+         "you stand in is two 13px corner gradients (ink over the corner, the " +
+         "1px --line diagonal in the same paint), drawn as overlays because a " +
+         "clip-path would clip the sticky header and fight content-visibility");
+  }
+  if(!/var\(--line\) calc\(50% - \.5px\) calc\(50% \+ \.5px\)/.test(css)){
+    fail("the here-group's diagonal hairline left the gradient — without the " +
+         "--line band the corner is a bare ink triangle and the card just " +
+         "looks broken at two corners");
+  }
+  var gb = fn("groupBlock");
+  if(!/g\.films\.some\(function\(f\)\{ return f\.id === nid; \}\)/.test(gb) ||
+     !/\(here\?" here":""\)/.test(gb)){
+    fail("groupBlock() no longer marks the here-group — the class comes from " +
+         "upNext()'s id, passed in once per render, so the cut follows the " +
+         "film you are actually up to and lands on exactly one group");
+  }
+  if(!/var nid = \(upNext\(\) \|\| \{\}\)\.id;/.test(fn("viewWatch"))){
+    fail("viewWatch() stopped computing the here id — groupBlock() would " +
+         "mark nothing, and the cut-as-rank claim quietly becomes cut-as-never");
+  }
+
+  /* -- one ribbing formula, four fills, tracks on --card2. currentColor is
+     the whole trick: the formula lives once in the sheet and each fill says
+     only its colour, so a fifth copy or a solid wash is a divergence the
+     count sees -- */
+  var RIB = "repeating-linear-gradient(90deg,currentColor 0 2px,transparent 2px 5px)";
+  var ribs = css.split(RIB).length - 1;
+  if(ribs !== 4){
+    fail("the ribbing formula appears " + ribs + " times — it belongs to " +
+         "exactly four fills (.gbar i, .srow .sb i, .ubar i, .tbar i); a " +
+         "missing copy is a bar gone back to a solid wash and a fifth is a " +
+         "second formula waiting to drift");
+  }
+  [[".gbar i", "color:var(--signal)"], [".srow .sb i", "color:var(--signal)"],
+   [".ubar i", "color:var(--signal)"], [".tbar i", null]].forEach(function(pair){
+    var r = (css.match(new RegExp(pair[0].replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\{[^}]*\\}")) || [""])[0];
+    if(r.indexOf(RIB) < 0 || (pair[1] && r.indexOf(pair[1]) < 0)){
+      fail("`" + pair[0] + "` lost the ribbing or its colour token — every " +
+           "progress fill is the one formula in the fill's own currentColor");
+    }
+  });
+  [".gbar{", ".srow .sb{", ".ubar{", ".tbar{"].forEach(function(t){
+    var i = css.indexOf(t);
+    if(i < 0 || css.slice(i, css.indexOf("}", i)).indexOf("background:var(--card2)") < 0){
+      fail("`" + t.slice(0, -1) + "` lost its --card2 track — ribbing reads " +
+           "against the sunken track or it reads as dirt on the old --line2");
+    }
+  });
+  if((HTML.match(/tbar"><i style="width:'\+pct\([^)]+\)\+'%;color:var\(/g) || []).length !== 2){
+    fail("the tier fills stopped carrying colour tokens — the inline style " +
+         "says only color:var(--…) and the one CSS formula draws it; an " +
+         "inline background is a second implementation of the ribbing");
+  }
+
+  /* -- the chevron family: the triangle is retired, the pair points, the
+     states still turn -- */
+  if(HTML.indexOf("\\u25B6") >= 0 || HTML.indexOf("▶") >= 0){
+    fail("the triangle caret is back — 4.4.0 retired \\u25B6 for the chevron " +
+         "pair; section 116's system-marks list already dropped it, so a " +
+         "returning triangle also renders from nobody's font subset on paper");
+  }
+  if((HTML.match(/class="caret" aria-hidden="true">\\u203A\\u203A</g) || []).length !== 3){
+    fail("the chevron pair left a caret site — group heads, the progress " +
+         "fold and the belt buckle all point with \\u203A\\u203A, escaped so " +
+         "section 106's literal scan stays quiet by the same decision as ◆");
+  }
+  if(!/\.allbtn::after\{content:"\\203A\\203A"/.test(css) ||
+     !/\.allbtn\.shut::after\{transform:none;\}/.test(css) ||
+     !/\.group\.open \.caret\{transform:rotate\(90deg\)/.test(css)){
+    fail("the chevron states stopped turning — the pair points right when " +
+         "shut and down when open, on the same rotate the triangle used; " +
+         "losing the state rules makes every caret lie about its group");
+  }
+
+  /* -- the stepped underline: the short heavy bar is the you-are-here -- */
+  var pu = (css.match(/\.pathtitle::after\{[^}]*\}/) || [""])[0];
+  if(!/34px 3px/.test(pu) || !/var\(--signal\)/.test(pu) ||
+     !/100% 1px/.test(pu) || !/var\(--line2\)/.test(pu)){
+    fail("the tab title lost its stepped underline — a 34×3 signal bar over a " +
+         "full-width --line2 hairline, drawn in ::after so the title text " +
+         "and its architecture cannot be separated by a refactor");
+  }
+
+  /* -- the diamond tick: rotated, counter-rotated, and the halo still
+     clears 44px after the scale (58 × .78 = 45.2) -- */
+  var tick = (css.match(/\n\.tick\{[^}]*\}/) || [""])[0];
+  if(!/transform:rotate\(45deg\) scale\(\.78\)/.test(tick) || !/border-radius:0/.test(tick)){
+    fail("the tick is not the diamond — .tick rotates 45° at scale .78 " +
+         "(the circle was 4.4.0's one piece of muscle-memory spending, and " +
+         "half a diamond is neither shape)");
+  }
+  if(!/\.tick::after\{[^}]*rotate\(-45deg\)/.test(css)){
+    fail("the tick's check rides the rotation — ::after counter-rotates or " +
+         "every checkmark in the app lies on its side");
+  }
+  if(!/\.tick::before\{content:"";position:absolute;top:-14px;left:-14px;right:-14px;bottom:-14px;\}/.test(css)){
+    fail("the tick's halo no longer buys the scale back — at -14px the " +
+         "58px halo scales to 45.2px, over the 44px floor; shrink it and " +
+         "every tick in the app quietly drops under the thumb size");
+  }
 })();
 
 /* ---------- report ---------- */

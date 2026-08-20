@@ -17,12 +17,12 @@ s=s.replace(a,'\"description\":\"Every Batman story — lots of things',1);${W}"
 echo "--- 75: a control is as big as a finger"
 run_case "the chips go back under the touch target" \
   ".chip gives a 30px touch target" \
-  "${P}a='border-radius:100px;color:var(--dust);min-height:44px;';assert a in s
-s=s.replace(a,'border-radius:100px;color:var(--dust);min-height:30px;',1);${W}"
+  "${P}a='border-radius:0;color:var(--dust);min-height:44px;';assert a in s
+s=s.replace(a,'border-radius:0;color:var(--dust);min-height:30px;',1);${W}"
 
 run_case "the tick loses its hit area" \
   ".tick gives a 24px touch target" \
-  "${P}a='.tick::before{content:\"\";position:absolute;top:-10px;left:-10px;right:-10px;bottom:-10px;}\n'
+  "${P}a='.tick::before{content:\"\";position:absolute;top:-14px;left:-14px;right:-14px;bottom:-14px;}\n'
 assert a in s;s=s.replace(a,'',1);${W}"
 
 run_case "a measured control stops declaring a height" \

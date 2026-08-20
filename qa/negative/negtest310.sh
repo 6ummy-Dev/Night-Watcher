@@ -21,8 +21,8 @@ s=s.replace(a,'.act{background:rgba(147,160,184,.14);font-family:var(--mono);',1
 
 run_case "the watch link goes back to sharing .act's edge" \
   "share an edge colour" \
-  "${P}a='border:1px solid var(--steel);border-radius:8px';assert a in s
-s=s.replace(a,'border:1px solid var(--line2);border-radius:8px',1);${W}"
+  "${P}a='background:rgba(114,149,204,.14);border:1px solid var(--steel);border-radius:0';assert a in s
+s=s.replace(a,'background:rgba(114,149,204,.14);border:1px solid var(--line2);border-radius:0',1);${W}"
 
 run_case "the fill is rewritten where section 20 cannot read it" \
   "section 20 blends the two" \
@@ -32,12 +32,12 @@ s=s.replace(a,'background:rgb(39,52,77);',1);${W}"
 echo "--- 119: the hero pill and Skip"
 run_case "the hero link goes back to 38px" \
   "and Skip declares 46" \
-  "${P}a='min-height:46px;border-radius:11px;}';assert a in s
-s=s.replace(a,'min-height:38px;border-radius:11px;}',1);${W}"
+  "${P}a='min-height:46px;border-radius:0;}';assert a in s
+s=s.replace(a,'min-height:38px;border-radius:0;}',1);${W}"
 
 run_case "the hero link goes back to an 8px corner" \
-  "and Skip declares 11" \
-  "${P}a='min-height:46px;border-radius:11px;}';assert a in s
+  "and Skip declares 0" \
+  "${P}a='min-height:46px;border-radius:0;}';assert a in s
 s=s.replace(a,'min-height:46px;border-radius:8px;}',1);${W}"
 
 run_case "the hero link is content-sized again" \

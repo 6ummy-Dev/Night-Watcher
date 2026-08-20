@@ -108,9 +108,9 @@ s=s.replace(a,'#beltpeek{position:absolute;',1);${W}"
 
 run_case "the off peek eats header taps" \
   "base rule takes pointer events" \
-  "${P}a='border-radius:0 0 10px 10px;overflow:hidden;pointer-events:none;}'
+  "${P}a='border-radius:0;overflow:hidden;pointer-events:none;}'
 assert a in s
-s=s.replace(a,'border-radius:0 0 10px 10px;overflow:hidden;}',1);${W}"
+s=s.replace(a,'border-radius:0;overflow:hidden;}',1);${W}"
 
 run_case "the on peek answers nothing" \
   "on state is not a working handle" \
