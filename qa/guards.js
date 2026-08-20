@@ -136,6 +136,7 @@ function blessHtml(next){
      131  The install seat, and the two watching-truths
      146  The hero wears the cut
      148  The cut is rank, and everyone else stands square
+     149  The reader's place has one memory
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -9118,8 +9119,8 @@ var ROUTE_VOCAB = [
      "metrics, no reflow; the danger they were refused for is sizing " +
      "layout from them, and nothing here sizes anything. A third " +
      "appearance has to be argued for"],
-    ["scrollTop", 2,
-     "the whole of the app's scroll seam, and the only two places the name " +
+    ["scrollTop", 3,
+     "the whole of the app's scroll seam, and the only three places the name " +
      "may appear: scrollKeep() reads #app's position — render()'s keep, " +
      "still the FIRST line of the function (hoisted in 3.3.0; the ORDER " +
      "clause below still holds it there, because the hoist cut a 106.6ms " +
@@ -9129,8 +9130,15 @@ var ROUTE_VOCAB = [
      "restore, go-to-top and belt retraction goes through the pair. 3.9.7 " +
      "moved scroll off the document onto #app: window.pageYOffset appears " +
      "nowhere and sits in REFUSED above, and the element read took over its " +
-     "pin. A third appearance is a scroll site outside the seam and has to " +
-     "be argued for here"],
+     "pin. THE THIRD, argued in 4.4.2: the place-recorder's read in the " +
+     "per-panel scroll listener — nwKeep is the one JS memory of the " +
+     "reader's place (section 149), written only while the panel is the " +
+     "current tab and the deck is at rest, because the DOM's own scrollTop " +
+     "is exactly what WebKit clamps when a parked panel's skipped groups " +
+     "collapse to their 64px estimate. Passive listener, no write in the " +
+     "same task, and the seam still owns every restore. A fourth " +
+     "appearance is a scroll site outside the seam and has to be argued " +
+     "for here"],
     ["offsetHeight", 2,
      "ONE: the header's own height, measured once to set --hdrh when the " +
      "store is blocked (it wrote --ghtop until 3.5.0 derived --ghtop from " +
@@ -9169,7 +9177,7 @@ var ROUTE_VOCAB = [
      "Once per head click, never on the render path; opening a group drifts " +
      "0 and writes nothing. A FIFTH read is a new site and has to be argued " +
      "for here"],
-    ["scrollLeft", 1,
+    ["scrollLeft", 2,
      "4.0.0's swipe viewport, read in exactly one place: swipeRead(), " +
      "inside the rAF the throttled listener schedules, so it rides a frame " +
      "boundary and never lands mid-task after a write. It is divided by a " +
@@ -10088,15 +10096,18 @@ var ROUTE_VOCAB = [
      observers that fire when the answer changes, not on every frame of
      every scroll forever. A THIRD site has to be argued for here. */
   var scrollSites = HTML.split('addEventListener("scroll"').length - 1;
-  if(scrollSites !== 2 ||
+  if(scrollSites !== 3 ||
      !/addEventListener\("scroll", dropScrollOnce, \{once:true, passive:true\}\)/.test(HTML) ||
-     !/addEventListener\("scroll", swipeTick, \{passive:true\}\)/.test(HTML)){
+     !/addEventListener\("scroll", swipeTick, \{passive:true\}\)/.test(HTML) ||
+     !/p\.addEventListener\("scroll", function\(\)\{\n      if\(S\.tab === t && nwVW && Math\.abs\(vp\.scrollLeft - i \* nwVW\) < 2\) nwKeep\[t\] = p\.scrollTop;\n    \}, \{passive:true\}\)/.test(HTML)){
     fail("index.html carries " + scrollSites + " scroll listener(s); this " +
-         "build was reviewed with exactly 2, both named — the drop's one-shot " +
-         "retraction ({once:true, passive:true}, armed only while dropped) " +
-         "and the swipe viewport's rAF-throttled swipeTick ({passive:true} " +
-         "on #view). Any other site is the every-frame cost the observers " +
-         "exist to avoid");
+         "build was reviewed with exactly 3, all named — the drop's one-shot " +
+         "retraction ({once:true, passive:true}, armed only while dropped), " +
+         "the swipe viewport's rAF-throttled swipeTick ({passive:true} on " +
+         "#view), and 4.4.2's place-recorder on each panel (passive, one " +
+         "comparison and one assignment, gated to the current tab on a " +
+         "parked deck — section 149 owns its shape). Any other site is the " +
+         "every-frame cost the observers exist to avoid");
   }
   var swt = optionalFn("swipeTick", "there is no swipe listener to throttle");
   if(!/requestAnimationFrame/.test(swt) || !/nwSwipeRaf/.test(swt)){
@@ -12518,6 +12529,47 @@ var ROUTE_VOCAB = [
     fail("the tick's halo no longer buys the scale back — at -14px the " +
          "58px halo scales to 45.2px, over the 44px floor; shrink it and " +
          "every tick in the app quietly drops under the thumb size");
+  }
+})();
+
+/* ---------- 149. The reader's place has one memory ---------------------- */
+/* The 4.4.x soak, on the phone: swipe away from The Path, swipe back, and
+   the list is not where you left it. The DOM was the only memory of the
+   reader's place, and the DOM cannot be trusted with it — a panel parked
+   off-screen has its skipped groups collapsed to the 64px estimate on any
+   engine that does not remember rendered sizes for content-visibility
+   (WebKit), the scroll range shrinks, the engine clamps scrollTop, and the
+   background refill then faithfully restores the clamped number. Chromium
+   remembers sizes, which is why every desktop check stayed green while the
+   phone lost its place — and why the browser drive's swipe check now
+   demands the place back EXACTLY, in both engines, instead of within the
+   150px that let a 116px WebKit drift read as a pass.
+   The design: nwKeep is the one memory, written only where truth is
+   available — the panel's own scroll events while it is the current tab
+   and the deck is at rest, and every deliberate scrollPut — and read back
+   everywhere the DOM might lie: the background refill, and the swipe
+   arrival through nwArriveKeep. */
+(function(){
+  if(!/var k = back \? nwKeep\[t\] : 0;/.test(HTML)){
+    fail("fillPanel's background restore reads the DOM again — scrollKeep(p) " +
+         "on a parked panel returns whatever the engine clamped it to, and " +
+         "restoring a clamp is how the phone lost The Path's place");
+  }
+  if(!/if\(S\.tab === t && nwVW && Math\.abs\(vp\.scrollLeft - i \* nwVW\) < 2\) nwKeep\[t\] = p\.scrollTop;/.test(HTML)){
+    fail("the place-recorder lost its at-rest gate — nwKeep may only be " +
+         "written from a panel's scroll while it is the current tab AND the " +
+         "deck is parked; without both conditions an engine clamp mid-swipe " +
+         "records the clamped position as the reader's choice");
+  }
+  if(!/var t = a\.id && a\.id\.indexOf\("panel-"\) === 0 \? a\.id\.slice\(6\) : null;\n  if\(t\) nwKeep\[t\] = y;/.test(HTML)){
+    fail("scrollPut no longer writes the memory — a deliberate scroll that " +
+         "bypasses nwKeep is a place the next arrival cannot restore");
+  }
+  if(!/nwArriveKeep = nwKeep\[t\];/.test(HTML) ||
+     !/if\(nwArriveKeep !== null\)\{ keep = nwArriveKeep; nwArriveKeep = null; \}/.test(HTML)){
+    fail("the swipe arrival stopped consulting the memory — render's keep " +
+         "comes from the DOM, which on arrival is exactly the number the " +
+         "engine clamped while the panel was parked");
   }
 })();
 

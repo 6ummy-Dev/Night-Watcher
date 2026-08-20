@@ -7,7 +7,8 @@
 
 echo "--- 120: the page does not read layout after writing it"
 # 3.9.7 moved the keep-read onto #app: it is scrollKeep() now, pageYOffset
-# sits in REFUSED, and the scrollTop pin is 2 (one read, one write). The
+# sits in REFUSED, and the scrollTop pin is 3 (two reads, one write —
+# 4.4.2 argued the place-recorder in). The
 # shapes these fixtures prove are unchanged — a refused property arriving, a
 # pinned read multiplying, a pin going unsatisfied — only the names moved.
 run_case "a pinned read multiplies past its pin" \
@@ -26,7 +27,7 @@ run_case "a second refused property arrives" \
 s=s.replace(a,'var also = window.pageYOffset; var keep = scrollKeep();',1);${W}"
 
 run_case "a pinned read multiplies" \
-  "reads scrollTop 3 times" \
+  "reads scrollTop 4 times" \
   "${P}a='var keep = scrollKeep();';assert a in s
 s=s.replace(a,'var also = document.body.scrollTop; var keep = scrollKeep();',1);${W}"
 
@@ -36,7 +37,7 @@ run_case "the header measurement multiplies" \
 s=s.replace(a,'h.offsetHeight + h.offsetHeight',1);${W}"
 
 run_case "a pinned read vanishes and its pin does not move" \
-  "down from 2" \
+  "down from 3" \
   "${P}a='return a ? (a.scrollTop || 0) : 0;';assert a in s
 s=s.replace(a,'return 0;',1);${W}"
 

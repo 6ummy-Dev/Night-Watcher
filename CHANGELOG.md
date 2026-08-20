@@ -11,6 +11,36 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.4.2] — 2026-08-20
+
+**The phone lost The Path's place on a swipe, and every desktop check was
+green.** Swipe away, swipe back, and the list is somewhere else — iOS only.
+
+### Fixed
+
+- **The reader's place has one memory.** The DOM was the only record of
+  where you were, and the DOM cannot be trusted with it: a panel parked
+  off-screen has its `content-visibility` groups collapsed to the 64px
+  estimate on engines that do not remember rendered sizes (WebKit — Chromium
+  remembers, which is why desktop never showed it), the scroll range
+  shrinks, the engine clamps `scrollTop`, and the background refill then
+  faithfully restored the clamped number. The place now lives in JS
+  (`nwKeep`), written only where truth is available — a panel's own scroll
+  while it is the current tab on a parked deck, and every deliberate
+  `scrollPut` — and read back everywhere the DOM might lie: the background
+  refill and the swipe arrival, which restores under `settling` and re-puts
+  after a laid-out frame for engines that clamp the first write.
+
+### Added
+
+- **The ruler that let it through is reforged.** The swipe check tolerated
+  150px of drift and WebKit had been drifting 116 in plain sight of CI
+  ("kept 2600, back at 2484" — passing). It now demands the place back
+  exactly, in both engines. Guard §149 pins the memory's four claims
+  (fixtures in negtest540 prove each fails), §120/§128 carry the argued
+  third scroll listener and reads. Counts: 149 sections, 62 suites,
+  878 fixtures (822 guards).
+
 ## [4.4.1] — 2026-08-20
 
 **The soak found the diamond floating.** One evening with 4.4.0 live and the

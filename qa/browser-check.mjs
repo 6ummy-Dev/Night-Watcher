@@ -771,9 +771,13 @@ ok("swipe: scrolling the deck left lands on Next up — tab, aria-current and in
    swipe.afterLeft.tab === "next" && swipe.afterLeft.current === "next" &&
    swipe.afterLeft.watchInert && !swipe.afterLeft.nextInert,
    JSON.stringify(swipe.afterLeft));
+/* 4.4.2: EXACTLY. This line allowed 150px of drift, and WebKit drifted 116
+   — a content-visibility clamp restored by the background refill — so the
+   phone lost The Path's place while the check read green. The place has one
+   JS memory now (section 149) and the ruler demands it back to the pixel. */
 ok("swipe: The path keeps its place across a swipe away and back",
    swipe.back.tab === "watch" && !swipe.back.watchInert &&
-   swipe.kept > 2000 && Math.abs(swipe.back.pos - swipe.kept) < 150,
+   swipe.kept > 2000 && swipe.back.pos === swipe.kept,
    "kept " + swipe.kept + ", back at " + swipe.back.pos);
 
 /* The footer door: a tap resets the view it opens and aligns the deck. */

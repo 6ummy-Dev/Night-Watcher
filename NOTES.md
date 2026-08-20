@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 148 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 149 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -3582,6 +3582,21 @@ shrinks nothing but changes the arithmetic: the button scales .78 so the
 buys itself back — 58 × .78 = 45.2px across the rotated square's centre,
 over the 44px floor. That arithmetic lives in section 148's comment so the
 next resize starts from the numbers instead of re-deriving them.
+
+**The place has one memory (4.4.2).** The phone lost The Path's position on a
+swipe away and back, and the diagnosis is worth keeping: `content-visibility`
+skips a parked panel's groups, and an engine that does not remember rendered
+sizes (WebKit; Chromium remembers) collapses each one to its 64px estimate —
+the scroll range shrinks, the engine clamps `scrollTop`, and the background
+refill then faithfully restored the clamped number. Every desktop check stayed
+green because desktop is the engine that remembers. The DOM was the only
+memory of the reader's place, so the fix gives the place one memory in JS:
+`nwKeep`, written only where truth is available (a panel's own scroll while it
+is the current tab on a parked deck, and every deliberate `scrollPut`), read
+back everywhere the DOM might lie (the background refill, the swipe arrival).
+And the ruler that let this through is reforged: the browser drive's swipe
+check demanded the place back within 150px, which let a 116px WebKit drift
+read as a pass — it now demands the place back exactly, in both engines.
 
 **The footers close on the diamond.** A late owner call in the same release:
 the four tab footers — the colophon, the availability notes, the build lines,
