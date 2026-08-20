@@ -719,6 +719,34 @@ ok("the four tabs start level — one first-content offset below the belt",
    [...new Set(Object.values(level))].length === 1 && Object.values(level).every(v => v !== null),
    Object.entries(level).map(([k, v]) => k + " " + v).join(", "));
 
+/* 4.4.1: and the four tabs END level. The 4.4.0 soak found the footer
+   diamond floating at three different clearances — 30px under Home's theme
+   row, 16px under the availability notes, 14px over the legend — because
+   three rules each kept a private top margin, the 4.3.1 bug's mirror image
+   at the page's other end. The clearance is the shared footer rule's
+   margin-top now (§148 pins the source); this measures the RESULT: the gap
+   between each tab's closing diamond and the element above it. */
+const footGaps = await page.evaluate(async () => {
+  const gaps = {};
+  for (const t of ["home", "next", "watch", "stats"]) {
+    goTab(t);
+    await new Promise(r => setTimeout(r, 120));
+    const pane = document.getElementById("panel-" + t);
+    const el = pane.querySelector(".homefoot, .note.foot, .legend");
+    const prev = el && el.previousElementSibling;
+    gaps[t] = (el && prev)
+      ? Math.round((el.getBoundingClientRect().top -
+                    prev.getBoundingClientRect().bottom) * 2) / 2
+      : null;
+  }
+  goTab("watch");
+  return gaps;
+});
+ok("the four tabs end level — one clearance above every closing diamond",
+   [...new Set(Object.values(footGaps))].length === 1 &&
+   Object.values(footGaps).every(v => v !== null),
+   Object.entries(footGaps).map(([k, v]) => k + " " + v).join(", "));
+
 /* The swipe: scroll #view sideways one viewport and read what followed. The
    place kept in The path must survive the trip away and back. */
 const swipe = await page.evaluate(async () => {

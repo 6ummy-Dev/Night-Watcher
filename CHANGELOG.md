@@ -11,6 +11,32 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.4.1] — 2026-08-20
+
+**The soak found the diamond floating.** One evening with 4.4.0 live and the
+owner caught the footer divider sitting at three different heights — the
+4.3.1 belt bug's mirror image, at the other end of the page.
+
+### Fixed
+
+- **The four tabs end level.** The closing diamond stood 30px under Home's
+  theme row, 16px under Next up's and Progress's notes, and 14px over the
+  legend — `.homefoot`, `.note.foot` and `.legend` each kept a private top
+  margin from their pre-diamond lives, three sources for what 4.3.1 already
+  established is a one-source number. The clearance now lives once, on the
+  shared footer rule (`margin-top:30px` — Home's was the authored one), the
+  three rules give up their own, and the stacked second note keeps its old
+  16px as the named exception: it sits under a footer, not under a tab.
+
+### Added
+
+- **Guard §148 pins the source; browser-check measures the result.** A
+  footer rule growing back a nonzero top margin fails the guard
+  (fixture 23 proves it), and the browser drive gains "the four tabs end
+  level" beside 4.3.1's "the four tabs start level" — the closing gap is
+  read off the rendered page on every tab, in both engines. Counts:
+  874 fixtures (818 guards); browser-check +1.
+
 ## [4.4.0] — 2026-08-20
 
 **The deco pass.** The direction the owner locked over three mock rounds on

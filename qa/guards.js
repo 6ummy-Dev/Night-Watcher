@@ -12453,7 +12453,7 @@ var ROUTE_VOCAB = [
      two diamonds three lines apart. The double content declaration is the
      alt-text form where engines have it (the ornament stays silent to a
      reader) over a plain fallback where they don't. -- */
-  if(!/\.homefoot,\.note\.foot,\.legend\{position:relative;\n  background:linear-gradient\(90deg,transparent,var\(--signalline\) 50%,transparent\) top\/100% 1px no-repeat;\}/.test(css) ||
+  if(!/\.homefoot,\.note\.foot,\.legend\{position:relative;margin-top:30px;\n  background:linear-gradient\(90deg,transparent,var\(--signalline\) 50%,transparent\) top\/100% 1px no-repeat;\}/.test(css) ||
      !/\.homefoot::before,\.note\.foot::before,\.legend::before\{content:"\\25C6";content:"\\25C6" \/ "";/.test(css)){
     fail("the footer diamond rule is gone or reshaped — all four tab footers " +
          "close on the same ◆-on-fading-hairline construction, declared once " +
@@ -12464,6 +12464,27 @@ var ROUTE_VOCAB = [
      /\.legend\{[^}]*border-top/.test(css)){
     fail("a footer grew its plain top border back beside the diamond rule — " +
          "two separators on one footer is how the ornament becomes clutter");
+  }
+  /* One clearance, one source — the 4.4.0 soak found the diamond sitting
+     30px under Home's theme row, 16px under the availability notes, and
+     14px over the legend: three rules each keeping a private top margin,
+     which is the belt's 4.3.1 offset bug wearing the new ornament. The
+     shared rule above is the only place the clearance may live; a footer
+     rule growing its own nonzero top margin is the drift coming back. The
+     stacked second note is the named exception at its old 16px — it sits
+     under a footer, not under a tab. */
+  if(/\.homefoot\{[^}]*margin:(?!0[ ;])/.test(css) ||
+     /\n\.legend\{[^}]*margin:(?!0[ ;])/.test(css) ||
+     /\n\.note\.foot\{[^}]*margin/.test(css)){
+    fail("a footer rule declares its own top margin again — the diamond's " +
+         "clearance has one source (the shared footer rule's margin-top) " +
+         "and the 4.4.0 soak already caught the three-source version: " +
+         "30 over Home, 16 over the notes, 14 over the legend");
+  }
+  if(!/\.note\.foot\+\.note\.foot\{margin-top:16px;/.test(css)){
+    fail("the stacked second note lost its 16px — without it the shared " +
+         "30px applies and Next up's two closing notes drift a diamond's " +
+         "width apart");
   }
   if(!/\.note\.foot\+\.note\.foot\{[^}]*background:none;\}/.test(css) ||
      !/\.note\.foot\+\.note\.foot::before\{content:none;\}/.test(css)){

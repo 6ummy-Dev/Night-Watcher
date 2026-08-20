@@ -13,9 +13,10 @@
 # Fixtures 15–17: the diamond tick — unrotated, check flat, halo under the
 # 44px arithmetic. Fixture 18: §103's grown signature called the old way.
 # Fixtures 19–20 drive the render path through smoke, because a class a
-# builder drops is invisible to every static pin in guards. Fixtures 21–22:
-# the footer diamond — the rule pair dropped, and the second stacked note
-# growing one of its own.
+# builder drops is invisible to every static pin in guards. Fixtures 21–23:
+# the footer diamond — the rule pair dropped, the second stacked note
+# growing one of its own, and a footer taking back a private top margin
+# (the 4.4.1 one-clearance rule).
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 echo "--- 148: the square family and the cut sites"
@@ -136,6 +137,12 @@ run_case "the footers go back to the bare line" \
   "the footer diamond rule is gone or reshaped" \
   "${P}a='.homefoot::before,.note.foot::before,.legend::before{';assert a in s
 s=s.replace(a,'.homefootx::before,.note.footx::before,.legendx::before{',1);${W}" \
+  guards "" 148
+
+run_case "a footer takes back a private top margin" \
+  "a footer rule declares its own top margin again" \
+  "${P}a='text-align:center;margin:0 0 4px;';assert a in s
+s=s.replace(a,'text-align:center;margin:30px 0 4px;',1);${W}" \
   guards "" 148
 
 run_case "the second stacked note wears the diamond too" \
