@@ -64,8 +64,8 @@ s=s.replace(a,'',1);${W}"
 
 run_case "the settle stops sweeping" \
   "the swipe's settle does not sweep inert" \
-  "${P}a='if(nwSwiping && Math.abs(x - i * nwVW) < 2){';assert a in s
-s=s.replace(a,'if(nwSwiping){',1);${W}"
+  "${P}a='    if(nwSwiping){ nwSwiping = false; panelsInert(); }\n';assert a in s
+s=s.replace(a,'    if(nwSwiping){ nwSwiping = false; }\n',1);${W}"
 
 run_case "the swipe door forgets the path adoption" \
   "skips the mode adoption the tab button performs" \
@@ -217,12 +217,12 @@ s=s.replace(a,'html{scrollbar-color:var(--line2) transparent;scrollbar-gutter:st
 echo "--- 120/128: the pins around the swipe"
 
 run_case "a second scrollLeft read arrives" \
-  "index.html reads scrollLeft 2 times" \
+  "index.html reads scrollLeft 3 times" \
   "${P}a='  var x = vp.scrollLeft;';assert a in s
 s=s.replace(a,'  var x = vp.scrollLeft; void vp.scrollLeft;',1);${W}"
 
 run_case "a third scroll listener arrives" \
-  "this build was reviewed with exactly 2" \
+  "this build was reviewed with exactly 3" \
   "${P}a='vp.addEventListener(\"scroll\", swipeTick, {passive:true});';assert a in s
 s=s.replace(a,a+'\n  vp.addEventListener(\"scroll\", function(){}, {passive:true});',1);${W}"
 

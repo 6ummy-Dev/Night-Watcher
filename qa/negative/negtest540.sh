@@ -4,8 +4,10 @@
 # section 149 pins the JS memory that replaced it. Four fixtures, one per
 # claim: the background refill reading the DOM again, the place-recorder
 # losing its at-rest gate, scrollPut forgetting to write the memory, and the
-# swipe arrival no longer consulting it. Each is the smallest edit that
-# brings the bug back whole.
+# swipe arrival no longer consulting it. Fixture 5 (4.4.3): a departure
+# stops recording — the listener's blind spot (adjustments that fire no
+# scroll event) reopens. Each is the smallest edit that brings the bug
+# back whole.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 echo "--- 149: the reader's place has one memory"
@@ -25,6 +27,11 @@ s=s.replace(a,'if(S.tab === t) nwKeep[t] = p.scrollTop;',1);${W}" \
 run_case "a deliberate scroll bypasses the memory" \
   "scrollPut no longer writes the memory" \
   "${P}a='  if(t) nwKeep[t] = y;\n';assert a in s;s=s.replace(a,'',1);${W}" \
+  guards "" 149
+
+run_case "a departure stops recording the truth" \
+  "a departure no longer records the leaving tab" \
+  "${P}a='  nwKeep[prev] = scrollKeep(panelOf(prev));\n';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 149
 
 run_case "the arrival stops consulting the memory" \

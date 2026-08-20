@@ -726,8 +726,8 @@ ok("the four tabs start level — one first-content offset below the belt",
    at the page's other end. The clearance is the shared footer rule's
    margin-top now (§148 pins the source); this measures the RESULT: the gap
    between each tab's closing diamond and the element above it. */
-const footGaps = await page.evaluate(async () => {
-  const gaps = {};
+const footGapsAll = await page.evaluate(async () => {
+  const gaps = {}, faces = {};
   for (const t of ["home", "next", "watch", "stats"]) {
     goTab(t);
     await new Promise(r => setTimeout(r, 120));
@@ -738,14 +738,25 @@ const footGaps = await page.evaluate(async () => {
       ? Math.round((el.getBoundingClientRect().top -
                     prev.getBoundingClientRect().bottom) * 2) / 2
       : null;
+    const cs = el ? getComputedStyle(el, "::before") : null;
+    faces[t] = cs ? cs.fontFamily + " @ " + cs.fontSize : null;
   }
   goTab("watch");
-  return gaps;
+  return { gaps, faces };
 });
+const footGaps = footGapsAll.gaps, footFaces = footGapsAll.faces;
 ok("the four tabs end level — one clearance above every closing diamond",
    [...new Set(Object.values(footGaps))].length === 1 &&
    Object.values(footGaps).every(v => v !== null),
    Object.entries(footGaps).map(([k, v]) => k + " " + v).join(", "));
+/* 4.4.3: and the diamond itself is ONE GLYPH IN ONE FACE. The legend
+   inherited the Sans stack while the notes and colophon sat in Mono, so
+   The Path's ◆ drew from a different fallback at a different width —
+   invisible to every source pin, measurable only here. */
+ok("the four closing diamonds share one face at one size",
+   [...new Set(Object.values(footFaces))].length === 1 &&
+   Object.values(footFaces).every(v => v !== null),
+   [...new Set(Object.values(footFaces))].map(f => String(f).slice(0, 60)).join(" / "));
 
 /* The swipe: scroll #view sideways one viewport and read what followed. The
    place kept in The path must survive the trip away and back. */

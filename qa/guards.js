@@ -12042,8 +12042,12 @@ var ROUTE_VOCAB = [
          "a panel that is not on screen");
   }
   var sr = optionalFn("swipeRead", "there is no swipe commit to check");
-  if(!/nwSwiping && Math\.abs\(x - i \* nwVW\) < 2/.test(sr) ||
-     sr.indexOf("panelsInert()") < 0){
+  /* 4.4.3 widened the settle branch: it also resets the departure flag
+     (section 149's recorder), so the settle test moved outside and the
+     sweep sits in a nested if. Same rule, same arithmetic, one more
+     tenant. */
+  if(!/Math\.abs\(x - i \* nwVW\) < 2/.test(sr) ||
+     !/if\(nwSwiping\)\{ nwSwiping = false; panelsInert\(\); \}/.test(sr)){
     fail("the swipe's settle does not sweep inert — 'once a swipe settles' " +
          "is the agreed rule, computed from the snap arithmetic (|x − i·w| " +
          "< 2) rather than from scrollend, and skipping the sweep leaves " +
@@ -12465,7 +12469,7 @@ var ROUTE_VOCAB = [
      alt-text form where engines have it (the ornament stays silent to a
      reader) over a plain fallback where they don't. -- */
   if(!/\.homefoot,\.note\.foot,\.legend\{position:relative;margin-top:30px;\n  background:linear-gradient\(90deg,transparent,var\(--signalline\) 50%,transparent\) top\/100% 1px no-repeat;\}/.test(css) ||
-     !/\.homefoot::before,\.note\.foot::before,\.legend::before\{content:"\\25C6";content:"\\25C6" \/ "";/.test(css)){
+     !/\.homefoot::before,\.note\.foot::before,\.legend::before\{content:"\\25C6";content:"\\25C6" \/ "";font-family:var\(--body\);/.test(css)){
     fail("the footer diamond rule is gone or reshaped — all four tab footers " +
          "close on the same ◆-on-fading-hairline construction, declared once " +
          "for the three footer rules; a footer back on the bare --line border " +
@@ -12492,6 +12496,13 @@ var ROUTE_VOCAB = [
          "and the 4.4.0 soak already caught the three-source version: " +
          "30 over Home, 16 over the notes, 14 over the legend");
   }
+  /* 4.4.3, the soak again: The Path's diamond rendered from the Sans
+     stack (the legend inherits the body face) while the other three came
+     from Mono — one glyph, two fallback faces, two sizes, and iOS shows
+     the spread hardest. The ::before pins font-family to the body face,
+     the one the hero's own diamonds already use; the regex above holds it
+     there. Three contexts and no pinned face is the margins bug wearing a
+     font. */
   if(!/\.note\.foot\+\.note\.foot\{margin-top:16px;/.test(css)){
     fail("the stacked second note lost its 16px — without it the shared " +
          "30px applies and Next up's two closing notes drift a diamond's " +
@@ -12564,6 +12575,22 @@ var ROUTE_VOCAB = [
   if(!/var t = a\.id && a\.id\.indexOf\("panel-"\) === 0 \? a\.id\.slice\(6\) : null;\n  if\(t\) nwKeep\[t\] = y;/.test(HTML)){
     fail("scrollPut no longer writes the memory — a deliberate scroll that " +
          "bypasses nwKeep is a place the next arrival cannot restore");
+  }
+  /* 4.4.3 closed the recorder's one blind spot: an engine can adjust a
+     panel's position WITHOUT firing a scroll event (content-visibility
+     settling does), so the listener alone restored a stale number the
+     first time the exact ruler ran. Every departure now records the
+     leaving tab's DOM truth at the moment of leaving — the swipe's first
+     motion off the parked position, and goTab's first line — when the
+     panel is still current and its DOM has not yet been parked, clamped,
+     or refilled. */
+  if(!/if\(!nwDeparted && Math\.abs\(x - NWTABS\.indexOf\(S\.tab\) \* nwVW\) >= 2\)\{\n    nwKeep\[S\.tab\] = scrollKeep\(\);\n    nwDeparted = true;\n  \}/.test(HTML) ||
+     !/nwKeep\[prev\] = scrollKeep\(panelOf\(prev\)\);/.test(HTML)){
+    fail("a departure no longer records the leaving tab's truth — the " +
+         "listener has a documented blind spot (position adjustments that " +
+         "fire no scroll event), and without the departure captures the " +
+         "memory restores whatever it last heard instead of where the " +
+         "reader actually was");
   }
   if(!/nwArriveKeep = nwKeep\[t\];/.test(HTML) ||
      !/if\(nwArriveKeep !== null\)\{ keep = nwArriveKeep; nwArriveKeep = null; \}/.test(HTML)){

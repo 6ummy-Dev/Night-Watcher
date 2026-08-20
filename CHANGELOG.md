@@ -11,6 +11,44 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.4.3] — 2026-08-20
+
+**The Path's closing diamond was bigger than the other three.** The soak
+caught it a release after a full round made the footers identical — because
+that round unified the clearance and left the glyph's face to inheritance.
+
+### Fixed
+
+- **One glyph, one face.** The footer ◆ is CSS content, and content inherits
+  the element's font: the legend sits in the body face while the colophon
+  and notes sit in Mono, so The Path's diamond drew from a different
+  fallback at a different width — no subset carries U+25C6, which makes the
+  face pure fallback roulette, and iOS spreads the fallbacks hardest. The
+  shared ::before now pins `font-family` to the body face — the one the
+  hero's own diamonds already render from — so all four footers close on
+  the same mark at the same size. Three contexts and no pinned face is the
+  4.4.1 margins bug wearing a font.
+
+- **And the memory's one blind spot, closed by its own ruler.** The first
+  run of 4.4.2's exact swipe check on this tree failed honestly: "kept
+  2526, back at 2600." An engine can adjust a panel's position without
+  firing a scroll event (content-visibility settling does exactly that),
+  so the place-recorder never heard the adjustment and the memory restored
+  a stale number. Every departure now records the leaving tab's DOM truth
+  at the moment of leaving — the swipe's first motion off the parked
+  position, and goTab's first line — while the panel is still current and
+  nothing has parked, clamped, or refilled it. §149 pins both captures;
+  fixture 5 reopens the blind spot and proves the guard sees it.
+
+### Added
+
+- **The ruler, again beside its sibling.** Browser-check gains "the four
+  closing diamonds share one face at one size" — the ::before's computed
+  font, read off the rendered page on every tab, both engines — and §148's
+  footer clause holds the pin in the source. No new fixtures owed: the
+  existing reshaped-rule fixture proves the grown regex still fails.
+  Counts: 879 fixtures (823 guards).
+
 ## [4.4.2] — 2026-08-20
 
 **The phone lost The Path's place on a swipe, and every desktop check was
