@@ -13,7 +13,9 @@
 # Fixtures 15–17: the diamond tick — unrotated, check flat, halo under the
 # 44px arithmetic. Fixture 18: §103's grown signature called the old way.
 # Fixtures 19–20 drive the render path through smoke, because a class a
-# builder drops is invisible to every static pin in guards.
+# builder drops is invisible to every static pin in guards. Fixtures 21–22:
+# the footer diamond — the rule pair dropped, and the second stacked note
+# growing one of its own.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 echo "--- 148: the square family and the cut sites"
@@ -126,6 +128,20 @@ run_case "the halo drops under the thumb floor" \
   "halo no longer buys the scale back" \
   "${P}a='.tick::before{content:\"\";position:absolute;top:-14px;left:-14px;right:-14px;bottom:-14px;}';assert a in s
 s=s.replace(a,'.tick::before{content:\"\";position:absolute;top:-10px;left:-10px;right:-10px;bottom:-10px;}',1);${W}" \
+  guards "" 148
+
+echo "--- 148: every tab closes on the diamond"
+
+run_case "the footers go back to the bare line" \
+  "the footer diamond rule is gone or reshaped" \
+  "${P}a='.homefoot::before,.note.foot::before,.legend::before{';assert a in s
+s=s.replace(a,'.homefootx::before,.note.footx::before,.legendx::before{',1);${W}" \
+  guards "" 148
+
+run_case "the second stacked note wears the diamond too" \
+  "the second stacked footer note wears the diamond too" \
+  "${P}a='.note.foot+.note.foot::before{content:none;}';assert a in s
+s=s.replace(a,'',1);${W}" \
   guards "" 148
 
 echo "--- 103: the grown signature, called the old way"

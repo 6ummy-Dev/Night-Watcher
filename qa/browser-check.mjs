@@ -997,6 +997,21 @@ if(swReady.supported && swReady.active && swReady.controlled){
      exactly that). The BUILD the worker serves offline must be the BUILD
      the network served online. */
   const onlineBuild = await swPage.evaluate(() => window.BUILD);
+  /* 4.4.1: the offline reload is Chromium's. The WebKit job's first run
+     (2026-08-20, run 353) proved everything above this line on WebKit —
+     registration, activation, control, THIS build's shell in the cache —
+     and then page.reload({offline}) died with "WebKit encountered an
+     internal error": the Playwright WebKit driver cannot navigate while
+     setOffline holds, which is a harness limit, not a Safari finding. A
+     skip that says so beats a red that cries wolf and beats silence worse
+     (the no-silent-caps rule): the line below prints on every WebKit run,
+     and Chromium keeps driving the real offline reload on every push. */
+  if(WK){
+    out.push("  skip offline reload — Playwright's WebKit driver errors " +
+             "internally on navigation while offline; registration, control " +
+             "and THIS build's cached shell are asserted above, and Chromium " +
+             "drives the offline reload every run");
+  } else {
   await swCtx.setOffline(true);
   let offline = { booted: false, entries: 0 };
   try{
@@ -1015,6 +1030,7 @@ if(swReady.supported && swReady.active && swReady.controlled){
      offline.booted && offline.build === onlineBuild,
      offline.err || ("online " + onlineBuild + " vs offline " + offline.build));
   await swCtx.setOffline(false);
+  }
 }
 await swCtx.close();
 

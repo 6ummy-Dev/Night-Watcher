@@ -12445,6 +12445,33 @@ var ROUTE_VOCAB = [
          "losing the state rules makes every caret lie about its group");
   }
 
+  /* -- every tab closes on the diamond: the four footers (Home's colophon,
+     the availability notes, the build lines, the legend that closes The
+     Path) share one rule pair — a centre-fading hairline and a ◆ seated on
+     ink over it. The owner's call, extending the hero's ornament to footer
+     rank; only the first of a stacked pair wears it, or Next up ends on
+     two diamonds three lines apart. The double content declaration is the
+     alt-text form where engines have it (the ornament stays silent to a
+     reader) over a plain fallback where they don't. -- */
+  if(!/\.homefoot,\.note\.foot,\.legend\{position:relative;\n  background:linear-gradient\(90deg,transparent,var\(--signalline\) 50%,transparent\) top\/100% 1px no-repeat;\}/.test(css) ||
+     !/\.homefoot::before,\.note\.foot::before,\.legend::before\{content:"\\25C6";content:"\\25C6" \/ "";/.test(css)){
+    fail("the footer diamond rule is gone or reshaped — all four tab footers " +
+         "close on the same ◆-on-fading-hairline construction, declared once " +
+         "for the three footer rules; a footer back on the bare --line border " +
+         "is the deco pass un-shipping from the bottom up");
+  }
+  if(/\.homefoot\{[^}]*border-top/.test(css) || /\n\.note\.foot\{[^}]*border-top/.test(css) ||
+     /\.legend\{[^}]*border-top/.test(css)){
+    fail("a footer grew its plain top border back beside the diamond rule — " +
+         "two separators on one footer is how the ornament becomes clutter");
+  }
+  if(!/\.note\.foot\+\.note\.foot\{[^}]*background:none;\}/.test(css) ||
+     !/\.note\.foot\+\.note\.foot::before\{content:none;\}/.test(css)){
+    fail("the second stacked footer note wears the diamond too — Next up " +
+         "would close on two of them three lines apart, which is ornament " +
+         "becoming wallpaper");
+  }
+
   /* -- the stepped underline: the short heavy bar is the you-are-here -- */
   var pu = (css.match(/\.pathtitle::after\{[^}]*\}/) || [""])[0];
   if(!/34px 3px/.test(pu) || !/var\(--signal\)/.test(pu) ||
