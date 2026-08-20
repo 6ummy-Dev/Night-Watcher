@@ -3583,6 +3583,17 @@ buys itself back — 58 × .78 = 45.2px across the rotated square's centre,
 over the 44px floor. That arithmetic lives in section 148's comment so the
 next resize starts from the numbers instead of re-deriving them.
 
+**The footers close on the diamond.** A late owner call in the same release:
+the four tab footers — the colophon, the availability notes, the build lines,
+the legend — trade their bare `--line` top borders for the diamond rule, one
+shared construction (a centre-fading hairline, a ◆ seated on ink). The plan
+had said the diamond stays the hero's private ornament; the owner extended it
+to footer rank, and the guard now counts the sites instead of assuming the
+scope. Only the first of a stacked pair wears it. The ◆ is CSS content with
+the alt-text form declared over a plain fallback, so where engines support it
+the ornament is silent to a screen reader, and where they don't it degrades
+to a pronounceable glyph rather than to nothing.
+
 **The chevrons and the WebKit job.** The `\u25B6` triangle left the page
 entirely — carets, fold, buckle, the all-continuities pointer are all the
 `\u203A\u203A` pair on the same rotation states — and §116's system-marks

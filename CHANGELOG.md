@@ -64,6 +64,13 @@ untouched, nothing ticked moves.
   browser-check file, same server, `NW_ENGINE=webkit`. Its rider lands in
   the same commit: the 700ms jump sleep is now a settle assertion — the
   scroll position is read across frames until it stops moving, capped at 2s.
+  The job's first run (on this release's first upload) returned its verdict:
+  every deco assert green on WebKit, and two reds from the harness's own
+  offline reload — `page.reload` under `setOffline` dies with a WebKit
+  driver-internal error after registration, control and THIS build's cached
+  shell had all been asserted. The offline reload is now scoped to Chromium,
+  with an explicit skip line on WebKit naming the driver limit (no silent
+  caps: a skip that says so beats a red that cries wolf).
 
 ### Changed
 
@@ -74,6 +81,13 @@ untouched, nothing ticked moves.
   backup chrome, tiers, the toast, the intro card, badges, the group-number
   plaque. The plaque gains a 1px solid-gold baseline — the one vertical
   accent at that scale.
+- **Every tab closes on the diamond.** The four footers — Home's colophon,
+  Next up's availability notes, Progress's build lines, and the badge legend
+  that closes The Path — trade their plain top border for the diamond rule:
+  a gold ◆ on a hairline that fades in from either side, one construction
+  shared by all four (and only the first of a stacked pair wears it). The
+  hero's own rule is untouched; this is the same ornament at footer rank,
+  the owner's call extending it beyond the hero.
 - **The chevron family.** The `\u25B6` triangle retires everywhere: group
   carets, the progress fold and the belt buckle point with the `\u203A\u203A`
   pair, and the all-continuities control's `::after` does the same — on the
@@ -96,7 +110,7 @@ untouched, nothing ticked moves.
   its assertions keep holding the hero's own construction exactly as 4.3.0
   built it. negtest176, negtest200, negtest310 and negtest360 re-anchored to
   the moved rule text in the same commit.
-- Counts: 61 suites, 871 fixtures — 815 guards / 56 smoke — smoke 355
+- Counts: 61 suites, 873 fixtures — 817 guards / 56 smoke — smoke 355
   checks (five new: the here mark lands on exactly one group and the right
   one, Case closed marks none, every rendered caret is the chevron pair,
   tier fills carry colour tokens only), guard sections 148, sect-less pin
