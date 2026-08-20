@@ -11,6 +11,97 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.4.0] — 2026-08-20
+
+**The deco pass.** The direction the owner locked over three mock rounds on
+20 August: the 45° cut stops being the hero's private ornament and becomes
+rank — "where you stand tonight" is the only thing that earns it — and
+everything that doesn't earn it stands square. One visible release for the
+whole language: the app changes look once. The hero is untouched. Catalogue
+untouched, nothing ticked moves.
+
+### Added
+
+- **The cut is rank.** Three new cut sites, each in the construction its
+  element needs rather than the one 4.3.0 used. The CTA that begins the
+  night (`.heroacts .go`) wears an 8px two-corner cut — solid fill, so a
+  straight `clip-path` is the whole cut. The lead chooser card wears 12px on
+  its top corners only, because the deck overlaps its bottom edge and a cut
+  under an overlap reads as a rendering bug. And **the group that holds the
+  film `upNext()` names** wears 12px corner overlays — the "here-group,"
+  computed once per render and passed into `groupBlock()`, so the mark
+  follows the film you are actually up to and lands on exactly one group
+  (Case closed marks none). The overlays are two 13px gradients painting the
+  page ink back over the corners with the 1px `--line` diagonal in the same
+  paint — chosen over `clip-path` because the group has a sticky header and
+  `content-visibility`, and a clip would fight both. All three surgical
+  paths (tick, row, group toggle) carry or move the mark, held byte-identical
+  to a full render by the existing smoke gate.
+- **One ribbing formula.** Every progress fill — group bars, season bars,
+  universe bars, tier bars — is the same
+  `repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 5px)`
+  on a `--card2` track; each fill states only its colour (inline styles carry
+  `color:`, never `background:`). Vertical ribbing, not diagonal — diagonal
+  gold on black reads as hazard tape, which the mock round established the
+  expensive way.
+- **The stepped underline.** The Path's title carries the deco signature: a
+  34×3px solid signal bar over a full-width `--line2` hairline, drawn in
+  `::after` so the title and its architecture cannot be separated.
+- **Guard section 148** pins all of it — the square-family sweep (every
+  `border-radius` in the sheet is `0` or `inherit`, with `:focus-visible`'s
+  4px as the one named exception), the three cut constructions, the
+  here-group mechanics in CSS and in both render paths, the ribbing count
+  (exactly four), the chevron sites and their states, the underline, and the
+  tick arithmetic. New suite `qa/negative/negtest530.sh` (20 fixtures, all
+  sect-anchored; two drive the render path through smoke). Browser-check
+  gains the computed half: the CTA's clip resolves to a polygon, exactly one
+  here-group with both overlay gradients painted, the tick's rotation read
+  back out of layout (30px × .78 × √2 ≈ 33px box), chips computing square,
+  and the here-group's sticky header still sticking — the interaction the
+  overlay construction was chosen for.
+- **The WebKit CI job, at last.** Parked since the 4.2.x audits with a named
+  trigger; the deco pass fires it by multiplying clip-path sites. Same
+  browser-check file, same server, `NW_ENGINE=webkit`. Its rider lands in
+  the same commit: the 700ms jump sleep is now a settle assertion — the
+  scroll position is read across frames until it stops moving, capped at 2s.
+
+### Changed
+
+- **The square family.** Forty-odd `border-radius` declarations go to 0:
+  chips and the all-continuities pill (both were full 100px pills), search,
+  the chooser cards, groups, the belt and its peek, mode/scope switches,
+  action pills, the watch link, hero action row, stat cards, universe cards,
+  backup chrome, tiers, the toast, the intro card, badges, the group-number
+  plaque. The plaque gains a 1px solid-gold baseline — the one vertical
+  accent at that scale.
+- **The chevron family.** The `\u25B6` triangle retires everywhere: group
+  carets, the progress fold and the belt buckle point with the `\u203A\u203A`
+  pair, and the all-continuities control's `::after` does the same — on the
+  identical rotation states (right = shut, down = open). Section 116's
+  system-marks list drops the triangle and the chevron entry names its new
+  duties; the pair ships escaped, dodging §106's literal scan by the same
+  decision as the diamond.
+- **The diamond tick.** The watched circle becomes a rotated square — the ◆
+  form — at `rotate(45deg) scale(.78)`, check counter-rotated, done/skip
+  states untouched, `aria-pressed` untouched. The tap halo grows to −14px so
+  the scale buys itself back: 58px × .78 = 45.2px across the rotated
+  square's centre, over the 44px floor. The Activity tick inherits the
+  rotation and stays under the Path tick (the §76 relation).
+- **Guards that had to learn the new truth, updated in place and
+  negative-tested rather than deleted** (the §44 lesson): §119 reads the
+  hero-pill/Skip pairing through a unit-tolerant reader (a square corner is
+  `border-radius:0`, no unit — what it asserts is unchanged: whatever edge
+  one declares, both declare); §103 pins `groupBlock(g, q, nid)`'s grown
+  signature; §146's prose records that the cut stopped being hero-only while
+  its assertions keep holding the hero's own construction exactly as 4.3.0
+  built it. negtest176, negtest200, negtest310 and negtest360 re-anchored to
+  the moved rule text in the same commit.
+- Counts: 61 suites, 871 fixtures — 815 guards / 56 smoke — smoke 355
+  checks (five new: the here mark lands on exactly one group and the right
+  one, Case closed marks none, every rendered caret is the chevron pair,
+  tier fills carry colour tokens only), guard sections 148, sect-less pin
+  unchanged at 763.
+
 ## [4.3.1] — 2026-08-19
 
 **The tabs start level.** The owner's review of 4.3.0 found only Progress

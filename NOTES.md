@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 147 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 148 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -3516,3 +3516,80 @@ sizes by viewport, so the fixed gtitle was the odd one out twice over), the
 universe cards on the same 16.5px rung as every other row title, and the
 `.pick b` block deleted — Anton's last ghost, a fully-shadowed face assignment
 that styled nothing and waited for someone to trust it.
+
+## The deco pass: the cut becomes rank
+
+4.4.0 is the whole-app answer to the question 4.3.0 opened. The hero got the
+cut and everything else kept its rounded corners, and the release notes called
+that an accepted cost. The owner then asked the obvious next question — make
+the buttons more deco — and the mock rounds turned up a rule better than
+"more": **the cut is rank.** A 45° corner on everything is a skin; a 45°
+corner on exactly the things that say *where you stand tonight* is a system.
+The ladder: 16px on the hero (untouched — the owner's explicit freeze), 12px
+on the lead chooser card and on the group holding the film `upNext()` names,
+8px on the one button that begins the night. Everything else stands square,
+because the cut only reads as rank against square neighbours.
+
+**Three cuts, three constructions.** The hero keeps its wrapper-clip because
+it has a 1px frame to preserve through the clip. The CTA and the lead pick
+are solid fills — bone, gold — so a straight `clip-path` IS the whole cut,
+and wrapping them would be cargo cult. The here-group is the interesting one:
+it is a bordered card whose header is `position:sticky` and whose box is
+under `content-visibility:auto`, and a `clip-path` there would clip the stuck
+header's paint and pick a fight with paint containment. So its cut is fake
+and says so: two 13px corner overlays that paint the page ink back over the
+corners, with the 1px `--line` diagonal drawn in the same gradient. Fake by
+construction, honest by assertion — section 148 pins the overlay shape, and
+the browser check measures that the marked group's header still sticks at
+the same offset as every other group's, which is the interaction the
+construction was chosen for.
+
+**Why the here-group is `upNext()` and not the open group.** The mocks drew
+"the open group wears the cut" — and the app's groups default open, so on a
+fresh path every group would have worn it and rank would have meant nothing.
+The honest anchor was always position, not disclosure: the group that holds
+the next film is where you stand, it is exactly one group by construction,
+and it moves when — and only when — a tick moves the frontier. That made it
+a render-path claim, so the id is computed once per render in `viewWatch()`
+and passed into `groupBlock()` (44 groups scanning `pool()` each would have
+been the §120 lesson in a new coat), and all three surgical paths carry the
+mark: `tickUpdate()` recomputes and moves it, `groupUpdate()` preserves it
+through the class rewrite, and the byte-identity gate catches either of them
+forgetting.
+
+**The square family, swept rather than listed.** Forty-odd radii went to
+zero, and the guard that holds them is a sweep with an allowlist of one:
+`:focus-visible` keeps its 4px, named with its reason (feedback chrome, not
+a control — a square focus ring reads as a second border). A sweep is the
+right shape because the failure mode is not "someone redesigns the buttons,"
+it is one radius creeping back in a refactor and reading as intentional
+three releases later.
+
+**Ribbing, and the tape lesson.** Every progress fill is one
+`repeating-linear-gradient` of `currentColor` verticals on a `--card2`
+track; the fills state only a colour. The first mock drew the stripes
+diagonal, and gold diagonals on black read as hazard tape from across the
+room — the vertical form is the deco one anyway (parallel verticals,
+machine rhythm). `currentColor` is load-bearing: the formula lives once in
+the sheet, so the guard can count its four legitimate copies and fail a
+fifth, and an inline `background:` on a fill is a second implementation by
+definition.
+
+**The tick.** A diamond tick has to be rotated, not clipped — a border does
+not follow a clip path, and the outline IS the unwatched state. Rotation
+shrinks nothing but changes the arithmetic: the button scales .78 so the
+30px box draws a 23px diamond, and the tap halo grows to −14px so the scale
+buys itself back — 58 × .78 = 45.2px across the rotated square's centre,
+over the 44px floor. That arithmetic lives in section 148's comment so the
+next resize starts from the numbers instead of re-deriving them.
+
+**The chevrons and the WebKit job.** The `\u25B6` triangle left the page
+entirely — carets, fold, buckle, the all-continuities pointer are all the
+`\u203A\u203A` pair on the same rotation states — and §116's system-marks
+list was updated in the same breath, because an exception whose label
+describes something that no longer exists is a stale claim wearing a green
+check. And the parked WebKit CI job finally fired: the pass multiplied the
+clip-path sites, iOS is where those ornaments actually ship, and its rider
+(the 700ms jump sleep becoming a settle assertion) landed with it. The gate
+rule from 4.2.4 applies to this whole release: the browser check is the
+test; `npm test` only proves the shapes are still spelled in the file.
