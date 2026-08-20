@@ -22,7 +22,11 @@ instead of remembered. Everything here is in execution order.
    retirement; do not fight the refusal, it is the product's oldest promise.
 3. **The suites.** `npm test` (guards + smoke), then the negative matrix:
    `bash qa/negative/run-all.sh` (~15–20 minutes; suite numbers can be passed
-   to run one).
+   to run one). **The full wall, not a selection, before any cut** (4.4.4):
+   several guard messages have fixture twins in suites far from the change —
+   the listener count alone is pinned from three different suites — and a
+   selective run is exactly the run that misses them. Selections are for
+   iterating on a fixture, never for release verification.
 4. **The browser check.** Serve the tree and drive it:
 
    ```

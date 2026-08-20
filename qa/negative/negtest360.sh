@@ -172,7 +172,7 @@ assert a in s
 s=s.replace(a,'',1);${W}"
 
 run_case "a third scroll listener arrives here too" \
-  "reviewed with exactly 2" \
+  "reviewed with exactly 3" \
   "${P}a='var beltIO = null, beltIncIO = null, beltIncRoot = null, dropArmed = false, dropArmedEl = null, nwScrollAdjust = 0, dropSquelch = false;'
 assert a in s
 s=s.replace(a,'window.addEventListener(\"scroll\", function(){});\\n'+a,1);${W}"

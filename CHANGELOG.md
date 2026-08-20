@@ -11,6 +11,31 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.4.4] — 2026-08-20
+
+**CI's shard 2 failed on the 4.4.3 upload — two negative fixtures gone stale,
+and both were maintenance this changelog's own releases owed.** The app is
+untouched; this release is the harness keeping its word.
+
+### Fixed
+
+- **negtest360's listener-count twin.** 4.4.2 added the third scroll listener
+  and re-anchored the count fixture in negtest470 — but negtest360 carries a
+  twin ("a third scroll listener arrives here too") that still expected
+  "reviewed with exactly 2". Re-anchored to 3.
+- **negtest460's restore fixture no longer brought the bug back whole.**
+  4.4.2's settle added a second `scrollPut(keep)` inside the rAF; the fixture
+  removed only the first call, the guard rightly still saw a restore, and the
+  expected failure never fired. The fixture now strips all three restore
+  calls — and the guard fails exactly as §122 promises.
+- Both misses share one cause worth writing down: the 4.4.3 verification ran
+  the negative wall selectively ("the suites whose anchors sit near the
+  change") and the full wall only in CI. Fixture twins do not live near the
+  change. The full 62-suite wall ran locally green before this cut — all
+  four CI shards, 879 fixtures — and selective runs are for iteration, not
+  for release verification. That rule is now in RELEASING.md where the next
+  release will read it.
+
 ## [4.4.3] — 2026-08-20
 
 **The Path's closing diamond was bigger than the other three.** The soak

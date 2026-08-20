@@ -59,10 +59,16 @@ s=s.replace(a,'''  if(keep) scrollPut(keep);
   if(keep){
     vp.classList.add(\"settling\");''',1);${W}"
 
+# 4.4.4: the 4.4.2 settle added a SECOND scrollPut(keep) inside the rAF,
+# so removing the first no longer brought the bug back whole — the fixture
+# must strip all three restore calls or the guard rightly stays green.
 run_case "render() stops restoring at all" \
   "render() never calls scrollPut" \
   "${P}a='    scrollPut(keep);';assert a in s
 s=s.replace(a,'',1)
+a='requestAnimationFrame(function(){ scrollPut(keep); vp.classList.remove(\"settling\"); });'
+assert a in s
+s=s.replace(a,'requestAnimationFrame(function(){ vp.classList.remove(\"settling\"); });',1)
 b='if(qDrift) scrollPut(scrollKeep() + qDrift);'
 assert b in s
 s=s.replace(b,'',1);${W}"
