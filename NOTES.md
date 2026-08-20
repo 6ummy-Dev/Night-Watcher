@@ -3483,3 +3483,36 @@ rebuilding the card system for an ornament that works best said once.
 Section 146 holds each piece of the construction separately, because every
 piece — the isolation, the inset, the frame colour — fails invisibly if
 "tidied."
+
+## The offset with two sources, and the tab that was accidentally right
+
+4.3.1 exists because the owner looked at four tabs and said only Progress had
+the correct top margin. The diagnosis is the project's oldest lesson in a new
+coat. The belt's bottom margin — 10px — was the offset every tab's first
+content stood on, except that Progress's first block also carried a private
+inline `style="margin-top:18px"`, added long ago to give the charts some air.
+Two sources, and the patched one happened to be right: 18px of clearance under
+the parked peek is what the spacing system wants, and three tabs weren't
+getting it. An inline offset is invisible to every sweep of the stylesheet,
+which is why this drifted unnoticed through releases that measured contrast,
+geometry and weight.
+
+The fix is the `--hdrh` rule applied downward: the belt's bottom margin is
+18px and is the ONE source; the inline patch is struck, and margin collapse
+means the tab that was right never moves. Guard 128 pins the source, and — the
+general clause the patch earned — refuses any margin inside a style attribute
+anywhere in the rendered markup. Five inline margins left the page in the same
+commit; the widths and colours that remain inline are data, not offsets. The
+browser drive now measures the result rather than the recipe: the first
+painted block below the belt sits at one height on all four tabs, the assert
+that would have caught the original patch the day it landed.
+
+The rest of the release is the type ladder the Big Shoulders swap left
+un-tuned: group titles back above their rows (Limelight at clamp(17px,5.5vw,20px)
+over BSD 19.5 — 4.3.0 had them inverted in every open group, and the clamp
+rather than a flat 20 because the 320px check showed the longest continuity
+names buying the rank with a third line; every other deco landmark already
+sizes by viewport, so the fixed gtitle was the odd one out twice over), the
+universe cards on the same 16.5px rung as every other row title, and the
+`.pick b` block deleted — Anton's last ghost, a fully-shadowed face assignment
+that styled nothing and waited for someone to trust it.

@@ -3,12 +3,15 @@
 # home, the progress card, and the four soak holds.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
+# 4.3.1 moved every offset to the stylesheet: the belt's bottom margin is 18px
+# and the Home grid heading's inline margin became the .gap variant; anchors here
+# were updated with it. The guards under test are unchanged.
 echo "--- 96: the Belt is one strip, and its pouches open from behind"
 run_case "the strip splits back into cards" \
   "the belt is not one strip" \
-  "${P}a='.pathseg{display:flex;margin:0 0 10px;border:1px solid var(--line2);border-radius:10px;overflow:hidden;'
+  "${P}a='.pathseg{display:flex;margin:0 0 18px;border:1px solid var(--line2);border-radius:10px;overflow:hidden;'
 assert a in s
-s=s.replace(a,'.pathseg{display:flex;margin:0 0 10px;border:1px solid var(--line2);border-radius:10px;',1);${W}"
+s=s.replace(a,'.pathseg{display:flex;margin:0 0 18px;border:1px solid var(--line2);border-radius:10px;',1);${W}"
 
 run_case "the segments grow their own corners" \
   "carry their own corners" \

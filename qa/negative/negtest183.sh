@@ -3,18 +3,20 @@
 # counts that keep drifting.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
+# 4.3.1 moved the scopenote's inline margin into its classed rule; the verbatim
+# 1.8.2 shape here is re-anchored without it — the marker under test is unchanged.
 # The whole bug, restored: the head carries a marker again and the count is
 # replaced into it afterwards. This is verbatim what 1.8.2 shipped.
 REGRESS="${P}a='''      (ao ? \"Collapse all\" : \"Expand all\")+'</button></div>';'''
 assert a in s
 s=s.replace(a,'''      (ao ? \"Collapse all\" : \"Expand all\")+'</button></div>%%COUNT%%';''',1)
 b='''  var html = head + (q
-    ? '<p class=\"scopenote\" role=\"status\" aria-live=\"polite\" style=\"margin:-4px 2px 10px\">'+shownTotal+(shownTotal===1?\" match\":\" matches\")+'</p>'
+    ? '<p class=\"scopenote\" role=\"status\" aria-live=\"polite\">'+shownTotal+(shownTotal===1?\" match\":\" matches\")+'</p>'
     : \"\") + body;'''
 assert b in s
 s=s.replace(b,'''  var html = head + body;
   html = html.replace(\"%%COUNT%%\", q
-    ? '<p class=\"scopenote\" role=\"status\" aria-live=\"polite\" style=\"margin:-4px 2px 10px\">'+shownTotal+(shownTotal===1?\" match\":\" matches\")+'</p>' : \"\");''',1)
+    ? '<p class=\"scopenote\" role=\"status\" aria-live=\"polite\">'+shownTotal+(shownTotal===1?\" match\":\" matches\")+'</p>' : \"\");''',1)
 ${W}"
 
 echo "--- 79: no marker a user could type"

@@ -44,10 +44,13 @@ run_case "a path loses its grid heading" \
   "GRIDNAME has no heading for the release path" \
   "${P}a='release:\"The decades\"';assert a in s;s=s.replace(a,'',1);${W}"
 
+# 4.3.1 moved every offset to the stylesheet: the belt's bottom margin is 18px
+# and the Home grid heading's inline margin became the .gap variant; anchors here
+# were updated with it. The guards under test are unchanged.
 echo "--- 40 and 54: the scoreboard belongs to Progress"
 run_case "the scoreboard comes back to Home" \
   "not rendered exactly once" \
-  "${P}a=\"  html += '<p class=\\\"qhead big\\\" style=\\\"margin-top:6px\\\">'\";assert a in s
+  "${P}a=\"  html += '<p class=\\\"qhead big gap\\\">'\";assert a in s
 s=s.replace(a,\"  html += '<p class=\\\"qhead\\\">Scoreboard</p>'+scoreboard(c);\\n\"+a,1);${W}"
 
 echo "--- 73: the ceiling is a ceiling"

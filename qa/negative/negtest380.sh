@@ -20,6 +20,8 @@
 
 echo "--- 130: the entrance mirrors the retraction (owner: 'toasting down')"
 
+# 4.3.1 raised the parked bottom margin to 18px (the owner's margin review);
+# anchors here updated with it — the pull under test is unchanged.
 run_case "the drop arrives in one frame again" \
   "no longer mirrors the retraction" \
   "${P}a='.pathseg[data-toast]{animation:beltdrop .22s ease;}'
@@ -62,9 +64,9 @@ s=s.replace(a,\"' data-park=\\\"\\\"'\",1);${W}"
 
 run_case "the pull drifts by the sentinel's pixel" \
   "pull is gone or drifted" \
-  "${P}a='.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 10px;}'
+  "${P}a='.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 18px;}'
 assert a in s
-s=s.replace(a,'.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px) 0 10px;}',1);${W}"
+s=s.replace(a,'.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px) 0 18px;}',1);${W}"
 
 run_case "the column's padding walks away from the pull" \
   "no longer starts 18px 18px" \
@@ -74,9 +76,9 @@ s=s.replace(a,'.pcol{padding:17px 18px ',1);${W}"
 
 run_case "the parked strip grows a position rule again" \
   "grew a position rule or an anchor" \
-  "${P}a='.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 10px;}'
+  "${P}a='.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 18px;}'
 assert a in s
-s=s.replace(a,'.pathseg[data-park]{position:fixed;margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 10px;}',1);${W}"
+s=s.replace(a,'.pathseg[data-park]{position:fixed;margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 18px;}',1);${W}"
 
 run_case "the chosen parked strip stays painted" \
   "still paints inside the deck" \

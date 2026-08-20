@@ -11,6 +11,62 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.3.1] — 2026-08-19
+
+**The tabs start level.** The owner's review of 4.3.0 found only Progress
+standing at the correct top margin — and the reason is this project's
+oldest bug class wearing a new coat: an offset with two sources. Progress's
+first block carried a private inline `style="margin-top:18px"`, so it stood
+18px clear of the parked belt while Home, Next up and The path stood at
+10px, with The path's bare Limelight title crowding the peek worst. Plus
+the type-ladder rungs the Big Shoulders swap left un-tuned. No features,
+no catalogue change, nothing ticked moves.
+
+### Fixed
+
+- **One first-content offset, from one source.** The belt's bottom margin
+  is now 18px — the single source of clearance below the parked peek —
+  and the inline patch on Progress's chart row is struck. Margin collapse
+  means Progress does not move; the other three tabs rise to meet it.
+- **Every inline margin leaves the rendered markup.** Five style-attribute
+  margins (the pathkick, the picknote, the grid heading, the scope note,
+  the fold headings) moved into classed rules; data-driven inline widths
+  and colours stay, since those are values, not offsets. **Guard 128 now
+  pins both**: the 18px source, and a sweep that refuses any
+  `style="…margin…"` in the page — with the pies patch named in the
+  comment as the drift it exists to stop. Smoke drives the same rule in
+  the rendered DOM; the browser check gains "the four tabs start level,"
+  the geometry assert that would have caught this the day the patch
+  landed.
+
+### Changed
+
+- **The Path's group titles outrank their rows again.** `.gtitle`
+  (Limelight) 17px → `clamp(17px, 5.5vw, 20px)`: the 4.3.0 swap put the
+  rows under it at 19.5px Big Shoulders 700, inverting the hierarchy in
+  every open group. The clamp rather than a flat 20 because the 320px
+  check argued: the longest continuity names ("Standalone Justice League
+  Films", "The Burton / Schumacher Films") take a third line at 20px on
+  the narrowest phones — and at 19px too, so the honest floor is today's
+  17. Every other deco landmark (the hero, the path title, the intro)
+  already sizes by viewport; the group title was the odd one out, fixed
+  where its siblings flex. At 390px and up the hierarchy stands corrected;
+  at 320 the shipped relation holds rather than buying rank with a third
+  line.
+- **One row-title ladder.** `.uname` 16 → 16.5px, joining `.at`/`.qt`/`.sn`
+  on the same rung; the display ladder is 19.5 / 16.5 with the deco
+  landmarks above it.
+- **The shadowed `.pick b` type block is deleted.** Nothing renders a bare
+  `.pick` — only `.pick.big`, whose own `b` rule overrides every
+  declaration the base block made. It was Anton's last ghost: a face
+  assignment that styled nothing, waiting for the next reader to trust it.
+- Section 99's seat pins updated with the offsets' move (the seats are the
+  pin; the margins were incidental); negtest177 and negtest200 re-anchored
+  in the same commit. New suite `qa/negative/negtest520.sh` (4 fixtures:
+  each of the margin pair shrinks back, the patch returns at the source,
+  the patch returns in the rendered DOM). Counts: 60 suites, 851 fixtures —
+  797 guards / 54 smoke — smoke 350 checks, guard sections still 147.
+
 ## [4.3.0] — 2026-08-19
 
 **The deco release.** The feature the audit cycle kept clearing the runway

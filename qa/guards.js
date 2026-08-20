@@ -6783,15 +6783,20 @@ var ROUTE_VOCAB = [
            "that from a correct page");
     }
   });
-  if(!/class="qhead big" style="margin-top:6px"/.test(HTML)){
+  /* 4.3.1: the two seats that carried their offsets as inline styles carry
+     them as classed rules now \u2014 margins live in the stylesheet, one source
+     each (the same release levelled the four tab tops after Progress's own
+     inline patch turned out to be the only correct one). The SEATS are what
+     this section pins; the offsets moved, the seats did not. */
+  if(!/class="qhead big gap"/.test(HTML)){
     fail("the Home grid heading lost the variant \u2014 one of the three named seats");
   }
   if(!/<p class="qhead big">Then<\/p>/.test(HTML)){
     fail('"Then" on Next up lost the variant \u2014 one of the three named seats');
   }
-  if(!/class="qhead big" style="margin:0"/.test(HTML)){
+  if(!/<span class="qhead big">/.test(HTML) || !/\.sfhead \.qhead\{margin:0;\}/.test(HTML)){
     fail("the Progress fold headings lost the variant \u2014 one of the three named " +
-         "seats");
+         "seats (the span, or the .sfhead .qhead{margin:0} rule that flattens it)");
   }
 })();
 
@@ -10110,9 +10115,46 @@ var ROUTE_VOCAB = [
          "nothing forever");
   }
 
+  /* 4.3.1: THE BOTTOM MARGIN JOINS THE PINNED OFFSETS, because it drifted the
+     only way an unpinned offset can — by growing a second source. The belt's
+     margin-bottom is what every tab's first content stands on; Progress had
+     patched its own first block with an inline margin-top:18px, so it stood
+     8px lower than the other three and was the only one the owner called
+     correct. The fix is the one-source rule this section already tells:
+     18px on the belt, no per-view patches, all four tabs start level. */
+  if(!/\.pathseg\{[^}]*margin:0 0 18px/.test(HTML)){
+    fail("the belt's bottom margin is not 18px — it is the one source of " +
+         "first-content clearance below the parked peek, and the last time " +
+         "it had a second source only Progress stood at the right offset");
+  }
+  /* The parked rule REPLACES the whole margin (its top pulls the strip up
+     behind the header), so it re-states the bottom — and a re-statement is
+     where 4.3.1's first cut missed: the base said 18 while the parked state
+     everyone actually lives in still said 10. Same lesson as the two --hdr
+     alphas: pin both, or the next honest change fixes one. */
+  if(!/\.pathseg\[data-park\]\{margin:calc\([^}]*\) 0 18px;\}/.test(HTML)){
+    fail("the parked belt's bottom margin is not 18px — [data-park] replaces " +
+         "the whole margin to pull the strip behind the header, so it " +
+         "re-states the bottom, and the parked state is the one every tab " +
+         "with a chosen path actually renders");
+  }
+  /* And the general clause the pies patch earned: offsets live in the
+     stylesheet. A margin inside a style attribute is a second source by
+     construction — it wins the cascade silently and describes an offset in a
+     place no sweep of the rules can see. Data-driven inline styles (the tier
+     bars' widths, the tell colours) are values, not offsets, and stay. */
+  var inlineMargins = HTML.match(/style="[^"]*margin[^"]*"/g) || [];
+  if(inlineMargins.length){
+    fail("an inline margin patch is back in the rendered markup (" +
+         inlineMargins[0] + ") — offsets live in the stylesheet, one source " +
+         "each; the last inline margin made Progress the only tab with the " +
+         "correct top margin");
+  }
+
   note("the belt parks as the peek: lit from S.mode, one position condition, " +
        "offsets from --hdrh, entrance is a transition, parked strip is one " +
-       "handle, observer plus one pinned one-shot listener");
+       "handle, observer plus one pinned one-shot listener; 18px under it is " +
+       "the one first-content clearance, with no inline margin anywhere");
 })();
 
 /* ---------- 129. The Belt drops in place, and leaves the way it came ---- */
@@ -10501,14 +10543,20 @@ var ROUTE_VOCAB = [
      which stops collapsing against a margin this negative. The result lands
      the flow slot exactly on the sticky offset, so the peek is
      pixel-identical at the top of a fresh tab and mid-scroll. */
-  if(!/\.pathseg\[data-park\]\{margin:calc\(var\(--belt-peek\) - var\(--beltH\) - 18px - 1px\) 0 10px;\}/.test(HTML)){
+  /* 4.3.1: the bottom went 10 → 18. The owner's margin review found only
+     Progress standing 18px clear of the peek — via a private inline patch —
+     and called that the correct offset, so 18px of air is now the rule for
+     all four tabs, and section 128 owns that clearance (both bottom margins
+     and the no-inline-margin sweep). The PULL is unchanged and is what this
+     pin is really for. */
+  if(!/\.pathseg\[data-park\]\{margin:calc\(var\(--belt-peek\) - var\(--beltH\) - 18px - 1px\) 0 18px;\}/.test(HTML)){
     fail("the parked strip's pull is gone or drifted — " +
          "margin-top: calc(--belt-peek − --beltH − 18px − 1px) is what puts " +
          "the flow slot exactly at the sticky offset (37 with no inset), so " +
          "the peek reads 12px under the header at the top of a fresh tab " +
-         "AND mid-list, with the base rule's own 10px of air before the " +
-         "content (the owner's note: nothing breathing under the belt). " +
-         "18 is main's own top padding; the 1px is the " +
+         "AND mid-list, with 18px of air before the content (the owner's " +
+         "19 Aug margin review; section 128 owns the clearance). " +
+         "18 in the calc is main's own top padding; the 1px is the " +
          "sentinel's height, whose −1px margin stops collapsing against a " +
          "margin this negative. Wrong by one and the fresh-tab peek is 13px " +
          "— the F1 twelfth, earned back");

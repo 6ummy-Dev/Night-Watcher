@@ -1089,6 +1089,12 @@ win.addEventListener("load", function(){
           doc.getElementById("view").textContent.indexOf("Your ratings") < 0);
     check("Progress still shows the chart and backup tools",
           !!doc.querySelector("#view .panel:not([inert]) .pies") && !!doc.querySelector('[data-act="mkcode"]'));
+    /* 4.3.1: offsets live in the stylesheet. The last inline margin — on this
+       very chart row — made Progress the only tab standing at the right
+       first-content offset, and guard 128 now refuses the pattern at the
+       source; this drives it in the rendered DOM. */
+    check("no rendered element carries an inline margin",
+          !doc.querySelector('#view [style*="margin"]'));
 
     /* --- 3.8.1: one chart, the belt's, and it follows the belt. Two donuts
        drew "The universes" and "Bruce's life" whatever was chosen; now the

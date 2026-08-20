@@ -667,6 +667,30 @@ ok("deck: the computed snap is x mandatory, start, always",
    /x mandatory/.test(geo.snapType) && geo.snapAlign === "start" && geo.snapStop === "always",
    geo.snapType + " / " + geo.snapAlign + " / " + geo.snapStop);
 
+/* 4.3.1: the four tabs start level. Progress carried a private inline
+   margin-top on its first block, so it was the only tab standing 18px clear
+   of the parked belt — a drift no source sweep could see, because the offset
+   lived in a style attribute. The clearance is the belt's bottom margin now
+   (guard 128 pins the source); this measures the RESULT: the first painted
+   block below the belt sits at one height on every tab. */
+const level = await page.evaluate(async () => {
+  const tops = {};
+  for (const t of ["home", "next", "watch", "stats"]) {
+    goTab(t);
+    await new Promise(r => setTimeout(r, 120));
+    const pane = document.querySelector("#view .panel:not([inert])");
+    pane.scrollTop = 0;
+    let el = pane.querySelector(".pathseg").nextElementSibling;
+    while (el && el.getBoundingClientRect().height === 0) el = el.nextElementSibling;
+    tops[t] = el ? Math.round(el.getBoundingClientRect().top * 2) / 2 : null;
+  }
+  goTab("watch");
+  return tops;
+});
+ok("the four tabs start level — one first-content offset below the belt",
+   [...new Set(Object.values(level))].length === 1 && Object.values(level).every(v => v !== null),
+   Object.entries(level).map(([k, v]) => k + " " + v).join(", "));
+
 /* The swipe: scroll #view sideways one viewport and read what followed. The
    place kept in The path must survive the trip away and back. */
 const swipe = await page.evaluate(async () => {
