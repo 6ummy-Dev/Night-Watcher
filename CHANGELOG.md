@@ -11,6 +11,74 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.5.0] — 2026-08-24
+
+**The city.** Release 2 of the two-release plan the deco pass opened on
+20 August: the Progress skyline stops being a bar chart with a good name
+and becomes a skyline, and the story card's chart becomes the same city.
+Rethought on the day it shipped so it could ship in one evening — the
+20 August plan's eight clip-path roof forms became stacked blocks and
+masts, the beacon was cut on the owner's word, and the card's bottom block
+did not move. Catalogue untouched, nothing ticked moves.
+
+### Added
+
+- **The shaft is the chart, the crown is above it.** Everything measured
+  lives in a uniform 96px shaft — width is group size, solid `--signal`
+  rising from the ground is watched, `--steel` stacked on it is skipped,
+  exactly the encoding 3.8.2 shipped. Above the shaft sits a **crown** that
+  encodes nothing: it is form, and it lights only once the shaft under it is
+  already full (`--signal`; `--steel` when the rest was skipped; `--line2`
+  otherwise), so ornament can never make a building look further along than
+  it is. Seven forms — flat, block, setback, ziggurat ×2 and ×3, spire, twin
+  — as **stacked blocks and masts**, never `clip-path`: ~44 polygons on a
+  view that re-renders on every tick was a cost the plan measured and the
+  cut declined. Every roof steps in from its shaft (an 8% shoulder, capped
+  in px so a wide era still wears a cap rather than a slab with a lip), so
+  the roofline always steps and never slices.
+- **Deterministic roofs.** Seeded from the group's frozen code through
+  `idHash` — PATH's `n` for universes, the era and decade keys otherwise —
+  and gated on title count, not pixels: a one-title universe may wear flat
+  or block; seven and up may wear anything. Same seed, same roof, on a phone,
+  on a desktop and on the card. A universe is a place, not a render.
+- **The city on the card.** `drawShareCard()` draws the same crowns from the
+  same spec (one `ROOFS` table, two renderers — a DOM one and a canvas one).
+  Radius 5 → 0: the card joins the square family. Shaft 300 → 260px so the
+  tallest crown clears the bat by 51px, measured. The rule, strapline and
+  domain lines stay exactly where 2.7.1 put them; guard 98's pins are
+  untouched.
+- **Guard section 150** pins the rule: the roof spec and its seed, the frozen
+  codes on every Progress group and on the card, both renderers drawing from
+  `ROOFS`, `SKYSHAFT` agreeing with the `--sh` token, `crownState()` lighting
+  only a full shaft, crown colour by class and never inline, no `clip-path`
+  in the city, the solid fill, the 1px street, the card's square buildings,
+  and the numerals row without its boxes. `negtest550` — 17 fixtures, three
+  through smoke.
+
+### Changed
+
+- **Full-bleed.** The chart loses its box and runs edge to edge (the owner's
+  call), 150px tall on a phone: 96px shaft, up to 40% of that in crown. The
+  kicker and the sub-line align left; the sub-line gains the topped-out
+  count, where it is a fact and not a control.
+- **The numerals row.** Watched · To go · Skipped lose their tiles: three
+  cells on hard 1px rules, full-bleed, 38px numerals over 8.5px labels. The
+  three tier buttons underneath are section 40's, unchanged.
+- **The one progress fill that stays solid.** The deco pass ribbed every
+  fill; the city does not, and the reason is the ribbing rule itself: ribs
+  work because they cross the axis a bar travels along. The city fills
+  upward, so vertical ribs would run parallel to the travel, encode nothing,
+  and cost every tower its footprint. On the record so nobody "fixes" it.
+- **No beacon.** The plan lit the group holding your next entry; the owner
+  cut it during the build. The here-group on The Path already says where
+  you stand.
+- **Smoke +5 → 360**: a building is a shaft and a crown; the three crown
+  states driven on one group so none passes vacuously; the same universe
+  wears the same roof across renders. The CSS sweep stages an all-skipped
+  city so the steel crown rule is seen to match.
+- **Weight: 219.3 KB raw of the 220 KB budget.** The city cost ~3 KB. The
+  next feature raises the ceiling, and that is the owner's number to give.
+
 ## [4.4.4] — 2026-08-20
 
 **CI's shard 2 failed on the 4.4.3 upload — two negative fixtures gone stale,

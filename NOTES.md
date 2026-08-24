@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 149 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 150 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -3619,3 +3619,70 @@ clip-path sites, iOS is where those ornaments actually ship, and its rider
 (the 700ms jump sleep becoming a settle assertion) landed with it. The gate
 rule from 4.2.4 applies to this whole release: the browser check is the
 test; `npm test` only proves the shapes are still spelled in the file.
+
+## The city: the shaft is the chart, the crown is above it
+
+4.5.0. The Progress skyline had been a skyline in name since 3.8.2 — a row
+of bars, width proportional to group size, filling bottom-up — and the story
+card's chart was the same row at 1080 wide with rounded corners. The deco
+pass had already decided the two would become one city; the 20 August plan
+drew it with eight polygon roof forms, a beacon on the group holding your next
+entry, and a reflow of the card's bottom block. What shipped was rethought on
+the day so it could ship in one evening, and three things went.
+
+**The organizing rule survived intact, because it is the whole design.**
+Everything measured lives in a uniform-height shaft; the crown above it
+carries no magnitude. That split is what lets one object be a skyline and a
+fair chart at the same time: no ornament ever sits inside a reading. A crown
+lights only when the shaft under it is already full — gold when all watched,
+steel when the rest was skipped — so the reinforcement is monotone: it can add
+gold to a complete building and can never make an incomplete one look further
+along. `crownState()` is four tokens long and section 150 pins its exact text,
+because "lit at 80%" is the obvious improvement someone will propose.
+
+**Stacked blocks, not clip-path.** The plan's roofs were mixed-unit polygons —
+`[x%, xpx, y%]` points driving both a CSS `clip-path` and a canvas path. That
+is ~44 clip-paths on a view that re-renders on every tick, and it would have
+needed a WebKit measurement before it could be believed. Stacked blocks give
+setback, ziggurat ×2 and ×3, spire and twin for free — each level is a block
+of `width:max(2px, W%, calc(100% - Cpx))`, which is three rules in one: a
+mast that never drops below 2px, a proportional shoulder, and a px cap on the
+inset so a wide era or decade still wears a stepped cap instead of a slab
+with a lip. Chamfer and pyramid were the two forms that needed a polygon;
+they went. The same table drives the canvas with `Math.max` in place of
+`max()`, which is what "one spec, two renderers" means in practice.
+
+**The seed is the code, never the index.** Roofs come from `idHash` of the
+group's frozen code — PATH's `n`, the era key, the decade key — and the form
+is gated on title count rather than rendered width, so a universe wears the
+same roof on a phone, on a desktop and on the card, and a spire on desktop
+does not become a flat cap at 320px. An index seed would have looked
+identical on the day and silently reshuffled the whole city the next time a
+continuity was inserted; the guard reads the push sites, not the output.
+
+**The one progress fill that stays solid.** The deco pass ribbed every fill,
+and the rule behind the ribbing is why the city is exempt from it: ribs read
+as a scale because they cross the axis the bar travels along. The city fills
+upward. Vertical ribs would run parallel to the travel, encode nothing, and
+turn the lit half of the city into a barcode in which no universe ends. The
+1px street is the only line in the city, and it runs ground to roof — with
+the crowns touching, two neighbours' roofs merge into one false roof; with no
+street at all, the lit half is one gold slab and the sub-6px universes vanish.
+
+**What was cut, and why it was cheap to cut.** The beacon — a mast and lamp
+on the group holding `upNext()` — was drawn, rendered, and removed on the
+owner's word mid-build; the here-group on The Path already answers "where do
+I stand," and a second answer on Progress was a second statement. The card's
+bottom block did not move: guard 98 pins the rule, strapline and domain at
+1590 / 1700 / 1750 and the bat at (260, 734), and rather than re-anchor a
+guard whose comment says "shorten the canvas rather than shift the block,"
+the shaft shrank 300 → 260 so the tallest crown clears the bat's lowest point
+by 51px. Measured from the path, not eyeballed. And the 1200×630 `share.png`
+did not regenerate — the plan said it would, and that was a confusion between
+two cards: `share.png` is the crawler card built by `qa/make-share-card.mjs`
+from a strip of ticks, and the city lives on the 1080×1920 story card drawn
+on demand by `drawShareCard()`. Nothing static changed.
+
+**The weight.** The city cost about 3 KB and left `index.html` at 219.3 KB
+of a 220 KB budget. The ceiling has moved four times and every move was the
+owner's number on the record; the next feature asks for the fifth.
