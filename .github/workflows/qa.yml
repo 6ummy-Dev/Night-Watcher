@@ -54,27 +54,18 @@ jobs:
 
   # The negative suites. Each fixture breaks one thing on purpose in a throwaway
   # copy of the tree and asserts the guards go red for the right reason — the
-  # only evidence that any of them protects anything.
+  # only evidence that any of them protects anything. They run on every push,
+  # not only on pull requests: releases here are direct commits to main, so a
+  # PR-gated job never runs (it did not, for a long time — NOTES.md).
   #
-  # These were gated behind `if: github.event_name == 'pull_request'` until
-  # 1.8.3, on the reasoning that they are slow. The reasoning was sound and the
-  # conclusion was wrong: releases here ship by uploading the tree, which is a
-  # direct commit to main, so pull requests essentially never happen and this
-  # job had almost certainly never run in CI at all. The evidence that the
-  # guards work was produced only on the release machine, by hand — which is the
-  # exact situation this workflow was created to end.
-  #
-  # Cost, measured rather than averaged: 896 fixtures, of which 837 run guards.js
-  # at about 0.26s each (halved 6 Aug by memoising idHash) and 59 run smoke.js — most of those scoped to one phase
-  # by SMOKE_ONLY (2.2.0, report §5.4) at a fraction of a full run — wall clocks are machine-bound, so no figure is quoted here; the split counts above are the guarded part.
-  # (The previous figures here — "579 guards / 32 smoke" — had drifted AND did
-  # not sum to their own total; corrected 3.7.2. The counts are now guarded in
-  # this file the same as the README's, so the next drift fails the build.)
-  # run-all.sh runs the suites concurrently and dispatches longest-first
-  # (report §5.1); this job shards them 4-way on top (report §5.2), balanced by
-  # smoke-fixture weight, so the wall clock is a quarter-shard, not the tail of
-  # one runner. The fixture-count guard runs per shard off the full checkout,
-  # so every shard still verifies the totals against all suites on disk.
+  # Cost: 923 fixtures, of which 864 run guards.js and 59 run smoke.js — most
+  # of those scoped to one phase by SMOKE_ONLY. The split is guarded in this
+  # file the same as the README's counts, so the next drift fails the build.
+  # run-all.sh dispatches longest-first; this job shards 4-way on top, packed
+  # by fixture weight (a smoke fixture costs about forty guards fixtures), so
+  # the wall clock is a quarter-shard, not the tail of one runner. The
+  # fixture-count guard runs per shard off the full checkout, so every shard
+  # still verifies the totals against all suites on disk.
   negative:
     runs-on: ubuntu-latest
     # Room for a shard's serial worst case, short enough that a fixture wedged
@@ -87,13 +78,13 @@ jobs:
       matrix:
         include:
           - shard: "1"
-            pick: 'negtest(450|175|164|190|195|200|250|251|273|320|350|380|410|478|510|550)\.sh'
+            pick: 'negtest(186|252|260|270|271|300|320|340|390|440|470|510|560)\.sh'
           - shard: "2"
-            pick: 'negtest(183|171|166|161|162|252|270|310|330|360|131|420|460|480|520)\.sh'
+            pick: 'negtest(163|165|171|175|177|187|220|310|350|380|410|478|500|530|540)\.sh|negtest\.sh'
           - shard: "3"
-            pick: 'negtest(165|170|172|187|163|210|260|271|340|370|390|430|470|476|490)\.sh'
+            pick: 'negtest(131|162|164|166|180|185|190|200|250|330|360|370|430|460|476|490|550)\.sh'
           - shard: "4"
-            pick: 'negtest(300|185|182|186|180|176|177|181|220|272|400|440|475|500|530|540)\.sh|negtest\.sh'
+            pick: 'negtest(161|170|172|176|181|182|183|195|210|251|272|273|400|420|450|475|480|520)\.sh'
     steps:
       - uses: actions/checkout@v5
 
@@ -107,22 +98,11 @@ jobs:
       # The union check. The shard lists above are prose, and prose drifts —
       # a suite added to qa/negative/ but not to a pick pattern would silently
       # never run in CI. Every shard asserts the union covers every suite on
-      # disk, so the drift fails the build the same day it happens.
-      #
-      # It used to carry a FIFTH copy of the shard lists, hand-maintained, with
-      # a comment asking whoever edited the matrix to keep the two in step.
-      # Nobody did: negtest252 was added to shard 2 in the 2.5.2 round and
-      # negtest260 to shard 3 in 2.6.0, and neither reached the copy. Both
-      # uploads went red on this step — and because it runs BEFORE run-all.sh,
-      # the negative suites did not run in CI at all for two releases. The
-      # check written to catch pick-pattern drift drifted, and it failed loudly
-      # about the wrong thing while quietly skipping the work.
-      #
-      # It now reads the patterns out of this file instead of restating them,
-      # so there is one source and no copy to forget. It also asserts it read
-      # four of them, because a check that silently reads zero patterns would
-      # call every suite uncovered, and one that reads three would wave a whole
-      # missing shard through.
+      # disk, reading the patterns out of this file rather than restating them
+      # (a restated copy drifted, and failed loudly about the wrong thing
+      # while quietly skipping the work — NOTES.md). It asserts it read four,
+      # because a check that reads zero calls every suite uncovered and one
+      # that reads three waves a whole missing shard through.
       - name: every suite lands in some shard
         run: |
           PATTERNS=$(sed -n "s/^ *pick: '\(.*\)'$/\1/p" .github/workflows/qa.yml)
@@ -144,27 +124,29 @@ jobs:
 
       - run: bash qa/negative/run-all.sh '${{ matrix.pick }}'
 
-  # The behavioral instrument, in CI at last (H-3 of the 10 Aug review).
-  # browser-check.mjs is the only tool that can observe scroll restore, focus
-  # restore, belt park/drop rendering, sticky offsets, the service worker's
-  # offline promise, CSP console violations and the axe passes — precisely the
-  # defect classes with this project's worst shipping history (scroll clamp
-  # 3.3.2/3.4.0, focus loss 3.4.0, group collapse 3.4.1, the belt rendering
-  # nothing on six real browsers in 3.6.4). Until 3.7.2 it was manual-only,
-  # so between runs those behaviors were enforced by source-shape regexes
-  # that, by their own admission, cannot observe behavior. It runs on every
-  # push and nightly like everything else: the workflow exists so that no
-  # suite's evidence is produced only by hand on the release machine.
+  # The behavioral instrument. browser-check.mjs is the only tool that can
+  # observe scroll restore, focus restore, belt park/drop rendering, sticky
+  # offsets, the service worker's offline promise, CSP console violations and
+  # the axe passes — precisely the defect classes with this project's worst
+  # shipping history. It runs on every push and nightly like everything else:
+  # the workflow exists so that no suite's evidence is produced only by hand
+  # on the release machine. Two engines, one job: iOS is where the clip-path
+  # ornaments actually ship, and a WebKit-only red is exactly the finding the
+  # second engine exists to produce. The two are independent (fail-fast off).
   browser:
     # Pinned, not latest: `playwright install --with-deps` runs apt with a
-    # package list the pinned Playwright (1.56) must know. Every time GitHub
-    # advances ubuntu-latest, this job dies at ~40s until the pin catches up
-    # (the 24.04 rollover did the same to half of GitHub). 24.04 is the newest
-    # image Playwright 1.56 knows. Move this pin only together with a
-    # Playwright bump in package-lock.json.
+    # package list the pinned Playwright must know, and every time GitHub
+    # advances ubuntu-latest this job dies at ~40s until the pin catches up.
+    # Playwright 1.62 (package-lock.json) supports 24.04; re-check the
+    # supported images whenever the Playwright pin moves, and move this one
+    # only then.
     runs-on: ubuntu-24.04
     # The check itself takes ~1 minute; the browser download dominates.
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
     steps:
       - uses: actions/checkout@v5
 
@@ -175,62 +157,34 @@ jobs:
 
       - run: npm ci
 
-      # ~150 MB re-downloaded on every run was this job's dominant cost, by the
-      # file's own admission. The key carries the lockfile hash, so a Playwright
-      # bump invalidates it and nothing else does.
+      # ~150 MB re-downloaded on every run was this job's dominant cost. The
+      # key carries the lockfile hash, so a Playwright bump invalidates it and
+      # nothing else does.
       - uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: playwright-${{ matrix.engine }}-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
-      - run: npx playwright install chromium --with-deps
+      - run: npx playwright install ${{ matrix.engine }} --with-deps
 
       # A served copy, not file:// — sw.js registration and the CSP only
       # behave like production over HTTP. The port is browser-check's default.
-      - run: |
-          python3 -m http.server 8099 --directory docs &
-          # `sleep 1` was a bet that the server binds inside a second. It
-          # usually does; a loaded runner is where it does not, and the failure
-          # reads as a browser bug rather than a race.
-          for i in $(seq 1 30); do
-            curl -sf -o /dev/null http://127.0.0.1:8099/index.html && break
-            sleep 0.5
-          done
-          npm run browser
-
-  # WebKit, at last (parked since the 4.2.x audits; the deco pass fired the
-  # trigger). iOS is where the clip-path ornaments actually ship, and until
-  # this job the hero's cut — and now the CTA's and the lead pick's — was
-  # verified on the one engine that was never going to be the problem. Same
-  # file, same checks, same server; only the engine differs. It runs after
-  # the Chromium job in spirit but not in sequence — the two are independent,
-  # and a WebKit-only red is exactly the finding this job exists to produce.
-  browser-webkit:
-    # Same pin, same reason as the Chromium job: move only with a Playwright
-    # bump in package-lock.json.
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-
-      - run: npm ci
-
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-webkit-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-
-      - run: npx playwright install webkit --with-deps
-
+      # The loop waits for the server to bind: a fixed sleep is a bet that a
+      # loaded runner loses, and the loss reads as a browser bug.
       - run: |
           python3 -m http.server 8099 --directory docs &
           for i in $(seq 1 30); do
             curl -sf -o /dev/null http://127.0.0.1:8099/index.html && break
             sleep 0.5
           done
-          NW_ENGINE=webkit npm run browser
+          NW_ENGINE=${{ matrix.engine }} npm run browser
+
+      # The screenshots browser-check writes are the evidence a red run
+      # leaves behind; a green run's are noise. Kept for a week.
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-shots-${{ matrix.engine }}
+          path: qa/.shots/
+          if-no-files-found: ignore
+          retention-days: 7
