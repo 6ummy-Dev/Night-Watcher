@@ -61,6 +61,10 @@ function finish(){
   if(finished) return;
   finished = true;
   clearTimeout(watchdog);
+  /* 4.5.3: a watchdog timeout used to print only the count — "1 smoke
+     failure(s)" with no reason. The reason is a fail like any other and is
+     printed like one. */
+  if(fails.length) fails.forEach(function(f){ if(/never finished/.test(f)) console.log("  FAIL " + f); });
   console.log(fails.length ? "\n" + fails.length + " smoke failure(s)\n" : "\n  ✓ smoke passed\n");
   process.exit(fails.length ? 1 : 0);
 }

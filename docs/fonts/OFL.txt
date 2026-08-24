@@ -97,9 +97,16 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 ---
 
 IBM Plex Sans and IBM Plex Mono
-Copyright 2017 IBM Corp. with Reserved Font Name "Plex"
+Copyright © 2017 IBM Corp. with Reserved Font Name "Plex"
 Licensed under the SIL Open Font License, Version 1.1 (text above).
 https://github.com/IBM/plex
+
+The four Plex files shipped here are subsets — Modified Versions under the
+licence — and are therefore renamed, per its section 3: the font family they
+present is "NW Sans" / "NW Mono" (name table and @font-face alike), not the
+Reserved Font Name. The file names keep "ibm-plex" so the files stay
+addressable; a file name is not the name presented to users. The copyright
+notice above travels with them unchanged, as the licence requires.
 
 ---
 

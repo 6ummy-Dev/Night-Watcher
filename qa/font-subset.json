@@ -6,23 +6,23 @@
       "subset": true
     },
     "ibm-plex-mono-latin-400-normal.woff2": {
-      "bytes": 7696,
-      "sha256": "bf4c3cffb6f4fd407234ca548bd9a34737ae3d7af61f33605e7cf0891c4d1fd5",
+      "bytes": 7724,
+      "sha256": "7db87db69204e3b6ba7d9ddded71612aa9d8a9283ee99e24bba052ffb8933d0b",
       "subset": true
     },
     "ibm-plex-mono-latin-600-normal.woff2": {
-      "bytes": 7724,
-      "sha256": "e2d298fb1d4ac78d5d968a09748331b25613c20dbbaf386b5f637dd564ac21dc",
+      "bytes": 7720,
+      "sha256": "5aaec475f108f630b5217bd5b663b56feda2a7f23dd4e6b90ab75783b77b15d6",
       "subset": true
     },
     "ibm-plex-sans-latin-400-normal.woff2": {
-      "bytes": 7980,
-      "sha256": "8a02db426665b634c454a597b05d299a8817a72609ae126196d1bed01fc0bb86",
+      "bytes": 8016,
+      "sha256": "92dd4b5c39f679771c7b03ee3cfc77348484f3809f1489e4d6192e84fddf220a",
       "subset": true
     },
     "ibm-plex-sans-latin-600-normal.woff2": {
-      "bytes": 8360,
-      "sha256": "3731c0fd0bfd9a6ae27e1470efa2574ef15c0698a747cce8087836705b702020",
+      "bytes": 8296,
+      "sha256": "fac7d4cf9f75e73ba1b754329765fc6b666db2071b33d869009b09978c9da451",
       "subset": true
     },
     "limelight-latin-400-normal.woff2": {

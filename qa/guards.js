@@ -297,7 +297,7 @@ process.on("uncaughtException", function(e){
 function warn(m){ warns.push(m); }
 function note(m){ notes.push(m); }
 
-/* The "every section can fail" censuses in sections 66, 107 and 138 count
+/* The "every section can fail" censuses in sections 107 and 138 count
    `fail(` in code, not in the block comments that routinely QUOTE fail(...)
    while narrating a fix — a section whose assertions were commented out used
    to satisfy all three. The stripper is string-aware because a regex one is
@@ -7974,10 +7974,108 @@ var ROUTE_VOCAB = [
     }
   });
 
+  /* 4.5.3: A SUBSET IS A MODIFIED VERSION, AND A MODIFIED VERSION MAY NOT
+     CARRY A RESERVED FONT NAME (OFL 1.1 §3; the OFL FAQ 2.6 says subsetting
+     does not normally get to keep one). The names OFL.txt reserves are read
+     from the file — "with Reserved Font Name X" — and no face the manifest
+     marks subset may carry one in its name table (IDs 1, 4, 6, 16: what a
+     font menu shows) or in the @font-face family the page declares for it
+     (FAQ 5.3: "other mechanisms that specify a font in a document"). This
+     is why Limelight ships whole and why the Plex subsets are NW Sans and
+     NW Mono. The name table is read out of the woff2 here: the directory,
+     one brotli stream, the untransformed `name` table at its offset. */
+  function woff2Names(buf){
+    if(buf.toString("latin1", 0, 4) !== "wOF2") return null;
+    var numTables = buf.readUInt16BE(12), pos = 48;
+    function b128(){
+      var v = 0;
+      for(var i = 0; i < 5; i++){ var c = buf[pos++]; v = (v << 7) | (c & 0x7f); if(!(c & 0x80)) return v; }
+      return null;
+    }
+    var KNOWN = ["cmap","head","hhea","hmtx","maxp","name","OS/2","post","cvt ","fpgm","glyf","loca","prep","CFF ","VORG","EBDT","EBLC","gasp","hdmx","kern","LTSH","PCLT","VDMX","vhea","vmtx","BASE","GDEF","GPOS","GSUB","EBSC","JSTF","MATH","CBDT","CBLC","COLR","CPAL","SVG ","sbix","acnt","avar","bdat","bloc","bsln","cvar","fdsc","feat","fmtx","fvar","gvar","hsty","just","lcar","mort","morx","opbd","prop","trak","Zapf","Silf","Glat","Gloc","Feat","Sill"];
+    var tables = [], off = 0;
+    for(var t = 0; t < numTables; t++){
+      var flags = buf[pos++], tag;
+      if((flags & 0x3f) === 0x3f){ tag = buf.toString("latin1", pos, pos + 4); pos += 4; }
+      else tag = KNOWN[flags & 0x3f];
+      var origLength = b128(), xform = (flags >> 6) & 3, len = origLength;
+      if((tag === "glyf" || tag === "loca") ? xform === 0 : xform !== 0) len = b128();
+      if(origLength === null || len === null) return null;
+      tables.push({tag: tag, offset: off, length: len});
+      off += len;
+    }
+    var data = require("zlib").brotliDecompressSync(buf.slice(pos, pos + buf.readUInt32BE(20)));
+    var nm = tables.filter(function(x){ return x.tag === "name"; })[0];
+    if(!nm) return null;
+    var n = data.slice(nm.offset, nm.offset + nm.length);
+    var count = n.readUInt16BE(2), strOff = n.readUInt16BE(4), out = [];
+    for(var i = 0; i < count; i++){
+      var r = 6 + i * 12, pid = n.readUInt16BE(r), nid = n.readUInt16BE(r + 6);
+      var sl = n.readUInt16BE(r + 8), so = n.readUInt16BE(r + 10);
+      var s = n.slice(strOff + so, strOff + so + sl), txt;
+      if(pid === 3 || pid === 0){
+        var sw = Buffer.alloc(s.length);
+        for(var k = 0; k + 1 < s.length; k += 2){ sw[k] = s[k + 1]; sw[k + 1] = s[k]; }
+        txt = sw.toString("utf16le");
+      } else txt = s.toString("latin1");
+      out.push({id: nid, text: txt});
+    }
+    return out;
+  }
+  var oflTxt = fs.existsSync(path.join(dir, "OFL.txt")) ? fs.readFileSync(path.join(dir, "OFL.txt"), "utf8") : "";
+  /* Quoted ("Plex") or bare (Limelight.) — a bare name runs while the words
+     stay capitalised, so the sentence after it is not swept in. */
+  var reserved = [], rm, rre = /Reserved Font Name\s+(?:"([^"]+)"|([A-Z][A-Za-z0-9]*(?: [A-Z][A-Za-z0-9]*)*))/g;
+  while((rm = rre.exec(oflTxt))){ var nm = rm[1] || rm[2]; if(reserved.indexOf(nm) < 0) reserved.push(nm); }
+  if(!reserved.length){
+    fail("docs/fonts/OFL.txt names no Reserved Font Name — Limelight's and " +
+         "Plex's headers both do, and the subset rule below reads them from " +
+         "the file rather than restating them");
+  }
+  var faceFamily = {};
+  (HTML.match(/@font-face\{[^}]*\}/g) || []).forEach(function(blk){
+    var fam = (blk.match(/font-family:"([^"]+)"/) || [])[1];
+    var src = (blk.match(/src:url\("fonts\/([^"]+)"\)/) || [])[1];
+    if(fam && src) faceFamily[src] = fam;
+  });
+  var carries = function(text){
+    return reserved.filter(function(nm){ return new RegExp("\\b" + nm + "\\b", "i").test(text); });
+  };
+  named.forEach(function(f){
+    if(!man.files[f].subset || onDisk.indexOf(f) < 0) return;
+    var names = null;
+    try{ names = woff2Names(fs.readFileSync(path.join(dir, f))); }catch(e){ names = null; }
+    if(!names){
+      fail("could not read the name table of docs/fonts/" + f + " — a subset " +
+           "face whose names cannot be read cannot be shown to carry no " +
+           "Reserved Font Name");
+      return;
+    }
+    names.filter(function(x){ return [1, 4, 6, 16].indexOf(x.id) >= 0; }).forEach(function(x){
+      var hit = carries(x.text);
+      if(hit.length){
+        fail("docs/fonts/" + f + " is a subset (a Modified Version) and its name " +
+             "table still says \"" + x.text + "\" — OFL.txt reserves \"" + hit[0] +
+             "\", and OFL 1.1 §3 does not let a Modified Version carry it. " +
+             "qa/subset-fonts.py renames the family; run it");
+      }
+    });
+    if(faceFamily[f]){
+      var hit2 = carries(faceFamily[f]);
+      if(hit2.length){
+        fail("index.html declares @font-face " + JSON.stringify(faceFamily[f]) +
+             " for the subset docs/fonts/" + f + " — the CSS family string is " +
+             "the name the document presents (OFL FAQ 5.3), and \"" + hit2[0] +
+             "\" is reserved");
+      }
+    }
+  });
+
   var total = onDisk.reduce(function(a, f){ return a + fs.statSync(path.join(dir, f)).size; }, 0);
   var sub = named.filter(function(f){ return man.files[f].subset; }).length;
   note("fonts: " + onDisk.length + " faces, " + sub + " subset, " + total +
-       " bytes, " + Object.keys(ok).length + " codepoints in range");
+       " bytes, " + Object.keys(ok).length + " codepoints in range; reserved " +
+       "names (" + reserved.join(", ") + ") on no subset face or its @font-face");
 })();
 
 /* ---------- 107. Every section can fail, and every section runs -------- */
@@ -12257,6 +12355,7 @@ var ROUTE_VOCAB = [
     warn("could not parse .git/index (version " + (raw.length >= 8 ? raw.readUInt32BE(4) : "?") +
          ") — falling back to a byte scan, which a prefix-compressed index can slip past");
     listed = raw.includes(".wrangler/") ? [".wrangler/"] : [];
+    listed.unparsed = true;
   }
   var stray = listed.filter(function(p){ return p.indexOf(".wrangler/") === 0; });
   if(stray.length){
@@ -12266,8 +12365,10 @@ var ROUTE_VOCAB = [
          "nothing under it is part of the tree");
     return;
   }
-  note("the git index (version " + raw.readUInt32BE(4) + ", " + listed.length +
-       " entries) carries no .wrangler/ objects");
+  note(listed.unparsed
+       ? "the git index (version " + raw.readUInt32BE(4) + ", unparsed; byte-scanned) carries no .wrangler/ bytes"
+       : "the git index (version " + raw.readUInt32BE(4) + ", " + listed.length +
+         " entries) carries no .wrangler/ objects");
 })();
 
 /* ---------- 145. Every top-level function is a declaration the extractor can see - */

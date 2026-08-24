@@ -16,12 +16,23 @@ catalogue takes data patches by design. The safe superset costs 21 KB and
 removes the failure mode.
 
 WHY LIMELIGHT IS NOT SUBSET. Its OFL header reads "with Reserved Font Name
-Limelight". (IBM Plex's reserves "Plex" too — a clause the shipped OFL.txt had
-dropped until 4.5.2; the Plex faces stay subset, an open judgement recorded in
-NOTES.md under The seal.) Under OFL 1.1 a Modified Version may
-not carry the reserved name as presented to users, so subsetting it means
-renaming the family in the name table, in @font-face and in --deco. Real CSS
-churn and a licensing judgement, for 10.3 KB. Left whole on purpose.
+Limelight". Under OFL 1.1 a Modified Version may not carry the reserved name as
+presented to users, so subsetting it means renaming the family in the name
+table, in @font-face and in --deco. Real CSS churn and a licensing judgement,
+for 10.3 KB. Left whole on purpose.
+
+WHY THE PLEX FACES ARE RENAMED (4.5.3). IBM's upstream header reserves "Plex"
+too — a clause the shipped OFL.txt had dropped, so for two releases the notes
+said only Limelight reserved a name. The four Plex subsets are Modified
+Versions, and the OFL FAQ (2.6) says subsetting does not normally get to keep
+a Reserved Font Name. So RENAME below rewrites name IDs 1, 3, 4, 6, 16 to
+"NW Sans" / "NW Mono" after subsetting, and @font-face, --body, --mono and the
+story card's canvas font declare the same. The file names keep "ibm-plex":
+a file name is not "the name presented to users" (FAQ 5.3 — the font menu
+name and the mechanisms that specify a font in a document), and it is what
+_headers, sw.js and the manifest address. Guard 106 holds the rename: no
+subset file, and no @font-face for one, may carry a name OFL.txt reserves.
+Zero bytes; the same rule Limelight got, with the answer that costs nothing.
 
 SOURCES. The originals are the @fontsource packages, unmodified:
     @fontsource/ibm-plex-sans   ibm-plex-sans-latin-{400,600}-normal.woff2
@@ -46,6 +57,29 @@ RANGES = ["U+0020-007E", "U+00A0-00FF", "U+2010-2015", "U+2018-201F",
           "U+2026", "U+2032-2033", "U+20AC", "U+2122"]
 
 KEEP_WHOLE = ["limelight-latin-400-normal.woff2"]   # Reserved Font Name
+
+# Family renames for subset faces whose upstream reserves the name. Applied to
+# name IDs 1 (family), 4 (full), 6 (PostScript), 16 (typographic family) and
+# the family half of 3 (unique id); the subfamily, copyright, version and
+# licence records are untouched, as OFL requires the copyright notice to stay.
+RENAME = {
+    "ibm-plex-sans-": [("IBM Plex Sans", "NW Sans"), ("IBMPlexSans", "NWSans")],
+    "ibm-plex-mono-": [("IBM Plex Mono", "NW Mono"), ("IBMPlexMono", "NWMono")],
+}
+
+
+def rename_family(path, pairs):
+    from fontTools.ttLib import TTFont
+    font = TTFont(path)
+    for rec in font["name"].names:
+        if rec.nameID not in (1, 3, 4, 6, 16):
+            continue
+        txt = rec.toUnicode()
+        for old, new in pairs:
+            txt = txt.replace(old, new)
+        rec.string = txt
+    font.flavor = "woff2"
+    font.save(path)
 
 
 def expand(ranges):
@@ -81,6 +115,10 @@ def main():
             "--desubroutinize", "--output-file=" + p + ".sub",
         ])
         os.replace(p + ".sub", p)
+        for prefix, pairs in RENAME.items():
+            if f.startswith(prefix):
+                rename_family(p, pairs)
+                print("renamed     %-42s %s" % (f, " / ".join(n for _, n in pairs)))
         print("subset      %-42s %6d -> %6d" % (f, before, os.path.getsize(p)))
 
     manifest = {
