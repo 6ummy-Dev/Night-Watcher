@@ -137,6 +137,7 @@ function blessHtml(next){
      146  The hero wears the cut
      148  The cut is rank, and everyone else stands square
      149  The reader's place has one memory
+     150  The city: the shaft is the chart, the crown is above it
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -12597,6 +12598,96 @@ var ROUTE_VOCAB = [
     fail("the swipe arrival stopped consulting the memory — render's keep " +
          "comes from the DOM, which on arrival is exactly the number the " +
          "engine clamped while the panel was parked");
+  }
+})();
+
+/* ---------- 150. The city: the shaft is the chart, the crown is above it ---- */
+/* 4.5.0. The Progress skyline and the story card's chart became one city.
+   The organizing rule, and the one every claim below protects: everything
+   MEASURED lives in a uniform-height shaft — width is group size, solid
+   --signal rising from the ground is watched, --steel stacked on it is
+   skipped, exactly the encoding 3.8.2 shipped. Above the shaft sits a
+   crown that carries no magnitude at all; it is form, and it is lit only
+   when the shaft under it is already full, so the ornament can never make
+   a building look further along than it is. The crown is stacked blocks
+   and masts, never clip-path: ~44 polygons on a view that re-renders on
+   every tick was the cost the 20 Aug plan measured and the cut declined.
+   Roofs are seeded from the group's FROZEN code (PATH's n, the era and
+   decade keys) through idHash, so a universe wears the same roof on a
+   phone, on a desktop and on the card — and an index seed would silently
+   reshuffle the whole city the next time a continuity is inserted. */
+(function(){
+  var sky = fn("skyline"), card = fn("drawShareCard"), vs = fn("viewStats");
+  if(!/var ROOFS = \{/.test(HTML) || !/function roofOf\(code, n\)/.test(HTML) ||
+     !/function crownState\(d, k, n\)/.test(HTML)){
+    fail("the roof spec is gone — ROOFS, roofOf() and crownState() are the " +
+         "one vocabulary both renderers draw from");
+  }
+  if(!/parseInt\(idHash\(code\), 36\)/.test(fn("roofOf"))){
+    fail("roofOf() no longer seeds from idHash of the code — the roof must be " +
+         "a function of the frozen group code, nothing else");
+  }
+  if(!/uniGroups\.push\(\{key:"c"\+gi, code:"u"\+g\.n,/.test(vs) ||
+     !/code:"e"\+era\.k,/.test(vs) || !/code:"d"\+dec\.k,/.test(vs)){
+    fail("a Progress group lost its frozen roof code — universes seed from " +
+         "PATH's n, eras and decades from their keys; the array index is not " +
+         "a seed, it reshuffles the city on the next insertion");
+  }
+  if(!/\["c" \+ gi, "u" \+ g\.n\]/.test(card) || !/roofOf\(k\[1\], fs\.length\)/.test(card)){
+    fail("the card seeds its roofs differently from the app — same code, " +
+         "same roof, on every screen and on the card");
+  }
+  if(!/roofOf\(g\.code, n\)/.test(sky) || !/roof\.levels\.forEach/.test(sky) ||
+     !/b\[5\]\.levels\.forEach/.test(card)){
+    fail("one spec, two renderers: the skyline or the card stopped drawing " +
+         "its crowns from ROOFS levels");
+  }
+  var shaftJs = (HTML.match(/var SKYSHAFT = (\d+);/) || [])[1];
+  var shaftCss = (HTML.match(/\.pie\{[^}]*--sh:(\d+)px/) || [])[1];
+  if(!shaftJs || !shaftCss || shaftJs !== shaftCss){
+    fail("the shaft height disagrees between SKYSHAFT (" + shaftJs + ") and " +
+         "the .pie --sh token (" + shaftCss + "px) — crown levels are laid " +
+         "out in px from the JS number against a CSS box of the CSS number");
+  }
+  if(!/return d === n \? "lit" : d \+ k === n \? "skd" : "";/.test(fn("crownState"))){
+    fail("crownState() lights a crown before the shaft is full — a lit crown " +
+         "may only ever add gold to a building that is already complete, so " +
+         "the reinforcement stays monotone");
+  }
+  if(/background:/.test(sky)){
+    fail("the skyline carries an inline background — crown colour lives in " +
+         ".seg.lit / .seg.skd classes and steel means skipped nowhere else");
+  }
+  if(!/\.sky \.seg\.lit \.cr \.p\{background:var\(--signal\);\}/.test(HTML) ||
+     !/\.sky \.seg\.skd \.cr \.p\{background:var\(--steel\);\}/.test(HTML) ||
+     !/\.sky \.cr \.p\{background:var\(--line2\);\}/.test(HTML)){
+    fail("the crown colour classes are gone or off-palette — --line2 unlit, " +
+         "--signal lit, --steel when the rest was skipped");
+  }
+  if(/clip-path/.test((HTML.match(/\.sky[^{]*\{[^}]*\}/g) || []).join(""))){
+    fail("a clip-path came back into the city — crowns are stacked blocks " +
+         "and masts by design; the polygon cost was measured and declined");
+  }
+  var shaft = (HTML.match(/\.sky \.sh i\{[^}]*\}/) || [""])[0];
+  if(!shaft || /gradient/.test(shaft)){
+    fail("the city's fill is ribbed — the one progress fill that stays solid, " +
+         "on the record: ribs cross the axis a bar travels along, and the city " +
+         "fills upward, so vertical ribs encode nothing and cost every tower " +
+         "its footprint");
+  }
+  if(!/\.sky\{[^}]*gap:1px/.test(HTML)){
+    fail("the street is not 1px — the gap between buildings is the only line " +
+         "in the city and the thing that makes 44 universes countable");
+  }
+  if(/roundRect/.test(card)){
+    fail("the card's buildings are rounded again — the card joined the square " +
+         "family in 4.5.0");
+  }
+  var bs = (HTML.match(/\.bigstat button\{[^}]*\}/) || [""])[0];
+  if(!/\.bigstat\{[^}]*margin:0 -18px/.test(HTML) || !/border:0/.test(bs) ||
+     !/background:none/.test(bs) || !/\.bigstat button\+button\{border-left:1px solid var\(--line\);\}/.test(HTML)){
+    fail("the numerals row grew its boxes back — three cells on hard 1px " +
+         "rules, full-bleed, no tiles; the buttons underneath are section 40's");
   }
 })();
 

@@ -1363,6 +1363,37 @@ win.addEventListener("load", function(){
               doc.querySelector("#view .panel:not([inert]) .sky").innerHTML) ||
             !!seg0.querySelector("i.sk"),
             "only .sk may be steel");
+      /* --- 4.5.0, the city: the shaft is the chart, the crown is above it.
+         A crown carries no magnitude and lights only once the shaft under
+         it is full — steel when the rest was skipped, gold when all watched,
+         and nothing of its own while the building is still rising. The
+         three states are driven on one group so none can pass vacuously,
+         and the state is put back afterwards for the fold checks below. --- */
+      var segSel = '#view .panel:not([inert]) .sky .seg[data-gk="' + sg.key + '"]';
+      check("a building is a shaft and a crown",
+            !!seg0 && !!seg0.querySelector(".sh") && !!seg0.querySelector(".cr"),
+            seg0 ? seg0.innerHTML.slice(0, 60) : "(column not found)");
+      check("a topped-out building whose rest was skipped wears the steel crown",
+            !!seg0 && / skd\b/.test(" " + seg0.className) && !/ lit\b/.test(" " + seg0.className),
+            seg0 ? seg0.className : "-");
+      S.skipped = {}; sg.films.forEach(function(f){ S.watched[f.id] = 1; }); win.render();
+      seg0 = doc.querySelector(segSel);
+      check("a fully watched building lights its crown gold",
+            !!seg0 && / lit\b/.test(" " + seg0.className), seg0 ? seg0.className : "-");
+      S.watched = {}; S.watched[sg.films[0].id] = 1; win.render();
+      seg0 = doc.querySelector(segSel);
+      check("a building still rising wears no crown colour of its own",
+            !!seg0 && !/ (lit|skd)\b/.test(" " + seg0.className), seg0 ? seg0.className : "-");
+      var crown0 = seg0 ? seg0.querySelector(".cr").innerHTML : "";
+      S.mode = "release"; win.render(); S.mode = "continuity"; win.render();
+      seg0 = doc.querySelector(segSel);
+      check("the same universe wears the same roof on every render",
+            !!seg0 && seg0.querySelector(".cr").innerHTML === crown0);
+      S.watched = {}; S.skipped = {};
+      sg.films.forEach(function(f, i){
+        if(i === 0) S.skipped[f.id] = 1; else S.watched[f.id] = 1;
+      });
+      win.render();
       S.mode = "life"; win.render();
       var eraSegs = doc.querySelectorAll('#view .panel:not([inert]) .sky .seg');
       check("the outside-any-timeline column wears no colour of its own",
@@ -2126,6 +2157,11 @@ win.addEventListener("load", function(){
       win.setAllGroups(true);
       FILMS.forEach(function(f){ S.watched[f.id] = 1; });
       ["home", "next", "watch", "stats"].forEach(function(t){ S.tab = t; win.render(); sweep(); });
+      /* 4.5.0: the city's steel crown — every building topped out by skips,
+         so a crowned one is certain to be among them. */
+      S.watched = {}; FILMS.forEach(function(f){ S.skipped[f.id] = 1; });
+      S.tab = "stats"; win.render(); sweep();
+      S.skipped = {}; FILMS.forEach(function(f){ S.watched[f.id] = 1; }); win.render();
       doc.documentElement.setAttribute("data-theme", "darker"); sweep();
       doc.documentElement.setAttribute("data-theme", "dark");
       /* 3.5.0: the parked flag is set by an IntersectionObserver jsdom does not
