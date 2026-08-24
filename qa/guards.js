@@ -12684,10 +12684,11 @@ var ROUTE_VOCAB = [
          "family in 4.5.0");
   }
   var bs = (HTML.match(/\.bigstat button\{[^}]*\}/) || [""])[0];
-  if(!/\.bigstat\{[^}]*margin:0 -18px/.test(HTML) || !/border:0/.test(bs) ||
+  if(!/\.bigstat\{[^}]*border:1px solid var\(--line\)/.test(HTML) || !/border:0/.test(bs) ||
      !/background:none/.test(bs) || !/\.bigstat button\+button\{border-left:1px solid var\(--line\);\}/.test(HTML)){
-    fail("the numerals row grew its boxes back — three cells on hard 1px " +
-         "rules, full-bleed, no tiles; the buttons underneath are section 40's");
+    fail("the numerals row grew its boxes back — one card at the column's " +
+         "width, three cells on hard 1px rules, no tiles; the buttons " +
+         "underneath are section 40's");
   }
 })();
 

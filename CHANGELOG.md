@@ -52,17 +52,18 @@ did not move. Catalogue untouched, nothing ticked moves.
   `ROOFS`, `SKYSHAFT` agreeing with the `--sh` token, `crownState()` lighting
   only a full shaft, crown colour by class and never inline, no `clip-path`
   in the city, the solid fill, the 1px street, the card's square buildings,
-  and the numerals row without its boxes. `negtest550` — 17 fixtures, three
+  and the numerals row without its tiles. `negtest550` — 17 fixtures, three
   through smoke.
 
 ### Changed
 
-- **Full-bleed.** The chart loses its box and runs edge to edge (the owner's
-  call), 150px tall on a phone: 96px shaft, up to 40% of that in crown. The
-  kicker and the sub-line align left; the sub-line gains the topped-out
-  count, where it is a fact and not a control.
-- **The numerals row.** Watched · To go · Skipped lose their tiles: three
-  cells on hard 1px rules, full-bleed, 38px numerals over 8.5px labels. The
+- **The chart is a card.** Same frame as every other card on Progress
+  (the plan's full-bleed was cut on sight — "too wide"); inside it the city
+  runs frame to frame, 150px tall on a phone: 96px shaft, up to 40% of that
+  in crown. The sub-line gains the topped-out count, where it is a fact and
+  not a control.
+- **The numerals row.** Watched · To go · Skipped lose their tiles: one
+  card, three cells on hard 1px rules, 38px numerals over 8.5px labels. The
   three tier buttons underneath are section 40's, unchanged.
 - **The one progress fill that stays solid.** The deco pass ribbed every
   fill; the city does not, and the reason is the ribbing rule itself: ribs

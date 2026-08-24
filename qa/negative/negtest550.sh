@@ -10,7 +10,7 @@
 # background in the skyline, the crown classes off-palette. Fixtures 10–12:
 # the three design calls on the record — a clip-path back in the city, the
 # fill ribbed, the street widened. Fixture 13: the card rounding again.
-# Fixture 14: the numerals row growing its boxes back. Fixtures 15–17 drive
+# Fixture 14: the numerals row growing its tiles back. Fixtures 15–17 drive
 # the render through smoke: a crown lit while rising, a shaft dropped from
 # the markup, and a roof that changes between renders.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
