@@ -1,123 +1,75 @@
 # Response headers for every path served by the Worker's static assets.
 #
-# SUPERSEDED 8 AUG 2026 — the claim that stood here was wrong. It read:
-# "Cloudflare Response Header Transform Rules do NOT apply to responses a
-# Worker generates, which is why these live here and not in the dashboard."
-# They DO apply, and they WIN. A rule named "Security headers", active on all
-# incoming requests, had been setting Permissions-Policy, Referrer-Policy and
-# X-Frame-Options at the edge — and for the whole of 3.4.2 the wire served the
-# rule's Permissions-Policy rather than the one below, while guard 104 stayed
-# green because it reads this file and the file was correct. The 4 Aug reading
-# that produced the wrong claim tested a rule that set nothing, and a rule that
-# sets nothing proves nothing about rules.
+# THESE LIVE HERE AND NOT IN THE DASHBOARD because a file in the tree can be
+# diffed, guarded (section 104) and shipped inside a release, and a dashboard
+# rule can be none of those. Dashboard Transform Rules DO apply to these
+# responses and they WIN — one served a stale Permissions-Policy for a whole
+# release while every guard stayed green — so the wire is read after every
+# deploy (RELEASING.md, "The wire checks"); no guard can read a panel, and one
+# that pretended to would be worse than an honest gap.
 #
-# THE DECISION IS UNCHANGED AND THE REASON IS BETTER. These live here because a
-# file in the tree can be diffed, guarded and shipped inside a release, and a
-# dashboard rule can be none of those. The rule is deleted in 3.4.3, so this
-# file becomes the only thing setting these headers. NOTHING GUARDS THAT IT
-# STAYS DELETED — no guard can read a panel, and one that pretended to would be
-# worse than an honest gap — so the wire check lives in the release checklist:
-# RELEASING.md, "The wire checks". (Until 3.7.2 this comment delegated to a
-# checklist that did not exist anywhere in the repo — M-3 of the 10 Aug
-# review. It exists now.) qa/sweep-repo-page-dns-2026-08-08.md is the
-# maintainer's local evidence file, not in this repository.
+# This file applies to responses the assets plane serves. The two responses
+# worker.js constructs restate the security set themselves; guard 133 holds
+# them equal to the /* block below.
 #
 # HSTS and X-Content-Type-Options are set at the edge instead (SSL/TLS panel
 # and Managed Transforms) and are deliberately not duplicated here.
 #
 # Content-Security-Policy stays in the <meta> tag in index.html: the guards
 # bless its hash against the one inline script, and moving it to a header
-# would split one rule across two files. The 7 Aug 2026 Cloudflare Radar scan
-# reported the CSP MISSING and rated it P0 — a response-header scan cannot see
-# a <meta> policy, and the header it proposed (script-src 'self' 'unsafe-inline')
-# is weaker than the single sha256 that ships. qa/scan-triage-2026-08-07.md
-# (maintainer-local, not in this repository).
+# would split one rule across two files. A response-header scan cannot see a
+# <meta> policy and will report it missing; the header such a scan proposes
+# ('unsafe-inline') is weaker than the single sha256 that ships.
 #
-# CACHE POLICY, ADDED IN 3.0.0, AND IT ONLY TAKES EFFECT ON UPLOAD. Nothing in
-# this project declared one, so every file was cached with whatever Workers
-# Assets emits by default and Cloudflare caches .js at the edge. Two independent
-# routes reached the same conclusion: the six subset faces are 62,996 bytes,
-# network-first in the service worker, and re-fetched on a policy nobody wrote;
-# and on 5 Aug 2026 the bare /sw.js answered VERSION = "2.5.1" while the same
-# file with a cache-busting query answered 2.7.5.
+# CACHE POLICY. Nothing declared one before 3.0.0, so every file was cached
+# with whatever Workers Assets emits by default — and the bare /sw.js once
+# answered a version two releases old while the same file with a cache-busting
+# query answered the current one. sw.js is how a returning browser learns the
+# app changed, so it is no-cache (revalidate before use, not "do not store");
+# so is / , because the document IS the app and a non-SW visitor must
+# revalidate it or a bad deploy is sticky for exactly the readers the service
+# worker cannot help. The fonts are content-addressed by the subset script's
+# own hash record and never change under a name, so they take the year with
+# immutable. The icons, the manifest and the share card take A DAY, not a
+# year: a year with immutable is only honest behind a content-hashed filename,
+# and "unstable or frequently changed" is a listed Google cause of favicon
+# non-appearance, so the names stay stable and the policy stays short. If the
+# names ever become hashed they move to the fonts' policy.
 #
-# sw.js is the one file that must never be stale, because it is how a returning
-# browser learns the app changed — its own header comment says so. no-cache
-# does not mean "do not store": it means revalidate before use, which is exactly
-# what a version marker wants. The fonts are content-addressed by the subset
-# script's own hash record and never change under a name, so they take the year.
+# Permissions-Policy denies usb=() because the app never uses WebUSB — cheap
+# hardening. interest-cohort is NOT listed: FLoC was withdrawn, and section
+# 104 refuses that token by name.
 #
-# 3.4.2 ADDS THE TWO ICONS, AND THEY GET A DAY RATHER THAN A YEAR. Both were
-# served max-age=0 and revalidated on every visit — two conditional requests a
-# visit, forever, for files that do not change. A year with immutable is only
-# safe behind a content-hashed filename, and RENAMING THE FAVICON IS THE ONE
-# THING FORBIDDEN BEFORE 19 SEP: "unstable or frequently changed" is a listed
-# Google cause of favicon non-appearance, and this icon already changed twice in
-# three days. A day takes the win and leaves the names alone.
-#
-# 3.4.3 PUTS usb=() BACK. 3.4.2 removed it on a console warning from a scanner's
-# own engine, recorded as "not a registered Permissions-Policy feature". It is
-# one: usb is the policy-controlled feature for WebUSB and Chrome accepts it —
-# the live response carried usb=() while Chrome's console stayed silent through
-# three page loads. The app never uses WebUSB, so denying it is cheap hardening
-# that was taken for a wrong reason and is returned for a plain one.
-# interest-cohort does NOT come back: FLoC was withdrawn, and section 104 still
-# refuses that token by name.
-#
-# 3.7.1 MOVES THE TWO Link: LINES OUT OF /* AND UNDER /, AND THE REASON IS NOT
-# THE ONE THAT PROMPTED IT. An outside reading said the blanket canonical was
-# why GSC returned "Soft 404" for /icon.svg. IT IS NOT, and the control that
-# settled it is on file: three live tests, one instrument, one hour, 10 Aug.
-# /llms.txt carries this very header, Google READ it — User-declared canonical:
-# https://nightwatcher.life/ — and the verdict was still "URL is available to
-# Google · Page can be indexed". A header that blocked indexability could not
-# produce that row. /icon-192.png reported User-declared canonical: NONE, so a
-# PNG is never evaluated as a document at all, and it too came back available.
-# Only /icon.svg fails, because SVG is a renderable document format that renders
-# with no text. THE SOFT 404 IS SVG-SPECIFIC AND HARMLESS. qa/favicon-serp-2026-08.md
-# (maintainer-local, not in this repository).
-#
-# 3.7.2 DECLARES THE DOCUMENT'S OWN POLICY AT LAST (L-4 of the 10 Aug review).
-# This file's history above records exactly what an undeclared cache policy
-# cost sw.js; index.html — the entire app — was still riding the platform
-# default for every visitor the service worker cannot help. no-cache means
-# revalidate before use, which is what a single-file app whose only update
-# path is "serve the new file" wants. It rides under / because / is the whole
-# HTML surface: not_found_handling is "404-page", so no other path serves a
-# document.
-#
-# 3.7.2 ALSO ADDS THE REST OF THE ICON SET — the three tab-size PNGs, the iOS
-# home-screen icon and the Windows tile — each a day, for exactly the reasons
-# recorded for the first two icons above: stable names, no content hash, and
-# Google's stability rule.
-#
-# SO THIS MOVE BUYS NOTHING MEASURABLE AND SHIPS ON PRINCIPLE, WHICH IS RECORDED
-# HERE RATHER THAN DRESSED UP: a canonical relation is a statement about a
-# document, /* applies it to fonts, icons and sw.js, and RFC 8288 gives no
-# reading of "this PNG's authoritative version is the home page". The narrow
-# scope is what the file meant all along. Cloudflare's _headers matches on PATH
-# ONLY — never content type — and every matching rule applies cumulatively with
-# no way to unset, so scoping means removing from /* and re-declaring under /.
-# / is the whole HTML surface: wrangler.jsonc pins not_found_handling to
-# "404-page", NOT single-page-application, and the app is one page with hash
-# routing, so no other path ever serves a document. Section 104 asserts the
-# scope now, not merely the presence — the old regexes matched anywhere in this
-# file and would have stayed green through this very edit.
-#
-# 3.8.4 ADDS THE THIRD Link: LINE UNDER /, FOR AGENTS. The Cloudflare Agent
-# Readiness panel (12 Aug 2026) read the response and said "Link headers
-# present but no agent-useful relation types found". The site has no API, so
-# RFC 9727's api-catalog and service-doc would be fabrication; describedby is
-# the honest registered relation — "a resource that describes this one" — and
+# THE Link: LINES SIT UNDER /, NOT /*. A canonical relation is a statement
+# about a document; /* would apply it to fonts, icons and sw.js, and RFC 8288
+# gives no reading of "this PNG's authoritative version is the home page".
+# _headers matches on PATH ONLY — never content type — and every matching rule
+# applies cumulatively with no way to unset, so scoping means declaring under
+# / rather than /*. / is the whole HTML surface: wrangler.jsonc pins
+# not_found_handling to "404-page", so no other path ever serves a document.
+# describedby is the honest registered relation for an agent — the site has
+# no API, so RFC 9727's api-catalog and service-doc would be fabrication — and
 # /llms.txt IS the machine-readable description of this page, the same file
-# the Worker already serves to any client whose Accept prefers text/markdown.
-# The target is site-relative where the other two are absolute: canonical and
+# the Worker serves to any client whose Accept prefers text/markdown. The
+# target is site-relative where the other two are absolute: canonical and
 # sitemap name authoritative URLs and must not drift across origins; a
-# describedby points at a sibling of whatever origin served it, which is what
-# a relative reference says. Cloudflare suggested a Worker or Transform Rule
-# for this; the whole history above is why it lives here instead. Known risk,
-# accepted on the record: third-party checkers may only credit their own
-# example rels. Guard 104 pins the line and its scope, same as the other two.
+# describedby points at a sibling of whatever origin served it.
+#
+# Vary: Accept on / because worker.js negotiates the root: the HTML
+# fall-through is a second representation of the same URL, and a shared cache
+# that relaxes no-cache revalidation could otherwise hand HTML to a
+# markdown-preferring agent. The negotiation is in worker.js; the declaration
+# belongs in the file that can be diffed and guarded.
+#
+# The files written for agents (auth.md, llms.txt, orders.txt) and the
+# disclosure pointer (security.txt, which carries an Expires date) are
+# no-cache for the same reason the page is: an agent or a scanner asks once,
+# writes the answer down, and does not come back to see whether it changed.
+# Nothing here declares Content-Type: the assets plane already emits the right
+# one for .txt, and _headers cannot unset a header it duplicates.
+#
+# The history of every decision above — dates, releases, the evidence files —
+# is in NOTES.md ("Where the served and config files' histories went").
 
 /*
   Referrer-Policy: strict-origin-when-cross-origin
@@ -126,14 +78,6 @@
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
 
-# VARY: ACCEPT ON / , ADDED IN 3.9.2. worker.js sets it on the markdown branch
-# and nothing set it here, so the HTML fall-through was a second representation
-# of the same URL with no signal that the URL has two — and a shared cache that
-# relaxes no-cache revalidation could hand this HTML to a markdown-preferring
-# agent. It sits under Cache-Control rather than above the Link set because it
-# is a cache-key directive and belongs beside the other one. The negotiation is
-# in worker.js; the declaration belongs in the file that can be diffed and
-# guarded.
 /
   Link: <https://nightwatcher.life/sitemap.xml>; rel="sitemap"
   Link: <https://nightwatcher.life/>; rel="canonical"
@@ -144,14 +88,6 @@
 /sw.js
   Cache-Control: no-cache
 
-# THE FILES WRITTEN FOR AGENTS, ADDED IN 3.9.4. These had no block at all, so
-# they inherited whatever the assets plane emits by default while / and /sw.js
-# declared no-cache. It cost a wrong answer on the 3.9.2 deploy: the first read
-# of /auth.md came back with the PREVIOUS release's heading and a cache-busted
-# read came back correct — a stale answer to a question asked once, by a reader
-# that does not come back to check. An agent reading llms.txt or orders.txt has
-# the same problem and no way to notice it. Same policy as the page they
-# describe, for the same reason.
 /auth.md
   Cache-Control: no-cache
 
@@ -161,17 +97,6 @@
 /orders.txt
   Cache-Control: no-cache
 
-# THE DISCLOSURE POINTER, ADDED IN 3.9.5, AND IT JOINS THE THREE ABOVE FOR THE
-# SAME REASON THEY ARE THERE. /.well-known/security.txt carries an Expires date,
-# so a stale copy does not merely answer late — it answers with a freshness
-# claim that was true when it was cached and is not any more. The reader is a
-# scanner or a researcher who fetches once and writes down what it said, which
-# is the auth.md failure exactly.
-#
-# Nothing here declares Content-Type: the assets plane already emits
-# text/plain; charset=utf-8 for .txt, RFC 9116 asks for no more than that, and
-# _headers cannot unset a header it duplicates. Declaring a correct default
-# twice is how you get two of it.
 /.well-known/security.txt
   Cache-Control: no-cache
 
@@ -197,4 +122,19 @@
   Cache-Control: public, max-age=86400
 
 /mstile-144x144.png
+  Cache-Control: public, max-age=86400
+
+/icon.png
+  Cache-Control: public, max-age=86400
+
+/icon-192.png
+  Cache-Control: public, max-age=86400
+
+/icon-maskable-512.png
+  Cache-Control: public, max-age=86400
+
+/share.png
+  Cache-Control: public, max-age=86400
+
+/manifest.json
   Cache-Control: public, max-age=86400
