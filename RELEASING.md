@@ -118,11 +118,14 @@ curl -sI https://nightwatcher.life/index.html | head -1
 ```
 
 Expected: a redirect to `/` (the assets plane's default `html_handling`).
-That redirect is why `sw.js`'s navigate fallback tries `./` before
-`./index.html` — the copy cached under the latter name is a redirected
-response, which a browser refuses for a navigation. If this ever answers
-`200`, the fallback order stops mattering; if it ever answers `404`, the
-shell entry is wrong and offline navigation is broken.
+That redirect is why `sw.js` installs the page as `./` and not as
+`./index.html` — a copy fetched under the latter name is a redirected
+response, which a browser refuses for a navigation, and since 4.5.2 the
+name is not installed at all; the fallback consults it last, only for a
+platform where the path answers `200` and a visit cached it. So: `3xx` is
+the expected answer; `200` is the platform change that makes the last
+fallback live; `404` is informational — the shell is `./`, and nothing
+offline depends on this path.
 
 Since 3.8.0 the root negotiates markdown (guard 133 executes the script;
 this reads the wire it actually shipped to):
@@ -236,7 +239,9 @@ Written for the sealed tree, for whoever runs the suites on it later.
   no edit anywhere. On a live tree that is the reminder to renew and ship.
   For an archival run of the sealed tree, `NW_TODAY=YYYY-MM-DD node
   qa/guards.js` pins the clock to the date given; it does nothing else and
-  is not a way to ship an expired file.
+  is not a way to ship an expired file. The pin is refused when `CI` is
+  set, and refused in any shape but `YYYY-MM-DD` (4.5.2) — the guard's
+  message points here.
 - **Node.** `package.json` declares `engines` matching jsdom's requirement
   and `.npmrc` sets `engine-strict=true`, so `npm ci` on an older Node fails
   at install, not mid-suite (without the `.npmrc` npm only warns —

@@ -2079,9 +2079,10 @@ OFL header names a Reserved Font Name**, so a subset would have to be renamed
 in the font, in `@font-face` and in `--deco` — real churn and a licensing
 judgement, for the last 10.3 KB. Anton's header carries no such name. *(IBM
 Plex's does — "with Reserved Font Name "Plex"" upstream; the copy of OFL.txt
-shipped here had dropped the clause, and 4.5.2 restored it. The Plex faces
-are subset all the same, which is the same judgement Limelight was spared:
-open, and the owner's — see "Open: the Plex reserved name" under The seal.)*
+shipped here had dropped the clause, and 4.5.2 restored it. 4.5.3 applied
+Limelight's rule to Plex with the answer that costs nothing: the four
+subsets are renamed NW Sans / NW Mono in the name table and in the CSS —
+"The Plex reserved name" under The seal.)*
 
 **The range is deliberately wider than the catalogue.** Cutting to exactly the
 99 characters present today saved another 21 KB and would have put an accented
@@ -3821,9 +3822,16 @@ payload. If the older tab dropped the id it did not know, its next
 reload would restore from that — a mark somebody made, gone, from a tab
 that never showed it. So the clocked loop adopts the clock and the mark
 for any id, renders what it can, and passes the rest through. The gate on
-the unclocked path costs nothing by the same argument: that path only runs
-for ids the clocked loop did not see, and a clockless foreign id has no
-tab on the other side keeping it alive.
+the unclocked path costs almost nothing by the same argument: it only runs
+for ids the clocked loop did not see, and a clockless foreign id normally
+has no tab on the other side keeping it alive. The one case it does not
+cover, accepted on the record: `restore()` never stamps clocks and nothing
+backfills them, so a mark made before 3.8.0 and never toggled since is
+still clockless inside a current tab. If that mark is on an id a second
+tab's older build does not carry, that tab's gated fallback drops it and
+its next wholesale persist erases it. A pre-August-2026 mark, on an id
+that later left the catalogue, met across two builds sharing one origin
+— rare enough to accept rather than to grow a third merge path for.
 
 ### `function focusBack(el){`
 
@@ -3834,17 +3842,28 @@ set through `FOCUSKEYS` (including `data-src`, which tells a row's two
 watched buttons apart), and `focusRestore(v, snapshot)` rebuilds the
 selector through `attrEsc()`. Three sites, no copies.
 
-**Open: the Plex reserved name (4.5.2).** Restoring IBM's upstream OFL
-header to `docs/fonts/OFL.txt` surfaced a clause the shipped copy had
-dropped: *with Reserved Font Name "Plex"*. Every place this file and
-`qa/subset-fonts.py` argued Limelight's keep-whole rule said the other
-faces reserved nothing; Plex does. The four Plex faces are subsets, so
-they are Modified Versions under OFL 1.1 §3, and the clause is about the
-name "as presented to users" — which on a web page is the `@font-face`
-family string the page declares, not the file name. Whether that
-satisfies the clause is the licensing judgement Limelight was spared for
-10.3 KB; for Plex the same choice costs the ~56 KB the subsets save. Not
-decided here: it is recorded so it stops being invisible.
+**The Plex reserved name (4.5.2 found it, 4.5.3 settled it).** Restoring
+IBM's upstream OFL header to `docs/fonts/OFL.txt` surfaced a clause the
+shipped copy had dropped: *with Reserved Font Name "Plex"*. Every place
+this file and `qa/subset-fonts.py` argued Limelight's keep-whole rule said
+the other faces reserved nothing; Plex does. The four Plex faces are
+subsets (270→223 and 280→223 glyphs; ≈45 KB saved), so they are Modified
+Versions under OFL 1.1 §3, and the OFL FAQ is plain about it: subsetting
+is modification (2.6) and "would not normally allow the use of RFNs"; the
+name "as presented to users" is the font menu name *and* "other
+mechanisms that specify a font in a document" (5.3) — the `@font-face`
+string included. Three honest answers: leave it (a bet on the 2.7
+"functionally equivalent" reading that 2.6 says subsetting does not get);
+ship IBM's own Latin1 files (+45 KB, no naming question); rename the
+subsets (0 bytes, clean under §3). The owner chose the rename. So
+`qa/subset-fonts.py` rewrites name IDs 1/3/4/6/16 to NW Sans / NW Mono
+after subsetting, the CSS and the story card's canvas font declare the
+same, the file names keep "ibm-plex" (a file name is not a presented name,
+and it is what `_headers`, `sw.js` and the manifest address), OFL.txt says
+so under IBM's block, and guard 106 reads the reserved names out of
+OFL.txt and holds every subset face — name table and `@font-face` — clear
+of them. Limelight's rule, applied to Plex, with the answer that costs
+nothing.
 
 **4.5.2, the second cut.** The audit of the 4.5.1 tree found what the
 first cut had introduced: three guards (§111, §96, §43's own repair path)
@@ -3857,7 +3876,7 @@ line is exactly as trustworthy as any other sentence about the tree —
 which is to say, only as trustworthy as the fixture that breaks it. Every
 4.5.2 repair ships with the mutation that proves it (negtest570), and the
 one claim in the audit that the tree refuted (the sitemap's `llms.txt`
-date; `git log` says the file has not changed since 3.9.5) is refuted on
+date; `git log` says the file has not changed since 3.9.6) is refuted on
 the record in the CHANGELOG rather than quietly "fixed".
 
 ## Where the served and config files' histories went (4.5.1)
@@ -3992,7 +4011,7 @@ This guard closes the gap the range leaves. Every character in the served page a
 
 It does not regenerate the fonts. Doing that would put fonttools and a Python toolchain in CI to re-derive bytes that are already committed. Instead qa/subset-fonts.py blesses a manifest carrying each file's size and SHA-256, and this guard holds the files against it — so the fonts and the record of what they contain can only move together, which is the same bargain the seed, the ItemList and orders.txt already make.
 
-Limelight is in the manifest but marked unsubset. Its OFL header reads "with Reserved Font Name Limelight"; Big Shoulders' does not, and IBM Plex's does ("Plex" — a clause the shipped OFL.txt had dropped until 4.5.2; the Plex faces are subset regardless, an open judgement recorded under The seal). Under OFL 1.1 a Modified Version may not carry the reserved name as presented to users, so subsetting it means renaming the family in the name table, in @font-face and in --deco — real CSS churn and a licensing judgement, for 10.3 KB. Left whole on purpose, and the manifest says so rather than leaving it looking like an oversight.
+Limelight is in the manifest but marked unsubset. Its OFL header reads "with Reserved Font Name Limelight"; Big Shoulders' does not, and IBM Plex's does ("Plex" — a clause the shipped OFL.txt had dropped until 4.5.2; since 4.5.3 the four Plex subsets are renamed NW Sans / NW Mono, and this guard holds every subset face and its @font-face clear of every name OFL.txt reserves). Under OFL 1.1 a Modified Version may not carry the reserved name as presented to users, so subsetting it means renaming the family in the name table, in @font-face and in --deco — real CSS churn and a licensing judgement, for 10.3 KB. Left whole on purpose, and the manifest says so rather than leaving it looking like an oversight.
 
 #### §17 One hero size, declared once (the ring never outdraws the bat)
 

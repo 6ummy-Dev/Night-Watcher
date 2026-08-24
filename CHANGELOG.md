@@ -11,6 +11,66 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.5.3] — 2026-08-24
+
+**The seal, last cut.** No feature. The final audit of the 4.5.2 tree
+called it seal-ready and left eight doc-and-comment nits and one decision;
+this takes the nits and makes the decision. Catalogue untouched; nothing
+ticked moves.
+
+### Changed
+
+- **The Plex faces are renamed.** IBM's upstream OFL header reserves the
+  name "Plex" (restored to `OFL.txt` in 4.5.2), the four Plex faces ship
+  as subsets — Modified Versions — and the OFL FAQ says subsetting does not
+  normally get to keep a Reserved Font Name (2.6) and that the name "as
+  presented to users" includes the mechanism a document uses to specify
+  the font (5.3), which is the `@font-face` string. Owner's call, of three
+  honest ones: leave it (a licensing bet inside a sealed tree), ship IBM's
+  own Latin1 files (+≈45 KB), or rename (0 bytes). Renamed: name IDs
+  1/3/4/6/16 in the four woff2 read **NW Sans** / **NW Mono** (copyright,
+  version and licence records untouched), and `@font-face`, `--body`,
+  `--mono`, the story card's canvas font and `qa/share-card.html` declare
+  the same. The file names keep `ibm-plex` — a file name is not a presented
+  name, and it is what `_headers`, `sw.js` and the manifest address.
+  `qa/subset-fonts.py` does the rename after the subset (`RENAME`), so the
+  fonts regenerate the same way; `qa/font-subset.json` re-blessed (−36 B
+  net across the four). `OFL.txt` says so under IBM's block. Same rule
+  Limelight got, with the answer that costs nothing. Glyph sets and cmaps
+  unchanged (223 glyphs, 204 codepoints each).
+- **§106 holds it.** The reserved names are read out of `OFL.txt`
+  ("Limelight", "Plex"), and no face the manifest marks subset may carry
+  one in its name table — read out of the woff2 by the guard itself: the
+  directory, one brotli stream, the `name` table at its offset — or in the
+  `@font-face` family the page declares for it. An `OFL.txt` that reserves
+  nothing is refused too. Four fixtures (negtest580).
+- **The eight nits.** RELEASING.md's `/index.html` wire check no longer
+  says a 404 breaks offline (the shell is `./`; 404 is informational, 200
+  is the platform change), and the freeze note mentions the CI and format
+  refusals. `626482b` is the **3.9.6** upload (its `BUILD` says so; the
+  4.5.2 entry and NOTES.md said 3.9.5). Fourteen maintainer-local
+  qualifiers, not fifteen. The §133 exclusion list is named in full
+  (`Content-Type`, `Content-Location`, `Content-Length` — no wildcard, so a
+  `Content-Security-Policy` under `/*` would rightly be required). Six
+  scans → two on the grid, four → two on the rows. ≈45 KB is the Plex
+  saving, not 56 (that was five faces with Anton). The "costs nothing"
+  sentence under `applyMarks()` is narrowed: a pre-3.8.0 mark, never
+  toggled since, is still clockless in a current tab, and the one loss case
+  that leaves is written down as accepted. The stripper's header names its
+  real callers (107 and 138). §144's fallback note says "unparsed;
+  byte-scanned" instead of inventing an entry count. And `OFL.txt` carries
+  IBM's `©`.
+- **Smoke's watchdog says why.** A timed-out run printed "1 smoke
+  failure(s)" and nothing else; the reason is printed like any other
+  failure now. (The full wall on a loaded two-core box tripped it once at
+  ~3½ minutes; CI shards are single-tenant and a clean smoke takes ~90 s.)
+
+### Added
+
+- **negtest580 — 4 fixtures**, the two halves of the reserved-name rule,
+  the parse, and the floor. 66 suites, 946 fixtures; smoke stays at 361.
+  Shard 4 carries it.
+
 ## [4.5.2] — 2026-08-24
 
 **The seal, second cut.** No feature. The audit of the 4.5.1 tree confirmed
@@ -43,7 +103,9 @@ untouched; nothing ticked moves.
   `X-Permitted-Cross-Domain-Policies` — green), and the two HEAD responses
   were never compared. Every name under `/*` is required now, minus a
   documented per-response list (`Cache-Control`, `Vary`, `Link`,
-  `Content-*`), on all four built responses. Three fixtures.
+  `Content-Type`, `Content-Location`, `Content-Length` — the three by name,
+  so a `Content-Security-Policy` under `/*` would rightly be required), on
+  all four built responses. Three fixtures.
 - **§140's "never on a live tree" was a convention.** `NW_TODAY` accepted
   any `Date.parse`-able string and nothing stopped it in CI, where a pinned
   clock would keep a green badge on an expired `security.txt`. The pin is
@@ -99,8 +161,8 @@ untouched; nothing ticked moves.
   NOTES.md ("Open: the Plex reserved name"), not decided in a patch.
 - **One audit claim refuted, on the record:** the sitemap's `llms.txt`
   `lastmod` of 2026-08-15 was said to be one edit old (4.0.1, 2026-08-17).
-  `git log -- docs/llms.txt` shows the file unchanged since the 3.9.5
-  upload on 2026-08-15; 4.0.1's entry says llms.txt *agreed* with a
+  `git log -- docs/llms.txt` shows the file unchanged since the 3.9.6
+  upload on 2026-08-15 (`626482b`, `BUILD "3.9.6"`); 4.0.1's entry says llms.txt *agreed* with a
   spelling, not that it changed. The date stands.
 
 ### Changed
@@ -125,12 +187,13 @@ untouched; nothing ticked moves.
 - **Script, one bless:** the unused `i` on the eras/decades `forEach`s;
   `gSub()`/`gBarFill()` take the counts a caller already has (the universe
   grid and the progress rows computed `gDone`/`gSkip` and then had the
-  helpers compute them again — five scans per group, two now); `gPct()`
+  helpers compute them again — six scans per group on the grid and four on
+  the rows, two now); `gPct()`
   folded into `gBarFill()`.
 - **guards.js comments:** the stripper's caller list reads 13, 107 and 138
   (66 no longer calls it); the bless re-verify block has its lead-in back;
   two comments that began mid-sentence after the 4.5.1 lead-in removal
-  begin at their beginning; the fifteen citations of maintainer-local
+  begin at their beginning; the fourteen citations of maintainer-local
   evidence files say so, including the four inside `fail()` strings that
   print to whoever reads a red run.
 - **`qa/smoke.js`** spells its three NUL separators as `"\u0000"`, so a
