@@ -1,8 +1,0 @@
-4.5.1 — one file leaves the tree (a zip cannot carry a deletion):
-
-  .wrangler/.gitkeep
-
-Nothing reads the directory; .gitignore lists .wrangler/ and `wrangler dev`
-recreates it. Guard 144 refuses anything under .wrangler/ in the git index,
-so `git rm .wrangler/.gitkeep` (or delete it in the GitHub UI) before or
-with the upload. Delete this note too — it is not part of the tree.
