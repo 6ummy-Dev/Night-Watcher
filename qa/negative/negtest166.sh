@@ -32,13 +32,14 @@ run_case "the shell lists a file that is not there" \
   "docs/ does not serve it" \
   "${V}a='\"./icon-192.png\",';assert a in s;s=s.replace(a,'\"./icon-192.png\", \"./icon-512.png\",');${W}"
 
-echo "--- 66: a section header with nothing under it"
+echo "--- 107: a section header with nothing under it"
 run_case "a section is emptied and its checks stranded (the 1.6.5 wreckage)" \
-  "has a header and no assertion under it" \
+  "contains no fail() outside a comment" \
   "${G}a='[\"Streaming now\", \"Streaming rows\"].forEach';assert a in s;s=s.replace(a,'[].forEach')
 import re
 i=s.index('/* ---------- 48.');j=s.index('/* ---------- 49.')
-s=s[:i]+'/* ---------- 48. The footer describes the link that exists ------ */\n\n'+s[j:];${W}"
+s=s[:i]+'/* ---------- 48. The footer describes the link that exists ------ */\n\n'+s[j:];${W}" \
+  guards "" 107
 
 echo "--- 66: the INDEX groups"
 run_case "a group heading is used twice" \

@@ -229,7 +229,6 @@ s=s.replace(a,a+'\n  vp.addEventListener(\"scroll\", function(){}, {passive:true
 run_case "the swipe listener loses its throttle" \
   "swipeTick is not rAF-throttled" \
   "${P}a='''function swipeTick(){
-  if(typeof requestAnimationFrame !== \"function\"){ swipeRead(); return; }
   if(nwSwipeRaf) return;
   nwSwipeRaf = true;
   requestAnimationFrame(function(){ nwSwipeRaf = false; swipeRead(); });

@@ -29,8 +29,8 @@
 
    The card stays generated, never hand-drawn — quantization is a wire
    format, not an edit. */
-"use strict";
 import fs from "node:fs";
+import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import vm from "node:vm";
@@ -70,7 +70,7 @@ const page = await (await browser.newContext({
 
 /* The bat silhouette, keyed out of the app icon at run time. */
 await page.goto(pathToFileURL(path.join(ROOT, "docs", "icon.png")).href);
-const bat = await page.evaluate(() => new Promise(resolve => {
+const bat = await page.evaluate(() => new Promise((resolve, reject) => {
   const img = document.querySelector("img");
   const go = () => {
     const c = document.createElement("canvas");
@@ -94,7 +94,13 @@ const bat = await page.evaluate(() => new Promise(resolve => {
     out.getContext("2d").drawImage(c, -minX, -minY);
     resolve(out.toDataURL("image/png"));
   };
-  img.complete ? go() : img.addEventListener("load", go);
+  /* An icon that fails to load must reject, or page.evaluate waits forever
+     with no timeout to say why. */
+  if (img.complete) go();
+  else {
+    img.addEventListener("load", go);
+    img.addEventListener("error", () => reject(new Error("icon.png did not load")));
+  }
 }));
 
 /* Fill the template and render it from a real file so file:// fonts load. */
@@ -126,7 +132,18 @@ const png = await page.evaluate(src => new Promise(resolve => {
 }), "data:image/png;base64," + big.toString("base64"));
 
 const out = path.join(ROOT, "docs", "share.png");
-fs.writeFileSync(out, Buffer.from(png.split(",")[1], "base64"));
+const bytes = Buffer.from(png.split(",")[1], "base64");
+fs.writeFileSync(out, bytes);
 fs.unlinkSync(tmp);
 await browser.close();
-console.log(`wrote ${path.relative(ROOT, out)} — ${fs.statSync(out).size.toLocaleString("en-US")} bytes, 1200×630`);
+/* The manifest records what the card bakes in, so guard 91 can hold the
+   shipped image against the data: the counts move with the catalogue, the
+   hash moves with the file. The quantize step above rewrites the bytes, so
+   after it `npm run bless` re-records the hash; the counts stay ours. */
+const manifest = path.join(ROOT, "qa", "share-card.json");
+fs.writeFileSync(manifest, JSON.stringify({
+  films, seasons, continuities,
+  sha256: createHash("sha256").update(bytes).digest("hex"),
+  generator: "qa/make-share-card.mjs"
+}, null, 1) + "\n");
+console.log(`wrote ${path.relative(ROOT, out)} — ${fs.statSync(out).size.toLocaleString("en-US")} bytes, 1200×630; ${path.relative(ROOT, manifest)} updated`);

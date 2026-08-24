@@ -26,8 +26,8 @@ echo "--- C-2: the JSON door next to the fuzzed vault"
 
 run_case "the BYID gate comes off the JSON write loop" \
   "an unknown id never reaches live state through JSON restore" \
-  "${P}a='for(id3 in res.watched){ if(BYID[id3] && !S.watched[id3])';assert a in s
-s=s.replace(a,'for(id3 in res.watched){ if(!S.watched[id3])',1);${W}" "smoke" "main"
+  "${P}a='    if(!res.watched[id] || !BYID[id] || S.watched[id] || (gate && gate(\"w\", id))) continue;';assert a in s
+s=s.replace(a,'    if(!res.watched[id] || S.watched[id] || (gate && gate(\"w\", id))) continue;',1);${W}" "smoke" "main"
 
 echo "--- Q-1: the flatten pin, on the section that asserts out:"
 

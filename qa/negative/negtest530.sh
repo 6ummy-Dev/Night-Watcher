@@ -141,7 +141,7 @@ s=s.replace(a,'.homefootx::before,.note.footx::before,.legendx::before{',1);${W}
 
 run_case "a footer takes back a private top margin" \
   "a footer rule declares its own top margin again" \
-  "${P}a='text-align:center;margin:0 0 4px;';assert a in s
+  "${P}a='text-align:center;margin-bottom:4px;';assert a in s
 s=s.replace(a,'text-align:center;margin:30px 0 4px;',1);${W}" \
   guards "" 148
 

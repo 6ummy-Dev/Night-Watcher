@@ -1,0 +1,8 @@
+# Python tooling for the generated assets — not needed to run the guards or
+# the app. `pip install -r qa/requirements-tooling.txt`.
+#   qa/make-favicon.py   — Pillow (the raster icon set from docs/icon.png)
+#   qa/subset-fonts.py   — fonttools + brotli (the subset woff2 faces)
+#   qa/make-share-card.mjs quantises docs/share.png through Pillow afterwards
+Pillow>=10
+fonttools>=4.40
+brotli>=1.1

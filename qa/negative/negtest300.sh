@@ -299,24 +299,27 @@ b='} else { delete S.skipped[k]; }'
 assert b in s;s=s.replace(b,'} else {}',1);${W}" \
   "smoke" "main"
 
+# The three sites share applyMarks() since 4.5.1, so the skip-clearing line
+# lives once; taking it out of the helper is seen from the backup-code path
+# and from the JSON path alike.
 run_case "applyImport stops clearing the skip" \
   "restored backup code clears a skip" \
-  "${P}a='S.watched[id] = 1; stampMark(\"w\", id); if(S.skipped[id]){ delete S.skipped[id]; stampMark(\"s\", id); } S.log.push'
-assert a in s;s=s.replace(a,'S.watched[id] = 1; stampMark(\"w\", id); S.log.push',1);${W}" \
+  "${P}a='    if(S.skipped[id]){ delete S.skipped[id]; if(stamp) stampMark(\"s\", id); }\n';assert a in s
+s=s.replace(a,'',1);${W}" \
   "smoke" "main"
 
 run_case "the JSON restore stops clearing the skip" \
   "restored JSON backup clears a skip" \
-  "${P}a='{ S.watched[id3] = 1; stampMark(\"w\", id3); if(S.skipped[id3]){ delete S.skipped[id3]; stampMark(\"s\", id3); } }'
-assert a in s;s=s.replace(a,'{ S.watched[id3] = 1; stampMark(\"w\", id3); }',1);${W}" \
+  "${P}a='    if(S.skipped[id]){ delete S.skipped[id]; if(stamp) stampMark(\"s\", id); }\n';assert a in s
+s=s.replace(a,'',1);${W}" \
   "smoke" "main"
 
-# And the guard, from the other side: the three sites are found by name, so a
-# site that loses the line fails the build without a browser.
-run_case "a merge site loses the line and the guard says which" \
+# And the guard, from the other side: the helper is found by name, so losing
+# the line fails the build without a browser.
+run_case "the helper loses the line and the guard says so" \
   "an entry can come back watched AND skipped" \
-  "${P}a='S.watched[id] = 1; stampMark(\"w\", id); if(S.skipped[id]){ delete S.skipped[id]; stampMark(\"s\", id); } S.log.push'
-assert a in s;s=s.replace(a,'S.watched[id] = 1; stampMark(\"w\", id); S.log.push',1);${W}"
+  "${P}a='    if(S.skipped[id]){ delete S.skipped[id]; if(stamp) stampMark(\"s\", id); }\n';assert a in s
+s=s.replace(a,'',1);${W}"
 
 run_case "the log merge is copied back out to a call site" \
   "the log-merge dance appears" \
@@ -515,8 +518,8 @@ echo "--- 3.0.2: the app defects"
 
 run_case "the belt goes back to closing on a timer" \
   "does not parse" \
-  "${P}a='    setTimeout(function(){ if(!S.beltOpen) render(); }, 240);'
-assert a in s;s=s.replace(a,'    setTimeout(function({ if(!S.beltOpen) render(); }, 240);',1);${W}"
+  "${P}a='    setTimeout(function(){ if(!S.beltOpen) render(); }, BELTCLOSE);'
+assert a in s;s=s.replace(a,'    setTimeout(function({ if(!S.beltOpen) render(); }, BELTCLOSE);',1);${W}"
 
 run_case "the share handler stops telling a cancel from a failure" \
   "download fallback(s) and needs two" \

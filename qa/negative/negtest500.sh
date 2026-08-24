@@ -19,7 +19,7 @@
 echo "--- 144: the index cannot carry what the release note denied"
 
 run_case "a git index tracking wrangler state is refused" \
-  ".wrangler/state is still in the git index" \
+  ".wrangler/ is still in the git index" \
   "import io,os
 os.makedirs('.git',exist_ok=True)
 io.open('.git/index','w').write('DIRC fake-index .wrangler/state/v3/cache/miniflare-CacheObject/metadata.sqlite')" \

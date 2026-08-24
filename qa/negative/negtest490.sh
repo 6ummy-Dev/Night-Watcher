@@ -23,8 +23,8 @@ echo "--- C-4: the gates stop depending on the call graph"
 
 run_case "applyImport trusts its caller again" \
   "applyImport refuses an id the catalogue does not carry" \
-  "${P}a='for(id in res.watched){ if(BYID[id] && !S.watched[id]){ S.watched[id] = 1; stampMark(\"w\", id);';assert a in s
-s=s.replace(a,'for(id in res.watched){ if(!S.watched[id]){ S.watched[id] = 1; stampMark(\"w\", id);',1);${W}" "smoke" "main"
+  "${P}a='    if(!res.watched[id] || !BYID[id] || S.watched[id] || (gate && gate(\"w\", id))) continue;';assert a in s
+s=s.replace(a,'    if(!res.watched[id] || S.watched[id] || (gate && gate(\"w\", id))) continue;',1);${W}" "smoke" "main"
 
 run_case "mergeLog lets an invented id into the log" \
   "mergeLog keeps the log a subset of the catalogue" \

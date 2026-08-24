@@ -150,9 +150,9 @@ $W
 run_case "a legacy branch without its clock guard resurrects and smoke sees it" \
   "a clockless payload cannot resurrect a deliberate removal" \
 "$P
-needle='if(o.watched[k] && !S.watched[k] && !inc.w[k] && !S.clk.w[k])'
+needle='    if(kind === \"w\") return inc.w[id] || S.clk.w[id];'
 assert needle in s
-s=s.replace(needle,'if(o.watched[k] && !S.watched[k])')
+s=s.replace(needle,'    if(kind === \"w\") return false;')
 $W
 " smoke main
 

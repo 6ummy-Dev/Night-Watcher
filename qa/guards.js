@@ -27,7 +27,7 @@ var HTML   = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8");
 var SNAP   = path.join(__dirname, "frozen-ids.json");
 var BLESS  = process.argv.indexOf("--bless") >= 0;
 
-/* 3.7.2, H-2 of the 10 Aug review: FIVE WRITERS, ONE STALE STRING. Every
+/* FIVE WRITERS, ONE STALE STRING. Every
    index.html bless writer used to call fs.writeFileSync with a replacement
    made from the HTML string read once at startup — so the SECOND write in a
    run reverted the first. Reproduced both ways: corrupt the ItemList and the
@@ -224,7 +224,7 @@ function blessHtml(next){
 
 
 var fails = [], warns = [], notes = [];
-/* 4.2.3, Q-3 of the 19 Aug audit: EVERY FAILURE NOW NAMES ITS SECTION.
+/* EVERY FAILURE NOW NAMES ITS SECTION.
    run_case only ever required the expected string to appear SOMEWHERE in a
    red run's output — a mutation that also broke three unrelated sections
    still PASSED if the phrase sat anywhere in the dump, so 825/825 was never
@@ -236,17 +236,29 @@ var fails = [], warns = [], notes = [];
    argument can require the match to sit on the named section's own line.
    A fail() from the shared helpers above section 1 keeps walking the stack
    until it lands in a numbered section; one that never does prints bare. */
-var SECTLINES = null;
-function sectOfLine(line){
-  if(!SECTLINES){
-    SECTLINES = [];
-    fs.readFileSync(__filename, "utf8").split("\n").forEach(function(l, i){
-      var m = l.match(/^\/\* -{3,} (\d+)\./);
-      if(m) SECTLINES.push([i + 1, parseInt(m[1], 10)]);
+/* ONE CENSUS OF THE SECTION HEADERS. Five places used to count them with three
+   different regexes, and the one here was anchored at column 0 — but section
+   24 is nested inside 23 and its header is indented, so every failure inside
+   24 printed as §23 and a fixture naming sect=24 could never match. Section
+   107 knew about the nesting; this function did not. Every reader of the
+   headers now goes through sections(): the same regex, read once. */
+var SECTION_HEADER = /^(\s*)\/\* -{3,} (\d+)\./;
+var SECTIONS = null;
+function sections(){
+  if(!SECTIONS){
+    var self = fs.readFileSync(__filename, "utf8"), at = 0;
+    SECTIONS = [];
+    self.split("\n").forEach(function(l, i){
+      var m = l.match(SECTION_HEADER);
+      if(m) SECTIONS.push({n: parseInt(m[2], 10), line: i, indent: m[1].length, at: at});
+      at += l.length + 1;
     });
   }
-  var s = 0;
-  for(var k = 0; k < SECTLINES.length && SECTLINES[k][0] < line; k++) s = SECTLINES[k][1];
+  return SECTIONS;
+}
+function sectOfLine(line){
+  var s = 0, all = sections();
+  for(var k = 0; k < all.length && all[k].line + 1 < line; k++) s = all[k].n;
   return s;
 }
 function sectOf(){
@@ -285,16 +297,41 @@ process.on("uncaughtException", function(e){
 function warn(m){ warns.push(m); }
 function note(m){ notes.push(m); }
 
-/* 3.7.2 (L-7 of the 10 Aug review): the two "every section can fail" censuses
-   in sections 66 and 107 counted `fail(` wherever it appeared — including
-   inside block comments, which in this file routinely QUOTE fail(...) while
-   narrating a fix. A section whose assertions were commented out still
-   satisfied both meta-guards. They now look at the code with the block
-   comments stripped, so a quoted fail() is prose again. Line comments are
-   left alone on purpose: `//` appears inside URL strings throughout this
-   file, and a stripper that eats those rewrites code rather than comments. */
-function stripBlockComments(src){
-  return String(src).replace(/\/\*[\s\S]*?\*\//g, "");
+/* The "every section can fail" censuses in sections 66, 107 and 138 count
+   `fail(` in code, not in the block comments that routinely QUOTE fail(...)
+   while narrating a fix — a section whose assertions were commented out used
+   to satisfy all three. The stripper is string-aware because a regex one is
+   not: a slash-star inside a string literal (the _headers path patterns
+   section 104 checks, the star-slash-star Accept header section 133 sends, a
+   wildcard route in wrangler.jsonc) opened a comment that ran to the next
+   real close and ate the code between — section 104 read as 133 lines
+   instead of 322 and lost three of its assertions to the count, quietly,
+   because one survived.
+   Strings end at a newline as well as at their quote, so a quote inside a
+   regex literal can mis-scan its own line and nothing further. Line comments
+   are stripped too; the "//" inside URL strings is safe for the same reason. */
+function stripComments(src){
+  var t = String(src), out = "", i = 0, q = "";
+  while(i < t.length){
+    var ch = t.charAt(i);
+    if(q){
+      out += ch;
+      if(ch === "\\"){ out += t.charAt(i + 1); i += 2; continue; }
+      if(ch === q || ch === "\n") q = "";
+      i++; continue;
+    }
+    if(ch === '"' || ch === "'" || ch === "`"){ q = ch; out += ch; i++; continue; }
+    if(ch === "/" && t.charAt(i + 1) === "*"){
+      var end = t.indexOf("*/", i + 2);
+      i = end < 0 ? t.length : end + 2; continue;
+    }
+    if(ch === "/" && t.charAt(i + 1) === "/"){
+      var nl = t.indexOf("\n", i);
+      i = nl < 0 ? t.length : nl; continue;
+    }
+    out += ch; i++;
+  }
+  return out;
 }
 
 /* ---------- extract the real data + the real functions ---------- */
@@ -316,12 +353,14 @@ function sliceOr(from, to){
   if(a < 0 || b < 0) return "";
   return HTML.slice(a, b);
 }
-/* fn() throws when a function is missing, which ends the run with a stack trace
-   instead of the readable failure the guard was written to print. That bug was
-   fixed in place three times \u2014 activityBlock, dedupeLog, pathBlurb \u2014 before
-   becoming this. optionalFn() reports the absence and returns a stub, so the
-   guard below it still runs and still says something useful. */
-/* 4.2.4, Q-fn of the 19 Aug re-audit: EXTRACTION IS A PARSER NOW, NOT A
+/* fn() used to throw when a function was missing, which ended the run with a
+   stack trace instead of the readable failure the guard was written to print.
+   That bug was fixed in place three times \u2014 activityBlock, dedupeLog,
+   pathBlurb \u2014 before becoming optionalFn(), which reports the absence and
+   returns a stub so the guard below it still runs. fn() itself stubs and
+   fails readably now (see below); optionalFn() remains for the sections that
+   want the absence reported in their own words. */
+/* EXTRACTION IS A PARSER NOW, NOT A
    REGEX. The old fn() was a non-greedy brace matcher that only worked
    because top-level functions close at column 0 and inners indent \u2014 a
    nested `function foo(){\n}` at column 0, a default parameter containing
@@ -513,13 +552,14 @@ function eraRank(k){
 var idHash = sandbox.idHash, tierOf = sandbox.tierOf, clampRating = sandbox.clampRating;
 
 /* Flatten exactly as index.html does — and 4.2.3 makes "exactly" checkable.
-   Q-1 of the 19 Aug audit: this copy carried out:(f.out||"") that the app
+   this copy carried out:(f.out||"") that the app
    never puts on FILMS, and dropped the d: the app carries — so section 70
    asserted f.out on an object the page never builds, and the founding claim
    ("extracted, never reimplemented") was already false one screen down from
    where it is made. The field list below is byte-compared against the app's
-   own FILMS.push in section 70; out: stays on the RAW PATH entries, which is
-   where the app reads it too. */
+   own FILMS.push in section 70; out: stays on the RAW PATH entries. The app
+   never reads it — only section 70 and the era-ordering guard do, and they
+   read it off PATH. */
 var FILMS = [];
 PATH.forEach(function(g, gi){
   g.films.forEach(function(f, fx){
@@ -586,6 +626,15 @@ Object.keys(RENAMED).forEach(function(k){
     fail("renamed-ids.json says " + k + " became " + RENAMED[k] +
          ", which is not in the catalogue");
   }
+  /* The three ledgers are disjoint by meaning: a slug is frozen, or it was
+     retired, or it was renamed away — never two of those at once. A retired
+     slug listed as a rename target, or a rename whose old key is also on the
+     retired list, would give one saved key two histories, and the reviewer
+     reading the diff could not say which one the app honours. */
+  if(RETIRED[k]) fail(k + " is in both retired-ids.json and renamed-ids.json — " +
+                      "a slug was retired or it was renamed, not both");
+  if(RETIRED[RENAMED[k]]) fail("renamed-ids.json says " + k + " became " + RENAMED[k] +
+                               ", which retired-ids.json says was removed");
 });
 if(BLESS){
   /* One retirement predates the surviving snapshot: the Scooby crossover
@@ -600,7 +649,7 @@ if(BLESS){
       warn("retired-ids.json lists " + k + ", which was never frozen");
     }
   });
-  /* 3.7.2, H-1 of the 10 Aug review: THE DIFF RUNS BEFORE THE WRITE, IN BLESS
+  /* THE DIFF RUNS BEFORE THE WRITE, IN BLESS
      TOO. Until now the frozen-ID comparison lived only in the non-bless branch,
      and this branch rewrote the snapshot unconditionally — so deleting an entry
      and running `npm run bless` produced no failure, a snapshot that no longer
@@ -612,8 +661,7 @@ if(BLESS){
   var laundered = [];
   if(fs.existsSync(SNAP)){
     JSON.parse(fs.readFileSync(SNAP, "utf8")).forEach(function(fi){
-      if(filmIds.indexOf(fi) < 0 && !RETIRED[fi] && !RENAMED[fi] &&
-         PREFREEZE.indexOf(fi) < 0){
+      if(filmIds.indexOf(fi) < 0 && !RETIRED[fi] && !RENAMED[fi]){
         laundered.push(fi);
       }
     });
@@ -649,8 +697,8 @@ if(BLESS){
 /* Profiled 6 Aug 2026 with --cpu-prof: idHash was 34% of this file's entire
    runtime -- 147.9 ms of 432 -- for 201 distinct answers. It was called 24,339
    times, because importCode() rebuilds its whole {hash: id} map on every call
-   and section 3's truncation sweep walks a backup code down one character at a
-   time, calling importCode about 117 times. 117 x 201 is the number.
+   and section 8's truncation sweep walks a backup code down seven characters
+   at a time, calling importCode once per step. Steps x 201 is the number.
 
    Nothing was wrong. That is the app's own function, extracted and driven
    honestly, being asked the same pure question twenty-four thousand times.
@@ -902,7 +950,7 @@ if(!importCode("https://nightwatcher.life/#nw=" + code)) fail("parser rejected a
       continue;
     }
     if(!res) continue;
-    /* skipped joined the sweep in 3.7.2 (L-5 of the 10 Aug review): importCode
+    /* skipped joined the sweep in 3.7.2: importCode
        populates three containers, and a fuzz that reads two of them lets a
        parser defect invent ids into the third without going red. */
     var invented = Object.keys(res.watched || {}).concat(Object.keys(res.rated || {}))
@@ -1037,7 +1085,7 @@ if(!manifest.icons.some(function(ic){ return /maskable/.test(ic.purpose || ""); 
    root is a dead file the next person edits while prod never changes. */
 
 if(PUBLIC !== ROOT){
-  note("site dir: " + path.relative(ROOT, PUBLIC) + "/ (GitHub Pages + wrangler)");
+  note("site dir: " + path.relative(ROOT, PUBLIC) + "/ (wrangler assets)");
   ["index.html", "sw.js", "manifest.json", "icon.png", "icon-192.png", "icon-maskable-512.png"]
     .forEach(function(f){
       if(fs.existsSync(path.join(ROOT, f))){
@@ -1160,8 +1208,7 @@ if(PUBLIC !== ROOT){
 
 var wranglerPath = path.join(ROOT, "wrangler.jsonc");
 if(fs.existsSync(wranglerPath)){
-  var wtxt = fs.readFileSync(wranglerPath, "utf8")
-    .replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+  var wtxt = stripComments(fs.readFileSync(wranglerPath, "utf8"));
   var wcfg = null;
   try { wcfg = JSON.parse(wtxt); }
   catch(e){ fail("wrangler.jsonc does not parse as JSONC: " + e.message); }
@@ -1174,7 +1221,7 @@ if(fs.existsSync(wranglerPath)){
     if(wcfg.assets.not_found_handling === "single-page-application"){
       fail("wrangler not_found_handling is \"single-page-application\" — the app is " +
            "hash-routed so SPA fallback buys nothing, and sw.js caches any 200, so a " +
-           "missing asset would be cached as HTML under the asset's URL. Keep it \"none\".");
+           "missing asset would be cached as HTML under the asset's URL. Keep it \"404-page\".");
     }
   }
 }
@@ -1577,6 +1624,16 @@ heroRules.forEach(function(rule){
 /* A blocked store used to fail silently. The warning must be inside the
    sticky header, where it cannot scroll away. */
 
+/* The storage key is the address of everyone's progress. It has read
+   "batwatch-v3" since the repository's first commit (the v3 is inherited from
+   the prototypes before it), nothing migrates from any other key, and
+   progress is per-origin — so a "tidied" key is every reader's progress gone
+   at once, with the bytes still sitting under the old name. It is frozen the
+   way the slugs are. */
+if(!/\bvar KEY = "batwatch-v3";/.test(HTML)){
+  fail("the storage key is not \"batwatch-v3\" — every saved progress lives under " +
+       "that name and nothing migrates from another; changing it orphans them all");
+}
 if(!/id="nosave"/.test(HTML)){
   fail("the storage-blocked warning (#nosave) is gone — a blocked store fails silently again");
 } else {
@@ -1677,8 +1734,8 @@ if(!PATHS || !MODENOTE || !PATHCODE || !CODEPATH){
     if(!/esc\(pathBlurb\(/.test(HTML)){
     fail("the chooser does not render pathBlurb()");
   }
-  /* fn() throws on a missing function, which would end the run with a stack
-     trace instead of the readable failure above. */
+  /* optionalFn() names the absence in this section's own words; a bare fn()
+     would report it too, less usefully. */
   var pb = new vm.Script(
     optionalFn("noteFor") + "\n" +
     optionalFn("pathBlurb", "the chooser has nothing to build its cards from") +
@@ -1896,7 +1953,7 @@ if(gzipKB > 80) fail("index.html is " + gzipKB.toFixed(1) + " KB gzipped, over t
    external script, which is a stronger assertion than the carve-out ever was,
    and the pattern's old blindness no longer has anywhere to hide \u2014 there
    is no allowed tag left for a mis-match to be mistaken for. */
-/* 3.7.2 (L-6 of the 10 Aug review): THE OLD PATTERN REQUIRED A QUOTED
+/* THE OLD PATTERN REQUIRED A QUOTED
    http(s):// VALUE, so `src="//evil.example/x.js"` \u2014 protocol-relative, an
    external fetch on any served page \u2014 slipped it, and so did an unquoted src.
    Section 42's origin sweep missed the same shape (no scheme, no match),
@@ -2477,7 +2534,6 @@ if(!/\.bigstat button\{[^}]*text-align:center/.test(HTML)){
    handler for "send me to this slice", not two. The tiles are asserted to BE
    buttons here; that they land somewhere real is section 109's job. */
 (function(){
-  var block = (HTML.match(/class="bigstat">[\s\S]*?scoreTile\("skip"[^;]*/) || [""])[0];
   var sb = fn("scoreboard") + fn("scoreTile");
   if(!/<button data-act="tier" data-tf="/.test(sb)){
     fail("the scoreboard tiles are not buttons any more — the counts went back " +
@@ -2662,37 +2718,16 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
        standing invitation for any future injection to carry its own image. */
     "img-src":      "'self'",
     "manifest-src": "'self'",
-    /* connect-src is DELIBERATELY ABSENT since 3.3.1 and stays absent -- BUT
-       NOT FOR THE REASON RECORDED HERE UNTIL 3.4.4, WHICH WAS FALSE.
-
-       This comment used to read: "The wire reading on 6 Aug 2026 found the edge
-       appending 'self' to it, and a 'none' sitting beside a second source
-       expression is ignored -- so the directive shipped, looked like protection,
-       and provided none: fetch('/orders.txt') from the live page returned 200.
-       It now falls through to default-src 'none', which is the first directive
-       in the policy and which the edge has no directive of its own to append
-       to."
-
-       THE EDGE APPENDS NOTHING. That reading, and the three others like it, were
-       taken through a TLS-intercepting VPN on the author's own machine -- read
-       with it switched off on 8 Aug 2026 the served policy is this file's,
-       exactly: ten directives, one sha256, no connect-src. C0 was never
-       Cloudflare. ops/c0-edge-injection.md.
-
-       SO 3.3.1 REMOVED A DIRECTIVE ON A MISREADING, AND THIS GUARD HAS BEEN
-       ENFORCING THAT REMOVAL EVER SINCE. The removal is kept anyway, on the
-       half of the old reasoning that was never about the edge: default-src
-       'none' is the first directive in the policy and connect-src falls through
-       to it, and the page opens no connections of any kind -- no fetch, no XHR,
-       no beacon, no socket. A directive that restates its own fallback is a
-       second copy of one rule, and two copies drift.
-
-       THE DIFFERENCE MATTERS TO THE NEXT PERSON. Restoring connect-src 'none'
-       is now a live option that costs nothing and gains nothing, not an
-       impossibility. If anyone argues for it, the argument is redundancy, not
-       "the edge will eat it". The unpinned-directive check below still fails the
-       build the moment connect-src reappears -- so the decision is made here,
-       deliberately, rather than drifted into. */
+    /* connect-src is DELIBERATELY ABSENT and stays absent: default-src 'none' is
+       the first directive in the policy, connect-src falls through to it, and the
+       page opens no connections of any kind — no fetch, no XHR, no beacon, no
+       socket. A directive that restates its own fallback is a second copy of one
+       rule, and two copies drift. (It was first removed on a misreading of the
+       wire through a TLS-intercepting VPN, recorded in NOTES.md; the removal is
+       kept on the half of the reasoning that was never about the edge.) Restoring
+       it is a live option that costs nothing and gains nothing; the unpinned-
+       directive check below fails the build the moment it reappears, so the
+       decision is made here rather than drifted into. */
     "worker-src":   "'self'",
     "base-uri":     "'none'",
     "form-action":  "'none'",
@@ -2761,7 +2796,23 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
   if(!declared){ fail("CSP has no script hash"); return; }
   var body = (plain[0].match(/<script>([\s\S]*?)<\/script>/) || [])[1];
   var actual = require("crypto").createHash("sha256").update(body, "utf8").digest("base64");
-  if(declared === actual) return;
+  var ledgerPath = path.join(ROOT, "qa", "script-bytes.json");
+  if(declared === actual){
+    /* The ledger is only written by bless, so until now nothing outside bless
+       ever read it: a stale ledger — a script edited and re-hashed by hand,
+       or a failed write — was undetectable by npm test, and the size-jump
+       reader section 10 leans on would have measured the next bless against
+       the wrong baseline. It has to say what the page says. */
+    var ledger = null;
+    try{ ledger = JSON.parse(fs.readFileSync(ledgerPath, "utf8")); }catch(e){}
+    if(!ledger || ledger.sha256 !== declared ||
+       ledger.bytes !== Buffer.byteLength(body, "utf8")){
+      fail("qa/script-bytes.json does not describe the blessed script — the " +
+           "ledger is stale or missing, so the next bless would measure its " +
+           "size jump against the wrong baseline. Fix with: npm run bless");
+    }
+    return;
+  }
   /* Any edit to the script invalidates the hash, and a stale one is not a
      cosmetic failure \u2014 the browser refuses to execute the app at all. --bless
      rewrites it, so the fix is one command rather than a manual paste. */
@@ -2774,14 +2825,16 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
        riding in on a bless is a visible jump in the one place a launderer
        cannot avoid. The hash is one-way, so a content diff is impossible from
        the file alone \u2014 size is what can be carried across honestly. */
-    var ledgerPath = path.join(ROOT, "qa", "script-bytes.json");
     var prevBytes = null;
     try{ prevBytes = JSON.parse(fs.readFileSync(ledgerPath, "utf8")).bytes; }catch(e){}
     var nowBytes = Buffer.byteLength(body, "utf8");
     try{
       fs.writeFileSync(ledgerPath,
         JSON.stringify({bytes: nowBytes, sha256: actual}) + "\n");
-    }catch(e){}
+    }catch(e){
+      warn("could not write qa/script-bytes.json (" + e.message + ") — the next " +
+           "run will fail on the stale ledger");
+    }
     var deltaTxt = (typeof prevBytes === "number")
       ? " (" + (nowBytes >= prevBytes ? "+" : "") + (nowBytes - prevBytes) +
         " B since the last bless)"
@@ -2913,7 +2966,7 @@ if(!/watchUrl\(f\)/.test(fn("watchLinks"))){
      SECURITY.md and package-lock.json all shipped in 1.4.2 undocumented. */
   ["LICENSE", "SECURITY.md", "README.md", "CHANGELOG.md", "RELEASING.md",
    "package.json",
-   "package-lock.json", "wrangler.jsonc", ".gitignore",
+   "package-lock.json", "wrangler.jsonc", "worker.js", ".gitignore", ".gitattributes",
    ".github/workflows/qa.yml", "qa/guards.js", "qa/smoke.js",
    "qa/frozen-ids.json"].forEach(function(f){
     if(fs.existsSync(path.join(ROOT, f))) onDisk.push(f);
@@ -2981,39 +3034,17 @@ if(!rmSize){
 })();
 
 /* ---------- 47. The wordmark returns to the top ----------------------- */
-/* THE HEADER IS THREE FLEX COLUMNS with both flankers boxed at 46px, so the
-   wordmark is always mathematically centred and nothing here was ever
-   misaligned in the box model \u2014 which is exactly why it went unnoticed for
-   eleven releases. What is lopsided is the mass INSIDE the boxes.
-
-   THREE RELEASES CORRECTED THIS AND ALL THREE MEASURED THE WRONG THING.
-   2.7.3 grew the bat 32 -> 40 against "a 46px ring"; 46 is the ring's box, and
-   at r=19/4px it drew 42. 2.7.5 fixed that side, set both to "44", and wrote
-   THIS GUARD as bat-width == 2*(r + stroke/2) \u2014 a real relationship, with one
-   term read from `.mark svg{width:44px}`. A CSS width is a box. The glyph
-   inside it sits in a viewBox with 4 units of padding each side and draws
-   39.81px, so the guard was green for a 4.19px gap while asserting the two
-   were equal.
-
-   AND THE TARGET WAS WRONG AS WELL AS THE TERM. Equality is what a symmetric
-   row looks like on paper; it is not the requirement. The owner's rule, 5 Aug:
-   THE RING IS NEVER WIDER THAN THE BAT. The bat is the logo, the ring is a
-   readout of how far you have got, and a readout that outdraws the mark is the
-   wrong way round. A rule with a direction in it cannot be satisfied by luck.
-   Two of the three releases above were satisfied by luck.
-
-   So this section measures the GLYPH \u2014 every path and the ellipse, flattened,
-   real cubic extrema rather than the control hull, the group transform applied,
-   scaled by cssWidth/viewBoxWidth \u2014 and requires the ring to come in strictly
-   under it. NO TOLERANCE. A one-pixel slack is precisely what would let r=18
-   (40px drawn, 0.19 over) read as a pass.
-
-   THE CEILING IS THE NARROW PHONE. At 375px the row leaves ~219px for the
-   wordmark once the two 46px flankers and two 14px gaps are taken. NIGHT
-   WATCHER in uppercase Limelight measures ~187px at 24px, so it fits with
-   room; it does not at 28. .wordmark is flex:1 with min-width:0, so it shrinks
-   silently rather than pushing back \u2014 nothing would go red, the title would
-   just start wrapping on somebody's phone. */
+/* THE RING IS NEVER WIDER THAN THE BAT (the owner's rule): the bat is the
+   logo, the ring is a readout, and a readout that outdraws the mark is the
+   wrong way round. Three releases "corrected" this by comparing boxes and
+   were satisfied by luck, so this section measures the GLYPH — every path
+   and the ellipse, flattened, real cubic extrema, the group transform
+   applied, scaled by cssWidth/viewBoxWidth — and requires the ring to come
+   in strictly under it, with NO TOLERANCE: a one-pixel slack is exactly what
+   would let r=18 read as a pass. The wordmark's size ceiling is the narrow
+   phone: .wordmark is flex:1 with min-width:0 and shrinks silently rather
+   than pushing back, so nothing would go red, the title would just start
+   wrapping. (The measurements are in NOTES.md.) */
 (function(){
   /* Real bounding box of an SVG path made of M/L/C/Z. The control-point hull
      is not good enough: it over-reports, which on this glyph would make the
@@ -4468,9 +4499,8 @@ if(!/function legendBlock/.test(HTML) ||
            is this project's oldest failure wearing a new hat. The alternation
            is the whole change: the moment a third helper exists it belongs
            here, in the same commit that introduces it. */
-        /* Leading whitespace is allowed as of 3.7.2 (L-10 of the 10 Aug
-           review): a fixture wrapped in an `if` runs but sat outside the old
-           column-0 pattern, so it was uncounted — and this guard would then
+        /* Leading whitespace is allowed: a fixture wrapped in an `if` runs
+           but sat outside the old column-0 pattern, so it was uncounted — and this guard would then
            have certified a wrong README number, which is the exact drift it
            exists to stop. A quoted label still keeps the helper definitions
            and the commented examples out of the count. */
@@ -4534,7 +4564,7 @@ if(!/function legendBlock/.test(HTML) ||
      guarded since 1.5.x, and this one shipped wrong the release after it was
      written, because 1.6.4 added a guard and the sentence did not move. */
   (function(){
-    var real = (fs.readFileSync(__filename, "utf8").match(/\/\* -{3,} \d+\./g) || []).length;
+    var real = sections().length;
     [["the header block", head], ["NOTES.md", fs.existsSync(path.join(ROOT, "NOTES.md"))
        ? fs.readFileSync(path.join(ROOT, "NOTES.md"), "utf8") : ""]].forEach(function(pair){
       var m = pair[1].match(/(\d+)\s+(?:numbered\s+)?sections/);
@@ -4584,7 +4614,6 @@ if(!/function legendBlock/.test(HTML) ||
      is the section's own philosophy: allowed by name, and by nothing less
      than the whole name. */
   var ALLOWED_HTML_COMMENTS = [
-    "Night Watcher \u00b7 https://github.com/6ummy-Dev/Night-Watcher",
     "No trademarked logos, symbols, or proprietary lettering are used " +
     "anywhere in this file. The favicon is an original bat-animal silhouette " +
     "drawn for this project; it is not a DC mark. Fonts and palette: see " +
@@ -4608,20 +4637,32 @@ if(!/function legendBlock/.test(HTML) ||
   /* Every identifier NOTES.md documents must still exist, or the notes rot the
      same way the README's file table used to. */
   var notes = fs.readFileSync(path.join(ROOT, "NOTES.md"), "utf8");
-  var ghosts = [], keys = notes.match(/^### `([^`]+)`/gm) || [];
+  var ghosts = [], keys = notes.match(/^### `([^`]+)`[^\n]*/gm) || [];
+  var flatHtml = HTML.replace(/\s+/g, " ");
   keys.forEach(function(k){
-    var name = k.replace(/^### `|`$/g, "").replace(/ \(cont\.\)$/, "");
+    var whole = /^### `[^`]+`$/.test(k);
+    var name = k.replace(/^### `/, "").replace(/`[^\n]*$/, "").replace(/ \(cont\.\)$/, "");
     if(/^[a-zA-Z_$][\w$]*\(\)$/.test(name)){
       var fnName = name.slice(0, -2);
       if(!new RegExp("function\\s+" + fnName + "\\s*\\(").test(HTML)) ghosts.push(name);
     } else if(/^\.[a-zA-Z][\w-]*$/.test(name)){
       if(HTML.indexOf(name + "{") < 0 && HTML.indexOf(name + " ") < 0 &&
          HTML.indexOf(name + ",") < 0) ghosts.push(name);
+    } else if(whole && !/^\/\*/.test(name)){
+      /* A heading that quotes a line of the file is an anchor into the file,
+         and an anchor to a line that was rewritten sends the reader to a
+         snippet that is not there. Comment-shaped headings are exempt: they
+         quote comments that were moved OUT of index.html into this file,
+         which is the file's whole convention. A heading with prose after
+         the backticks is a title, not an anchor, and is not compared. */
+      var snip = name.replace(/\u2026$/, "").replace(/\s+/g, " ").trim();
+      if(snip.length >= 6 && flatHtml.indexOf(snip) < 0) ghosts.push(name);
     }
   });
   if(ghosts.length){
     fail("NOTES.md documents " + ghosts.length + " thing(s) index.html no longer has: " +
-         ghosts.slice(0, 6).join(", "));
+         ghosts.slice(0, 6).join(", ") + " — re-anchor the heading to the line as it " +
+         "reads now, or mark the section historical in prose after the backticks");
   }
   note("NOTES.md entries checked against the file: " + keys.length);
 })();
@@ -4633,9 +4674,7 @@ if(!/function legendBlock/.test(HTML) ||
 
 (function(){
   var src = fs.readFileSync(__filename, "utf8");
-  var nums = (src.match(/\/\* -{3,} (\d+)\./g) || []).map(function(m){
-    return parseInt(m.match(/(\d+)\./)[1], 10);
-  });
+  var nums = sections().map(function(s){ return s.n; });
   if(!nums.length){ fail("guards.js has no numbered sections"); return; }
   var i;
   for(i = 0; i < nums.length; i++){
@@ -4652,7 +4691,7 @@ if(!/function legendBlock/.test(HTML) ||
       fail("section " + n + " is missing from the INDEX at the top of guards.js");
     }
   });
-  /* 4.2.3, Q-7 of the 19 Aug audit: THE NUMBERS WERE PINNED IN 1.4.2 AND THE
+  /* THE NUMBERS WERE PINNED IN 1.4.2 AND THE
      TITLES NEVER WERE. 77, 82 and 103 had all drifted — 103 still narrated a
      GROUP repaint two releases after the tick became a row paint, which is
      exactly the "optimization" 3.3.x shipped as a scroll-jump bug. An INDEX
@@ -4660,9 +4699,9 @@ if(!/function legendBlock/.test(HTML) ||
      story; the header over the code is the one that gets rewritten with it,
      so the header is the truth and the INDEX is held to it. A "(was: …)"
      aside in a header is history, not title, and is not compared. */
-  var headerTitle = {};
-  (src.match(/\/\* -{3,} \d+\.[^\n]*/g) || []).forEach(function(h){
-    var hm = h.match(/(\d+)\.\s*(.*?)\s*-*\s*\*\/\s*$/);
+  var headerTitle = {}, srcLines = src.split("\n");
+  sections().forEach(function(sec){
+    var hm = srcLines[sec.line].match(/(\d+)\.\s*(.*?)\s*-*\s*\*\/\s*$/);
     if(hm) headerTitle[hm[1]] = hm[2].replace(/\s*\(was:[^)]*\)\s*$/, "");
   });
   var squash = function(t){ return t.replace(/\s+/g, " ").trim().toLowerCase(); };
@@ -4676,19 +4715,10 @@ if(!/function legendBlock/.test(HTML) ||
            "instrument. The header is rewritten with the code; fix the INDEX");
     }
   });
-  /* A header with no assertions under it. Section 48 stood empty from 1.6.5,
-     its checks stranded after the last section, and every check in this block
-     passed: the numbering ran clean and the INDEX listed 48. A heading is a
-     promise that something is being checked. */
-  var bodies = src.split(/\/\* -{3,} \d+\./).slice(1);
-  bodies.forEach(function(body, i){
-    var end = body.search(/\/\* -{3,} report/);
-    if(end >= 0) body = body.slice(0, end);
-    if(!/\bfail\(/.test(stripBlockComments(body))){
-      fail("section " + nums[i] + " has a header and no assertion under it \u2014 the " +
-           "INDEX promises a check that is not there");
-    }
-  });
+  /* A header with no assertions under it — section 48 stood empty from 1.6.5
+     with its checks stranded after the last section — is section 107's
+     check, which also handles the one nested header. This section keeps to
+     the numbering and the INDEX. */
   /* The INDEX groups rot the same way the numbering used to: every appended
      section brought its own heading, so META appeared three times, twice with
      nothing under it. */
@@ -4861,7 +4891,7 @@ if(!/function legendBlock/.test(HTML) ||
     tbd:  "a real continuity whose place is not decided yet"
   };
   var missing = [], stray = [], bad = [];
-  /* 4.2.3, Q-1 of the 19 Aug audit: this loop used to read f.out off the
+  /* this loop used to read f.out off the
      guards' own FILMS — which carried a fabricated out: field the app never
      puts there. The invariant was real, the object was not. out: lives on the
      raw PATH entries and is read there, same as the app. */
@@ -5484,7 +5514,7 @@ var ROUTE_VOCAB = [
      disappearing, because an injected noindex returning without a second origin
      to justify it would be a robots meta on the canonical site -- which is the
      failure the next clause has always guarded, arrived by a different door. */
-  if(/function offCanonical\s*\(/.test(HTML) || /noindex/.test(HTML)){
+  if(/noindex/.test(HTML)){
     fail("the off-canonical noindex injection is back \u2014 there is one origin " +
          "now, and a noindex it injects can only land on the canonical one");
   }
@@ -5570,12 +5600,19 @@ var ROUTE_VOCAB = [
     }
   });
 
-  var setter = (HTML.match(/setAttribute\("stroke-dashoffset",\s*\(([\d.]+)\s*\*/) || [])[1];
+  /* The script's copy is one named constant, RINGC, and the setter draws
+     from it — a literal repeated in the setter is the drift this section
+     exists to catch, one step removed. */
+  var setter = (HTML.match(/setAttribute\("stroke-dashoffset",\s*\((RINGC|[\d.]+)\s*\*/) || [])[1];
+  var ringc = (HTML.match(/\bvar RINGC = ([\d.]+);/) || [])[1];
   if(!setter){
     fail("nothing in the script sets #ringArc's stroke-dashoffset from progress — " +
          "the ring is static");
-  } else if(Math.abs(parseFloat(setter) - C) > TOL){
-    fail("the script draws the ring with " + setter + " but the markup and the radius " +
+  } else if(setter !== "RINGC" || !ringc){
+    fail("the script draws the ring from a literal instead of RINGC — the " +
+         "circumference is named once so the setter cannot drift alone");
+  } else if(Math.abs(parseFloat(ringc) - C) > TOL){
+    fail("the script draws the ring with " + ringc + " but the markup and the radius " +
          "say " + C.toFixed(2) + " — one of the two was changed alone");
   }
   note("progress ring: r=" + r + ", circumference " + C.toFixed(2) + " in markup and script");
@@ -5739,32 +5776,15 @@ var ROUTE_VOCAB = [
 
 /* ---------- 83. The manifest id is an identity, not a path ------------ */
 /* A browser keys an installed app on manifest.id. Change it and every install
-   already on a home screen is orphaned: the old app keeps running the old cached
-   build forever and the new one installs beside it. It looks like a path and it
-   is not one, which is exactly why it gets "tidied" during a domain move — this
-   one was changed from /Night-Watcher/ to / during 1.8.0 and reverted before
-   shipping, caught by chance rather than by anything here.
-
-   IT WAS CHANGED ON PURPOSE IN 2.7.0, ONCE, AND THE REASONING MATTERS BECAUSE
-   THE RULE ABOVE IS STILL RIGHT. The old value was the GitHub Pages *project
-   page* identity, and on the apex it resolves to
-   https://nightwatcher.life/Night-Watcher/ — a path that does not exist. The
-   2.5.1 retirement round missed it because guard 77's inverted check greps for
-   the retired host, not the path.
-
-   The standing decision was to leave it, on the grounds that orphaning installs
-   costs more than a cosmetic wrong. That decision was taken while treating the
-   install base as fixed. It was not: the measured base was near zero — 100 apex
-   visits total, with the analytics beacon only live since 2 Aug 2026 — and
-   Batman Day was five weeks out. The cost of this change is proportional to the
-   install base, so it fell to roughly nothing on 4 Aug and rises with every
-   install afterwards. Leaving it would have meant every install made from
-   19 Sep onward keyed to an identity pointing at a path that does not exist,
-   permanently.
-
-   So: paid once, deliberately, at the last moment it was cheap. The rule does
-   not relax — this guard now pins the new value with the same force, and there
-   is no second exception coming. */
+   already on a home screen is orphaned: the old app keeps running the old
+   cached build forever and the new one installs beside it. It looks like a
+   path and it is not one, which is exactly why it gets "tidied" during a
+   domain move. It was changed ON PURPOSE exactly once, in 2.7.0, from the
+   retired project-page identity to the apex — paid at the last moment it was
+   cheap, when the measured install base was near zero and Batman Day was
+   five weeks out. The rule does not relax: this guard pins the new value
+   with the same force, and there is no second exception coming. (The
+   reasoning is in NOTES.md.) */
 
 (function(){
   var WANT = "/";
@@ -5780,7 +5800,7 @@ var ROUTE_VOCAB = [
          "again \u2014 the one-time cost was paid while the install base was " +
          "near zero, and it will not be near zero twice. See NOTES.md");
   }
-  /* 3.7.2, M-7 of the 10 Aug review: THE ID WAS PINNED AND NOTHING AROUND IT
+  /* THE ID WAS PINNED AND NOTHING AROUND IT
      WAS. start_url is the same "tidied during a refactor" class of value as
      the id incident above — typo it and every new install opens a 404 while
      the diff reads like housekeeping. The whole installed surface is a set of
@@ -6069,6 +6089,41 @@ var ROUTE_VOCAB = [
   if(cardType !== "summary_large_image"){
     fail('twitter:card is "' + cardType + '" — without summary_large_image the ' +
          "card renders as a thumbnail and the 1200×630 asset bought nothing");
+  }
+  /* WHAT THE CARD BAKES IN, HELD AGAINST THE DATA. The card prints three
+     counts, and nothing tied them to the catalogue: font-subset.json pins
+     the fonts to the letters the data uses, and the card had no equivalent,
+     so a catalogue edit could ship under a card still saying the old
+     numbers. qa/share-card.json is written by the generator with the counts
+     it drew and the hash of what it wrote; the counts must equal today's
+     data (or the card is stale — regenerate), and the hash must equal the
+     file (or the file was edited outside the generator — the manual
+     quantize is the honest case, and `npm run bless` re-records it). */
+  var mfPath = path.join(ROOT, "qa", "share-card.json"), mf = null;
+  try{ mf = JSON.parse(fs.readFileSync(mfPath, "utf8")); }catch(e){}
+  var cardSha = require("crypto").createHash("sha256").update(buf).digest("hex");
+  if(!mf){
+    fail("qa/share-card.json is missing or unreadable — the card's counts are " +
+         "unpinned. Regenerate with: node qa/make-share-card.mjs");
+  } else {
+    ["films", "seasons", "continuities"].forEach(function(k){
+      if(mf[k] !== actual[k]){
+        fail("docs/share.png bakes in " + mf[k] + " " + k + " and the data has " +
+             actual[k] + " — the card is stale. Regenerate with: node " +
+             "qa/make-share-card.mjs, quantize, then npm run bless");
+      }
+    });
+    if(mf.sha256 !== cardSha){
+      if(BLESS){
+        mf.sha256 = cardSha;
+        fs.writeFileSync(mfPath, JSON.stringify(mf, null, 1) + "\n");
+        note("blessed qa/share-card.json — share.png's hash re-recorded");
+      } else {
+        fail("docs/share.png does not match the hash in qa/share-card.json — " +
+             "the file changed outside the generator (the manual quantize is " +
+             "the honest case). Fix with: npm run bless");
+      }
+    }
   }
   /* Out of the offline shell, enforced rather than remembered. */
   var sw = fs.readFileSync(path.join(PUBLIC, "sw.js"), "utf8");
@@ -6493,6 +6548,20 @@ var ROUTE_VOCAB = [
          "animate on transform and opacity, which do not affect layout, so " +
          "without this the page keeps the belt's full height until the " +
          "re-render and then jumps in one frame. That was soak finding 1");
+  }
+  /* The timer and the animation are one duration in two languages: the
+     re-render must land when the collapse ends, not before it (a jump) or
+     after it (a hole). The JS side is the named constant BELTCLOSE; the CSS
+     side is the animation's own duration. */
+  var beltMs = parseInt((HTML.match(/\bvar BELTCLOSE = (\d+);/) || [])[1], 10);
+  var beltS  = parseFloat((HTML.match(/animation:beltclose ([\d.]+)s/) || [])[1]);
+  if(!(beltMs > 0) || !/setTimeout\(function\(\)\{ if\(!S\.beltOpen\) render\(\); \}, BELTCLOSE\)/.test(cbFn)){
+    fail("the belt's close re-render does not wait BELTCLOSE — the timer is " +
+         "named once so it cannot drift from the CSS animation alone");
+  } else if(Math.abs(beltMs - beltS * 1000) > 1){
+    fail("BELTCLOSE is " + beltMs + " ms and the beltclose animation runs " +
+         beltS + "s — the re-render lands before the collapse ends (a jump) " +
+         "or after it (a hole); the two are one duration");
   }
 
   /* 2.2.0 soak note: the buckle crops on narrow phones. Below 375px the two
@@ -7013,48 +7082,21 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 103. The tick repaints one ROW, and cannot drift ---------- */
-/* 2.5.0, optimization report \u00a73.8 \u2014 the one the report called genuinely
-   risky, shipped behind arithmetic instead of nerve. The tick path
-   (toggleWatched/toggleSkip) repaints the row's group through groupBlock()
-   \u2014 the same builder viewWatch() composes from, so the two cannot disagree
-   by construction \u2014 plus the header through renderHead(). Everything
-   outside the targeted condition (another tab, a filter, a search) falls
-   back to the full render. The real gate lives in smoke: after every driven
-   tick, a forced full render must serialize byte-for-byte identical. This
-   section holds the shape so the gate always has something to gate.
+/* The tick path repaints ONE ROW through filmRow() — the same row builder
+   groupBlock() composes from — and writes the group head's "n of m" and bar
+   in place through gSub()/gPct(), the same helpers the head is built from,
+   so a second copy of any of the three cannot exist. Everything outside the
+   targeted condition (another tab, a filter, a search) falls back to the
+   full render, and the smoke gate has the last word: after every driven
+   tick a forced full render must serialize byte-for-byte identical.
 
-   3.4.1 SUPERSEDES THE PARAGRAPH ABOVE, AND THE SHAPE IT HELD WAS THE DEFECT.
-   Everything it says about drift is still true and still enforced below. What
-   it got wrong was the granularity. It required tickUpdate() to rebuild the
-   whole GROUP through groupBlock() and replaceChild it in \u2014 and .group
-   carries content-visibility:auto with contain-intrinsic-size:auto 64px, so
-   the replacement is a brand-new element with no remembered size and renders
-   as a 64px placeholder until layout catches up. Measured at 390x844 in the
-   click's own task: the ticked group falls 3418px -> 66px and the document
-   loses 3352px underneath the reader. In Bruce's life, where an era is six
-   times a universe, that is the whole screen.
-
-   THE CHECK THAT SHOULD HAVE CAUGHT IT COULD NOT SEE IT. 3.4.0 added a browser
-   drive for exactly this and asserted on window.scrollY, which reads 8780 ->
-   8780 across the defect: the offset does not move, the content does. It also
-   ran only filter ess and filter core, and BOTH of those take the fallback
-   branch on the very line this section pins. The default state \u2014 no filter,
-   no search, where every reader starts \u2014 had never been driven at all.
-   qa/soak-3.4.0-tick-jump.md.
-
-   With filter "all" and no query, groupBlock's seven filter clauses all fall
-   through and matches() returns true, so THE ROW SET CANNOT CHANGE. A tick can
-   change exactly three things: the row, the "n of m" in the group head, and
-   the head's progress bar. So the row is replaced through filmRow() \u2014 .film
-   carries no content-visibility and cannot collapse \u2014 and the other two are
-   written in place, the way groupUpdate() has always done it. Nothing creates
-   a .group element outside the full render any more, which is the class of
-   defect rather than this instance of it.
-
-   The anti-drift argument is unchanged and is now stronger: filmRow() is the
-   same row builder groupBlock() composes from, and gSub()/gPct() are the same
-   two helpers the head is built from, so a second copy of any of the three
-   cannot exist. The smoke gate still has the last word. */
+   It must be the ROW and never the group: .group carries
+   content-visibility:auto, and a replaced group is a brand-new element with
+   no remembered size that renders as a 64px placeholder until layout catches
+   up — the ticked group fell 3418px -> 66px under the reader, and the browser
+   drive that should have caught it asserted on scrollY, which does not move
+   when the content does. Nothing creates a .group element outside the full
+   render. (The history is in NOTES.md.) */
 
 (function(){
   var tw = fn("toggleWatched"), ts = fn("toggleSkip");
@@ -7116,37 +7158,16 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 104. The security headers the tree owns ------------------- */
-/* THE TITLE OF THIS SECTION USED TO BE "the security headers the edge cannot
-   set", and the comment under it used to say: "Cloudflare Response Header
-   Transform Rules do not apply to responses a Worker generates... A rule was
-   created in the dashboard on 4 Aug 2026, showed Active, and set nothing —
-   verified against a cache HIT, a cache MISS and a 404."
-
-   BOTH WERE WRONG, FOUND 8 AUG 2026. A Response Header Transform Rule reaches
-   a Worker response and overrides this file. A rule named "Security headers",
-   active on all incoming requests, was setting Permissions-Policy,
-   Referrer-Policy and X-Frame-Options — and for the whole of 3.4.2 the wire
-   served ITS Permissions-Policy while this section stayed green, because this
-   section reads the file and the file was right. The 4 Aug rule that "set
-   nothing" is the whole error: a rule that sets nothing is not evidence about
-   rules that do. An instrument used to rule something out must be able to see
-   it, and a no-op rule cannot.
-
-   WHAT DOES NOT CHANGE IS WHERE THE HEADERS LIVE, and now for a reason that
-   survives being checked: a file in the tree can be diffed, guarded and shipped
-   inside a release; a dashboard rule can be none of those. The rule was deleted
-   in 3.4.3. NOTHING HERE GUARDS THAT IT STAYED DELETED — this section reads the
-   tree, and a guard pretending to read the wire would be worse than an honest
-   gap. The wire check is in the release checklist.
-   qa/sweep-repo-page-dns-2026-08-08.md.
-
-   HSTS and X-Content-Type-Options are deliberately NOT here: those are set at
-   the edge (SSL/TLS panel and Managed Transforms), and setting them twice would
-   mean two places to be wrong.
-
-   CSP is deliberately not here either. It lives in the <meta> tag whose hash
-   section 10 blesses against the one inline script; splitting one rule across
-   two files is how the hash goes stale without anything noticing. */
+/* The headers live in docs/_headers because a file in the tree can be diffed,
+   guarded and shipped inside a release, and a dashboard rule can be none of
+   those. A dashboard Transform Rule DOES reach these responses and overrides
+   the file — one served its own Permissions-Policy for a whole release while
+   this section stayed green, because this section reads the file and the
+   file was right. NOTHING HERE GUARDS THE PANEL: a guard pretending to read
+   the wire would be worse than an honest gap, so the wire check is in the
+   release checklist. HSTS and X-Content-Type-Options are set at the edge and
+   deliberately not duplicated; CSP lives in the <meta> tag whose hash is
+   blessed against the one inline script. (History in NOTES.md.) */
 
 (function(){
   var hp = path.join(PUBLIC, "_headers");
@@ -7283,33 +7304,15 @@ var ROUTE_VOCAB = [
          "hash section 43 blesses, and two of them will disagree");
   }
 
-  /* 3.4.2 PUT TWO TOKENS IN THIS LIST AND ONE OF THEM DID NOT BELONG. The
-     comment here used to read: "TWO DEAD TOKENS, ONE OF WHICH WAS SHOUTING.
-     `usb` is not a registered Permissions-Policy feature, and Chrome logged
-     'Unrecognized feature: usb' on every single page load."
-
-     THAT IS WRONG AND 3.4.3 REVERSES IT. `usb` IS the policy-controlled feature
-     for WebUSB and Chrome accepts it. The warning came from the 7 Aug scanner's
-     own browser engine, not from Chrome and not from a malformed header: the
-     live response carried usb=() while Chrome's console stayed silent through
-     three loads. The triage that recorded it caught the same report's CSP error,
-     its DNSSEC error and its HSTS error, and took the console warning at face
-     value because a console warning feels like evidence rather than like a
-     reading from one engine.
-
-     WHAT THAT COST IS THE POINT OF LEAVING THIS WRITTEN DOWN. For one release
-     this guard forbade putting back a legitimate header value — a guard
-     blocking the correct state, which is worse than the noise it was written to
-     stop.
-
-     `interest-cohort` STAYS REFUSED, and for its own reason: it is the FLoC
-     opt-out, FLoC was withdrawn, and the token really is dead.
-
-     A HAND-MAINTAINED LIST INSIDE A GUARD IS THE GUARD. Growing or shrinking
-     this array is the change, and negtest340 is the only thing that proves it
-     — which is why the usb fixture came out in the same commit. Refused by name
-     rather than pinned as a whole string: the policy is allowed to grow, and a
-     future token deserves an argument rather than a diff. */
+/* A HAND-MAINTAINED LIST INSIDE A GUARD IS THE GUARD. Refused by name rather
+   than pinned as a whole string: the policy is allowed to grow, and a future
+   token deserves an argument rather than a diff. `interest-cohort` is the
+   FLoC opt-out, FLoC was withdrawn, and the token really is dead. `usb` is
+   NOT on this list and must not return to it: it IS the policy-controlled
+   feature for WebUSB and Chrome accepts it — a scanner's own engine once
+   logged it as unrecognised, the list refused it for a release, and a guard
+   blocking the correct state is worse than the noise it was written to stop.
+   negtest340 is the only thing that proves the list. (History in NOTES.md.) */
   var DEAD104 = ["interest-cohort"];
   var pp104 = (D.match(/^\s+Permissions-Policy:.*$/m) || [""])[0];
   DEAD104.forEach(function(t){
@@ -7335,8 +7338,8 @@ var ROUTE_VOCAB = [
      answered 2.7.5. sw.js is how a returning browser learns the app changed, so
      a stale copy pins every returning visitor to an old app indefinitely; the
      value is load-bearing, which is the whole argument for guarding it rather
-     than remembering it. The fonts go the other way: 62,996 bytes that never
-     change under a name, re-fetched on no policy at all until now. */
+     than remembering it. The fonts go the other way: bytes that never change
+     under a name, re-fetched on no policy at all until now. */
   var RULES = [
     ["/sw.js", /^\s+Cache-Control:\s*no-cache\s*$/m,
      "no-cache — it must be revalidated before use, or a returning browser " +
@@ -7358,7 +7361,7 @@ var ROUTE_VOCAB = [
      "that the name can stay stable"],
     ["/favicon.ico", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
      "a day, for the same reason as /icon.svg"],
-    /* 3.7.2 (L-4 of the 10 Aug review): THE DOCUMENT ITSELF, DECLARED AT
+    /* THE DOCUMENT ITSELF, DECLARED AT
        LAST. index.html is the entire app, and for non-SW visitors it rode
        whatever policy Workers Assets emits by default — the exact undeclared
        state whose consequences this file's own history records for sw.js.
@@ -7381,7 +7384,20 @@ var ROUTE_VOCAB = [
     ["/apple-touch-icon.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
      "a day, same reasoning as /favicon.ico"],
     ["/mstile-144x144.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
-     "a day, same reasoning as /favicon.ico"]
+     "a day, same reasoning as /favicon.ico"],
+    /* The remaining stable-named rasters, the manifest and the crawler card
+       had no block at all — the file's own reasoning applied to them and
+       they were riding the platform default. Same day, same reason. */
+    ["/icon.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day, same reasoning as /favicon.ico"],
+    ["/icon-192.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day, same reasoning as /favicon.ico"],
+    ["/icon-maskable-512.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day, same reasoning as /favicon.ico"],
+    ["/share.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day — the card is regenerated under a stable name"],
+    ["/manifest.json", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day — the manifest changes with releases, under a stable name"]
   ];
   RULES.forEach(function(r){
     var i = D.indexOf("\n" + r[0] + "\n");
@@ -7438,38 +7454,17 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 105. The catalogue answers in plain text ------------------ */
-/* B4, approved 4 Aug: a flat text export of the catalogue for anything that
-   reads text rather than HTML — the same audience llms.txt talks to, given the
-   data instead of a description. Separate file, so it costs the page nothing.
-
-   IT CARRIED ONE ORDERING UNTIL 3.9.6, AND THE REASON IT DID IS STILL THE
-   REASON THE FIX LOOKS LIKE THIS. By universe needs no sort: each continuity's
-   array IS its spoiler-safe order, exactly as guard 78 relies on for the seed.
-   Bruce's life and Release order are computed, and they were computed by two
-   ANONYMOUS comparators inside buildGroups() — and fn() can only extract NAMED
-   functions. Writing them out here would have been a second implementation of
-   the app's ordering, the one thing this file exists to prevent: a copy drifts,
-   stops testing the app, and from here it would have started PUBLISHING the
-   drift. That is why the export shipped short for thirteen releases rather than
-   being "completed" by someone with a spare afternoon.
-
-   3.9.6 NAMED THEM INSTEAD. lifeCmp and releaseCmp are functions in index.html
-   with byte-identical bodies, buildGroups() sorts through them, and this
-   section extracts both — one source, both sides. Guard 141 asserts the app has
-   not quietly re-inlined a copy, which would put the drift back while leaving
-   this file looking right.
-
-   THE BUCKET IS PART OF THE ORDERING. Neither comparator is a total order:
-   lifeCmp runs inside an era, releaseCmp inside a decade, and the bucket list
-   does the coarse ordering. Sorting the flat catalogue with either would give a
-   plausible-looking wrong answer — so the two loops below mirror buildGroups()
-   rather than the shortcut, and a count check refuses to publish an ordering
-   that carries fewer than every entry.
-
-   Generated and blessed like the seed and the ItemList: rebuilt on every run
-   and compared, npm run bless writes it. A hand-maintained copy of 200 entries
-   would be stale within a release and nobody would read it closely enough to
-   notice. */
+/* A flat text export of the catalogue, for anything that reads text rather
+   than HTML. It carries all three orderings from the app's OWN comparators:
+   lifeCmp and releaseCmp are named functions in index.html (they were
+   anonymous inside buildGroups() for thirteen releases, which is why the
+   export shipped short — writing them out here would have been a second
+   implementation of the ordering, publishing its drift), this section
+   extracts both, and guard 141 refuses a re-inlined copy. THE BUCKET IS PART
+   OF THE ORDERING: neither comparator is a total order, so the loops below
+   mirror buildGroups() rather than sorting the flat catalogue, and a count
+   check refuses to publish fewer than every entry. Generated and blessed
+   like the seed and the ItemList. */
 
 (function(){
   var TXT = path.join(PUBLIC, "orders.txt");
@@ -7827,40 +7822,17 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 106. The fonts carry every letter the catalogue uses ------ */
-/* 2.7.0 subset five of the six faces from 118,860 bytes to 62,996 — 39% of the
-   first-visit payload down to 26%. The weight was never dead files: all six are
-   referenced by @font-face and all six are precached. The weight was glyph
-   coverage nobody was ever going to use.
-
-   THE FAILURE MODE A SUBSET INTRODUCES IS SILENT. Cut a glyph the catalogue
-   later needs and the browser draws a blank box, on one entry, on one row,
-   probably on somebody else's device. Nothing throws. That is why the subset is
-   Latin-1 plus punctuation rather than the 99 characters the catalogue happened
-   to contain on the day — the tighter cut saved another 21 KB and would have
-   put an accented title one data patch away from tofu, on a catalogue whose
-   whole design is that it takes data patches.
-
-   This guard closes the gap the range leaves. Every character in the served
-   page and in the plain-text export must be inside the blessed range, so a new
-   title with an unusual letter fails the build on the day it is added rather
-   than turning up in a screenshot three weeks later. It keeps a trigger patch
-   honest too: one data row stays one data row, unless it needs a glyph the
-   fonts do not have, and then the build says so.
-
-   It does not regenerate the fonts. Doing that would put fonttools and a Python
-   toolchain in CI to re-derive bytes that are already committed. Instead
-   qa/subset-fonts.py blesses a manifest carrying each file's size and SHA-256,
-   and this guard holds the files against it — so the fonts and the record of
-   what they contain can only move together, which is the same bargain the seed,
-   the ItemList and orders.txt already make.
-
-   Limelight is in the manifest but marked unsubset. Its OFL header reads "with
-   Reserved Font Name Limelight"; the other faces' headers do not. Under OFL 1.1 a
-   Modified Version may not carry the reserved name as presented to users, so
-   subsetting it means renaming the family in the name table, in @font-face and
-   in --deco — real CSS churn and a licensing judgement, for 10.3 KB. Left
-   whole on purpose, and the manifest says so rather than leaving it looking
-   like an oversight. */
+/* The faces are subset to Latin-1 plus punctuation, and THE FAILURE MODE A
+   SUBSET INTRODUCES IS SILENT: cut a glyph the catalogue later needs and the
+   browser draws a blank box, on one row, probably on somebody else's device.
+   So every character in the served page and in the plain-text export must
+   sit inside the blessed range, and a new title with an unusual letter fails
+   the build on the day it is added. The guard does not regenerate fonts (that
+   would put a Python toolchain in CI to re-derive committed bytes); it holds
+   the files against the manifest qa/subset-fonts.py blesses, so the fonts and
+   the record of what they contain can only move together. Limelight is in
+   the manifest marked unsubset on purpose: its OFL header reserves the name,
+   and a Modified Version may not carry it. (The rest is in NOTES.md.) */
 
 (function(){
   var MAN = path.join(__dirname, "font-subset.json");
@@ -7968,11 +7940,7 @@ var ROUTE_VOCAB = [
   /* Nested on purpose: name => the enclosing section it depends on. */
   var NESTED = {"24": "23"};
 
-  var marks = [];
-  lines.forEach(function(l, i){
-    var m = l.match(/^(\s*)\/\* -{3,} (\d+)\./);
-    if(m) marks.push({n: m[2], indent: m[1].length, line: i});
-  });
+  var marks = sections().map(function(s){ return {n: String(s.n), indent: s.indent, line: s.line}; });
   if(marks.length < 100){
     fail("section census read only " + marks.length + " sections out of guards.js " +
          "— the marker format changed and this guard is now measuring nothing");
@@ -7984,7 +7952,7 @@ var ROUTE_VOCAB = [
     var end = (i + 1 < marks.length) ? marks[i + 1].line : lines.length;
     var body = lines.slice(mk.line, end);
 
-    if(stripBlockComments(body.join("\n")).indexOf("fail(") < 0){
+    if(stripComments(body.join("\n")).indexOf("fail(") < 0){
       fail("guard section " + mk.n + " contains no fail() outside a comment — " +
            "a section that cannot fail is documentation, not a guard, and a " +
            "fail() quoted in prose is documentation too");
@@ -8034,35 +8002,16 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 108. The 2.7.1 soak notes stay fixed ---------------------- */
-/* Three cosmetics, reported by the owner against live 2.7.0. They are here
-   rather than left to the CSS because a cosmetic with no guard is a cosmetic
-   that comes back: each one is a single value that reads like tidying, and one
-   of them is a value THIS PROJECT ITSELF moved in the release before.
-
-   The era note touched the line above it. .gbody carried no top padding, and
-   .group.open .ghead draws a 1px rule underneath itself, so the first line of
-   the note sat directly on it. The space goes on the parent's padding rather
-   than the note's margin: with a zero-padding parent the child's top margin
-   collapses straight out of the box and nothing moves.
-
-   The rating badge sat beside the Where-to-watch link. That was 2.2.0's fix
-   for its own soak note, and it made the rating read as part of the link
-   rather than as what it is. It now sits with the other badges everywhere,
-   which section 92 holds seat by seat.
-
-   THE SHARE CARD'S BOTTOM BLOCK IS BACK WHERE IT WAS, AND THIS IS THE ONE TO
-   READ BEFORE CHANGING ANYTHING. 2.7.0 moved the bars, the rule, the strapline
-   and the domain up by 145px to clear the strip Instagram reserves for its
-   reply bar, and moved the bat and its glow up with them. The reasoning was
-   sound and it was shipped without the one-minute Story test that was written
-   into the plan to gate it. On a real card it left a third of the canvas empty
-   below the domain, and the balance the card had was worth more than the risk
-   it was avoiding. Reverted in 2.7.1.
-
-   The argument for moving it is still true and still on the record, so it will
-   read as unfinished work to whoever finds it next. It is not. If it is ever
-   revisited, the answer is not to shift the block again — it is to keep the
-   composition and shorten the canvas, and that wants the Story test first. */
+/* Three cosmetics, each a single value that reads like tidying, and one of
+   them a value THIS PROJECT ITSELF moved in the release before — which is why
+   they are guarded rather than left to the CSS. The era note's space goes on
+   the parent's padding, not the note's margin (a child's top margin collapses
+   out of a zero-padding parent). The rating badge sits with the other badges,
+   never beside the Where-to-watch link. And THE SHARE CARD'S BOTTOM BLOCK
+   STAYS WHERE IT IS: moving it up to clear Instagram's reply strip left a
+   third of the canvas empty and was reverted; if it is ever revisited, the
+   answer is to keep the composition and shorten the canvas, and that wants
+   the Story test first. (The reasoning is in NOTES.md.) */
 
 (function(){
   /* The note must not touch the rule the open header draws under itself. */
@@ -8084,8 +8033,7 @@ var ROUTE_VOCAB = [
      the function ended the run with a raw stack trace, which is the exact
      failure mode optionalFn() was written to prevent twenty lines above its
      definition. sliceOr() is the version that keeps the promise. */
-  var card = sliceOr("function drawShareCard", "\nfunction shareCardBlock") ||
-             HTML.slice(HTML.indexOf("function drawShareCard"));
+  var card = sliceOr("function drawShareCard", "\nfunction shareCardBlock") || "";
   var domain = (card.match(/"nightwatcher\.life",\s*(\d+)\)/) || [])[1];
   var strap  = (card.match(/"One path through every Batman",\s*(\d+)\)/) || [])[1];
   var rule   = (card.match(/x\.fillRect\(16,\s*(\d+),\s*1048,\s*4\)/) || [])[1];
@@ -8211,11 +8159,7 @@ var ROUTE_VOCAB = [
   PAGES[1][1] = fs.existsSync(p404) ? fs.readFileSync(p404, "utf8") : null;
   PAGES.forEach(function(pg){
     var name = pg[0], src = pg[1];
-    if(src === null){
-      fail("docs/404.html is missing — the origin serves it and section 45 " +
-           "lists it, so its absence is a 404 for the 404");
-      return;
-    }
+    if(src === null) return; /* section 101 fails on the missing file */
     var vp = (src.match(/<meta name="viewport" content="([^"]*)"/) || [])[1];
     if(!vp){
       fail(name + " has no viewport meta — a phone renders it at desktop width " +
@@ -8244,20 +8188,35 @@ var ROUTE_VOCAB = [
 /* ---------- 111. Watched and skipped are never both true --------------- */
 /* markWatched() has always cleared the skip — watched-clears-skip is the app's
    own definition of what a tick means. THREE MERGE SITES DID NOT, and every one
-   of them is a hand-copied version of the same few lines: the cross-tab storage
-   event, the JSON restore branch, and applyImport(). Skip an entry in one tab,
-   mark it watched in another, and the row renders class="film done skip" and
-   appears in BOTH the W and the S segments of the backup code and the JSON —
-   demonstrated in jsdom before it was fixed. Every denominator on Progress then
-   disagrees with the next, because one entry is counted twice.
+   of them was a hand-copied version of the same few lines: the cross-tab
+   storage event, the JSON restore branch, and applyImport(). Skip an entry in
+   one tab, mark it watched in another, and the row rendered class="film done
+   skip" and appeared in BOTH the W and the S segments of the backup code —
+   demonstrated in jsdom before it was fixed. Every denominator on Progress
+   then disagrees with the next, because one entry is counted twice.
 
    THIS IS NOT THE RECORDED "THE MERGE ONLY EVER ADDS" DECISION. That decision
-   is about never losing a mark somebody made, and it stands. This is drift
-   between three copies of one merge, and the copies are the bug: the log-merge
-   dance underneath was written out twice as well, and is now mergeLog(), so
-   there is one place to change rather than three to remember. */
+   is about never losing a mark somebody made, and it stands. This was drift
+   between three copies of one merge, and the copies were the bug. The three
+   copies are one function now, applyMarks(): the invariant lives there once
+   (watched clears skip; the BYID gate; skipped never lands on a watched
+   entry), the sites call it, and this section holds both halves — the helper
+   carries the lines, and no site carries its own copy. The log-merge dance
+   underneath went the same way earlier, as mergeLog(). */
 
 (function(){
+  var helper = optionalFn("applyMarks", "no shared merge — every site would be a copy again");
+  if(!helper) return;
+  if(helper.indexOf("delete S.skipped") < 0){
+    fail("applyMarks() sets S.watched without clearing S.skipped — an entry can " +
+         "come back watched AND skipped, which markWatched() has never allowed. " +
+         "It renders with both classes and lands in both segments of the backup " +
+         "code, so every count on Progress disagrees with the next");
+  }
+  if(!/!BYID\[id\]/.test(helper)){
+    fail("applyMarks() lost the BYID gate — an id the catalogue does not carry " +
+         "would reach live state through every merge at once");
+  }
   var SITES = [
     ["applyImport()", optionalFn("applyImport", "a restored backup would not be applied")],
     ["the JSON restore branch", optionalFn("doRestore", "nothing would read a pasted backup")],
@@ -8267,14 +8226,20 @@ var ROUTE_VOCAB = [
   SITES.forEach(function(site){
     if(!site[1]){
       fail("cannot locate " + site[0] + " — it is one of the three places a mark " +
-           "arrives from somewhere else, and all three have to clear the skip");
+           "arrives from somewhere else, and all three go through applyMarks()");
       return;
     }
-    if(site[1].indexOf("delete S.skipped") < 0){
-      fail(site[0] + " sets S.watched without clearing S.skipped — an entry can " +
-           "come back watched AND skipped, which markWatched() has never allowed. " +
-           "It renders with both classes and lands in both segments of the backup " +
-           "code, so every count on Progress disagrees with the next");
+    if(site[1].indexOf("applyMarks(") < 0){
+      fail(site[0] + " no longer merges through applyMarks() — a site with its own " +
+           "copy of the loop is how the invariant came to be kept in one place and " +
+           "not the others");
+    }
+    /* The one hand-written assignment that is allowed to remain is the
+       clocked merge in the storage event, which can also UN-mark; a
+       `S.watched[...] = 1` in either import site is a copy coming back. */
+    if(site[0] !== "the cross-tab storage event" && /S\.watched\[\w+\]\s*=\s*1/.test(site[1])){
+      fail(site[0] + " sets S.watched by hand again — that assignment is " +
+           "applyMarks()'s, and a second copy is a second thing to remember to fix");
     }
   });
 
@@ -8284,20 +8249,18 @@ var ROUTE_VOCAB = [
     fail("mergeLog() is gone — the log merge is back to being written out at " +
          "each call site, which is exactly how the three sites above drifted");
   }
-  /* 3.4.5 MOVED THE SHAPE THIS COUNTED AND ALMOST LOST THE COUNT. mergeLog's
-     timestamp check became validTs(en.ts) — isFinite(null) is true, which is
-     how an entry with no timestamp came to date itself 1970 — and this pattern
-     went from matching once to matching nothing. A copied-out dance would then
-     have been the FIRST occurrence and passed. Both shapes are counted, because
-     a call site copying the loop out is exactly as likely to copy the old
-     isFinite version out of a stale editor buffer. */
+  /* mergeLog's timestamp check became validTs(en.ts) — isFinite(null) is
+     true, which is how an entry with no timestamp came to date itself 1970 —
+     and this pattern once went from matching once to matching nothing. Both
+     shapes are counted, because a call site copying the loop out is exactly
+     as likely to copy the old isFinite version out of a stale editor buffer. */
   var dance = (HTML.match(/(?:isFinite|validTs)\(en\.ts\)/g) || []).length;
   if(dance > 1){
     fail("the log-merge dance appears " + dance + " times — it was written out " +
          "twice and 3.0.0 made it one helper. A second copy is a second thing to " +
          "remember to fix");
   }
-  note("merge sites: 3, all clearing the skip; one shared log merge");
+  note("merge sites: 3, all through applyMarks(); one shared log merge");
 })();
 
 /* ---------- 112. The Restore box survives a render nobody asked for ---- */
@@ -8431,7 +8394,7 @@ var ROUTE_VOCAB = [
    the prose's half; neither can drift without the other going red. */
 
 (function(){
-  var para = (README.match(/^Served from Cloudflare Workers[\s\S]*?(?=\n\n)/m) || [""])[0];
+  var para = (README.match(/^Served from a Cloudflare Worker[\s\S]*?(?=\n\n)/m) || [""])[0];
   if(!para){
     fail("cannot find the README paragraph that describes the old GitHub Pages " +
          "address — it is the one piece of prose in this file that makes a claim " +
@@ -8443,12 +8406,8 @@ var ROUTE_VOCAB = [
      actually did there, and the app no longer does anything there: the mirror
      was unpublished 6 Aug 2026. What survives is the half that never depended
      on a second origin -- the README must not describe the retired move offer
-     as something the app does, and must not promise the old address works. */
-  if(/function offCanonical\s*\(/.test(HTML)){
-    fail("offCanonical() is back in the app while this section assumes it is " +
-         "gone \u2014 section 77 owns that, and this one can no longer be read " +
-         "as agreeing with anything");
-  }
+     as something the app does, and must not promise the old address works.
+     Section 77 owns the claim that offCanonical() stays gone. */
   if(/still works and always will/i.test(para)){
     fail("the README promises the old GitHub Pages address still works and " +
          "always will. It was unpublished on 6 Aug 2026 and returns 404 \u2014 " +
@@ -8595,35 +8554,17 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 116. The fonts really carry what the page really renders --- */
-/* SECTION 106 HAS NEVER READ A FONT. It compares each file's bytes and hash to
-   qa/font-subset.json — a manifest qa/subset-fonts.py writes itself — so
-   narrow-the-range, re-run, re-bless leaves it green over a font that lost
-   glyphs. That was the recorded hole, deferred twice as "needs real cmap
-   inspection and a new dependency."
-
-   IT NEEDED NO DEPENDENCY. woff2 is a Brotli-compressed sfnt and Node ships
-   zlib.brotliDecompressSync, so the table directory, the cmap and its real
-   codepoint set are all reachable in pure Node — which matters, because "Zero
-   dependencies" is stated in this file's own header and in README's QA
-   paragraph, and shelling out to fontTools would have falsified a guarded claim
-   to fix an unguarded one.
-
-   AND IT FOUND A SECOND HOLE NOBODY HAD RECORDED. Section 106's other half
-   asserts that every character the page renders sits inside the blessed range —
-   and it scans the file for literal non-ASCII only. The star, the caret and the
-   external-link arrow all ship as \uXXXX ESCAPES in the script, so the check
-   could not see them and has been passing over four characters that are in none
-   of the six faces since the subset landed. The escapes are counted here.
-
-   THE FOUR ARE NOT A DEFECT, AND THAT IS THE POINT OF RECORDING THEM. A star, a
-   caret, an arrow and a guillemet are UI marks rather than text; they render
-   from the system font, they have always rendered from the system font, and
-   subsetting four symbol glyphs into five faces would spend bytes for a worse
-   result. What was wrong was that nobody had decided it — it was invisible, not
-   intentional. It is a named exception now, and like section 107's nested
-   section, the exception is asserted rather than assumed: if one of them ever
-   turns up INSIDE a face, this fails, because the reason it was excepted has
-   gone. */
+/* Section 106 compares bytes and hashes to a manifest the subset script
+   writes itself, so narrow-the-range, re-run, re-bless would leave it green
+   over a font that lost glyphs. This section READS the fonts: woff2 is a
+   Brotli-compressed sfnt and Node ships zlib.brotliDecompressSync, so the
+   cmap's real codepoint set is reachable with no dependency — and "zero
+   dependencies" is a guarded claim. It also counts the \uXXXX escapes in the
+   script, which the literal-non-ASCII scan in 106 could not see. The star,
+   the caret, the arrow and the guillemet are a NAMED EXCEPTION: UI marks that
+   render from the system font on purpose, asserted rather than assumed — if
+   one ever turns up inside a face, the reason it was excepted has gone and
+   this fails. (History in NOTES.md.) */
 
 (function(){
   var KNOWN_TABLES = ["cmap","head","hhea","hmtx","maxp","name","OS/2","post","cvt ",
@@ -8882,7 +8823,7 @@ var ROUTE_VOCAB = [
 
 (function(){
   var fp = path.join(PUBLIC, "404.html");
-  if(!fs.existsSync(fp)){ fail("docs/404.html is missing — section 101 says so too"); return; }
+  if(!fs.existsSync(fp)) return; /* section 101 fails on the missing file */
   var src = fs.readFileSync(fp, "utf8");
 
   function rule(sel){
@@ -8934,34 +8875,16 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 119. Where to watch has a rank of its own ----------------- */
-/* THE README'S FEATURE LIST LEADS WITH IT — "Where to watch, without picking a
-   side" — and introBlock() promises every first-time reader "Tap anything for
-   what it is and where to watch it." It shipped as the fainter of two
-   identical pills: `.lnk` and `.act` were the same rule twice, differing only
-   in text colour, at 5.08:1 against .act's 5.87.
-
-   IT WAS CALLED SECONDARY ONCE, FOR A REASON THAT WAS NOT ABOUT ITS
-   IMPORTANCE. At 10px with .1em tracking the label needed ~112px and the hero's
-   38% column gave 96px, so it wrapped; the label was shrunk and "it is a
-   secondary control anyway" was the justification. That justification went into
-   NOTES.md and the CHANGELOG, where it read as a considered statement about the
-   feature. It was a layout constraint promoted to a rule of the design. Both
-   notes are corrected in 3.1.0.
-
-   AND THE NOTE CLAIMED AN ALIGNMENT THAT WAS NEVER TRUE — "it only has to share
-   Skip's edges, not its weight." Measured at 375px: the hero pill stopped 8.0px
-   short of Skip's right edge, stood 38px against Skip's 46, cornered at 8px
-   against 11, and in an expanded row sat 171.7px right of the description, the
-   tick indent and both buttons. The left edge in the hero was perfect, which is
-   what let it survive eleven releases: the one edge anybody would check was
-   right, and a faint outline stopping early against a faint outline is not
-   something an eye finds. The fill did not cause any of it. It stopped hiding
-   it.
-
-   A decision worth keeping becomes a guard, not a document. Every assertion
-   here is read from the two rules that have to agree, never from a remembered
-   pair of numbers. The contrast arithmetic is section 20's — one intention,
-   one place — and this section holds the pairing that keeps it able to see. */
+/* The README's feature list leads with it and introBlock() promises it to
+   every first-time reader, so the Where-to-watch pill is not a secondary
+   control — it was called one once for a layout reason (the label wrapped in
+   the hero's 38% column) that got promoted into a rule of the design. And a
+   note once claimed it "shared Skip's edges" when, measured, it stopped 8px
+   short, stood 38px against 46 and cornered at 8 against 11: the one edge
+   anybody would check was right, which is how it survived eleven releases.
+   A decision worth keeping becomes a guard, not a document: every assertion
+   here is read from the two rules that have to agree, never from a
+   remembered pair of numbers; the contrast arithmetic is section 20's. */
 
 (function(){
   function rules(sel){
@@ -9057,44 +8980,16 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 120. The page does not read layout after writing it ------- */
-/* THE FAMILY, NOT THE MEMBER. Section 96 refused `scrollHeight` from 2.7.0,
-   written when render()'s closing clamp came out — 216ms of forced layout on
-   every render, invisible to the harness because jsdom has no layout and
-   nothing here can observe a reflow by running the app. It refused one
-   property NAME. On 6 Aug 2026 a Lighthouse run found a forced reflow of
-   106.6ms desktop / 64.1ms mobile at the TOP of that same function, arriving
-   as `window.pageYOffset || document.documentElement.scrollTop` — the same
-   defect under a different name, walking straight past a guard written
-   against the first one.
-
-   It also moves the assertion out of section 96, which is titled "The Belt is
-   one strip, and its pouches open from behind". The scrollHeight refusal was
-   filed there because that is where the 2.7.0 work happened, not because it
-   is what that section is about, and a guard filed under the wrong name is a
-   guard the next reader does not find.
-
-   TWO LISTS, AND THE SECOND IS THE HONEST PART. Properties this page does not
-   read at all are refused outright. The ones it DOES read are PINNED to the
-   exact sites that exist, each named — because refusing them today would fail
-   the build over a defect that is real, known, planned and frozen until after
-   19 Sep 2026. A guard that cannot be green against the tree it ships with is
-   not a guard, it is a wish.
-
-   3.3.0 CORRECTS THE LAST SENTENCE THIS COMMENT USED TO CARRY. It said the
-   pins drop to zero when render()'s read is hoisted, and both members move up
-   into REFUSED. That was wrong the moment it was written: the fix MOVES the
-   read, it does not remove it, so the count is 1 before and 1 after and the
-   pins stay exactly where they are. A count answers "how many" and can never
-   answer "in what order" -- and order is the whole of this defect. The ORDER
-   clause below is the half that can see the fix.
-
-   3.9.7 MOVES THE SCROLL OFF THE DOCUMENT (the tab-swipe groundwork). The
-   keep-read is scrollKeep() on #app now: window.pageYOffset appears nowhere
-   and joins REFUSED, and the scrollTop pin widens to 2 for the seam every
-   scroll site goes through -- scrollKeep() the one read, scrollPut() the one
-   write. Reading an element's scrollTop forces layout exactly the way the
-   window read did when a write has already landed in the same task, so the
-   ORDER clause keeps its job and tracks scrollKeep(). */
+/* THE FAMILY, NOT THE MEMBER. A layout read after a write in the same task
+   forces a reflow, and jsdom cannot see one. Refusing one property NAME let
+   the same defect walk in under another (`pageYOffset || scrollTop` at the
+   top of the function whose `scrollHeight` had been refused), so this holds
+   two lists: properties the page does not read at all are refused outright;
+   the ones it DOES read are pinned to the exact named sites — scrollKeep()
+   the one read, scrollPut() the one write — because a guard that cannot be
+   green against the tree it ships with is a wish. The ORDER clause is the
+   half that can see the fix: a count answers "how many" and never "before or
+   after the write". (History in NOTES.md.) */
 
 (function(){
   /* Never read here. Any appearance is a new forced-layout site. */
@@ -9320,34 +9215,17 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 122. The scroll restore survives content-visibility ---------- */
-/* THE DEFECT THIS EXISTS TO STOP COMING BACK, 3.4.0.
-   render() ended with `if(keep) window.scrollTo(0, keep);`. The line is
-   correct in isolation and wrong in place: it runs in the same task as
-   `v.innerHTML = ...`, and .group carries content-visibility:auto, so every
-   off-screen group still measures its contain-intrinsic-size rather than its
-   real height. The document is about a third as tall as it is about to be, the
-   browser clamps the scroll to that shorter maximum, and the reader loses
-   their place. Measured 2233 -> 1011 at 390x844 with the row count and the
-   final document height both unchanged, which is what rules out any
-   content explanation. qa/soak-3.3.2-scroll-restore.md.
-
-   It reached every caller that relies on render() to hold position -- the
-   filter chips, peek, the belt, mkcode, the theme buttons -- and it survived
-   because nothing could see it. Section 103 asserts what tickUpdate CALLS.
-   The smoke gate serializes HTML, and a scroll leaves no mark in markup.
-   browser-check.mjs did not click a tick until this release. Three green
-   instruments and one defect, which is the same shape as 3.3.2's jump.
-
-   Asserted on source, because jsdom has no layout and nothing in this harness
-   can watch a scroll clamp -- the same limitation section 120 works around,
-   and the same one that let this walk in.
-
-   3.9.7: the restore is scrollPut(keep) on #app, not window.scrollTo -- the
-   window is checked as a banned scroller where the lock is asserted. The
-   clamp is #app's own maximum now, and #app is exactly as short under
-   content-visibility as the document used to be, so .settling keeps its job
-   unchanged: the class has to be on #view when the browser computes the
-   element's maximum scroll offset. */
+/* THE DEFECT THIS EXISTS TO STOP COMING BACK. render() once ended with a
+   scroll restore in the same task as the innerHTML write, and .group carries
+   content-visibility:auto, so every off-screen group still measured its
+   placeholder size: the scroller was a third as tall as it was about to be,
+   the browser clamped the restore to that, and the reader lost their place
+   (2233 -> 1011 with the row count and final height unchanged). It reached
+   every caller that relies on render() to hold position and survived three
+   green instruments, because a scroll leaves no mark in markup. Asserted on
+   source, because jsdom has no layout: the restore is scrollPut(keep) on
+   #app, and .settling has to be on #view when the browser computes the
+   element's maximum scroll offset. (History in NOTES.md.) */
 (function(){
   var rbody = (HTML.match(/function render\(\)\{[\s\S]*?\n\}/) || [""])[0];
   if(!rbody){
@@ -9416,59 +9294,78 @@ var ROUTE_VOCAB = [
    That is checked here too, because a focus restore that finds the wrong
    element is worse than one that finds none. */
 (function(){
+  /* One way to put focus back, and every site uses it. focusBack() carries
+     preventScroll (the 3.4.0 finding: a restore that scrolls is a jump);
+     focusSnap() reads document.activeElement and keys the snapshot on the
+     button's data-* set, including data-src; focusRestore() rebuilds the
+     selector through attrEsc(). A site that calls .focus() itself, or reads
+     activeElement itself, is a copy of one of those coming back — and the
+     copies are where the preventScroll-less restore lived. */
+  var back = optionalFn("focusBack", "no shared restore — every site would be a copy");
+  var snap = optionalFn("focusSnap", "no shared snapshot");
+  var rest = optionalFn("focusRestore", "no shared restore-by-selector");
+  if(back && back.indexOf("preventScroll") < 0){
+    fail("focusBack() restores focus without preventScroll. Restoring focus " +
+         "must not move the viewport — this is the 3.4.0 finding, and it is " +
+         "the difference that had no reason");
+  }
+  if(snap && snap.indexOf("document.activeElement") < 0){
+    fail("focusSnap() no longer reads document.activeElement, so no site can " +
+         "know which control held focus before it replaced the DOM");
+  }
+  if(rest && (rest.indexOf("focusBack(") < 0 || rest.indexOf("attrEsc(") < 0)){
+    fail("focusRestore() does not go through focusBack() and attrEsc() — the " +
+         "selector escape and the preventScroll restore are the two things " +
+         "every site used to carry its own copy of");
+  }
   var SITES = ["rowUpdate", "tickUpdate", "render"];
   SITES.forEach(function(fn){
-    var re = new RegExp("function " + fn + "\\([^)]*\\)\\{[\\s\\S]*?\\n\\}");
-    var body = (HTML.match(re) || [""])[0];
-    if(!body){
-      fail("section 123 cannot locate " + fn + "(), so its focus restore is " +
-           "unchecked");
-      return;
+    var body = optionalFn(fn, "its focus restore is unchecked");
+    if(!body) return;
+    if(/\.focus\(/.test(body)){
+      fail(fn + "() calls .focus() itself instead of focusBack() — a restore " +
+           "written at the site is the one that ends up without preventScroll");
     }
-    if(body.indexOf(".focus(") < 0) return;      /* no restore here to check */
-    if(body.indexOf("preventScroll") < 0){
-      fail(fn + "() restores focus without preventScroll. The other restores " +
-           "pass it, and restoring focus must not move the viewport — this is " +
-           "the 3.4.0 finding, and it is the difference that had no reason");
+    if(/document\.activeElement === /.test(body) && fn !== "rowUpdate" && fn !== "render"){
+      fail(fn + "() reads document.activeElement itself instead of focusSnap()");
     }
   });
-
-  var tbody = (HTML.match(/function tickUpdate\([^)]*\)\{[\s\S]*?\n\}/) || [""])[0];
-  if(!tbody){
-    fail("tickUpdate() cannot be located, so the control it returns focus to " +
-         "cannot be checked");
-  } else if(/var back = v\.querySelector\('\[data-act="watched"\]/.test(tbody)){
-    fail("tickUpdate() is looking for [data-act=\"watched\"] again when it puts " +
-         "focus back. querySelector returns the row's own tick, so Mark " +
-         "watched and Skip inside an open row, and every star, lose focus to " +
-         "<body>. It has to restore the control that actually had it");
-  } else if(tbody.indexOf("document.activeElement") < 0){
-    fail("tickUpdate() no longer reads document.activeElement, so it cannot " +
-         "know which control held focus before it replaced the group");
+  var tbody = optionalFn("tickUpdate", "the control it returns focus to cannot be checked");
+  if(tbody){
+    if(/var back = v\.querySelector\('\[data-act="watched"\]/.test(tbody)){
+      fail("tickUpdate() is looking for [data-act=\"watched\"] again when it puts " +
+           "focus back. querySelector returns the row's own tick, so Mark " +
+           "watched and Skip inside an open row, and every star, lose focus to " +
+           "<body>. It has to restore the control that actually had it");
+    } else if(tbody.indexOf("focusSnap(") < 0 || tbody.indexOf("focusRestore(") < 0){
+      fail("tickUpdate() no longer snapshots and restores focus through the " +
+           "shared helpers, so it cannot return focus to the control that had it");
+    }
   }
-  /* 3.4.4 deep QA §2.6. The snapshot keys on {data-act, data-id} and a row
-     holds TWO buttons matching [data-act="watched"][data-id=x] — the tick, and
-     the open detail panel's action button. Both restores rebuild a selector
-     from the snapshot and take the first match, which is the tick, so a
-     keyboard user who activated the detail button was put back on the small
-     tick at the other end of the row. Neither restore was wrong about which
-     element had focus; the KEY could not tell the two apart. data-src is the
-     discriminator, and it is only worth anything if both key lists carry it. */
+  var rbody = optionalFn("render", "");
+  if(rbody && (rbody.indexOf("focusSnap(") < 0 || rbody.indexOf("focusRestore(") < 0)){
+    fail("render() no longer snapshots and restores focus through the shared " +
+         "helpers — a full render drops a keyboard user to <body>");
+  }
+  /* The snapshot keys on {data-act, data-id} and a row holds TWO buttons
+     matching [data-act="watched"][data-id=x] — the tick, and the open detail
+     panel's action button. Both restores rebuild a selector from the
+     snapshot and take the first match, which is the tick, so a keyboard
+     user who activated the detail button was put back on the small tick at
+     the other end of the row. Neither restore was wrong about which element
+     had focus; the KEY could not tell the two apart. data-src is the
+     discriminator, and it is only worth anything if the key list carries it. */
   if(!/data-act="watched" data-src="detail" data-id=/.test(HTML)){
     fail("the detail panel's action button has no data-src, so it is " +
          "indistinguishable from the row's own tick in a focus snapshot — a " +
          "keyboard user who presses it lands back on the tick");
   }
-  [["tickUpdate", /\["act", "id", "n", "gk", "tf", "src"\]/],
-   ["render", /"n","pk","src"\]/]].forEach(function(pair){
-    if(!pair[1].test(HTML)){
-      fail(pair[0] + "()'s focus snapshot no longer reads data-src, so the " +
-           "discriminator on the detail button is written and never used");
-    }
-  });
-  note("focus restores: preventScroll at every button site, tickUpdate " +
-       "returns focus to the control that had it, and data-src tells the " +
-       "row's two watched buttons apart");
+  if(!/var FOCUSKEYS = \[[^\]]*"src"\]/.test(HTML)){
+    fail("the focus snapshot's key list no longer reads data-src, so the " +
+         "discriminator on the detail button is written and never used");
+  }
+  note("focus restores: one focusBack() with preventScroll, one focusSnap() " +
+       "keyed on data-src, and the three sites go through them");
 })();
 
 /* ---------- 124. Every face is asked for before the CSS finds it ---------- */
@@ -9776,7 +9673,7 @@ var ROUTE_VOCAB = [
          "reads but does not parse are the same event: the stored state is " +
          "unknown, so the writes stop");
   }
-  /* 4.2.3, C-1 of the 19 Aug audit: a successful read whose body is not JSON
+  /* a successful read whose body is not JSON
      used to fall through the parse catch as "no state" — the session booted as
      a first visit and the next tick overwrote the unread bytes. A failed PARSE
      is a failed READ: latch, stop the writes, surface the banner, and leave
@@ -10427,34 +10324,19 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 130. The Belt toasts down, stacks tight, and is the peek once chosen - */
-/* 3.6.4, from the corrected drop's first evening — and rebuilt once inside
-   the same version number, before upload, on the owner's second report.
-
-   THE FIRST CUT NEVER RENDERED ON THE OWNER'S MACHINES. It hung the parked
-   strip off a CSS anchor (position:fixed, anchored to the guide), and the
-   owner saw no sliver at all — Chrome, Brave, Edge, desktop and mobile —
-   while the harness Chromium drew it pixel-perfect on every tab. The
-   failure was never diagnosed to a line; the dependency was removed
-   instead, which is the standing rules' inverse move: the peek is now the
-   SAME sticky strip it always was, pulled up under the header by a margin,
-   and there is nothing left in it for a browser to lack.
-
-   AND THE OWNER RESET THE STATE MACHINE. "The utility belt from Batman: once
-   you choose, it stays under the header, so you can use it whenever. You
-   don't use it much, but it needs to work perfectly." So parked is not a
-   place the belt gets to by scrolling — it is where the belt LIVES once a
-   path is chosen. Every tab, every scroll position, always the peek; tap it
-   to drop; the drop retracts to the peek. The whole strip sits in the flow
-   only pre-choice, where the peek would be debris (F4). Hidden-state
-   bookkeeping, the tab-change carry, the reveal gesture, the JS anchor
-   probe: all deleted rather than fixed — a state that no longer exists
-   cannot resurrect.
-
-   Three rules survive from the first cut unchanged: the drop toasts down
-   (the retraction mirrored — render() rebuilds the strip, so the base
-   transition can never carry an entrance), every stack seam overlaps (the
-   6px margin left +1px of daylight between the pouches — the 3.6.1 window
-   at 1px scale), and a dropped belt never crosses a tab change. */
+/* THE OWNER'S STATE MACHINE: "once you choose, it stays under the header, so
+   you can use it whenever." Parked is not a place the belt gets to by
+   scrolling — it is where the belt LIVES once a path is chosen. Every tab,
+   every scroll position, always the peek; tap it to drop; the drop retracts
+   to the peek. The strip sits in the flow only pre-choice, where the peek
+   would be debris. The peek is the SAME sticky strip it always was, pulled
+   up under the header by a margin — a first cut hung it off a CSS anchor and
+   never rendered on the owner's machines while the harness Chromium drew it
+   pixel-perfect, so the dependency was removed rather than diagnosed, and
+   there is nothing left in it for a browser to lack. Hidden-state
+   bookkeeping, the tab-change carry, the reveal gesture and the JS anchor
+   probe were deleted rather than fixed: a state that no longer exists cannot
+   resurrect. (History in NOTES.md.) */
 
 (function(){
   var mc = optionalFn("masterChooser", "there is no belt to park");
@@ -10780,7 +10662,7 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 132. The offline promise is executed, not grepped ---------- */
-/* 3.7.2, M-5 of the 10 Aug review. Section 11 compile-checks sw.js and several
+/* 3.7.2. Section 11 compile-checks sw.js and several
    sections grep it; nothing ever RAN it. Invert `if(res && res.ok)` — caching
    error pages — break the offline navigate fallback, or delete the activate-
    time purge, and guards, smoke and all the negative fixtures stayed green
@@ -10902,7 +10784,7 @@ var ROUTE_VOCAB = [
   var APP = "https://nightwatcher.life/index.html";
 
   /* a good response is served and lands in the cache — via waitUntil, so the
-     browser cannot kill the worker between the reply and the put (L-3). */
+     browser cannot kill the worker between the reply and the put. */
   var okRes = { ok: true, status: 200, clone: function(){ return this; } };
   var putsBefore = puts.length;
   var r1 = drive({ url: APP, method: "GET", mode: "" },
@@ -10918,7 +10800,7 @@ var ROUTE_VOCAB = [
   if(!r1.waited){
     fail("the runtime cache write does not ride event.waitUntil — the browser " +
          "may kill the worker between the reply and the put, so a downloaded " +
-         "update silently misses the offline cache (L-3 of the 10 Aug review)");
+         "update silently misses the offline cache");
   }
 
   /* an error response is served but NEVER cached — the M-5 headline. */
@@ -10945,8 +10827,13 @@ var ROUTE_VOCAB = [
          "offline is broken at the one moment it is the product");
   }
 
-  /* offline: an uncached NAVIGATION still opens the app. */
-  store132["./index.html"] = { ok: true, shell: true };
+  /* offline: an uncached NAVIGATION still opens the app — from "./", not
+     "./index.html": the assets plane redirects the latter to the former, so
+     what the install stored under that name is a redirected response, which a
+     browser refuses for a navigation. A cached "./index.html" that is NOT the
+     shell stands in for that here; the fallback must reach past it. */
+  store132["./index.html"] = { ok: true, redirected: true };
+  store132["./"] = { ok: true, shell: true };
   var r4 = drive({ url: "https://nightwatcher.life/some/shared/path", method: "GET", mode: "navigate" },
                  function(){ return SyncPromise.reject(new Error("offline")); });
   if(!r4.res || r4.res.shell !== true){
@@ -11191,6 +11078,43 @@ var ROUTE_VOCAB = [
       fail("HEAD /.well-known/api-catalog did not carry the GET's content type");
     }
   }
+  /* _headers reaches asset responses and nothing the Worker constructs. So
+     the two responses built in worker.js carry the security set (and the
+     root's Link set) themselves — and they must carry exactly what _headers
+     declares, or the negotiated root and the api-catalog are the two URLs on
+     the site with a different security posture from every other. Read from
+     the file, not restated here. */
+  var hdrTxt = fs.readFileSync(path.join(PUBLIC, "_headers"), "utf8");
+  function hdrBlock(pathKey){
+    var lines = hdrTxt.split("\n"), out = {}, on = false;
+    lines.forEach(function(l){
+      if(/^\S/.test(l)){ on = (l.trim() === pathKey); return; }
+      if(!on) return;
+      var m = l.match(/^\s+([A-Za-z-]+):\s*(.*\S)\s*$/);
+      if(!m) return;
+      out[m[1]] = out[m[1]] ? out[m[1]] + ", " + m[2] : m[2];
+    });
+    return out;
+  }
+  var star = hdrBlock("/*"), root = hdrBlock("/");
+  var SEC = ["Referrer-Policy", "X-Frame-Options", "Permissions-Policy",
+             "Cross-Origin-Opener-Policy", "Cross-Origin-Resource-Policy"];
+  [["the markdown response", md], ["the api-catalog", ac]].forEach(function(pair){
+    var h = (pair[1] && pair[1].init && pair[1].init.headers) || {};
+    SEC.forEach(function(n){
+      if(!star[n]){ fail("_headers no longer declares " + n + " under /*"); return; }
+      if((h[n] || "") !== star[n]){
+        fail(pair[0] + " does not carry " + n + ": " + star[n] + " — _headers " +
+             "applies to asset responses only, so a Worker-built response has " +
+             "to restate the security set, and it has to match the file");
+      }
+    });
+  });
+  if(md && md.init && (md.init.headers || {})["Link"] !== (root["Link"] || "")){
+    fail("the markdown response's Link header is not the root's three Link " +
+         "lines from _headers (sitemap, canonical, describedby) — the " +
+         "negotiated representation of / must advertise what / advertises");
+  }
   var acPost = un(mod.fetch(req("*/*", "POST", "https://nightwatcher.life/.well-known/api-catalog"), env));
   if(acPost !== htmlRes){
     fail("a POST to /.well-known/api-catalog did not fall through by identity " +
@@ -11198,7 +11122,8 @@ var ROUTE_VOCAB = [
          "markdown branch (4.0.1)");
   }
   note("worker.js executed: markdown negotiation answers llms.txt with " +
-       "Vary/Content-Location, five non-preferring shapes pass through by " +
+       "Vary/Content-Location, both built responses carry _headers' security " +
+       "set, five non-preferring shapes pass through by " +
        "identity, q-values read, POST and non-root refused in the script, " +
        "unreadable llms.txt degrades to the page; /.well-known/api-catalog " +
        "answers an empty linkset on GET and HEAD and nothing else; " +
@@ -11274,7 +11199,7 @@ var ROUTE_VOCAB = [
            "branch is additive again, and an unmark lasts until the next " +
            "storage event");
     }
-    if(!/!inc\.w\[k\] && !S\.clk\.w\[k\]/.test(lst)){
+    if(!/inc\.w\[id\] \|\| S\.clk\.w\[id\]/.test(lst)){
       fail("the legacy additive branch lost its clock guard — a clockless " +
            "payload from an older build resurrects a mark this build " +
            "removed on purpose, which is the exact defect the clocks fix");
@@ -11350,37 +11275,12 @@ var ROUTE_VOCAB = [
   if(!fs.existsSync(fp)){ fail("wrangler.jsonc is gone"); return; }
   var raw = fs.readFileSync(fp, "utf8");
   /* The comments in this file are load-bearing prose, not noise — strip them
-     for the parse and leave them on disk. */
-  /* String-aware, because a route pattern legitimately contains "/*" and a
-     regex stripper eats the rest of the file from there. The suite found this
-     the first time it was asked to add a wildcard route \u2014 which is the whole
-     argument for negative fixtures on a guard that ships the same day. */
-  var stripJsonc = function(t){
-    var out = "", inStr = false, i = 0;
-    while(i < t.length){
-      var ch = t.charAt(i);
-      if(inStr){
-        out += ch;
-        if(ch === "\\"){ out += t.charAt(i + 1); i += 2; continue; }
-        if(ch === '"') inStr = false;
-        i++; continue;
-      }
-      if(ch === '"'){ inStr = true; out += ch; i++; continue; }
-      if(ch === "/" && t.charAt(i + 1) === "*"){
-        var end = t.indexOf("*/", i + 2);
-        i = end < 0 ? t.length : end + 2; continue;
-      }
-      if(ch === "/" && t.charAt(i + 1) === "/"){
-        var nl = t.indexOf("\n", i);
-        i = nl < 0 ? t.length : nl; continue;
-      }
-      out += ch; i++;
-    }
-    return out;
-  };
+     for the parse and leave them on disk. String-aware, because a route
+     pattern legitimately contains "/*" and a regex stripper eats the rest of
+     the file from there; the same stripper serves sections 13, 66 and 107. */
   var cfg;
   try{
-    cfg = JSON.parse(stripJsonc(raw));
+    cfg = JSON.parse(stripComments(raw));
   }catch(e){
     fail("wrangler.jsonc does not parse once its comments are stripped (" +
          e.message + ") — the deploy config is the one file with no test but " +
@@ -11501,12 +11401,13 @@ var ROUTE_VOCAB = [
      stays because the ratchet is the array: a section arriving without a
      fixture fails the build, and the only way to quiet it is to write the
      fixture or to put the number here and say in the commit why it waits. It
-     has never been added to. */
+     has never been added to — which means the two fail() calls that walk it
+     below are unreachable today, deliberately: they are the ratchet's other
+     direction, and they wake the day a number is added. */
   var STILL_OWED = [];
 
   var SELF = fs.readFileSync(__filename, "utf8");
-  var re = /\/\* -{3,} (\d+)\./g, m, marks = [];
-  while((m = re.exec(SELF))) marks.push({n: parseInt(m[1], 10), at: m.index});
+  var marks = sections();
   var norm = function(t){
     return t.replace(/\\u2014/g, "\u2014").replace(/\\u2019/g, "\u2019")
             .replace(/\\"/g, '"').replace(/"\s*\+\s*\n?\s*"/g, "")
@@ -11520,57 +11421,67 @@ var ROUTE_VOCAB = [
      (34, 75, 117) that had been reading as covered since the map was written.
      A coverage guard that is easy to satisfy is worse than no coverage guard,
      because it is quoted. */
+  /* Comments come off before the harvest, or a fail() quoted in a section's
+     prose is credited as failure text a fixture could match. */
   var secs = marks.map(function(s, i){
     var src = SELF.slice(s.at, i + 1 < marks.length ? marks[i + 1].at : SELF.length);
-    return {n: s.n, t: norm((src.match(/fail\([\s\S]*?\);/g) || []).join(" "))};
+    return {n: s.n, t: norm((stripComments(src).match(/fail\([\s\S]*?\);/g) || []).join(" "))};
   });
 
   var expects = [], noSect = 0;
-  /* Guards fixtures written before 4.2.4, which keep substring-anywhere
-     semantics. The ratchet below holds this number exactly; see the census
-     comment for the three legitimate reasons it may move. */
-  /* 763 as of 4.2.5: negtest500's acorn-under-CI fixture expects a failure
-     emitted before section 1 (fnIndex runs at extraction time), where no §
-     exists to name — the raise case this comment block documents. */
-  var NO_SECT_PINNED = 763;
+  /* THE SECT RATCHET. run_case's sixth argument pins a fixture's match to its
+     section's §-prefixed line — but for two releases only two fixtures used
+     it, and nothing stopped the next hundred from arriving without one. Same
+     shape as STILL_OWED: the census counts guards fixtures that pass NO
+     section number and holds the figure to a pin. The fixtures written
+     before the argument existed keep the substring-anywhere semantics they
+     were written against — rewriting them wholesale is how you invent that
+     many false-reds — but a fixture ADDED without sect is the hole reopening,
+     and it fails here. The pin may only move in a commit that says why: a
+     struck fixture, a retrofitted sect (lower it), or a failure genuinely
+     emitted before section 1, where no § exists to name (raise it, and say
+     so — negtest500's acorn-under-CI fixture is the one such case). The pin
+     moved by seven in 4.5.1: eight fixtures with single-quoted expects had
+     never been harvested at all, and one was retrofitted a sect the same
+     day. */
+  var NO_SECT_PINNED = 770;
   fs.readdirSync(negDir).filter(function(f){ return /^negtest.*\.sh$/.test(f); }).forEach(function(f){
     var t = fs.readFileSync(path.join(negDir, f), "utf8").replace(/\\\n/g, " ");
-    /* 3.9.5: green_case IS NOT HARVESTED, AND HARVESTING IT WAS A BUG. The two
-       helpers do not share a signature — run_case is (label, expect, mutation)
-       and green_case is (label, mutation), because a green case asserts an exit
-       code rather than a string. This regex took "the second quoted argument"
-       from both, so the five green_case fixtures were feeding PYTHON SOURCE
-       into the coverage map as though it were expected failure text.
+    /* green_case IS NOT HARVESTED. The two helpers do not share a signature —
+       run_case is (label, expect, mutation) and green_case is (label,
+       mutation), because a green case asserts an exit code rather than a
+       string. Reading "the second quoted argument" off both fed python source
+       into the map as expected failure text: harmless, since python almost
+       never appears inside a fail() string, and exactly the failure mode this
+       section exists to prevent — a section credited as covered by a fixture
+       that asserts the guards stay QUIET and so cannot cover anything.
 
-       Nothing broke, which is the point: the map is a substring test, and
-       python source almost never appears inside a fail() string, so those five
-       contributed nothing and looked like they contributed. The failure mode it
-       could have produced is the one section 138 exists to prevent — a section
-       credited as covered by a fixture that cannot cover it, since a green_case
-       asserts the guards stay QUIET and so proves no section can fail. Reading
-       an expect off it is a category error however harmless the strings are. */
-    var r = /^[ \t]*run_case\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"/gm, x;
-    while((x = r.exec(t))) expects.push(x[2]);
-
-    /* 4.2.4, Q-3b of the re-audit: THE SECT RATCHET. run_case's sixth
-       argument (4.2.3) pins a fixture's match to its section's §-prefixed
-       line — but only two fixtures used it, and nothing stopped the next
-       hundred from arriving without one. Same shape as STILL_OWED: the
-       census below counts guards fixtures that pass NO section number and
-       holds the figure to a pin. The 762 written before 4.2.4 keep the
-       substring-anywhere semantics they were written against — rewriting
-       them wholesale is how you invent 762 false-reds — but a fixture ADDED
-       without sect is the Q-3 hole reopening, and it fails here. The pin
-       may only move in a commit that says why: a struck fixture, a
-       retrofitted sect (lower it), or a failure genuinely emitted before
-       section 1, where no § exists to name (raise it, and say so). */
-    var sr = /^[ \t]*run_case\s+"(?:[^"\\]|\\.)*"\s+"(?:[^"\\]|\\.)*"\s+"(?:[^"\\]|\\.)*"((?:[ \t]+(?:"[^"\n]*"|[^\s"]+))*)/gm, sx;
-    while((sx = sr.exec(t))){
-      var toks = (sx[1].match(/"[^"\n]*"|[^\s"]+/g) || []).map(function(s){
-        return s.replace(/^"|"$/g, "");
-      });
-      if((toks[0] || "guards") !== "guards") continue;
-      if(!/^\d+$/.test(toks[2] || "")) noSect++;
+       The arguments are read the way bash reads them: a double-quoted word
+       with backslash escapes, a single-quoted word with none, or a bare one.
+       A regex that only knew double quotes silently dropped every fixture
+       whose expect carried a double quote inside single quotes — invisible
+       to the coverage map and to the sect ratchet alike. */
+    var r = /^[ \t]*run_case[ \t]+/gm, x;
+    while((x = r.exec(t))){
+      var args = [], i = x.index + x[0].length;
+      while(i < t.length && t.charAt(i) !== "\n"){
+        var ch = t.charAt(i);
+        if(ch === " " || ch === "\t"){ i++; continue; }
+        var w = "", q = (ch === '"' || ch === "'") ? ch : "";
+        if(q) i++;
+        while(i < t.length){
+          ch = t.charAt(i);
+          if(q === '"' && ch === "\\"){ w += t.charAt(i + 1); i += 2; continue; }
+          if(q ? ch === q : /[\s]/.test(ch)) break;
+          w += ch; i++;
+        }
+        if(q) i++;
+        args.push(w);
+      }
+      if(args.length < 2) continue;
+      expects.push(args[1]);
+      if((args[3] || "guards") !== "guards") continue;
+      if(!/^\d+$/.test(args[5] || "")) noSect++;
     }
   });
 
@@ -11741,7 +11652,16 @@ var ROUTE_VOCAB = [
            "RFC 9116 wants an ISO 8601 timestamp, and a value only a human " +
            "can parse is one no scanner will honour");
     } else {
-      var days = Math.floor((when - Date.now()) / 86400000);
+      /* The one clock in the suite. A frozen tree goes red here on its own
+         thirty days before the Expires date with no edit anywhere — which is
+         the point while the site is live, and a nuisance for an archival run
+         of a sealed tree. NW_TODAY=YYYY-MM-DD pins the clock for that run
+         and nothing else; it never silences the check on a live tree, and it
+         is recorded in RELEASING.md's freeze notes. */
+      var today = process.env.NW_TODAY ? Date.parse(process.env.NW_TODAY) : Date.now();
+      if(isNaN(today)){ fail("NW_TODAY is set and is not a date"); return; }
+      if(process.env.NW_TODAY) note("security.txt checked against NW_TODAY=" + process.env.NW_TODAY);
+      var days = Math.floor((when - today) / 86400000);
       if(days < 30){
         fail("security.txt expires in " + days + " days — renew the Expires " +
              "field and ship it. This fires a month early on purpose: an " +
@@ -12156,19 +12076,16 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 144. The wrangler state stays out of the index ------------- */
-/* H-1 stood open through three audits in one day, and the 4.2.4 CHANGELOG
-   then said it was closed — true of the release branch, false of the live
-   tree, because releases here ship by unzipping files and a zip cannot
-   carry a git operation. A sentence claiming a fact the tree does not hold
-   is this project's most-repeated bug class, and that one landed in the
-   release note of the release meant to close the audit loop. So the fact
-   gets a guard. The four sqlite/WAL/SHM objects under .wrangler/state/
-   are local Miniflare cache; .gitignore has listed .wrangler/ since they
-   leaked in; they are tracked only because they predate the rule. This
-   section reads the git index file directly — no git binary, no child
-   process — and refuses the claim until the index agrees. Where no .git
-   exists (a zip-applied tree, a negative scratch copy) it says so and
-   stands down; CI and the release machine always have one. */
+/* Releases here ship by unzipping files, and a zip cannot carry a git
+   operation — so a release note once claimed the Miniflare cache under
+   .wrangler/state/ had left the index when it had only left the release
+   branch. A sentence claiming a fact the tree does not hold is this
+   project's most-repeated bug class, so the fact gets a guard. .gitignore
+   lists .wrangler/; nothing under it belongs in the index (wrangler dev
+   recreates the directory). This section reads the git index file directly
+   — no git binary, no child process. Where no .git exists (a zip-applied
+   tree, a negative scratch copy) it says so and stands down; CI and the
+   release machine always have one. */
 
 (function(){
   var gidx = path.join(ROOT, ".git", "index");
@@ -12177,15 +12094,13 @@ var ROUTE_VOCAB = [
          "runs where one exists");
     return;
   }
-  if(fs.readFileSync(gidx).includes(".wrangler/state")){
-    fail(".wrangler/state is still in the git index — run `git rm -r --cached " +
-         ".wrangler/state` and keep .wrangler/.gitkeep. .gitignore already " +
-         "lists .wrangler/; the files predate the rule. The 4.2.4 release " +
-         "note claimed this was done; this section exists so that sentence " +
-         "cannot be wrong again");
+  if(fs.readFileSync(gidx).includes(".wrangler/")){
+    fail(".wrangler/ is still in the git index — run `git rm -r --cached " +
+         ".wrangler`. .gitignore lists it and wrangler dev recreates it; " +
+         "nothing under it is part of the tree");
     return;
   }
-  note("the git index carries no .wrangler/state objects");
+  note("the git index carries no .wrangler/ objects");
 })();
 
 /* ---------- 145. Every top-level function is a declaration the extractor can see - */
@@ -12707,7 +12622,7 @@ if(fails.length){
   console.log("");
   process.exit(1);
 }
-/* 3.7.2, H-2 of the 10 Aug review, second half: A CLEAN BLESS PROVES NOTHING
+/* second half: A CLEAN BLESS PROVES NOTHING
    ABOUT THE TREE IT LEAVES BEHIND — the pass above checked the string read at
    startup and then wrote files. So a bless run re-runs the whole check pass
    in a child process against what is now on disk, and exits red if the tree

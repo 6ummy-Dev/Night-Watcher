@@ -25,10 +25,8 @@ catch(e){
   console.log("skipped — jsdom not installed (npm i -D jsdom)"); process.exit(0);
 }
 
-/* The two strip-replaces that used to sit here removed Google-CDN font links
-   (self-hosted since 1.4.2) and the Cloudflare beacon (gone in 3.2.0) — both
-   patterns had matched nothing for releases. The page is already offline-
-   deterministic; guard 42 fails the build if a third-party fetch returns. */
+/* The page is offline-deterministic as served; guard 42 fails the build if a
+   third-party fetch returns, so nothing is stripped before booting it. */
 var html = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8");
 
 var fails = [];
@@ -888,10 +886,17 @@ win.addEventListener("load", function(){
             return g.films.every(function(f){ return f.fmt === "live"; }); }));
     /* The master chooser is compact, so the note lives with the intro on Home. */
     S.tab = "home"; S.watched = {}; S.log = []; win.render();
+    /* Counted from the data, not remembered: the old line looked for the
+       catalogue size as a literal and went vacuous the first time the
+       catalogue grew past it. */
     var stats = doc.querySelector("#view .panel:not([inert]) .istats");
+    var statsTxt = stats ? stats.textContent.replace(/\s+/g, " ") : "";
+    var liveFilms = win.FILMS.filter(function(f){ return f.fmt === "live" && !f.tv; }).length;
+    var allFilms = win.FILMS.filter(function(f){ return !f.tv; }).length;
     check("the intro counts what is in view, not the catalogue",
-          !stats || stats.textContent.indexOf("58") < 0,
-          stats ? stats.textContent.replace(/\s+/g, " ") : "(no intro)");
+          !stats || (statsTxt.indexOf(liveFilms + " films") >= 0 &&
+                     liveFilms < allFilms && statsTxt.indexOf(allFilms + " films") < 0),
+          stats ? statsTxt + " (live " + liveFilms + " of " + allFilms + ")" : "(no intro)");
     S.tab = "watch"; win.render();
 
     S.scope = "movies"; win.render();
@@ -918,7 +923,7 @@ win.addEventListener("load", function(){
     S.path = "continuity"; S.mode = "continuity"; win.persist(); win.flushPersist();
     var raw = JSON.parse(win.localStorage.getItem("batwatch-v3"));
     delete raw.format;
-    reboot(JSON.stringify(raw), "no-format", function(w5, d5){
+    reboot(JSON.stringify(raw), "no-format", function(w5){
       check("a save from before 1.5.0 opens in Animated", w5.S.format === "anim", w5.S.format);
       check("and sees only the animated catalogue",
             w5.pool().every(function(f){ return f.fmt === "anim"; }));
@@ -1501,7 +1506,7 @@ win.addEventListener("load", function(){
           /^https:\/\/[^#]+#nw=NW1WSR$/.test(win.restoreLink("NW1WSR")),
           win.restoreLink("NW1WSR"));
 
-    /* --- detail panels are built on demand, not for all 151 entries --- */
+    /* --- detail panels are built on demand, not for every entry --- */
     S.tab = "watch"; S.scope = "all"; S.filter = "all"; S.q = ""; S.open = {};
     win.render();
     var view = win.document.querySelector("#view .panel:not([inert])");
@@ -1515,8 +1520,15 @@ win.addEventListener("load", function(){
     check("opening one row renders exactly one detail panel",
           view.querySelectorAll(".fdetail").length === 1,
           view.querySelectorAll(".fdetail").length + " found");
+    /* The bound is derived, not a remembered number: opening one row adds one
+       detail panel, so the always-on markup would be the closed view plus one
+       panel per entry. The closed view has to sit well under that. */
+    var openSize = view.innerHTML.length, panelSize = openSize - closedSize;
+    var alwaysOn = closedSize + panelSize * win.pool().length;
     check("closed view is materially smaller than the old always-on markup",
-          closedSize < 150000, closedSize + " chars");
+          panelSize > 0 && closedSize * 2 < alwaysOn,
+          closedSize + " chars closed, +" + panelSize + " per open row, " +
+          win.pool().length + " rows: " + alwaysOn + " always-on");
     S.open = {};
 
     /* --- every filter chipSet() offers is reachable from the Path tab --- */
@@ -1588,8 +1600,8 @@ win.addEventListener("load", function(){
 
     /* --- no <div> or <h2> nested inside a <button> (invalid HTML) --- */
     S.tab = "watch"; win.render();
-    var bad = win.document.querySelectorAll("#view .panel:not([inert]) button div, #view button h2");
-    check("no flow content nested inside a button", bad.length === 0, bad.length + " found");
+    var badNest = win.document.querySelectorAll("#view .panel:not([inert]) button div, #view button h2");
+    check("no flow content nested inside a button", badNest.length === 0, badNest.length + " found");
 
     /* --- 4.4.0: the cut is rank, driven through the rendered DOM --------
        The here-group is a render-path claim, and static pins cannot see a
@@ -1688,11 +1700,8 @@ win.addEventListener("load", function(){
     check("code round-trips in the page", mine && mine.found === Object.keys(S.watched).length,
           mine ? "found " + mine.found : "null");
 
-    /* 3.0.0: the probe appended an unknown segment to an NW3 code and called it
-       "a future NW2 code" — a version older than the one it was testing. The
-       segment half was real; the version half was not being exercised at all.
-       It builds a genuinely later major now, which is the case that matters:
-       a code written by a version of this app that does not exist yet. */
+    /* A genuinely later major, which is the case that matters: a code written
+       by a version of this app that does not exist yet. */
     var future = win.importCode(code.replace(/^NW3/, "NW9") + "X7ab");
     check("a future NW9 code with unknown segments still restores",
           future && mine && future.found === mine.found, future ? "found " + future.found : "REJECTED");
@@ -1702,17 +1711,10 @@ win.addEventListener("load", function(){
           !!win.importCode("  " + win.SITE + "#nw=" + code + "  "));
     check("a code split across lines still works",
           !!win.importCode(code.slice(0, 10) + "\n" + code.slice(10)));
-    /* 3.0.0: THIS CHECK TESTED NOTHING FOR NINE RELEASES. Two lines above it
-       asserts the code starts NW3W, and then it did code.replace(/^NW2/,"NW1"),
-       which cannot match — so it imported the same NW3 code and duplicated the
-       line below. Deleting NW1 support from the app left it green. (Guard 8
-       covers the NW1 format for real, so the format was never unprotected; the
-       check was lying, not the app.)
-
-       An NW1 code is BUILT here rather than derived, because the 1.0.0 layout
-       put ratings in six-character hash+digit records and importCode() takes
-       that branch only below version 3 — a prefix swap on an NW3 body would not
-       have exercised it even if the swap had worked. */
+    /* An NW1 code is BUILT here rather than derived: the 1.0.0 layout put
+       ratings in six-character hash+digit records and importCode() takes that
+       branch only below version 3, so a prefix swap on an NW3 body would not
+       exercise it (and once did not, for nine releases, while reading green). */
     var nw1 = "NW1W" + win.idHash(FILMS[0].id) + win.idHash(FILMS[1].id) +
               "S" + win.idHash(FILMS[3].id) +
               "R" + win.idHash(FILMS[0].id) + "4";
@@ -2187,8 +2189,6 @@ win.addEventListener("load", function(){
       S.tab = "home"; S.path = S.mode = "continuity"; win.render();
     })();
 
-    /* afterOrigin() outlived the origin phase by four releases: a one-line hop
-       named after a document this suite stopped booting in 2.5.1. */
     if(wants("blocked")) blockedStore();
     else finish();
     }

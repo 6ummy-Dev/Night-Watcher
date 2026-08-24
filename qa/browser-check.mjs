@@ -1,25 +1,15 @@
-/* Browser check. NOT part of npm test — jsdom has no layout, so the things
+/* Browser check. Not part of npm test — jsdom has no layout, so the things
    below cannot be observed by the harness at all: the header at 0% and 100%,
    jumping to a group with content-visibility on, a group opening and closing,
-   the Where to watch URL a reader actually taps — and, since 3.2.0, accessibility
-   in a STATE rather than on a cold load.
+   the Where to watch URL a reader actually taps, accessibility in a STATE
+   rather than on a cold load, the service worker's offline promise. It IS in
+   CI: the browser job in qa.yml runs it on every push, on two engines.
 
-   Run against a served copy of docs/ at 390x844 (iPhone 12/13/14 logical size).
-   Not part of npm test — jsdom cannot see any of this — but it IS in CI: the
-   browser job in qa.yml has run it on every push since 3.7.2. This header
-   claimed "not committed to CI" for four minor releases after that (H-2 of
-   the 19 Aug audit) — a comment about what watches the tree, wrong about
-   what watches the tree, in the file being watched.
-
-   3.2.0 FIXED WHAT THIS FILE COULD NOT SAY ABOUT ITSELF. It imported playwright
-   while package.json declared only jsdom and wrangler, and it launched a
-   hard-coded /opt/pw-browsers/chromium-1194/… path — so it ran on whatever
-   happened to be installed, at one pinned build number, and would have failed
-   or, worse, silently not run anywhere else. Adding an accessibility pass to a
-   script that cannot declare how to start is how a guard comes to pass because
-   it never executed. Both dependencies are declared now, and the executable is
-   resolved by Playwright with an env override kept for sandboxes that place it
-   somewhere unusual. */
+   Run against a served copy of docs/ at 390x844 (iPhone 12/13/14 logical
+   size). Playwright and axe-core are declared devDependencies and the
+   executable is resolved by Playwright, with an env override kept for
+   sandboxes that place it somewhere unusual — a hard-coded browser path is
+   how a check comes to pass because it never executed. (History: NOTES.md.) */
 import { chromium, webkit } from "playwright";
 import { createRequire } from "node:module";
 import fs from "node:fs";
@@ -31,11 +21,9 @@ const axeSrc = fs.readFileSync(
 /* Playwright resolves its own browser. NW_CHROME is the escape hatch, not the
    default — a pinned path IS the bug this replaced. */
 const EXE = process.env.NW_CHROME || undefined;
-/* 4.4.0: the WebKit CI job. iOS is where the clip-path ornaments actually
-   ship, and the deco pass multiplied the clip sites (CTA, lead pick) — the
-   standing note from the 4.3.x audits is now load-bearing. NW_ENGINE=webkit
-   runs this same file on WebKit; the default stays Chromium, and NW_CHROME
-   (an executablePath escape hatch) applies to Chromium only. */
+/* NW_ENGINE=webkit runs this same file on WebKit — iOS is where the
+   clip-path ornaments actually ship. The default stays Chromium, and
+   NW_CHROME (an executablePath escape hatch) applies to Chromium only. */
 const WK = process.env.NW_ENGINE === "webkit";
 const out = [];
 let bad = 0;
@@ -59,12 +47,10 @@ const page = await browser.newPage({ viewport: { width: 390, height: 844 },
    fact the strongest evidence in this repository that the policy is real. */
 await page.addInitScript({ content: axeSrc });
 
-/* 3.3.0. THIS FILE MEASURED GEOMETRY AND NEVER READ THE CONSOLE, so a CSP
-   violation — the one failure mode a policy tightening actually has — would
-   have gone past 36 green checks without a word. connect-src went to 'none'
-   in 3.3.0 on the strength of this listener, not on the strength of an
-   argument. Collected from here and asserted at the end, so a violation in any
-   state below is caught rather than only one on load. */
+/* The console is read as well as the geometry: a CSP violation is the one
+   failure mode a policy tightening actually has, and it would go past every
+   green check without a word. Collected from here and asserted at the end,
+   so a violation in any state below is caught rather than only one on load. */
 const cspHits = [], pageErrs = [];
 page.on("console", m => {
   const t = m.text();
@@ -91,13 +77,10 @@ await page.evaluate(() => {
 /* ---- the header at 0% ------------------------------------------------- */
 const head0 = await page.evaluate(() => {
   const bat = document.querySelector(".mark svg").getBoundingClientRect();
-  /* an inert check-shaped line stood here until 3.7.2 (I-5 of the 10 Aug
-     review): `…getBBox ? null : null` — always null, never read. */
   const ring = document.querySelector("#ringArc").getBoundingClientRect();
-  const wm = document.querySelector(".wordmark h1").getBoundingClientRect();
   return { pct: document.getElementById("ringPct").textContent,
            aria: document.getElementById("ringBtn").getAttribute("aria-label"),
-           batBox: bat.width, ringInk: ring.width, wmTop: wm.top,
+           batBox: bat.width, ringInk: ring.width,
            offset: document.getElementById("ringArc").getAttribute("stroke-dashoffset"),
            r: document.getElementById("ringArc").getAttribute("r"),
            wraps: document.querySelector(".wordmark h1").getClientRects().length };
@@ -105,10 +88,8 @@ const head0 = await page.evaluate(() => {
 ok("header at 0%: the ring reads 0%", head0.pct === "0%", head0.pct);
 ok("header at 0%: the accessible name carries the number",
    (head0.aria || "").indexOf("0%") === 0, head0.aria);
-/* 4.2.3, Q-9 of the 19 Aug audit: the retracted offset was hardcoded 109.96
-   while guard 80 computes 2πr from the served markup — one radius edit and
-   this file would have failed a correct page. Same arithmetic now, same
-   source: the r the page actually ships. */
+/* Same arithmetic as guard 80, same source: the r the page actually ships.
+   A hardcoded circumference here would fail a correct page on a radius edit. */
 ok("header at 0%: the arc is fully retracted",
    Math.abs(parseFloat(head0.offset) - 2 * Math.PI * parseFloat(head0.r)) < 0.05,
    head0.offset + " vs 2π·" + head0.r);
@@ -317,8 +298,8 @@ async function jump(clickFn, label, tab, mode){
      landed.ok && (landed.groupDocTop <= landed.stick + 2 ||
                    Math.abs(fired.y - landed.scrollY) <= 2),
      landed.ok ? "same-task " + fired.y + ", settled " + landed.scrollY : "-");
-  /* A landing clamps at the sticky offset — 70px, which record-3.0.0.md saw
-     and never pinned. The end of the document is the one place it cannot. */
+  /* A landing clamps at the sticky offset. The end of the document is the
+     one place it cannot. */
   ok("jump from " + label + " parks the head under the sticky header",
      landed.ok && landed.top > -2 && (landed.top < landed.stick + 24 || landed.atEnd),
      landed.ok ? "top " + landed.top.toFixed(1) + "px against a " + landed.stick +
@@ -398,10 +379,12 @@ const closed = await page.evaluate(() => {
   return { aria: h.getAttribute("aria-expanded"), cls: g.className,
            body: getComputedStyle(g.querySelector(".gbody")).display,
            allBtn: document.querySelector(".allbtn").textContent,
-           height: g.getBoundingClientRect().height };
+           height: g.getBoundingClientRect().height,
+           headHeight: h.getBoundingClientRect().height };
 });
 ok("closing a group hides its rows",
-   closed.aria === "false" && closed.cls === "group" && closed.body === "none",
+   closed.aria === "false" && closed.cls === "group" && closed.body === "none" &&
+   closed.height > 0 && closed.height < closed.headHeight * 2,
    JSON.stringify(closed));
 await page.click("#view .panel:not([inert]) .ghead");
 await page.waitForTimeout(120);
@@ -427,7 +410,9 @@ const link = await page.evaluate(() => {
   return { id: f.id, href: a ? a.href : null, text: a ? a.textContent.trim() : null,
            rel: a ? a.getAttribute("rel") : null, target: a ? a.getAttribute("target") : null };
 });
-ok("Where to watch renders on The Batman (2022)", !!link.href, JSON.stringify(link));
+ok("Where to watch renders on The Batman (2022)",
+   !!link.href && link.id === "the-batman-2022" && /where to watch/i.test(link.text || ""),
+   JSON.stringify(link));
 if(link.href){
   const q = decodeURIComponent(link.href);
   ok("its URL searches 2022", q.indexOf("where to watch The Batman 2022") > 0, q);

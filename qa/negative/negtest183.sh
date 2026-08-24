@@ -74,7 +74,7 @@ s=s.replace(a,'stroke-dasharray=\"120\" stroke-dashoffset=\"120\"',1);${W}"
 
 run_case "the script circumference drifts from the markup" \
   "the script draws the ring with" \
-  "${P}a='(109.96 * (1 - frac))';assert a in s;s=s.replace(a,'(109.0 * (1 - frac))',1);${W}"
+  "${P}a='var RINGC = 109.96;';assert a in s;s=s.replace(a,'var RINGC = 109.0;',1);${W}"
 
 # 3.0.0 gave section 80 two assertions it did not have, and a new assertion with
 # nothing proving it fires is the shape this whole directory exists to prevent.

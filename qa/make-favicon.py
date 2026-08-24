@@ -97,12 +97,19 @@ tile = Image.new("RGBA", (180, 180), tile_ground)
 # inside it — 95% of its pixels carry alpha, so getbbox() answers the TILE
 # and the first 4.0.0 cut of this block scaled the tile's margins along
 # with the bat. The bat is the signal-yellow ink; find that.
+# Read as raw bytes rather than through getdata(), which Pillow deprecated
+# and later removed. The chroma key is the same one qa/make-share-card.mjs
+# uses for the same bat (r > 150, g > 120, b < 120), plus an alpha floor the
+# card does not need because icon.png is the opaque tile.
 w, h = src.size
 xs, ys = [], []
-for i, p in enumerate(src.convert("RGBA").getdata()):
-    if p[3] > 64 and p[0] > 150 and p[1] > 100 and p[2] < 120:
-        xs.append(i % w)
-        ys.append(i // w)
+raw = src.convert("RGBA").tobytes()
+for i in range(0, len(raw), 4):
+    r, g, b, a = raw[i], raw[i + 1], raw[i + 2], raw[i + 3]
+    if a > 64 and r > 150 and g > 120 and b < 120:
+        p = i // 4
+        xs.append(p % w)
+        ys.append(p // w)
 if not xs:
     sys.exit("no signal-yellow ink found in docs/icon.png — the bat has "
              "changed colour and this crop needs re-aiming, not guessing")

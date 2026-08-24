@@ -79,7 +79,7 @@ run_case "18: the scrollbar gutter stops being reserved" \
 
 run_case "19: an import writes a raw rating into S.rated" \
   "writes a raw rating into S.rated" \
-  "${H}old='S.rated[id] = rn;';assert old in s;s=s.replace(old,'S.rated[id] = res.rated[id];',1);${HW}"
+  "${H}old='S.rated[id] = rv; if(stamp)';assert old in s;s=s.replace(old,'S.rated[id] = res.rated[id]; if(stamp)',1);${HW}"
 
 run_case "22: a JS escape stranded in the static markup" \
 "JS escape(s) (" \

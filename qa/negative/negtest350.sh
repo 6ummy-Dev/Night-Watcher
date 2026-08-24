@@ -79,17 +79,16 @@ echo "--- 127: a failed write does not stop them forever"
 
 run_case "the write failure latches with no way back" \
   "has no way back from a write failure" \
-  "${P}a='''    if(p && p.then) p.then(saveWorked, saveFailed);
-    else saveWorked();'''
+  "${P}a='    p.then(saveWorked, saveFailed);'
 assert a in s
-s=s.replace(a,'    if(p && p.catch) p.catch(saveFailed);',1)
+s=s.replace(a,'    p.catch(saveFailed);',1)
 a2='function saveWorked(){ if(!canSave){ canSave = true; flagSave(); } }\n';assert a2 in s
 s=s.replace(a2,'',1);${W}"
 
 run_case "the old catch-and-latch shape comes back" \
   "that is the 2.4 shape returning" \
-  "${P}a='    if(p && p.then) p.then(saveWorked, saveFailed);';assert a in s
-s=s.replace(a,'    if(p && p.catch) p.catch(function(){ canSave = false; flagSave(); });',1);${W}"
+  "${P}a='    p.then(saveWorked, saveFailed);';assert a in s
+s=s.replace(a,'    p.catch(function(){ canSave = false; flagSave(); });',1);${W}"
 
 echo "--- 127: a restored container has to be a container"
 
@@ -152,7 +151,7 @@ run_case "the detail action button loses its data-src" \
   "indistinguishable from the row's own tick in a focus snapshot" \
   "${P}a='data-act=\"watched\" data-src=\"detail\" data-id=';assert a in s
 s=s.replace(a,'data-act=\"watched\" data-id=',1)
-a2='\"tf\", \"src\"';assert a2 in s;s=s.replace(a2,'\"tf\"',1);${W}"
+a2='\"n\",\"pk\",\"src\"]';assert a2 in s;s=s.replace(a2,'\"n\",\"pk\"]',1);${W}"
 
 run_case "dedupeLog stops asking about the timestamp" \
   "admitted an entry with no usable timestamp" \

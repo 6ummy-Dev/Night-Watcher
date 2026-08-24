@@ -1,13 +1,7 @@
 #!/bin/bash
-# qa/negative/_lib.sh — the one harness every negative suite sources.
-#
-# Twenty-one suites each carried their own copy of this file's contents, and
-# the copies had drifted into three vintages: run_case with and without the
-# suite parameter, and a failure-report grep that knew about '✗', then
-# '✗|FAIL', then '✗|!|FAIL'. A fixture whose failure printed as a warning
-# line was reported as "got: (nothing)" by the two older greps — the report
-# was wrong exactly when it was needed. One copy now, with the newest
-# superset of everything the vintages learned.
+# qa/negative/_lib.sh — the one harness every negative suite sources. One
+# copy, because the per-suite copies it replaced had drifted into three
+# vintages whose failure reports disagreed exactly when they were needed.
 #
 # A suite is: a shebang, its header comment, this line —
 #
@@ -20,23 +14,12 @@
 set -u
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-# THE LEAK, AND ITS SHAPE WAS RECORDED WRONG. The parked item read "eight
-# leaking suites" — the eight that end without `rm -rf "$NEG"`. That is a
-# symptom and fixing those eight would have left the real one in place.
-#
-# $NEG is "$dir/tree", so `rm -rf "$NEG"` removes the TREE and leaves the
-# temp directory that held it. Every suite leaked, not eight — the other
-# twenty-six just leaked an empty directory instead of a full one, which is
-# why nobody noticed. run-all.sh was never affected: it sets NEGDIR under its
-# own $WORK and traps that on EXIT, so the whole thing goes at once. What
-# leaked was the standalone run — one suite at a time, which is how every
-# fixture gets written and debugged.
-#
-# So the fix belongs here rather than in eight files: when this library makes
-# the directory, this library cleans it up, on any exit including a failure
-# or a Ctrl-C. When run-all.sh supplies one, it still owns it. The `rm -rf
-# "$NEG"` lines in the suites are now redundant and are left alone — they
-# state intent, they cost nothing, and removing twenty-six of them is churn.
+# When this library makes the scratch directory, this library cleans it up,
+# on any exit including a failure or a Ctrl-C; when run-all.sh supplies one,
+# it still owns it. ($NEG is "$dir/tree", so a suite's own `rm -rf "$NEG"`
+# removes the tree and leaves the directory that held it — every standalone
+# run leaked until the trap moved here. The `rm -rf "$NEG"` lines the suites
+# carry are redundant and left alone: they state intent and cost nothing.)
 if [ -n "${NEGDIR:-}" ]; then
   NEG="$NEGDIR/tree"
 else
@@ -48,8 +31,7 @@ PASS=0; FAILED=0
 
 # run_case <label> <expected-failure-substring> <python-mutation> [suite] [phase] [sect]
 #
-# 4.2.3, Q-3 of the 19 Aug audit: the sixth argument names the guards SECTION
-# the fixture is aimed at. guards.js prefixes every failure line with "§NN",
+# The sixth argument names the guards SECTION the fixture is aimed at. guards.js prefixes every failure line with "§NN",
 # so when sect is given the expected string must sit on that section's own
 # line — a mutation that breaks four sections can no longer pass a fixture by
 # printing the phrase from the wrong one. Older fixtures that pass no sect
@@ -58,13 +40,12 @@ PASS=0; FAILED=0
 # guards and a sect is wanted.
 # Applies one mutation to a scratch copy of the tree, runs qa/<suite>.js
 # (guards by default) and requires the exact expected message in its output.
-# The optional fifth argument scopes a smoke run via SMOKE_ONLY (2.2.0, report
-# §5.4): a fixture that trips one check names the phase that check lives in and
+# The optional fifth argument scopes a smoke run via SMOKE_ONLY: a fixture that trips one check names the phase that check lives in and
 # skips the rest of the run. Fixtures whose expected message only exists in a
 # full run — the README check-count — pass no phase.
 #
-# 2.5.0, report §5.3: the tree is unpacked ONCE per suite and healed between
-# fixtures instead of re-tarred 290 times. After each fixture, three sweeps
+# The tree is unpacked ONCE per suite and healed between fixtures instead of
+# re-tarred for every fixture. After each fixture, three sweeps
 # restore the pristine state: files a mutation created are removed, files it
 # deleted come back, files it rewrote are re-copied from the source tree —
 # found by mtime against a stamp touched after the previous heal, and by a
@@ -77,8 +58,8 @@ ensure_tree () {
   tar -cf - -C "$SRC" --exclude=node_modules --exclude=.git . | tar -xf - -C "$NEG"
   [ -d "$SRC/node_modules" ] && ln -s "$SRC/node_modules" "$NEG/node_modules"
   ( cd "$NEG" && find . -type f -not -path "./node_modules/*" | sort ) > "$NEG.manifest"
-  # 3.7.2 (L-8): the signature of a PRISTINE guards run, captured while the
-  # tree is provably unmutated. A fixture whose run exits green may only pass
+  # The signature of a PRISTINE guards run, captured while the tree is
+  # provably unmutated. A fixture whose run exits green may only pass
   # on a warning line the pristine tree does NOT emit — an expected string
   # that a healthy run also prints proves the mutation broke nothing, which
   # is the false-pass run_case used to report as PASS.
@@ -107,48 +88,33 @@ run_case () {
   ensure_tree
   heal_tree
   ( cd "$NEG" && python3 -c "$pyscript" ) || { echo "  SETUP BROKE  $label"; FAILED=$((FAILED+1)); return; }
-  # 3.0.0, and this is the one that mattered most in the release.
-  #
-  # THE OLD LINE GREPPED THE WHOLE RUN, INCLUDING THE GREEN PART. A passing
-  # guards run prints its notes as "  · <note>" and a passing smoke run prints
-  # "  ok   <check name>" for every check — so any fixture whose expected string
-  # was a check NAME rather than a failure MESSAGE matched the success output
-  # and reported PASS while the suite it was aiming at had gone green. 22 of the
-  # 392 fixtures were in that state: every expect was extracted and tested
-  # against captured pristine output, and 22 of them matched a run in which
-  # nothing had been broken at all. A negative fixture that passes against a
-  # green tree is worse than no fixture, because it is counted.
-  #
-  # Filtering the green lines out before matching is the narrowest fix that
-  # works. Two others were tried and rejected on evidence: gating on the exit
-  # code breaks negtest176's three warning-only fixtures, which are correct as
-  # written and expect a green exit; filtering on '✗|FAIL' breaks the two
-  # fixtures that expect a harness error rather than a guard failure. This
-  # regresses exactly three fixtures, and all three turned out to be hiding real
-  # holes in their own mutations rather than in the harness.
-  # 3.7.2: ${NEG_ARGS:-} lets a suite pass flags to the run — the bless
-  # fixtures (negtest390) run `guards.js --bless`, which run_case had no way
-  # to express. Set NEG_ARGS on its own line above the fixtures so the
+  # The green lines ("  · <note>", "  ok   <check>") are filtered out before
+  # matching: a fixture whose expected string is a check NAME rather than a
+  # failure MESSAGE would otherwise match the success output and report PASS
+  # against a tree in which nothing had been broken. Filtering is the
+  # narrowest fix — gating on the exit code breaks the warning-only fixtures,
+  # and filtering on '✗|FAIL' breaks the fixtures that expect a harness error.
+  # ${NEG_ARGS:-} lets a suite pass flags to the run (the bless fixtures run
+  # `guards.js --bless`); set it on its own line above the fixtures so the
   # column-anchored fixture counter in guards.js still sees every case.
   local out sig rc
   out=$(cd "$NEG" && SMOKE_ONLY="$phase" node qa/$suite.js ${NEG_ARGS:-} 2>&1); rc=$?
   sig=$(printf '%s\n' "$out" | grep -vE '^  (ok|·) ')
   if printf '%s' "$sig" | grep -qF "$expect"; then
-    # 4.2.3 (Q-3): a fixture that names its section requires the match on that
-    # section's own §-prefixed failure line, not anywhere in the dump.
+    # A fixture that names its section requires the match on that section's
+    # own §-prefixed failure line, not anywhere in the dump.
     if [ -n "$sect" ] && ! printf '%s\n' "$sig" | grep -F "$expect" | grep -qF "§$sect "; then
       echo "  FAIL  $label"
       echo "        expected: $expect  (on a §$sect line)"
       echo "        got: the text matched, but not on section $sect's failure line — another section printed it"
       FAILED=$((FAILED+1)); return
     fi
-    # 3.7.2 (L-8 of the 10 Aug review): THE EXIT CODE IS FINALLY CONSULTED.
     # A run that exits green fired no guard, so a match there is only honest
-    # if it sits on a warning line ("  ! ") — the three warning-only fixtures
-    # negtest176 carries — AND, for an unscoped guards run, only if the
-    # pristine tree does not print the same text: an expected string a green
-    # healthy run also emits means the mutation broke nothing, and reporting
-    # that as PASS is the exact vacuity this harness exists to prevent.
+    # if it sits on a warning line ("  ! ") — the warning-only fixtures — AND,
+    # for an unscoped guards run, only if the pristine tree does not print the
+    # same text: an expected string a green healthy run also emits means the
+    # mutation broke nothing, and reporting that as PASS is the exact vacuity
+    # this harness exists to prevent.
     if [ "$rc" -eq 0 ]; then
       if ! printf '%s\n' "$sig" | grep -F "$expect" | grep -qE '^  ! '; then
         echo "  FAIL  $label"
@@ -174,20 +140,11 @@ run_case () {
 }
 
 # green_case "<label>" "<python mutation>" [suite] — THE INVERSE OF run_case.
-#
-# ADDED 10 AUG 2026, AND THE HOLE IT FILLS COST A BUILD THE SAME DAY. Every
-# fixture in this harness asserts that a guard DOES fail. Nothing could assert
-# that a guard does NOT — and a guard that fires when it should not is exactly
-# as broken as one that never fires, with the extra cost that its failure
-# message sends the reader looking for a defect that does not exist. Guard 105
-# read sitemap.xml with indexOf and failed on a COMMENT naming the export; the
-# fix was one clause, and there was no way to write the test that stops it
-# coming back.
-#
-# It asserts on the EXIT CODE rather than on absent output, deliberately. "The
-# expected string is missing" is how run_case works and it cannot express this:
-# a run that fails for an unrelated reason has no expected string either, so
-# absence proves nothing. A green exit is the claim.
+# A guard that fires when it should not is exactly as broken as one that never
+# fires, with the extra cost that its message sends the reader after a defect
+# that does not exist. It asserts on the EXIT CODE rather than on absent
+# output, deliberately: a run that fails for an unrelated reason has no
+# expected string either, so absence proves nothing. A green exit is the claim.
 green_case () {
   local label="$1"; local pyscript="$2"; local suite="${3:-guards}"
   ensure_tree
