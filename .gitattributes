@@ -1,0 +1,8 @@
+# The guards hash and split the tree byte-for-byte (the CSP script hash, the
+# script-bytes ledger, every split("\n")), so a CRLF checkout fails many of
+# them. Everything text is LF everywhere; the binaries are named so nothing
+# ever normalises them.
+* text eol=lf
+*.png binary
+*.ico binary
+*.woff2 binary

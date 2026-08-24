@@ -11,6 +11,163 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.5.1] — 2026-08-24
+
+**The seal.** No feature. The pre-seal audit of the 4.5.0 tree — dead code,
+stale comments, tests that had stopped testing, and three real defects in
+the guard suite's own machinery — shipped whole, so that what the frozen
+tree says about itself is true. Catalogue untouched, nothing ticked moves.
+`index.html` is 2 KB lighter.
+
+### Fixed
+
+- **Guards: a failure inside section 24 printed as §23.** `sectOfLine()`
+  matched the section header at column 0 and 24's header is indented (it is
+  nested inside 23); a fixture naming `sect=24` could never match. Five
+  places counted the headers with three regexes; one cached `sections()`
+  census now, the indented header included.
+- **Guards: the comment stripper ate code.** `stripBlockComments` was a
+  regex, and a slash-star inside a string literal — the `_headers` path
+  patterns §104 checks, the `*/*` Accept header §133 sends — opened a
+  comment that ran to the next real close. §104 read as 133 lines instead
+  of 322 and lost three of its assertions to the "every section can fail"
+  count, quietly, because one survived. It is a string-aware
+  `stripComments()` now, shared with §13's `wrangler.jsonc` parse and §136.
+- **Guards: eight fixtures had never been harvested.** §138's coverage map
+  read only double-quoted expects; the eight with single-quoted ones were
+  invisible to the map and to the sect ratchet. The harvester reads
+  arguments the way bash does; `NO_SECT_PINNED` moves 763 → 770 (eight
+  found, one retrofitted a sect — negtest166's empty-section fixture is
+  §107's now, since §66 no longer duplicates that check).
+- **Guards: `qa/script-bytes.json` is read outside bless.** The ledger was
+  written by bless and read by nothing else, so a stale one was invisible
+  to `npm test` and the next bless would have measured its size jump
+  against the wrong baseline. §43 holds it against the page, and a failed
+  write warns instead of being swallowed.
+- **Smoke: two checks that could only fail by coincidence.** "The intro
+  counts what is in view" looked for the literal "58" (the catalogue size
+  when written); it counts from the data. The closed-view bound was a
+  remembered 150,000 with 3% headroom; it is a relation to the measured
+  per-row delta.
+- **The Worker's two responses carried no security headers.** `_headers`
+  reaches asset responses only, so the negotiated markdown root and
+  `/.well-known/api-catalog` were the only URLs on the site without
+  Referrer-Policy, X-Frame-Options, Permissions-Policy, COOP and CORP, and
+  nothing recorded it as a decision. `worker.js` restates the set and the
+  root's Link lines from constants; §133 holds them equal to the file.
+- **The service worker's navigate fallback tried the redirected name
+  first.** The assets plane redirects `/index.html` to `/`, so the copy
+  cached under `./index.html` is a redirected response, which a browser
+  refuses for a navigation — an offline navigation to a non-root path under
+  scope would have failed with the shell in the cache under the other name.
+  `./` first; §132 drives the case. RELEASING.md gains the one `curl` that
+  confirms the redirect on the wire.
+- **Docs and comments that stated things the tree no longer did.** The
+  README's licence paragraph said the only links in the app are the
+  where-to-watch searches (the Progress footer has carried "read the source"
+  since 2.7.4), listed a retired `m` badge, and had no row for `worker.js`;
+  LICENSE and OFL.txt still credited Anton (retired 4.3.0); NOTES.md said
+  `offCanonical()` was "still in the tree on purpose" (removed 3.3.1) and
+  read three other retired states in the present tense; seven of its
+  code-snippet headings anchored lines that no longer exist, and its palette
+  notes were shifted one token down; `qa.yml` argued its Ubuntu pin against
+  Playwright 1.56 while the lockfile was at 1.62; `worker.js` cited an
+  in-project triage that is maintainer-local; nine guards.js comments
+  carried wrong numbers or sections; the sitemap's `llms.txt` date was two
+  edits old; the 4.5.0 entry above said 219.3 KB where the guard prints
+  219.2. All corrected. §65 now checks NOTES.md's snippet headings against
+  the file, which is the gap that let seven of them rot.
+- **`qa/make-favicon.py` used `getdata()`**, which Pillow deprecated and
+  later removed; it reads raw bytes now, with the same chroma key
+  `make-share-card.mjs` uses. Output byte-identical. The card generator
+  rejects on a failed icon load instead of hanging `page.evaluate`.
+
+### Changed
+
+- **One merge.** The three hand-copied "apply foreign marks" loops — the
+  cross-tab storage event, the JSON restore branch, `applyImport()` — are
+  one `applyMarks(res, stamp, gate)`. §111 holds the invariant in the
+  helper (watched clears skip, the BYID gate, skipped never lands on a
+  watched entry) and refuses a site that grows its own copy back.
+- **One focus restore.** `focusSnap()`, `focusRestore()`, `focusBack()` and
+  `attrEsc()` replace the snapshot/restore `tickUpdate()` and `render()`
+  each carried, the selector escape written three times and the
+  `preventScroll` try/catch written four. §123 pins the helpers and refuses
+  a site that calls `.focus()` itself. The restore-box refocus gains
+  `preventScroll` in passing.
+- **Named constants.** `RINGC` (the ring's circumference, tied by §80 to the
+  markup and 2πr) and `BELTCLOSE` (the close timer, tied by §96 to the
+  `beltclose` animation's duration). `GRIDWORD` replaces three copies of the
+  eras/decades/universes ternary; `gDone()`/`gSkip()`/`gSub()`/`gBarFill()`
+  replace five re-derivations and two inlined progress bars.
+- **Dead code out of the script**, one bless: the unread `k:` on life
+  groups, the `String(i+1)` tags renumbered unconditionally two lines
+  later, the unreachable `|| [0,"1"]` in `importCode`, the non-Promise
+  branch of `persist()` (both store adapters always return one), the
+  never-empty `.hbadges` gate, six `typeof requestAnimationFrame`
+  fallbacks (the script hard-requires Promise, `closest`, Path2D and Blob;
+  no browser has those without rAF — the `requestIdleCallback` fallback
+  stays), a ternary-as-statement, and the second shape of the `S.clk`
+  wipe. In the CSS: `.pick`/`.pick span` (every pick is `.pick.big`, which
+  re-declared all of it), `.buildline` restating `.note.foot`, two
+  `margin-top:0`s overridden on the next rule. In the markup: the header
+  HTML comment and the two `twitter:` metas X falls back from.
+- **The histories left the served and config files.** `sw.js`,
+  `worker.js`, `wrangler.jsonc`, `_headers`, `qa.yml`, `smoke.js`,
+  `browser-check.mjs`, `run-all.sh` and `_lib.sh` keep each decision's
+  "why"; the dates, release numbers, review-ticket names and evidence files
+  went to NOTES.md ("Where the served and config files' histories went").
+  In `guards.js` the fourteen longest memoirs were condensed to their
+  invariant paragraph (the full text is in NOTES.md) and sixteen
+  review-ticket lead-ins came off. `_headers` is a header file again, not a
+  changelog. Guard duplicates retired: §66's empty-section check (§107
+  owns it), §114's `offCanonical` check (§77), §110's and §118's
+  404.html-exists checks (§101).
+- **CI.** The four negative shards are repacked by fixture weight (shard 4
+  had carried 22 smoke-fixture-weight against 11–14; negtest300 alone is
+  13). The two copy-pasted browser jobs are one job with an engine matrix,
+  and `qa/.shots/` — written on every run, read by nothing — is uploaded on
+  failure. The Ubuntu pin is re-argued against Playwright 1.62.
+- **`_headers`:** Cache-Control blocks for `icon.png`, `icon-192.png`,
+  `icon-maskable-512.png`, `share.png` and `manifest.json` — a day each,
+  the file's own reasoning, which had applied to them all along. §104 pins
+  the five.
+- **`vp.html`** gains the meta CSP `404.html` already had (hash-pinned
+  inline script). `wrangler.jsonc` drops `nodejs_compat` (the Worker uses
+  no Node API). `.gitignore` drops entries nothing produces;
+  `.wrangler/.gitkeep` is deleted (nothing reads the directory; `wrangler
+  dev` recreates it) and §144 refuses anything under `.wrangler/`.
+- **The wrangler config comment** no longer carries the 8 August
+  postmortem — it carries the decision, and points at NOTES.md.
+
+### Added
+
+- **`qa/share-card.json`** — what `share.png` bakes in (the three counts and
+  the file's hash), written by the generator, held against the data by §91
+  the way `font-subset.json` holds the fonts. A catalogue edit now fails
+  the build until the card is regenerated; `npm run bless` re-records the
+  hash after the manual quantize. RELEASING.md step 6.
+- **`qa/requirements-tooling.txt`** (Pillow, fonttools, brotli) —
+  the Python side of the tooling, declared. **`.gitattributes`** — LF
+  everywhere, binaries named; the guards hash and split the tree
+  byte-for-byte and a CRLF checkout goes red across many sections at once.
+  **`package.json` `engines`** matching jsdom's requirement, so an old Node
+  fails at `npm ci` rather than mid-suite.
+- **`NW_TODAY=YYYY-MM-DD`** pins §140's clock for an archival run of the
+  sealed tree (it goes red thirty days before `security.txt`'s Expires with
+  no edit anywhere). It never silences the check on a live tree. RELEASING.md
+  gains a "Freeze notes" section.
+- **§21 pins the storage key** (`batwatch-v3`, unchanged since the first
+  commit and never to change); NOTES.md says why. **§2 asserts the three
+  id ledgers are disjoint.**
+- **negtest560 — 27 fixtures**, one per claim above, plus the suite's own
+  floor: a §24 failure printing as §24, a slash-star in a string leaving the
+  code after it alone (a green case), and a single-quoted expect being
+  harvested. 64 suites, 923 fixtures; smoke stays at 360.
+- **Kept on the record:** the 1.1.0 downgrade shim stays (§27 and a smoke
+  case pin it); the swallowed `routeHash()` on `hashchange` stays; the
+  guard-pinned CSS duplicates stay. NOTES.md, "The seal".
+
 ## [4.5.0] — 2026-08-24
 
 **The city.** Release 2 of the two-release plan the deco pass opened on
@@ -77,7 +234,7 @@ did not move. Catalogue untouched, nothing ticked moves.
   states driven on one group so none passes vacuously; the same universe
   wears the same roof across renders. The CSS sweep stages an all-skipped
   city so the steel crown rule is seen to match.
-- **Weight: 219.3 KB raw of the 220 KB budget.** The city cost ~3 KB. The
+- **Weight: 219.2 KB raw of the 220 KB budget.** The city cost ~3 KB. The
   next feature raises the ceiling, and that is the owner's number to give.
 
 ## [4.4.4] — 2026-08-20

@@ -2,28 +2,14 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "night-watcher",
   "compatibility_date": "2026-07-27",
-  "compatibility_flags": ["nodejs_compat"],
   /* The apex, bound as a custom domain rather than a route: Cloudflare then
      owns the DNS record and the certificate, and there is one place to look
-     when either is wrong.
-
-     THIS COMMENT USED TO END: "GitHub Pages keeps serving the same tree at its
-     own address on purpose: progress is stored per-origin, so it is the only
-     place anyone's old progress can be read. It carries an injected noindex
-     rather than an offer to move." ALL OF IT LAPSED IN 3.3.1, when the mirror
-     was retired, offCanonical() left the tree and sections 77, 78 and 114 were
-     inverted. It sat here unrevised for two releases while README.md said the
-     opposite and was right.
-
-     ON 8 AUG 2026 IT GOT READ. Pages was republished, a docs/CNAME appeared,
-     and the old origin became first a 301 and then a second live origin serving
-     this same tree. Guard 82 caught the file; nothing could catch the panel.
-     A constraint outlives the reason it was written for, and a stale comment
-     is not a tidiness problem — it is an argument, sitting in the repository,
-     for doing the thing the project decided not to do.
+     when either is wrong. One hostname is one binding — never also a route.
 
      THERE IS ONE ORIGIN: nightwatcher.life, served by this Worker. GitHub Pages
-     is unpublished and stays unpublished. */
+     is unpublished and stays unpublished. (A stale version of this comment
+     once argued for the mirror after the project had retired it, and the
+     mirror came back — the story is in NOTES.md.) */
   "routes": [
     { "pattern": "nightwatcher.life", "custom_domain": true }
   ],
@@ -34,28 +20,26 @@
   "observability": {
     "enabled": true
   },
-  /* 3.8.0: a `main` script for the markdown negotiation — `GET /` with an
-     Accept header that prefers text/markdown gets llms.txt as the markdown
-     representation (the Radar agent-readiness gate, triaged 10 Aug 2026).
-     3.9.0 adds a second owned path: GET /.well-known/api-catalog answers an
-     empty RFC 9727 linkset (the honest "no API"). run_worker_first is scoped
-     to exactly those two paths: every OTHER path is served by the assets
-     plane directly and cannot be intercepted, slowed, or altered by worker
-     code. "/" has an asset behind it and falls through byte-for-byte for
-     browsers; "/.well-known/api-catalog" has none, so scoping the worker to
-     it costs no asset the hop. Guard 133 executes every branch. */
+  /* The `main` script owns two request shapes: `GET /` with an Accept header
+     that prefers text/markdown gets llms.txt as the markdown representation,
+     and GET /.well-known/api-catalog answers an empty RFC 9727 linkset (the
+     honest "no API"). run_worker_first is scoped to exactly those two paths:
+     every OTHER path is served by the assets plane directly and cannot be
+     intercepted, slowed, or altered by worker code. "/" has an asset behind
+     it and falls through byte-for-byte for browsers; "/.well-known/api-catalog"
+     has none, so scoping the worker to it costs no asset the hop. Guard 133
+     executes every branch. */
   "main": "worker.js",
   "assets": {
     "directory": "docs",
     "binding": "ASSETS",
     "run_worker_first": ["/", "/.well-known/api-catalog"],
-    /* "404-page" as of 2.1.0, still NOT "single-page-application". The app
-       is one page with hash routing, so SPA fallback buys nothing — and it
-       would turn every missing asset into a cached-as-HTML 200, which is why
-       it stays banned. "404-page" serves docs/404.html WITH a 404 status:
-       still a real 404 to sw.js (never cached) and to crawlers (noindex),
-       just one that speaks the house's language. qa/guards.js enforces both
-       halves. */
+    /* "404-page", NOT "single-page-application". The app is one page with
+       hash routing, so SPA fallback buys nothing — and it would turn every
+       missing asset into a cached-as-HTML 200, which is why it stays banned.
+       "404-page" serves docs/404.html WITH a 404 status: still a real 404 to
+       sw.js (never cached) and to crawlers (noindex), just one that speaks
+       the house's language. qa/guards.js enforces both halves. */
     "not_found_handling": "404-page"
   }
 }

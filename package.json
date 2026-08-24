@@ -2,6 +2,9 @@
   "name": "night-watcher",
   "private": true,
   "description": "Build guards for Night Watcher. The app itself ships as a single static index.html with nothing to install.",
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+  },
   "scripts": {
     "bless": "node qa/guards.js --bless",
     "browser": "node qa/browser-check.mjs",

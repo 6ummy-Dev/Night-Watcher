@@ -401,9 +401,9 @@ markWatched() as well, so untick something, tap its lit star to clear the
 stale rating, and it came back marked watched — the opposite of both
 actions. Reachable from the hero since 1.4.1.
 
-### `return "NW2W" + w.join("") + "S" + k.join("") + "R" + r.…`
+### `return "NW3W" + w.join("") + "S" + k.join("") + "R" + pos.…`
 
-NW2 adds the path in a P segment. 1.1.0 skips segments it does not know,
+NW2 added the path in a P segment (NW3 is the same code with positions). 1.1.0 skips segments it does not know,
 so it restores everything else. 1.0.0 rejects NW2; sw.js is network-first.
 
 ### `importCode()`
@@ -441,7 +441,7 @@ the other half — a plain object literal, so `BYID["constructor"]` answered
 truthy and the "Restored N" toast counted names the apply loops then dropped.
 Null-prototype now, for the same one reason.
 
-### `if(en && en.id && isFinite(en.ts) && !S.log.some(functio…`
+### `mergeLog()`
 
 Sanitised to the same shape the storage listener writes. It used to
 push the whole foreign object, so extra fields from a hand-edited
@@ -519,7 +519,7 @@ door, since mode is not persisted and only a reload undid it.
 Built ONLY for the open row. Emitting it for every entry and hiding it was
 ~220 KB of the ~292 KB this view produced, reparsed on every keystroke.
 
-### `html += '<div class="bk"><h3>Your data</h3>'+`
+### `html += '<div class="bk"><h2>Your data</h2>'+`
 
 The path row here duplicated Home's Change. What is left is progress in
 portable form, which is why it stays in Progress.
@@ -534,7 +534,7 @@ skyline follows `S.mode` instead, deliberately: browsing is a question, the
 card is a statement. From 4.1.0 to 4.2.0 the skyline ignored both and always
 drew the universes cut; the mode line was the only honest row on it.
 
-### `'<p class="note">Announced dates can move. \u00b7 Build …`
+### `'<p class="note foot">Announced dates can move.</p>'`
 
 Named titles here went stale every time one landed or another was
 announced. The fact is about announced dates, not about which ones.
@@ -570,7 +570,7 @@ aria-current, not aria-selected, which is meaningless on a plain button.
 Removed rather than set false: it has no false state and the CSS matches
 on presence.
 
-### `maxY`
+### `maxY` *(historical — the clamp lives in `scrollPut()` now)*
 
 Clamp: the new view can be shorter than the old one, and restoring past
 the end of the document leaves the page parked in empty space.
@@ -640,7 +640,7 @@ One line, on request. Never the description — the whole premise is that
 nothing ahead of you gets spoiled, and the description is where that risk
 lives. Badges and the continuity name are facts about placement, not plot.
 
-### `else if(act === "peek"){ S.open[id] = !S.open[id]; rende…`
+### `else if(act === "peek"){ S.peek[id] = !S.peek[id]; rende…`
 
 Activity carries no badges. 1.5.9 added them because it was the one place a
 logged entry rendered with none; 1.6.3 takes them back out, deliberately,
@@ -658,7 +658,7 @@ both.
 Runs on load and on every hashchange, so a shared #life link works in a
 running app, not only on a fresh one.
 
-### `h.slice(1).toLowerCase().split(/[-+]/).forEach(function(…`
+### `toks.forEach(function(tok){`
 
 shareable views: #life  #release  #universes  #progress  #next
 combine with scope: #life-series  #universes-movies
@@ -687,21 +687,10 @@ downloaded on every visit and used nowhere.
 Canon skin: Dark Deco. Single source of truth. Themes are [data-theme]
 blocks overriding surfaces only; guards measure the contrast of each.
 
-### `--steel:#7295CC;       /* cape blue-grey */`
+### `--signal:#FFCF1F; --steel:#7295CC; --crimson:#C43A30; --crimson2:#DD7A73;`
 
-utility-belt yellow
-
-### `--crimson:#C43A30; --crimson2:#DD7A73;     /* animated-s…`
-
-cape blue-grey
-
-### `--moss:#7FA98B;        /* interactive badge */`
-
-animated-sky red, AA-adjusted
-
-### `--deco:"Limelight","Big Shoulders Display",serif;`
-
-interactive badge
+utility-belt yellow · cape blue-grey · animated-sky red, AA-adjusted. `--moss`
+(the interactive badge's green) left in 2.7.x when that badge went crimson.
 
 ### `--num`
 
@@ -784,15 +773,11 @@ a filled badge looks exactly as it did.
 
 tier — filled, one per entry
 
-### `.bd.m`
-
-modifiers — outlined footnotes
-
 ### `/* The dash carries "different axis"; it used to also ca…`
 
 format — a different axis, and only in All
 
-### `.bd.fmanim,.bd.fmlive{color:var(--dim);border:1px dashed…`
+### `.bd.fmanim{color:var(--dim);border:1px dashed currentColor;}`
 
 The dash carries "different axis"; it used to also carry opacity:.8, and that
 fade was the one thing here under AA. --dim composited at 80% over --card is
@@ -1022,7 +1007,7 @@ card2 marks the rest.
 Canon skin: Dark Deco. ADDITIVE only — restating a token here leaves its
 real value 180 lines from its declaration.
 
-### `html{scrollbar-color:var(--line2) transparent;scrollbar-…`
+### `main,.panel{scrollbar-gutter:stable both-edges;}`
 
 Reserves the scrollbar width even with nothing to scroll. Without it Next
 up, the one view that fits a desktop screen, slides the centred column
@@ -1272,7 +1257,7 @@ is up.
 
 ### Era 7 is not being split
 
-It holds 48 entries against the next largest at 29, and the question comes back
+It holds far more entries than any other era, and the question comes back
 every review. The answer is no. Positions order it correctly, the eras are life
 stages rather than buckets sized for a screen, and a twelfth era buys scrolling
 comfort at the cost of the scheme meaning something. Recorded so it stops being
@@ -1367,6 +1352,10 @@ and that part has not changed.
 > soaked, and removing it is planned as its own PATCH after 19 Sep. The reasoning
 > below is kept because it is why a Pages custom domain was never allowed, which
 > is still what guard 82 enforces.
+>
+> **Amended again in 3.3.1 — removed.** The PATCH came early: `offCanonical()`
+> left the tree in 3.3.1, guard 77 inverted to fail if it returns, and
+> `wrangler.jsonc` says the same. Nothing below describes the shipped app.
 
 `nightwatcher.life` is canonical and served by Cloudflare Workers. The old
 GitHub Pages address serves the same tree and is never given a custom domain.
@@ -1389,7 +1378,8 @@ app knows which one it is running on.
 survives for the `noindex` injection alone, and guards section 77 inverted: it
 used to prove the offer was there and now fails if any part of it comes back.
 The reasoning below is the record of why it was built the way it was, which is
-worth more than a deleted section.
+worth more than a deleted section. *(And since 3.3.1 `offCanonical()` itself
+is gone — see the amendment above.)*
 
 `offCanonical()` compares `location.origin + location.pathname` against `SITE`.
 It could have been a date — show the banner until the end of the year — and
@@ -1407,6 +1397,9 @@ The banner renders above every tab rather than inside Home, because a shared
 `#life` link lands on The Path.
 
 ### Analytics counts one hostname
+
+> **Amended 3.2.0 — the beacon is gone.** There is no analytics script in the
+> page any more; the host counts visits at the edge. What follows is history.
 
 Cloudflare Web Analytics is per-hostname and the free plan takes one hostname
 per site, so the token in the page is registered to `nightwatcher.life`. Visits
@@ -2675,7 +2668,8 @@ pouches; there is no state in which a peek and a pouch are on screen together.
 The buckle's staged close leaves the old render's `data-held` in the DOM until
 the deferred re-render, so a closing belt stays in flow while the exit plays —
 the `:not(.closing)` machinery the design describes belongs to Stage C's
-mid-close parking, which does not exist yet. Stage C, whole — the drop, the
+mid-close parking, which did not exist when this was written (Stage C shipped
+in 3.6.0 — the next section). Stage C, whole — the drop, the
 anchor, the retraction, F9/F13's reversals of 2.0.0, and section 96's growth
 for all of it — waits on the guard-120 argument, or on the CSS positioning
 answer that would make the argument unnecessary. Deferred with the release
@@ -2700,7 +2694,9 @@ box tracks a sticky anchor's box exactly at 390px and at 1280px with a
 scrollbar, and — the part that killed F12's "left behind" bug — it tracks
 mid-transition, measured at 120ms of a 220ms `top` ease.
 
-**Why the drop is gated on `supportsAnchor()`.** Without anchor positioning
+**Why the drop is gated on `supportsAnchor()`** *(a JS probe until 3.6.4; the
+gate is a CSS `@supports` rule since — the reasoning is unchanged)*. Without
+anchor positioning
 the pouches would position against the page — the exact two-widths bug the
 Next-up tab had at 7.5px and the mock had at half a scrollbar. A browser
 without the primitive gets Stage B whole: parked tap = calm scroll home.
@@ -3686,3 +3682,381 @@ on demand by `drawShareCard()`. Nothing static changed.
 **The weight.** The city cost about 3 KB and left `index.html` at 219.3 KB
 of a 220 KB budget. The ceiling has moved four times and every move was the
 owner's number on the record; the next feature asks for the fifth.
+
+
+## The seal: what a tree says about itself has to be true
+
+4.5.1 is the release before the code freeze, and it ships no feature. It
+ships the pre-seal audit's findings: three defects in the guard suite's own
+machinery, a handful of tests that had gone vacuous, comments and documents
+that stated things the tree no longer did, and the dead code and duplicated
+loops that a file accretes across seventy releases. The rule that governed
+every change is the project's oldest: a sentence claiming a fact the tree
+does not hold is a bug, and a frozen file that states falsehoods is worse
+than one that says nothing.
+
+**The suite had three holes in its own floor.** `sectOfLine()` — the
+function that stamps every failure with its section number — matched the
+section header at column 0, and section 24 is nested inside 23 with an
+indented header, so every failure inside 24 printed as §23 and a fixture
+naming `sect=24` could never match. Section 107 knew about the nesting;
+the stamper did not. Five places counted the headers with three different
+regexes; they read one cached census now. The comment stripper the
+"every section can fail" censuses used was a regex, and a slash-star inside
+a string literal (the `_headers` path patterns section 104 checks, the
+`*/*` Accept header section 133 sends) opened a comment that ran to the next
+real close and ate the code between — section 104 read as 133 lines instead
+of 322 and lost three of its assertions to the count, quietly, because one
+survived. It is string-aware now, and section 13 parses `wrangler.jsonc`
+through the same one. And the coverage map's harvester only read
+double-quoted expects: eight fixtures with single-quoted ones had never been
+harvested at all, invisible to the map and to the sect ratchet alike. It
+reads the arguments the way bash does now. The pin moved from 763 to 770 —
+plus eight harvested, minus one fixture retrofitted a sect the same day.
+
+**Tests that had stopped testing.** The intro-count check looked for the
+literal "58" — the catalogue's size when it was written — and could only fail
+by coincidence once the catalogue grew past it. It counts from the data now.
+The closed-view size bound was a remembered 150,000 with 3% headroom; it is
+a relation to the measured per-row delta. The browser check measured two
+values it never asserted.
+
+**The served surface.** `_headers` reaches asset responses and nothing the
+Worker constructs, so the negotiated markdown root and the api-catalog were
+the only two URLs on the site without the security header set, and no
+comment recorded it as a decision. `worker.js` carries the set itself now,
+and guard 133 holds its constants equal to the file. The service worker's
+navigate fallback tried `./index.html` before `./`; the assets plane
+redirects the former to the latter, so the cached copy under that name is a
+redirected response, which a browser refuses for a navigation — an offline
+navigation to a non-root path would have failed with the shell sitting in
+the cache under the other name. `vp.html` gained the CSP `404.html` already
+had. Five stable-named files got the Cache-Control day the file's own
+reasoning had applied to them all along.
+
+**One merge, one focus restore, one constant each.** Three hand-copied
+"apply foreign marks" loops — the cross-tab storage event, the JSON restore
+branch and `applyImport()` — are one `applyMarks()`, and section 111 holds
+the invariant (watched clears skip; the BYID gate; skipped never lands on a
+watched entry) in the helper and refuses a site that grows its own copy
+back. The focus snapshot and restore that `tickUpdate()` and `render()` each
+carried, the selector escape written three times and the
+`focus({preventScroll:true})` try/catch written four times are
+`focusSnap()`, `focusRestore()`, `focusBack()` and `attrEsc()`; section 123
+pins the helpers and refuses a site that calls `.focus()` itself, because
+the site-written restore is the one that ended up without preventScroll.
+The ring's circumference and the belt's close timer are `RINGC` and
+`BELTCLOSE`, each tied by a guard to the markup and the CSS it has to agree
+with. Six `typeof requestAnimationFrame` fallbacks went: the script already
+hard-requires Promise, `Element.closest`, Path2D and Blob, and no browser has
+those without rAF. Five sites re-derived `gDone()`; two inlined
+`gBarFill()`'s markup; three spelled out the ternary `GRIDNAME` already
+models. All of it is one bless, and the page is 2 KB lighter.
+
+**Where the histories went.** The served and config files — `sw.js`,
+`worker.js`, `wrangler.jsonc`, `_headers`, `qa.yml`, the negative harness —
+carried their own changelogs in comments, dated and versioned, some of them
+arguing for decisions the project had reversed. A stale comment is not a
+tidiness problem; it is an argument, sitting in the repository, for doing
+the thing the project decided not to do. Each file keeps its load-bearing
+"why" — the invariant and the failure it prevents — and the dates, the
+releases and the evidence went to the two sections below. In `guards.js`
+the fourteen longest memoirs were condensed to their invariant paragraph
+and the review-ticket lead-ins ("N.N.N, X-N of the DD Aug review:") came
+off; the ticket numbers are in the CHANGELOG entries that closed them.
+
+**Kept on purpose.** The 1.1.0 downgrade shim (`mode:S.path` on the way out,
+`isPath(o.mode)` on the way in) stays: guard 27 and a smoke case pin it, and
+the cost of keeping it is two expressions. The empty `catch` around
+`routeHash()` on `hashchange` stays: a malformed `#nw=` is left in the URL
+with no toast, which is the quieter of the two failures. The pinned
+duplicates in the CSS — two `prefers-reduced-motion` blocks, the triple
+`height:` on `#app`, `#nosave[hidden]`, the duplicate `content:` — are
+guarded, and each is there for a reason its guard states.
+
+### `var KEY = "batwatch-v3";`
+
+The storage key. It has read `batwatch-v3` since the repository's first
+commit (27 Jul 2026); the `v3` is inherited from the prototypes that came
+before the repository, and nothing in the tree has ever read `batwatch` or
+`batwatch-v2`. It must never change: progress is per-origin and lives under
+this name, there is no migration path, and a "tidied" key is every reader's
+progress gone at once with the bytes still sitting under the old name.
+Guard 21 pins it; the smoke suite spells it out by hand at each site on
+purpose, because a test that read the key from the app would follow a
+change it was meant to refuse.
+
+### `function applyMarks(res, stamp, gate){`
+
+The one merge. `res` is a `{watched, skipped, rated}` shape from any source;
+`stamp` says whether the marks get clocks (a restore does, a cross-tab
+payload carries its own); `gate(kind, id)` lets the storage listener keep
+its clocked semantics — an id whose clock is known is the clocked merge's
+business, not this one's. It returns the ids it newly watched, so the
+callers can write their own log entries, and a count of what changed, so
+the listener knows whether to render. Watched clears skip inside it, once.
+
+### `function focusBack(el){`
+
+The one restore. `preventScroll` because a restore that scrolls is a jump —
+the 3.4.0 finding — and a try/catch because a browser without the option
+throws on the dictionary. `focusSnap(within)` keys the button's `data-*`
+set through `FOCUSKEYS` (including `data-src`, which tells a row's two
+watched buttons apart), and `focusRestore(v, snapshot)` rebuilds the
+selector through `attrEsc()`. Three sites, no copies.
+
+## Where the served and config files' histories went (4.5.1)
+
+Each file keeps its reasons. This is where the dates, the release numbers,
+the review-ticket names and the evidence files went, in the files' own
+words as they stood at 4.5.0.
+
+### docs/sw.js
+
+VERSION and CACHE: the analytics beacon was the one cross-origin case until it left in 3.2.0, and the fonts were another until 1.4.2, when they stopped coming from Google's CDN. NEVER_CACHE went with the beacon: it held one entry, the beacon's origin, and existed because the cross-origin return is about *where* a request is served from rather than what the list meant — serve the beacon through a same-origin path and the origin check stops catching it while the list still would. An empty list consulted on every fetch is a line that can only be right by accident, so it went.
+
+The shell: icon-192.png joined because index.html's `<head>` references it directly for rel=icon (it used to inline the bytes). The fonts joined in 1.5.9 — they relied on the runtime network-first path, which works on any normal first visit, but a font request that failed on that one visit rendered fallback type offline until the next online one. icon-maskable-512.png joined in 1.6.6: served and referenced by manifest.json since 1.5.x and never listed, so an Android icon refresh while offline fell back silently, and only for people who installed before the icon existed. The apple-touch icon has been its own 180×180 file since 3.9.x and stays out with the rest of the browser-chrome rasters.
+
+The runtime cache write rides `e.waitUntil()` since 3.7.2 (L-3 of the 10 Aug review): it was fire-and-forget, so the browser could kill the worker between the reply and the put, and a downloaded update quietly missed the offline cache until some later visit.
+
+The navigate fallback tries `./` before `./index.html` since 4.5.1. Workers Static Assets' default `html_handling` redirects `/index.html` to `/`, so `cache.add("./index.html")` stores a redirected response, which Chrome refuses to use for a navigation — an offline navigation to a non-root path under scope would have failed with the shell sitting in the cache under the other name. The wire check that confirms the redirect is `curl -sI https://nightwatcher.life/index.html`.
+
+### qa/negative/run-all.sh and _lib.sh
+
+The suite naming rule was corrected in 3.9.5 after the old text got both of its own examples wrong ("negtest390 is 3.9.0, negtest410 is 3.9.2's" — 390 is 3.7.2's by its own header, and 3.9.2 with the dots removed is 392). The release encoding held through negtest300 (3.0.0) and broke at negtest340 (3.4.2); from 340 on the number is a +10 counter: 340=3.4.2, 350=3.4.5, 360=3.5.0, 370=3.6.0, 380=3.6.4, 390=3.7.2, 400=3.8.0, 410=3.9.2, 420=3.9.3, 430=3.9.4, 440=3.9.5, 450–550 one per release through 4.5.0, with 475/476/478 where 4.2.x needed three.
+
+The concurrent runner (2.2.0) exported a single NEGDIR for every suite while the loop was serial; each suite now gets its own directory under $WORK/scratch. Dispatch is longest-first by smoke-fixture count (optimization report §5.1); the count was `grep -c '"smoke"'` until 4.2.3 (Q-6 of the 19 Aug audit), which missed negtest400's bare `smoke main` and started its three smoke fixtures whenever xargs got around to them.
+
+_lib.sh replaced twenty-one per-suite copies of the harness that had drifted into three vintages (run_case with and without the suite parameter; a failure grep that knew '✗', then '✗|FAIL', then '✗|!|FAIL'). The standalone-run leak: every suite leaked its temp directory, not the eight that ended without `rm -rf "$NEG"` — $NEG is "$dir/tree", so the rm removed the tree and left the directory — and the fix was the EXIT trap in the library. 3.0.0 filtered the green lines before matching after 22 of 392 fixtures were found matching a run in which nothing had been broken (their expects were check names, not failure messages); gating on the exit code and filtering on '✗|FAIL' were tried and rejected because each broke correct fixtures. 3.7.2 (L-8) added the pristine signature and consulted the exit code; 4.2.3 (Q-3) added the sect argument; 2.5.0 (report §5.3) unpacked once and healed between fixtures instead of re-tarring 290 times. green_case was added 10 Aug 2026 after guard 105 read sitemap.xml with indexOf and failed on a comment naming the export.
+
+### .github/workflows/qa.yml
+
+The negative job was gated behind `if: github.event_name == 'pull_request'` until 1.8.3, on the reasoning that the suites are slow. The reasoning was sound and the conclusion was wrong: releases here ship by uploading the tree, which is a direct commit to main, so pull requests essentially never happen and the job had almost certainly never run in CI at all — the evidence that the guards work was produced only on the release machine, by hand, which is the exact situation the workflow was created to end.
+
+The cost comment's figures ("579 guards / 32 smoke") had drifted and did not sum to their own total; corrected 3.7.2 and guarded since. The 4-way sharding is from the 2.2.0 optimization report (§5.2), on top of run-all.sh's longest-first dispatch (§5.1). In 4.5.1 the shards were repacked by fixture weight (a smoke fixture ≈ forty guards fixtures): shard 4 had been carrying 22 smoke-fixture-weight against 11–14 elsewhere, negtest300 alone being 13.
+
+The union check used to carry a fifth copy of the shard lists, hand-maintained, with a comment asking whoever edited the matrix to keep the two in step. Nobody did: negtest252 was added to shard 2 in the 2.5.2 round and negtest260 to shard 3 in 2.6.0, and neither reached the copy. Both uploads went red on that step — and because it runs before run-all.sh, the negative suites did not run in CI at all for two releases. It reads the patterns out of the file now.
+
+The browser job arrived in 3.7.2 (H-3 of the 10 Aug review); until then browser-check.mjs was manual-only and the behaviors it observes (scroll clamp 3.3.2/3.4.0, focus loss 3.4.0, group collapse 3.4.1, the belt rendering nothing on six real browsers in 3.6.4) were enforced between runs by source-shape regexes that, by their own admission, cannot observe behavior. WebKit joined as a second job in 4.4.x when the deco pass shipped clip-path ornaments; 4.5.1 folded the two copy-pasted jobs into one with an engine matrix and started uploading `qa/.shots/` on failure — they had been written on every run and never read by anything. The ubuntu-24.04 pin was written against Playwright 1.56; the lockfile has been at 1.62 since 4.4.x and the pin was re-checked against it in 4.5.1.
+
+### qa/browser-check.mjs
+
+The header claimed "not committed to CI" for four minor releases after the browser job arrived in 3.7.2 (H-2 of the 19 Aug audit) — a comment about what watches the tree, wrong about what watches the tree, in the file being watched. 3.2.0 fixed what the file could not say about itself: it imported playwright while package.json declared only jsdom and wrangler, and it launched a hard-coded `/opt/pw-browsers/chromium-1194/…` path, so it ran on whatever happened to be installed at one pinned build number and would have failed — or, worse, silently not run — anywhere else. 3.3.0 added the console listener: the file measured geometry and never read the console, so a CSP violation would have gone past 36 green checks without a word; `connect-src 'none'` shipped on the strength of that listener. 3.7.2 (I-5) removed an inert check-shaped line (`…getBBox ? null : null`). 4.2.3 (Q-9) replaced the hardcoded 109.96 retracted offset with 2πr from the served markup, the same arithmetic as guard 80. The 70px sticky clamp was seen by the maintainer-local record-3.0.0.md and never pinned. In 4.5.1 two measured-but-never-asserted values (the wordmark's top, the closed group's height) were either dropped or asserted, and the Where-to-watch link's id and text are asserted rather than only printed.
+
+### wrangler.jsonc
+
+The custom-domain comment used to end: "GitHub Pages keeps serving the same tree at its own address on purpose: progress is stored per-origin, so it is the only place anyone's old progress can be read. It carries an injected noindex rather than an offer to move." All of it lapsed in 3.3.1, when the mirror was retired, `offCanonical()` left the tree and sections 77, 78 and 114 were inverted. It sat there unrevised for two releases while README.md said the opposite and was right. On 8 Aug 2026 it got read: Pages was republished, a docs/CNAME appeared, and the old origin became first a 301 and then a second live origin serving the same tree. Guard 82 caught the file; nothing could catch the panel. A constraint outlives the reason it was written for, and a stale comment is not a tidiness problem — it is an argument, sitting in the repository, for doing the thing the project decided not to do.
+
+`main` arrived in 3.8.0 for the markdown negotiation (the Radar agent-readiness gate, triaged 10 Aug 2026); 3.9.0 added the api-catalog path. `not_found_handling: "404-page"` since 2.1.0. `nodejs_compat` left in 4.5.1: worker.js uses no Node API.
+
+### docs/_headers
+
+The file's header used to carry its own changelog. The decisions survive in the file; this is where the dates and the evidence went, verbatim as the file stood at 4.5.0.
+
+Response headers for every path served by the Worker's static assets.
+
+SUPERSEDED 8 AUG 2026 — the claim that stood here was wrong. It read: "Cloudflare Response Header Transform Rules do NOT apply to responses a Worker generates, which is why these live here and not in the dashboard." They DO apply, and they WIN. A rule named "Security headers", active on all incoming requests, had been setting Permissions-Policy, Referrer-Policy and X-Frame-Options at the edge — and for the whole of 3.4.2 the wire served the rule's Permissions-Policy rather than the one below, while guard 104 stayed green because it reads this file and the file was correct. The 4 Aug reading that produced the wrong claim tested a rule that set nothing, and a rule that sets nothing proves nothing about rules.
+
+THE DECISION IS UNCHANGED AND THE REASON IS BETTER. These live here because a file in the tree can be diffed, guarded and shipped inside a release, and a dashboard rule can be none of those. The rule is deleted in 3.4.3, so this file becomes the only thing setting these headers. NOTHING GUARDS THAT IT STAYS DELETED — no guard can read a panel, and one that pretended to would be worse than an honest gap — so the wire check lives in the release checklist: RELEASING.md, "The wire checks". (Until 3.7.2 this comment delegated to a checklist that did not exist anywhere in the repo — M-3 of the 10 Aug review. It exists now.) qa/sweep-repo-page-dns-2026-08-08.md is the maintainer's local evidence file, not in this repository.
+
+HSTS and X-Content-Type-Options are set at the edge instead (SSL/TLS panel and Managed Transforms) and are deliberately not duplicated here.
+
+Content-Security-Policy stays in the <meta> tag in index.html: the guards bless its hash against the one inline script, and moving it to a header would split one rule across two files. The 7 Aug 2026 Cloudflare Radar scan reported the CSP MISSING and rated it P0 — a response-header scan cannot see a <meta> policy, and the header it proposed (script-src 'self' 'unsafe-inline') is weaker than the single sha256 that ships. qa/scan-triage-2026-08-07.md (maintainer-local, not in this repository).
+
+CACHE POLICY, ADDED IN 3.0.0, AND IT ONLY TAKES EFFECT ON UPLOAD. Nothing in this project declared one, so every file was cached with whatever Workers Assets emits by default and Cloudflare caches .js at the edge. Two independent routes reached the same conclusion: the six subset faces are 62,996 bytes, network-first in the service worker, and re-fetched on a policy nobody wrote; and on 5 Aug 2026 the bare /sw.js answered VERSION = "2.5.1" while the same file with a cache-busting query answered 2.7.5.
+
+sw.js is the one file that must never be stale, because it is how a returning browser learns the app changed — its own header comment says so. no-cache does not mean "do not store": it means revalidate before use, which is exactly what a version marker wants. The fonts are content-addressed by the subset script's own hash record and never change under a name, so they take the year.
+
+3.4.2 ADDS THE TWO ICONS, AND THEY GET A DAY RATHER THAN A YEAR. Both were served max-age=0 and revalidated on every visit — two conditional requests a visit, forever, for files that do not change. A year with immutable is only safe behind a content-hashed filename, and RENAMING THE FAVICON IS THE ONE THING FORBIDDEN BEFORE 19 SEP: "unstable or frequently changed" is a listed Google cause of favicon non-appearance, and this icon already changed twice in three days. A day takes the win and leaves the names alone.
+
+3.4.3 PUTS usb=() BACK. 3.4.2 removed it on a console warning from a scanner's own engine, recorded as "not a registered Permissions-Policy feature". It is one: usb is the policy-controlled feature for WebUSB and Chrome accepts it — the live response carried usb=() while Chrome's console stayed silent through three page loads. The app never uses WebUSB, so denying it is cheap hardening that was taken for a wrong reason and is returned for a plain one. interest-cohort does NOT come back: FLoC was withdrawn, and section 104 still refuses that token by name.
+
+3.7.1 MOVES THE TWO Link: LINES OUT OF /* AND UNDER /, AND THE REASON IS NOT THE ONE THAT PROMPTED IT. An outside reading said the blanket canonical was why GSC returned "Soft 404" for /icon.svg. IT IS NOT, and the control that settled it is on file: three live tests, one instrument, one hour, 10 Aug. /llms.txt carries this very header, Google READ it — User-declared canonical: https://nightwatcher.life/ — and the verdict was still "URL is available to Google · Page can be indexed". A header that blocked indexability could not produce that row. /icon-192.png reported User-declared canonical: NONE, so a PNG is never evaluated as a document at all, and it too came back available. Only /icon.svg fails, because SVG is a renderable document format that renders with no text. THE SOFT 404 IS SVG-SPECIFIC AND HARMLESS. qa/favicon-serp-2026-08.md (maintainer-local, not in this repository).
+
+3.7.2 DECLARES THE DOCUMENT'S OWN POLICY AT LAST (L-4 of the 10 Aug review). This file's history above records exactly what an undeclared cache policy cost sw.js; index.html — the entire app — was still riding the platform default for every visitor the service worker cannot help. no-cache means revalidate before use, which is what a single-file app whose only update path is "serve the new file" wants. It rides under / because / is the whole HTML surface: not_found_handling is "404-page", so no other path serves a document.
+
+3.7.2 ALSO ADDS THE REST OF THE ICON SET — the three tab-size PNGs, the iOS home-screen icon and the Windows tile — each a day, for exactly the reasons recorded for the first two icons above: stable names, no content hash, and Google's stability rule.
+
+SO THIS MOVE BUYS NOTHING MEASURABLE AND SHIPS ON PRINCIPLE, WHICH IS RECORDED HERE RATHER THAN DRESSED UP: a canonical relation is a statement about a document, /* applies it to fonts, icons and sw.js, and RFC 8288 gives no reading of "this PNG's authoritative version is the home page". The narrow scope is what the file meant all along. Cloudflare's _headers matches on PATH ONLY — never content type — and every matching rule applies cumulatively with no way to unset, so scoping means removing from /* and re-declaring under /. / is the whole HTML surface: wrangler.jsonc pins not_found_handling to "404-page", NOT single-page-application, and the app is one page with hash routing, so no other path ever serves a document. Section 104 asserts the scope now, not merely the presence — the old regexes matched anywhere in this file and would have stayed green through this very edit.
+
+3.8.4 ADDS THE THIRD Link: LINE UNDER /, FOR AGENTS. The Cloudflare Agent Readiness panel (12 Aug 2026) read the response and said "Link headers present but no agent-useful relation types found". The site has no API, so RFC 9727's api-catalog and service-doc would be fabrication; describedby is the honest registered relation — "a resource that describes this one" — and /llms.txt IS the machine-readable description of this page, the same file the Worker already serves to any client whose Accept prefers text/markdown. The target is site-relative where the other two are absolute: canonical and sitemap name authoritative URLs and must not drift across origins; a describedby points at a sibling of whatever origin served it, which is what a relative reference says. Cloudflare suggested a Worker or Transform Rule for this; the whole history above is why it lives here instead. Known risk, accepted on the record: third-party checkers may only credit their own example rels. Guard 104 pins the line and its scope, same as the other two.
+
+Between the directive blocks:
+
+VARY: ACCEPT ON / , ADDED IN 3.9.2. worker.js sets it on the markdown branch and nothing set it here, so the HTML fall-through was a second representation of the same URL with no signal that the URL has two — and a shared cache that relaxes no-cache revalidation could hand this HTML to a markdown-preferring agent. It sits under Cache-Control rather than above the Link set because it is a cache-key directive and belongs beside the other one. The negotiation is in worker.js; the declaration belongs in the file that can be diffed and guarded. THE FILES WRITTEN FOR AGENTS, ADDED IN 3.9.4. These had no block at all, so they inherited whatever the assets plane emits by default while / and /sw.js declared no-cache. It cost a wrong answer on the 3.9.2 deploy: the first read of /auth.md came back with the PREVIOUS release's heading and a cache-busted read came back correct — a stale answer to a question asked once, by a reader that does not come back to check. An agent reading llms.txt or orders.txt has the same problem and no way to notice it. Same policy as the page they describe, for the same reason. THE DISCLOSURE POINTER, ADDED IN 3.9.5, AND IT JOINS THE THREE ABOVE FOR THE SAME REASON THEY ARE THERE. /.well-known/security.txt carries an Expires date, so a stale copy does not merely answer late — it answers with a freshness claim that was true when it was cached and is not any more. The reader is a scanner or a researcher who fetches once and writes down what it said, which is the auth.md failure exactly.
+
+Nothing here declares Content-Type: the assets plane already emits text/plain; charset=utf-8 for .txt, RFC 9116 asks for no more than that, and _headers cannot unset a header it duplicates. Declaring a correct default twice is how you get two of it.
+
+4.5.1 added Cache-Control blocks for icon.png, icon-192.png, icon-maskable-512.png, share.png and manifest.json — a day each, the file's own reasoning, which had applied to them all along while they rode the platform default.
+
+### worker.js
+
+3.8.0 wrote it for the markdown negotiation (the 10 Aug 2026 Radar scan's agent-readiness report gates Level 3 on that and nothing else; the triage is maintainer-local). 3.8.4 added auth.md's "nothing to sign into"; 3.9.0 the empty api-catalog; 3.9.2 answered HEAD on the api-catalog after a HEAD probe fell through to the assets plane and 404'd (a status mismatch on a well-known URI that validators probe with HEAD first); 4.0.1 did the same for the negotiated root, where HEAD had read as HTML while GET read as markdown. 4.5.1 gave both Worker-built responses the security header set and the root's Link set: `_headers` reaches asset responses only, so those two URLs had been the only ones on the site without Referrer-Policy, X-Frame-Options, Permissions-Policy, COOP and CORP, and no comment recorded it as a decision. Guard 133 now holds the constants in worker.js equal to the file.
+
+### qa/smoke.js
+
+Two strip-replaces used to run before booting the page: one removed Google-CDN font links (self-hosted since 1.4.2), the other the Cloudflare beacon (gone in 3.2.0); both patterns had matched nothing for releases. The "future code" probe appended an unknown segment to an NW3 code and called it "a future NW2 code" until 3.0.0 — the segment half was real, the version half was not being exercised. The NW1 check tested nothing for nine releases: it did `code.replace(/^NW2/,"NW1")` on a code that starts NW3W, which cannot match, so it imported the same NW3 code twice; deleting NW1 support from the app left it green (guard 8 covered the format for real, so the app was never unprotected — the check was lying). `afterOrigin()` was a one-line hop named after a document the suite stopped booting in 2.5.1 and outlived it by four releases. In 4.5.1 the intro-count check stopped looking for the literal "58" (the catalogue size when it was written — it had been vacuous since the catalogue grew past it) and the closed-view size bound became a relation to the measured per-row delta instead of a remembered 150,000.
+
+
+## Where the guards' histories went (4.5.1)
+
+The fourteen longest comment blocks in `qa/guards.js`, as they read at
+4.5.0. Each section kept its invariant paragraph; the full argument is here.
+
+#### §103 The tick repaints one row, and cannot drift
+
+2.5.0, optimization report §3.8 — the one the report called genuinely risky, shipped behind arithmetic instead of nerve. The tick path (toggleWatched/toggleSkip) repaints the row's group through groupBlock() — the same builder viewWatch() composes from, so the two cannot disagree by construction — plus the header through renderHead(). Everything outside the targeted condition (another tab, a filter, a search) falls back to the full render. The real gate lives in smoke: after every driven tick, a forced full render must serialize byte-for-byte identical. This section holds the shape so the gate always has something to gate.
+
+3.4.1 SUPERSEDES THE PARAGRAPH ABOVE, AND THE SHAPE IT HELD WAS THE DEFECT. Everything it says about drift is still true and still enforced below. What it got wrong was the granularity. It required tickUpdate() to rebuild the whole GROUP through groupBlock() and replaceChild it in — and .group carries content-visibility:auto with contain-intrinsic-size:auto 64px, so the replacement is a brand-new element with no remembered size and renders as a 64px placeholder until layout catches up. Measured at 390x844 in the click's own task: the ticked group falls 3418px -> 66px and the document loses 3352px underneath the reader. In Bruce's life, where an era is six times a universe, that is the whole screen.
+
+THE CHECK THAT SHOULD HAVE CAUGHT IT COULD NOT SEE IT. 3.4.0 added a browser drive for exactly this and asserted on window.scrollY, which reads 8780 -> 8780 across the defect: the offset does not move, the content does. It also ran only filter ess and filter core, and BOTH of those take the fallback branch on the very line this section pins. The default state — no filter, no search, where every reader starts — had never been driven at all. qa/soak-3.4.0-tick-jump.md.
+
+With filter "all" and no query, groupBlock's seven filter clauses all fall through and matches() returns true, so THE ROW SET CANNOT CHANGE. A tick can change exactly three things: the row, the "n of m" in the group head, and the head's progress bar. So the row is replaced through filmRow() — .film carries no content-visibility and cannot collapse — and the other two are written in place, the way groupUpdate() has always done it. Nothing creates a .group element outside the full render any more, which is the class of defect rather than this instance of it.
+
+The anti-drift argument is unchanged and is now stronger: filmRow() is the same row builder groupBlock() composes from, and gSub()/gPct() are the same two helpers the head is built from, so a second copy of any of the three cannot exist. The smoke gate still has the last word.
+
+#### §120 The page does not read layout after writing it
+
+THE FAMILY, NOT THE MEMBER. Section 96 refused `scrollHeight` from 2.7.0, written when render()'s closing clamp came out — 216ms of forced layout on every render, invisible to the harness because jsdom has no layout and nothing here can observe a reflow by running the app. It refused one property NAME. On 6 Aug 2026 a Lighthouse run found a forced reflow of 106.6ms desktop / 64.1ms mobile at the TOP of that same function, arriving as `window.pageYOffset || document.documentElement.scrollTop` — the same defect under a different name, walking straight past a guard written against the first one.
+
+It also moves the assertion out of section 96, which is titled "The Belt is one strip, and its pouches open from behind". The scrollHeight refusal was filed there because that is where the 2.7.0 work happened, not because it is what that section is about, and a guard filed under the wrong name is a guard the next reader does not find.
+
+TWO LISTS, AND THE SECOND IS THE HONEST PART. Properties this page does not read at all are refused outright. The ones it DOES read are PINNED to the exact sites that exist, each named — because refusing them today would fail the build over a defect that is real, known, planned and frozen until after 19 Sep 2026. A guard that cannot be green against the tree it ships with is not a guard, it is a wish.
+
+3.3.0 CORRECTS THE LAST SENTENCE THIS COMMENT USED TO CARRY. It said the pins drop to zero when render()'s read is hoisted, and both members move up into REFUSED. That was wrong the moment it was written: the fix MOVES the read, it does not remove it, so the count is 1 before and 1 after and the pins stay exactly where they are. A count answers "how many" and can never answer "in what order" -- and order is the whole of this defect. The ORDER clause below is the half that can see the fix.
+
+3.9.7 MOVES THE SCROLL OFF THE DOCUMENT (the tab-swipe groundwork). The keep-read is scrollKeep() on #app now: window.pageYOffset appears nowhere and joins REFUSED, and the scrollTop pin widens to 2 for the seam every scroll site goes through -- scrollKeep() the one read, scrollPut() the one write. Reading an element's scrollTop forces layout exactly the way the window read did when a write has already landed in the same task, so the ORDER clause keeps its job and tracks scrollKeep().
+
+#### §106 The fonts carry every letter the catalogue uses
+
+2.7.0 subset five of the six faces to roughly half their weight — 39% of the first-visit payload down to 26% (the manifest below holds the bytes). The weight was never dead files: all six are referenced by @font-face and all six are precached. The weight was glyph coverage nobody was ever going to use.
+
+THE FAILURE MODE A SUBSET INTRODUCES IS SILENT. Cut a glyph the catalogue later needs and the browser draws a blank box, on one entry, on one row, probably on somebody else's device. Nothing throws. That is why the subset is Latin-1 plus punctuation rather than the 99 characters the catalogue happened to contain on the day — the tighter cut saved another 21 KB and would have put an accented title one data patch away from tofu, on a catalogue whose whole design is that it takes data patches.
+
+This guard closes the gap the range leaves. Every character in the served page and in the plain-text export must be inside the blessed range, so a new title with an unusual letter fails the build on the day it is added rather than turning up in a screenshot three weeks later. It keeps a trigger patch honest too: one data row stays one data row, unless it needs a glyph the fonts do not have, and then the build says so.
+
+It does not regenerate the fonts. Doing that would put fonttools and a Python toolchain in CI to re-derive bytes that are already committed. Instead qa/subset-fonts.py blesses a manifest carrying each file's size and SHA-256, and this guard holds the files against it — so the fonts and the record of what they contain can only move together, which is the same bargain the seed, the ItemList and orders.txt already make.
+
+Limelight is in the manifest but marked unsubset. Its OFL header reads "with Reserved Font Name Limelight"; the other faces' headers do not. Under OFL 1.1 a Modified Version may not carry the reserved name as presented to users, so subsetting it means renaming the family in the name table, in @font-face and in --deco — real CSS churn and a licensing judgement, for 10.3 KB. Left whole on purpose, and the manifest says so rather than leaving it looking like an oversight.
+
+#### §17 One hero size, declared once (the ring never outdraws the bat)
+
+THE HEADER IS THREE FLEX COLUMNS with both flankers boxed at 46px, so the wordmark is always mathematically centred and nothing here was ever misaligned in the box model — which is exactly why it went unnoticed for eleven releases. What is lopsided is the mass INSIDE the boxes.
+
+THREE RELEASES CORRECTED THIS AND ALL THREE MEASURED THE WRONG THING. 2.7.3 grew the bat 32 -> 40 against "a 46px ring"; 46 is the ring's box, and at r=19/4px it drew 42. 2.7.5 fixed that side, set both to "44", and wrote THIS GUARD as bat-width == 2*(r + stroke/2) — a real relationship, with one term read from `.mark svg{width:44px}`. A CSS width is a box. The glyph inside it sits in a viewBox with 4 units of padding each side and draws 39.81px, so the guard was green for a 4.19px gap while asserting the two were equal.
+
+AND THE TARGET WAS WRONG AS WELL AS THE TERM. Equality is what a symmetric row looks like on paper; it is not the requirement. The owner's rule, 5 Aug: THE RING IS NEVER WIDER THAN THE BAT. The bat is the logo, the ring is a readout of how far you have got, and a readout that outdraws the mark is the wrong way round. A rule with a direction in it cannot be satisfied by luck. Two of the three releases above were satisfied by luck.
+
+So this section measures the GLYPH — every path and the ellipse, flattened, real cubic extrema rather than the control hull, the group transform applied, scaled by cssWidth/viewBoxWidth — and requires the ring to come in strictly under it. NO TOLERANCE. A one-pixel slack is precisely what would let r=18 (40px drawn, 0.19 over) read as a pass.
+
+THE CEILING IS THE NARROW PHONE. At 375px the row leaves ~219px for the wordmark once the two 46px flankers and two 14px gaps are taken. NIGHT WATCHER in uppercase Limelight measures ~187px at 24px, so it fits with room; it does not at 28. .wordmark is flex:1 with min-width:0, so it shrinks silently rather than pushing back — nothing would go red, the title would just start wrapping on somebody's phone.
+
+#### §105 The catalogue answers in plain text
+
+B4, approved 4 Aug: a flat text export of the catalogue for anything that reads text rather than HTML — the same audience llms.txt talks to, given the data instead of a description. Separate file, so it costs the page nothing.
+
+IT CARRIED ONE ORDERING UNTIL 3.9.6, AND THE REASON IT DID IS STILL THE REASON THE FIX LOOKS LIKE THIS. By universe needs no sort: each continuity's array IS its spoiler-safe order, exactly as guard 78 relies on for the seed. Bruce's life and Release order are computed, and they were computed by two ANONYMOUS comparators inside buildGroups() — and fn() can only extract NAMED functions. Writing them out here would have been a second implementation of the app's ordering, the one thing this file exists to prevent: a copy drifts, stops testing the app, and from here it would have started PUBLISHING the drift. That is why the export shipped short for thirteen releases rather than being "completed" by someone with a spare afternoon.
+
+3.9.6 NAMED THEM INSTEAD. lifeCmp and releaseCmp are functions in index.html with byte-identical bodies, buildGroups() sorts through them, and this section extracts both — one source, both sides. Guard 141 asserts the app has not quietly re-inlined a copy, which would put the drift back while leaving this file looking right.
+
+THE BUCKET IS PART OF THE ORDERING. Neither comparator is a total order: lifeCmp runs inside an era, releaseCmp inside a decade, and the bucket list does the coarse ordering. Sorting the flat catalogue with either would give a plausible-looking wrong answer — so the two loops below mirror buildGroups() rather than the shortcut, and a count check refuses to publish an ordering that carries fewer than every entry.
+
+Generated and blessed like the seed and the ItemList: rebuilt on every run and compared, npm run bless writes it. A hand-maintained copy of 200 entries would be stale within a release and nobody would read it closely enough to notice.
+
+#### §43 Content-Security-Policy (connect-src)
+
+connect-src is DELIBERATELY ABSENT since 3.3.1 and stays absent -- BUT NOT FOR THE REASON RECORDED HERE UNTIL 3.4.4, WHICH WAS FALSE.
+
+This comment used to read: "The wire reading on 6 Aug 2026 found the edge appending 'self' to it, and a 'none' sitting beside a second source expression is ignored -- so the directive shipped, looked like protection, and provided none: fetch('/orders.txt') from the live page returned 200. It now falls through to default-src 'none', which is the first directive in the policy and which the edge has no directive of its own to append to."
+
+THE EDGE APPENDS NOTHING. That reading, and the three others like it, were taken through a TLS-intercepting VPN on the author's own machine -- read with it switched off on 8 Aug 2026 the served policy is this file's, exactly: ten directives, one sha256, no connect-src. C0 was never Cloudflare. ops/c0-edge-injection.md.
+
+SO 3.3.1 REMOVED A DIRECTIVE ON A MISREADING, AND THIS GUARD HAS BEEN ENFORCING THAT REMOVAL EVER SINCE. The removal is kept anyway, on the half of the old reasoning that was never about the edge: default-src 'none' is the first directive in the policy and connect-src falls through to it, and the page opens no connections of any kind -- no fetch, no XHR, no beacon, no socket. A directive that restates its own fallback is a second copy of one rule, and two copies drift.
+
+THE DIFFERENCE MATTERS TO THE NEXT PERSON. Restoring connect-src 'none' is now a live option that costs nothing and gains nothing, not an impossibility. If anyone argues for it, the argument is redundancy, not "the edge will eat it". The unpinned-directive check below still fails the build the moment connect-src reappears -- so the decision is made here, deliberately, rather than drifted into.
+
+#### §104 The security headers the tree owns
+
+THE TITLE OF THIS SECTION USED TO BE "the security headers the edge cannot set", and the comment under it used to say: "Cloudflare Response Header Transform Rules do not apply to responses a Worker generates... A rule was created in the dashboard on 4 Aug 2026, showed Active, and set nothing — verified against a cache HIT, a cache MISS and a 404."
+
+BOTH WERE WRONG, FOUND 8 AUG 2026. A Response Header Transform Rule reaches a Worker response and overrides this file. A rule named "Security headers", active on all incoming requests, was setting Permissions-Policy, Referrer-Policy and X-Frame-Options — and for the whole of 3.4.2 the wire served ITS Permissions-Policy while this section stayed green, because this section reads the file and the file was right. The 4 Aug rule that "set nothing" is the whole error: a rule that sets nothing is not evidence about rules that do. An instrument used to rule something out must be able to see it, and a no-op rule cannot.
+
+WHAT DOES NOT CHANGE IS WHERE THE HEADERS LIVE, and now for a reason that survives being checked: a file in the tree can be diffed, guarded and shipped inside a release; a dashboard rule can be none of those. The rule was deleted in 3.4.3. NOTHING HERE GUARDS THAT IT STAYED DELETED — this section reads the tree, and a guard pretending to read the wire would be worse than an honest gap. The wire check is in the release checklist. qa/sweep-repo-page-dns-2026-08-08.md.
+
+HSTS and X-Content-Type-Options are deliberately NOT here: those are set at the edge (SSL/TLS panel and Managed Transforms), and setting them twice would mean two places to be wrong.
+
+CSP is deliberately not here either. It lives in the <meta> tag whose hash section 10 blesses against the one inline script; splitting one rule across two files is how the hash goes stale without anything noticing.
+
+#### §98 The progress card is drawn here, from the real counts (the 2.7.x cosmetics)
+
+Three cosmetics, reported by the owner against live 2.7.0. They are here rather than left to the CSS because a cosmetic with no guard is a cosmetic that comes back: each one is a single value that reads like tidying, and one of them is a value THIS PROJECT ITSELF moved in the release before.
+
+The era note touched the line above it. .gbody carried no top padding, and .group.open .ghead draws a 1px rule underneath itself, so the first line of the note sat directly on it. The space goes on the parent's padding rather than the note's margin: with a zero-padding parent the child's top margin collapses straight out of the box and nothing moves.
+
+The rating badge sat beside the Where-to-watch link. That was 2.2.0's fix for its own soak note, and it made the rating read as part of the link rather than as what it is. It now sits with the other badges everywhere, which section 92 holds seat by seat.
+
+THE SHARE CARD'S BOTTOM BLOCK IS BACK WHERE IT WAS, AND THIS IS THE ONE TO READ BEFORE CHANGING ANYTHING. 2.7.0 moved the bars, the rule, the strapline and the domain up by 145px to clear the strip Instagram reserves for its reply bar, and moved the bat and its glow up with them. The reasoning was sound and it was shipped without the one-minute Story test that was written into the plan to gate it. On a real card it left a third of the canvas empty below the domain, and the balance the card had was worth more than the risk it was avoiding. Reverted in 2.7.1.
+
+The argument for moving it is still true and still on the record, so it will read as unfinished work to whoever finds it next. It is not. If it is ever revisited, the answer is not to shift the block again — it is to keep the composition and shorten the canvas, and that wants the Story test first.
+
+#### §116 The fonts really carry what the page really renders
+
+SECTION 106 HAS NEVER READ A FONT. It compares each file's bytes and hash to qa/font-subset.json — a manifest qa/subset-fonts.py writes itself — so narrow-the-range, re-run, re-bless leaves it green over a font that lost glyphs. That was the recorded hole, deferred twice as "needs real cmap inspection and a new dependency."
+
+IT NEEDED NO DEPENDENCY. woff2 is a Brotli-compressed sfnt and Node ships zlib.brotliDecompressSync, so the table directory, the cmap and its real codepoint set are all reachable in pure Node — which matters, because "Zero dependencies" is stated in this file's own header and in README's QA paragraph, and shelling out to fontTools would have falsified a guarded claim to fix an unguarded one.
+
+AND IT FOUND A SECOND HOLE NOBODY HAD RECORDED. Section 106's other half asserts that every character the page renders sits inside the blessed range — and it scans the file for literal non-ASCII only. The star, the caret and the external-link arrow all ship as \uXXXX ESCAPES in the script, so the check could not see them and has been passing over four characters that are in none of the six faces since the subset landed. The escapes are counted here.
+
+THE FOUR ARE NOT A DEFECT, AND THAT IS THE POINT OF RECORDING THEM. A star, a caret, an arrow and a guillemet are UI marks rather than text; they render from the system font, they have always rendered from the system font, and subsetting four symbol glyphs into five faces would spend bytes for a worse result. What was wrong was that nobody had decided it — it was invisible, not intentional. It is a named exception now, and like section 107's nested section, the exception is asserted rather than assumed: if one of them ever turns up INSIDE a face, this fails, because the reason it was excepted has gone.
+
+#### §119 Where to watch has a rank of its own
+
+THE README'S FEATURE LIST LEADS WITH IT — "Where to watch, without picking a side" — and introBlock() promises every first-time reader "Tap anything for what it is and where to watch it." It shipped as the fainter of two identical pills: `.lnk` and `.act` were the same rule twice, differing only in text colour, at 5.08:1 against .act's 5.87.
+
+IT WAS CALLED SECONDARY ONCE, FOR A REASON THAT WAS NOT ABOUT ITS IMPORTANCE. At 10px with .1em tracking the label needed ~112px and the hero's 38% column gave 96px, so it wrapped; the label was shrunk and "it is a secondary control anyway" was the justification. That justification went into NOTES.md and the CHANGELOG, where it read as a considered statement about the feature. It was a layout constraint promoted to a rule of the design. Both notes are corrected in 3.1.0.
+
+AND THE NOTE CLAIMED AN ALIGNMENT THAT WAS NEVER TRUE — "it only has to share Skip's edges, not its weight." Measured at 375px: the hero pill stopped 8.0px short of Skip's right edge, stood 38px against Skip's 46, cornered at 8px against 11, and in an expanded row sat 171.7px right of the description, the tick indent and both buttons. The left edge in the hero was perfect, which is what let it survive eleven releases: the one edge anybody would check was right, and a faint outline stopping early against a faint outline is not something an eye finds. The fill did not cause any of it. It stopped hiding it.
+
+A decision worth keeping becomes a guard, not a document. Every assertion here is read from the two rules that have to agree, never from a remembered pair of numbers. The contrast arithmetic is section 20's — one intention, one place — and this section holds the pairing that keeps it able to see.
+
+#### §122 The scroll restore survives content-visibility
+
+THE DEFECT THIS EXISTS TO STOP COMING BACK, 3.4.0. render() ended with `if(keep) window.scrollTo(0, keep);`. The line is correct in isolation and wrong in place: it runs in the same task as `v.innerHTML = ...`, and .group carries content-visibility:auto, so every off-screen group still measures its contain-intrinsic-size rather than its real height. The document is about a third as tall as it is about to be, the browser clamps the scroll to that shorter maximum, and the reader loses their place. Measured 2233 -> 1011 at 390x844 with the row count and the final document height both unchanged, which is what rules out any content explanation. qa/soak-3.3.2-scroll-restore.md.
+
+It reached every caller that relies on render() to hold position -- the filter chips, peek, the belt, mkcode, the theme buttons -- and it survived because nothing could see it. Section 103 asserts what tickUpdate CALLS. The smoke gate serializes HTML, and a scroll leaves no mark in markup. browser-check.mjs did not click a tick until this release. Three green instruments and one defect, which is the same shape as 3.3.2's jump.
+
+Asserted on source, because jsdom has no layout and nothing in this harness can watch a scroll clamp -- the same limitation section 120 works around, and the same one that let this walk in.
+
+3.9.7: the restore is scrollPut(keep) on #app, not window.scrollTo -- the window is checked as a banned scroller where the lock is asserted. The clamp is #app's own maximum now, and #app is exactly as short under content-visibility as the document used to be, so .settling keeps its job unchanged: the class has to be on #view when the browser computes the element's maximum scroll offset.
+
+#### §128 The Belt parks as the peek, and the peek tells the truth
+
+3.6.4, from the corrected drop's first evening — and rebuilt once inside the same version number, before upload, on the owner's second report.
+
+THE FIRST CUT NEVER RENDERED ON THE OWNER'S MACHINES. It hung the parked strip off a CSS anchor (position:fixed, anchored to the guide), and the owner saw no sliver at all — Chrome, Brave, Edge, desktop and mobile — while the harness Chromium drew it pixel-perfect on every tab. The failure was never diagnosed to a line; the dependency was removed instead, which is the standing rules' inverse move: the peek is now the SAME sticky strip it always was, pulled up under the header by a margin, and there is nothing left in it for a browser to lack.
+
+AND THE OWNER RESET THE STATE MACHINE. "The utility belt from Batman: once you choose, it stays under the header, so you can use it whenever. You don't use it much, but it needs to work perfectly." So parked is not a place the belt gets to by scrolling — it is where the belt LIVES once a path is chosen. Every tab, every scroll position, always the peek; tap it to drop; the drop retracts to the peek. The whole strip sits in the flow only pre-choice, where the peek would be debris (F4). Hidden-state bookkeeping, the tab-change carry, the reveal gesture, the JS anchor probe: all deleted rather than fixed — a state that no longer exists cannot resurrect.
+
+Three rules survive from the first cut unchanged: the drop toasts down (the retraction mirrored — render() rebuilds the strip, so the base transition can never carry an entrance), every stack seam overlaps (the 6px margin left +1px of daylight between the pouches — the 3.6.1 window at 1px scale), and a dropped belt never crosses a tab change.
+
+#### §83 The manifest id is an identity, not a path
+
+A browser keys an installed app on manifest.id. Change it and every install already on a home screen is orphaned: the old app keeps running the old cached build forever and the new one installs beside it. It looks like a path and it is not one, which is exactly why it gets "tidied" during a domain move — this one was changed from /Night-Watcher/ to / during 1.8.0 and reverted before shipping, caught by chance rather than by anything here.
+
+IT WAS CHANGED ON PURPOSE IN 2.7.0, ONCE, AND THE REASONING MATTERS BECAUSE THE RULE ABOVE IS STILL RIGHT. The old value was the GitHub Pages *project page* identity, and on the apex it resolves to https://nightwatcher.life/Night-Watcher/ — a path that does not exist. The 2.5.1 retirement round missed it because guard 77's inverted check greps for the retired host, not the path.
+
+The standing decision was to leave it, on the grounds that orphaning installs costs more than a cosmetic wrong. That decision was taken while treating the install base as fixed. It was not: the measured base was near zero — 100 apex visits total, with the analytics beacon only live since 2 Aug 2026 — and Batman Day was five weeks out. The cost of this change is proportional to the install base, so it fell to roughly nothing on 4 Aug and rises with every install afterwards. Leaving it would have meant every install made from 19 Sep onward keyed to an identity pointing at a path that does not exist, permanently.
+
+So: paid once, deliberately, at the last moment it was cheap. The rule does not relax — this guard now pins the new value with the same force, and there is no second exception coming.
+
+#### §104 Permissions-Policy dead tokens
+
+/* 3.4.2 PUT TWO TOKENS IN THIS LIST AND ONE OF THEM DID NOT BELONG. The comment here used to read: "TWO DEAD TOKENS, ONE OF WHICH WAS SHOUTING. `usb` is not a registered Permissions-Policy feature, and Chrome logged 'Unrecognized feature: usb' on every single page load."
+
+THAT IS WRONG AND 3.4.3 REVERSES IT. `usb` IS the policy-controlled feature for WebUSB and Chrome accepts it. The warning came from the 7 Aug scanner's own browser engine, not from Chrome and not from a malformed header: the live response carried usb=() while Chrome's console stayed silent through three loads. The triage that recorded it caught the same report's CSP error, its DNSSEC error and its HSTS error, and took the console warning at face value because a console warning feels like evidence rather than like a reading from one engine.
+
+WHAT THAT COST IS THE POINT OF LEAVING THIS WRITTEN DOWN. For one release this guard forbade putting back a legitimate header value — a guard blocking the correct state, which is worse than the noise it was written to stop.
+
+`interest-cohort` STAYS REFUSED, and for its own reason: it is the FLoC opt-out, FLoC was withdrawn, and the token really is dead.
+
+A HAND-MAINTAINED LIST INSIDE A GUARD IS THE GUARD. Growing or shrinking this array is the change, and negtest340 is the only thing that proves it — which is why the usb fixture came out in the same commit. Refused by name rather than pinned as a whole string: the policy is allowed to grow, and a future token deserves an argument rather than a diff.

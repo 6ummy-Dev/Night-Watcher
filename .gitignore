@@ -1,13 +1,9 @@
 # Dependencies
 node_modules/
-.pnp
-.pnp.js
 
-# Wrangler / Cloudflare
+# Wrangler / Cloudflare (local state and secrets; wrangler dev recreates .wrangler/)
 .wrangler/
 .dev.vars
-.wrangler.toml
-dist/
 
 # Logs & OS
 *.log
@@ -19,9 +15,6 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
-
-# Test / temp
-coverage/
 
 # Browser-check scratch screenshots (written per run, read by a person)
 qa/.shots/

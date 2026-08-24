@@ -57,6 +57,19 @@ instead of remembered. Everything here is in execution order.
    changed this release gets re-read against the rule: describe the premise,
    never the turn. This is the manual review the guards' coverage map admits
    it cannot automate.
+6. **The share card, when the catalogue moved.** `docs/share.png` bakes in
+   the film, season and continuity counts, and guard 91 holds
+   `qa/share-card.json` against the data — so a catalogue edit fails the
+   build until the card is regenerated:
+
+   ```
+   node qa/make-share-card.mjs        # draws the card, writes the manifest
+   python3 -c "..."                   # the quantize at the top of that script
+   npm run bless                      # re-records the quantized file's hash
+   ```
+
+   The Python tooling (Pillow, fonttools, brotli) is declared in
+   `qa/requirements-tooling.txt`.
 
 **Throughout: verify a new state from a cold start, never from the state that
 produced it.** Three releases in a row were checked by driving the app into the
@@ -68,7 +81,7 @@ section until 4.1.1; it belongs in the checklist that runs.)
 
 ## Ship
 
-6. **Deploy.** `npm run deploy` (wrangler, to the Worker that serves
+7. **Deploy.** `npm run deploy` (wrangler, to the Worker that serves
    `docs/`). Releases here ship from a green tree on `main` — there is no
    staging origin, which is exactly why everything above runs first.
 
@@ -93,6 +106,19 @@ an extra one means a dashboard rule came back); `no-cache` on both `/` and
 VERSION from the bare `/sw.js` URL — if it answers an old version, the edge
 is serving a stale worker and every returning visitor is pinned to it.
 
+One more, read once per platform change rather than per deploy:
+
+```
+curl -sI https://nightwatcher.life/index.html | head -1
+```
+
+Expected: a redirect to `/` (the assets plane's default `html_handling`).
+That redirect is why `sw.js`'s navigate fallback tries `./` before
+`./index.html` — the copy cached under the latter name is a redirected
+response, which a browser refuses for a navigation. If this ever answers
+`200`, the fallback order stops mattering; if it ever answers `404`, the
+shell entry is wrong and offline navigation is broken.
+
 Since 3.8.0 the root negotiates markdown (guard 133 executes the script;
 this reads the wire it actually shipped to):
 
@@ -107,6 +133,10 @@ Expected: `text/markdown` with `Vary: Accept` and `Content-Location:
 /llms.txt`, the body opening `# Night Watcher` (llms.txt's first line) — and
 the last line proves a plain request still gets the HTML doctype, because
 the passthrough is the branch every other check in this file depends on.
+The markdown response and `/.well-known/api-catalog` are built by the Worker
+and do not get `_headers`; they carry the security set from `worker.js`
+itself (guard 133 holds the two equal), so the first `curl -sI` above run
+with `-H 'Accept: text/markdown'` must show the same five security headers.
 
 Two one-time checks from the 10 Aug Radar triage, worth re-reading on any
 DNS or panel change:
@@ -191,3 +221,22 @@ evidence files (`qa/favicon-serp-2026-08.md`, `qa/scan-triage-2026-08-07.md`,
 `ops/c0-edge-injection.md`, and others). Those are annotated as
 maintainer-local where cited — they are not in the repository, and this file
 is the in-repo home for anything a release actually depends on.
+
+## Freeze notes
+
+Written for the sealed tree, for whoever runs the suites on it later.
+
+- **Guard 140 is the only clock.** It fails thirty days before
+  `docs/.well-known/security.txt`'s `Expires` (2027-08-01 as sealed), with
+  no edit anywhere. On a live tree that is the reminder to renew and ship.
+  For an archival run of the sealed tree, `NW_TODAY=YYYY-MM-DD node
+  qa/guards.js` pins the clock to the date given; it does nothing else and
+  is not a way to ship an expired file.
+- **Node.** `package.json` declares `engines` matching jsdom's requirement;
+  `npm ci` on an older Node fails at install, not mid-suite.
+- **Line endings.** `.gitattributes` forces LF. The CSP hash, the
+  script-bytes ledger and every `split("\n")` in the guards assume it; a
+  CRLF checkout goes red across many sections at once, and that is the
+  checkout, not the tree.
+- **The negative wall is the release verification**, in full (step 3). It
+  takes ~25 minutes on two cores.

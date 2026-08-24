@@ -10,8 +10,8 @@ A single-file web app mapping every Batman story ever filmed — animated and li
 
 ![Night Watcher share card — the skyline chart, one bar per universe](docs/share.png)
 
-Served from Cloudflare Workers (static assets). **`nightwatcher.life` is the
-only address.** The old GitHub Pages mirror was unpublished on 6 August 2026.
+Served from a Cloudflare Worker (`worker.js`) with `docs/` as its static
+assets. **`nightwatcher.life` is the only address.** The old GitHub Pages mirror was unpublished on 6 August 2026.
 Progress is stored per-origin, so anything saved only on the old address can no
 longer be read there; a backup code, a restore link or a JSON export taken
 while it was up still restores anywhere.
@@ -38,7 +38,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code** — *guarded.* Not one line vendored, and **nothing fetched at runtime at all** — `qa/guards.js` fails on any external script rather than allowing one by name, and the app runs with the network off. Two `<script>` tags, no injected third, and the Content-Security-Policy on the wire is the one in the file — ten directives, one `sha256`. Open `docs/index.html` from disk, or serve it from any other host, and what runs is exactly what you can read.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 220 KB raw and 80 KB gzipped; it is currently 219 KB / 63 KB. The subset webfonts sit outside that budget and are held by their own manifest (`qa/font-subset.json`). Every raise of the ceiling is an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 220 KB raw and 80 KB gzipped; it is currently 217 KB / 62 KB. The subset webfonts sit outside that budget and are held by their own manifest (`qa/font-subset.json`). Every raise of the ceiling is an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -103,7 +103,8 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `docs/fonts/ibm-plex-mono-latin-400-normal.woff2` | Labels, counts, and every uppercase micro-line |
 | `docs/fonts/ibm-plex-mono-latin-600-normal.woff2` | The same, semibold |
 | `docs/fonts/OFL.txt` | SIL Open Font License — redistribution requires it to travel with the fonts |
-| `wrangler.jsonc` | Cloudflare Workers config (points assets at `docs/`) |
+| `worker.js` | The Worker in front of the assets: the root's markdown negotiation and the `/.well-known/api-catalog` answer; every other path falls through untouched. Guard 133 executes it |
+| `wrangler.jsonc` | Cloudflare Workers config (points `main` at `worker.js` and assets at `docs/`) |
 | `.gitignore` | Ignores `node_modules`, Wrangler state, editor files, etc. |
 | `package.json` | Dev scripts + the QA toolchain: jsdom for smoke, playwright and axe-core for the browser check, wrangler for deploys |
 | `.github/workflows/qa.yml` | Runs every suite on every push and again nightly, so a tampered commit fails in public |
@@ -117,6 +118,9 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `qa/font-subset.json` | Bytes and hash of every shipped face, blessed by the subset script |
 | `qa/subset-fonts.py` | Rebuilds the subset faces from the catalogue's own codepoints |
 | `qa/make-share-card.mjs` | Draws `docs/share.png` from the tree, so the card cannot drift |
+| `qa/share-card.json` | What the card bakes in — the three counts and the file's hash — held against the data by guard 91 |
+| `qa/requirements-tooling.txt` | The Python side of the tooling (Pillow, fonttools, brotli) for the icon set, the font subsets and the card's quantize |
+| `.gitattributes` | LF everywhere and the binaries named — the guards hash and split the tree byte-for-byte |
 | `qa/share-card.html` | The card's layout, rendered headless by the script above |
 | `qa/browser-check.mjs` | A real browser at 390×844, for the header, the jumps and the tick — the things jsdom cannot see |
 | `CHANGELOG.md` | Every shipped change, newest first. Enforced by the guards |
@@ -138,7 +142,7 @@ Zero dependencies, and every function under test is **extracted from `docs/index
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 63 negative suites, 896
+trusted. That evidence lives in `qa/negative/` — 64 negative suites, 923
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
@@ -175,7 +179,7 @@ The data lives in the `PATH` array near the top of the `<script>` block in `docs
 
 `i` **stable unique ID** (required) · `t` title · `sub` season label · `y` year · `ep` episode count · `k:"tv"` marks it a series  
 `e` era for the Bruce's-life ordering (`0` = outside any timeline) · `d` description  
-`b` badges (`e` essential, `m` mature, `u` unreleased, `s` short, `c` interactive) · `o` optional
+`b` badges (`e` essential, `u` unreleased, `s` short, `c` interactive) · `o` optional
 
 `o:1` marks an entry as off the Core route rather than as a tier — every TV season carries it. Always read tiers through `tierOf()`, never by testing `o` directly.
 
@@ -208,11 +212,12 @@ and stays free — fork it, change it, host it. The one condition is that if you
 put a modified version in front of other people, you publish your source too.
 The grant is version 3 and no later version, deliberately. The licence text below
 the divider in `LICENSE` is the canonical one from gnu.org, verbatim — its own
-terms say changing it is not allowed. The repository URL is carried in the served
-file's header comment rather than in the interface. The AGPL's how-to *suggests*
-a Source link for web applications, and suggests is all it does: the only links
-in this app are the where-to-watch searches, which are there to send you
-somewhere you asked to go. Chrome does not get to do that.
+terms say changing it is not allowed. The AGPL's how-to *suggests* a Source link
+for web applications, and the Progress footer carries one — "read the source",
+next to the build number — alongside the repository URL in the served file's
+header comment. The only other links in this app are the where-to-watch
+searches, which are there to send you somewhere you asked to go. Chrome does
+not get to do that.
 
 That covers the writing as well as the code: the entry descriptions, the
 continuity groupings, and the era and tier judgements. They live in the same file
