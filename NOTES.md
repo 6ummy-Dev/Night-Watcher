@@ -570,10 +570,13 @@ aria-current, not aria-selected, which is meaningless on a plain button.
 Removed rather than set false: it has no false state and the CSS matches
 on presence.
 
-### `maxY` *(historical — the clamp lives in `scrollPut()` now)*
+### `maxY` *(historical — there is no explicit clamp any more)*
 
 Clamp: the new view can be shorter than the old one, and restoring past
-the end of the document leaves the page parked in empty space.
+the end of the document leaves the page parked in empty space. Since the
+panels became their own scrollers, `scrollPut()` assigns `scrollTop`
+directly and the browser clamps the assignment to the scroller's range
+itself; no line in the file computes a `maxY`.
 
 ### `calmScroll()`
 
@@ -690,7 +693,7 @@ blocks overriding surfaces only; guards measure the contrast of each.
 ### `--signal:#FFCF1F; --steel:#7295CC; --crimson:#C43A30; --crimson2:#DD7A73;`
 
 utility-belt yellow · cape blue-grey · animated-sky red, AA-adjusted. `--moss`
-(the interactive badge's green) left in 2.7.x when that badge went crimson.
+(the interactive badge's green) left in 3.8.4 when that badge went crimson.
 
 ### `--num`
 
@@ -2074,8 +2077,11 @@ Subsetting five of them to Latin-1 plus punctuation takes 55,864 bytes off,
 turning a 296 KB first visit into 241 KB. **Limelight is left whole because its
 OFL header names a Reserved Font Name**, so a subset would have to be renamed
 in the font, in `@font-face` and in `--deco` — real churn and a licensing
-judgement, for the last 10.3 KB. Anton's and IBM Plex's headers carry no such
-name.
+judgement, for the last 10.3 KB. Anton's header carries no such name. *(IBM
+Plex's does — "with Reserved Font Name "Plex"" upstream; the copy of OFL.txt
+shipped here had dropped the clause, and 4.5.2 restored it. The Plex faces
+are subset all the same, which is the same judgement Limelight was spared:
+open, and the owner's — see "Open: the Plex reserved name" under The seal.)*
 
 **The range is deliberately wider than the catalogue.** Cutting to exactly the
 99 characters present today saved another 21 KB and would have put an accented
@@ -2759,11 +2765,13 @@ belt parks behind on purpose. The flow levels are untouched; the raise is
 scoped to `[data-drop]`, because the dropped treatment applying outside the
 dropped state is the mistake this feature exists to have learned from.
 
-And the gate got honest: `supportsAnchor()` probed `position-anchor` alone
+And the gate got honest *(historical — this describes the JS probe 3.6.0
+shipped; 3.6.4 replaced it with the CSS `@supports` rule, see "Why the drop
+is gated" above)*: `supportsAnchor()` probed `position-anchor` alone
 and vouched for `anchor()` and `anchor-size()` too. A browser in the gap —
 a partial implementation, exactly the kind that ships first — would have
 dropped broken pouches when the correct answer was Stage B's calm scroll
-home. The gate now probes all three primitives, in the exact `calc()` shapes
+home. The gate then probed all three primitives, in the exact `calc()` shapes
 the CSS uses. An instrument used to rule something in must be able to see it,
 too.
 
@@ -3679,7 +3687,7 @@ two cards: `share.png` is the crawler card built by `qa/make-share-card.mjs`
 from a strip of ticks, and the city lives on the 1080×1920 story card drawn
 on demand by `drawShareCard()`. Nothing static changed.
 
-**The weight.** The city cost about 3 KB and left `index.html` at 219.3 KB
+**The weight.** The city cost about 3 KB and left `index.html` at 219.2 KB
 of a 220 KB budget. The ceiling has moved four times and every move was the
 owner's number on the record; the next feature asks for the fifth.
 
@@ -3690,7 +3698,7 @@ owner's number on the record; the next feature asks for the fifth.
 ships the pre-seal audit's findings: three defects in the guard suite's own
 machinery, a handful of tests that had gone vacuous, comments and documents
 that stated things the tree no longer did, and the dead code and duplicated
-loops that a file accretes across seventy releases. The rule that governed
+loops that a file accretes across a hundred and thirty releases. The rule that governed
 every change is the project's oldest: a sentence claiming a fact the tree
 does not hold is a bug, and a frozen file that states falsehoods is worse
 than one that says nothing.
@@ -3750,8 +3758,8 @@ The ring's circumference and the belt's close timer are `RINGC` and
 with. Six `typeof requestAnimationFrame` fallbacks went: the script already
 hard-requires Promise, `Element.closest`, Path2D and Blob, and no browser has
 those without rAF. Five sites re-derived `gDone()`; two inlined
-`gBarFill()`'s markup; three spelled out the ternary `GRIDNAME` already
-models. All of it is one bless, and the page is 2 KB lighter.
+`gBarFill()`'s markup; three spelled out the ternary `GRIDWORD` now
+models (`GRIDNAME`, the card-title map, predates it). All of it is one bless, and the page is 2.5 KB lighter.
 
 **Where the histories went.** The served and config files — `sw.js`,
 `worker.js`, `wrangler.jsonc`, `_headers`, `qa.yml`, the negative harness —
@@ -3796,6 +3804,27 @@ business, not this one's. It returns the ids it newly watched, so the
 callers can write their own log entries, and a count of what changed, so
 the listener knows whether to render. Watched clears skip inside it, once.
 
+**Why the clocked merge carries ids it cannot render** (4.5.2, on the
+record). `applyMarks()` gates on `BYID`, so the storage event's unclocked
+fallback — the path for a payload written by a pre-3.8.0 build, with no
+clocks — drops an id the catalogue does not carry. In 4.5.0 that path
+adopted it; 4.5.1 changed that without saying so, and it is the right
+tightening: a clockless payload is a legacy shape, and a legacy shape
+carrying an id this build has never heard of is noise. The clocked loop
+above it is a different case and is deliberately NOT gated. It mirrors
+`restore()`, which keeps every mark in storage whether or not `BYID` knows
+it, and the reason is loss, not rendering: with two tabs on different
+catalogue builds sharing one origin, the tab that cannot render an id
+still has to carry it, because both tabs take turns writing the whole
+payload. If the older tab dropped the id it did not know, its next
+`persist()` would write storage without it, and the newer tab's next
+reload would restore from that — a mark somebody made, gone, from a tab
+that never showed it. So the clocked loop adopts the clock and the mark
+for any id, renders what it can, and passes the rest through. The gate on
+the unclocked path costs nothing by the same argument: that path only runs
+for ids the clocked loop did not see, and a clockless foreign id has no
+tab on the other side keeping it alive.
+
 ### `function focusBack(el){`
 
 The one restore. `preventScroll` because a restore that scrolls is a jump —
@@ -3804,6 +3833,32 @@ throws on the dictionary. `focusSnap(within)` keys the button's `data-*`
 set through `FOCUSKEYS` (including `data-src`, which tells a row's two
 watched buttons apart), and `focusRestore(v, snapshot)` rebuilds the
 selector through `attrEsc()`. Three sites, no copies.
+
+**Open: the Plex reserved name (4.5.2).** Restoring IBM's upstream OFL
+header to `docs/fonts/OFL.txt` surfaced a clause the shipped copy had
+dropped: *with Reserved Font Name "Plex"*. Every place this file and
+`qa/subset-fonts.py` argued Limelight's keep-whole rule said the other
+faces reserved nothing; Plex does. The four Plex faces are subsets, so
+they are Modified Versions under OFL 1.1 §3, and the clause is about the
+name "as presented to users" — which on a web page is the `@font-face`
+family string the page declares, not the file name. Whether that
+satisfies the clause is the licensing judgement Limelight was spared for
+10.3 KB; for Plex the same choice costs the ~56 KB the subsets save. Not
+decided here: it is recorded so it stops being invisible.
+
+**4.5.2, the second cut.** The audit of the 4.5.1 tree found what the
+first cut had introduced: three guards (§111, §96, §43's own repair path)
+that claimed an invariant they did not hold, one unlisted behaviour change
+(above, under `applyMarks()`), and a release checklist whose "bless, once"
+went red on a catalogue move before the step that would have fixed it. The
+pattern is worth naming, because it is the pattern the seal exists to
+stop: a fix that states its own invariant in a comment and a changelog
+line is exactly as trustworthy as any other sentence about the tree —
+which is to say, only as trustworthy as the fixture that breaks it. Every
+4.5.2 repair ships with the mutation that proves it (negtest570), and the
+one claim in the audit that the tree refuted (the sitemap's `llms.txt`
+date; `git log` says the file has not changed since 3.9.5) is refuted on
+the record in the CHANGELOG rather than quietly "fixed".
 
 ## Where the served and config files' histories went (4.5.1)
 
@@ -3819,11 +3874,11 @@ The shell: icon-192.png joined because index.html's `<head>` references it direc
 
 The runtime cache write rides `e.waitUntil()` since 3.7.2 (L-3 of the 10 Aug review): it was fire-and-forget, so the browser could kill the worker between the reply and the put, and a downloaded update quietly missed the offline cache until some later visit.
 
-The navigate fallback tries `./` before `./index.html` since 4.5.1. Workers Static Assets' default `html_handling` redirects `/index.html` to `/`, so `cache.add("./index.html")` stores a redirected response, which Chrome refuses to use for a navigation — an offline navigation to a non-root path under scope would have failed with the shell sitting in the cache under the other name. The wire check that confirms the redirect is `curl -sI https://nightwatcher.life/index.html`.
+The navigate fallback tries `./` before `./index.html` since 4.5.1, and `./index.html` left SHELL in 4.5.2: `cache.add` on it followed the 308 and stored a redirected 220 KB duplicate that a navigation can never use — one redirect and one wasted entry per install. The fallback still consults the name last, for a platform where the path answers 200 and a visit cached it. Workers Static Assets' default `html_handling` redirects `/index.html` to `/`, so `cache.add("./index.html")` stores a redirected response, which Chrome refuses to use for a navigation — an offline navigation to a non-root path under scope would have failed with the shell sitting in the cache under the other name. The wire check that confirms the redirect is `curl -sI https://nightwatcher.life/index.html`.
 
 ### qa/negative/run-all.sh and _lib.sh
 
-The suite naming rule was corrected in 3.9.5 after the old text got both of its own examples wrong ("negtest390 is 3.9.0, negtest410 is 3.9.2's" — 390 is 3.7.2's by its own header, and 3.9.2 with the dots removed is 392). The release encoding held through negtest300 (3.0.0) and broke at negtest340 (3.4.2); from 340 on the number is a +10 counter: 340=3.4.2, 350=3.4.5, 360=3.5.0, 370=3.6.0, 380=3.6.4, 390=3.7.2, 400=3.8.0, 410=3.9.2, 420=3.9.3, 430=3.9.4, 440=3.9.5, 450–550 one per release through 4.5.0, with 475/476/478 where 4.2.x needed three.
+The suite naming rule was corrected in 3.9.5 after the old text got both of its own examples wrong ("negtest390 is 3.9.0, negtest410 is 3.9.2's" — 390 is 3.7.2's by its own header, and 3.9.2 with the dots removed is 392). The release encoding held through negtest300 (3.0.0) and broke at negtest340 (3.4.2); from 340 on the number is a +10 counter: 340=3.4.2, 350=3.4.5, 360=3.5.0, 370=3.6.0, 380=3.6.4, 390=3.7.2, 400=3.8.0, 410=3.9.2, 420=3.9.3, 430=3.9.4, 440=3.9.5, 450–550 one per release from 4.0.5 through 4.5.0 (not every release cut a suite — the counter skips the ones that did not), with 475/476/478 where 4.0.5/4.0.6/4.0.8 needed three; each suite's header names its release, and that header is the only reliable source.
 
 The concurrent runner (2.2.0) exported a single NEGDIR for every suite while the loop was serial; each suite now gets its own directory under $WORK/scratch. Dispatch is longest-first by smoke-fixture count (optimization report §5.1); the count was `grep -c '"smoke"'` until 4.2.3 (Q-6 of the 19 Aug audit), which missed negtest400's bare `smoke main` and started its three smoke fixtures whenever xargs got around to them.
 
@@ -3913,7 +3968,7 @@ THE CHECK THAT SHOULD HAVE CAUGHT IT COULD NOT SEE IT. 3.4.0 added a browser dri
 
 With filter "all" and no query, groupBlock's seven filter clauses all fall through and matches() returns true, so THE ROW SET CANNOT CHANGE. A tick can change exactly three things: the row, the "n of m" in the group head, and the head's progress bar. So the row is replaced through filmRow() — .film carries no content-visibility and cannot collapse — and the other two are written in place, the way groupUpdate() has always done it. Nothing creates a .group element outside the full render any more, which is the class of defect rather than this instance of it.
 
-The anti-drift argument is unchanged and is now stronger: filmRow() is the same row builder groupBlock() composes from, and gSub()/gPct() are the same two helpers the head is built from, so a second copy of any of the three cannot exist. The smoke gate still has the last word.
+The anti-drift argument is unchanged and is now stronger: filmRow() is the same row builder groupBlock() composes from, and gSub()/gBarFill() are the same two helpers the head is built from (gPct() sat between them until 4.5.2 folded it into gBarFill()), so a second copy of any of the three cannot exist. The smoke gate still has the last word.
 
 #### §120 The page does not read layout after writing it
 
@@ -3937,7 +3992,7 @@ This guard closes the gap the range leaves. Every character in the served page a
 
 It does not regenerate the fonts. Doing that would put fonttools and a Python toolchain in CI to re-derive bytes that are already committed. Instead qa/subset-fonts.py blesses a manifest carrying each file's size and SHA-256, and this guard holds the files against it — so the fonts and the record of what they contain can only move together, which is the same bargain the seed, the ItemList and orders.txt already make.
 
-Limelight is in the manifest but marked unsubset. Its OFL header reads "with Reserved Font Name Limelight"; the other faces' headers do not. Under OFL 1.1 a Modified Version may not carry the reserved name as presented to users, so subsetting it means renaming the family in the name table, in @font-face and in --deco — real CSS churn and a licensing judgement, for 10.3 KB. Left whole on purpose, and the manifest says so rather than leaving it looking like an oversight.
+Limelight is in the manifest but marked unsubset. Its OFL header reads "with Reserved Font Name Limelight"; Big Shoulders' does not, and IBM Plex's does ("Plex" — a clause the shipped OFL.txt had dropped until 4.5.2; the Plex faces are subset regardless, an open judgement recorded under The seal). Under OFL 1.1 a Modified Version may not carry the reserved name as presented to users, so subsetting it means renaming the family in the name table, in @font-face and in --deco — real CSS churn and a licensing judgement, for 10.3 KB. Left whole on purpose, and the manifest says so rather than leaving it looking like an oversight.
 
 #### §17 One hero size, declared once (the ring never outdraws the bat)
 
@@ -4051,7 +4106,7 @@ So: paid once, deliberately, at the last moment it was cheap. The rule does not 
 
 #### §104 Permissions-Policy dead tokens
 
-/* 3.4.2 PUT TWO TOKENS IN THIS LIST AND ONE OF THEM DID NOT BELONG. The comment here used to read: "TWO DEAD TOKENS, ONE OF WHICH WAS SHOUTING. `usb` is not a registered Permissions-Policy feature, and Chrome logged 'Unrecognized feature: usb' on every single page load."
+3.4.2 PUT TWO TOKENS IN THIS LIST AND ONE OF THEM DID NOT BELONG. The comment here used to read: "TWO DEAD TOKENS, ONE OF WHICH WAS SHOUTING. `usb` is not a registered Permissions-Policy feature, and Chrome logged 'Unrecognized feature: usb' on every single page load."
 
 THAT IS WRONG AND 3.4.3 REVERSES IT. `usb` IS the policy-controlled feature for WebUSB and Chrome accepts it. The warning came from the 7 Aug scanner's own browser engine, not from Chrome and not from a malformed header: the live response carried usb=() while Chrome's console stayed silent through three loads. The triage that recorded it caught the same report's CSP error, its DNSSEC error and its HSTS error, and took the console warning at face value because a console warning feels like evidence rather than like a reading from one engine.
 

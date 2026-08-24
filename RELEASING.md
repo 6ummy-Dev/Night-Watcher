@@ -14,20 +14,39 @@ instead of remembered. Everything here is in execution order.
    and the CHANGELOG entry's date must match `BUILT`, the sitemap's first
    `<lastmod>`, and the JSON-LD `dateModified`. Guards fail on drift, but
    write them together rather than letting the guards find out.
-2. **Bless, once.** `npm run bless`. Since 3.7.2 a bless run re-checks the
-   tree it wrote and exits red if anything is still wrong, so a green bless
-   IS a green tree — but bless still refuses two things by design: a frozen
-   ID leaving the catalogue without a `qa/retired-ids.json` entry, and a
-   rename without `qa/renamed-ids.json`. If bless refuses, record the
-   retirement; do not fight the refusal, it is the product's oldest promise.
-3. **The suites.** `npm test` (guards + smoke), then the negative matrix:
-   `bash qa/negative/run-all.sh` (~15–20 minutes; suite numbers can be passed
-   to run one). **The full wall, not a selection, before any cut** (4.4.4):
+2. **The share card, when the catalogue moved.** `docs/share.png` bakes in
+   the film, season and continuity counts, and guard 91 holds
+   `qa/share-card.json` against the data on every run — so a catalogue edit
+   is red from the first bless onward until the card is regenerated. That is
+   why this step comes BEFORE the bless and not after it (4.5.2; it used to
+   sit at the end of the list, where the bless in the next step had already
+   gone red on it):
+
+   ```
+   node qa/make-share-card.mjs        # draws the card, writes the manifest
+   python3 -c "..."                   # the quantize at the top of that script
+   ```
+
+   The bless in the next step records the quantized file's hash. The Python
+   tooling (Pillow, fonttools, brotli) is declared in
+   `qa/requirements-tooling.txt`. If the catalogue did not move, skip this.
+3. **Bless.** `npm run bless`. Since 3.7.2 a bless run re-checks the tree it
+   wrote and exits red if anything is still wrong, so a green bless IS a
+   green tree — but bless still refuses two things by design: a frozen ID
+   leaving the catalogue without a `qa/retired-ids.json` entry, and a rename
+   without `qa/renamed-ids.json`. If bless refuses, record the retirement;
+   do not fight the refusal, it is the product's oldest promise. One bless
+   covers everything that blesses (the CSP hash, the script-bytes ledger,
+   the share card's hash); a second is only ever needed if something was
+   edited after the first.
+4. **The suites.** `npm test` (guards + smoke), then the negative matrix:
+   `bash qa/negative/run-all.sh` (~25 minutes on two cores; suite numbers can
+   be passed to run one). **The full wall, not a selection, before any cut** (4.4.4):
    several guard messages have fixture twins in suites far from the change —
    the listener count alone is pinned from three different suites — and a
    selective run is exactly the run that misses them. Selections are for
    iterating on a fixture, never for release verification.
-4. **The browser check.** Serve the tree and drive it:
+5. **The browser check.** Serve the tree and drive it:
 
    ```
    python3 -m http.server 8099 --directory docs &
@@ -52,25 +71,11 @@ instead of remembered. Everything here is in execution order.
    axe-in-a-state, SW), MUTATE (CI negatives — the watcher still fires).
    Keep FAST fast; do not fold the other two into it, because a suite that
    takes half an hour locally is a suite that gets skipped.
-5. **The blurbs are read by a person.** Entry descriptions are the "no
+6. **The blurbs are read by a person.** Entry descriptions are the "no
    spoilers" promise and no guard can read for spoilers. Any entry whose `d:`
    changed this release gets re-read against the rule: describe the premise,
    never the turn. This is the manual review the guards' coverage map admits
    it cannot automate.
-6. **The share card, when the catalogue moved.** `docs/share.png` bakes in
-   the film, season and continuity counts, and guard 91 holds
-   `qa/share-card.json` against the data — so a catalogue edit fails the
-   build until the card is regenerated:
-
-   ```
-   node qa/make-share-card.mjs        # draws the card, writes the manifest
-   python3 -c "..."                   # the quantize at the top of that script
-   npm run bless                      # re-records the quantized file's hash
-   ```
-
-   The Python tooling (Pillow, fonttools, brotli) is declared in
-   `qa/requirements-tooling.txt`.
-
 **Throughout: verify a new state from a cold start, never from the state that
 produced it.** Three releases in a row were checked by driving the app into the
 new condition and looking at it, which confirms the transition and says nothing
@@ -232,11 +237,13 @@ Written for the sealed tree, for whoever runs the suites on it later.
   For an archival run of the sealed tree, `NW_TODAY=YYYY-MM-DD node
   qa/guards.js` pins the clock to the date given; it does nothing else and
   is not a way to ship an expired file.
-- **Node.** `package.json` declares `engines` matching jsdom's requirement;
-  `npm ci` on an older Node fails at install, not mid-suite.
+- **Node.** `package.json` declares `engines` matching jsdom's requirement
+  and `.npmrc` sets `engine-strict=true`, so `npm ci` on an older Node fails
+  at install, not mid-suite (without the `.npmrc` npm only warns —
+  `EBADENGINE` — and the suite would have found out later).
 - **Line endings.** `.gitattributes` forces LF. The CSP hash, the
   script-bytes ledger and every `split("\n")` in the guards assume it; a
   CRLF checkout goes red across many sections at once, and that is the
   checkout, not the tree.
-- **The negative wall is the release verification**, in full (step 3). It
+- **The negative wall is the release verification**, in full (step 4). It
   takes ~25 minutes on two cores.

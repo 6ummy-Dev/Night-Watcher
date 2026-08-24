@@ -116,7 +116,7 @@ echo "--- the file is a served file like any other"
 run_case "_headers is smuggled into the service worker shell" \
   "_headers" \
   "import io;p='docs/sw.js';s=io.open(p,encoding='utf-8').read()
-a='\"./index.html\"';assert a in s;s=s.replace(a,'\"./index.html\", \"./_headers\"',1)
+a='\"./manifest.json\"';assert a in s;s=s.replace(a,'\"./manifest.json\", \"./_headers\"',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
 run_case "_headers is left out of the README file table" \

@@ -16,7 +16,9 @@ catalogue takes data patches by design. The safe superset costs 21 KB and
 removes the failure mode.
 
 WHY LIMELIGHT IS NOT SUBSET. Its OFL header reads "with Reserved Font Name
-Limelight" — the other faces' headers do not. Under OFL 1.1 a Modified Version may
+Limelight". (IBM Plex's reserves "Plex" too — a clause the shipped OFL.txt had
+dropped until 4.5.2; the Plex faces stay subset, an open judgement recorded in
+NOTES.md under The seal.) Under OFL 1.1 a Modified Version may
 not carry the reserved name as presented to users, so subsetting it means
 renaming the family in the name table, in @font-face and in --deco. Real CSS
 churn and a licensing judgement, for 10.3 KB. Left whole on purpose.

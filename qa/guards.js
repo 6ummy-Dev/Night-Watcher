@@ -307,17 +307,33 @@ function note(m){ notes.push(m); }
    real close and ate the code between — section 104 read as 133 lines
    instead of 322 and lost three of its assertions to the count, quietly,
    because one survived.
-   Strings end at a newline as well as at their quote, so a quote inside a
-   regex literal can mis-scan its own line and nothing further. Line comments
-   are stripped too; the "//" inside URL strings is safe for the same reason. */
+   Quoted strings end at a newline as well as at their quote; a template
+   literal runs to its closing backtick, because one spanning lines used to
+   drop its quote at the first newline and a slash-star on a later line of it
+   opened a comment. Regex literals are recognised too (4.5.2): a slash that
+   follows an opener — `( , = : [ ! & | ? { } ;`, a keyword such as return,
+   or the start of a line — begins a regex and runs to its unescaped closing
+   slash (character classes honoured), so the `\/\/` inside `/^https?:\/\//`
+   is no longer read as a line comment that eats the rest of the line, and
+   any fail( after it on that line counts. A slash after an identifier or a
+   closing bracket is division. Line comments are stripped too; the "//"
+   inside URL strings is safe because strings are scanned first. */
 function stripComments(src){
   var t = String(src), out = "", i = 0, q = "";
+  var prevSig = function(){
+    var j = out.length;
+    while(j > 0 && /\s/.test(out.charAt(j - 1))) j--;
+    if(!j) return "\n";
+    var tail = out.slice(Math.max(0, j - 11), j);
+    if(/(?:^|[^\w$])(?:return|typeof|case|do|else|in|of|new|delete|void|throw|instanceof)$/.test(tail)) return "(";
+    return out.charAt(j - 1);
+  };
   while(i < t.length){
     var ch = t.charAt(i);
     if(q){
       out += ch;
       if(ch === "\\"){ out += t.charAt(i + 1); i += 2; continue; }
-      if(ch === q || ch === "\n") q = "";
+      if(ch === q || (ch === "\n" && q !== "`")) q = "";
       i++; continue;
     }
     if(ch === '"' || ch === "'" || ch === "`"){ q = ch; out += ch; i++; continue; }
@@ -328,6 +344,22 @@ function stripComments(src){
     if(ch === "/" && t.charAt(i + 1) === "/"){
       var nl = t.indexOf("\n", i);
       i = nl < 0 ? t.length : nl; continue;
+    }
+    if(ch === "/" && "(,=:[!&|?{};\n".indexOf(prevSig()) >= 0){
+      /* A regex literal: copy it through verbatim, so nothing inside it can
+         open or close a comment or a string. */
+      var inClass = false;
+      out += ch; i++;
+      while(i < t.length){
+        var rc = t.charAt(i);
+        if(rc === "\n") break;
+        out += rc; i++;
+        if(rc === "\\"){ out += t.charAt(i); i++; continue; }
+        if(rc === "[") inClass = true;
+        else if(rc === "]") inClass = false;
+        else if(rc === "/" && !inClass) break;
+      }
+      continue;
     }
     out += ch; i++;
   }
@@ -552,7 +584,7 @@ function eraRank(k){
 var idHash = sandbox.idHash, tierOf = sandbox.tierOf, clampRating = sandbox.clampRating;
 
 /* Flatten exactly as index.html does — and 4.2.3 makes "exactly" checkable.
-   this copy carried out:(f.out||"") that the app
+   Before that, this copy carried out:(f.out||"") that the app
    never puts on FILMS, and dropped the d: the app carries — so section 70
    asserted f.out on an object the page never builds, and the founding claim
    ("extracted, never reimplemented") was already false one screen down from
@@ -1118,6 +1150,13 @@ if(PUBLIC !== ROOT){
   shell = shell.map(function(q){ return q.slice(3, -1); });
   var NOT_SHELLED = ["sw.js", "robots.txt", "sitemap.xml", "fonts/OFL.txt", "share.png", "llms.txt", "404.html", "_headers",
                      "orders.txt",
+                     /* 4.5.2. The page is installed as "./"; the assets plane
+                        redirects /index.html there, so installing it under
+                        its own name stored a redirected 220 KB duplicate a
+                        navigation can never use — one redirect and one
+                        wasted entry per install. Section 132 proves the
+                        fallback reaches past such a copy. */
+                     "index.html",
                      /* 3.3.0. Browser chrome: the app never renders it, so
                         nothing about working offline depends on it, and a
                         visitor who is offline already has the tab open. */
@@ -1187,6 +1226,11 @@ if(PUBLIC !== ROOT){
 
   shell.forEach(function(f){
     if(f === "") return;                                   /* "./" is the page itself */
+    if(NOT_SHELLED.indexOf(f) >= 0){
+      fail("sw.js caches \"" + f + "\" on install and this guard lists it as " +
+           "deliberately not cached — one of the two is wrong, and the list " +
+           "of exclusions stops meaning anything if the shell can ignore it");
+    }
     if(served.indexOf(f) < 0){
       fail("sw.js caches \"" + f + "\" on install and docs/ does not serve it \u2014 the " +
            "install swallows the 404 and offline is quietly missing a file");
@@ -2503,7 +2547,7 @@ if(!/<meta property="og:site_name" content="Night Watcher">/.test(HTML)){
      signal on a site it had itself classified isCommerce:false. Two vocabularies
      for one fact, and the quieter one was already present. Stray Offer markup
      can produce misleading rich results, so the shape is refused rather than
-     merely removed. qa/scan-triage-2026-08-07.md. */
+     merely removed. qa/scan-triage-2026-08-07.md (maintainer-local). */
   if(app.offers){
     fail("JSON-LD carries an Offer again " + "\u2014" + " isAccessibleForFree already " +
          "says the app is free, and commerce vocabulary on a watch-order guide " +
@@ -2803,13 +2847,27 @@ if(!fs.existsSync(path.join(PUBLIC, "fonts", "OFL.txt"))){
        or a failed write — was undetectable by npm test, and the size-jump
        reader section 10 leans on would have measured the next bless against
        the wrong baseline. It has to say what the page says. */
-    var ledger = null;
+    var ledger = null, liveBytes = Buffer.byteLength(body, "utf8");
     try{ ledger = JSON.parse(fs.readFileSync(ledgerPath, "utf8")); }catch(e){}
-    if(!ledger || ledger.sha256 !== declared ||
-       ledger.bytes !== Buffer.byteLength(body, "utf8")){
-      fail("qa/script-bytes.json does not describe the blessed script — the " +
-           "ledger is stale or missing, so the next bless would measure its " +
-           "size jump against the wrong baseline. Fix with: npm run bless");
+    if(!ledger || ledger.sha256 !== declared || ledger.bytes !== liveBytes){
+      /* 4.5.2: the message said "npm run bless" and bless could not — the
+         ledger was only ever written on the re-hash path below, which this
+         branch never reaches. Now bless re-records it here too, so the fix
+         the message names is the fix that works. */
+      if(BLESS){
+        try{
+          fs.writeFileSync(ledgerPath,
+            JSON.stringify({bytes: liveBytes, sha256: declared}) + "\n");
+          note("re-recorded qa/script-bytes.json against the unchanged script hash " +
+               "(" + liveBytes + " B) — the ledger was stale or missing");
+        }catch(e){
+          fail("could not write qa/script-bytes.json (" + e.message + ")");
+        }
+      } else {
+        fail("qa/script-bytes.json does not describe the blessed script — the " +
+             "ledger is stale or missing, so the next bless would measure its " +
+             "size jump against the wrong baseline. Fix with: npm run bless");
+      }
     }
     return;
   }
@@ -2967,8 +3025,9 @@ if(!/watchUrl\(f\)/.test(fn("watchLinks"))){
   ["LICENSE", "SECURITY.md", "README.md", "CHANGELOG.md", "RELEASING.md",
    "package.json",
    "package-lock.json", "wrangler.jsonc", "worker.js", ".gitignore", ".gitattributes",
-   ".github/workflows/qa.yml", "qa/guards.js", "qa/smoke.js",
-   "qa/frozen-ids.json"].forEach(function(f){
+   ".npmrc", ".github/workflows/qa.yml", "qa/guards.js", "qa/smoke.js",
+   "qa/frozen-ids.json", "qa/script-bytes.json", "qa/make-favicon.py",
+   "docs/.well-known/security.txt", "docs/.well-known/brave-rewards-verification.txt"].forEach(function(f){
     if(fs.existsSync(path.join(ROOT, f))) onDisk.push(f);
   });
   var missing = onDisk.filter(function(f){ return !listed[f]; });
@@ -4656,7 +4715,13 @@ if(!/function legendBlock/.test(HTML) ||
          which is the file's whole convention. A heading with prose after
          the backticks is a title, not an anchor, and is not compared. */
       var snip = name.replace(/\u2026$/, "").replace(/\s+/g, " ").trim();
-      if(snip.length >= 6 && flatHtml.indexOf(snip) < 0) ghosts.push(name);
+      /* Short headings are compared when their shape says what they are: a
+         `#id`, a `.selector` or a `--custom-property` is unambiguous at
+         three characters (4.5.2 \u2014 `#view`, `.bd.e` and `--num` were under
+         the six-character floor and never compared); anything else that
+         short is a word, not an anchor, and stays exempt. */
+      var floor = /^(?:[#.][a-zA-Z]|--[a-zA-Z])/.test(snip) ? 3 : 6;
+      if(snip.length >= floor && flatHtml.indexOf(snip) < 0) ghosts.push(name);
     }
   });
   if(ghosts.length){
@@ -4891,7 +4956,7 @@ if(!/function legendBlock/.test(HTML) ||
     tbd:  "a real continuity whose place is not decided yet"
   };
   var missing = [], stray = [], bad = [];
-  /* this loop used to read f.out off the
+  /* Before 4.2.3 this loop read f.out off the
      guards' own FILMS — which carried a fabricated out: field the app never
      puts there. The invariant was real, the object was not. out: lives on the
      raw PATH entries and is read there, same as the app. */
@@ -5064,7 +5129,7 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 73. The worst-case restore link cannot get longer ---------- */
-/* catalogue/restore-link-ceiling.md calls this the launch blocker, and until
+/* catalogue/restore-link-ceiling.md (maintainer-local) calls this the launch blocker, and until
    1.7.5 nothing measured it: the payload could grow release after release and
    no build would object. The real ceiling is about 2,000 characters, where
    chat clients and QR readers start truncating. The catalogue is already past
@@ -5090,7 +5155,7 @@ var ROUTE_VOCAB = [
   if(out.link.length > CEILING){
     fail("the worst-case restore link is " + out.link.length + " characters, past the " +
          CEILING + " where chat clients and QR readers start truncating; see " +
-         "catalogue/restore-link-ceiling.md");
+         "catalogue/restore-link-ceiling.md (maintainer-local)");
   }
   /* Every entry costs five characters in W and one in R. */
   note("worst-case backup code " + out.code.length + " chars, link " + out.link.length +
@@ -6156,7 +6221,7 @@ var ROUTE_VOCAB = [
 
 /* ---------- 92. A rating is certified or absent ---------- */
 /* The sourcing pass over all 200 entries lives in the project's
-   catalogue/ratings-findings.md — every value there carries its source, and
+   catalogue/ratings-findings.md (maintainer-local) — every value there carries its source, and
    the catalogue rule applies unchanged: sourced or absent, never guessed.
    Two systems live on one shelf on purpose (11 film-shelf entries are TV
    specials and TV-rated DTVs); the badge renders what the source system says
@@ -6390,7 +6455,7 @@ var ROUTE_VOCAB = [
 /* 2.0.0's headline. The three stacked control rows became one joined strip \u2014
    paths plus a buckle \u2014 with the include rows rendered only while the belt is
    open, sliding out from behind it. Design locked in the project's
-   design/belt.md; this section is the locked picture, enforced. */
+   design/belt.md (maintainer-local); this section is the locked picture, enforced. */
 
 (function(){
   var strip = (HTML.match(/\.pathseg\{[^}]*\}/) || [""])[0];
@@ -6554,14 +6619,20 @@ var ROUTE_VOCAB = [
      after it (a hole). The JS side is the named constant BELTCLOSE; the CSS
      side is the animation's own duration. */
   var beltMs = parseInt((HTML.match(/\bvar BELTCLOSE = (\d+);/) || [])[1], 10);
-  var beltS  = parseFloat((HTML.match(/animation:beltclose ([\d.]+)s/) || [])[1]);
+  /* Both CSS time units are read and normalised to milliseconds (4.5.2: an
+     `s`-only pattern read `900ms` as NaN, and NaN compares false — green). */
+  var beltDur = HTML.match(/animation:beltclose ([\d.]+)(m?s)\b/);
+  var cssMs = beltDur ? parseFloat(beltDur[1]) * (beltDur[2] === "ms" ? 1 : 1000) : NaN;
   if(!(beltMs > 0) || !/setTimeout\(function\(\)\{ if\(!S\.beltOpen\) render\(\); \}, BELTCLOSE\)/.test(cbFn)){
     fail("the belt's close re-render does not wait BELTCLOSE — the timer is " +
          "named once so it cannot drift from the CSS animation alone");
-  } else if(Math.abs(beltMs - beltS * 1000) > 1){
+  } else if(!(cssMs > 0)){
+    fail("cannot read the beltclose animation's duration from the CSS — the " +
+         "tie to BELTCLOSE proves nothing if one side of it is unreadable");
+  } else if(Math.abs(beltMs - cssMs) > 1){
     fail("BELTCLOSE is " + beltMs + " ms and the beltclose animation runs " +
-         beltS + "s — the re-render lands before the collapse ends (a jump) " +
-         "or after it (a hole); the two are one duration");
+         beltDur[1] + beltDur[2] + " — the re-render lands before the collapse " +
+         "ends (a jump) or after it (a hole); the two are one duration");
   }
 
   /* 2.2.0 soak note: the buckle crops on narrow phones. Below 375px the two
@@ -6616,7 +6687,7 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 98. The progress card is drawn here, from the real counts ---------- */
-/* Design locked in design/progress-card.md: story-format canvas,
+/* Design locked in design/progress-card.md (maintainer-local): story-format canvas,
    seated right under the scoreboard on Progress, local-only, one look
    regardless of theme. */
 
@@ -7084,7 +7155,7 @@ var ROUTE_VOCAB = [
 /* ---------- 103. The tick repaints one ROW, and cannot drift ---------- */
 /* The tick path repaints ONE ROW through filmRow() — the same row builder
    groupBlock() composes from — and writes the group head's "n of m" and bar
-   in place through gSub()/gPct(), the same helpers the head is built from,
+   in place through gSub()/gBarFill(), the same helpers the head is built from,
    so a second copy of any of the three cannot exist. Everything outside the
    targeted condition (another tab, a filter, a search) falls back to the
    full render, and the smoke gate has the last word: after every driven
@@ -7251,7 +7322,7 @@ var ROUTE_VOCAB = [
       principle — a link relation describes a document and /* applied it to
       fonts, icons and sw.js — NOT on the reading that prompted it, and saying
       so here is the difference between a decision and a cargo cult.
-      qa/favicon-serp-2026-08.md. */
+      qa/favicon-serp-2026-08.md (maintainer-local). */
    ["Link: sitemap", /^\s+Link:\s*<https:\/\/nightwatcher\.life\/sitemap\.xml>;\s*rel="sitemap"\s*$/m,
     "an RFC 8288 sitemap relation", "/"],
    ["Link: canonical", /^\s+Link:\s*<https:\/\/nightwatcher\.life\/>;\s*rel="canonical"\s*$/m,
@@ -7353,7 +7424,7 @@ var ROUTE_VOCAB = [
        only honest behind a content-hashed filename, and renaming the favicon is
        the one change forbidden before 19 Sep: "unstable or frequently changed"
        is a listed Google cause of favicon non-appearance, and this icon already
-       changed twice in three days. qa/favicon-serp-2026-08.md. If the names ever
+       changed twice in three days. qa/favicon-serp-2026-08.md (maintainer-local). If the names ever
        become hashed these two move to the fonts' policy, and this comment is
        what says why they were not already there. */
     ["/icon.svg", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
@@ -8217,6 +8288,17 @@ var ROUTE_VOCAB = [
     fail("applyMarks() lost the BYID gate — an id the catalogue does not carry " +
          "would reach live state through every merge at once");
   }
+  /* The third half of the invariant, asserted rather than narrated (4.5.2):
+     the skipped loop steps over anything already watched. Without it a
+     watched entry arriving as skipped from another tab lands in both maps —
+     the exact double-count the first check guards from the other side. */
+  var skipLoop = (helper.match(/for\(id in res\.skipped\)\{[\s\S]*?\n  \}/) || [""])[0];
+  if(!/S\.watched\[id\]\s*\|\|\s*S\.skipped\[id\]/.test(skipLoop)){
+    fail("applyMarks() lets a skipped mark land on a watched entry — the " +
+         "skipped loop must step over S.watched[id]; otherwise an entry " +
+         "skipped in one tab and watched in another renders done AND skip, " +
+         "the double count applyMarks() exists to make impossible");
+  }
   var SITES = [
     ["applyImport()", optionalFn("applyImport", "a restored backup would not be applied")],
     ["the JSON restore branch", optionalFn("doRestore", "nothing would read a pasted backup")],
@@ -9022,7 +9104,7 @@ var ROUTE_VOCAB = [
      "clause below still holds it there, because the hoist cut a 106.6ms " +
      "desktop / 64.1ms mobile forced reflow and a residue of ~46ms is " +
      "inherent to being called after other code has written in the same " +
-     "task, qa/pagespeed-3.3.1.md) — and scrollPut() writes it, and every " +
+     "task, qa/pagespeed-3.3.1.md, maintainer-local) — and scrollPut() writes it, and every " +
      "restore, go-to-top and belt retraction goes through the pair. 3.9.7 " +
      "moved scroll off the document onto #app: window.pageYOffset appears " +
      "nowhere and sits in REFUSED above, and the element read took over its " +
@@ -9461,7 +9543,7 @@ var ROUTE_VOCAB = [
   if(!line){
     fail("docs/robots.txt declares no Content-Signal line " + "\u2014" + " 3.4.2 added one " +
          "so that AI training, search indexing and live citation are three " +
-         "separate answers rather than one silence. qa/scan-triage-2026-08-07.md");
+         "separate answers rather than one silence. qa/scan-triage-2026-08-07.md (maintainer-local)");
     return;
   }
   ["ai-train", "search", "ai-input"].forEach(function(k){
@@ -9533,7 +9615,7 @@ var ROUTE_VOCAB = [
            "as a path again. A JSON backup carrying it poisons S.path, throws " +
            "mid-apply, and the persist that is already scheduled writes it to " +
            "storage: the app then fails to render on every later boot and only " +
-           "clearing site data recovers it. qa/deep-qa-3.4.4-2026-08-09.md §2.1");
+           "clearing site data recovers it. qa/deep-qa-3.4.4-2026-08-09.md §2.1 (maintainer-local)");
     }
   });
   [null, undefined, 0, 1, true, {}, [], "", "nope"].forEach(function(bad){
@@ -9704,7 +9786,7 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 128. The Belt parks as the peek, and the peek tells the truth - */
-/* 3.5.0, Stage B of releases/plan-belt-release.md — the sticky strip, the
+/* 3.5.0, Stage B of releases/plan-belt-release.md (maintainer-local) — the sticky strip, the
    offset unification, and the parked strip as one inert handle. Stage C (the
    drop) is NOT here: its guard rows land with it, because a guard that cannot
    be green against the tree it ships with is a wish (the section-120 lesson).
@@ -10074,7 +10156,7 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 129. The Belt drops in place, and leaves the way it came ---- */
-/* 3.6.0, Stage C of releases/plan-belt-release.md — the drop. Tap the peek
+/* 3.6.0, Stage C of releases/plan-belt-release.md (maintainer-local) — the drop. Tap the peek
    and the belt slides down under the header, over the list, with its pouches
    open in place; the next scroll retracts them and parks it again. The list
    never moves.
@@ -10752,8 +10834,10 @@ var ROUTE_VOCAB = [
     fail("the install handler cached " + added.length + " of " + shell132.length +
          " shell entries — a partial precache is an offline app with holes");
   }
-  if(added.indexOf("./index.html") < 0){
-    fail("the install handler never cached ./index.html — offline cannot open " +
+  /* "./" is the page (4.5.2 — "./index.html" left the shell: the assets
+     plane redirects it, so the install stored a redirected duplicate). */
+  if(added.indexOf("./") < 0){
+    fail("the install handler never cached ./ — offline cannot open " +
          "the app at all");
   }
 
@@ -11097,12 +11181,27 @@ var ROUTE_VOCAB = [
     return out;
   }
   var star = hdrBlock("/*"), root = hdrBlock("/");
-  var SEC = ["Referrer-Policy", "X-Frame-Options", "Permissions-Policy",
-             "Cross-Origin-Opener-Policy", "Cross-Origin-Resource-Policy"];
-  [["the markdown response", md], ["the api-catalog", ac]].forEach(function(pair){
-    var h = (pair[1] && pair[1].init && pair[1].init.headers) || {};
-    SEC.forEach(function(n){
-      if(!star[n]){ fail("_headers no longer declares " + n + " under /*"); return; }
+  /* "Equal to the /* block" means the whole block (4.5.2 — a fixed list of
+     five let a sixth header added to the file go unrequired of the Worker):
+     every name declared under /* is required, except the ones that describe
+     a particular response rather than the site's posture and can never
+     honestly be a blanket rule. HEAD responses are compared too — they
+     share the GET's code path today, and a check that reads only GET would
+     not notice the day they stop. */
+  var PER_RESPONSE = ["Cache-Control", "Vary", "Link", "Content-Type",
+                      "Content-Location", "Content-Length"];
+  var secNames = Object.keys(star).filter(function(n){ return PER_RESPONSE.indexOf(n) < 0; });
+  var CORE = ["Referrer-Policy", "X-Frame-Options", "Permissions-Policy",
+              "Cross-Origin-Opener-Policy", "Cross-Origin-Resource-Policy"];
+  CORE.forEach(function(n){
+    if(!star[n]) fail("_headers no longer declares " + n + " under /*");
+  });
+  [["the markdown response", md], ["the markdown HEAD response", mdHead],
+   ["the api-catalog", ac], ["the api-catalog HEAD response", acHead]].forEach(function(pair){
+    var res = pair[1];
+    if(!res || res === htmlRes || typeof res.then === "function") return;
+    var h = (res.init && res.init.headers) || {};
+    secNames.forEach(function(n){
       if((h[n] || "") !== star[n]){
         fail(pair[0] + " does not carry " + n + ": " + star[n] + " — _headers " +
              "applies to asset responses only, so a Worker-built response has " +
@@ -11110,11 +11209,15 @@ var ROUTE_VOCAB = [
       }
     });
   });
-  if(md && md.init && (md.init.headers || {})["Link"] !== (root["Link"] || "")){
-    fail("the markdown response's Link header is not the root's three Link " +
-         "lines from _headers (sitemap, canonical, describedby) — the " +
-         "negotiated representation of / must advertise what / advertises");
-  }
+  [["the markdown response", md], ["the markdown HEAD response", mdHead]].forEach(function(pair){
+    var res = pair[1];
+    if(!res || res === htmlRes || typeof res.then === "function") return;
+    if((res.init.headers || {})["Link"] !== (root["Link"] || "")){
+      fail(pair[0] + "'s Link header is not the root's three Link " +
+           "lines from _headers (sitemap, canonical, describedby) — the " +
+           "negotiated representation of / must advertise what / advertises");
+    }
+  });
   var acPost = un(mod.fetch(req("*/*", "POST", "https://nightwatcher.life/.well-known/api-catalog"), env));
   if(acPost !== htmlRes){
     fail("a POST to /.well-known/api-catalog did not fall through by identity " +
@@ -11122,8 +11225,8 @@ var ROUTE_VOCAB = [
          "markdown branch (4.0.1)");
   }
   note("worker.js executed: markdown negotiation answers llms.txt with " +
-       "Vary/Content-Location, both built responses carry _headers' security " +
-       "set, five non-preferring shapes pass through by " +
+       "Vary/Content-Location, all four built responses (GET and HEAD) carry " +
+       "every /* header _headers declares, five non-preferring shapes pass through by " +
        "identity, q-values read, POST and non-root refused in the script, " +
        "unreadable llms.txt degrades to the page; /.well-known/api-catalog " +
        "answers an empty linkset on GET and HEAD and nothing else; " +
@@ -11133,7 +11236,7 @@ var ROUTE_VOCAB = [
 
 /* ---------- 134. A removal is a fact with a clock, not a hole ---------- */
 /* 3.8.0, premise 1 of the durability review (claude/durability-review-
-   2026-08-11.md): marks are NOT grow-only. toggleWatched unmarks, toggleSkip
+   2026-08-11.md, maintainer-local): marks are NOT grow-only. toggleWatched unmarks, toggleSkip
    deletes, rate() clears on a same-star tap — while every merge site was
    additive. So every individual removal resurrected cross-tab the moment
    another tab wrote; 3.7.2's resetAt covered only the full erase. Every mark
@@ -11277,7 +11380,7 @@ var ROUTE_VOCAB = [
   /* The comments in this file are load-bearing prose, not noise — strip them
      for the parse and leave them on disk. String-aware, because a route
      pattern legitimately contains "/*" and a regex stripper eats the rest of
-     the file from there; the same stripper serves sections 13, 66 and 107. */
+     the file from there; the same stripper serves sections 13, 107 and 138. */
   var cfg;
   try{
     cfg = JSON.parse(stripComments(raw));
@@ -11656,11 +11759,26 @@ var ROUTE_VOCAB = [
          thirty days before the Expires date with no edit anywhere — which is
          the point while the site is live, and a nuisance for an archival run
          of a sealed tree. NW_TODAY=YYYY-MM-DD pins the clock for that run
-         and nothing else; it never silences the check on a live tree, and it
-         is recorded in RELEASING.md's freeze notes. */
-      var today = process.env.NW_TODAY ? Date.parse(process.env.NW_TODAY) : Date.now();
+         and nothing else, and it is recorded in RELEASING.md's freeze notes.
+         "Never on a live tree" is a mechanism, not a convention (4.5.2): CI
+         is the live tree's clock, so a pin arriving there is refused, and
+         the value must be the documented YYYY-MM-DD — Date.parse would take
+         "next year" shapes it should not. */
+      var pin = process.env.NW_TODAY;
+      if(pin && process.env.CI){
+        fail("NW_TODAY is set in CI — the pin exists for an archival run of " +
+             "the sealed tree, and CI is the live tree's clock; a pinned CI " +
+             "would keep a green badge on an expired security.txt");
+        return;
+      }
+      if(pin && !/^\d{4}-\d{2}-\d{2}$/.test(pin)){
+        fail("NW_TODAY must be YYYY-MM-DD (got \"" + pin + "\") — the one " +
+             "shape RELEASING.md documents, so a pin is never a guess");
+        return;
+      }
+      var today = pin ? Date.parse(pin) : Date.now();
       if(isNaN(today)){ fail("NW_TODAY is set and is not a date"); return; }
-      if(process.env.NW_TODAY) note("security.txt checked against NW_TODAY=" + process.env.NW_TODAY);
+      if(pin) note("security.txt checked against NW_TODAY=" + pin);
       var days = Math.floor((when - today) / 86400000);
       if(days < 30){
         fail("security.txt expires in " + days + " days — renew the Expires " +
@@ -12094,13 +12212,62 @@ var ROUTE_VOCAB = [
          "runs where one exists");
     return;
   }
-  if(fs.readFileSync(gidx).includes(".wrangler/")){
-    fail(".wrangler/ is still in the git index — run `git rm -r --cached " +
-         ".wrangler`. .gitignore lists it and wrangler dev recreates it; " +
+  /* The index is parsed, not byte-scanned (4.5.2): a version-4 index
+     prefix-compresses each path against the previous entry's, so
+     `.vscode/…` followed by `.wrangler/state/x` stores only `wrangler/state/x`
+     and a scan for the literal ".wrangler/" misses it. Versions 2 and 3
+     store whole NUL-terminated paths padded to 8 bytes; version 4 stores a
+     varint "strip N from the previous path" and the NUL-terminated suffix,
+     unpadded. Anything this reader cannot parse falls back to the scan and
+     says so. */
+  function indexPaths(buf){
+    if(buf.length < 12 || buf.toString("latin1", 0, 4) !== "DIRC") return null;
+    var ver = buf.readUInt32BE(4), n = buf.readUInt32BE(8), pos = 12;
+    if(ver < 2 || ver > 4) return null;
+    var paths = [], prev = "";
+    for(var e = 0; e < n; e++){
+      var start = pos;
+      if(pos + 62 > buf.length) return null;
+      var flags = buf.readUInt16BE(pos + 60);
+      pos += 62;
+      if(ver >= 3 && (flags & 0x4000)) pos += 2;
+      var name;
+      if(ver === 4){
+        var strip = 0, c = buf[pos++];
+        strip = c & 0x7f;
+        while(c & 0x80){ strip += 1; c = buf[pos++]; strip = (strip << 7) + (c & 0x7f); }
+        var nul = buf.indexOf(0, pos);
+        if(nul < 0) return null;
+        name = prev.slice(0, prev.length - strip) + buf.toString("utf8", pos, nul);
+        pos = nul + 1;
+      } else {
+        var nul2 = buf.indexOf(0, pos);
+        if(nul2 < 0) return null;
+        name = buf.toString("utf8", pos, nul2);
+        pos = nul2 + 1;
+        while((pos - start) % 8) pos++;
+      }
+      paths.push(name); prev = name;
+    }
+    return paths;
+  }
+  var raw = fs.readFileSync(gidx), listed = null;
+  try{ listed = indexPaths(raw); }catch(e){ listed = null; }
+  if(!listed){
+    warn("could not parse .git/index (version " + (raw.length >= 8 ? raw.readUInt32BE(4) : "?") +
+         ") — falling back to a byte scan, which a prefix-compressed index can slip past");
+    listed = raw.includes(".wrangler/") ? [".wrangler/"] : [];
+  }
+  var stray = listed.filter(function(p){ return p.indexOf(".wrangler/") === 0; });
+  if(stray.length){
+    fail(".wrangler/ is still in the git index (" + stray.length + " path" +
+         (stray.length > 1 ? "s" : "") + ", e.g. " + stray[0] + ") — run `git rm -r " +
+         "--cached .wrangler`. .gitignore lists it and wrangler dev recreates it; " +
          "nothing under it is part of the tree");
     return;
   }
-  note("the git index carries no .wrangler/ objects");
+  note("the git index (version " + raw.readUInt32BE(4) + ", " + listed.length +
+       " entries) carries no .wrangler/ objects");
 })();
 
 /* ---------- 145. Every top-level function is a declaration the extractor can see - */
@@ -12622,8 +12789,8 @@ if(fails.length){
   console.log("");
   process.exit(1);
 }
-/* second half: A CLEAN BLESS PROVES NOTHING
-   ABOUT THE TREE IT LEAVES BEHIND — the pass above checked the string read at
+/* THE BLESS RE-VERIFY. A CLEAN BLESS PROVES NOTHING ABOUT THE TREE IT LEAVES
+   BEHIND — the pass above checked the string read at
    startup and then wrote files. So a bless run re-runs the whole check pass
    in a child process against what is now on disk, and exits red if the tree
    it wrote is red. `npm run bless && npm test` used to be the undocumented

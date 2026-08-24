@@ -257,9 +257,9 @@ win.addEventListener("load", function(){
        joined; the three new paths (opening a row, closing a group, rating) are
        driven exactly like the tick and held to the same arithmetic. */
     function shot(){
-      return doc.getElementById("view").innerHTML + " " +
-             (doc.querySelector("header") ? doc.querySelector("header").innerHTML : "NO HEADER") + " " +
-             doc.documentElement.getAttribute("data-theme") + " " +
+      return doc.getElementById("view").innerHTML + "\u0000" +
+             (doc.querySelector("header") ? doc.querySelector("header").innerHTML : "NO HEADER") + "\u0000" +
+             doc.documentElement.getAttribute("data-theme") + "\u0000" +
              (doc.querySelector('meta[name="theme-color"]') || {getAttribute:function(){ return "none"; }})
                .getAttribute("content");
     }
@@ -1520,15 +1520,22 @@ win.addEventListener("load", function(){
     check("opening one row renders exactly one detail panel",
           view.querySelectorAll(".fdetail").length === 1,
           view.querySelectorAll(".fdetail").length + " found");
-    /* The bound is derived, not a remembered number: opening one row adds one
-       detail panel, so the always-on markup would be the closed view plus one
-       panel per entry. The closed view has to sit well under that. */
+    /* Two bounds (4.5.2). The relation is derived, not remembered: opening
+       one row adds one detail panel, so the always-on markup would be the
+       closed view plus one panel per entry, and the closed view has to sit
+       well under that. But the relation alone is loose — it lets the closed
+       view double before it fires — so an absolute ceiling near the measured
+       size (145,644 chars in 4.5.1) stands beside it, and a closed view that
+       grows past it has to say why. */
     var openSize = view.innerHTML.length, panelSize = openSize - closedSize;
     var alwaysOn = closedSize + panelSize * win.pool().length;
     check("closed view is materially smaller than the old always-on markup",
           panelSize > 0 && closedSize * 2 < alwaysOn,
           closedSize + " chars closed, +" + panelSize + " per open row, " +
           win.pool().length + " rows: " + alwaysOn + " always-on");
+    check("closed view stays under its absolute ceiling",
+          closedSize < 160000,
+          closedSize + " chars closed (ceiling 160,000)");
     S.open = {};
 
     /* --- every filter chipSet() offers is reachable from the Path tab --- */

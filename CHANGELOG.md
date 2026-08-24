@@ -11,13 +11,150 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.5.2] — 2026-08-24
+
+**The seal, second cut.** No feature. The audit of the 4.5.1 tree confirmed
+every 4.5.0 item closed and found that the closing had introduced five
+Medium defects of its own — three guards claiming an invariant they did not
+hold, one unlisted behaviour change in the cross-tab merge, one release step
+that dead-ends — plus fourteen Low items and a handful of numbers in the
+4.5.1 entry that did not match the tree. All of it is taken here. Catalogue
+untouched; nothing ticked moves.
+
+### Fixed
+
+- **§111 asserted two of its three halves.** The header said applyMarks()
+  holds "watched clears skip, the BYID gate, skipped never lands on a
+  watched entry"; the section checked the first two. Removing the
+  `S.watched[id] ||` from the skipped loop left guards and smoke green. The
+  third is asserted on the loop itself now, with a fixture.
+- **§43 told you to run a bless that could not do what it said.** The
+  stale-ledger branch printed "Fix with: npm run bless" and returned before
+  the only line that writes the ledger. A stale `qa/script-bytes.json`
+  under `--bless` printed the same failure and left the file alone. Bless
+  re-records the ledger in that branch now (a green fixture under
+  `--bless` proves it).
+- **§96 read the belt's duration in seconds only.** `animation:beltclose
+  900ms` parsed to NaN, NaN compared false, and the BELTCLOSE ↔ CSS tie was
+  green with a fourfold drift. Both units are read and normalised; an
+  unreadable duration is a failure, not a pass. Three fixtures.
+- **§133 held "the security set" as a fixed list of five.** A sixth header
+  added under `/*` was not required of the Worker (tested with
+  `X-Permitted-Cross-Domain-Policies` — green), and the two HEAD responses
+  were never compared. Every name under `/*` is required now, minus a
+  documented per-response list (`Cache-Control`, `Vary`, `Link`,
+  `Content-*`), on all four built responses. Three fixtures.
+- **§140's "never on a live tree" was a convention.** `NW_TODAY` accepted
+  any `Date.parse`-able string and nothing stopped it in CI, where a pinned
+  clock would keep a green badge on an expired `security.txt`. The pin is
+  refused when `CI` is set and must be `YYYY-MM-DD`. Two fixtures.
+- **§144 byte-scanned the git index.** A version-4 index prefix-compresses
+  paths against the previous entry, so `.vscode/…` followed by
+  `.wrangler/state/x` stores `wrangler/state/x` and the scan for
+  `.wrangler/` misses it. The section parses index versions 2–4 (whole
+  paths, extended flags, the varint strip) and falls back to the scan with
+  a warning on anything else. The fixture plants a v4 index the scan
+  cannot see.
+- **§65 never compared a snippet heading under six characters.** `#view`,
+  `.bd.e`, `--num` and eight others were exempt. The floor is three for a
+  heading shaped like an id, a selector or a custom property; a bare word
+  that short stays exempt. Two fixtures.
+- **`stripComments()` read `\/\/` inside a regex literal as a line
+  comment.** `/^https?:\/\//` ended the line at the escaped slashes and
+  everything after it on that line — ten lines in guards.js itself — was
+  invisible to the "every section can fail" censuses. None carried a
+  `fail(` there today. The stripper recognises a regex literal after an
+  opener (`( , = : [ ! & | ? { } ;`, a keyword, a line start) and copies
+  it through; a template literal runs to its backtick instead of dropping
+  its quote at the first newline. The old and new strippers agree on every
+  line of the file but those ten.
+- **Smoke's closed-view bound had quietly made room.** 4.5.1 replaced
+  `< 150,000` (measured 145,644) with `closedSize * 2 < alwaysOn`, which is
+  `< ~311,000` — the closed view could double before it fired. The
+  relation stays and an absolute ceiling of 160,000 stands beside it, with
+  a smoke fixture that pads every row past it.
+- **RELEASING.md's order dead-ended on a catalogue move.** Step 2 said
+  "Bless, once" and step 6 said regenerate the share card and bless again;
+  §91 goes red inside step 2's bless. The card step is step 2 now, ahead
+  of the bless; the two wall-time figures (~15–20 vs ~25 minutes) are one
+  figure; "an old Node fails at `npm ci`" is true now — `.npmrc` sets
+  `engine-strict=true` — where before npm only warned.
+- **The 4.5.1 entry, corrected:** 2.5 KB lighter, not 2; a dozen stale
+  snippet headings, not seven; §2 asserts two ledgers disjoint, not three;
+  the `engines` line flagged rather than failed; and the unlisted behaviour
+  change below. NOTES.md: the 475/476/478 suites belong to 4.0.5/4.0.6/4.0.8,
+  not 4.2.x; `--moss` left `:root` in 3.8.4, not 2.7.x; the constant is
+  `GRIDWORD`, not `GRIDNAME`; 219.2 KB, not 219.3; `supportsAnchor()` is
+  annotated as the 3.6.4 removal it is; a stray `/* ` opener and a
+  "seventy releases" that were 134. README: `icon.png` is the install icon,
+  not the social card (`share.png` is); four rows the file table lacked
+  (`.well-known/security.txt`, `brave-rewards-verification.txt`,
+  `qa/script-bytes.json`, `qa/make-favicon.py`) — §45 holds them now.
+  `docs/fonts/OFL.txt` carried the licence body twice after Anton's block
+  came out; the orphaned second copy is gone, and IBM's line carries its
+  upstream Reserved Font Name clause (*"Plex"*), which the shipped copy had
+  dropped — and which matters, because the four Plex faces are subsets and
+  every note arguing Limelight's keep-whole rule said the other faces
+  reserved nothing. They stay subset; the judgement is recorded as open in
+  NOTES.md ("Open: the Plex reserved name"), not decided in a patch.
+- **One audit claim refuted, on the record:** the sitemap's `llms.txt`
+  `lastmod` of 2026-08-15 was said to be one edit old (4.0.1, 2026-08-17).
+  `git log -- docs/llms.txt` shows the file unchanged since the 3.9.5
+  upload on 2026-08-15; 4.0.1's entry says llms.txt *agreed* with a
+  spelling, not that it changed. The date stands.
+
+### Changed
+
+- **The cross-tab merge's unclocked fallback applies the BYID gate — said
+  out loud.** 4.5.1 routed the storage event's legacy path through
+  `applyMarks()`, whose gate drops ids the catalogue does not carry; in
+  4.5.0 that path adopted them. It is the right tightening for a payload
+  with no clocks, and it is written down now rather than filed under a
+  refactor. The clocked loop is deliberately NOT gated: it mirrors
+  `restore()`, which keeps marks for unknown ids so that two tabs on
+  different catalogue builds cannot lose one by taking turns writing
+  storage. NOTES.md, "Why the clocked merge carries ids it cannot render".
+- **`./index.html` left the service worker's SHELL.** The assets plane
+  redirects it to `./`, so `cache.add` followed a 308 and stored a
+  redirected 220 KB duplicate that a navigation can never use — one
+  redirect and one wasted entry per install. `./` is the shell; the
+  fallback still consults `./index.html` last, for a platform where that
+  path answers 200. §13 lists it as deliberately not cached and refuses a
+  shell entry that is also an exclusion; §132 asserts the install caches
+  `./`; the browser check waits on `./`.
+- **Script, one bless:** the unused `i` on the eras/decades `forEach`s;
+  `gSub()`/`gBarFill()` take the counts a caller already has (the universe
+  grid and the progress rows computed `gDone`/`gSkip` and then had the
+  helpers compute them again — five scans per group, two now); `gPct()`
+  folded into `gBarFill()`.
+- **guards.js comments:** the stripper's caller list reads 13, 107 and 138
+  (66 no longer calls it); the bless re-verify block has its lead-in back;
+  two comments that began mid-sentence after the 4.5.1 lead-in removal
+  begin at their beginning; the fifteen citations of maintainer-local
+  evidence files say so, including the four inside `fail()` strings that
+  print to whoever reads a red run.
+- **`qa/smoke.js`** spells its three NUL separators as `"\u0000"`, so a
+  file `.gitattributes` forces to text is no longer one git detects as
+  binary.
+
+### Added
+
+- **negtest570 — 17 fixtures** (14 guards, 2 green, 1 smoke): §111's third
+  half, §43's bless under `--bless`, §96 in both units, §133's sixth header
+  and both HEAD responses, §65's short anchors, §144's version-4 index,
+  §13's exclusion, the four §104 cache blocks 4.5.1 added without one, and
+  the closed-view ceiling. negtest560 gains §140's format and CI refusals
+  beside the clock fixtures it already had (which now run with `CI`
+  unset). 65 suites, 942 fixtures; smoke 361. Shard 3 carries the new
+  suite.
+
 ## [4.5.1] — 2026-08-24
 
 **The seal.** No feature. The pre-seal audit of the 4.5.0 tree — dead code,
 stale comments, tests that had stopped testing, and three real defects in
 the guard suite's own machinery — shipped whole, so that what the frozen
 tree says about itself is true. Catalogue untouched, nothing ticked moves.
-`index.html` is 2 KB lighter.
+`index.html` is 2.5 KB lighter.
 
 ### Fixed
 
@@ -68,7 +205,7 @@ tree says about itself is true. Catalogue untouched, nothing ticked moves.
   since 2.7.4), listed a retired `m` badge, and had no row for `worker.js`;
   LICENSE and OFL.txt still credited Anton (retired 4.3.0); NOTES.md said
   `offCanonical()` was "still in the tree on purpose" (removed 3.3.1) and
-  read three other retired states in the present tense; seven of its
+  read three other retired states in the present tense; a dozen of its
   code-snippet headings anchored lines that no longer exist, and its palette
   notes were shifted one token down; `qa.yml` argued its Ubuntu pin against
   Playwright 1.56 while the lockfile was at 1.62; `worker.js` cited an
@@ -76,7 +213,7 @@ tree says about itself is true. Catalogue untouched, nothing ticked moves.
   carried wrong numbers or sections; the sitemap's `llms.txt` date was two
   edits old; the 4.5.0 entry above said 219.3 KB where the guard prints
   219.2. All corrected. §65 now checks NOTES.md's snippet headings against
-  the file, which is the gap that let seven of them rot.
+  the file, which is the gap that let them rot.
 - **`qa/make-favicon.py` used `getdata()`**, which Pillow deprecated and
   later removed; it reads raw bytes now, with the same chroma key
   `make-share-card.mjs` uses. Output byte-identical. The card generator
@@ -88,7 +225,13 @@ tree says about itself is true. Catalogue untouched, nothing ticked moves.
   cross-tab storage event, the JSON restore branch, `applyImport()` — are
   one `applyMarks(res, stamp, gate)`. §111 holds the invariant in the
   helper (watched clears skip, the BYID gate, skipped never lands on a
-  watched entry) and refuses a site that grows its own copy back.
+  watched entry) and refuses a site that grows its own copy back. One
+  behaviour change rides in it (recorded in 4.5.2, missed here): the
+  storage event's unclocked fallback — the path for a payload written by a
+  pre-3.8.0 build, with no clocks on it — now goes through the helper's
+  BYID gate, so an id the catalogue does not carry is no longer adopted
+  from that shape. The clocked loop above it still carries such ids, on
+  purpose; NOTES.md, "Why the clocked merge carries ids it cannot render".
 - **One focus restore.** `focusSnap()`, `focusRestore()`, `focusBack()` and
   `attrEsc()` replace the snapshot/restore `tickUpdate()` and `render()`
   each carried, the selector escape written three times and the
@@ -146,20 +289,23 @@ tree says about itself is true. Catalogue untouched, nothing ticked moves.
   the file's hash), written by the generator, held against the data by §91
   the way `font-subset.json` holds the fonts. A catalogue edit now fails
   the build until the card is regenerated; `npm run bless` re-records the
-  hash after the manual quantize. RELEASING.md step 6.
+  hash after the manual quantize. RELEASING.md step 2 (step 6 until 4.5.2 moved it ahead of the bless).
 - **`qa/requirements-tooling.txt`** (Pillow, fonttools, brotli) —
   the Python side of the tooling, declared. **`.gitattributes`** — LF
   everywhere, binaries named; the guards hash and split the tree
   byte-for-byte and a CRLF checkout goes red across many sections at once.
   **`package.json` `engines`** matching jsdom's requirement, so an old Node
-  fails at `npm ci` rather than mid-suite.
+  is flagged at `npm ci` rather than mid-suite (flagged, not refused — npm
+  only warns without `engine-strict`; 4.5.2 adds the `.npmrc` that makes it
+  refuse).
 - **`NW_TODAY=YYYY-MM-DD`** pins §140's clock for an archival run of the
   sealed tree (it goes red thirty days before `security.txt`'s Expires with
   no edit anywhere). It never silences the check on a live tree. RELEASING.md
   gains a "Freeze notes" section.
 - **§21 pins the storage key** (`batwatch-v3`, unchanged since the first
-  commit and never to change); NOTES.md says why. **§2 asserts the three
-  id ledgers are disjoint.**
+  commit and never to change); NOTES.md says why. **§2 asserts the retired and
+  renamed id ledgers are disjoint** (the frozen ledger is the catalogue's
+  census and is held to it separately).
 - **negtest560 — 27 fixtures**, one per claim above, plus the suite's own
   floor: a §24 failure printing as §24, a slash-star in a string leaving the
   code after it alone (a green case), and a single-quoted expect being

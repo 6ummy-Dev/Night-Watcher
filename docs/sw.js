@@ -12,7 +12,7 @@
  * index.html, so a stale cache means a stale catalogue AND stale code with
  * no way to push a fix. (The history of this file is in NOTES.md.)
  */
-var VERSION = "4.5.1";
+var VERSION = "4.5.2";
 var CACHE   = "night-watcher-" + VERSION;
 /* The shell is everything the page needs to open offline: the page, the
    manifest, the icons the page and the manifest reference (the apple-touch
@@ -20,8 +20,10 @@ var CACHE   = "night-watcher-" + VERSION;
    and the fonts, because a font that failed on the one online visit would
    otherwise render fallback type offline until the next one. Section 13 of
    the guards diffs this list against what docs/ actually serves, with the
-   crawler-facing files named as exclusions. */
-var SHELL   = ["./", "./index.html", "./manifest.json", "./icon.png", "./icon-192.png",
+   crawler-facing files named as exclusions. ./index.html is not listed:
+   the assets plane redirects it to ./, so installing it stored a redirected
+   duplicate of the page that a navigation can never use. */
+var SHELL   = ["./", "./manifest.json", "./icon.png", "./icon-192.png",
                "./icon-maskable-512.png",
                "./icon.svg",
                "./fonts/limelight-latin-400-normal.woff2",
@@ -85,9 +87,10 @@ self.addEventListener("fetch", function(e){
       return caches.match(req).then(function(hit){
         if(hit) return hit;
         /* A navigation to any path under scope should still open the app.
-           "./" first: the assets plane redirects /index.html to /, so the
-           cached copy under that name is a redirected response, and a
-           browser refuses a redirected response for a navigation. */
+           ./ is the shell. ./index.html is not installed (it would be a
+           redirected copy, which a browser refuses for a navigation); it is
+           consulted last only for a platform where that path answers 200
+           and a visit cached it. */
         if(req.mode === "navigate"){
           return caches.match("./").then(function(shell){
             return shell || caches.match("./index.html");

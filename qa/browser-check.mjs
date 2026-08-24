@@ -1013,13 +1013,13 @@ if(swReady.supported && swReady.active && swReady.controlled){
      mystery instead of naming the cache that never filled. */
   const shellCached = await swPage.waitForFunction(async () => {
     for(const n of await caches.keys()){
-      if(await (await caches.open(n)).match("./index.html")) return true;
+      if(await (await caches.open(n)).match("./")) return true;
     }
     return false;
   }, null, {timeout: 10000}).then(() => true, () => false);
   ok("the shell reaches the worker's cache before the offline test",
      shellCached, shellCached ? "cached" :
-     "10s and ./index.html is in no cache — the offline reload below is against a cold cache");
+     "10s and ./ is in no cache — the offline reload below is against a cold cache");
   /* 4.2.3, Q-13: entries > 0 proved A build boots offline, not that THIS
      build does — a stale cached shell passes that bar (2.5.1 shipped
      exactly that). The BUILD the worker serves offline must be the BUILD

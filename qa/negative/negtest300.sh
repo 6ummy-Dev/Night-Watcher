@@ -114,7 +114,7 @@ io.open(p,'w',encoding='utf-8').write(s+'\nfunction broken( {\n')"
 run_case "a quote is dropped inside sw.js" \
   "docs/sw.js does not parse" \
   "import io;p='docs/sw.js';s=io.open(p,encoding='utf-8').read()
-a='\"./index.html\"';assert a in s;s=s.replace(a,'\"./index.html',1)
+a='\"./manifest.json\"';assert a in s;s=s.replace(a,'\"./manifest.json',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
 echo "--- 110: the page can still be pinch-zoomed"

@@ -189,6 +189,10 @@ run_case "the storage key is tidied" \
 
 echo "--- 140: the archival clock"
 
+# The pin is refused under CI (4.5.2), so the pinned fixtures run with CI
+# unset — this script's environment only; run-all.sh and the shard are
+# untouched — and the refusal gets its own fixture.
+unset CI
 export NW_TODAY=2027-07-15
 run_case "the clock pinned a fortnight before expiry goes red" \
   "renew the Expires field" \
@@ -196,10 +200,20 @@ run_case "the clock pinned a fortnight before expiry goes red" \
   guards "" 140
 export NW_TODAY=not-a-date
 run_case "an unreadable clock is refused rather than ignored" \
-  "NW_TODAY is set and is not a date" \
+  "NW_TODAY must be YYYY-MM-DD" \
   "print('no mutation')" \
   guards "" 140
-unset NW_TODAY
+export NW_TODAY="July 15, 2027"
+run_case "a clock in any shape but YYYY-MM-DD is refused, even a parseable one" \
+  "NW_TODAY must be YYYY-MM-DD" \
+  "print('no mutation')" \
+  guards "" 140
+export NW_TODAY=2027-07-15 CI=true
+run_case "the pin is refused in CI, where the live tree's clock runs" \
+  "NW_TODAY is set in CI" \
+  "print('no mutation')" \
+  guards "" 140
+unset NW_TODAY CI
 
 rm -rf "$NEG"
 finish "negtest560"
