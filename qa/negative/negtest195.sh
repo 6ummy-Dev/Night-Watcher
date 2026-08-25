@@ -13,10 +13,12 @@ run_case "a released entry loses its rating" \
   "${P}a=',r:\"PG-13\",d:\"Frank Miller';assert s.count(a)==1
 s=s.replace(a,',d:\"Frank Miller',1);${W}"
 
+# Re-aimed in 4.5.4: Part 1 released on 25 Aug and carries its R now, so the
+# fixture hands the certificate to Part 2 — still unreleased, still undated.
 run_case "an unreleased entry is handed a certificate early" \
   "is not out yet and carries r:" \
-  "${P}a=',d:\"Bane empties Arkham';assert s.count(a)==1
-s=s.replace(a,',r:\"R\",d:\"Bane empties Arkham',1);${W}"
+  "${P}a=',d:\"Gotham finds out what';assert s.count(a)==1
+s=s.replace(a,',r:\"R\",d:\"Gotham finds out what',1);${W}"
 
 run_case "a value from neither system" \
   "not a value in either system" \

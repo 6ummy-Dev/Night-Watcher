@@ -11,6 +11,40 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.5.4] — 2026-08-25
+
+**The Knightfall trigger.** The one dated catalogue edit every release since
+1.9.5 said would wait for this day, and the first commit after the seal. A
+decision, not a mechanism: the seal said anything landing after it gets an
+entry like every other, and this is that entry. One entry moves, nothing
+ticked moves, no saved progress is touched, no slug changes.
+
+### Changed
+
+- ***Batman: Knightfall — Part 1* is out.** Digital 25 August 2026, disc
+  8 September, as the entry has said since 1.8.7. The `u` badge drops — NOT
+  OUT YET leaves the row, the Next-up hero, the crawlable seed and
+  `orders.txt` in the same edit — and the entry gains its certificate:
+  **`r:"R"`**, sourced (the MPA rating is R for strong bloody violence;
+  the 26 July WB release notice and the 25 Aug release-day coverage both
+  carry it). The blurb is unchanged: it was written as a premise and a date,
+  and both are still true. Parts 2 and 3 stay NOT OUT YET with no rating —
+  late 2026 and early 2027, undated, exactly as before.
+- **Guard 92's distribution moves with it.** 91 MPA + 26 NR + 78 TV = 195
+  rated, five unreleased carrying none; `R` 17 → 18. The comment that said
+  the R "rides the 25 Aug trigger patch" now says it did. The
+  negtest195 fixture that handed a certificate to an unreleased entry early
+  was aimed at Part 1 — it is re-aimed at Part 2, which is what an
+  unreleased entry is now.
+
+### Why PATCH
+
+One data edit and its guard, blessed. No feature, no new files, no
+deletions, no tag. The share card is untouched — its three numbers (133
+films, 67 seasons, 44 continuities) did not move, so guard 91 is green
+without a regeneration. Weight moves by the bytes of `r:"R"` minus
+`b:["u"]`.
+
 ## [4.5.3] — 2026-08-24
 
 **The seal, last cut.** No feature. The final audit of the 4.5.2 tree

@@ -6226,17 +6226,19 @@ var ROUTE_VOCAB = [
    Two systems live on one shelf on purpose (11 film-shelf entries are TV
    specials and TV-rated DTVs); the badge renders what the source system says
    and never translates. An unreleased entry has no certificate by definition
-   — Knightfall Part 1's announced R rides the 25 Aug trigger patch, the
-   same edit that drops its NOT OUT YET badge. */
+   — Knightfall Part 1's R entered with the 25 Aug trigger patch (4.5.4), the
+   same edit that dropped its NOT OUT YET badge; Parts 2 and 3 wait for
+   theirs the same way. */
 
 (function(){
   var MPA = ["G", "PG", "PG-13", "R", "NR"];
   var TVG = ["TV-Y", "TV-Y7", "TV-Y7-FV", "TV-G", "TV-PG", "TV-14", "TV-MA"];
-  /* The distribution the findings doc landed on, rechecks resolved: 90 MPA
-     ratings + 26 honest no-rating-exists NR + 78 TV-system = 194, and the six
-     unreleased entries carry none. A drifted count here means an entry gained,
-     lost or changed a rating nobody sourced. */
-  var EXPECT = {"PG-13":53, "PG":19, "R":17, "G":1, "NR":26,
+  /* The distribution the findings doc landed on, rechecks resolved: 91 MPA
+     ratings + 26 honest no-rating-exists NR + 78 TV-system = 195, and the five
+     unreleased entries carry none. (Knightfall Part 1 is the 91st: R, 25 Aug
+     2026.) A drifted count here means an entry gained, lost or changed a
+     rating nobody sourced. */
+  var EXPECT = {"PG-13":53, "PG":19, "R":18, "G":1, "NR":26,
                 "TV-PG":18, "TV-G":15, "TV-Y7":14, "TV-MA":13, "TV-14":10,
                 "TV-Y7-FV":6, "TV-Y":2};
   var got = {}, rated = 0;
@@ -6319,7 +6321,7 @@ var ROUTE_VOCAB = [
   }
   note("ratings: " + rated + " entries carry one \u2014 " +
        Object.keys(EXPECT).map(function(k){ return EXPECT[k] + " " + k; }).join(", ") +
-       "; 6 unreleased carry none");
+       "; 5 unreleased carry none");
 })();
 
 /* ---------- 93. The Progress lists fold, and remember ---------- */
