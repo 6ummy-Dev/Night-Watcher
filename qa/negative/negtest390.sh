@@ -58,6 +58,13 @@ io.open(p,'w',encoding='utf-8').write(s[:a]+s2+s[b:])
 # ItemList together. Under the stale-string bug the seed write carried the old
 # declared hash back onto disk, so guards failed with 'Fix with: npm run
 # bless' immediately after bless had run. One run must now leave green.
+#
+# 4.6.0: the edit is SAME-LENGTH ("Batman" -> "Batmen"). It used to append
+# " Redux", and on a tree whose gzipped size sat 11 bytes under a KB boundary
+# the six extra bytes rounded README's "62 KB" to 63 and section 46 went red
+# — a fixture about the bless order was failing on gzip arithmetic it never
+# meant to test. A same-length edit still dirties all three things this case
+# is about and cannot move the rounded figure.
 green_case "a data edit blesses to green in a single run" \
 "
 import io
@@ -65,7 +72,7 @@ p='docs/index.html'
 s=io.open(p,encoding='utf-8').read()
 needle='t:\"Merry Little Batman\"'
 assert s.count(needle) == 1
-io.open(p,'w',encoding='utf-8').write(s.replace(needle, 't:\"Merry Little Batman Redux\"'))
+io.open(p,'w',encoding='utf-8').write(s.replace(needle, 't:\"Merry Little Batmen\"'))
 "
 
 unset NEG_ARGS

@@ -66,8 +66,8 @@ echo "--- 147: the surfaces keep their order"
 
 run_case "the darker pressed state goes darker than its card" \
   "surface luminance runs out of order" \
-  "${P}a='--card2:#111826;';assert a in s
-s=s.replace(a,'--card2:#050810;',1);${W}" \
+  "${P}a='--card2:#17181C;';assert a in s
+s=s.replace(a,'--card2:#050506;',1);${W}" \
   guards "" 147
 
 echo "--- 42: Anton stays retired"

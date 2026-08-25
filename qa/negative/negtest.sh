@@ -20,7 +20,39 @@ run_case "shrunk below a tap target" \
 
 run_case "labels can wrap again" \
   "both broke across two lines" \
-  "${P}a='border-right-color:var(--line);white-space:nowrap;}';assert a in s;s=s.replace(a,'border-right-color:var(--line);}');${W}"
+  "${P}a='border-right-color:var(--signal);white-space:nowrap;}';assert a in s;s=s.replace(a,'border-right-color:var(--signal);}');${W}"
+
+echo "--- guard 55: the drops are part of the belt (4.6.0)"
+run_case "the chosen pouch goes back to card2 and bone" \
+  "the chosen pouch is not a signal fill with ink letters" \
+  "${P}a='.includes .scope button[aria-pressed=\"true\"]{background:var(--signal);color:var(--ink);';assert a in s;s=s.replace(a,'.includes .scope button[aria-pressed=\"true\"]{background:var(--card2);color:var(--bone);');${W}" \
+  guards "" 55
+
+run_case "the pouch seams go back to grey" \
+  "lost their signal lettering or seams" \
+  "${P}a='color:var(--signal);border-right-color:var(--signal);white-space:nowrap;}';assert a in s;s=s.replace(a,'color:var(--signal);border-right-color:var(--line);white-space:nowrap;}');${W}" \
+  guards "" 55
+
+run_case "the pouch lettering goes back to dust" \
+  "lost their signal lettering or seams" \
+  "${P}a='color:var(--signal);border-right-color:var(--signal);white-space:nowrap;}';assert a in s;s=s.replace(a,'color:var(--dust);border-right-color:var(--signal);white-space:nowrap;}');${W}" \
+  guards "" 55
+
+echo "--- guard 54: the belt is signal and the chosen path is its inversion (4.6.0)"
+run_case "the chosen path goes back to a signal fill" \
+  "not an ink pouch lettered in signal" \
+  "${P}a='.pathseg button[aria-pressed=\"true\"]{background:var(--ink);color:var(--signal);';assert a in s;s=s.replace(a,'.pathseg button[aria-pressed=\"true\"]{background:var(--signal);color:var(--ink);');${W}" \
+  guards "" 54
+
+run_case "the chosen path borrows the primary-action fill" \
+  "borrowed the fill the app uses for primary actions" \
+  "${P}a='.pathseg button[aria-pressed=\"true\"]{background:var(--ink);color:var(--signal);';assert a in s;s=s.replace(a,'.pathseg button[aria-pressed=\"true\"]{background:var(--ink);color:var(--signal);outline-color:var(--bonebtn);');${W}" \
+  guards "" 54
+
+run_case "the belt goes dark again" \
+  "the belt is not yellow" \
+  "${P}a='overflow:hidden;background:var(--signal);position:sticky;';assert a in s;s=s.replace(a,'overflow:hidden;background:var(--card);position:sticky;');${W}" \
+  guards "" 54
 
 echo "--- guard 54: the first-run page tells before it asks"
 run_case "intro dropped from the first-run page" \

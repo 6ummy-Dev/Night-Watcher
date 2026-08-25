@@ -848,10 +848,13 @@ win.addEventListener("load", function(){
           "pathseg " + iSeg + ", includes " + iInc);
     check("the card comes after what governs it", iHero > iInc,
           "hero " + iHero + ", includes " + iInc);
+    /* 4.6.0: the belt is signal, so the chosen path is the inversion —
+       an ink pouch lettered in signal. Signal still marks it. */
+    var chosenRule = (win.document.documentElement.innerHTML.match(
+      /\.pathseg button\[aria-pressed="true"\]\{[^}]*\}/) || [""])[0];
     check("the chosen path is marked in signal",
-          /background:var\(--signal\)/.test(
-            (win.document.documentElement.innerHTML.match(
-              /\.pathseg button\[aria-pressed="true"\]\{[^}]*\}/) || [""])[0]));
+          /color:var\(--signal\)/.test(chosenRule) && /background:var\(--ink\)/.test(chosenRule),
+          chosenRule);
     S.beltOpen = false; S.beltDrop = false;
 
     /* Format badges only where format is ambiguous. */

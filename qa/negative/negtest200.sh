@@ -9,15 +9,15 @@
 echo "--- 96: the Belt is one strip, and its pouches open from behind"
 run_case "the strip splits back into cards" \
   "the belt is not one strip" \
-  "${P}a='.pathseg{display:flex;margin:0 0 18px;border:1px solid var(--line2);border-radius:0;overflow:hidden;'
+  "${P}a='.pathseg{display:flex;margin:0 0 18px;border:1px solid var(--ink);border-radius:0;overflow:hidden;'
 assert a in s
-s=s.replace(a,'.pathseg{display:flex;margin:0 0 18px;border:1px solid var(--line2);border-radius:0;',1);${W}"
+s=s.replace(a,'.pathseg{display:flex;margin:0 0 18px;border:1px solid var(--ink);border-radius:0;',1);${W}"
 
 run_case "the segments grow their own corners" \
   "carry their own corners" \
-  "${P}a='border:0;border-right:1px solid var(--line2);border-radius:0;'
+  "${P}a='border:0;border-right:1px solid var(--ink);border-radius:0;'
 assert a in s
-s=s.replace(a,'border:0;border-right:1px solid var(--line2);border-radius:10px;',1);${W}"
+s=s.replace(a,'border:0;border-right:1px solid var(--ink);border-radius:10px;',1);${W}"
 
 run_case "the buckle disappears" \
   "the belt has no buckle" \

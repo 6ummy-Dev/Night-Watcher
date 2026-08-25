@@ -11,6 +11,59 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.6.0] — 2026-08-25
+
+**Two uniforms and a yellow belt.** The first feature after the seal — a
+new decision, with its own entry, exactly as the seal said it would be.
+Two themes, two suits: Dark Deco was always the blue-and-grey uniform and
+is untouched; Darker stops being Dark Deco with the lights down and becomes
+the black uniform. And the Belt is finally the utility belt — yellow, with
+dark pouches. Three calls, all the owner's, confirmed on the design board
+on 25 August from renders of the real app. CSS only: no markup, no state,
+no script byte moves, catalogue untouched, nothing ticked moves.
+
+### Changed
+
+- **The Belt is yellow.** The strip fills `--signal`, framed and seamed in
+  1px `--ink`, and the chosen path inverts — an ink pouch with signal
+  lettering — where it used to be the one signal segment on a dark strip.
+  The buckle sits one step deeper in `--signalpress`, and both of its lines
+  set in ink (the 3.3.0 `.bs2` contrast story ends here: 11.0:1 on the
+  plate). The peek — the 12px that parks under the header — is the top of
+  the same belt: a signal rail with an ink notch at the chosen path, so when
+  the belt drops the pouch lands exactly where the notch was. The glow, the
+  positions, the parking arithmetic and every state are unchanged.
+- **The drops are part of the belt.** The format and scope pouches keep
+  their ink fill and their from-behind shadow, and take signal edges and
+  signal lettering; the chosen pouch inverts to a signal fill with ink
+  letters — the belt's own inversion, mirrored. Ink seams (A) over gold
+  seams (B), owner's pick.
+- **Darker is the black uniform.** Every surface, hairline and grey in the
+  Darker block goes neutral: page `#000000`, sunk `#050506`, cards
+  `#0E0E11` / `#17181C`, hairlines `#232429` / `#33353C`. Bone is a silver
+  `#C9CCD3` (the cowl's highlight) instead of the dimmed blue-white
+  `#AEB6C8`; `--dust`, `--dim` and `--staroff` get neutral overrides of
+  their own for the first time (`#A0A4AD` / `#969AA3` / `#6B6F7A`) so no
+  blue-grey ink is inherited onto a black suit. Signal, steel and crimson
+  are inherited untouched — the belt, the cape and the sky are the same in
+  both suits. Every ink-on-surface pair clears 4.8:1 on every surface
+  (worst: bone 11.0, dust 7.1, dim 6.3, steel 5.8 on `--card2`), so section
+  20 does not warn; the surface ladder holds (147). The status-bar colour
+  stays `#000000`.
+- **Two guards moved with the belt.** The "chosen path is marked in
+  signal" rule now asserts the inversion (ink pouch, signal letters, never
+  bone) and that the strip itself is signal; the "include rows never wear
+  signal" rule inverts to its opposite for the same reason, and pins the
+  pouch seams and lettering. The height relation between the rows — which
+  was asked first — is unchanged and still pinned. Section 147's comment
+  records the retune.
+
+### Why MINOR
+
+A visible feature after the seal: the app changes look. No new files, no
+deletions, no catalogue movement, no change to saved progress. Weight moves
+by 52 bytes of CSS; script bytes do not move.
+
 ## [4.5.4] — 2026-08-25
 
 **The Knightfall trigger.** The one dated catalogue edit every release since

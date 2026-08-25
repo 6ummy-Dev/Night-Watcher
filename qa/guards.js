@@ -3610,11 +3610,25 @@ if(!/b\.dataset\.format/.test(HTML)) fail("nothing handles a format tap");
 })();
 
 /* The chosen path is marked in the belt colour, not the primary-action fill.
-   Bone means "press this"; signal means "this one". */
-if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.test(HTML)){
-  fail("the chosen path is not marked in signal \u2014 it borrowed the fill the app " +
-       "uses for primary actions");
-}
+   Bone means "press this"; signal means "this one". 4.6.0: the belt IS the
+   belt colour now (the strip fills --signal, owner's call, 25 Aug), so the
+   chosen path inverts — an ink pouch with signal lettering. Signal still
+   marks it; it moved from the fill to the letters. Bone stays out of it. */
+(function(){
+  var chosen = (HTML.match(/\.pathseg button\[aria-pressed="true"\]\{[^}]*\}/) || [""])[0];
+  if(!/background:var\(--ink\)/.test(chosen) || !/color:var\(--signal\)/.test(chosen)){
+    fail("the chosen path is not an ink pouch lettered in signal \u2014 on a " +
+         "signal belt that inversion is the only mark it has");
+  }
+  if(/bonebtn|var\(--bone\)/.test(chosen)){
+    fail("the chosen path borrowed the fill the app uses for primary actions");
+  }
+  var strip = (HTML.match(/\.pathseg\{[^}]*\}/) || [""])[0];
+  if(!/background:var\(--signal\)/.test(strip)){
+    fail("the belt is not yellow \u2014 .pathseg fills --signal since 4.6.0; the " +
+         "chosen path's ink pouch only reads as chosen on a signal band");
+  }
+})();
 
 /* ---------- 55. The chooser is a deck, not a list ---------------- */
 /* Seven surfaces share one formula \u2014 border, card fill, rounded corner. Three
@@ -3689,10 +3703,22 @@ if(!/\.pathseg button\[aria-pressed="true"\]\{[^}]*background:var\(--signal\)/.t
     fail("the include controls are " + subH + "px \u2014 under 30px they are no longer " +
          "a thumb-sized target");
   }
+  /* Until 4.5.4 the include rows were forbidden signal: it was the path
+     row's private mark. 4.6.0 made the strip itself the belt colour and the
+     owner asked for the pouches to read as part of it — signal edges, signal
+     lettering, and the chosen pouch inverted to a signal fill with ink
+     letters. What distinguishes the rows now is the inversion, not the hue:
+     the belt is signal with an ink pouch, the drops are ink with a signal
+     pouch. The height relation above still says which was asked first. */
   var sel = (HTML.match(/\.includes \.scope button\[aria-pressed="true"\]\{[^}]*\}/) || [""])[0];
-  if(/var\(--signal\)/.test(sel)){
-    fail("the include controls mark their selection in signal \u2014 that is what " +
-         "distinguishes the path row from them");
+  if(!/background:var\(--signal\)/.test(sel) || !/color:var\(--ink\)/.test(sel)){
+    fail("the chosen pouch is not a signal fill with ink letters \u2014 that " +
+         "inversion (the belt's, mirrored) is what makes the drops read as " +
+         "part of the belt");
+  }
+  if(!/[;{]color:var\(--signal\)/.test(sub) || !/border-right-color:var\(--signal\)/.test(sub)){
+    fail("the include controls lost their signal lettering or seams \u2014 dark " +
+         "pouches with grey type stopped being part of the belt in 4.6.0");
   }
   /* The pressed-state fill is guarded once, in section 54. */
 })();
@@ -12468,9 +12494,12 @@ var ROUTE_VOCAB = [
 /* ---------- 147. The surfaces keep their order --------------------------- */
 /* 4.3.0 rebuilt the Darker theme on recipe C — true dark: surfaces drop
    (#04060C / #0A0E18, hairlines up to #20283C) while the dimmed bone stays,
-   so contrast climbs instead of everything dimming together. No literal is
-   pinned here, deliberately: the next honest retune should not go red for
-   moving a hex. What must NEVER reorder is the ladder the components stand
+   so contrast climbs instead of everything dimming together. 4.6.0 retuned
+   it again as the black uniform: every surface, hairline and grey goes
+   neutral (the blue tint was Dark Deco's, the blue suit's), bone is a
+   silver #C9CCD3 rather than a dimmed blue-white, and the accents are the
+   ones both suits share. No literal is pinned here, deliberately: the next
+   honest retune should not go red for moving a hex. What must NEVER reorder is the ladder the components stand
    on — pressed states lighten (--card to --card2), the hero gradient falls
    from --card2 to --card, and sunken panels sit between the page and its
    cards. Section 20 already measures ink-on-surface per theme; this is the

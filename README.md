@@ -28,7 +28,7 @@ while it was up still restores anywhere.
 - **Backup & transfer.** A compact code, a link that restores everything when opened on another device, and a full JSON export/import — all client-side, built on frozen IDs so backups stay valid forever. The code is versioned and read tolerantly: it carries your chosen path, and a code written by a newer build still restores everything an older one understands.
 - **Shareable views.** Link straight to a view: [`#life`](https://nightwatcher.life/#life) for the chronology of Bruce's life, `#release`, `#universes`, `#progress` — combine with scope like `#life-series`.
 - **Progress that sticks.** Watched, skipped and star ratings saved in your browser (localStorage). No accounts, no server; your watch data never leaves your device — and if the browser refuses to save (Private Browsing, a full quota, some in-app webviews) the app says so in the header instead of losing your evening silently.
-- **Darker.** An optional pure-black variant for watching in an actually dark room, including the system status bar. Surfaces only — the palette, type and accents are unchanged.
+- **Two uniforms.** Dark Deco is the blue-and-grey suit: navy surfaces, cape-blue steel, a yellow utility belt for the path switcher. Darker is the black suit — true black for an actually dark room, including the system status bar — with every surface and grey gone neutral and a silver bone. Type and accents are the same in both.
 - **Anonymous visit counts, server-side only.** Cloudflare counts requests as the host answering them — no script on the page, no cookies, no fingerprinting, nothing added to what you download — only what any host can see by answering a request at all.
 
 ## Non-goals
@@ -147,7 +147,7 @@ Zero dependencies, and every function under test is **extracted from `docs/index
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 66 negative suites, 946
+trusted. That evidence lives in `qa/negative/` — 66 negative suites, 952
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps

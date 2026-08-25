@@ -37,7 +37,7 @@ run_case "the footer is removed altogether" \
 echo "--- 20: the UI-component exemption is earned per rule, not per token"
 run_case "the buckle's second line goes back to --staroff" \
   "draws text in --staroff" \
-  "${P}a='.bs2{font-size:7px;letter-spacing:.02em;color:var(--dim);';assert a in s
+  "${P}a='.bs2{font-size:7px;letter-spacing:.02em;color:var(--ink);';assert a in s
 s=s.replace(a,'.bs2{font-size:7px;letter-spacing:.02em;color:var(--staroff);',1);${W}"
 
 run_case "a new rule borrows a line token for prose" \

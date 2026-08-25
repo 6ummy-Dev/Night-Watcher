@@ -709,7 +709,20 @@ so a failed load degrades to exactly what 4.1.x looked like.
 
 ### `:root[data-theme="darker"]{`
 
-AMOLED variant. Surfaces only, so contrast can only rise from here.
+The black uniform (4.6.0). Until 4.5.4 this was Dark Deco with the lights
+down — the same navy tint on every surface, bone dimmed to a blue-grey —
+and the owner's frame on 25 Aug named what was wrong with that: Dark Deco
+is the blue-and-grey suit, Darker should be the black one, and the black
+suit has no blue in it. So every surface, hairline and grey here is
+neutral, and the block overrides `--dust`, `--dim` and `--staroff` for the
+first time — a black page inheriting Dark Deco's blue-grey inks was the
+tell. Bone is a silver `#C9CCD3`, the cowl's highlight: brighter than the
+`#AEB6C8` it replaces (11–13:1 against 8.7–10.3) and still well under Dark
+Deco's 12.8–16.4, which is the AMOLED argument kept. Warm bone was drawn
+and rejected (it argued with the yellow); full bone was drawn and rejected
+(it deleted the reason Darker exists). Signal, steel and crimson are
+inherited on purpose: the belt, the cape and the sky are the same in both
+suits. Section 20 measures the pairs, 147 the ladder; neither warns.
 
 ### `#view`
 
@@ -1002,8 +1015,9 @@ line by shrinking the type broke both labels across two lines instead — the
 type size was doing work the palette does better. Height and type size are
 separable: the block gives back 8px of height at the same 9px type, so
 "Live action" and "Movies + Series" still fit on one line and the path row
-still reads as the question asked first. Signal marks the path you chose;
-card2 marks the rest.
+still reads as the question asked first. Since 4.6.0 the pouches wear the
+belt's colour on their edges and letters and keep their ink fill, and the
+chosen pouch inverts to signal-on-ink — see "The belt is yellow" below.
 
 ### `::selection{background:var(--signal);color:var(--ink);}`
 
@@ -3692,6 +3706,53 @@ on demand by `drawShareCard()`. Nothing static changed.
 of a 220 KB budget. The ceiling has moved four times and every move was the
 owner's number on the record; the next feature asks for the fifth.
 
+
+## The belt is yellow, and the drops are part of it
+
+4.6.0, the first feature after the seal, and a new decision with its own
+CHANGELOG entry as the seal said any such thing would be. The owner's brief
+on 25 Aug was one sentence: the Belt should be yellow like the real
+utility belt, the drops can stay dark. Three renders of the real app were
+put on a board and confirmed the same day.
+
+**The strip is the belt colour.** `.pathseg` fills `--signal`, framed and
+seamed in 1px `--ink` — ink seams over gold seams, the owner's pick, because
+ink is the hairline language everywhere else on the page and the segments
+read as inked pouches rather than one soft band. The chosen path INVERTS: an
+ink pouch with signal lettering, where it used to be the one signal segment
+on a dark strip. Signal still marks the chosen path; it moved from the fill
+to the letters, and the guard that pinned "marked in signal, never bone"
+now pins the inversion. The buckle is the plate — one step deeper in
+`--signalpress` — and both of its lines set in ink, which retires the 3.3.0
+`.bs2` contrast story for good (11.0:1 on the plate; it was 3.37:1 on
+card2 the day axe found it).
+
+**The peek is the top of this belt.** `#beltpeek` goes signal with an ink
+notch at the chosen path, and the notch is not a light on the rail: when
+the belt drops, the ink pouch lands exactly where the notch was, because
+the peek is literally the belt's top 12px. The glow, the three 26%
+positions, the parking arithmetic and every state are untouched — this is
+eight CSS rules, no markup, no state, and script bytes did not move.
+
+**The drops are part of the belt.** The first render kept the pouches as
+they were — ink fill, grey lettering, `--line` edges — and the owner asked
+for them to read as part of the belt when open: yellow borders, yellow
+lettering. They keep the ink fill and the from-behind inset shadow (section
+96's "the shadow is what sells from behind" still holds) and take signal
+edges and signal letters. A chosen pouch cannot be signal-on-signal, so it
+inverts the belt's own inversion: signal fill, ink letters. The belt is
+signal with an ink pouch; the drops are ink with a signal pouch. That
+mirror is what the include-rows guard now pins, having spent its first
+life forbidding signal there — the hue was the path row's private mark
+when the strip was dark, and the height relation (which row was asked
+first) is the distinction that survives.
+
+**What was not touched.** Dark Deco. It was always the blue suit, and once
+Darker went neutral the blue reads by contrast; a blue lift was drawn,
+costed (`--dim` 4.78, `--steel` 4.60 on card2 — AA, inside section 20's
+warning band — plus a share-card regeneration for the baked hexes) and
+declined. The story image and share card still describe Dark Deco, which
+is correct: the card has one look.
 
 ## The seal: what a tree says about itself has to be true
 
