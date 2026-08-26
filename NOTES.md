@@ -1017,10 +1017,11 @@ separable: the block gives back 8px of height at the same 9px type, so
 "Live action" and "Movies + Series" still fit on one line and the path row
 still reads as the question asked first. Since 4.6.0 the pouches wear the
 belt's colour on their edges and letters and keep their ink fill; the
-chosen pouch inverted to signal-on-ink in 4.6.0 and became a hairline in
-4.7.0 — ink ground, bold signal letters, a 1px inset signal box — so the
-belt is the only filled yellow surface. See "The belt is yellow" and "The
-cover" below.
+chosen pouch inverted to signal-on-ink in 4.6.0 and dimmed in 4.7.0 —
+`--signaldim` `#B8941A`, ink letters — so the belt stays the brightest
+yellow on the page. A 1px hairline was built first and rolled back the
+same day: it could not be noticed on the phone. See "The belt is yellow"
+and "The cover" below.
 
 ### `#splash`
 
@@ -3785,7 +3786,7 @@ because the app's rendered home never has one.
 first frame with everything else. `splashOff()` runs after the first
 `render()` in the restore callback, waits one `requestAnimationFrame` so
 the app has actually painted underneath, sets `.gone` — opacity to 0, the
-bat drifting up and shrinking, 320ms — and removes the element after the
+bat shrinking to a third of itself, 320ms — and removes the element after the
 fade. It waits for nothing else: no timer before the fade, no font, no
 minimum hold. On a phone with the service worker the cover lasts a few
 dozen milliseconds and then fades; what a reader sees is the app

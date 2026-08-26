@@ -26,16 +26,17 @@ without JavaScript never meets it. Since a minor was opening anyway, the
 4.6.0 audit's on-page bundle rides along, and the one open-items note
 (the chosen drop pouch) is settled. Three calls, all the owner's, 26
 August: the cover over a timed splash, the ceiling's fifth number, and
-the hairline pouch.
+the dimmed pouch — a hairline was built first, looked at on the phone,
+and could not be noticed.
 
 ### Added
 
 - **The splash cover.** `<div id="splash">` is the first thing in
   `<body>`, outside `#app`: `position:fixed`, `--ink` ground, the header's
-  bat in `--signal` at 84px. `splashOff()` runs after the first `render()`
+  bat in `--signal` at 64vw (320px cap) — a splash, not an icon. `splashOff()` runs after the first `render()`
   in the restore callback, waits one `requestAnimationFrame` so the app has
-  painted under it, sets `.gone` (opacity 0, the bat drifting up and
-  shrinking over 320ms) and removes the element after the fade. Reduced
+  painted under it, sets `.gone` (opacity 0, the bat shrinking to
+  a third over 320ms) and removes the element after the fade. Reduced
   motion is the existing transition kill: `.gone` lands as a cut. A
   `<noscript><style>` in the head hides it for a reader without
   JavaScript. Section 151 holds every part of that shape — first in body,
@@ -63,11 +64,14 @@ the hairline pouch.
   written today restores in every later version, because an entry's
   identity never changes"). `buildFAQ()` is the single source; the bless
   moves the seed and the FAQPage node together.
-- **The chosen drop pouch is a hairline.** The 4.6.0 fill (signal ground,
-  ink letters) becomes an ink ground with the letters in bold signal and a
-  1px inset signal box. The belt is now the only filled yellow surface; the
-  pouches under it are its dark hardware. Section 55's rule inverts with
-  it and refuses the fill by name; three fixtures re-aimed, two added.
+- **The chosen drop pouch is a dimmed yellow.** New token `--signaldim`
+  `#B8941A` — ink letters at 6.9:1, a clear step (1.95:1) under the belt's
+  `--signal` — replaces the 4.6.0 belt-bright fill, so the chosen pouch is
+  read at a glance and the belt stays the brightest yellow on the page. A
+  1px hairline was tried first and rolled back the same day: on the phone
+  you could not tell which pouch was chosen. Section 55 pins the token,
+  the value and the ink letters, and refuses the belt's own fill by name;
+  three fixtures re-aimed.
 - **The weight ceiling is 250 KB raw.** The owner's fifth number, on the
   record 26 August. This tree is 219.4 KB raw / 63.0 KB gzipped
   (+2,728 B raw over 4.6.0; script bytes 145,909 → 146,167, all of it
@@ -86,7 +90,7 @@ the hairline pouch.
 ### Why MINOR
 
 A visible feature after the seal: the app changes look — a cover on
-launch, a hairline where a fill was — and the crawlable page grows two
+launch, a dimmer pouch where the belt-bright one was — and the crawlable page grows two
 samples and a link. No catalogue movement, no change to saved progress,
 no new files served. One new negative suite (negtest590, 22 fixtures) and
 one new guard section (151).

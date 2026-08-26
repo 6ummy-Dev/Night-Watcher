@@ -3717,22 +3717,26 @@ if(!/b\.dataset\.format/.test(HTML)) fail("nothing handles a format tap");
      owner asked for the pouches to read as part of it — signal edges, signal
      lettering, and the chosen pouch inverted to a signal fill with ink
      letters. 4.7.0 (owner's call, from the 4.6.0 open-items note): the
-     chosen pouch is a HAIRLINE, not a fill — ink stays the pouch's ground,
-     the letters stay signal and go bold, and a 1px inset signal line boxes
-     the choice. The drops never carry a filled signal surface now: that is
-     the belt's alone, so the strip is the one yellow thing and the pouches
-     under it are its dark hardware. The height relation above still says
-     which was asked first. */
+     chosen pouch is a DIMMED signal fill — `--signaldim`, a yellow a step
+     under the belt's, with ink letters — so it still reads as chosen at a
+     glance (a hairline was tried first and could not be noticed) without
+     being a second belt-bright surface under the belt. The height relation
+     above still says which was asked first. */
   var sel = (HTML.match(/\.includes \.scope button\[aria-pressed="true"\]\{[^}]*\}/) || [""])[0];
-  if(!/background:var\(--ink\)/.test(sel) || !/[;{]color:var\(--signal\)/.test(sel) ||
-     !/box-shadow:inset 0 0 0 1px var\(--signal\)/.test(sel) || !/font-weight:600/.test(sel)){
-    fail("the chosen pouch is not a hairline \u2014 ink ground, signal letters " +
-         "in bold, a 1px inset signal box \u2014 the 4.7.0 shape; a filled " +
-         "pouch puts a second yellow surface under the belt");
+  if(!/background:var\(--signaldim\)/.test(sel) || !/color:var\(--ink\)/.test(sel) ||
+     !/font-weight:600/.test(sel)){
+    fail("the chosen pouch is not a dimmed signal fill with ink letters \u2014 " +
+         "--signaldim, the 4.7.0 shape: chosen at a glance, a step under " +
+         "the belt's own yellow");
   }
   if(/background:var\(--signal\)/.test(sel)){
-    fail("the chosen pouch is a signal fill again \u2014 4.7.0 made it a " +
-         "hairline so the belt is the only yellow surface");
+    fail("the chosen pouch is the belt's own signal fill again \u2014 4.7.0 " +
+         "dimmed it so the belt stays the brightest yellow on the page");
+  }
+  if(!/--signaldim:#B8941A/.test(HTML)){
+    fail("--signaldim is not #B8941A \u2014 the dimmed pouch was picked at " +
+         "6.9:1 for ink and 1.95:1 under the belt; a brighter value is the " +
+         "belt again, a darker one loses the ink letters");
   }
   if(!/[;{]color:var\(--signal\)/.test(sub) || !/border-right-color:var\(--signal\)/.test(sub)){
     fail("the include controls lost their signal lettering or seams \u2014 dark " +
