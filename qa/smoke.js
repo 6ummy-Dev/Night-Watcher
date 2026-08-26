@@ -168,9 +168,11 @@ win.addEventListener("load", function(){
             lis + " list items with scripts off, expected " + expect);
       var hrefs = sv ? Array.prototype.map.call(sv.querySelectorAll("a"), function(a){
         return a.getAttribute("href"); }) : [];
-      check("the seed links carry the five route tokens",
-            hrefs.length === 5 &&
-            ["#universes", "#life", "#release", "#progress", "#next"].every(function(t){
+      /* 4.7.0: plus the one file link the seed carries — orders.txt, the
+         plain-text catalogue — which guard 90 allows by name and once. */
+      check("the seed links carry the five route tokens and orders.txt",
+            hrefs.length === 6 &&
+            ["#universes", "#life", "#release", "#progress", "#next", "orders.txt"].every(function(t){
               return hrefs.indexOf(t) >= 0; }),
             hrefs.join(" ") || "no links");
     })();
@@ -2193,6 +2195,16 @@ win.addEventListener("load", function(){
       win.installEvt = null;
       win.IOSDEVICE = true; win.render(); sweep();
       win.IOSDEVICE = false; win.render();
+      /* 4.7.0: the splash is in the document for one frame and the fade
+         after it, and splashOff() has removed it by the time this sweep
+         starts — staged the way data-beltpark is, in both of its states.
+         The sweep asks whether the selectors can match, not whether the
+         cover came down (section 151 holds that). */
+      var sp = doc.createElement("div"); sp.id = "splash";
+      sp.appendChild(doc.createElementNS("http://www.w3.org/2000/svg", "svg"));
+      doc.body.insertBefore(sp, doc.body.firstChild); sweep();
+      sp.className = "gone"; sweep();
+      doc.body.removeChild(sp);
       var dead = sels.filter(function(sel){ return !matched[sel]; });
       check("every CSS rule matches something in some state",
             dead.length === 0, dead.join("  |  "));

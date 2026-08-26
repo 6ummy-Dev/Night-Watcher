@@ -11,6 +11,86 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.7.0] — 2026-08-26
+
+**The cover, and the audit's bundle.** A phone showed the crawlable seed
+for a frame on every launch — the H1, blue underlined links, "Loading" —
+before the first render replaced it. The seed is real markup inside
+`#view` on purpose (1.8.6; both analyzers skipped `<noscript>`), so the
+frame between parsing it and running the script was always going to paint.
+4.7.0 covers it: a fixed plane in the page's own ink with the header's bat
+on it, painted from the head CSS so it is in the first frame, and taken
+down one frame after the app has rendered underneath — no timer, no hold,
+no font waited for. The fade out is the only time it costs, and a reader
+without JavaScript never meets it. Since a minor was opening anyway, the
+4.6.0 audit's on-page bundle rides along, and the one open-items note
+(the chosen drop pouch) is settled. Three calls, all the owner's, 26
+August: the cover over a timed splash, the ceiling's fifth number, and
+the hairline pouch.
+
+### Added
+
+- **The splash cover.** `<div id="splash">` is the first thing in
+  `<body>`, outside `#app`: `position:fixed`, `--ink` ground, the header's
+  bat in `--signal` at 84px. `splashOff()` runs after the first `render()`
+  in the restore callback, waits one `requestAnimationFrame` so the app has
+  painted under it, sets `.gone` (opacity 0, the bat drifting up and
+  shrinking over 320ms) and removes the element after the fade. Reduced
+  motion is the existing transition kill: `.gone` lands as a cut. A
+  `<noscript><style>` in the head hides it for a reader without
+  JavaScript. Section 151 holds every part of that shape — first in body,
+  the header's own path, no entrance animation, no timer before the fade,
+  the undo in the head — and the "no `<noscript>` anywhere" clause of
+  section 78 narrows to "one `<style>` and nothing else", with attributes
+  refused. ~1.0 KB.
+- **The seed samples the two orderings it only described.** Each era on
+  the eras list now opens with its first title, from the app's own
+  `lifeCmp`; a new "By release" paragraph names the first eight from
+  `releaseCmp`, decade-bucketed the way the app buckets. Both are generated
+  in section 78 from the data and blessed, never typed — an announced
+  title that leads an era (Dynamic Duo, the Grayson years) carries "not
+  out yet" the way the full list marks it. The paragraph ends on the seed's
+  one link to a file: `orders.txt`, the plain-text catalogue with all
+  three orderings in full. Section 90 allows exactly that href, once; a
+  second file, or none, fails.
+
+### Changed
+
+- **Three FAQ answers, one source.** Q1 gains the words the query actually
+  uses ("every Batman film and series in each, no spoilers"); Q2 names the
+  1966 series and *Batman: The Animated Series* instead of "all of it"
+  alone; Q7 gains the frozen-ID promise in crawlable prose ("a backup
+  written today restores in every later version, because an entry's
+  identity never changes"). `buildFAQ()` is the single source; the bless
+  moves the seed and the FAQPage node together.
+- **The chosen drop pouch is a hairline.** The 4.6.0 fill (signal ground,
+  ink letters) becomes an ink ground with the letters in bold signal and a
+  1px inset signal box. The belt is now the only filled yellow surface; the
+  pouches under it are its dark hardware. Section 55's rule inverts with
+  it and refuses the fill by name; three fixtures re-aimed, two added.
+- **The weight ceiling is 250 KB raw.** The owner's fifth number, on the
+  record 26 August. This tree is 219.4 KB raw / 63.0 KB gzipped
+  (+2,728 B raw over 4.6.0; script bytes 145,909 → 146,167, all of it
+  `splashOff()`). The 80 KB gzip ceiling is unchanged. README quotes
+  219 / 63.
+
+### Not done, and why
+
+- **`orders.txt` in the sitemap.** The 4.6.0 triage proposed it and said no
+  guard touched the sitemap. Section 105 does, on purpose since 2.7.2: the
+  seed and `orders.txt` are the same 200 entries, and submitting both asks
+  a search engine to choose between two near-identical bodies on one
+  domain. The body link above is the honest answer to "keep it linked";
+  the sitemap stays as decided.
+
+### Why MINOR
+
+A visible feature after the seal: the app changes look — a cover on
+launch, a hairline where a fill was — and the crawlable page grows two
+samples and a link. No catalogue movement, no change to saved progress,
+no new files served. One new negative suite (negtest590, 22 fixtures) and
+one new guard section (151).
+
 ## [4.6.0] — 2026-08-25
 
 **Two uniforms and a yellow belt.** The first feature after the seal — a

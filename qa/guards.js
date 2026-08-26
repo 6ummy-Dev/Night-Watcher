@@ -138,6 +138,7 @@ function blessHtml(next){
      148  The cut is rank, and everyone else stands square
      149  The reader's place has one memory
      150  The city: the shaft is the chart, the crown is above it
+     151  The splash covers the first frame, and only the first frame
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -540,10 +541,12 @@ function buildFAQ(FILMS, MODENOTE, tierOf){
   var curated = FILMS.filter(function(f){ return tierOf(f) !== "o"; }).length;
   return [
     ["Which order should I watch Batman in?",
-     "Three honest answers instead of one fake one. By universe: " + first("continuity") +
+     "Three honest answers instead of one fake one \u2014 every Batman film and series in each, " +
+     "no spoilers. By universe: " + first("continuity") +
      " Bruce\u2019s life: " + first("life") + " Release order: " + first("release")],
     ["Does this include the animated series?",
-     "Yes \u2014 all of it. " + seasons + " seasons of television ride alongside the " + films +
+     "Yes \u2014 all of it, from the 1966 Batman series through Batman: The Animated Series to the " +
+     "newest: " + seasons + " seasons of television ride alongside the " + films +
      " films, animated and live action both, and a switch narrows the shelf whenever you want it narrower."],
     ["Do I have to watch everything?",
      "No. " + curated + " titles are marked as the essentials and the core route \u2014 the spine of " +
@@ -562,7 +565,8 @@ function buildFAQ(FILMS, MODENOTE, tierOf){
      "In this browser, yes — what you tick is saved locally and waiting when you come " +
      "back. It does not travel to other browsers or devices, and clearing this browser’s " +
      "data clears it, because nothing is ever kept on a server. Progress carries a code you " +
-     "can copy from the Progress tab and paste into another browser to move it or keep a backup."],
+     "can copy from the Progress tab and paste into another browser to move it or keep a backup \u2014 " +
+     "and a backup written today restores in every later version, because an entry\u2019s identity never changes."],
     ["Is there an app, an account, or an API?",
      "No account and no sign-in — nothing to register and nothing to log into. It is one " +
      "web page that runs entirely in your browser, and you can install it to your home screen " +
@@ -1964,10 +1968,15 @@ note("index.html " + rawKB.toFixed(1) + " KB raw, " + gzipKB.toFixed(1) + " KB g
    both the owner's explicit numbers, on the record 4 Aug 2026, authorizing
    seed-200 and whatever honest growth follows. Raised 200 -> 220 in 3.8.3 —
    the owner's number, on the record 12 Aug 2026: room for the support
-   section now and the 4.0.0 swipe change coming. The ceilings moved; the
-   discipline did not: arithmetic still fails the build, and every raise is
-   still a recorded owner decision, never a drift. */
-if(rawKB > 220) fail("index.html is " + rawKB.toFixed(1) + " KB raw, over the 220 KB budget");
+   section now and the 4.0.0 swipe change coming. Raised 220 -> 250 in
+   4.7.0 — the owner's number, on the record 26 Aug 2026, the "fifth
+   number" the sealed backlog said was theirs to give before a feature
+   started: the splash cover, the seed samples and the FAQ edits landed
+   the tree at 219 of 220, and the next catalogue entry would have needed
+   the raise anyway. The ceilings moved; the discipline did not:
+   arithmetic still fails the build, and every raise is still a recorded
+   owner decision, never a drift. */
+if(rawKB > 250) fail("index.html is " + rawKB.toFixed(1) + " KB raw, over the 250 KB budget");
 if(gzipKB > 80) fail("index.html is " + gzipKB.toFixed(1) + " KB gzipped, over the 80 KB budget");
 
 /* Zero runtime dependencies is a promise in the README. There is no
@@ -3707,14 +3716,23 @@ if(!/b\.dataset\.format/.test(HTML)) fail("nothing handles a format tap");
      row's private mark. 4.6.0 made the strip itself the belt colour and the
      owner asked for the pouches to read as part of it — signal edges, signal
      lettering, and the chosen pouch inverted to a signal fill with ink
-     letters. What distinguishes the rows now is the inversion, not the hue:
-     the belt is signal with an ink pouch, the drops are ink with a signal
-     pouch. The height relation above still says which was asked first. */
+     letters. 4.7.0 (owner's call, from the 4.6.0 open-items note): the
+     chosen pouch is a HAIRLINE, not a fill — ink stays the pouch's ground,
+     the letters stay signal and go bold, and a 1px inset signal line boxes
+     the choice. The drops never carry a filled signal surface now: that is
+     the belt's alone, so the strip is the one yellow thing and the pouches
+     under it are its dark hardware. The height relation above still says
+     which was asked first. */
   var sel = (HTML.match(/\.includes \.scope button\[aria-pressed="true"\]\{[^}]*\}/) || [""])[0];
-  if(!/background:var\(--signal\)/.test(sel) || !/color:var\(--ink\)/.test(sel)){
-    fail("the chosen pouch is not a signal fill with ink letters \u2014 that " +
-         "inversion (the belt's, mirrored) is what makes the drops read as " +
-         "part of the belt");
+  if(!/background:var\(--ink\)/.test(sel) || !/[;{]color:var\(--signal\)/.test(sel) ||
+     !/box-shadow:inset 0 0 0 1px var\(--signal\)/.test(sel) || !/font-weight:600/.test(sel)){
+    fail("the chosen pouch is not a hairline \u2014 ink ground, signal letters " +
+         "in bold, a 1px inset signal box \u2014 the 4.7.0 shape; a filled " +
+         "pouch puts a second yellow surface under the belt");
+  }
+  if(/background:var\(--signal\)/.test(sel)){
+    fail("the chosen pouch is a signal fill again \u2014 4.7.0 made it a " +
+         "hairline so the belt is the only yellow surface");
   }
   if(!/[;{]color:var\(--signal\)/.test(sub) || !/border-right-color:var\(--signal\)/.test(sub)){
     fail("the include controls lost their signal lettering or seams \u2014 dark " +
@@ -5454,6 +5472,14 @@ var ROUTE_VOCAB = [
   var films = 0, seasons = 0;
   PATH.forEach(function(g){ g.films.forEach(function(f){ f.k === "tv" ? seasons++ : films++; }); });
   function e(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  /* 4.7.0: one writer for a sampled title. An announced entry can lead an
+     era (Dynamic Duo opens the Grayson years), and a sample that names it
+     bare would claim it early — so it carries the same mark the full list
+     gives it. */
+  function sample(f){
+    return e(f.t) + (f.sub ? " \u2014 " + e(f.sub) : "") + " (" + f.y +
+           (f.b.indexOf("u") >= 0 ? ", not out yet" : "") + ")";
+  }
   var picked = FILMS.filter(function(f){ return tierOf(f) !== "o"; });
   /* Two entries may legitimately share a title and a year — the 1966 series and
      the 1966 film do. Two identical lines read as a mistake, so a collision
@@ -5505,10 +5531,40 @@ var ROUTE_VOCAB = [
        Era 0 stays out, here as in the app. It is not a stage of a life; it
        collects the entries that have no place in one. */
     "<ol>",
+    /* 4.7.0: each era opens with its first title. The seed listed one ordering
+       in full (by universe) and only DESCRIBED the other two — the eras carried
+       names and notes but not a single title, and release order was "1943–2028"
+       — which the 4.6.0 audit read as thin. The first title of each era comes
+       from the app's own lifeCmp, the comparator section 105 already extracts
+       for orders.txt, so the sample is the ordering and cannot drift from it. */
     ERAS.filter(function(x){ return x.k !== 0; })
-        .map(function(x){ return "  <li><strong>" + e(x.name) + "</strong> \u2014 " +
-                                 e(x.note) + "</li>"; }).join("\n"),
+        .map(function(x){
+          var lead = FILMS.filter(function(f){ return f.e === x.k; }).slice().sort(lifeCmp)[0];
+          return "  <li><strong>" + e(x.name) + "</strong> \u2014 " + e(x.note) +
+                 (lead ? " Opens with " + sample(lead) + "." : "") + "</li>";
+        }).join("\n"),
     "</ol>",
+    /* 4.7.0: release order gets its first eight, from releaseCmp inside the
+       first decades the way the app buckets them, and the one body link the
+       seed carries to anything but a route: orders.txt, the plain-text file
+       that has all three orderings in full. Section 90 allows exactly that
+       href and no other. */
+    "<h2>By release</h2>",
+    "<p>Release order runs " + Math.min.apply(null, FILMS.map(function(f){ return f.y; })) +
+      " to " + Math.max.apply(null, FILMS.map(function(f){ return f.y; })) +
+      " and opens with " +
+      (function(){
+        var out = [];
+        DECADES.forEach(function(dec){
+          if(out.length >= 8) return;
+          FILMS.filter(function(f){ return f.y >= dec.k && f.y < dec.k + 10; })
+               .slice().sort(releaseCmp).forEach(function(f){
+                 if(out.length < 8) out.push(sample(f));
+               });
+        });
+        return out.join(", ");
+      })() +
+      '. All three orderings, every entry, are in <a href="orders.txt">the plain-text catalogue</a>.</p>',
     /* seed-200 (2.5.0, owner's word with the ceiling raise): the continuities
        section carries every entry, not just the universe names — the full
        catalogue is the thin-content answer the audits asked for. Each
@@ -5557,10 +5613,23 @@ var ROUTE_VOCAB = [
     "</main>"
   ].join("\n");
 
-  if(HTML.indexOf("<noscript") >= 0){
-    fail("the crawlable catalogue went back into <noscript> — both analyzers " +
-         "treated that element as inactive, which is why 1.8.6 moved it inside " +
-         '<main id="view"> where the first render replaces it');
+  /* Narrowed in 4.7.0. Until then ANY <noscript> failed, because the only
+     one the page had ever carried was the catalogue. The splash (section
+     151) needs one — a <style> that hides the cover for a reader without
+     JavaScript, who would otherwise sit behind it forever — so the rule is
+     now about content: a <noscript> may carry one <style> and nothing else.
+     Markup inside it is the 1.8.6 mistake coming back under a new name. */
+  (HTML.match(/<noscript>[\s\S]*?<\/noscript>/g) || []).forEach(function(block){
+    if(!/^<noscript><style>[^<]*<\/style><\/noscript>$/.test(block)){
+      fail("a <noscript> carries markup — the crawlable catalogue went back into " +
+           "<noscript>. Both analyzers treated that element as inactive, which is " +
+           'why 1.8.6 moved it inside <main id="view"> where the first render ' +
+           "replaces it; since 4.7.0 a <noscript> may hold one <style> and nothing else");
+    }
+  });
+  if(/<noscript(?!>)/.test(HTML)){
+    fail("a <noscript> carries attributes — the one the page allows is the bare " +
+         "element around the splash's undo style, and nothing else");
   }
   var got = (HTML.match(/<main id="view">[\s\S]*?<\/main>/) || [""])[0];
   if(!got){
@@ -6111,11 +6180,21 @@ var ROUTE_VOCAB = [
          "and the two other tabs one tap away for a reader without JavaScript, " +
          "and they are gone");
   }
+  /* 4.7.0: ONE named exception. orders.txt is this site's own plain-text
+     catalogue — same origin, generated by section 105 from the same data —
+     and the 4.6.0 audit found it linked only where machines look (<head>
+     and llms.txt), never in the one block a crawler reads as the page. The
+     spirit of the rule (never hand a reader to another origin) holds; the
+     letter names the file, so a second off-route href still fails. */
+  var ALLOWED_FILE = "orders.txt";
+  var fileLinks = 0;
   hrefs.forEach(function(a){
     var h = a.slice(6, -1);
+    if(h === ALLOWED_FILE){ fileLinks++; return; }
     if(h.charAt(0) !== "#"){
       fail("the seed links out to " + h + " — everything in the seed is this page, " +
-           "and the one crawlable block must not hand its readers to another origin");
+           "and the one crawlable block must not hand its readers to another origin " +
+           "(the one file it may name is " + ALLOWED_FILE + ")");
       return;
     }
     h.slice(1).toLowerCase().split(/[-+]/).forEach(function(tok){
@@ -6126,7 +6205,12 @@ var ROUTE_VOCAB = [
       }
     });
   });
-  note("seed links: " + hrefs.length + ", every token known to guard 72");
+  if(fileLinks !== 1){
+    fail("the seed links to " + ALLOWED_FILE + " " + fileLinks + " times — once, in the " +
+         "release paragraph, is the 4.7.0 answer to \u201ckeep orders.txt linked\u201d; " +
+         "none is the audit's finding again and more is a list of files");
+  }
+  note("seed links: " + hrefs.length + ", every token known to guard 72, plus " + ALLOWED_FILE);
 })();
 
 /* ---------- 91. The card the metas promise is the card that ships ---------- */
@@ -12904,6 +12988,96 @@ var ROUTE_VOCAB = [
          "width, three cells on hard 1px rules, no tiles; the buttons " +
          "underneath are section 40's");
   }
+})();
+
+/* ---------- 151. The splash covers the first frame, and only the first frame ---- */
+/* 4.7.0. The crawlable seed is real markup inside #view, and the browser
+   painted it — H1, blue links, "Loading" — for the frame or two between
+   parsing it and the first render() replacing it. The cover is one fixed
+   plane in --ink with the bat in --signal, painted from the head CSS so it
+   is in the first frame, and taken down by splashOff() after the first
+   render has painted underneath it. Three things make it a cover and not
+   a delay, and each is held here: it is outside #view (the seed's exact
+   bytes are section 78's) and outside #app (the frame's children are the
+   scroll model's, section 143); it waits for nothing — no timer before
+   the fade, no font, no hold — the fade is the only time it costs; and a
+   reader without JavaScript never meets it, because the one <noscript>
+   the page carries hides it. Reduced motion is the existing transition
+   kill at the bottom of the stylesheet: .gone lands instantly there. */
+(function(){
+  var bodyAt = HTML.indexOf("<body>");
+  var splashAt = HTML.indexOf('<div id="splash"');
+  var appAt = HTML.indexOf('<div id="app">');
+  if(splashAt < 0){
+    fail("the splash is gone — the seed paints for a frame before the first " +
+         "render again, exactly the flash 4.7.0 covered");
+    return;
+  }
+  if(!(splashAt > bodyAt && splashAt < appAt)){
+    fail("the splash sits inside #app or after it — it is painted from the " +
+         "first frame only because it is the first thing in <body>, and it is " +
+         "outside the frame so the scroll model (section 143) never counts it");
+  }
+  var tag = HTML.slice(splashAt, HTML.indexOf(">", splashAt) + 1);
+  if(!/aria-hidden="true"/.test(tag)){
+    fail("the splash is not aria-hidden — a screen reader would announce a " +
+         "decorative bat before the page");
+  }
+  var block = HTML.slice(splashAt, HTML.indexOf("</div>", splashAt));
+  var markPath = (HTML.match(/<button class="mark"[\s\S]*?<path d="([^"]+)"/) || [])[1];
+  if(!markPath || block.indexOf(markPath) < 0){
+    fail("the splash's bat is not the header's bat — one drawing, so the " +
+         "mark the cover shows is the mark the page lands on");
+  }
+  if(!/#splash\{[^}]*position:fixed/.test(HTML) || !/#splash\{[^}]*z-index:70/.test(HTML) ||
+     !/#splash\{[^}]*background:var\(--ink\)/.test(HTML) ||
+     !/#splash\{[^}]*color:var\(--signal\)/.test(HTML)){
+    fail("the splash is not a fixed plane in --ink with the bat in --signal " +
+         "above the toast (z-index 70) — that is the whole design, and it " +
+         "cannot cover the seed from anywhere else");
+  }
+  if(!/#splash\.gone\{[^}]*opacity:0/.test(HTML) || !/#splash\{[^}]*transition:opacity/.test(HTML)){
+    fail("the splash has no exit — .gone must fade it, or the cover is a " +
+         "cut and the seed under it is the only thing that changed");
+  }
+  if(/#splash\{[^}]*animation/.test(HTML) || /#splash svg\{[^}]*animation/.test(HTML)){
+    fail("the splash animates its entrance — the cover lasts as long as the " +
+         "first render takes, so nothing animated in is ever seen; only the " +
+         "exit is time the reader has anyway");
+  }
+  var ns = HTML.match(/<noscript><style>([^<]*)<\/style><\/noscript>/);
+  if(!ns || !/#splash\{display:none;?\}/.test(ns[1].replace(/\s+/g, ""))){
+    fail("the splash has no <noscript> undo — a reader without JavaScript " +
+         "sits behind the cover forever, on the one page built so that " +
+         "reader gets the catalogue");
+  }
+  if(HTML.indexOf("</noscript>") > bodyAt){
+    fail("the splash's <noscript> undo is in the body — it must be parsed " +
+         "before the splash it hides, which means the head");
+  }
+  if(!hasFn("splashOff")){
+    fail("splashOff() is gone — the cover would never come down");
+    return;
+  }
+  var off = fn("splashOff");
+  if(!/requestAnimationFrame/.test(off) || !/className = "gone"/.test(off) ||
+     !/removeChild/.test(off)){
+    fail("splashOff() must wait one frame (so the app has painted under the " +
+         "cover), set .gone, and remove the element after the fade — the " +
+         "seed is never uncovered before the app replaces it");
+  }
+  if(off.indexOf("setTimeout") >= 0 && off.indexOf("setTimeout") < off.indexOf('className = "gone"')){
+    fail("splashOff() holds the cover on a timer before fading — the cover " +
+         "is not a delay; it waits for the first render and nothing else");
+  }
+  var boot = (HTML.match(/restore\(function\(\)\{[\s\S]*?\n\}\);/) || [""])[0];
+  if(!/render\(\);[\s\S]*splashOff\(\);/.test(boot)){
+    fail("splashOff() is not called after the first render() in the restore " +
+         "callback — the cover comes down before the app is under it, or " +
+         "never");
+  }
+  note("splash: fixed plane, first in <body>, header's bat, noscript undo, " +
+       "down one frame after the first render");
 })();
 
 /* ---------- report ---------- */

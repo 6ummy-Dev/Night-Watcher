@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 150 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 151 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -1016,8 +1016,19 @@ type size was doing work the palette does better. Height and type size are
 separable: the block gives back 8px of height at the same 9px type, so
 "Live action" and "Movies + Series" still fit on one line and the path row
 still reads as the question asked first. Since 4.6.0 the pouches wear the
-belt's colour on their edges and letters and keep their ink fill, and the
-chosen pouch inverts to signal-on-ink — see "The belt is yellow" below.
+belt's colour on their edges and letters and keep their ink fill; the
+chosen pouch inverted to signal-on-ink in 4.6.0 and became a hairline in
+4.7.0 — ink ground, bold signal letters, a 1px inset signal box — so the
+belt is the only filled yellow surface. See "The belt is yellow" and "The
+cover" below.
+
+### `#splash`
+
+The crawlable seed's first-frame cover (4.7.0). Fixed, `--ink`, the
+header's bat in `--signal`, first in `<body>` and outside `#app`, taken
+down by `splashOff()` one frame after the first render. Everything about
+why it is a cover and not a splash screen is in "The cover" below; section
+151 holds the shape.
 
 ### `::selection{background:var(--signal);color:var(--ink);}`
 
@@ -3753,6 +3764,77 @@ costed (`--dim` 4.78, `--steel` 4.60 on card2 — AA, inside section 20's
 warning band — plus a share-card regeneration for the baked hexes) and
 declined. The story image and share card still describe Dark Deco, which
 is correct: the card has one look.
+
+## The cover, and why it is not a splash screen
+
+4.7.0. A screen recording on a phone caught the page as it exists for one
+frame on every launch: the crawlable seed — "Every Batman story ever
+filmed", two paragraphs, blue underlined links, LOADING under the
+wordmark, 0% in the ring — before the first `render()` wiped `#view`. It
+had always been there. The seed is real markup inside `#view` since 1.8.6
+(both SEO analyzers treated `<noscript>` as inactive), the application
+script comes after it, and the browser takes a rendering opportunity
+between parsing four hundred lines of seed and executing 146 KB of
+script. With the service worker handing the document over instantly the
+frame is a flicker; on a slow first visit it lingers. The blue links are
+the tell: nothing in the stylesheet styles an anchor inside the seed,
+because the app's rendered home never has one.
+
+**The cover.** One fixed plane in `--ink` with the header's own bat in
+`--signal`, first in `<body>`, painted from the head CSS so it is in the
+first frame with everything else. `splashOff()` runs after the first
+`render()` in the restore callback, waits one `requestAnimationFrame` so
+the app has actually painted underneath, sets `.gone` — opacity to 0, the
+bat drifting up and shrinking, 320ms — and removes the element after the
+fade. It waits for nothing else: no timer before the fade, no font, no
+minimum hold. On a phone with the service worker the cover lasts a few
+dozen milliseconds and then fades; what a reader sees is the app
+appearing cleanly. Reduced motion is the existing transition kill at the
+bottom of the stylesheet, so `.gone` lands as a cut there.
+
+**Why not a splash screen.** Two shapes were costed. The cover shows
+until the first render, then fades. The "moment" holds for 500–700ms so
+the mark is seen every launch — a brand beat, on an app whose whole
+stance is that nothing stands between the reader and the list, and on iOS
+an installed PWA already shows the OS launch screen before it, so it
+would be two splashes back to back. The owner chose the cover. Bytes were
+never the constraint (a keyframe rule is 100–250 bytes); time was.
+Anything animated IN is never seen, because the cover lasts exactly as
+long as the first render takes. Only the exit is time the reader has
+anyway, so only the exit moves. Section 151 refuses an entrance animation
+and a timer before the fade by name.
+
+**The reader without JavaScript.** The seed exists for them, and a fixed
+plane would sit on top of it forever. The page's one `<noscript>` is a
+`<style>` in the head that hides the cover. Section 78 forbade any
+`<noscript>` since 1.8.6 because the only one it had ever carried was the
+catalogue; it now forbids a `<noscript>` that carries anything but one
+`<style>`, and one with attributes. The wordmark is not on the cover:
+Limelight loads with `font-display: swap`, and a cover that itself
+flashed from fallback to Limelight would be the flash it exists to hide.
+
+**What rode along.** A minor was opening, so the 4.6.0 audit's on-page
+bundle came with it. The seed listed one ordering in full and only
+described the other two — the eras carried names and notes and not one
+title, release order was "1943–2028" — so each era now opens with its
+first title from `lifeCmp` and a "By release" paragraph names the first
+eight from `releaseCmp`, both generated in section 78 from the same
+comparators section 105 already extracts for `orders.txt`; an announced
+title that leads an era says "not out yet" as the full list does. That
+paragraph carries the seed's one link to a file, `orders.txt`, which the
+audit found linked only where machines look; section 90 allows exactly
+that href, once. Three FAQ answers grew the words the queries use. And
+`orders.txt` did NOT go into the sitemap, though the triage proposed it:
+section 105 has refused that since 2.7.2 because the seed and the export
+are the same 200 entries, and the triage's "no guard touches the sitemap"
+was simply wrong. A body link is discoverable; a sitemap entry is
+submitted for indexing; the two sit on opposite sides of that line, and
+the decision held.
+
+**The fifth number.** The bundle landed the tree at 219.4 of 220 KB raw.
+The sealed backlog said the ceiling's fifth number was the owner's to
+give before a feature started; it is 250, on the record 26 Aug, the same
+day. 80 KB gzipped is unchanged and was never approached (63.0).
 
 ## The seal: what a tree says about itself has to be true
 

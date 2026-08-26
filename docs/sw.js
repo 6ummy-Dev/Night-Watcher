@@ -12,7 +12,7 @@
  * index.html, so a stale cache means a stale catalogue AND stale code with
  * no way to push a fix. (The history of this file is in NOTES.md.)
  */
-var VERSION = "4.6.0";
+var VERSION = "4.7.0";
 var CACHE   = "night-watcher-" + VERSION;
 /* The shell is everything the page needs to open offline: the page, the
    manifest, the icons the page and the manifest reference (the apple-touch

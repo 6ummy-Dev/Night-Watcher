@@ -22,10 +22,20 @@ run_case "labels can wrap again" \
   "both broke across two lines" \
   "${P}a='border-right-color:var(--signal);white-space:nowrap;}';assert a in s;s=s.replace(a,'border-right-color:var(--signal);}');${W}"
 
-echo "--- guard 55: the drops are part of the belt (4.6.0)"
+echo "--- guard 55: the drops are part of the belt (4.6.0), and the chosen pouch is a hairline (4.7.0)"
 run_case "the chosen pouch goes back to card2 and bone" \
-  "the chosen pouch is not a signal fill with ink letters" \
-  "${P}a='.includes .scope button[aria-pressed=\"true\"]{background:var(--signal);color:var(--ink);';assert a in s;s=s.replace(a,'.includes .scope button[aria-pressed=\"true\"]{background:var(--card2);color:var(--bone);');${W}" \
+  "the chosen pouch is not a hairline" \
+  "${P}a='.includes .scope button[aria-pressed=\"true\"]{background:var(--ink);color:var(--signal);';assert a in s;s=s.replace(a,'.includes .scope button[aria-pressed=\"true\"]{background:var(--card2);color:var(--bone);');${W}" \
+  guards "" 55
+
+run_case "the chosen pouch goes back to the 4.6.0 signal fill" \
+  "the chosen pouch is a signal fill again" \
+  "${P}a='.includes .scope button[aria-pressed=\"true\"]{background:var(--ink);color:var(--signal);';assert a in s;s=s.replace(a,'.includes .scope button[aria-pressed=\"true\"]{background:var(--signal);color:var(--ink);');${W}" \
+  guards "" 55
+
+run_case "the chosen pouch loses its hairline" \
+  "the chosen pouch is not a hairline" \
+  "${P}a='font-weight:600;box-shadow:inset 0 0 0 1px var(--signal);}';assert a in s;s=s.replace(a,'font-weight:600;}');${W}" \
   guards "" 55
 
 run_case "the pouch seams go back to grey" \
