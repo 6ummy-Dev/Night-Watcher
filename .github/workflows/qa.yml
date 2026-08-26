@@ -58,7 +58,7 @@ jobs:
   # not only on pull requests: releases here are direct commits to main, so a
   # PR-gated job never runs (it did not, for a long time — NOTES.md).
   #
-  # Cost: 976 fixtures, of which 915 run guards.js and 61 run smoke.js — most
+  # Cost: 1012 fixtures, of which 948 run guards.js and 64 run smoke.js — most
   # of those scoped to one phase by SMOKE_ONLY. The split is guarded in this
   # file the same as the README's counts, so the next drift fails the build.
   # run-all.sh dispatches longest-first; this job shards 4-way on top, packed
@@ -78,7 +78,7 @@ jobs:
       matrix:
         include:
           - shard: "1"
-            pick: 'negtest(186|252|260|270|271|300|320|340|390|440|470|510|560|590)\.sh'
+            pick: 'negtest(186|252|260|270|271|300|320|340|390|440|470|510|560|590|600)\.sh'
           - shard: "2"
             pick: 'negtest(163|165|171|175|177|187|220|310|350|380|410|478|500|530|540)\.sh|negtest\.sh'
           - shard: "3"
