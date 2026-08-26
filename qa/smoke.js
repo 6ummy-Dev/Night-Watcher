@@ -1247,6 +1247,99 @@ win.addEventListener("load", function(){
 
     win.location.hash = ""; S.tab = "home"; S.mode = S.path; win.render();
 
+    /* --- the tier is an include axis (4.8.0) --- */
+    /* Until 4.8.0 the tier was a chip: it hid rows and moved no count, so a
+       Core-route reader skipped every Optional entry by hand. These drive the
+       third pouch through the real buttons, and read the count, the storage,
+       the buckle, the chip's empty state and Home's tiles after each tap. */
+    (function(){
+      var f0 = S.format, s0 = S.scope, q0 = S.q, t0 = S.tab, fl0 = S.filter;
+      S.format = "all"; S.scope = "all"; S.tier = "all"; S.q = ""; S.filter = "all";
+      S.tab = "home"; S.beltOpen = true; win.render();
+      var all = win.counts().total;
+      check("+ Optional counts the whole catalogue", all === FILMS.length, all + " of " + FILMS.length);
+      var pouch = doc.querySelectorAll('#view .panel:not([inert]) .includes .scope');
+      check("the belt drops three pouches", pouch.length === 3, pouch.length + " pouches");
+      var labels = Array.prototype.map.call(
+        doc.querySelectorAll('#view .panel:not([inert]) .includes button'),
+        function(b){ return b.textContent; });
+      check("no pouch button says All", labels.indexOf("All") < 0, labels.join(" / "));
+      check("the format row ends in Animated + live", labels[2] === "Animated + live", labels[2]);
+      check("the tier row reads Essentials, Core route, + Optional",
+            labels.slice(5).join("|") === "Essentials|Core route|+ Optional", labels.slice(5).join("|"));
+      var core = doc.querySelector('#view .panel:not([inert]) .includes [data-tier="core"]');
+      check("the tier pouch offers the Core route", !!core);
+      if(core) core.click();
+      var pool = win.pool();
+      check("tapping Core route narrows the count", S.tier === "core" && win.counts().total < all,
+            "tier=" + S.tier + ", " + win.counts().total + " of " + all);
+      check("nothing on the Core route is Optional",
+            pool.every(function(f){ return tierOf(f) !== "o"; }));
+      check("and the Essentials are still on it",
+            pool.some(function(f){ return tierOf(f) === "e"; }));
+      check("the header ring counts the route, not the catalogue",
+            doc.getElementById("hsub").textContent.indexOf("of " + pool.length) > 0,
+            doc.getElementById("hsub").textContent);
+      win.flushPersist();
+      check("the tier is persisted", JSON.parse(win.localStorage.getItem("batwatch-v3")).tier === "core");
+      check("the tap toasts what the count did",
+            /Core route only/.test(doc.getElementById("toast").textContent),
+            doc.getElementById("toast").textContent);
+      S.beltOpen = false; win.render();
+      function buckle(){
+        var bk = doc.querySelector('#view .panel:not([inert]) .buckle');
+        return Array.prototype.map.call(bk.querySelectorAll(".bst,.bs2"),
+                                        function(x){ return x.textContent; }).join("|");
+      }
+      check("the closed buckle names the one narrowing", buckle() === "Core route", buckle());
+      S.format = "anim"; S.scope = "movies"; win.render();
+      check("three narrowings, three lines, pouch order",
+            buckle() === "Animated|Movies|Core route", buckle());
+      check("the buckle's label still reads all three in full",
+            /Animated, Movies, Core route/.test(
+              doc.querySelector('#view .panel:not([inert]) .buckle').getAttribute("aria-label")));
+      S.format = "all"; S.scope = "all";
+
+      /* The chips stay, all seven; the one that can show nothing says why. */
+      S.tab = "watch"; S.filter = "opt"; win.render();
+      check("The path keeps its seven chips under a narrowed belt",
+            doc.querySelectorAll('#view .panel:not([inert]) .chip').length === 7);
+      var empty = doc.querySelector('#view .panel:not([inert]) .empty');
+      check("the Optional chip under the Core route names the belt, not \"nothing yet\"",
+            !!empty && /outside your route/.test(empty.textContent) && /Core route/.test(empty.textContent),
+            empty ? empty.textContent.slice(0, 80) : "no empty state");
+      var add = empty && empty.querySelector('[data-tier="all"]');
+      check("and offers Add optional", !!add);
+      if(add) add.click();
+      check("Add optional widens the belt and the rows come back",
+            S.tier === "all" && win.counts().total === all &&
+            !doc.querySelector('#view .panel:not([inert]) .empty'));
+
+      /* Home's tiles follow the belt. */
+      S.tier = "core"; S.tab = "home"; S.filter = "all"; win.render();
+      check("Home drops the Optional tile under the Core route",
+            !doc.querySelector('#view .panel:not([inert]) [data-tf="opt"]') &&
+            !!doc.querySelector('#view .panel:not([inert]) [data-tf="core"]'));
+      S.tier = "ess"; win.render();
+      check("Essentials only leaves the Essentials tile",
+            !doc.querySelector('#view .panel:not([inert]) [data-tf="core"]') &&
+            !!doc.querySelector('#view .panel:not([inert]) [data-tf="ess"]'));
+      check("the buckle reads Essentials", buckle() === "Essentials", buckle());
+      S.tier = "all"; win.render();
+      check("nothing narrowed, and the buckle reads Every Batman", buckle() === "Every Batman", buckle());
+
+      /* The first-run chooser asks the same third question. */
+      var p0 = S.path;
+      S.path = ""; win.render();
+      var rows = doc.querySelectorAll('#view .panel:not([inert]) .chooser .scope');
+      check("the first-run chooser carries three switch rows", rows.length === 3, rows.length + " rows");
+      check("and the third is the tier", !!doc.querySelector('#view .panel:not([inert]) .chooser [data-tier="core"]'));
+      S.path = p0;
+
+      S.format = f0; S.scope = s0; S.q = q0; S.tab = t0; S.filter = fl0; S.tier = "all";
+      win.render();
+    })();
+
     /* --- the search-everything offer matches what search-everything shows (1.7.5) --- */
     (function(){
       var f0 = S.format, s0 = S.scope, q0 = S.q, t0 = S.tab;
@@ -1815,6 +1908,26 @@ win.addEventListener("load", function(){
         reboot(ancient, "no mode", function(w4, d4){
           check("a save with no ordering at all falls back to the chooser",
                 w4.S.path === "" && !!d4.querySelector(".pick"));
+          /* 4.8.0: a save with no tier opens wide (nobody's denominator moves
+             overnight), a junk tier opens wide, and a Core-route save comes
+             back on the Core route from a cold document — the RELEASING rule:
+             verify a state from a fresh boot, never from the state that made it. */
+          check("a save with no tier opens with + Optional", w4.S.tier === "all", "tier=" + w4.S.tier);
+          reboot(JSON.stringify({watched:{}, skipped:{}, rated:{}, log:[], path:"life", format:"all", scope:"all", tier:"core"}),
+                 "core route", function(w5, d5){
+            check("a Core-route save reboots on the Core route", w5.S.tier === "core", "tier=" + w5.S.tier);
+            check("and counts the route from the first render",
+                  w5.counts().total < FILMS.length &&
+                  d5.getElementById("hsub").textContent.indexOf("of " + w5.counts().total) > 0,
+                  d5.getElementById("hsub").textContent);
+            check("the buckle reads Core route from cold",
+                  d5.querySelector("#view .panel:not([inert]) .buckle .bst").textContent === "Core route",
+                  JSON.stringify({tab:w5.S.tab, bst:(d5.querySelector("#view .panel:not([inert]) .buckle .bst")||{}).textContent, panels:d5.querySelectorAll("#view .panel:not([inert])").length}));
+          });
+          reboot(JSON.stringify({watched:{}, skipped:{}, rated:{}, log:[], path:"life", tier:"everything"}),
+                 "junk tier", function(w6){
+            check("a junk tier in storage opens wide", w6.S.tier === "all", "tier=" + w6.S.tier);
+          });
 
           /* --- 4.2.3, C-2 of the 19 Aug audit: the JSON door next to the vault.
              Backup codes are fuzzed against inventing IDs and JSON import was

@@ -73,9 +73,9 @@ run_case "an old NW2 code stops restoring its ratings" \
 echo "--- 54 (3.9.0): the first-run page offers scope beside format"
 run_case "the first-run page drops the scope switch" \
   "renders no scope switch" \
-  "${P}a='''What are you watching</p>'+formatSwitch()+scopeSwitch()+'''
+  "${P}a='''What are you watching</p>'+formatSwitch()+scopeSwitch()+tierSwitch()+'''
 assert a in s
-s=s.replace(a,'''What are you watching</p>'+formatSwitch()+''',1);${W}"
+s=s.replace(a,'''What are you watching</p>'+formatSwitch()+tierSwitch()+''',1);${W}"
 
 rm -rf "$NEG"
 finish "1.7.7 negative tests"

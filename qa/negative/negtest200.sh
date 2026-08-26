@@ -31,11 +31,11 @@ s=s.replace(a,'includeBlock();',1);${W}"
 
 run_case "the buckle stops reading the real state" \
   "does not summarise the hidden state" \
-  "${P}a='''var fmt = {anim:\"Animated\", live:\"Live action\", all:\"All\"}[S.format] || \"All\";
-  var scp = S.scope === \"all\" ? \"Movies + Series\" : \"Movies\";'''
+  "${P}a='''var fmt = {anim:\"Animated\", live:\"Live action\", all:\"Animated and live action\"}[S.format] || \"Animated and live action\";
+  var scp = S.scope === \"all\" ? \"Movies and series\" : \"Movies\";'''
 assert a in s
-s=s.replace(a,'''var fmt = \"All\";
-  var scp = \"Movies + Series\";''',1);${W}"
+s=s.replace(a,'''var fmt = \"Animated and live action\";
+  var scp = \"Movies and series\";''',1);${W}"
 
 run_case "the open belt is remembered" \
   "beltOpen is written to the saved payload" \

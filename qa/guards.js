@@ -139,6 +139,7 @@ function blessHtml(next){
      149  The reader's place has one memory
      150  The city: the shaft is the chart, the crown is above it
      151  The splash covers the first frame, and only the first frame
+     152  The tier is an include axis, and the belt says what it holds
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -550,7 +551,8 @@ function buildFAQ(FILMS, MODENOTE, tierOf){
      " films, animated and live action both, and a switch narrows the shelf whenever you want it narrower."],
     ["Do I have to watch everything?",
      "No. " + curated + " titles are marked as the essentials and the core route \u2014 the spine of " +
-     "the thing. Everything else is optional side material, labelled as exactly that."],
+     "the thing. Everything else is optional side material, labelled as exactly that \u2014 and " +
+     "the belt can set the count to the core route, or to the essentials alone, so there is nothing to skip."],
     ["Is it really spoiler-safe?",
      "That is the whole premise. Universes stay whole, and every ordering is built so nothing " +
      "renders ahead of an entry it would give away."],
@@ -1789,8 +1791,8 @@ if(!PATHS || !MODENOTE || !PATHCODE || !CODEPATH){
     optionalFn("pathBlurb", "the chooser has nothing to build its cards from") +
     "\n({noteFor:noteFor, pathBlurb:pathBlurb});"
   ).runInNewContext({MODENOTE: MODENOTE, yearSpan: new vm.Script(
-    fn("visible") + "\n" + fn("yearSpan") + "\nyearSpan;"
-  ).runInNewContext({FILMS: FILMS, S: {format:"all", scope:"all"}})});
+    fn("tierOf") + "\n" + fn("onRoute") + "\n" + fn("visible") + "\n" + fn("yearSpan") + "\nyearSpan;"
+  ).runInNewContext({FILMS: FILMS, S: {format:"all", scope:"all", tier:"all"}})});
   ids.forEach(function(id){
     var card = pb.pathBlurb(id), full = pb.noteFor(id);
     if(!card){ fail('pathBlurb("' + id + '") is empty'); return; }
@@ -3429,8 +3431,8 @@ if(!/@media \(max-width:360px\)/.test(HTML)){
   if(!/S\.scope/.test(vis)){
     fail("visible() ignores scope");
   }
-  if(!/S\.mode \+ "\|" \+ S\.scope \+ "\|" \+ S\.format/.test(HTML)){
-    fail("the group cache key omits format \u2014 switching format would serve stale groups");
+  if(!/S\.mode \+ "\|" \+ S\.scope \+ "\|" \+ S\.format \+ "\|" \+ S\.tier/.test(HTML)){
+    fail("the group cache key omits format or tier \u2014 switching either would serve stale groups");
   }
   var live = FILMS.filter(function(f){ return f.fmt === "live"; });
   /* Set to 12 when 1.5.0 shipped twelve. There are 30, so the old floor would
@@ -13082,6 +13084,210 @@ var ROUTE_VOCAB = [
   }
   note("splash: fixed plane, first in <body>, header's bat, noscript undo, " +
        "down one frame after the first render");
+})();
+
+/* ---------- 152. The tier is an include axis, and the belt says what it holds ---- */
+/* 4.8.0. Until now the tier lived only in The path's chips, which hide rows
+   and touch no denominator — so a reader following the Core route had to
+   skip every Optional entry by hand to reach 100%, and the Skipped count
+   carried the cost. The tier is now the third pouch on the belt, beside
+   format and scope, and it feeds visible() the way the other two do: one
+   term, through tierOf(), so the belt and the chips can never disagree
+   about what "Core route" means (Essentials inside, Optional out). The
+   chips stay — all seven, the owner's call — because a filter is a glance
+   and the belt is a decision. Three wordings were settled before code and
+   are pinned here: no pouch button says "All" (two rows ending in the same
+   word was the confusion); the closed buckle names only what is narrowed,
+   one line per pouch in pouch order, and collapses to the app's own two
+   words when nothing is; and "every Batman there is" is said only when no
+   pouch narrows anything. An existing save has no tier and gets the widest
+   one — the 1.5.0 rule: nobody's denominator moves overnight. */
+(function(){
+  if(!/\btier:"all"/.test(HTML)){
+    fail("the S declaration does not start the tier wide — a first visit must " +
+         "count every entry, exactly as format does");
+  }
+  var pn = fn("persistNow");
+  if(!/tier:S\.tier/.test(pn)){
+    fail("persistNow() does not write the tier — the belt would forget the " +
+         "route on every reload");
+  }
+  var rs = fn("restore");
+  if(!/S\.tier = \["ess", "core", "all"\]\.indexOf\(o\.tier\) >= 0 \? o\.tier : "all"/.test(rs)){
+    fail("restore() does not read the tier through the whitelist with \"all\" as " +
+         "the default — a save written before 4.8.0 must open wide, and a " +
+         "hand-edited value must not reach visible()");
+  }
+  var vis = optionalFn("visible", "nothing would filter the catalogue");
+  if(!/onRoute\(f\)/.test(vis)){
+    fail("visible() does not consult onRoute() — the tier would be a chip " +
+         "again, hiding rows and moving no count");
+  }
+  var or = optionalFn("onRoute", "the tier has no test");
+  if(/f\.o\b/.test(or) || /f\.b\b/.test(or) || !/tierOf\(f\)/.test(or)){
+    fail("onRoute() reads the raw flags instead of tierOf() — the belt and the " +
+         "chips must resolve the tier through one function (see section 4)");
+  }
+  var pools = {}, pooler = new vm.Script(fn("tierOf") + "\n" + or + "\n" + vis + "\nFILMS.filter(visible);");
+  ["all", "core", "ess"].forEach(function(t){
+    pools[t] = pooler.runInNewContext({FILMS: FILMS, S: {format:"all", scope:"all", tier:t}});
+  });
+  if(pools.all.length !== FILMS.length){
+    fail("the wide tier hides " + (FILMS.length - pools.all.length) + " entries — " +
+         "+ Optional must be the whole catalogue");
+  }
+  if(pools.core.some(function(f){ return tierOf(f) === "o"; })){
+    fail("the Core route pool carries an Optional entry — the reader is back " +
+         "to skipping by hand");
+  }
+  if(pools.core.some(function(f){ return tierOf(f) === "e"; }) === false){
+    fail("the Core route pool carries no Essential — Essentials are inside " +
+         "the Core route by definition; the middle pouch must not exclude them");
+  }
+  if(pools.ess.some(function(f){ return tierOf(f) !== "e"; })){
+    fail("the Essentials pool carries a non-essential entry");
+  }
+  if(!(pools.ess.length < pools.core.length && pools.core.length < pools.all.length)){
+    fail("the three tiers do not nest (" + pools.ess.length + " < " + pools.core.length +
+         " < " + pools.all.length + " expected) — a pouch that narrows nothing " +
+         "is a button with no meaning");
+  }
+  note("tier pools: " + pools.ess.length + " essentials, " + pools.core.length +
+       " core route, " + pools.all.length + " with optional");
+
+  /* The pouch. */
+  var ts = optionalFn("tierSwitch", "the belt has no tier pouch");
+  ["ess", "core", "all"].forEach(function(t){
+    if(ts.indexOf('"' + t + '"') < 0) fail("tierSwitch() offers no \"" + t + "\" button");
+  });
+  if(!/data-tier=/.test(ts)) fail("the tier pouch's buttons carry no data-tier");
+  [["Essentials", "ess"], ["Core route", "core"], ["\\+ Optional", "all"]].forEach(function(pair){
+    if(!new RegExp('\\["' + pair[1] + '","' + pair[0] + '"\\]').test(ts)){
+      fail("the tier pouch's " + pair[1] + " button does not read \"" +
+           pair[0].replace("\\", "") + "\" — the wording was settled before code: " +
+           "Essentials, Core route, + Optional, narrow to wide");
+    }
+  });
+  var fs = optionalFn("formatSwitch", "the belt has no format pouch");
+  if(!/\["all","Animated \+ live"\]/.test(fs)){
+    fail("the format pouch's wide button does not read \"Animated + live\" — " +
+         "\"All\" left the pouches in 4.8.0 so two rows never end in the same word");
+  }
+  [ts, fs, optionalFn("scopeSwitch")].forEach(function(src){
+    if(/>All</.test(src) || /"All"/.test(src) || /Everything/.test(src)){
+      fail("a pouch button says All or Everything — the pouches name what " +
+           "they hold, and the belt's summary word belongs to the buckle alone");
+    }
+  });
+  var ib = optionalFn("includeBlock", "there are no pouches to drop");
+  if(!/formatSwitch\(\)\+scopeSwitch\(\)\+tierSwitch\(\)/.test(ib)){
+    fail("includeBlock() does not drop the three pouches in order — format, " +
+         "scope, tier; the buckle's lines follow the same order");
+  }
+  var vh = fn("viewHome");
+  if(!/formatSwitch\(\)\+scopeSwitch\(\)\+tierSwitch\(\)/.test(vh)){
+    fail("the first-run chooser does not ask the tier — a first lander must " +
+         "answer all three under \"What are you watching\", the same rows at " +
+         "the larger size");
+  }
+  if(!/b\.dataset\.tier\)\{\s*S\.tier = b\.dataset\.tier; S\.groupOpen = \{\}; persist\(\); render\(\);/.test(HTML)){
+    fail("the tier buttons have no handler that sets S.tier, persists and " +
+         "re-renders — the pouch would be decoration");
+  }
+  if(!/"Optional added"/.test(HTML) || !/"Core route only"/.test(HTML) || !/"Essentials only"/.test(HTML)){
+    fail("the tier change does not toast — \"Series added\" / \"Films only\" have " +
+         "a sibling per tier so the reader hears what the count just did");
+  }
+
+  /* The buckle. */
+  var bl = optionalFn("buckleLines", "the buckle has nothing to say");
+  var lines = new vm.Script(bl + "\nbuckleLines;");
+  function linesFor(st){ return lines.runInNewContext({S: st})(); }
+  var wide = linesFor({format:"all", scope:"all", tier:"all"});
+  if(wide.length !== 1 || wide[0] !== "Every Batman"){
+    fail("nothing narrowed, and the buckle reads " + JSON.stringify(wide) +
+         " instead of [\"Every Batman\"] — the one state with nothing to list " +
+         "gets the app's own two words");
+  }
+  var three = linesFor({format:"anim", scope:"movies", tier:"core"});
+  if(three.join("|") !== "Animated|Movies|Core route"){
+    fail("three narrowings, and the buckle reads " + JSON.stringify(three) +
+         " — one line per pouch, in pouch order: Animated, Movies, Core route");
+  }
+  var one = linesFor({format:"all", scope:"all", tier:"ess"});
+  if(one.join("|") !== "Essentials"){
+    fail("only the tier narrowed, and the buckle reads " + JSON.stringify(one) +
+         " — a wide pouch is silent; only Essentials should show");
+  }
+  var two = linesFor({format:"live", scope:"all", tier:"all"});
+  if(two.join("|") !== "Live action"){
+    fail("only the format narrowed, and the buckle reads " + JSON.stringify(two));
+  }
+  var mc = optionalFn("masterChooser", "there is no belt at all");
+  if(!/class="bst">'\+esc\(lines\[0\]\)/.test(mc) ||
+     !/lines\.slice\(1\)\.map\(function\(l\)\{ return '<span class="bs2">'\+esc\(l\)/.test(mc)){
+    fail("the buckle does not render buckleLines() as one bst line over bs2 " +
+         "lines — the first narrowing is the headline, the rest sit under it");
+  }
+  if(!/S\.tier/.test(mc) || !/aria-label="What is included: '\+esc\(fmt\)\+', '\+esc\(scp\)\+', '\+esc\(tier\)/.test(mc)){
+    fail("the buckle's label does not read all three answers in full — a " +
+         "silent wide pouch is a visual rule; the accessible name says everything");
+  }
+
+  /* The stack. */
+  if(!/\.includes \.scope\.tier\{z-index:0;margin:-5px 22px 0;\}/.test(HTML)){
+    fail("the third pouch is not the third step of the stair — inset 22px under " +
+         "the scope pouch's 11px, painted beneath it");
+  }
+  if(!/\.includes\.closing \.scope\.tier\{--out:-305%;\}/.test(HTML)){
+    fail("the third pouch has no closing travel of its own — it would tuck to " +
+         "the scope pouch's -210% and stop short of the belt");
+  }
+  if(!/\.includes\.opening \.scope:nth-of-type\(2\)\{animation-delay:\.05s;\}/.test(HTML) ||
+     !/\.includes\.closing \.scope:nth-of-type\(2\)\{animation-delay:\.04s;\}/.test(HTML)){
+    fail("the middle pouch has no delay of its own — with three pouches the " +
+         "stagger is first / middle / last on the way out and back");
+  }
+  var home = (HTML.match(/\n\.scope button\{[^}]*\}/) || [""])[0];
+  if(!/white-space:nowrap/.test(home)){
+    fail("the chooser's switch labels can wrap — \"Animated + live\" broke " +
+         "across two lines at 390px before nowrap; the row grows instead");
+  }
+
+  /* Honesty downstream. */
+  var eb = optionalFn("everyBatman", "nothing decides when the whole catalogue is meant");
+  if(!/S\.format === "all" && S\.scope === "all" && S\.tier === "all"/.test(eb)){
+    fail("everyBatman() does not test all three axes — \"every Batman there " +
+         "is\" would be said of an animated-films-only run");
+  }
+  var claims = HTML.split("every Batman there is").length - 1;
+  if(claims !== 1 || !/every Batman there is/.test(fn("allLoggedWord"))){
+    fail("\"every Batman there is\" appears " + claims + " time(s) in index.html — " +
+         "it lives once, inside allLoggedWord(), gated on everyBatman()");
+  }
+  if(!/S\.tier === "ess" \? "" :\s*'<button class="trow" data-act="tier" data-tf="core"/.test(vh) ||
+     !/S\.tier !== "all" \? "" :\s*'<button class="trow" data-act="tier" data-tf="opt"/.test(vh)){
+    fail("Home's tier tiles ignore the belt — an Optional tile reading 0/0 under " +
+         "the Core route is the denominator lying in a second place");
+  }
+  var vw = fn("viewWatch");
+  if(!/S\.filter === "opt" && S\.tier !== "all"/.test(vw) || !/data-tier="all"/.test(vw)){
+    fail("The path's Optional chip has no empty state for a narrowed belt — " +
+         "\"Nothing in this filter yet\" is wrong there; the entries exist and " +
+         "the belt is hiding them, so the state says so and offers Add optional");
+  }
+  var cs = fn("chipSet");
+  ["ess", "core", "opt"].forEach(function(k){
+    if(cs.indexOf('"' + k + '"') < 0){
+      fail("the " + k + " chip left The path — the chips stay, all seven: a " +
+           "glance must not need the belt (owner's call, 26 Aug 2026)");
+    }
+  });
+  var card = fn("drawShareCard");
+  if(!/CORE ROUTE/.test(card) || !/ESSENTIALS/.test(card) || !/allLoggedWord\(\)/.test(card)){
+    fail("the share card does not carry the route — a 100% card for the Core " +
+         "route would read as the whole catalogue");
+  }
 })();
 
 /* ---------- report ---------- */

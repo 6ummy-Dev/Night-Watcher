@@ -11,6 +11,109 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.8.0] — 2026-08-26
+
+**The third pouch.** Until now the tier lived only in The path's chips,
+and a chip hides rows without moving a count. So a reader following the
+Core route had to skip every Optional entry by hand to reach 100%, the
+Skipped tally carried the cost, and the share card showed steel where
+there was never anything to skip. The tier is now the third pouch on the
+belt, beside format and scope, and it feeds `visible()` the way those two
+do — one term, through `tierOf()`, so the belt and the chips can never
+disagree about what "Core route" means (Essentials inside, Optional
+out). Every count on the page follows from `pool()`, which is why the
+change is one term and not forty. Skip goes back to the job it was built
+for: "not this one, not now" — the reader with an announced title on the
+route still skips it and unskips it when it lands. The chips stay, all
+seven; a glance must not need the belt. Owner's calls, 26 August, all
+before code: the third pouch itself; the wording, settled against two
+rows ending in the same word; the closed buckle's rule; and the chips.
+
+### Added
+
+- **A tier pouch: Essentials / Core route / + Optional.** `S.tier`
+  (`ess`, `core`, `all`), persisted beside `scope` and `format`, read
+  back through a whitelist that defaults wide — a save written before
+  4.8.0 opens with + Optional, so nobody's denominator moves overnight
+  (the 1.5.0 rule). `onRoute(f)` is the one test; `visible()` calls it
+  and `groupsKey()` carries the tier, so the group cache invalidates
+  with it. The pools nest: 28 essentials inside 74 core route inside 200.
+  Toasts on change, in the scope row's voice: "Optional added", "Core
+  route only", "Essentials only". The first-run chooser asks the same
+  third question under "What are you watching", at the larger size.
+- **The buckle names only what is narrowed.** One line per pouch, in
+  pouch order — Animated, Movies, Core route — and when nothing is
+  narrowed there is nothing to list, so it reads the app's own two words:
+  EVERY BATMAN. The accessible name still reads all three answers in
+  full. Measured before it was built: the slot is 55px at 390 and grows
+  with its content; every line here is under the 62px "Movies + Series"
+  already took, and three lines fit the 44px belt.
+- **The Optional chip explains a narrowed belt.** Under the Core route or
+  the Essentials, tapping Optional used to say "Nothing in this filter
+  yet", which was false — the entries exist, the belt is hiding them.
+  The empty state now says so, names the setting, and offers **Add
+  optional** (the same `data-tier` handler; the "Search everything" shape
+  from 1.7.5).
+- **Section 152** holds the whole shape: the declaration, the write, the
+  whitelisted read, `onRoute()` through `tierOf()`, the three pools
+  nesting with the Essentials kept inside the Core route, the pouch's
+  three labels, the format row's wide label, no pouch button saying All
+  or Everything, the drop order, the first-run row, the handler and the
+  toasts, `buckleLines()` run against four states, the buckle's markup
+  and label, the stair's third step and its closing travel and stagger,
+  the chooser rows' nowrap, `everyBatman()` on all three axes, "every
+  Batman there is" living exactly once, Home's tiles, the Optional chip's
+  empty state, the seven chips, and the share card's route line.
+  **negtest600**, 36 fixtures: 33 against the section, 3 smoke. Smoke
+  gains 30 checks (391): the pouch driven through its real buttons, the
+  count, the storage, the toast, the buckle in four states, the chip's
+  empty state and Add optional, Home's tiles, the first-run row, and
+  three cold boots — no tier, a Core-route save, a junk tier.
+
+### Changed
+
+- **"All" left the pouches.** The format row's wide button reads
+  **Animated + live**; the tier row's reads **+ Optional**; the scope
+  row already read Movies + Series. Every pouch button names what it
+  holds, and the belt's one summary word belongs to the buckle alone —
+  two rows ending in "All" was the confusion the wording was settled
+  against. The chooser's rows drop to the pouches' `.05em` tracking with
+  `white-space:nowrap` and 4px side padding, because "Animated + live" at
+  `.09em` broke across two lines at 390 (the 1.5.7 lesson, at the other
+  size); the third button may run a few pixels wider than its neighbours
+  at 375 and 360 rather than wrap.
+- **The stair has three steps.** `.scope.tier` sits under the scope pouch
+  at 22px inset and `z-index:0`, closes on its own travel (`--out:-305%`),
+  and the middle pouch gets its own stagger on the way out (.05s) and back
+  (.04s), so the three tuck first / middle / last.
+- **"Every Batman there is" is said once, and only when it is true.**
+  `everyBatman()` tests all three axes; `allLoggedWord()` says "every
+  entry on the route" otherwise. The Next up close, the Home hero's blurb
+  ("every side story" only with + Optional) and the share card's 100%
+  line all read through it, and the card's tag line carries CORE ROUTE
+  or ESSENTIALS beside the format and the path.
+- **Home's tier tiles follow the belt.** Under the Core route the Optional
+  tile goes (it would read 0/0 — the denominator lying in a second
+  place); under the Essentials only the Essentials tile stays.
+- **FAQ Q3** gains one sentence: the belt can set the count to the core
+  route, or to the essentials alone, so there is nothing to skip.
+  `buildFAQ()` is still the single source; the bless moves the seed and
+  the FAQPage node together.
+- **Weight.** 222.0 KB raw / 63.6 KB gzipped (+2,620 B raw over 4.7.0;
+  script bytes 146,167 → 148,325). README quotes 222 / 64. The 250 KB
+  ceiling stands.
+
+### Not done, and why
+
+- **No `#core` / `#essentials` deep-link tokens.** Guard 72's route
+  vocabulary is a published interface and stays frozen; the tier is a
+  preference, like the scope preference a link may not overwrite (1.7.5).
+- **No migration of existing skips.** An entry skipped as a workaround
+  simply leaves the count while the belt is narrow and comes back, skip
+  intact, when it widens. Nothing to untangle, so nothing is touched.
+- **Backup codes and the JSON file still carry no tier**, as they carry
+  no scope and no format: progress and path only, by design (1.5.0).
+
 ## [4.7.0] — 2026-08-26
 
 **The cover, and the audit's bundle.** A phone showed the crawlable seed

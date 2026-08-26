@@ -11,7 +11,7 @@ decision, that is because it was.
 Three other places carry part of the story and are not repeated here:
 
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 151 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 152 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -231,8 +231,24 @@ open, so anything else in here is noise from a hand-edited payload.
 
 ### `visible()`
 
-Two axes now. Format asks which kind of Batman; scope asks how much of it.
-Format narrows first, then scope narrows within it.
+Three axes. Format asks which kind of Batman; scope asks how much of it;
+the tier (4.8.0) asks how deep. Format narrows first, then scope within it,
+then the route within that — through `onRoute()`, never a raw flag.
+
+### `onRoute()`
+
+The tier's one test, through `tierOf()` like the chips, so the belt and the
+chips can never disagree about what "Core route" means: everything that is
+not Optional, Essentials inside. `S.tier` is `ess`, `core` or `all`; a save
+without one opens `all` — nobody's denominator moves overnight (the 1.5.0
+rule for format, applied again). See "The third pouch" below.
+
+### `everyBatman()`
+
+"Every Batman there is" is a claim about the whole catalogue, and it is
+only true when no pouch narrows anything. `allLoggedWord()` says "every
+entry on the route" otherwise; the Next up close, the Home hero and the
+share card's 100% line all read through it, so the phrase lives once.
 
 ### `yearSpan()`
 
@@ -453,9 +469,33 @@ Restore merges progress; it must not overwrite a path chosen here.
 
 ### `formatSwitch()`
 
-Format asks which kind of Batman, scope asks how much of it. Two questions of
-the same sort, so they sit together — the path control above answers a
-different one entirely, which is how you tell them apart without a label.
+Format asks which kind of Batman, scope asks how much of it, the tier asks
+how deep. Three questions of the same sort, so they sit together — the path
+control above answers a different one entirely, which is how you tell them
+apart without a label. No button in any row says "All" since 4.8.0: the
+format row ends in "Animated + live", the scope row in "Movies + Series",
+the tier row in "+ Optional". Each names what it holds; the belt's one
+summary word belongs to the buckle.
+
+### `tierSwitch()`
+
+Essentials / Core route / + Optional, narrow to wide, left to right like
+the other two rows. "Core route" includes the Essentials — the chip has
+meant that since 1.x and the legend says "the main route" with Essential a
+badge on top — so the middle button never needed a second word. The wide
+button is written as an addition, the way "Movies + Series" is, so nobody
+reads it as excluding what came before it.
+
+### `buckleLines()`
+
+The closed buckle names only what has been narrowed, one line per pouch,
+in pouch order. A wide pouch is silent: it is the default and says nothing
+worth reading. Nothing narrowed is the one state with nothing to list, and
+it gets the app's own two words, EVERY BATMAN. Measured before it was
+built: the slot is about 55px at 390 and grows with its content; every
+line is under the 62px "Movies + Series" already took, and three lines at
+8/7/7px fit the 44px belt. The accessible name is not silent — it reads
+all three answers in full.
 
 ### `masterChooser()`
 
@@ -1010,7 +1050,11 @@ block. The path control above answers a different one.
 
 ### `.includes`
 
-Shorter than the path row, not smaller. Squeezing format and scope onto one
+Three pouches since 4.8.0 — format, scope, tier — each one step further
+in: 0, 11px, 22px, painted in that order (`z-index` 2, 1, 0), with the
+middle one given its own stagger (.05s out, .04s back) and the third its
+own closing travel (`--out:-305%`) so the stair tucks first / middle /
+last. Shorter than the path row, not smaller. Squeezing format and scope onto one
 line by shrinking the type broke both labels across two lines instead — the
 type size was doing work the palette does better. Height and type size are
 separable: the block gives back 8px of height at the same 9px type, so
@@ -3836,6 +3880,85 @@ the decision held.
 The sealed backlog said the ceiling's fifth number was the owner's to
 give before a feature started; it is 250, on the record 26 Aug, the same
 day. 80 KB gzipped is unchanged and was never approached (63.0).
+
+## The third pouch: the tier becomes an include axis
+
+4.8.0. The owner's brief was one sentence: if someone only wants the core
+or the essential route, why do they have to skip? The answer was in the
+architecture. The Belt held two "what is included" settings, format and
+scope, and both fed `visible()`, which builds `pool()`, which is the one
+source for everything that counts — the header ring, the scoreboard, Next
+up and its queue, the universe / era / decade bars, the skyline, the share
+card. The chips on The path were a different thing entirely: a sieve on
+rows inside `groupBlock()` that touched no denominator. So the tier had
+never been an include setting, only a view filter, and the workaround was
+to skip a hundred-odd Optional entries one by one — per-entry state that
+polluted the Skipped count and put steel on the share card where there was
+never anything to skip.
+
+**One term, not forty.** `S.tier` beside `scope` and `format`, one call to
+`onRoute()` at the end of `visible()`, and the tier appended to
+`groupsKey()` so the group cache invalidates with it. Every count follows
+without further code, because they all read `pool()`. `onRoute()` goes
+through `tierOf()` — section 4 has refused the raw `f.o` flag since the
+9-season gap, and the new section 152 refuses it in this function by name
+— so the belt and the chips resolve the tier through one function and
+can never disagree about what "Core route" means. Skip goes back to the
+job it was built for, "not this one, not now": the reader who skipped an
+announced title on the route still does, and unskips it when it lands.
+Route decides what counts; Skip decides what you are stepping past inside
+what counts. Two questions, two controls, and they compose: an entry that
+is both skipped and off-route leaves the count while the belt is narrow
+and comes back, skip intact, when it widens. No migration.
+
+**The chips stay, all seven.** The owner's call, and the right one: a
+filter is a glance, and a glance must not need the belt opened in that
+tab. The four status chips are about what you have done inside the route
+and are untouched. The three tier chips overlap the new setting only
+partly — under + Optional they are a peek that moves no number; under a
+narrower belt the Optional chip can show nothing, and it used to say
+"Nothing in this filter yet", which was false. It now says the entries
+are outside the route, names the setting, and offers Add optional through
+the same handler (the "Search everything" shape from 1.7.5).
+
+**The wording took four rounds, all before code.** The first draft ended
+the tier row in "Everything", and the format row already ended in "All":
+two synonyms on two rows, one belt. "Both" for the format row was
+rejected because a closed buckle reading BOTH means nothing. "Core +
+Optional" for the wide tier was rejected because a reader who does not
+know the tiers may read it as excluding the Essentials. The settlement:
+no button in any pouch says All. The format row ends in "Animated +
+live", the scope row in "Movies + Series", the tier row in "+ Optional"
+— each an addition, each naming what it holds, the plus the same plus
+throughout. Inside a row "All" would have been unambiguous, but the rows
+sit stacked, and two rows ending in the same word is what the reader sees.
+
+**The buckle names only the narrowings.** The old buckle echoed two
+buttons — "All" over "Movies" — and a third line would have made "All"
+ambiguous the moment a second wide word sat under it. The rule now: a
+wide pouch is silent, because wide is the default and says nothing worth
+reading; each narrowing is a line, in pouch order; and when nothing is
+narrowed there is nothing to list, so the buckle collapses to the app's
+own two words, EVERY BATMAN — the project's tagline, and the words the
+share card says at 100%. The design rests on one assumption, stated so it
+can be checked: silence has to be learnable. A buckle reading only
+ANIMATED is saying series and Optional are in. It is, because every
+narrowing is a choice the reader made a moment ago and opening the belt
+shows all three rows anyway. The accessible name does not rely on that —
+it reads all three answers in full. All of it was measured before it was
+built: the slot is 55px at 390 and grows with content, "Movies + Series"
+already took 62px, three lines fit the 44px belt, and "Essentials + Core
++ Optional" at 116px was out of the question, which is why the additive
+form lives in the pouch and not on the buckle.
+
+**What broke on the way.** "ANIMATED + LIVE" at the chooser's 10px and
+`.09em` tracking wrapped across two lines at 390 — the 1.5.7 failure at
+the other size. The rows now take the pouches' `.05em` with `nowrap` and
+4px side padding, and the third button runs a few pixels wider than its
+neighbours at 375 and 360 rather than wrap; measured at 390, 375 and 360
+before it was accepted. And "every Batman there is" was said in three
+places on any 100% run, including an animated-films-only one; it now
+lives once, gated on all three axes.
 
 ## The seal: what a tree says about itself has to be true
 
