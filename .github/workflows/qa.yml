@@ -44,6 +44,10 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+          # engines pins ^22.22.2 and .npmrc says engine-strict, so a runner
+          # image whose cached Node 22 lags the patch hard-fails at npm ci;
+          # check-latest asks for the newest 22 instead of the cached one.
+          check-latest: true
           cache: npm
 
       # ci, not install: the lockfile is committed so that what runs here is
@@ -58,14 +62,17 @@ jobs:
   # not only on pull requests: releases here are direct commits to main, so a
   # PR-gated job never runs (it did not, for a long time — NOTES.md).
   #
-  # Cost: 1012 fixtures, of which 948 run guards.js and 64 run smoke.js — most
+  # Cost: 1113 fixtures, of which 1049 run guards.js and 64 run smoke.js — most
   # of those scoped to one phase by SMOKE_ONLY. The split is guarded in this
   # file the same as the README's counts, so the next drift fails the build.
   # run-all.sh dispatches longest-first; this job shards 4-way on top, packed
   # by fixture weight (a smoke fixture costs about forty guards fixtures), so
   # the wall clock is a quarter-shard, not the tail of one runner. The
   # fixture-count guard runs per shard off the full checkout, so every shard
-  # still verifies the totals against all suites on disk.
+  # still verifies the totals against all suites on disk. The packing is
+  # greedy by weight, heaviest suite into the lightest shard (4.9.0 — the
+  # hand-packed lists had drifted to 1042 / 807 / 855 / 804, one shard 30%
+  # over the others); repack when a suite lands, and say the four weights.
   negative:
     runs-on: ubuntu-latest
     # Room for a shard's serial worst case, short enough that a fixture wedged
@@ -78,19 +85,23 @@ jobs:
       matrix:
         include:
           - shard: "1"
-            pick: 'negtest(186|252|260|270|271|300|320|340|390|440|470|510|560|590|600)\.sh'
+            pick: 'negtest(131|177|186|190|200|210|252|300|320|330|370|380|470|580)\.sh'
           - shard: "2"
-            pick: 'negtest(163|165|171|175|177|187|220|310|350|380|410|478|500|530|540)\.sh|negtest\.sh'
+            pick: 'negtest(161|166|175|180|220|250|251|260|273|340|390|420|430|476|478|480|560|570|610)\.sh'
           - shard: "3"
-            pick: 'negtest(131|162|164|166|180|185|190|200|250|330|360|370|430|460|476|490|550|570)\.sh'
+            pick: 'negtest(162|165|171|172|182|185|187|195|270|271|272|310|410|475|520|530|540|600)\.sh'
           - shard: "4"
-            pick: 'negtest(161|170|172|176|181|182|183|195|210|251|272|273|400|420|450|475|480|520|580)\.sh'
+            pick: 'negtest(163|164|170|176|181|183|350|360|400|440|450|460|490|500|510|550|590)\.sh|negtest\.sh'
     steps:
       - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+          # engines pins ^22.22.2 and .npmrc says engine-strict, so a runner
+          # image whose cached Node 22 lags the patch hard-fails at npm ci;
+          # check-latest asks for the newest 22 instead of the cached one.
+          check-latest: true
           cache: npm
 
       - run: npm ci
@@ -153,6 +164,10 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+          # engines pins ^22.22.2 and .npmrc says engine-strict, so a runner
+          # image whose cached Node 22 lags the patch hard-fails at npm ci;
+          # check-latest asks for the newest 22 instead of the cached one.
+          check-latest: true
           cache: npm
 
       - run: npm ci
