@@ -39,8 +39,8 @@ s=s.replace(a,'window.scrollTo(0,0); render();',1);${W}"
 
 run_case "the drift anchor reaches for window.scrollBy" \
   "index.html calls window.scrollBy" \
-  "${P}a='if(qDrift) scrollPut(scrollKeep() + qDrift);';assert a in s
-s=s.replace(a,'if(qDrift) window.scrollBy(0, qDrift);',1);${W}"
+  "${P}a='if(drift) scrollPut(scrollKeep() + drift);';assert a in s
+s=s.replace(a,'if(drift) window.scrollBy(0, drift);',1);${W}"
 
 run_case "the retraction listener binds to window again" \
   "a scroll listener is bound to window" \
@@ -69,7 +69,7 @@ s=s.replace(a,'',1)
 a='requestAnimationFrame(function(){ scrollPut(keep); vp.classList.remove(\"settling\"); });'
 assert a in s
 s=s.replace(a,'requestAnimationFrame(function(){ vp.classList.remove(\"settling\"); });',1)
-b='if(qDrift) scrollPut(scrollKeep() + qDrift);'
+b='if(drift) scrollPut(scrollKeep() + drift);'
 assert b in s
 s=s.replace(b,'',1);${W}"
 

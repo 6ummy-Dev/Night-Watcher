@@ -93,14 +93,14 @@ s=s.replace(a,'',1);b='<body>\\n';assert b in s;s=s.replace(b,b+a,1);${W}" \
 
 run_case "splashOff() is never called" \
   "is not called after the first render" \
-  "${P}a='  snapTo(S.tab);\\n  splashOff();\\n';assert a in s
-s=s.replace(a,'  snapTo(S.tab);\\n',1);${W}" \
+  "${P}a='} finally {\\n  splashOff();\\n}';assert a in s
+s=s.replace(a,'} finally {\\n}',1);${W}" \
   guards "" 151
 
 run_case "splashOff() is called before the first render" \
   "is not called after the first render" \
-  "${P}a='  render();\\n  snapTo(S.tab);\\n  splashOff();\\n';assert a in s
-s=s.replace(a,'  splashOff();\\n  render();\\n  snapTo(S.tab);\\n',1);${W}" \
+  "${P}a='try{\\n  render();\\n  snapTo(S.tab);\\n} finally {\\n  splashOff();\\n}';assert a in s
+s=s.replace(a,'splashOff();\\ntry{\\n  render();\\n  snapTo(S.tab);\\n} finally {\\n}',1);${W}" \
   guards "" 151
 
 run_case "splashOff() holds the cover on a timer" \

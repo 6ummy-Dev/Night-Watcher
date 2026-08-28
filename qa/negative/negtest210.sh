@@ -80,10 +80,10 @@ run_case "llms.txt is deleted" \
   "import os;os.remove('docs/llms.txt')"
 
 run_case "an llms.txt count drifts" \
-  "llms.txt says 134 films" \
+  "llms.txt says 138 films" \
   "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read()
-a='133 films';assert a in s
-s=s.replace(a,'134 films',1)
+a='137 films';assert a in s
+s=s.replace(a,'138 films',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
 run_case "llms.txt is smuggled into the shell" \

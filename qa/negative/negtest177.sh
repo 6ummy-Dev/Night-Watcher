@@ -15,8 +15,8 @@ blk=s[i:j];assert 'buildGroups()' in blk
 s=s[:i]+blk.replace('buildGroups()','GROUPS_CACHE')+s[j:];${W}"
 
 run_case "a decade key loses its branch in goToGroup" \
-  'has no branch for a "d" key' \
-  "${P}a='(jk.charAt(0) === \"d\") ? \"release\" : ';assert a in s;s=s.replace(a,'',1);${W}"
+  'GROUPINGS has no row for the "d" key' \
+  "${P}a='  {mode:\"release\", prefix:\"d\",';assert a in s;s=s.replace(a,'  {mode:\"release\", prefix:\"x\",',1);${W}"
 
 # 3.3.2. The jump landed nowhere for a whole release because it asked for a
 # smooth scroll across a content-visibility:auto list, and the only instrument
@@ -32,7 +32,7 @@ run_case "the jump stops scrolling to the group it opened" \
   "${P}i=s.index('function goToGroup(');j=s.index('function ',i+10)
 blk=s[i:j];assert 'scrollIntoView' in blk
 import re
-blk2=re.sub(r'  if\(target && target\.scrollIntoView\)\{[\s\S]*?\n  \}\n','',blk,count=1)
+blk2=re.sub(r'  if\(target\) target\.scrollIntoView\(\{block:\"start\"\}\);\n','',blk,count=1)
 assert 'scrollIntoView' not in blk2
 s=s[:i]+blk2+s[j:];${W}"
 

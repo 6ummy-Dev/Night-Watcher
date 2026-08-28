@@ -80,8 +80,8 @@ s=s.replace(a,', log:S.log}',1);${W}"
 echo "--- 88: the universe chip describes the universe"
 run_case "the chip is taken off the filtered list" \
   "eraTag() takes the unfiltered group" \
-  "${P}a='tag:eraTag(g),';assert a in s
-s=s.replace(a,'tag:eraTag({films:g.films.filter(function(f){return f.k!==\"tv\";})}),',1);${W}"
+  "${P}a='tag:gr.tag(g),';assert a in s
+s=s.replace(a,'tag:gr.tag(fs),',1);${W}"
 
 # 3.0.0: THIS MUTATION TRIPPED NOTHING AT ALL. It made eraTag() read a list
 # with television removed on BOTH scopes, so the chip was consistently wrong and
@@ -92,8 +92,8 @@ s=s.replace(a,'tag:eraTag({films:g.films.filter(function(f){return f.k!==\"tv\";
 # was written against: The Batman (2004) reads 2 with series shown and 3 without.
 run_case "and the rendered chip moves when the scope does" \
   "the universe chip does not move when the scope does" \
-  "${P}a='tag:eraTag(g),';assert a in s
-s=s.replace(a,'tag:eraTag(S.scope===\"movies\"?{films:g.films.filter(function(f){return f.k!==\"tv\";})}:g),',1);${W}" \
+  "${P}a='tag:eraTag, sort:null';assert a in s
+s=s.replace(a,'tag:function(g){ return eraTag(S.scope===\"movies\"?{films:g.films.filter(function(f){return f.k!==\"tv\";})}:g); }, sort:null',1);${W}" \
   "smoke" "main"
 
 echo "--- 89: the amnesty window is closed"

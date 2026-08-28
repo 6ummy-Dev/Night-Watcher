@@ -52,17 +52,17 @@ run_case "the noindex injection comes back" \
   "the off-canonical noindex injection is back" \
   "${P}a='function flagSave(){';assert a in s
 s=s.replace(a,'function offCanonical(){ return true; }\nfunction flagSave(){',1)
-a2='restore(function(){'
+a2='\nrestore();'
 assert a2 in s
 s=s.replace(a2,'if(offCanonical()){var n=document.createElement(\"meta\");n.setAttribute(\"name\",\"robots\");n.setAttribute(\"content\",\"noindex, follow\");document.head.appendChild(n);}\n'+a2,1);${W}"
 
 echo "--- 114: the README may not promise a dead address"
-R="import io;p='README.md';s=io.open(p,encoding='utf-8').read();"
+R="$(pro README.md)"
 RW="io.open(p,'w',encoding='utf-8').write(s)"
 run_case "the README promises the retired address again" \
   "still works and always will" \
-  "${R}a='The old GitHub Pages mirror was unpublished';assert a in s
-s=s.replace(a,'The old GitHub Pages address still works and always will. It was unpublished',1);${RW}"
+  "${R}a='(the GitHub Pages mirror\nit started on was unpublished';assert a in s
+s=s.replace(a,'(the old GitHub Pages address still works and always will; the mirror it started on was unpublished',1);${RW}"
 
 echo "--- the addresses themselves"
 run_case "the canonical link is left pointing at the old home" \

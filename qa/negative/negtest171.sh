@@ -3,7 +3,7 @@
 # era-direction rule, the bag exemption, and the per-entry format override.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
+G="$(pro qa/guards.js)"
 
 echo "--- 68: an era is fully positioned or not positioned at all"
 run_case "one entry loses its position" \

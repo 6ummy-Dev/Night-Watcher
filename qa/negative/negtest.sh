@@ -3,7 +3,7 @@
 # runs the guards, and requires the EXACT expected message to appear.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
+G="$(pro qa/guards.js)"
 
 echo "--- guard 55: levels 2-3 are shorter, at unchanged type size"
 run_case "rows the same height again" \
@@ -98,7 +98,7 @@ run_case "format swatches lose their badge classes" \
   "the legend does not explain the format badges" \
   "${P}a='class=\\\"bd fmlive\\\"';assert a in s;s=s.replace(a,'class=\\\"fmlive\\\"');${W}"
 
-echo "--- guard 58: Then is the tab, not the gap (card cases retired in 1.6.3 —\n     the guard now holds the proportion, not the container; see negtest163.sh)"
+echo "--- guard 58: Then is the tab, not the gap (card cases retired in 1.6.3 — the guard now holds the proportion, not the container; see negtest163.sh)"
 run_case "Then loses its numbers" \
   "the Then rows lost their numbers" \
   "${P}a='class=\\\"qn\\\"';assert a in s;s=s.replace(a,'class=\\\"qnum\\\"');${W}"

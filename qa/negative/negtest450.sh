@@ -18,23 +18,23 @@
 
 run_case "141: the life sort goes back to an anonymous function" \
   "no longer sorts the life ordering" \
-  "${P}old='fs.sort(lifeCmp);';assert old in s;s=s.replace(old,'fs.sort(function(a,b){ return (a.lo||9999)-(b.lo||9999); });',1);${W}"
+  "${P}old='sort:lifeCmp}';assert old in s;s=s.replace(old,'sort:function(a,b){ return (a.lo||9999)-(b.lo||9999); }}',1);${W}"
 
 run_case "141: the release sort points at something else" \
   "no longer sorts the release ordering" \
-  "${P}old='fs.sort(releaseCmp);';assert old in s;s=s.replace(old,'fs.sort(cmpX);',1);${W}"
+  "${P}old='sort:releaseCmp}';assert old in s;s=s.replace(old,'sort:cmpX}',1);${W}"
 
 run_case "141: an inline comparator creeps back into buildGroups" \
   "has an inline comparator again" \
-  "${P}old='fs.sort(releaseCmp);';assert old in s;s=s.replace(old,'fs.sort(function(a,b){ return a.y-b.y; });',1);${W}"
+  "${P}old='    if(gr.sort) fs.sort(gr.sort);';assert old in s;s=s.replace(old,'    if(gr.sort) fs.sort(function(a,b){ return gr.sort(a,b); });',1);${W}"
 
 run_case "141: lifeCmp stops keying on the manual life order" \
   "it settles order inside one era" \
   "${P}old='((a.lo || 9999) - (b.lo || 9999)) || (a.gi - b.gi) || (a.ix - b.ix)';assert old in s;s=s.replace(old,'(a.gi - b.gi) || (a.ix - b.ix)',1);${W}"
 
 run_case "141: releaseCmp stops keying on the year" \
-  "no longer keys on the year and the title" \
-  "${P}old='return (a.y - b.y) || a.t.localeCompare(b.t);';assert old in s;s=s.replace(old,'return a.gi - b.gi;',1);${W}"
+  "no longer keys on the year, then the catalogue" \
+  "${P}old='return (a.y - b.y) || (a.gi - b.gi) || (a.ix - b.ix);';assert old in s;s=s.replace(old,'return a.gi - b.gi;',1);${W}"
 
 run_case "141: an ordering goes missing from orders.txt" \
 "the header promises three orderings" \

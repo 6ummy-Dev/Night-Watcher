@@ -49,15 +49,15 @@ s=s.replace(a,'var BYID = {};',1);${W}"
 
 echo "--- 127: a failed read stops the writes"
 
-run_case "the async rejection leaves saving on" \
+run_case "the read failure leaves saving on" \
   "failed read no longer stops the writes" \
-  "${P}a='function(){ readFailed = true; canSave = false; finish(null); }';assert a in s
-s=s.replace(a,'function(){ finish(null); }',1);${W}"
+  "${P}a='  catch(e){ readFailed = true; canSave = false; return; }';assert a in s
+s=s.replace(a,'  catch(e){ return; }',1);${W}"
 
-run_case "one of the three failure paths stops latching" \
-  "latches readFailed on all three of its failure paths" \
-  "${P}a='}catch(e){ readFailed = true; canSave = false; finish(null); }';assert a in s
-s=s.replace(a,'}catch(e){ canSave = false; finish(null); }',1);${W}"
+run_case "one of the two failure paths stops latching" \
+  "latches readFailed on both of its failure paths" \
+  "${P}a='  }catch(e){ readFailed = true; canSave = false; }\n}\n';assert a in s
+s=s.replace(a,'  }catch(e){ canSave = false; }\n}\n',1);${W}"
 
 run_case "persist writes without asking whether the read worked" \
   "persist() writes without asking whether the read succeeded" \
@@ -79,28 +79,28 @@ echo "--- 127: a failed write does not stop them forever"
 
 run_case "the write failure latches with no way back" \
   "has no way back from a write failure" \
-  "${P}a='    p.then(saveWorked, saveFailed);'
+  "${P}a='  try{ store.set(KEY, JSON.stringify(payload)); saveWorked(); }'
 assert a in s
-s=s.replace(a,'    p.catch(saveFailed);',1)
+s=s.replace(a,'  try{ store.set(KEY, JSON.stringify(payload)); }',1)
 a2='function saveWorked(){ if(!canSave){ canSave = true; flagSave(); } }\n';assert a2 in s
 s=s.replace(a2,'',1);${W}"
 
 run_case "the old catch-and-latch shape comes back" \
   "that is the 2.4 shape returning" \
-  "${P}a='    p.then(saveWorked, saveFailed);';assert a in s
-s=s.replace(a,'    p.catch(function(){ canSave = false; flagSave(); });',1);${W}"
+  "${P}a='  try{ store.set(KEY, JSON.stringify(payload)); saveWorked(); }\n  catch(e){ saveFailed(); }';assert a in s
+s=s.replace(a,'  try{ store.set(KEY, JSON.stringify(payload)); saveWorked(); }\n  catch(e){ canSave = false; flagSave(); }',1);${W}"
 
 echo "--- 127: a restored container has to be a container"
 
 run_case "watched is taken straight off the payload again" \
   "takes a progress container straight off the parsed payload again" \
-  "${P}a='S.watched = marksOf(o.watched); S.skipped = marksOf(o.skipped);';assert a in s
-s=s.replace(a,'S.watched = o.watched || {}; S.skipped = o.skipped || {};',1);${W}"
+  "${P}a='  {k:\"watched\",      read:marksOf},';assert a in s
+s=s.replace(a,'  {k:\"watched\",      read:function(v){ return v || {}; }},',1);${W}"
 
 run_case "ratings skip the shaping pass" \
   "no longer shapes all three progress containers" \
-  "${P}a='S.rated = ratingsOf(o.rated);';assert a in s
-s=s.replace(a,'S.rated = o.rated ? o.rated : {};',1);${W}"
+  "${P}a='  {k:\"rated\",        read:ratingsOf},';assert a in s
+s=s.replace(a,'  {k:\"rated\",        read:function(v){ return v ? v : {}; }},',1);${W}"
 
 run_case "marksOf keeps whatever value it is handed" \
   "no longer normalises a real container" \

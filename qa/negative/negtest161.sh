@@ -3,7 +3,7 @@
 # pristine copy and requires the EXACT expected message to appear.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
+G="$(pro qa/guards.js)"
 
 echo "--- 59: every badge is the same box"
 run_case "the base .bd border is removed" \
@@ -53,14 +53,8 @@ run_case "a modifier is dimmed into the floor" \
   "under the 4.5:1 AA floor" \
   "${P}a='.bd.u{color:var(--steel);border:1px solid currentColor;}';assert a in s;s=s.replace(a,'.bd.u{color:var(--steel);border:1px solid currentColor;opacity:.6;}');${W}"
 
-echo "--- 62: the numbering still enforces itself"
-run_case "a new section is renumbered out of order" \
-  "guard sections are out of order" \
-  "${G}a='/* ---------- 61. Contrast is measured';assert a in s;s=s.replace(a,'/* ---------- 63. Contrast is measured');${W}"
-
-run_case "a new section is missing from the INDEX" \
-  "is missing from the INDEX" \
-  "${G}a='     60   One left edge for the group chips\n';assert a in s;s=s.replace(a,'');${W}"
+# The two guard-66 fixtures this suite carried (renumber a section; drop an
+# INDEX row) were copies of negtest.sh's, three suites over; struck in 4.9.0.
 
 rm -rf "$NEG"
 finish "1.6.1 negative tests"

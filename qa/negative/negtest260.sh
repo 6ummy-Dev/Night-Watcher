@@ -49,7 +49,7 @@ run_case "two entries swap places inside a continuity" \
 
 run_case "the entry count in the export's own header drifts" \
   "no longer matches the catalogue" \
-  "${T}s=s.replace('133 films','132 films',1);${TW}"
+  "${T}s=s.replace('137 films','136 films',1);${TW}"
 
 # 3.9.6 REPOINTED THIS FIXTURE AND THE REASON IS THE FIXTURE'S OWN SUBJECT. It
 # used to cut the header's sentence about which ordering the file carried and

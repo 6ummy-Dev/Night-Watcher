@@ -31,7 +31,7 @@ run_case "and the rendered search box is corrupted by it" \
 
 run_case "a marker is added under another name" \
   "index.html carries the marker(s) %%TOTAL%%" \
-  "${P}a='<div class=\"chips\">';assert a in s;s=s.replace(a,'%%TOTAL%%<div class=\"chips\">',1);${W}"
+  "${P}a='segmented(\"chips\"';assert a in s;s=s.replace(a,'\'%%TOTAL%%\'+segmented(\"chips\"',1);${W}"
 
 run_case "a view builder replaces a literal in markup it assembled" \
   "on markup it assembled" \

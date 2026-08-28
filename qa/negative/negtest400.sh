@@ -76,9 +76,9 @@ run_case "a second copy of the markdown body is caught" \
 import io
 p='worker.js'
 s=io.open(p,encoding='utf-8').read()
-needle='return new Response(head ? null : md, {'
+needle='return new Response(md, {status: 200, headers: headers});'
 assert needle in s
-io.open(p,'w',encoding='utf-8').write(s.replace(needle,'return new Response(\"# a second copy of the catalogue prose\", {'))
+io.open(p,'w',encoding='utf-8').write(s.replace(needle,'return new Response(\"# a second copy of the catalogue prose\", {status: 200, headers: headers});'))
 "
 
 run_case "a dropped Vary header is caught" \
@@ -121,7 +121,7 @@ io.open(p,'w',encoding='utf-8').write(s.replace(needle,'application/json'))
 run_case "a payload without clocks is caught" \
   "persistNow() no longer writes the per-mark clocks" \
 "$P
-needle='clk:S.clk,'
+needle='  {k:\"clk\",          read:clocksOf},\n'
 assert needle in s
 s=s.replace(needle,'')
 $W
@@ -159,7 +159,7 @@ $W
 run_case "a rating merge that ignores clocks is caught behaviorally" \
   "an older rating loses to the newer one" \
 "$P
-needle='if(!(inc.r[k] > (S.clk.r[k] || 0))) continue;'
+needle='    if(!newer(\"r\", k)) continue;'
 assert needle in s
 s=s.replace(needle,'')
 $W

@@ -14,7 +14,14 @@ import { chromium, webkit } from "playwright";
 import { createRequire } from "node:module";
 import fs from "node:fs";
 
-const URL = process.env.NW_URL || "http://127.0.0.1:8099/";
+const SITE_URL = process.env.NW_URL || "http://127.0.0.1:8099/";
+/* Screenshots land beside this file, not in whatever directory the run was
+   started from (4.9.0 — the paths were cwd-relative). */
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+const SHOTS = path.join(path.dirname(fileURLToPath(import.meta.url)), ".shots");
+fs.mkdirSync(SHOTS, { recursive: true });
+const shot = (name) => path.join(SHOTS, name);
 /* axe-core, read from the declared devDependency rather than fetched. */
 const axeSrc = fs.readFileSync(
   createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
@@ -30,6 +37,35 @@ let bad = 0;
 function ok(name, pass, detail){
   out.push((pass ? "  ok   " : "  FAIL ") + name + (detail ? "  — " + detail : ""));
   if(!pass) bad++;
+}
+/* MEASURE, DON'T SLEEP — the file's own rule, applied to the file (4.9.0:
+   nine fixed sleeps of 80–450 ms were bets on the runner). Three waits, each
+   for the thing a sleep was standing in for: frames() for a render and its
+   paint; scrollSettled() for a scroll offset that has stopped moving, which
+   is what Chromium's anchoring and the app's own scroll restore leave
+   behind; until() for a state the page will reach on its own timers (the
+   belt's 240 ms close, an observer callback), with a ceiling so a state
+   never reached fails the check that reads it instead of hanging the run. */
+async function frames(n = 2){
+  await page.evaluate(k => new Promise(r => {
+    const step = i => i ? requestAnimationFrame(() => step(i - 1)) : r();
+    step(k);
+  }), n);
+}
+async function scrollSettled(){
+  await page.evaluate(() => new Promise(res => {
+    let last = null, same = 0; const t0 = performance.now();
+    const tick = () => {
+      const y = scroller().scrollTop;
+      if(y === last){ if(++same >= 3) return res(); } else { same = 0; last = y; }
+      if(performance.now() - t0 > 1500) return res();
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }));
+}
+async function until(fn, ms = 1500){
+  await page.waitForFunction(fn, null, { timeout: ms }).catch(() => {});
 }
 
 const browser = WK ? await webkit.launch()
@@ -57,7 +93,7 @@ page.on("console", m => {
   if(/Content Security Policy|Refused to (connect|load|execute)/i.test(t)) cspHits.push(t);
 });
 page.on("pageerror", e => pageErrs.push(String(e)));
-await page.goto(URL, { waitUntil: "load" });
+await page.goto(SITE_URL, { waitUntil: "load" });
 await page.waitForFunction(() => typeof window.render === "function");
 
 /* Start clean and choose a path, so nothing below meets the first-run chooser. */
@@ -372,7 +408,7 @@ const grp = await page.evaluate(() => {
 ok("a group starts open", grp.open === "true" && grp.bodyShown === "block",
    grp.open + " / " + grp.bodyShown);
 await page.click("#view .panel:not([inert]) .ghead");
-await page.waitForTimeout(120);
+await frames();
 const closed = await page.evaluate(() => {
   const h = document.querySelector("#view .panel:not([inert]) .ghead");
   const g = h.closest(".group");
@@ -387,7 +423,7 @@ ok("closing a group hides its rows",
    closed.height > 0 && closed.height < closed.headHeight * 2,
    JSON.stringify(closed));
 await page.click("#view .panel:not([inert]) .ghead");
-await page.waitForTimeout(120);
+await frames();
 const reopened = await page.evaluate(() => {
   const h = document.querySelector("#view .panel:not([inert]) .ghead");
   const g = h.closest(".group");
@@ -500,9 +536,9 @@ async function tickDrive(filter, label, mode){
     S.watched = {}; S.skipped = {}; S.rated = {}; S.open = {};
     render(); snapTo(S.tab); scrollPut(0);
   }, { f: filter, m: mode || "continuity" });
-  await page.waitForTimeout(250);
+  await frames();
   await page.evaluate(() => scrollPut(Math.round(scroller().scrollHeight * 0.55)));
-  await page.waitForTimeout(350);
+  await scrollSettled();
   /* Measured inside the click's own task, for the reason the jump drives are:
      the clamp happens during the repaint, and Chromium's scroll anchoring pulls
      the page back within a few hundred ms. A drive that waits and then looks is
@@ -548,7 +584,7 @@ async function tickDrive(filter, label, mode){
     ok("tick keeps your place (filter " + label + ")", false, "no tick in view to click");
     return;
   }
-  await page.waitForTimeout(450);
+  await scrollSettled();
   const settled = await page.evaluate(() => Math.round(scrollKeep()));
   ok("tick keeps your place (filter " + label + ")",
      r.before > 300 && Math.abs(r.sameTask - r.before) < 150,
@@ -627,9 +663,9 @@ ok("focus survives rating from inside an open row",
 
 /* Screenshots, so the header can be looked at rather than only measured. */
 await page.evaluate(() => { S.watched = {}; S.tab = "watch"; render(); snapTo(S.tab); scrollPut(0); });
-await page.screenshot({ path: "qa/.shots/shot-header-0.png", clip: {x:0, y:0, width:390, height:120} });
+await page.screenshot({ path: shot("shot-header-0.png"), clip: {x:0, y:0, width:390, height:120} });
 await page.evaluate(() => { pool().forEach(f => S.watched[f.id] = 1); render(); });
-await page.screenshot({ path: "qa/.shots/shot-header-100.png", clip: {x:0, y:0, width:390, height:120} });
+await page.screenshot({ path: shot("shot-header-100.png"), clip: {x:0, y:0, width:390, height:120} });
 
 /* ---- the deck (4.0.0): geometry, the swipe, and what survives it ------ */
 /* jsdom cannot swipe and the guards read the tree, so everything here is the
@@ -690,7 +726,7 @@ const level = await page.evaluate(async () => {
   const tops = {};
   for (const t of ["home", "next", "watch", "stats"]) {
     goTab(t);
-    await new Promise(r => setTimeout(r, 120));
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     const pane = document.querySelector("#view .panel:not([inert])");
     pane.scrollTop = 0;
     let el = pane.querySelector(".pathseg").nextElementSibling;
@@ -715,7 +751,7 @@ const footGapsAll = await page.evaluate(async () => {
   const gaps = {}, faces = {};
   for (const t of ["home", "next", "watch", "stats"]) {
     goTab(t);
-    await new Promise(r => setTimeout(r, 120));
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     const pane = document.getElementById("panel-" + t);
     const el = pane.querySelector(".homefoot, .note.foot, .legend");
     const prev = el && el.previousElementSibling;
@@ -749,8 +785,11 @@ const swipe = await page.evaluate(async () => {
   scrollPut(2600);
   const kept = scrollKeep();
   const vp = document.getElementById("view");
+  const snapped = () => new Promise(r => { let last = null, same = 0; const t0 = performance.now();
+    const tick = () => { const x = vp.scrollLeft; if(x === last){ if(++same >= 3) return r(); } else { same = 0; last = x; }
+      if(performance.now() - t0 > 1500) return r(); requestAnimationFrame(tick); }; tick(); });
   vp.scrollBy({ left: -vp.clientWidth, behavior: "instant" });
-  await new Promise(r => setTimeout(r, 250));
+  await snapped();
   const afterLeft = {
     tab: S.tab,
     current: document.querySelector("#tabs button[aria-current]").dataset.tab,
@@ -758,7 +797,7 @@ const swipe = await page.evaluate(async () => {
     nextInert: document.getElementById("panel-next").hasAttribute("inert")
   };
   vp.scrollBy({ left: vp.clientWidth, behavior: "instant" });
-  await new Promise(r => setTimeout(r, 250));
+  await snapped();
   return { kept, afterLeft,
            back: { tab: S.tab, pos: scrollKeep(),
                    watchInert: document.getElementById("panel-watch").hasAttribute("inert") } };
@@ -778,9 +817,9 @@ ok("swipe: The path keeps its place across a swipe away and back",
 
 /* The footer door: a tap resets the view it opens and aligns the deck. */
 await page.click('#tabs button[data-tab="stats"]');
-await page.waitForTimeout(150);
+await frames();
 await page.click('#tabs button[data-tab="watch"]');
-await page.waitForTimeout(150);
+await frames();
 const door = await page.evaluate(() => {
   const vp = document.getElementById("view");
   return { tab: S.tab, pos: scrollKeep(),
@@ -800,12 +839,20 @@ const beltClose = await page.evaluate(async () => {
   document.querySelector('#view .panel:not([inert]) [data-act="belt"]').click();
   /* opened dropped from the peek; close the drop into the flow state */
   closeBelt("drop");
-  await new Promise(r => setTimeout(r, 300));
+  /* The close re-renders after its 240 ms travel; wait for the render, not
+     the clock. */
+  await new Promise(r => { const t0 = performance.now(); const tick = () => {
+    if(!document.querySelector("#view .panel:not([inert]) .includes") || performance.now() - t0 > 1500) return r();
+    requestAnimationFrame(tick); }; tick(); });
   openBelt();
-  await new Promise(r => setTimeout(r, 100));
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   const openBefore = S.beltOpen && !!document.querySelector("#view .panel:not([inert]) .includes");
   scrollPut(1200);
-  await new Promise(r => setTimeout(r, 450));
+  /* The observer closes the belt on its own callback; wait for the state. */
+  await new Promise(r => { const t0 = performance.now(); const tick = () => {
+    if(!S.beltOpen || performance.now() - t0 > 1500) return r();
+    requestAnimationFrame(tick); }; tick(); });
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   return { openBefore, openAfter: S.beltOpen,
            includesGone: !document.querySelector("#view .panel:not([inert]) .includes:not(.closing)") };
 });
@@ -817,18 +864,20 @@ ok("belt: the flow auto-close still fires with the observer rooted on the panel"
 await page.evaluate(() => {
   S.beltOpen = false; S.beltDrop = false; S.tab = "watch"; render(); snapTo(S.tab); scrollPut(0);
 });
-await page.waitForTimeout(120);
-await page.screenshot({ path: "qa/.shots/shot-deck-watch.png" });
+await frames();
+await page.screenshot({ path: shot("shot-deck-watch.png") });
 await page.evaluate(() => {
   const vp = document.getElementById("view");
   vp.scrollBy({ left: -Math.round(vp.clientWidth / 2), behavior: "instant" });
 });
-await page.waitForTimeout(80);
-await page.screenshot({ path: "qa/.shots/shot-deck-midswipe.png" });
+await frames();
+await page.screenshot({ path: shot("shot-deck-midswipe.png") });
 await page.evaluate(async () => {
   const vp = document.getElementById("view");
   vp.scrollBy({ left: vp.clientWidth, behavior: "instant" });
-  await new Promise(r => setTimeout(r, 250));
+  await new Promise(r => { let last = null, same = 0; const t0 = performance.now();
+    const tick = () => { const x = vp.scrollLeft; if(x === last){ if(++same >= 3) return r(); } else { same = 0; last = x; }
+      if(performance.now() - t0 > 1500) return r(); requestAnimationFrame(tick); }; tick(); });
   goTab("watch");
 });
 
@@ -982,7 +1031,7 @@ const swPage = await swCtx.newPage();
    on serviceWorker.ready would hang this instrument forever. So this drive
    uses the localhost spelling of the same server, and every wait below
    carries its own clock. */
-const SWURL = URL.replace("//127.0.0.1", "//localhost");
+const SWURL = SITE_URL.replace("//127.0.0.1", "//localhost");
 await swPage.goto(SWURL, { waitUntil: "load" });
 const swReady = await swPage.evaluate(async () => {
   if(!("serviceWorker" in navigator)) return { supported: false };

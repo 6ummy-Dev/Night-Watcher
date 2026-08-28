@@ -57,6 +57,11 @@ ensure_tree () {
   mkdir -p "$NEG"
   tar -cf - -C "$SRC" --exclude=node_modules --exclude=.git . | tar -xf - -C "$NEG"
   [ -d "$SRC/node_modules" ] && ln -s "$SRC/node_modules" "$NEG/node_modules"
+  # The git index rides along (4.9.0): section 45 reads the tracked-file set
+  # off it, so a scratch tree without one would check only the floor list and
+  # negtest610's README-row fixtures would prove nothing. The index alone —
+  # no objects, no refs — is enough for a reader that only wants the paths.
+  if [ -f "$SRC/.git/index" ]; then mkdir -p "$NEG/.git"; cp "$SRC/.git/index" "$NEG/.git/index"; fi
   ( cd "$NEG" && find . -type f -not -path "./node_modules/*" | sort ) > "$NEG.manifest"
   # The signature of a PRISTINE guards run, captured while the tree is
   # provably unmutated. A fixture whose run exits green may only pass
@@ -161,9 +166,13 @@ green_case () {
   fi
 }
 
-# The two-line python prologue nearly every fixture opens with.
+# The two-line python prologue nearly every fixture opens with, and pro(),
+# the same prologue for any other file (4.9.0 — nine suites redefined it for
+# guards.js by hand, two more for index.html under other names). W closes
+# either: it writes back to whichever path the prologue opened.
 P="import io;p='docs/index.html';s=io.open(p,encoding='utf-8').read();"
 W="io.open(p,'w',encoding='utf-8').write(s)"
+pro () { printf "import io;p='%s';s=io.open(p,encoding='utf-8').read();" "$1"; }
 
 # finish "<summary label>" — prints the tally and returns the suite's verdict.
 finish () {

@@ -44,14 +44,14 @@ s=s.replace(a,'two rating systems',1);${W}"
 echo "--- 93: the Progress lists fold, and remember"
 run_case "progOpen leaves the saved payload" \
   "progOpen is not written to the saved payload" \
-  "${P}a=', progOpen:S.progOpen';assert a in s
+  "${P}a='  {k:\"progOpen\",     read:function(v){ return flagsOf(v, true); }},\n';assert a in s
 s=s.replace(a,'',1);${W}"
 
 run_case "restore takes any value, inverting the closed default" \
   "restore() accepts non-true progOpen values" \
-  "${P}a='if(o.progOpen[pk] === true) S.progOpen[pk] = true;'
+  "${P}a='  for(k in v){ if(HAS.call(v, k) && v[k] === want) out[k] = want; }'
 assert a in s
-s=s.replace(a,'S.progOpen[pk] = o.progOpen[pk];',1);${W}"
+s=s.replace(a,'  for(k in v){ if(HAS.call(v, k)) out[k] = v[k]; }',1);${W}"
 
 run_case "the fold handler forgets to persist" \
   "the fold handler does not persist" \

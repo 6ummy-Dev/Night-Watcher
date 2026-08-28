@@ -3,7 +3,7 @@
 # positional numbering, and every headline count that moved with 30 entries.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-R="import io;p='README.md';s=io.open(p,encoding='utf-8').read();"
+R="$(pro README.md)"
 
 echo "--- 5: the serials need decades to live in"
 run_case "the forties bucket is removed under an entry that needs it" \
@@ -25,7 +25,7 @@ run_case "the guard is pointed at a group number again" \
 
 echo "--- 14/15: the headline counts move with the catalogue"
 run_case "an entry is added and the README is not updated" \
-  "README claims 133 films, data has 134" \
+  "README claims 137 films, data has 138" \
   "${P}a=' {i:\"batman-1943\"';assert a in s;s=s.replace(a,' {i:\"batman-test-1944\",t:\"Test\",y:1944,e:3,d:\"x\",b:[],o:1},\n {i:\"batman-1943\"',1);${W}"
 
 run_case "a continuity is added and the meta tags are not" \
@@ -34,7 +34,7 @@ run_case "a continuity is added and the meta tags are not" \
 
 run_case "the episode floor is left behind by a new series" \
   "the floor is far enough behind to be misleading" \
-  "${R}a='1,900+ episodes';assert a in s;s=s.replace(a,'1,700+ episodes');${W}"
+  "${R}a='1,950+ episodes';assert a in s;s=s.replace(a,'1,700+ episodes');${W}"
 
 echo "--- the inclusion rule is on the page, not in someone's head"
 run_case "the README loses the rule for what belongs here" \

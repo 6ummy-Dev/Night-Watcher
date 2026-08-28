@@ -3,16 +3,11 @@
 #   search    use for building a search index
 #   ai-input  use as real-time input to an AI answer
 #
-# Indexing and live citation are permitted because a spoiler-free watch order is
-# only worth writing if it can be found and cited. Training joined them in
-# 3.7.2 — the owner's call, reversed from the 3.4.2 position: the signals are a
-# rights preference, the licence is the actual grant, and AGPL-3.0 with the
-# marks preamble governs copying either way.
-#
-# The prose above deliberately does not restate the values below. It did in the
-# first draft, and a negative fixture aimed at the directive silently mutated
-# the comment instead — a value written twice is a value that can disagree with
-# itself, which is the same rule this project applies to counts in prose.
+# All three are permitted, the owner's call: a spoiler-free watch order is only
+# worth writing if it can be found and cited, the signals are a rights
+# preference, and the licence (AGPL-3.0 with the marks preamble) is the actual
+# grant either way. The prose does not restate the values below — a value
+# written twice can disagree with itself. History: NOTES-history.md.
 User-agent: *
 Content-Signal: ai-train=yes, search=yes, ai-input=yes
 Allow: /

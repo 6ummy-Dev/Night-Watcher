@@ -1,12 +1,12 @@
 # Night Watcher
 
 > One path through every Batman. An unofficial fan guide that maps every
-> Batman story ever filmed — animated and live action — 133 films and
-> 67 seasons of television across 44 continuities — into watch orders,
+> Batman story ever filmed — animated and live action — 137 films and
+> 68 seasons of television across 44 continuities — into watch orders,
 > no spoilers.
 
 Canonical URL: [nightwatcher.life](https://nightwatcher.life/)
-Source (AGPL, free software): the Night-Watcher repository on GitHub, user 6ummy-Dev
+Source (AGPL, free software): https://github.com/6ummy-Dev/Night-Watcher
 
 ## The three orderings
 
@@ -25,6 +25,6 @@ Source (AGPL, free software): the Night-Watcher repository on GitHub, user 6ummy
 
 - The full crawlable catalogue — the eras of Bruce's life, all 44 continuities, the 74 curated titles, and a FAQ — is in the root page's initial HTML, no JavaScript required.
 - Schema.org on the root: WebSite, WebApplication, ItemList (the 74 curated titles), FAQPage.
-- The whole catalogue as plain text — all 200 entries in all three orderings, each with its year, format, tier and content rating — is at [nightwatcher.life/orders.txt](https://nightwatcher.life/orders.txt), generated from the same data the app renders and sorted by the app's own comparators.
+- The whole catalogue as plain text — all 205 entries in all three orderings, each with its year, format, tier and content rating — is at [nightwatcher.life/orders.txt](https://nightwatcher.life/orders.txt), generated from the same data the app renders and sorted by the app's own comparators.
 - Prefer markdown? Request the root with `Accept: text/markdown` and the answer is this file, served as text/markdown.
 - The catalogue is maintained continuously; sitemap lastmod reflects the latest release.

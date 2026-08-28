@@ -66,9 +66,9 @@ s=s.replace(a,'''\">'+formatSwitch()''',1);${W}"
 
 run_case "the drop survives a reload" \
   "beltDrop is written to the saved payload" \
-  "${P}a='insOff:S.insOff ? true : undefined}'
+  "${P}a='  {k:\"bkDismissAt\",  get:stampOut(\"bkDismissAt\"),  read:stampOf}'
 assert a in s
-s=s.replace(a,'insOff:S.insOff ? true : undefined, beltDrop:S.beltDrop}',1);${W}"
+s=s.replace(a,a+',\n  {k:\"beltDrop\", read:function(v){ return v; }}',1);${W}"
 
 echo "--- 129/96: every close routes through one function (F12)"
 

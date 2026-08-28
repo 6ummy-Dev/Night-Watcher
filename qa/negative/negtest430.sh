@@ -16,24 +16,22 @@
 
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-H="import io;p='docs/index.html';s=io.open(p,encoding='utf-8').read();"
-HW="io.open(p,'w',encoding='utf-8').write(s)"
 
 run_case "1: an id that is not a lowercase slug" \
   "id is not a lowercase slug" \
-  "${H}old='i:\"batman-year-one-2011\"';assert old in s;s=s.replace(old,'i:\"Batman-Year-One-2011\"',1);${HW}"
+  "${P}old='i:\"batman-year-one-2011\"';assert old in s;s=s.replace(old,'i:\"Batman-Year-One-2011\"',1);${W}"
 
 run_case "3: an idHash that collides with everything" \
   "idHash COLLISION" \
-  "${H}old='return (\"0000\" + (h >>> 0).toString(36)).slice(-5);';assert old in s;s=s.replace(old,'return \"aaaaa\";',1);${HW}"
+  "${P}old='return (\"0000\" + (h >>> 0).toString(36)).slice(-5);';assert old in s;s=s.replace(old,'return \"aaaaa\";',1);${W}"
 
 run_case "4: route filtering back on the raw o flag" \
   "tests the raw f.o flag" \
-  "${H}old='S.filter === \"core\" && tierOf(f) === \"o\"';assert old in s;s=s.replace(old,'S.filter === \"core\" && f.o',1);${HW}"
+  "${P}old='S.filter === \"core\" && tierOf(f) === \"o\"';assert old in s;s=s.replace(old,'S.filter === \"core\" && f.o',1);${W}"
 
 run_case "9: the Copy link control leaves the Progress tab" \
   "Copy link control is gone" \
-  "${H}old='data-act=\"copylink\"';assert old in s;s=s.replace(old,'data-act=\"copylinkX\"');${HW}"
+  "${P}old='data-act=\"copylink\"';assert old in s;s=s.replace(old,'data-act=\"copylinkX\"');${W}"
 
 run_case "12: the manifest points at a file that is not there" \
 "manifest references missing file" \
@@ -54,8 +52,8 @@ s=io.open(p,encoding='utf-8').read()
 old='<meta name=\"description\" content=\"Every Batman story'
 i=s.index(old); j=s.index('>',i)
 head=s[:i]; tag=s[i:j]; tail=s[j:]
-assert '133 films' in tag
-io.open(p,'w',encoding='utf-8').write(head+tag.replace('133 films','132 films',1)+tail)
+assert '137 films' in tag
+io.open(p,'w',encoding='utf-8').write(head+tag.replace('137 films','136 films',1)+tail)
 "
 
 run_case "16: the newest CHANGELOG release is not the shipped one" \
@@ -71,15 +69,15 @@ io.open(p,'w',encoding='utf-8').write(s[:m.start(1)]+'9.9.9'+s[m.end(1):])
 
 run_case "17: the shared hero size goes missing" \
   ".hero h2 has no font-size" \
-  "${H}old='.hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:';assert old in s;s=s.replace(old,'.hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;line-height-x:',1);${HW}"
+  "${P}old='.hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:';assert old in s;s=s.replace(old,'.hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;line-height-x:',1);${W}"
 
 run_case "18: the scrollbar gutter stops being reserved" \
   "missing scrollbar-gutter:stable" \
-  "${H}assert 'scrollbar-gutter' in s;s=s.replace('scrollbar-gutter','scrollbar-gutter-x',1);${HW}"
+  "${P}assert 'scrollbar-gutter' in s;s=s.replace('scrollbar-gutter','scrollbar-gutter-x',1);${W}"
 
 run_case "19: an import writes a raw rating into S.rated" \
   "writes a raw rating into S.rated" \
-  "${H}old='S.rated[id] = rv; if(stamp)';assert old in s;s=s.replace(old,'S.rated[id] = res.rated[id]; if(stamp)',1);${HW}"
+  "${P}old='S.rated[id] = rv; if(stamp)';assert old in s;s=s.replace(old,'S.rated[id] = res.rated[id]; if(stamp)',1);${W}"
 
 run_case "22: a JS escape stranded in the static markup" \
 "JS escape(s) (" \
@@ -96,35 +94,35 @@ io.open(p,'w',encoding='utf-8').write(s[:i]+body.replace(old,'</h1>\\\\u2014',1)
 
 run_case "23: two paths sharing a PATHCODE letter" \
   "two paths share a PATHCODE letter" \
-  "${H}old='var PATHCODE = {continuity:\"c\", life:\"l\", release:\"r\"};';assert old in s;s=s.replace(old,'var PATHCODE = {continuity:\"c\", life:\"l\", release:\"c\"};',1);${HW}"
+  "${P}old='var PATHCODE = {continuity:\"c\", life:\"l\", release:\"r\"};';assert old in s;s=s.replace(old,'var PATHCODE = {continuity:\"c\", life:\"l\", release:\"c\"};',1);${W}"
 
 run_case "24: PATHBLURB comes back as a second source of path copy" \
   "PATHBLURB is back" \
-  "${H}assert 'esc(pathBlurb(' in s;s=s.replace('esc(pathBlurb(','esc(PATHBLURB(',1);${HW}"
+  "${P}assert 'esc(pathBlurb(' in s;s=s.replace('esc(pathBlurb(','esc(PATHBLURB(',1);${W}"
 
 run_case "25: the copy calls storage a device again" \
   "storage is per browser" \
-  "${H}assert 'this browser' in s;s=s.replace('this browser','this device',1);${HW}"
+  "${P}assert 'this browser' in s;s=s.replace('this browser','this device',1);${W}"
 
 run_case "26: the app calls itself a field guide" \
   "the app calls itself a fan guide" \
-  "${H}assert 'unofficial fan guide' in s;s=s.replace('unofficial fan guide','unofficial field guide',1);${HW}"
+  "${P}assert 'unofficial fan guide' in s;s=s.replace('unofficial fan guide','unofficial field guide',1);${W}"
 
 run_case "32: titleYear() renamed, so the watch link loses its year" \
   "titleYear() is gone" \
-  "${H}assert 'function titleYear(' in s;s=s.replace('function titleYear(','function titleYr(',1);${HW}"
+  "${P}assert 'function titleYear(' in s;s=s.replace('function titleYear(','function titleYr(',1);${W}"
 
 run_case "36: the collapse-all control leaves The Path" \
   "collapse-all control is gone" \
-  "${H}assert 'data-act=\"allgroups\"' in s;s=s.replace('data-act=\"allgroups\"','data-act=\"allgroupsX\"');${HW}"
+  "${P}assert 'data-act=\"allgroups\"' in s;s=s.replace('data-act=\"allgroups\"','data-act=\"allgroupsX\"');${W}"
 
 run_case "37: the rating stars get a second home" \
   "rating stars are rendered in" \
-  "${H}old='stars(S.rated[';assert old in s;s=s.replace(old,'stars(S.rated[0]||0)+stars(S.rated[',1);${HW}"
+  "${P}old='stars(S.rated[';assert old in s;s=s.replace(old,'stars(S.rated[0]||0)+stars(S.rated[',1);${W}"
 
 run_case "41: the restore box loses its real label" \
   "labelled by its placeholder only" \
-  "${H}old='<label class=\"bklab\" for=\"restorebox\">';assert old in s;s=s.replace(old,'<label class=\"bklab\">',1);${HW}"
+  "${P}old='<label class=\"bklab\" for=\"restorebox\">';assert old in s;s=s.replace(old,'<label class=\"bklab\">',1);${W}"
 
 run_case "45: the README file table lists a file that is not served" \
 "lists files that do not exist" \
@@ -139,31 +137,31 @@ io.open(p,'w',encoding='utf-8').write(s.replace(old,'| \`docs/nope.txt\` | not a
 
 run_case "48: the Progress footer describes the old link again" \
   "still mentions" \
-  "${H}old='data-act=\"copylink\"';assert old in s;s=s.replace(old,'data-act=\"copylink\" title=\"Streaming now\"',1);${HW}"
+  "${P}old='data-act=\"copylink\"';assert old in s;s=s.replace(old,'data-act=\"copylink\" title=\"Streaming now\"',1);${W}"
 
 run_case "49: the Activity tick reads as unwatched" \
   "Activity tick is unfilled" \
-  "${H}old='.arow .tick{width:24px;height:24px;font-size:11px;align-self:start;margin-top:2px;background:var(--bone);';assert old in s;s=s.replace(old,'.arow .tick{width:24px;height:24px;font-size:11px;align-self:start;margin-top:2px;background:transparent;',1);${HW}"
+  "${P}old='.arow .tick{width:24px;height:24px;font-size:11px;align-self:start;margin-top:2px;background:var(--bone);';assert old in s;s=s.replace(old,'.arow .tick{width:24px;height:24px;font-size:11px;align-self:start;margin-top:2px;background:transparent;',1);${W}"
 
 run_case "52: the chosen format stops being persisted" \
   "format is not persisted" \
-  "${H}assert 'format:S.format' in s;s=s.replace('format:S.format','fmtx:S.format',1);${HW}"
+  "${P}assert 'k:\"format\",' in s;s=s.replace('k:\"format\",','k:\"fmtx\",  ',1);${W}"
 
 run_case "53: formatSwitch() is gone" \
   "formatSwitch() is gone" \
-  "${H}assert 'function formatSwitch(' in s;s=s.replace('function formatSwitch(','function formatSwitchX(',1);${HW}"
+  "${P}assert 'function formatSwitch(' in s;s=s.replace('function formatSwitch(','function formatSwitchX(',1);${W}"
 
 run_case "73: the worst-case restore link grows past the ceiling" \
   "worst-case restore link is" \
-  "${H}old='return (\"0000\" + (h >>> 0).toString(36)).slice(-5);';assert old in s;s=s.replace(old,'return \"pad\" + (\"0000\" + (h >>> 0).toString(36)).slice(-5) + \"padpadpad\";',1);${HW}"
+  "${P}old='return (\"0000\" + (h >>> 0).toString(36)).slice(-5);';assert old in s;s=s.replace(old,'return \"pad\" + (\"0000\" + (h >>> 0).toString(36)).slice(-5) + \"padpadpad\";',1);${W}"
 
 run_case "122: the scroll restore stops settling the layout" \
   "no longer adds .settling" \
-  "${H}old='vp.classList.add(\"settling\");\n    scrollPut(keep);';assert old in s;s=s.replace(old,'void 0;\n    scrollPut(keep);',1);${HW}"
+  "${P}old='vp.classList.add(\"settling\");\n    scrollPut(keep);';assert old in s;s=s.replace(old,'void 0;\n    scrollPut(keep);',1);${W}"
 
 run_case "34: ratePrompt comes back after Activity replaced it" \
   "ratePrompt survives" \
-  "${H}assert 'function activityBlock(' in s;s=s.replace('function activityBlock(','function ratePrompt_activityBlock(',1);${HW}"
+  "${P}assert 'function activityBlock(' in s;s=s.replace('function activityBlock(','function ratePrompt_activityBlock(',1);${W}"
 
 run_case "75: a control drawn smaller than a finger" \
 "px touch target" \

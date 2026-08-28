@@ -4,10 +4,9 @@
 # matter more than usual: each one has to prove the new check actually bites.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
+G="$(pro qa/guards.js)"
 V="import io;p='docs/sw.js';s=io.open(p,encoding='utf-8').read();"
 M="import io;p='docs/sitemap.xml';s=io.open(p,encoding='utf-8').read();"
-C="import io;p='CHANGELOG.md';s=io.open(p,encoding='utf-8').read();"
 
 echo "--- 28: a guard that asked whether the file mentions the function it calls"
 run_case "the only call site is deleted (the old check passed this)" \

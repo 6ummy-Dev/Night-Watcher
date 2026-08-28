@@ -39,8 +39,8 @@ s=s.replace(a,'''var fmt = \"Animated and live action\";
 
 run_case "the open belt is remembered" \
   "beltOpen is written to the saved payload" \
-  "${P}a='insOff:S.insOff ? true : undefined});';assert a in s
-s=s.replace(a,'insOff:S.insOff ? true : undefined, beltOpen:S.beltOpen});',1);${W}"
+  "${P}a='  {k:\"bkDismissAt\",  get:stampOut(\"bkDismissAt\"),  read:stampOf}';assert a in s
+s=s.replace(a,a+',\n  {k:\"beltOpen\", read:function(v){ return v; }}',1);${W}"
 
 run_case "the pouches stop staggering" \
   "the pouches do not stagger" \

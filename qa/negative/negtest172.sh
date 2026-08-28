@@ -3,7 +3,7 @@
 # the era-direction fix, and the renamed scheme.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
+G="$(pro qa/guards.js)"
 
 echo "--- 69: the universes run in the order their stories start"
 run_case "a late-starting universe is moved to the front" \
@@ -41,7 +41,7 @@ run_case "an era loses a position" \
 
 run_case "the new terminal era is emptied into the old one" \
   "positions run 1..n" \
-  "${P}a=',e:11,lo:3';assert a in s;s=s.replace(a,',e:11,lo:4');${W}"
+  "${P}a=',e:11,lo:4';assert a in s;s=s.replace(a,',e:11,lo:5');${W}"
 
 echo "--- the era scheme itself"
 # NOT TESTED, deliberately. "An era may say who is in it, never what happens to
@@ -64,7 +64,7 @@ echo "--- the by-universe chip"
 # "a path number is the universe's real tag"; that is what it expects now.
 run_case "the chip goes back to counting positions" \
   "a path number is the universe's real tag" \
-  "${P}a='tag:eraTag(g)';assert a in s;s=s.replace(a,'tag:g.n');${W}" \
+  "${P}a='tag:eraTag, sort:null';assert a in s;s=s.replace(a,'tag:function(g){ return g.n; }, sort:null');${W}" \
   "smoke" "main"
 
 echo "--- 68: the life order is a sort, not the order the file is typed in"

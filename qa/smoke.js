@@ -102,9 +102,21 @@ function checkReadmeCount(){
 
 /* jsdom has no scrollTo and throws on every call, catching it internally and
    printing a notice. The app scrolls on nearly every interaction, so that was
-   97 lines of stderr and 97 thrown exceptions per run. */
+   97 lines of stderr and 97 thrown exceptions per run.
+   4.9.0: jsdom also has no ResizeObserver or IntersectionObserver, and the
+   app stopped detecting them — they are part of the floor it requires
+   (NOTES.md, "The floor"), so every document booted here gets inert stubs.
+   A stub observes nothing; the browser check is where the observers are
+   real. */
+function floor(w){
+  w.scrollTo = function(){};
+  function Observer(){ this.observe = function(){}; this.unobserve = function(){}; this.disconnect = function(){}; }
+  w.ResizeObserver = Observer;
+  w.IntersectionObserver = Observer;
+  w.Element.prototype.scrollIntoView = function(){};
+}
 var dom = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://nightwatcher.life/",
-  pretendToBeVisual:true, beforeParse:function(w){ w.scrollTo = function(){}; }});
+  pretendToBeVisual:true, beforeParse:floor});
 var win = dom.window;
 
 win.addEventListener("load", function(){
@@ -220,9 +232,10 @@ win.addEventListener("load", function(){
       S.path = ""; S.mode = "continuity"; S.watched = {};
       S.watched[FILMS[0].id] = 1; win.persist(); win.flushPersist();
       var raw = win.localStorage.getItem("batwatch-v3") || "";
+      /* 4.9.0: the payload no longer carries the legacy `mode` mirror. */
       check("persisting with no path chosen writes no ordering",
-            /"path":"","mode":""/.test(raw),
-            (raw.match(/"path":"[^"]*","mode":"[^"]*"/) || [""])[0]);
+            /"path":""/.test(raw) && !/"mode":/.test(raw),
+            (raw.match(/"path":"[^"]*"/) || [""])[0] + (/"mode":/.test(raw) ? " + a mode key" : ""));
       S.path = keep.path; S.mode = keep.mode; S.watched = keep.watched; win.persist(); win.flushPersist();
     })();
 
@@ -447,7 +460,10 @@ win.addEventListener("load", function(){
     S.path = S.mode = "life"; win.persist(); win.flushPersist(); win.render();
 
     /* --- darker --- */
-    var bar = function(){ return doc.querySelector('meta[name="theme-color"]').getAttribute("content"); };
+    var bar = function(){
+      var m = doc.querySelector('meta[name="theme-color"]');
+      return m ? m.getAttribute("content") : "(no theme-color meta)";
+    };
     check("default theme is dark", S.theme === "dark" &&
           doc.documentElement.getAttribute("data-theme") === "dark", bar());
     S.tab = "home"; win.render();
@@ -524,7 +540,8 @@ win.addEventListener("load", function(){
     S.mode = "release"; S.format = "anim";
     S.scope = "movies"; var mNote = win.modeNote();
     S.scope = "all";    var aNote = win.modeNote();
-    check("animated films start at 1993", /1993 to 2028/.test(mNote), mNote.slice(0, 46));
+    /* 4.9.0: the 1991 pitch reel is the first animated entry. */
+    check("animated films start at 1991", /1991 to 2028/.test(mNote), mNote.slice(0, 46));
     check("animated series reach back to 1968", /1968 to 2028/.test(aNote), aNote.slice(0, 46));
     S.format = "live"; S.scope = "movies";
     /* 1943, not 1966, since 1.7.0 added the two Columbia serials \u2014 which are
@@ -775,10 +792,10 @@ win.addEventListener("load", function(){
           doc.querySelector('.pick[data-path="release"] span').textContent
              .indexOf(win.yearSpan()) > 0,
           doc.querySelector('.pick[data-path="release"] span').textContent);
-    /* Under Animated + Movies the films start in 1993. */
+    /* Under Animated + Movies the films start in 1991 (the pitch reel). */
     S.format = "anim"; S.scope = "movies"; win.render();
     check("the chooser and The Path agree on the span",
-          doc.querySelector('.pick[data-path="release"] span').textContent.indexOf("1993") > 0,
+          doc.querySelector('.pick[data-path="release"] span').textContent.indexOf("1991") > 0,
           doc.querySelector('.pick[data-path="release"] span').textContent);
     S.format = "all";
     S.path = "continuity"; S.mode = "continuity";
@@ -1244,6 +1261,11 @@ win.addEventListener("load", function(){
     check("and persisting after it stores the preference, not the view",
           JSON.parse(win.localStorage.getItem("batwatch-v3")).scope === "movies");
     S.scope = "movies";
+    /* 4.9.0: a view hash is consumed once it has routed, the way #nw= is —
+       left in the address bar, a reload re-applied it over whatever the
+       reader chose since (the 4.8.0 report's 2.3). */
+    check("a view hash is consumed once it has routed", win.location.hash === "",
+          "hash=" + JSON.stringify(win.location.hash));
 
     win.location.hash = ""; S.tab = "home"; S.mode = S.path; win.render();
 
@@ -1351,7 +1373,35 @@ win.addEventListener("load", function(){
       var offer = doc.querySelector('#view .panel:not([inert]) [data-act="searchall"]');
       check("and does not offer to find series the format filter would hide", !offer,
             offer ? empty.textContent : "");
+      /* 4.9.0: the same rule for the tier pouch. Under Essentials, a search
+         that only hits Optional series must not offer to widen the scope —
+         the offer would switch scopePref and then show nothing. */
+      var tr0 = S.tier;
+      S.format = "all"; S.scope = "movies"; S.tier = "ess"; S.q = "titans"; win.render();
+      var offer2 = doc.querySelector('#view .panel:not([inert]) [data-act="searchall"]');
+      check("and does not offer to find series the tier pouch would hide", !offer2,
+            offer2 ? doc.querySelector("#view .panel:not([inert]) .empty").textContent : "");
+      S.tier = tr0;
       S.format = f0; S.scope = s0; S.q = q0; S.tab = t0; win.render();
+    })();
+
+    /* --- release order keeps numbered parts in order (4.9.0) ------------
+       The same-year tie used to be broken by title, so Crisis on Infinite
+       Earths Part Three sorted before Part Two and Batman Beyond season one
+       before its pilot feature (the 4.8.0 report's 1.1). The tie is the
+       catalogue's own order now. */
+    (function(){
+      var m0 = S.mode, f0 = S.format, s0 = S.scope, tr0 = S.tier;
+      S.mode = "release"; S.format = "all"; S.scope = "all"; S.tier = "all";
+      var ids = win.pool().map(function(f){ return f.id; });
+      var i1 = ids.indexOf("crisis-on-infinite-earths-part-one-2024"),
+          i2 = ids.indexOf("crisis-on-infinite-earths-part-two-2024"),
+          i3 = ids.indexOf("crisis-on-infinite-earths-part-three-2024");
+      check("release order runs Crisis Part One, Two, Three", i1 >= 0 && i1 < i2 && i2 < i3,
+            i1 + " < " + i2 + " < " + i3);
+      var m = ids.indexOf("batman-beyond-the-movie-1999"), s1 = ids.indexOf("batman-beyond-season-1-1999");
+      check("and the Beyond pilot feature before its first season", m >= 0 && m < s1, m + " < " + s1);
+      S.mode = m0; S.format = f0; S.scope = s0; S.tier = tr0;
     })();
 
     /* --- the universe chip describes the universe, not the scope (1.8.5) --- */
@@ -1641,7 +1691,7 @@ win.addEventListener("load", function(){
     S.open = {};
 
     /* --- every filter chipSet() offers is reachable from the Path tab --- */
-    /* Counted from chipSet() rather than held as a number: 2.8.0 added the
+    /* Counted from chipSet() rather than held as a number: 3.0.0 added the
        Skipped chip and a remembered 6 would have failed a correct build. */
     win.render();
     var chips = win.document.getElementById("view").querySelectorAll(".chip");
@@ -1838,6 +1888,10 @@ win.addEventListener("load", function(){
       return win.importCode(j) === null;
     });
     check("junk is still rejected", junkOk);
+    /* 4.9.0: a chat client's closing quote, period or bracket after a
+       pasted code is trimmed; a junk suffix like "!!!" still rejects. */
+    check("a pasted code survives a trailing quote or period",
+          !!win.importCode(code + "\u201d") && !!win.importCode(code + ".") && !!win.importCode(code + ")"));
 
     /* --- the choice has to survive a reload, which is the entire point --- */
     /* A fresh document with storage pre-seeded is a reload. */
@@ -1847,7 +1901,7 @@ win.addEventListener("load", function(){
     function reboot(seed, label, then){
       var d = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://nightwatcher.life/",
         pretendToBeVisual:true, beforeParse:function(w){
-          w.scrollTo = function(){};
+          floor(w);
           w.localStorage.setItem("batwatch-v3", seed);
         }});
       /* restore() is synchronous once the store answers, and the app renders
@@ -2149,12 +2203,44 @@ win.addEventListener("load", function(){
       S.clk = {w:{}, s:{}, r:{}};
       win.render();
     })();
+
+    /* --- the merge writes back, and an adopted erase outranks old clocks (4.9.0) ---
+       The storage listener merged into memory and never persisted, so two
+       tabs each writing inside the 200 ms debounce ended with unions in
+       memory that neither had on disk: close both and one side's marks were
+       gone (the 4.8.0 report's 1.3). And a mark whose clock predates an
+       adopted resetAt is stale by definition — a third tab that never saw
+       the erase could resurrect it. */
+    (function(){
+      var A = "batman-begins-2005", B = "the-batman-2022";
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.resetAt = 0;
+      S.clk = {w:{}, s:{}, r:{}};
+      S.watched[A] = 1; S.clk.w[A] = 5000; win.persist(); win.flushPersist();
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({watched: (function(o){ o[B] = 1; return o; })({}),
+          clk: {w: (function(o){ o[B] = 6000; return o; })({}), s: {}, r: {}}})}));
+      win.flushPersist();
+      var raw = JSON.parse(win.localStorage.getItem("batwatch-v3") || "{}");
+      check("a foreign mark that merged is written back to storage",
+            raw.watched && raw.watched[A] === 1 && raw.watched[B] === 1,
+            "on disk: " + Object.keys((raw.watched || {})).join(","));
+      S.resetAt = 9000; S.watched = {}; S.clk = {w:{}, s:{}, r:{}};
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({watched: (function(o){ o[A] = 1; return o; })({}),
+          resetAt: 1, clk: {w: (function(o){ o[A] = 7000; return o; })({}), s: {}, r: {}}})}));
+      check("a mark clocked before an adopted erase does not come back",
+            !S.watched[A], "watched=" + !!S.watched[A]);
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.resetAt = 0;
+      S.clk = {w:{}, s:{}, r:{}};
+      win.persist(); win.flushPersist(); win.render();
+    })();
     tailPhases();
     }
 
-    /* The tail: the css sweep, the old-origin document, the blocked store.
-       Each behind its own phase gate; an unscoped run walks all three in
-       the same order it always did. */
+    /* The tail: the css sweep and the blocked store (the old-origin
+       document left with the move offer in 3.0.0, recorded at the top).
+       Each behind its own phase gate; an unscoped run walks both in the
+       same order it always did. */
     function tailPhases(){
 
     /* --- every CSS rule matches something, somewhere ---------------------
@@ -2252,7 +2338,7 @@ win.addEventListener("load", function(){
          chosen-path state this sweep already walks. */
       S.beltDropping = true; S.beltDrop = true; win.render(); sweep();
       S.beltDropping = false; S.beltDrop = false;
-      /* The opening render is one flag-scoped render (2.2.1) and the closing
+      /* The opening render is one flag-scoped render (2.5.0) and the closing
          state is set imperatively by the belt handler, so the sweep stages
          both the way it stages data-theme. */
       S.beltOpening = true; win.render(); sweep(); S.beltOpening = false;
@@ -2339,6 +2425,7 @@ function blockedStore(){
     /* Only a document with localStorage throwing can observe the silent failure. */
     var blocked = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://nightwatcher.life/",
       pretendToBeVisual:true, beforeParse:function(w){
+        floor(w);
         Object.defineProperty(w, "localStorage", {get:function(){
           throw new Error("SecurityError: storage is disabled in this browser");
         }});

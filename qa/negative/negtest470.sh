@@ -90,9 +90,9 @@ echo "--- 143: the snap is the browser's own arithmetic"
 
 run_case "snapTo writes scrollLeft instead" \
   "snapTo() does not go through scrollIntoView" \
-  "${P}a='''    try{ p.scrollIntoView({block:\"nearest\", inline:\"start\"}); }catch(e){}'''
+  "${P}a='''  if(p) p.scrollIntoView({block:\"nearest\", inline:\"start\"});'''
 assert a in s
-s=s.replace(a,'''    try{ p.parentNode.scrollLeft = 0; }catch(e){}''',1);${W}"
+s=s.replace(a,'''  if(p) p.parentNode.scrollLeft = 0;''',1);${W}"
 
 run_case "goTab stops snapping the deck" \
   "goTab() does not snap the viewport" \
@@ -116,9 +116,9 @@ s=s.replace(a,'''window.addEventListener(\"hashchange\", function(){
 
 run_case "rotation stops re-snapping" \
   "no ResizeObserver delivering the viewport width" \
-  "${P}a='''        nwRszSquelch = true;
-        snapTo(S.tab);''';assert a in s
-s=s.replace(a,'        nwRszSquelch = true;',1);${W}"
+  "${P}a='''      nwRszSquelch = true;
+      snapTo(S.tab);''';assert a in s
+s=s.replace(a,'      nwRszSquelch = true;',1);${W}"
 
 echo "--- 143: the belt parked as the header's own permanent peek"
 
@@ -134,10 +134,11 @@ s=s.replace(a,'  if(Math.abs(x - i * nwVW) >= 2) document.documentElement.setAtt
 
 run_case "parkFocus hides behind the observer" \
   "gates parkFocus() behind IntersectionObserver" \
-  "${P}a='''  parkFocus();
-  if(!(\"IntersectionObserver\" in window)) return;'''
+  "${P}a='''  var root = document.documentElement;
+  parkFocus();'''
 assert a in s
-s=s.replace(a,'''  if(!(\"IntersectionObserver\" in window)) return;
+s=s.replace(a,'''  var root = document.documentElement;
+  if(!(\"IntersectionObserver\" in window)) return;
   parkFocus();''',1);${W}"
 
 run_case "the swipe door keeps the shadow" \

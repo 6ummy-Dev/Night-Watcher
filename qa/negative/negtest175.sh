@@ -4,9 +4,7 @@
 # them covers the four new sections and the retired-slug contract.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
-C="import io;p='CHANGELOG.md';s=io.open(p,encoding='utf-8').read();"
-R="import io;p='README.md';s=io.open(p,encoding='utf-8').read();"
+C="$(pro CHANGELOG.md)"
 
 echo "--- 71: the two tier mutations the 1.7.2 QA got past every guard"
 run_case "tierOf never returns Optional (survived the whole harness in 1.7.2)" \
@@ -56,12 +54,12 @@ s=s.replace(a,'[h.slice(1).toLowerCase()]',1);${W}"
 echo "--- 74: a history that runs both ways"
 run_case "two releases are dated out of order" \
   "the history runs backwards" \
-  "${C}import re;m=re.search(r'## \\[1\\.7\\.1\\] \\u2014 (\\d{4}-\\d{2}-\\d{2})',s);assert m
+  "${C}import re;m=re.search(r'## \\[4\\.0\\.1\\] \\u2014 (\\d{4}-\\d{2}-\\d{2})',s);assert m
 s=s[:m.start(1)]+'2026-09-04'+s[m.end(1):];${W}"
 
 run_case "a version is written down twice" \
-  "lists 1.7.0 twice" \
-  "${C}a='## [1.6.6] \u2014 2026-08-02';assert a in s;s=s.replace(a,'## [1.7.0] \u2014 2026-08-02',1);${W}"
+  "lists 4.0.2 twice" \
+  "${C}a='## [4.0.1] \u2014 2026-08-17';assert a in s;s=s.replace(a,'## [4.0.2] \u2014 2026-08-17',1);${W}"
 
 echo "--- the retired-slug contract"
 run_case "an entry is deleted without being retired" \
@@ -104,7 +102,7 @@ assert s.count(a)==1;s=s.replace(a,'S.scope = S.scopePref = \"all\";',1);${W}" \
 
 run_case "persist writes the view instead of the preference" \
   "and persisting after it stores the preference, not the view" \
-  "${P}a='scope:S.scopePref,';assert a in s;s=s.replace(a,'scope:S.scope,',1);${W}" \
+  "${P}a='get:function(){ return S.scopePref; }';assert a in s;s=s.replace(a,'get:function(){ return S.scope; }',1);${W}" \
   "smoke" "main"
 
 echo "--- one number per universe"
@@ -120,8 +118,8 @@ s=s.replace(a,'<span class=\"gnum\">'+\"'\"+'+\"?\"+'+\"'\",1);${W}" \
 echo "--- the search count that offered what it could not show"
 run_case "the search-everything count ignores the format filter again" \
   "does not offer to find series the format filter would hide" \
-  "${P}a='if(f.tv && (S.format === \"all\" || f.fmt === S.format) && matches(f, q)) hidden++;'
-assert a in s;s=s.replace(a,'if(f.tv && matches(f, q)) hidden++;',1);${W}" \
+  "${P}a='if(f.tv && (S.format === \"all\" || f.fmt === S.format) && onRoute(f) && matches(f, q)) hidden++;'
+assert a in s;s=s.replace(a,'if(f.tv && onRoute(f) && matches(f, q)) hidden++;',1);${W}" \
   "smoke" "main"
 
 rm -rf "$NEG"

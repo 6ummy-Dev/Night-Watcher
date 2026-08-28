@@ -18,21 +18,15 @@ echo "--- 128: the peek lights from S.mode, never from S.path (Q1)"
 
 run_case "the peek repoints at S.path" \
   "the peek lights from S.path" \
-  "${P}a='''data-lit=\"'+S.mode+'\"'''
-assert a in s
-s=s.replace(a,'''data-lit=\"'+S.path+'\"''',1);${W}"
+  "${P}a='setAttribute(\"data-lit\", S.mode)';assert a in s;s=s.replace(a,'setAttribute(\"data-lit\", S.path)',1);${W}"
 
 run_case "the peek stops lighting at all" \
   "the peek does not light from S.mode" \
-  "${P}a=''' data-lit=\"'+S.mode+'\"'''
-assert a in s
-s=s.replace(a,'',1);${W}"
+  "${P}a='  document.getElementById(\"beltpeek\").setAttribute(\"data-lit\", S.mode);\n';assert a in s;s=s.replace(a,'',1);${W}"
 
 run_case "pressed follows the view instead of the choice" \
   "no longer press from S.path" \
-  "${P}a='''data-path=\"'+m[0]+'\" aria-pressed=\"'+(S.path===m[0])+'\"'''
-assert a in s
-s=s.replace(a,'''data-path=\"'+m[0]+'\" aria-pressed=\"'+(S.mode===m[0])+'\"''',1);${W}"
+  "${P}a='segButtons(\"path\", PATHS, S.path)';assert a in s;s=s.replace(a,'segButtons(\"path\", PATHS, S.mode)',1);${W}"
 
 run_case "the middle chunk drifts off its third" \
   "has no position for" \

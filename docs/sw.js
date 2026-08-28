@@ -1,28 +1,19 @@
 /* Night Watcher — service worker.
  *
- * VERSION must match BUILD in index.html. qa/guards.js enforces that; if the
- * two drift, old caches are never retired and users are pinned to a stale app.
+ * VERSION must match BUILD in index.html; qa/guards.js (section 11) fails the
+ * build if they drift, because a stale VERSION never retires the old cache.
  *
- * Strategy, chosen to make a bad deploy recoverable rather than sticky:
- *   same-origin  -> network-first, cache as fallback. A deploy lands on the
- *                   next load while online; offline still opens from cache.
- *
- * Nothing cross-origin is fetched at all: the fonts are self-hosted and there
- * is no beacon. Deliberately NOT cache-first for HTML: the app is one
- * index.html, so a stale cache means a stale catalogue AND stale code with
- * no way to push a fix. (The history of this file is in NOTES.md.)
+ * Same-origin requests are network-first with the cache as the fallback: a
+ * deploy lands on the next online load, and offline still opens from cache.
+ * Nothing cross-origin is ever fetched. Not cache-first for HTML on purpose —
+ * the app is one index.html, so a sticky cache is a sticky catalogue and
+ * sticky code with no way to push a fix. History: NOTES.md, "sw.js".
  */
-var VERSION = "4.8.0";
+var VERSION = "4.9.0";
 var CACHE   = "night-watcher-" + VERSION;
-/* The shell is everything the page needs to open offline: the page, the
-   manifest, the icons the page and the manifest reference (the apple-touch
-   icon stays out — iOS copies it at install time and never asks the worker),
-   and the fonts, because a font that failed on the one online visit would
-   otherwise render fallback type offline until the next one. Section 13 of
-   the guards diffs this list against what docs/ actually serves, with the
-   crawler-facing files named as exclusions. ./index.html is not listed:
-   the assets plane redirects it to ./, so installing it stored a redirected
-   duplicate of the page that a navigation can never use. */
+/* The shell: everything the page needs to open offline. Guard 13 diffs this
+   list against what docs/ serves, crawler-facing files excluded; ./index.html
+   is not listed because the assets plane redirects it to ./ (NOTES.md). */
 var SHELL   = ["./", "./manifest.json", "./icon.png", "./icon-192.png",
                "./icon-maskable-512.png",
                "./icon.svg",
@@ -33,9 +24,11 @@ var SHELL   = ["./", "./manifest.json", "./icon.png", "./icon-192.png",
                "./fonts/ibm-plex-mono-latin-400-normal.woff2",
                "./fonts/ibm-plex-mono-latin-600-normal.woff2"];
 
-/* If anything is ever fetched from another origin again, it needs a
-   never-cache list here BEFORE the fetch ships, not after: the cross-origin
-   return below is about where a request is served from, not what it is. */
+/* / is served with Vary: Accept (worker.js negotiates the root), and the
+   Cache API honours Vary — so a navigation's Accept never matches the entry
+   the install fetched with a bare wildcard. ignoreVary on every match: there
+   is one representation of each path in this cache, whatever Accept asked. */
+var ANY = {ignoreVary: true};
 
 self.addEventListener("install", function(e){
   e.waitUntil(
@@ -72,11 +65,9 @@ self.addEventListener("fetch", function(e){
     fetch(req).then(function(res){
       if(res && res.ok){
         var copy = res.clone();
-        /* c.put() rejects on 206s and on a full quota; returning it puts the
-           rejection inside the chain the .catch is watching. waitUntil keeps
-           the worker alive until the put settles — fire-and-forget let the
-           browser kill the worker between the reply and the write, and a
-           downloaded update quietly missed the offline cache. Guard 132
+        /* The put rides waitUntil so the browser cannot kill the worker
+           between the reply and the write; c.put() rejects on 206s and on a
+           full quota, and the rejection lands in the catch. Guard 132
            executes this path. */
         e.waitUntil(
           caches.open(CACHE).then(function(c){ return c.put(req, copy); }).catch(function(){})
@@ -84,16 +75,14 @@ self.addEventListener("fetch", function(e){
       }
       return res;
     }).catch(function(){
-      return caches.match(req).then(function(hit){
+      return caches.match(req, ANY).then(function(hit){
         if(hit) return hit;
-        /* A navigation to any path under scope should still open the app.
-           ./ is the shell. ./index.html is not installed (it would be a
-           redirected copy, which a browser refuses for a navigation); it is
-           consulted last only for a platform where that path answers 200
-           and a visit cached it. */
+        /* A navigation to any path under scope still opens the app: ./ is
+           the shell, and ./index.html is consulted last for a platform
+           where that path answers 200 and a visit cached it. */
         if(req.mode === "navigate"){
-          return caches.match("./").then(function(shell){
-            return shell || caches.match("./index.html");
+          return caches.match("./", ANY).then(function(shell){
+            return shell || caches.match("./index.html", ANY);
           });
         }
         return Response.error();

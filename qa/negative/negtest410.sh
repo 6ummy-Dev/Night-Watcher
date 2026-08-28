@@ -303,8 +303,9 @@ run_case "persist() falling back to S.mode is caught" \
 import io
 p='docs/index.html'
 s=io.open(p,encoding='utf-8').read()
-assert 'mode:S.path,' in s
-io.open(p,'w',encoding='utf-8').write(s.replace('mode:S.path,','mode:S.path || S.mode,',1))
+a='read:function(v, o){ return isPath(v) ? v : isPath(o.mode) ? o.mode : undefined; }'
+assert a in s
+io.open(p,'w',encoding='utf-8').write(s.replace(a,'read:function(v, o){ return isPath(v) ? v : isPath(o.mode) ? o.mode : S.mode; }',1))
 "
 
 # --- catch-up, section 21: a blocked store has to say so ---

@@ -3,7 +3,7 @@
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="import io;p='NOTES.md';s=io.open(p,encoding='utf-8').read();"
-G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
+G="$(pro qa/guards.js)"
 
 echo "--- 58: Recent activity stays level with Then"
 run_case "an Activity row is padded roomier than a queue row" \
@@ -72,14 +72,8 @@ run_case "NOTES.md documents something the file no longer has" \
   "index.html no longer has" \
   "${N}a='## Script';assert a in s;s=s.replace(a,'## Script\n\n### \`vanishedHelper()\`\n\nnotes for a function that is gone\n');${W}"
 
-echo "--- 66: the numbering still enforces itself"
-run_case "a new section is renumbered out of order" \
-  "guard sections are out of order" \
-  "${G}a='/* ---------- 64. The year is not printed twice';assert a in s;s=s.replace(a,'/* ---------- 67. The year is not printed twice');${W}"
-
-run_case "a new section is missing from the INDEX" \
-  "is missing from the INDEX" \
-  "${G}a='     65   The file points at where its reasoning went\n';assert a in s;s=s.replace(a,'');${W}"
+# The two guard-66 fixtures this suite carried (renumber a section; drop an
+# INDEX row) were copies of negtest.sh's, three suites over; struck in 4.9.0.
 
 rm -rf "$NEG"
 finish "1.6.3 negative tests"

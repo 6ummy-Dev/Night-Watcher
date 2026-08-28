@@ -331,15 +331,13 @@ echo "--- 112: the Restore box survives a render nobody asked for"
 
 run_case "render stops carrying the paste across" \
   "does not wipe the paste" \
-  "${P}a='  if(rb && rbVal){';assert a in s;s=s.replace(a,'  if(false && rb && rbVal){',1);${W}" \
+  "${P}a='    if(FIELDKEEP[f.id] && f.value) el.value = f.value;';assert a in s;s=s.replace(a,'',1);${W}" \
   "smoke" "main"
 
 run_case "the preservation is dropped out of render entirely" \
   "render() does not preserve #restorebox" \
-  "${P}import re;a='  var rbPrev = document.getElementById(\"restorebox\");'
-assert a in s;s=s.replace(a,'  var rbPrev = null;',1)
-i=s.index('  var rb = document.getElementById(\"restorebox\");');j=s.index('  if(keep){',i)
-s=s[:i]+s[j:];${W}"
+  "${P}a='  var fields = fieldSnap(v);';assert a in s;s=s.replace(a,'  var fields = [];',1)
+a='  var field = fieldRestore(v, fields);';assert a in s;s=s.replace(a,'  var field = null;',1);${W}"
 
 echo "--- 104: the cache policy, pinned the moment it exists"
 
@@ -412,8 +410,8 @@ echo "--- 114: the README describes the origin that actually serves"
 run_case "the retired move offer returns to the README" \
   "in the present tense" \
   "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
-a='Progress is stored per-origin'
-assert a in s;s=s.replace(a,'The app offers to carry progress across from the old address. '+a,1)
+a='restores here).'
+assert a in s;s=s.replace(a,'restores here). The app offers to carry progress across from the old address.',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
 # 3.3.1: the paragraph used to have to say what the app DID to the mirror.
@@ -422,15 +420,15 @@ io.open(p,'w',encoding='utf-8').write(s)"
 run_case "the README promises the retired address again" \
   "still works and always will" \
   "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
-a='The old GitHub Pages mirror was unpublished on 6 August 2026.'
-assert a in s;s=s.replace(a,'The old GitHub Pages address still works and always will.',1)
+a='(the GitHub Pages mirror\nit started on was unpublished in August 2026; a backup taken there still\nrestores here)'
+assert a in s;s=s.replace(a,'(the old GitHub Pages address still works and always will)',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
 run_case "the paragraph stops saying the mirror is gone" \
   "does not say the mirror was" \
   "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
-a='The old GitHub Pages mirror was unpublished on 6 August 2026.'
-assert a in s;s=s.replace(a,'The old GitHub Pages mirror is described elsewhere.',1)
+a='(the GitHub Pages mirror\nit started on was unpublished in August 2026; a backup taken there still\nrestores here)'
+assert a in s;s=s.replace(a,'(the GitHub Pages mirror is described elsewhere)',1)
 s=s.replace('was retired','was changed',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 

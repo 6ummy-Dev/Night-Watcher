@@ -31,14 +31,14 @@ s=s.replace(a,'var h = n * 7, t = ROOFTIERS[0], i;',1);${W}" \
 
 run_case "a Progress group seeds from its position" \
   "a Progress group lost its frozen roof code" \
-  "${P}a='uniGroups.push({key:\"c\"+gi, code:\"u\"+g.n,';assert a in s
-s=s.replace(a,'uniGroups.push({key:\"c\"+gi, code:\"u\"+gi,',1);${W}" \
+  "${P}a='codeOf:function(g){ return \"u\" + g.n; }';assert a in s
+s=s.replace(a,'codeOf:function(g, i){ return \"u\" + i; }',1);${W}" \
   guards "" 150
 
 run_case "the card seeds by index" \
   "the card seeds its roofs differently" \
-  "${P}a='PATH.map(function(g, gi){ return [\"c\" + gi, \"u\" + g.n]; })';assert a in s
-s=s.replace(a,'PATH.map(function(g, gi){ return [\"c\" + gi, \"u\" + gi]; })',1);${W}" \
+  "${P}a='roofOf(g.code, fs.length)';assert a in s
+s=s.replace(a,'roofOf(\"u\" + bars.length, fs.length)',1);${W}" \
   guards "" 150
 
 run_case "the card stops drawing its crowns from the spec" \

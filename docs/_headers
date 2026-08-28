@@ -1,75 +1,34 @@
 # Response headers for every path served by the Worker's static assets.
 #
-# THESE LIVE HERE AND NOT IN THE DASHBOARD because a file in the tree can be
-# diffed, guarded (section 104) and shipped inside a release, and a dashboard
-# rule can be none of those. Dashboard Transform Rules DO apply to these
-# responses and they WIN — one served a stale Permissions-Policy for a whole
-# release while every guard stayed green — so the wire is read after every
-# deploy (RELEASING.md, "The wire checks"); no guard can read a panel, and one
-# that pretended to would be worse than an honest gap.
+# THESE LIVE HERE AND NOT IN THE DASHBOARD: a file in the tree can be diffed,
+# guarded (section 104) and shipped in a release; a dashboard rule can be none
+# of those — and Transform Rules WIN over these, so the wire is read after
+# every deploy (RELEASING.md, "The wire checks"). HSTS and
+# X-Content-Type-Options are set at the edge and deliberately not duplicated.
+# Content-Security-Policy stays in index.html's <meta>: the guards bless its
+# hash against the one inline script.
 #
-# This file applies to responses the assets plane serves. The two responses
-# worker.js constructs restate the security set themselves; guard 133 holds
-# them equal to the /* block below.
+# The two responses worker.js constructs restate the /* set themselves;
+# guard 133 holds them equal to this file.
 #
-# HSTS and X-Content-Type-Options are set at the edge instead (SSL/TLS panel
-# and Managed Transforms) and are deliberately not duplicated here.
+# Cache policy: sw.js and / are no-cache (revalidate before use — sw.js is how
+# a returning browser learns the app changed, and a non-SW visitor must
+# revalidate the document or a bad deploy is sticky). The fonts are
+# content-addressed by qa/font-subset.json and take a year, immutable. The
+# icons, the manifest and the share card take a day: a year is only honest
+# behind a hashed filename, and an unstable favicon is a listed Google cause
+# of non-appearance. The agent-facing files and security.txt are no-cache:
+# an agent asks once and writes the answer down.
 #
-# Content-Security-Policy stays in the <meta> tag in index.html: the guards
-# bless its hash against the one inline script, and moving it to a header
-# would split one rule across two files. A response-header scan cannot see a
-# <meta> policy and will report it missing; the header such a scan proposes
-# ('unsafe-inline') is weaker than the single sha256 that ships.
+# The Link: lines sit under /, not /*: a canonical relation is a statement
+# about a document, and _headers matches on path only, cumulatively, with no
+# way to unset. describedby points at /llms.txt, the same file the Worker
+# serves to a client whose Accept prefers text/markdown; Vary: Accept on /
+# says so to any shared cache. Permissions-Policy denies what the app never
+# uses; interest-cohort is not listed and section 104 refuses it by name.
 #
-# CACHE POLICY. Nothing declared one before 3.0.0, so every file was cached
-# with whatever Workers Assets emits by default — and the bare /sw.js once
-# answered a version two releases old while the same file with a cache-busting
-# query answered the current one. sw.js is how a returning browser learns the
-# app changed, so it is no-cache (revalidate before use, not "do not store");
-# so is / , because the document IS the app and a non-SW visitor must
-# revalidate it or a bad deploy is sticky for exactly the readers the service
-# worker cannot help. The fonts are content-addressed by the subset script's
-# own hash record and never change under a name, so they take the year with
-# immutable. The icons, the manifest and the share card take A DAY, not a
-# year: a year with immutable is only honest behind a content-hashed filename,
-# and "unstable or frequently changed" is a listed Google cause of favicon
-# non-appearance, so the names stay stable and the policy stays short. If the
-# names ever become hashed they move to the fonts' policy.
-#
-# Permissions-Policy denies usb=() because the app never uses WebUSB — cheap
-# hardening. interest-cohort is NOT listed: FLoC was withdrawn, and section
-# 104 refuses that token by name.
-#
-# THE Link: LINES SIT UNDER /, NOT /*. A canonical relation is a statement
-# about a document; /* would apply it to fonts, icons and sw.js, and RFC 8288
-# gives no reading of "this PNG's authoritative version is the home page".
-# _headers matches on PATH ONLY — never content type — and every matching rule
-# applies cumulatively with no way to unset, so scoping means declaring under
-# / rather than /*. / is the whole HTML surface: wrangler.jsonc pins
-# not_found_handling to "404-page", so no other path ever serves a document.
-# describedby is the honest registered relation for an agent — the site has
-# no API, so RFC 9727's api-catalog and service-doc would be fabrication — and
-# /llms.txt IS the machine-readable description of this page, the same file
-# the Worker serves to any client whose Accept prefers text/markdown. The
-# target is site-relative where the other two are absolute: canonical and
-# sitemap name authoritative URLs and must not drift across origins; a
-# describedby points at a sibling of whatever origin served it.
-#
-# Vary: Accept on / because worker.js negotiates the root: the HTML
-# fall-through is a second representation of the same URL, and a shared cache
-# that relaxes no-cache revalidation could otherwise hand HTML to a
-# markdown-preferring agent. The negotiation is in worker.js; the declaration
-# belongs in the file that can be diffed and guarded.
-#
-# The files written for agents (auth.md, llms.txt, orders.txt) and the
-# disclosure pointer (security.txt, which carries an Expires date) are
-# no-cache for the same reason the page is: an agent or a scanner asks once,
-# writes the answer down, and does not come back to see whether it changed.
-# Nothing here declares Content-Type: the assets plane already emits the right
-# one for .txt, and _headers cannot unset a header it duplicates.
-#
-# The history of every decision above — dates, releases, the evidence files —
-# is in NOTES.md ("Where the served and config files' histories went").
+# The history of every decision above is in NOTES-history.md ("Where the
+# served and config files' histories went").
 
 /*
   Referrer-Policy: strict-origin-when-cross-origin

@@ -62,8 +62,8 @@ s=s.replace(a,a+'  X-Permitted-Cross-Domain-Policies: none\n',1);${HW}" \
 
 run_case "the markdown HEAD response drops the security set while GET keeps it" \
   "the markdown HEAD response does not carry" \
-  "${K}a='        headers: withSecurity({\n          \"Content-Type\": \"text/markdown; charset=utf-8\",';assert a in s
-s=s.replace(a,'        headers: (head ? function(h){ return h; } : withSecurity)({\n          \"Content-Type\": \"text/markdown; charset=utf-8\",',1);${KW}" \
+  "${K}a='    if(head) return new Response(null, {status: 200, headers: headers});';assert a in s
+s=s.replace(a,'    if(head) return new Response(null, {status: 200, headers: {\"Content-Type\": headers[\"Content-Type\"], \"Vary\": \"Accept\", \"Content-Location\": \"/llms.txt\", \"Link\": ROOT_LINKS}});',1);${KW}" \
   guards "" 133
 
 run_case "the api-catalog HEAD response drops the security set while GET keeps it" \

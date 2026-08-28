@@ -29,17 +29,17 @@ run_case "the tier starts narrow" \
 
 run_case "persistNow() forgets the tier" \
   "does not write the tier" \
-  "${P}a='format:S.format, tier:S.tier, log:S.log';assert a in s;s=s.replace(a,'format:S.format, log:S.log');${W}" \
+  "${P}a='  {k:\"tier\",         read:oneOf([\"ess\", \"core\", \"all\"], \"all\")},\n';assert a in s;s=s.replace(a,'');${W}" \
   guards "" 152
 
 run_case "restore() defaults an old save to the Core route" \
   "does not read the tier through the whitelist" \
-  "${P}a='indexOf(o.tier) >= 0 ? o.tier : \"all\";';assert a in s;s=s.replace(a,'indexOf(o.tier) >= 0 ? o.tier : \"core\";');${W}" \
+  "${P}a='read:oneOf([\"ess\", \"core\", \"all\"], \"all\")';assert a in s;s=s.replace(a,'read:oneOf([\"ess\", \"core\", \"all\"], \"core\")');${W}" \
   guards "" 152
 
 run_case "restore() takes any tier it is handed" \
   "does not read the tier through the whitelist" \
-  "${P}a='S.tier = [\"ess\", \"core\", \"all\"].indexOf(o.tier) >= 0 ? o.tier : \"all\";';assert a in s;s=s.replace(a,'S.tier = o.tier || \"all\";');${W}" \
+  "${P}a='read:oneOf([\"ess\", \"core\", \"all\"], \"all\")';assert a in s;s=s.replace(a,'read:function(v){ return v || \"all\"; }');${W}" \
   guards "" 152
 
 run_case "visible() stops asking onRoute()" \
@@ -201,7 +201,7 @@ run_case "the Core route lets one Optional entry through" \
 
 run_case "a Core-route save reboots wide" \
   "a Core-route save reboots on the Core route" \
-  "${P}a='S.tier = [\"ess\", \"core\", \"all\"].indexOf(o.tier) >= 0 ? o.tier : \"all\";';assert a in s;s=s.replace(a,'S.tier = \"all\";');${W}" \
+  "${P}a='read:oneOf([\"ess\", \"core\", \"all\"], \"all\")';assert a in s;s=s.replace(a,'read:function(){ return \"all\"; }');${W}" \
   smoke "main"
 
 rm -rf "$NEG"

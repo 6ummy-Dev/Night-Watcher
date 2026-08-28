@@ -4,7 +4,7 @@
 # ORDER clause, and the favicon set that used to be a count.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-R="import io;p='README.md';s=io.open(p,encoding='utf-8').read();"
+R="$(pro README.md)"
 RW="io.open(p,'w',encoding='utf-8').write(s)"
 
 echo "--- 121: the privacy footer says what the README says"
@@ -56,9 +56,9 @@ run_case "the scroll read slides back below flagSave()" \
   "${P}a='''  var keep = scrollKeep();
   if(nwArriveKeep !== null){ keep = nwArriveKeep; nwArriveKeep = null; }
   if(nwScrollAdjust){ keep = Math.max(0, keep - nwScrollAdjust); nwScrollAdjust = 0; }
-  var qPrev'''
+  flagSave();'''
 assert a in s
-s=s.replace(a,'''  var qPrev''',1)
+s=s.replace(a,'''  flagSave();''',1)
 b='''  flagSave();
   applyTheme();'''
 assert b in s

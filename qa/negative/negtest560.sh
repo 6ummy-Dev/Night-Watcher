@@ -13,7 +13,7 @@
 # snippet anchors, the shared merge and focus helpers, the five new cache
 # blocks, the storage key, and the archival clock.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
-G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
+G="$(pro qa/guards.js)"
 GW="io.open(p,'w',encoding='utf-8').write(s)"
 N="import io;p='NOTES.md';s=io.open(p,encoding='utf-8').read();"
 NW="io.open(p,'w',encoding='utf-8').write(s)"
@@ -71,8 +71,8 @@ echo "--- 132: the navigate fallback tries the unredirected name first"
 
 run_case "the fallback goes back to index.html first" \
   "does not fall back to the app shell" \
-  "${V}a='return caches.match(\"./\").then(function(shell){\n            return shell || caches.match(\"./index.html\");';assert a in s
-s=s.replace(a,'return caches.match(\"./index.html\").then(function(shell){\n            return shell || caches.match(\"./\");',1);${VW}" \
+  "${V}a='return caches.match(\"./\", ANY).then(function(shell){\n            return shell || caches.match(\"./index.html\", ANY);';assert a in s
+s=s.replace(a,'return caches.match(\"./index.html\", ANY).then(function(shell){\n            return shell || caches.match(\"./\", ANY);',1);${VW}" \
   guards "" 132
 
 echo "--- 80 and 96: the named constants"
@@ -113,7 +113,7 @@ echo "--- 65: a NOTES heading that quotes the file has to quote it as it reads"
 
 run_case "a snippet heading anchors a line that was rewritten" \
   "re-anchor the heading to the line as it reads now" \
-  "${N}a='### \`function focusBack(el){\`';assert a in s;s=s.replace(a,'### \`function focusBackward(el){\`',1);${NW}" \
+  "${N}a='### \`if(S.format === \"all\"){\`';assert a in s;s=s.replace(a,'### \`if(S.format === \"everything\"){\`',1);${NW}" \
   guards "" 65
 
 echo "--- 111: one merge"
@@ -145,13 +145,13 @@ echo "--- 123: one focus restore"
 
 run_case "focusBack loses preventScroll" \
   "focusBack() restores focus without preventScroll" \
-  "${P}a='function focusBack(el){ if(el){ try{ el.focus({preventScroll:true}); }catch(e){ el.focus(); } } }';assert a in s
-s=s.replace(a,'function focusBack(el){ if(el){ try{ el.focus(); }catch(e){} } }',1);${W}" \
+  "${P}a='function focusBack(el){ if(el) el.focus({preventScroll:true}); }';assert a in s
+s=s.replace(a,'function focusBack(el){ if(el) el.focus(); }',1);${W}" \
   guards "" 123
 
 run_case "render restores focus by hand again" \
   "calls .focus() itself instead of focusBack()" \
-  "${P}a='      focusBack(rb);';assert a in s;s=s.replace(a,'      rb.focus();',1);${W}" \
+  "${P}a='  var field = fieldRestore(v, fields);';assert a in s;s=s.replace(a,'  var field = fieldRestore(v, fields); if(field) field.el.focus();',1);${W}" \
   guards "" 123
 
 run_case "tickUpdate stops snapshotting through the helper" \
@@ -168,7 +168,9 @@ run_case "the key list drops data-src" \
 run_case "focusRestore stops escaping the selector" \
   "does not go through focusBack() and attrEsc()" \
   "${P}a='fsel += \"[data-\" + k + \x27=\"\x27 + attrEsc(fo[k]) + \x27\"]\x27;';assert a in s
-s=s.replace(a,'fsel += \"[data-\" + k + \x27=\"\x27 + fo[k] + \x27\"]\x27;',1);${W}" \
+s=s.replace(a,'fsel += \"[data-\" + k + \x27=\"\x27 + fo[k] + \x27\"]\x27;',1)
+a='button[data-act=\"\x27 + attrEsc(fo.act) + \x27\"]';assert a in s
+s=s.replace(a,'button[data-act=\"\x27 + fo.act + \x27\"]',1);${W}" \
   guards "" 123
 
 echo "--- 104: the five files that had no cache block"

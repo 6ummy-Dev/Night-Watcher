@@ -2,7 +2,7 @@
 # Negative-test every guard added or changed in 1.6.2.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-G="import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read();"
+G="$(pro qa/guards.js)"
 M="import io;p='docs/sitemap.xml';s=io.open(p,encoding='utf-8').read();"
 
 echo "--- 67: the page's date (was an unnumbered pair of checks until 1.6.6)"
@@ -49,14 +49,8 @@ run_case "the card can no longer break a word" \
   "cannot break a long word" \
   "${P}a='min-height:98px;overflow-wrap:anywhere;}';assert a in s;s=s.replace(a,'min-height:98px;}');${W}"
 
-echo "--- 64: the numbering still enforces itself"
-run_case "a new section is renumbered out of order" \
-  "guard sections are out of order" \
-  "${G}a='/* ---------- 63. The grid columns have a floor';assert a in s;s=s.replace(a,'/* ---------- 65. The grid columns have a floor');${W}"
-
-run_case "a new section is missing from the INDEX" \
-  "is missing from the INDEX" \
-  "${G}a='     62   Nothing focusable is small enough to zoom\n';assert a in s;s=s.replace(a,'');${W}"
+# The two guard-66 fixtures this suite carried (renumber a section; drop an
+# INDEX row) were copies of negtest.sh's, three suites over; struck in 4.9.0.
 
 rm -rf "$NEG"
 finish "1.6.2 negative tests"

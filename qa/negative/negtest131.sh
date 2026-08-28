@@ -29,11 +29,11 @@ run_case "the iOS hint loses its dismissal gate" \
 
 run_case "insOff persists its default too" \
   "insOff persists something other than only-true" \
-  "${P}a='insOff:S.insOff ? true : undefined';assert a in s;s=s.replace(a,'insOff:S.insOff');${W}"
+  "${P}a='get:function(){ return S.insOff ? true : undefined; }';assert a in s;s=s.replace(a,'get:function(){ return S.insOff; }');${W}"
 
 run_case "a restored payload cannot dismiss the hint" \
   "a restored payload can no longer dismiss the hint" \
-  "${P}a='        if(o.insOff === true) S.insOff = true;\n';assert a in s;s=s.replace(a,'');${W}"
+  "${P}a='read:function(v){ return v === true ? true : undefined; }';assert a in s;s=s.replace(a,'read:function(v){ return v; }');${W}"
 
 run_case "a second seat opens in Next up" \
   "2 install seats" \
