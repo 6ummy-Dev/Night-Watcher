@@ -17,7 +17,7 @@
  * responses restate the security set and the root's Link set from the
  * constants below; guard 133 holds them equal to _headers.
  * History (why not the dashboard, why the catalogue is empty, the validators):
- * NOTES.md, "worker.js".
+ * NOTES-history.md ("Where the served and config files' histories went").
  */
 
 var SECURITY = {
@@ -76,8 +76,14 @@ function markdownResponse(request, env, head){
     });
     if(etag) headers["ETag"] = etag;
     if(modified) headers["Last-Modified"] = modified;
+    /* RFC 9110 §13.1.2: "*" matches any current representation, and the
+       comparison is WEAK — a client (or an edge that compresses, which is
+       what Cloudflare does to this response) echoes W/"x" for the asset's
+       "x", and a strict string compare would never answer 304 again. */
     var inm = request.headers.get("If-None-Match");
-    if(etag && inm && inm.split(",").some(function(t){ return t.trim() === etag; })){
+    var bare = function(t){ return t.trim().replace(/^W\//, ""); };
+    if(etag && inm && (inm.trim() === "*" ||
+       inm.split(",").some(function(t){ return bare(t) === bare(etag); }))){
       return new Response(null, {status: 304, headers: headers});
     }
     /* HEAD answers the GET's headers and nothing else — the body is never

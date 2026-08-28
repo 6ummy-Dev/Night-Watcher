@@ -27,8 +27,8 @@
 # says so to any shared cache. Permissions-Policy denies what the app never
 # uses; interest-cohort is not listed and section 104 refuses it by name.
 #
-# The history of every decision above is in NOTES-history.md ("Where the
-# served and config files' histories went").
+# The history of every decision above is in NOTES-history.md
+# ("Where the served and config files' histories went").
 
 /*
   Referrer-Policy: strict-origin-when-cross-origin

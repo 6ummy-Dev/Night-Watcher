@@ -10,9 +10,10 @@ decision, that is because it was.
 
 Four other places carry part of the story and are not repeated here:
 
-- **`NOTES-history.md`** — the post-mortems and the release essays, one per
-  shipped release, and the archived comment blocks. Nothing there is required
-  reading before a change; everything here is written in the present tense.
+- **`NOTES-history.md`** — the post-mortems, the release essays and the
+  archived comment blocks, each under a dated heading. Nothing there is
+  required reading before a change; everything here is written in the
+  present tense.
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
 - **`qa/guards.js`** — 153 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by

@@ -111,10 +111,10 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `worker.js` | The Worker in front of the assets: the root's markdown negotiation and the `/.well-known/api-catalog` answer; every other path falls through untouched. Guard 133 executes it |
 | `wrangler.jsonc` | Cloudflare Workers config (points `main` at `worker.js` and assets at `docs/`) |
 | `.gitignore` | Ignores `node_modules`, Wrangler state, editor files, etc. |
-| `package.json` | Dev scripts + the QA toolchain: jsdom for smoke, playwright and axe-core for the browser check, wrangler for deploys |
+| `package.json` | Dev scripts + the QA toolchain: jsdom for smoke, playwright and axe-core for the browser check; deploys run wrangler through npx, version pinned in the script |
 | `.github/workflows/qa.yml` | Runs every suite on every push and again nightly, so a tampered commit fails in public |
 | `NOTES.md` | Why the code is written the way it is, in the present tense. Not served — `docs/index.html` carries no explanatory comments, and this is where they went |
-| `NOTES-history.md` | The post-mortems, the release essays and the archived comment blocks, one heading per shipped release |
+| `NOTES-history.md` | The post-mortems, the release essays and the archived comment blocks, each under a dated heading |
 | `ARCHITECTURE.md` | The shape of the script: its sections, the state bag, the counting pipeline, the routes and the render loop |
 | `DATA-MODEL.md` | The persisted payload, the `NW3` backup code, the JSON export, and the tolerance rules each is read with |
 | `CONTRIBUTING.md` | Which document answers what, how a change lands, and the checklist for adding a guard section or a negative suite |
@@ -157,7 +157,7 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 69 negative suites, 1113
+trusted. That evidence lives in `qa/negative/` — 70 negative suites, 1129
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
@@ -187,10 +187,10 @@ The data lives in the `PATH` array near the top of the `<script>` block in `docs
 
 ```js
 // a film
-{i:"batman-year-one-2011", t:"Batman: Year One", y:2011, e:2, d:"Description.", b:["e"]}
+{i:"batman-year-one-2011", t:"Batman: Year One", y:2011, e:2, lo:1, r:"PG-13", d:"Description.", b:["e"]}
 
 // a season of television
-{i:"batman-caped-crusader-season-2-2026", t:"Batman: Caped Crusader", sub:"Season 2", y:2026, ep:10, k:"tv", e:2, d:"Description.", o:1}
+{i:"batman-caped-crusader-season-2-2026", t:"Batman: Caped Crusader", sub:"Season 2", y:2026, ep:10, k:"tv", e:2, lo:5, r:"TV-14", d:"Description.", o:1}
 ```
 
 `i` **stable unique ID** (required) · `t` title · `sub` season label · `y` year · `ep` episode count · `k:"tv"` marks it a series  

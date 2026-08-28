@@ -14,7 +14,7 @@ any name below with a search for `function name(`.
 
 | Region | What it holds |
 | --- | --- |
-| `PATH` | The catalogue: 44 universes, each `{n, name, fmt, note, bag, films}`, each film `{i, t, sub, y, ep, k, e, lo, out, r, d, b, o, fmt}`. `i` is frozen forever. `README.md`, "Adding to the catalogue", has the field list. |
+| `PATH` | The catalogue: 44 universes, each `{n, name, note, films}` plus optional `fmt` (the default format its entries inherit) and `bag:1` (a group with no internal order — seven carry it), each film `{i, t, sub, y, ep, k, e, lo, out, r, d, b, o, fmt}`. `i` is frozen forever. `README.md`, "Adding to the catalogue", has the field list. |
 | `ERAS`, `DECADES` | The eleven eras of Bruce's life plus era 0, and the ten decades — the groups of the other two orderings. |
 | `BADGE`, `OUTWHY`, `MODENOTE` | Display vocabularies: the badge labels, the five reasons an entry has no place in a life, the one note per ordering. |
 | `idHash()` | FNV-1a to five base-36 characters — an entry's identity inside a backup code. |
@@ -91,14 +91,17 @@ vocabulary; the seed's links (guard 90) may use nothing outside it.
 
 ## One render
 
-Mutate `S` → `persist()` (or not, for a transient) → `render()`:
+Mutate `S` → `persist()` (or not, for a transient) → `render()`, in code
+order:
 
-1. Snapshot the scroll offset (or take `nwArriveKeep`, the position kept for
-   the panel being arrived at), the fields (`fieldSnap`) and the focused
-   button (`focusSnap`).
-2. `flagSave()`, `applyTheme()`, `counts()`, `renderHead(c)`.
-3. `buildDeck()` once; `fillPanel(S.tab, c)` writes the active panel's HTML
-   from its view function; the other three are marked dirty.
+1. Snapshot the scroll offset first — before anything below can write
+   layout — or take `nwArriveKeep`, the position kept for the panel being
+   arrived at (section 120's rule: read before write).
+2. `flagSave()`, `applyTheme()`, `counts()`, `renderHead(c)`; `buildDeck()`
+   once, on the first render.
+3. Snapshot the active panel's fields (`fieldSnap`) and focused button
+   (`focusSnap`), then `fillPanel(S.tab, c)` writes the panel's HTML from
+   its view function; the other three are marked dirty.
 4. Tab buttons' `aria-current`; `focusRestore`, `fieldRestore`.
 5. Scroll restore under `.settling` (content-visibility forced visible for
    one frame), then the focused field's drift correction.

@@ -2457,3 +2457,37 @@ WHAT THAT COST IS THE POINT OF LEAVING THIS WRITTEN DOWN. For one release this g
 `interest-cohort` STAYS REFUSED, and for its own reason: it is the FLoC opt-out, FLoC was withdrawn, and the token really is dead.
 
 A HAND-MAINTAINED LIST INSIDE A GUARD IS THE GUARD. Growing or shrinking this array is the change, and negtest340 is the only thing that proves it — which is why the usb fixture came out in the same commit. Refused by name rather than pinned as a whole string: the policy is allowed to grow, and a future token deserves an argument rather than a diff.
+
+## 4.9.0 — The clean road: a report closed whole, and what that cost
+
+The 4.8.0 report was the first full-repo QA since the seal, and the owner's
+call was to fix all of it at once — the defects, the tooling, the documents,
+the catalogue prompts and the groundwork — rather than let a backlog form
+around a tree that had never had one. Three findings were the kind a reader
+could meet: release order broke same-year ties by title, so a numbered
+trilogy rendered out of order in the app and in the export; the
+search-everything offer counted entries the tier pouch would then hide; and
+the cross-tab merge merged in memory and never wrote back, so two tabs
+racing the debounce could each hold a union that neither had on disk. Two
+findings were about the harness telling less than the truth: thirteen head
+tags could be deleted with a green `npm test`, and a warning never reached
+the exit code — "all guards passed (1 warning(s))" with a section switched
+off is the silence-reads-as-success family wearing its own uniform.
+
+The groundwork was the expensive half, and it was priced deliberately: the
+key scheme, the persisted state, the segmented controls and the render's
+input dance each moved from five-or-six hand copies into one table or one
+helper, and the guards that pinned the old spellings — about twenty
+sections and fifty fixtures — were re-anchored on AST predicates so the
+NEXT refactor of the same shapes does not go red in twenty places. The
+histories moved in the same cut: NOTES.md keeps the present tense, this
+file keeps the past, the changelog opens at 4.0.0 with the 1.x–3.x entries
+archived whole, and the served files carry their invariants plus a pointer
+instead of their memoirs. The 4.9.0 delta review then found the release's
+one honest irony — the sweep and the pointers did not cover the release's
+own additions (the five new documents had no row fixtures; two pointers
+aimed at the file the histories had just left), which is the same drift the
+release was built to end, landing inside it. 4.9.1 closed that loop and put
+the completeness checks where the prose had been: the sweep counts the
+table's rows, the pointers are read on every run, and the shard balance is
+measured instead of stated.

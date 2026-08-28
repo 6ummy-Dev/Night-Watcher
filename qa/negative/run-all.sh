@@ -37,7 +37,7 @@ case "$JOBS" in ''|*[!0-9]*) JOBS=1 ;; esac
 # written in its own header comment — the only place that has ever been
 # reliable. negtest131.sh predates all of it and keeps its name so its history
 # stays greppable; negtest.sh has no number and is the original suite. (The
-# rule's own history is in NOTES.md.)
+# rule's own history is in NOTES-history.md.)
 SUITES=()
 for f in "$HERE"/negtest*.sh; do
   if [ -n "$PICK" ] && ! echo "$f" | grep -Eq "$PICK"; then continue; fi

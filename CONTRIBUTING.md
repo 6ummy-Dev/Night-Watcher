@@ -64,7 +64,10 @@ files (`README.md`, "Checks", lists every one); read the diff.
 
 A suite is `qa/negative/negtestNNN.sh`: a shebang, a header comment naming
 the release and the sections it covers, the `_lib.sh` line, its fixtures,
-and `finish "<label>"`. Numbers are a plain +10 counter since negtest340.
+and `finish "<label>"`. Numbers are a plain +10 counter since negtest340,
+with a `+1` suffix where one release needs more than one suite
+(negtest475/476/478 are the precedent); the header comment, not the number,
+is what names the release.
 
 1. **One fixture per claim**, as a literal `run_case` line — guard 65
    counts lines, so no loops. Shape:

@@ -100,9 +100,12 @@ messenger carries.
 
 Read by `doRestore()` when a paste starts with `{`: each of the three
 containers must be a plain object (at least one present), own truthy keys
-count, ratings are clamped, unknown slugs are kept for a newer version, and
-the log is merged when present (else watched entries get a fresh
-timestamp). Like the code, it carries no clocks and merges additively. The
+count, ratings are clamped, and unknown slugs are counted and reported —
+not refused, and not kept in state: `applyMarks()` admits only catalogue
+ids, so the file itself is what preserves them, and restoring it again on a
+newer build recovers them (the same rule as an unknown hash in a backup
+code). The log is merged when present; otherwise watched entries get a
+fresh timestamp. Like the code, it carries no clocks and merges additively. The
 "Save to a file" button keeps a `FileSystemFileHandle` in IndexedDB
 (`nw-backup-handle`) so later saves refresh the same file; the handle is
 device-local and never part of any format.

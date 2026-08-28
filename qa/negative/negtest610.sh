@@ -17,27 +17,27 @@
 echo "--- 153: every <head> tag is required by name"
 
 run_case "the head loses <meta charset=\"utf-8\">" \
-  "the head has lost" \
+  "required tag(s): <meta charset>" \
   "${P}a='<meta charset=\"utf-8\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses viewport" \
-  "the head has lost" \
+  "required tag(s): the viewport meta" \
   "${P}a='<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses Content-Security-Policy" \
-  "the head has lost" \
+  "required tag(s): the Content-Security-Policy meta" \
   "${P}import re;a=re.search(r'<meta http-equiv=\"Content-Security-Policy\"[^>]*>',s).group(0);s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses apple-mobile-web-app-capable" \
-  "the head has lost" \
+  "required tag(s): apple-mobile-web-app-capable" \
   "${P}a='<meta name=\"apple-mobile-web-app-capable\" content=\"yes\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses mobile-web-app-capable" \
-  "the head has lost" \
+  "required tag(s): mobile-web-app-capable" \
   "${P}a='<meta name=\"mobile-web-app-capable\" content=\"yes\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
@@ -72,172 +72,172 @@ run_case "the head loses preload fonts/ibm-plex-mono-latin-600-normal.woff2" \
   guards "" 153
 
 run_case "the head loses apple-mobile-web-app-status-bar-style" \
-  "the head has lost" \
+  "required tag(s): apple-mobile-web-app-status-bar-style" \
   "${P}a='<meta name=\"apple-mobile-web-app-status-bar-style\" content=\"black-translucent\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses apple-mobile-web-app-title" \
-  "the head has lost" \
+  "required tag(s): apple-mobile-web-app-title" \
   "${P}a='<meta name=\"apple-mobile-web-app-title\" content=\"Night Watcher\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses manifest" \
-  "the head has lost" \
+  "required tag(s): the manifest link" \
   "${P}a='<link rel=\"manifest\" href=\"manifest.json\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses description" \
-  "the head has lost" \
+  "required tag(s): the description meta" \
   "${P}a='<meta name=\"description\" content=\"Every Batman story — 137 films and 68 seasons of TV across 44 continuities — in watch orders, no spoilers. By universe, by the arc of one life, or by release.\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:type" \
-  "the head has lost" \
+  "required tag(s): og:type" \
   "${P}a='<meta property=\"og:type\" content=\"website\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:title" \
-  "the head has lost" \
+  "required tag(s): og:title" \
   "${P}a='<meta property=\"og:title\" content=\"Night Watcher · One path through every Batman\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:description" \
-  "the head has lost" \
+  "required tag(s): og:description" \
   "${P}a='<meta property=\"og:description\" content=\"Every Batman story — 137 films and 68 seasons of TV across 44 continuities — in watch orders, no spoilers. Choose a path once and track what you have seen.\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:url" \
-  "the head has lost" \
+  "required tag(s): og:url" \
   "${P}a='<meta property=\"og:url\" content=\"https://nightwatcher.life/\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:site_name" \
-  "the head has lost" \
+  "required tag(s): og:site_name" \
   "${P}a='<meta property=\"og:site_name\" content=\"Night Watcher\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses canonical" \
-  "the head has lost" \
+  "required tag(s): the canonical link" \
   "${P}a='<link rel=\"canonical\" href=\"https://nightwatcher.life/\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:image" \
-  "the head has lost" \
+  "required tag(s): og:image" \
   "${P}a='<meta property=\"og:image\" content=\"https://nightwatcher.life/share.png\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses twitter:card" \
-  "the head has lost" \
+  "required tag(s): twitter:card" \
   "${P}a='<meta name=\"twitter:card\" content=\"summary_large_image\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses twitter:image" \
-  "the head has lost" \
+  "required tag(s): twitter:image" \
   "${P}a='<meta name=\"twitter:image\" content=\"https://nightwatcher.life/share.png\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:locale" \
-  "the head has lost" \
+  "required tag(s): og:locale" \
   "${P}a='<meta property=\"og:locale\" content=\"en_US\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:image:width" \
-  "the head has lost" \
+  "required tag(s): og:image:width" \
   "${P}a='<meta property=\"og:image:width\" content=\"1200\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:image:height" \
-  "the head has lost" \
+  "required tag(s): og:image:height" \
   "${P}a='<meta property=\"og:image:height\" content=\"630\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:image:alt" \
-  "the head has lost" \
+  "required tag(s): og:image:alt" \
   "${P}a='<meta property=\"og:image:alt\" content=\"Night Watcher — 137 films, 68 seasons, 44 continuities. Batman watch orders. No spoilers.\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses icon favicon.ico" \
-  "the head has lost" \
+  "required tag(s): the .ico favicon link" \
   "${P}a='<link rel=\"icon\" href=\"favicon.ico\" sizes=\"any\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses icon icon.svg" \
-  "the head has lost" \
+  "required tag(s): the SVG icon link" \
   "${P}a='<link rel=\"icon\" type=\"image/svg+xml\" href=\"icon.svg\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses alternate orders.txt" \
-  "the head has lost" \
+  "required tag(s): the orders.txt alternate link" \
   "${P}a='<link rel=\"alternate\" type=\"text/plain\" href=\"orders.txt\" title=\"The whole catalogue as plain text\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses icon 16x16" \
-  "the head has lost" \
+  "required tag(s): the 16px icon link" \
   "${P}a='<link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"favicon-16x16.png\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses icon 32x32" \
-  "the head has lost" \
+  "required tag(s): the 32px icon link" \
   "${P}a='<link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"favicon-32x32.png\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses icon 48x48" \
-  "the head has lost" \
+  "required tag(s): the 48px icon link" \
   "${P}a='<link rel=\"icon\" type=\"image/png\" sizes=\"48x48\" href=\"favicon-48x48.png\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses icon 192x192" \
-  "the head has lost" \
+  "required tag(s): the 192px icon link" \
   "${P}a='<link rel=\"icon\" type=\"image/png\" sizes=\"192x192\" href=\"icon-192.png\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses icon 512x512" \
-  "the head has lost" \
+  "required tag(s): the 512px icon link" \
   "${P}a='<link rel=\"icon\" type=\"image/png\" sizes=\"512x512\" href=\"icon.png\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses apple-touch-icon" \
-  "the head has lost" \
+  "required tag(s): the apple-touch-icon link" \
   "${P}a='<link rel=\"apple-touch-icon\" href=\"apple-touch-icon.png\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses theme-color" \
-  "the head has lost" \
+  "required tag(s): theme-color" \
   "${P}a='<meta name=\"theme-color\" content=\"#0C111C\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses application-name" \
-  "the head has lost" \
+  "required tag(s): application-name" \
   "${P}a='<meta name=\"application-name\" content=\"Night Watcher\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses msapplication-TileColor" \
-  "the head has lost" \
+  "required tag(s): msapplication-TileColor" \
   "${P}a='<meta name=\"msapplication-TileColor\" content=\"#0C111C\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses msapplication-TileImage" \
-  "the head has lost" \
+  "required tag(s): msapplication-TileImage" \
   "${P}a='<meta name=\"msapplication-TileImage\" content=\"mstile-144x144.png\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses referrer" \
-  "the head has lost" \
+  "required tag(s): the referrer meta" \
   "${P}a='<meta name=\"referrer\" content=\"strict-origin-when-cross-origin\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses <title>" \
-  "the head has lost" \
+  "required tag(s): <title>" \
   "${P}import re;a=re.search(r'<title>[^<]*</title>\\n',s).group(0);s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses the JSON-LD block" \
-  "the head has lost" \
+  "required tag(s): the JSON-LD block" \
   "${P}import re;a=re.search(r'<script type=\"application/ld\\+json\">.*?</script>\\n',s,re.S).group(0);s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses the noscript splash undo" \
-  "the head has lost" \
+  "required tag(s): the <noscript> splash undo" \
   "${P}a='<noscript><style>#splash{display:none;}</style></noscript>\\n';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
@@ -553,5 +553,43 @@ run_case "the README drops its row for RELEASING.md" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('RELEASING.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
   guards "" 45
 
+
+run_case "the README drops its row for ARCHITECTURE.md" \
+  "README's file table does not list: ARCHITECTURE.md" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('ARCHITECTURE.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for DATA-MODEL.md" \
+  "README's file table does not list: DATA-MODEL.md" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('DATA-MODEL.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for CONTRIBUTING.md" \
+  "README's file table does not list: CONTRIBUTING.md" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('CONTRIBUTING.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for NOTES-history.md" \
+  "README's file table does not list: NOTES-history.md" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('NOTES-history.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for CHANGELOG-archive.md" \
+  "README's file table does not list: CHANGELOG-archive.md" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('CHANGELOG-archive.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+# The sweep guards its own completeness (4.9.1): the head half is held whole
+# by section 153's stray census, and this holds the README half the same way
+# — a row added to the table without a fixture here fails the suite, which
+# is exactly the drift the hand list section 45 replaced kept suffering.
+ROWS=$(grep -cE '^\| `[^`]+` \|' "$SRC/README.md")
+SWEPT=$(grep -cE '^run_case "the README drops its row for' "${BASH_SOURCE[0]}")
+if [ "$ROWS" -eq "$SWEPT" ]; then
+  echo "  PASS  the sweep covers every table row ($ROWS)"; PASS=$((PASS+1))
+else
+  echo "  FAIL  the README's table has $ROWS rows and this suite sweeps $SWEPT — add the missing fixture(s)"
+  FAILED=$((FAILED+1))
+fi
 
 finish "negtest610 (4.9.0 — the delete-and-assert-red sweep)"

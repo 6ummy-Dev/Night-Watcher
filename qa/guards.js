@@ -1447,8 +1447,9 @@ var actual = {
 [["films", /\*\*(\d+) films/, actual.films],
  ["seasons", /(\d+) seasons of television/, actual.seasons],
  /* A floor, not a figure. Teen Titans Go! and Batwheels are still running, so
-    an exact episode count goes stale on somebody else's schedule — the claim is
-    "1,450+" and the guard checks the data is at least that and not wildly past. */
+    an exact episode count goes stale on somebody else's schedule — the README
+    claims "N+ episodes" and the guard checks the data is at least N and not
+    wildly past it (no number here: a figure in this comment went stale twice). */
  ["episodes", /([\d,]+)\+ episodes/, null],
  ["continuities", /(\d+) continuities/, actual.continuities]
 ].forEach(function(t){
@@ -4971,6 +4972,49 @@ if(!/function legendBlock/.test(HTML) ||
          "reads now, or mark the section historical in prose after the backticks");
   }
   note("NOTES.md entries checked against the file: " + keys.length);
+
+  /* 4.9.1: THE POINTERS POINT SOMEWHERE. The 4.9.0 trim replaced the served
+     and config files' histories with "History: <file>" pointers — and two
+     of them shipped pointing at NOTES.md while the sections had moved to
+     NOTES-history.md, in the same release, because nothing read the
+     pointers. Now: a History pointer names a file that exists and is not
+     NOTES.md (which holds no history since the split); one that quotes a
+     heading names a heading the file contains. */
+  var POINTER_CARRIERS = ["docs/sw.js", "worker.js", "docs/_headers",
+                          "docs/robots.txt", "docs/sitemap.xml", "wrangler.jsonc",
+                          "qa/negative/run-all.sh"];
+  var ptrTargets = {}, ptrCount = 0;
+  POINTER_CARRIERS.forEach(function(f){
+    var full = path.join(ROOT, f);
+    if(!fs.existsSync(full)) return;
+    /* Comment-wrapped pointers read as one line: a heading split across a
+       "#"- or "*"-prefixed continuation is joined before matching. */
+    var txt = fs.readFileSync(full, "utf8").replace(/\n[ \t]*[#*][ \t]*/g, " ");
+    /* The old address, in any phrasing. */
+    var oldRe = /histor(?:y|ies)[^\n]*?\bNOTES\.md\b/gi;
+    if(oldRe.test(txt)){
+      fail(f + " points its history at NOTES.md — the histories moved to " +
+           "NOTES-history.md in 4.9.0, and a pointer at the old address is " +
+           "the drift the pointers replaced");
+    }
+    /* Every <file>.md ("Heading") reference, whatever the sentence around it. */
+    var re = /\b([A-Za-z0-9._-]+\.md)\s*\("([^"\n]+)"\)/g, pm;
+    while((pm = re.exec(txt))){
+      ptrCount++;
+      var target = path.join(ROOT, pm[1]);
+      if(!fs.existsSync(target)){
+        fail(f + " points its history at " + pm[1] + ", which does not exist");
+        continue;
+      }
+      if(!(pm[1] in ptrTargets)) ptrTargets[pm[1]] = fs.readFileSync(target, "utf8");
+      if(ptrTargets[pm[1]].indexOf(pm[2]) < 0){
+        fail(f + " points its history at " + pm[1] + " (\"" + pm[2] + "\") " +
+             "and that file has no such heading — the pointer rotted the " +
+             "way the prose it replaced used to");
+      }
+    }
+  });
+  note("history pointers checked in the served and config files: " + ptrCount);
 })();
 
 /* ---------- 66. The guards are navigable ---------- */
@@ -5487,8 +5531,10 @@ var ROUTE_VOCAB = [
   });
   var missing = CONTROLS.filter(function(c){ return height[c] === undefined; });
   if(missing.length){
-    warn("no declared height for the control(s) " + missing.join(", ") +
-         " — their target cannot be measured from the CSS");
+    fail("no declared height for the control(s) " + missing.join(", ") +
+         " — their target cannot be measured from the CSS, so the " +
+         "touch-target rule is switched off for them (the last of the " +
+         "silence-reads-as-success family, promoted in 4.9.1)");
   }
   Object.keys(height).forEach(function(c){
     var eff = height[c] + (pad[c] || 0);
@@ -8909,8 +8955,37 @@ var ROUTE_VOCAB = [
          "passes locally under run-all.sh with no argument, and never runs on " +
          "push. Add it to a pick pattern in .github/workflows/qa.yml");
   }
+  /* 4.9.1: THE PACKING IS LEVEL, MEASURED — NOT A NUMBER IN PROSE. The
+     4.9.0 changelog printed the four shard weights and the figures were
+     stale the moment they were typed (computed before six fixtures struck
+     in the same release). Nothing should state those numbers; something
+     should hold the property they were stating: no shard carries more
+     than a modest margin over the mean. Weight = guards fixtures + 40 ×
+     smoke fixtures, the same model run-all.sh dispatches by. */
+  var weights = picks.map(function(){ return 0; });
+  suites.forEach(function(f){
+    var body = fs.readFileSync(path.join(negDir, f), "utf8")
+      .split("\n").filter(function(l){ return !/^\s*#/.test(l); }).join("\n");
+    var n = (body.match(/^[ \t]*(?:run_case|green_case)\s+"/gm) || []).length;
+    var sm = (body.replace(/\\\n/g, " ")
+      .match(/^[ \t]*(?:run_case|green_case)\s+"(?:[^"\\]|\\.)*"\s+"(?:[^"\\]|\\.)*"\s+"(?:[^"\\]|\\.)*"\s+"?smoke/gm) || []).length;
+    var w = (n - sm) + 40 * sm;
+    picks.forEach(function(pk, i){
+      try { if(new RegExp(pk).test("qa/negative/" + f)) weights[i] += w; }
+      catch(e){}
+    });
+  });
+  var mean = weights.reduce(function(a, b){ return a + b; }, 0) / weights.length;
+  var worst = Math.max.apply(null, weights);
+  if(mean && worst > mean * 1.15){
+    fail("the CI shard packing is unlevel: weights " + weights.join(" / ") +
+         " against a mean of " + Math.round(mean) + " — the heaviest shard is " +
+         Math.round((worst / mean - 1) * 100) + "% over, so the wall clock is " +
+         "its tail. Repack (greedy by weight, heaviest suite into the " +
+         "lightest shard); the 4.8.0 report found 30% drift here");
+  }
   note("CI shards: " + picks.length + " patterns covering all " + suites.length +
-       " negative suites");
+       " negative suites, packed " + weights.join(" / "));
 })();
 
 /* ---------- 114. The README describes the origin that actually serves --- */
@@ -11261,7 +11336,11 @@ var ROUTE_VOCAB = [
       store132[req && req.url ? req.url : req] = res;
       return SyncP.wrap(undefined);
     },
-    match: function(req){ return SyncP.wrap(store132[req && req.url ? req.url : req]); }
+    match: function(req){ return SyncP.wrap(store132[req && req.url ? req.url : req]); },
+    "delete": function(req){
+      delete store132[req && req.url ? req.url : req];
+      return SyncP.wrap(true);
+    }
   };
   var handlers = {};
   var nextFetch = null; /* set per drive: function(req) -> SyncP */
@@ -11352,6 +11431,18 @@ var ROUTE_VOCAB = [
     fail("the runtime cache write does not ride event.waitUntil — the browser " +
          "may kill the worker between the reply and the put, so a downloaded " +
          "update silently misses the offline cache");
+  }
+  /* 4.9.1: the put is preceded by a delete under ignoreVary. put() honours
+     Vary when it dedupes, so without the delete / can hold two
+     representations — the install's wildcard-Accept entry and a
+     navigation's — and every ANY match answers the install-time one
+     forever. Harmless within one VERSION (same bytes), and exactly the
+     comment "one representation per path" left unenforced. */
+  var SWSRC = fs.readFileSync(path.join(PUBLIC, "sw.js"), "utf8");
+  if(!/c\.delete\(req, ANY\)\.then\(function\(\)\{ return c\.put\(req, copy\); \}\)/.test(SWSRC)){
+    fail("the runtime cache write does not delete-then-put under ignoreVary — " +
+         "put() dedupes honouring Vary, so a path can hold two " +
+         "representations and the ANY match answers the stale one forever");
   }
 
   /* an error response is served but NEVER cached — the M-5 headline. */
@@ -11530,6 +11621,22 @@ var ROUTE_VOCAB = [
   if(!notMod || notMod.init.status !== 304 || notMod.body !== null){
     fail("If-None-Match matching the asset's ETag did not answer 304 with no " +
          "body — the validator is carried but never honoured");
+  }
+  /* 4.9.1: the comparison is WEAK and honours "*" (RFC 9110 §13.1.2).
+     Cloudflare weakens ETags on the compressed responses it serves, so the
+     header a real browser echoes back is W/"abc123" — a strict compare
+     answers 200 forever and the 304 path is inert exactly where it was
+     built to run. */
+  var weak = un(mod.fetch(req("text/markdown", "GET", null, {"If-None-Match": 'W/"abc123"'}), envTagged));
+  if(!weak || weak.init.status !== 304){
+    fail("If-None-Match: W/\"abc123\" did not answer 304 — the comparison is " +
+         "strict, and behind an edge that weakens ETags on compression the " +
+         "revalidation this path exists for never fires");
+  }
+  var star = un(mod.fetch(req("text/markdown", "GET", null, {"If-None-Match": "*"}), envTagged));
+  if(!star || star.init.status !== 304){
+    fail("If-None-Match: * did not answer 304 — RFC 9110 says * matches any " +
+         "current representation");
   }
   textReads = 0;
   var headTagged = un(mod.fetch(req("text/markdown", "HEAD"), envTagged));
@@ -13673,21 +13780,61 @@ var ROUTE_VOCAB = [
     fail("the head carries " + preloads + " font preloads, not 6 — a face arrived or " +
          "left without the set changing here");
   }
-  /* Nothing in the head that is not on the list: a tag that arrives without
-     joining the set is the drift this section exists to end. */
+  /* Nothing in the head that is not on the list — and the census reads
+     EVERY tag, not only meta and link (4.9.1: the first census's element
+     filter made a stray <base href> — a real hijack vector — or a planted
+     <style> or <script> invisible to the section written to catch
+     arrivals). Element names outside the allowlist fail by name; a <script>
+     in the head may only be the JSON-LD block (a plain one would also make
+     the CSP hash ambiguous, section 43's rule); <style> is the app's block
+     and the <noscript> undo's, exactly two. */
   var known = REQUIRED.map(function(t){ return t[1]; });
-  var tags = head.match(/<(?:meta|link|title|noscript)[^>]*>/g) || [];
-  var strays = tags.filter(function(t){
-    if(/<link rel="preload"/.test(t)) return false;
-    if(/^<title>/.test(t) || /^<noscript>$/.test(t)) return false;
-    return !known.some(function(re){ return re.test(t); });
+  var tags = head.match(/<[a-zA-Z][^>]*>/g) || [];
+  var ALLOWED_ELEMENTS = {meta:1, link:1, title:1, noscript:1, style:1, script:1};
+  var strays = [], styleCount = 0;
+  tags.forEach(function(t){
+    var el = (t.match(/^<([a-zA-Z-]+)/) || [])[1].toLowerCase();
+    if(el === "html" || el === "head") return;   /* the slice's own frame */
+    if(!ALLOWED_ELEMENTS[el]){
+      fail("the head carries a <" + el + "> tag — not an element the head's " +
+           "set allows" + (el === "base" ? " (a planted <base href> rewrites " +
+           "every relative URL on the page)" : "") + ": " + t.slice(0, 60));
+      return;
+    }
+    if(el === "style"){ styleCount++; return; }
+    if(el === "script"){
+      if(!/^<script type="application\/ld\+json">$/.test(t)){
+        fail("the head carries a script tag that is not the JSON-LD block: " +
+             t.slice(0, 60) + " — the one inline app script lives at the end " +
+             "of <body>, and a second plain script makes the CSP hash ambiguous");
+      }
+      return;
+    }
+    if(/<link rel="preload"/.test(t)) return;
+    if(/^<title>/.test(t) || /^<noscript>$/.test(t)) return;
+    if(!known.some(function(re){ return re.test(t); })) strays.push(t);
   });
+  if(styleCount !== 2){
+    fail("the head carries " + styleCount + " <style> tag(s), not 2 — the " +
+         "app's block and the <noscript> undo's are the whole set");
+  }
   if(strays.length){
     fail("the head carries " + strays.length + " tag(s) not on the required list: " +
          strays.map(function(t){ return t.slice(0, 60); }).join(" · ") +
          " — add each to section 153's list in the same commit, or drop it");
   }
-  note("head: " + REQUIRED.length + " required tags present, 6 font preloads, no strays");
+  /* Exactly once each: a duplicated required tag matched its own regex and
+     was neither "lost" nor a stray to the first census. */
+  var doubled = REQUIRED.filter(function(t){
+    var re = new RegExp(t[1].source, "g");
+    return (head.match(re) || []).length > 1;
+  }).map(function(t){ return t[0]; });
+  if(doubled.length){
+    fail("the head carries " + doubled.length + " required tag(s) more than once: " +
+         doubled.join(", ") + " — a second copy is drift wearing the uniform");
+  }
+  note("head: " + REQUIRED.length + " required tags present exactly once, 6 font " +
+       "preloads, 2 style blocks, every element on the allowlist, no strays");
 })();
 
 /* ---------- report ---------- */

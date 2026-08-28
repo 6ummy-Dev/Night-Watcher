@@ -14,6 +14,81 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.9.1] — 2026-08-28
+
+**The loop closed.** The 4.9.0 delta review found one real defect, two
+instances of the drift 4.9.0 was built to end landing inside 4.9.0 itself,
+one wrong sentence in a day-old document, and hardening nits. All of it is
+here; the Early Hints patch stays its own cut. (The report:
+`NightWatcherQA4.9.0.md`, 28 August, maintainer-local.)
+
+### Fixed
+
+- **The 304 path could be inert in production.** `worker.js` compared
+  `If-None-Match` with strict string equality — but Cloudflare weakens
+  ETags on the compressed responses it serves, so the header a real
+  browser echoes back is `W/"x"` for the asset's `"x"`, and the
+  revalidation the 4.9.0 fix exists for would never have fired at the
+  edge. The comparison is weak now and honours `*` (RFC 9110 §13.1.2);
+  guard 133 drives both cases.
+- **The sweep did not cover the release that shipped it.** negtest610's
+  README-row half missed five rows — four of them files 4.9.0 added — and
+  had no way to notice. Five fixtures added, and the suite now counts the
+  table's rows against its own fixtures, so the next added row fails the
+  sweep instead of drifting past it (the head half already had its stray
+  census). The 39 head fixtures also pin the lost tag's name in their
+  expects now.
+- **Two history pointers aimed at the file the histories had just left.**
+  `sw.js` and `worker.js` said "History: NOTES.md" for sections that moved
+  to `NOTES-history.md` in the same release (run-all.sh carried an older
+  one). Fixed — and section 65 now reads every pointer on every run: the
+  old address fails, a named file must exist, a quoted heading must be in
+  it.
+- **DATA-MODEL.md's one wrong claim.** The JSON import does not keep
+  unknown slugs — `applyMarks()` admits only catalogue ids; they are
+  counted and reported, and the file itself is what preserves them
+  (owner's call: reword, don't change the import).
+- **Section 153's census reads every head tag.** The first census filtered
+  to meta/link, so a planted `<base href>` — a real hijack vector — a
+  second plain script or a third style block was invisible, and a
+  duplicated required tag matched its own regex. Every element is on an
+  allowlist now, a head script may only be the JSON-LD block, styles are
+  exactly two, and each required tag must appear exactly once.
+- **The shard weights this changelog printed were stale on arrival** —
+  computed before 4.9.0's own six struck fixtures left. The 4.9.0 entry is
+  corrected in place, and section 113 measures the packing's balance on
+  every run (fail over 15% off the mean) so the numbers live nowhere in
+  prose. Same class, same fix: the episode-floor comment in guards.js now
+  names no number either.
+
+### Changed
+
+- **`sw.js` deletes before it puts**, both under `ignoreVary` — `put()`
+  honours `Vary` when it dedupes, so `/` could hold the install-time
+  wildcard-Accept entry beside a navigation's and answer the stale one
+  forever (harmless within one VERSION, and exactly what the "one
+  representation per path" comment claimed was enforced). Guard 132 pins
+  it; its harness cache grew a `delete`.
+- **The last warn of the promoted family is a fail:** a control whose CSS
+  declares no measurable height switched the touch-target rule off with a
+  warning outside CI (guard 75).
+- **The search-everything offer appears only under the All chip** — under
+  Watched or Skipped its "No films match" could be literally false (films
+  matched the query; the chip hid them).
+- **Copy.** The three dated phrasings the 4.9.0 pass missed (universe 08's
+  "newest live-action continuity", universe 44's "so far … will land", the
+  2030s "still being made") are rewritten durable. README's catalogue
+  examples now carry `lo` and `r`, so a copy-paster's first bless is not
+  red twice; the package.json row says how wrangler actually runs; the
+  NOTES-history row claims dated headings, not one per release — and the
+  4.9.0 essay that release never wrote for itself is written
+  ("The clean road", NOTES-history.md). CONTRIBUTING documents the `+1`
+  suite-number suffix; ARCHITECTURE's render steps match the code's order
+  and `bag`/`fmt` read as the optional fields they are; the 4.9.0 entry's
+  "nearest control" is the first with the same action.
+- **negtest620** (11 fixtures) covers the new checks; the shards repacked
+  level; 70 suites, 1,129 fixtures.
+
 ## [4.9.0] — 2026-08-27
 
 **The clean road.** A MINOR because the catalogue grew — five entries the
@@ -72,7 +147,10 @@ written down as a decision. (The report: `Night-Watcher-QA-4.8.0.md`,
   hand list: the tracked set comes off `.git/index` now (the parser guard
   144 already had, lifted into `gitIndexPaths()`), and `_lib.sh` carries
   the index into every scratch tree so the fixtures prove something. The
-  four shards repacked by weight (904 / 905 / 903 / 903).
+  four shards repacked by weight, level. (The four figures first printed
+  here were stale on arrival — computed before this release's own six
+  struck fixtures left the corpus. Corrected in 4.9.1, where section 113
+  measures the balance on every run instead of prose stating it.)
 - **Four documents the tree never had.** `ARCHITECTURE.md` (the sections
   of the script, `S`, the counting pipeline, the routes, one render);
   `DATA-MODEL.md` (the payload key by key, the `NW3` grammar, the JSON
@@ -139,7 +217,7 @@ written down as a decision. (The report: `Night-Watcher-QA-4.8.0.md`,
   after the six preloads and the manifest link (ungoverned) and granted
   `style-src 'self'` for a stylesheet that does not exist; Escape did not
   close a dropped belt; unmarking from Recent activity dropped focus to
-  `<body>` (the restore falls back to the nearest control with the same
+  `<body>` (the restore falls back to the first control with the same
   action); *Kite Man* had no season label; Knightfall Parts 2 and 3 lost
   their "Batman:" prefix relative to Part 1.
 - **Catalogue copy.** Thirty-five descriptions used straight quotes and

@@ -7,13 +7,14 @@
  * deploy lands on the next online load, and offline still opens from cache.
  * Nothing cross-origin is ever fetched. Not cache-first for HTML on purpose —
  * the app is one index.html, so a sticky cache is a sticky catalogue and
- * sticky code with no way to push a fix. History: NOTES.md, "sw.js".
+ * sticky code with no way to push a fix. History: NOTES-history.md ("Where the served and config files' histories went").
  */
-var VERSION = "4.9.0";
+var VERSION = "4.9.1";
 var CACHE   = "night-watcher-" + VERSION;
 /* The shell: everything the page needs to open offline. Guard 13 diffs this
    list against what docs/ serves, crawler-facing files excluded; ./index.html
-   is not listed because the assets plane redirects it to ./ (NOTES.md). */
+   is not listed because the assets plane redirects it to ./ (history in the
+   same NOTES-history.md section as above). */
 var SHELL   = ["./", "./manifest.json", "./icon.png", "./icon-192.png",
                "./icon-maskable-512.png",
                "./icon.svg",
@@ -70,7 +71,13 @@ self.addEventListener("fetch", function(e){
            full quota, and the rejection lands in the catch. Guard 132
            executes this path. */
         e.waitUntil(
-          caches.open(CACHE).then(function(c){ return c.put(req, copy); }).catch(function(){})
+          /* delete-then-put, both under ignoreVary: put() honours Vary when
+             it dedupes, so / could otherwise hold two representations (the
+             install's wildcard-Accept entry and a navigation's) and the
+             match above would answer the install-time one forever. */
+          caches.open(CACHE).then(function(c){
+            return c.delete(req, ANY).then(function(){ return c.put(req, copy); });
+          }).catch(function(){})
         );
       }
       return res;
