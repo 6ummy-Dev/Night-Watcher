@@ -63,7 +63,7 @@ run_case "the Worker's security set drifts from the file" \
   guards "" 133
 
 run_case "the markdown response drops the root's Link set" \
-  "is not the root's three Link lines" \
+  "is not the root's three document Link lines" \
   "${K}a='\"Link\": ROOT_LINKS,';assert a in s;s=s.replace(a,'',1);${KW}" \
   guards "" 133
 

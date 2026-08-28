@@ -24,7 +24,16 @@
 # about a document, and _headers matches on path only, cumulatively, with no
 # way to unset. describedby points at /llms.txt, the same file the Worker
 # serves to a client whose Accept prefers text/markdown; Vary: Accept on /
-# says so to any shared cache. Permissions-Policy denies what the app never
+# says so to any shared cache. The six rel=preload lines are for Early
+# Hints (4.9.2): with the zone toggle on, Cloudflare caches them from the
+# document's response and answers the next request with a 103 carrying
+# them, so the six font fetches overlap the HTML transfer instead of
+# waiting for the parser. They mirror the <head>'s own preloads exactly —
+# guard 104 holds the two sets equal and the fonts directory to both — and
+# they are unquoted (rel=preload) where the document relations are quoted:
+# the 103 path is specified against the RFC 8288 token form. The worker's
+# two built responses carry the three document relations only (guard 133):
+# a hint to preload fonts makes no sense on a markdown body. Permissions-Policy denies what the app never
 # uses; interest-cohort is not listed and section 104 refuses it by name.
 #
 # The history of every decision above is in NOTES-history.md
@@ -41,6 +50,12 @@
   Link: <https://nightwatcher.life/sitemap.xml>; rel="sitemap"
   Link: <https://nightwatcher.life/>; rel="canonical"
   Link: </llms.txt>; rel="describedby"
+  Link: </fonts/limelight-latin-400-normal.woff2>; rel=preload; as=font; crossorigin
+  Link: </fonts/big-shoulders-display-latin-700-normal.woff2>; rel=preload; as=font; crossorigin
+  Link: </fonts/ibm-plex-sans-latin-400-normal.woff2>; rel=preload; as=font; crossorigin
+  Link: </fonts/ibm-plex-sans-latin-600-normal.woff2>; rel=preload; as=font; crossorigin
+  Link: </fonts/ibm-plex-mono-latin-400-normal.woff2>; rel=preload; as=font; crossorigin
+  Link: </fonts/ibm-plex-mono-latin-600-normal.woff2>; rel=preload; as=font; crossorigin
   Cache-Control: no-cache
   Vary: Accept
 

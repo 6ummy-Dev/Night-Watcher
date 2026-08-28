@@ -110,6 +110,22 @@ an extra one means a dashboard rule came back); `no-cache` on both `/` and
 VERSION from the bare `/sw.js` URL — if it answers an old version, the edge
 is serving a stale worker and every returning visitor is pinned to it.
 
+**Early Hints (4.9.2 onward).** The zone toggle (Speed → Optimization →
+Protocol → Early Hints) is a panel value no guard can read, so it is a wire
+check. The hints are cached from a document response, so the 103 appears
+from the SECOND request after a deploy, over HTTP/2 or HTTP/3:
+
+```
+curl -s -o /dev/null https://nightwatcher.life/            # primes the hint cache
+curl -sv -o /dev/null https://nightwatcher.life/ 2>&1 | grep -A7 '< HTTP/2 103'
+```
+
+Expected: an `HTTP/2 103` block carrying the six `link:
+</fonts/…>; rel=preload; as=font; crossorigin` lines from `_headers`, then
+the `200`. If the 103 never appears, the toggle is off — flip it and
+re-check; the six Link lines on the `200` are `_headers` working either
+way, and the toggle only adds the early copy.
+
 One more, read once per platform change rather than per deploy:
 
 ```

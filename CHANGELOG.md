@@ -14,6 +14,66 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.9.2] — 2026-08-28
+
+**The empty backlog.** The owner's call: everything still pending lands
+here, and nothing is left open in the tree. Three things were pending —
+the Early Hints patch parked since the 27 Aug Cloudflare check, the three
+in-tree items from the 26 Aug ISO/IEC 25010 triage, and the one nit from
+the 4.9.1 audit (`NightWatcherQA4.9.1.md`, which otherwise closed clean:
+its "154 sections" baseline line is a miscount — the run it quotes prints
+153). After this cut, `open-items.md` holds only the owner's off-tree
+items and the dated triggers.
+
+### Added
+
+- **Early Hints.** Six `Link: </fonts/…>; rel=preload; as=font;
+  crossorigin` lines under `/` in `docs/_headers`. With the zone toggle on
+  (Speed → Optimization → Protocol — the owner flips it after the deploy),
+  Cloudflare caches the hints from the document response and answers the
+  next request with a `103` carrying them, so the six font fetches overlap
+  the 224 KB HTML transfer instead of waiting for the parser. Guard 104
+  holds the hints, the `<head>`'s own preload tags and `docs/fonts/` as
+  one three-way set (token form pinned; a hint under `/*` refused); guard
+  133 narrows the worker's built responses to the three document relations
+  — a markdown body gets no font hints. RELEASING gains the `103` wire
+  check, which reads the toggle no guard can see (the hint cache primes on
+  the first request; the 103 shows from the second).
+- **The keyboard traversal, as a named test.** The ISO triage's
+  Interaction gap, the half a harness can do: browser-check now Tabs
+  through the real page from a known state — every stop must be visible,
+  outside inert panels, and show the `:focus-visible` outline; the
+  header's three controls, the peek, the search box, a chip, a group
+  header and all four footer tabs must be visited in document order, with
+  a cap that turns a focus trap into a failure. Then the belt: Enter on
+  the parked peek drops it, the path buttons and buckle join the tab
+  order, Escape closes it. (The screen-reader pass stays a manual item —
+  a harness cannot listen.)
+- **Offline → tick → reload, as a named test.** The triage's honest
+  Reliability lift: with the service worker in control and the network
+  off, browser-check ticks an entry, reloads offline, and the mark is
+  still there — the localStorage write under a SW-served page, the
+  debounce flushed by pagehide, and `restore()` reading it back from the
+  cache-served shell, one sequence. 101 → 108 browser checks.
+- **`qa/contrast.md` — the numbers, attached.** Section 20 measures every
+  ink-on-surface pair in both themes on every run; the figures lived only
+  in the run's notes, and the ISO evaluator could only take the claim on
+  faith. The table is now a file: written from the measured pairs under
+  `npm run bless`, never typed, and any other run fails if it does not
+  match what the run would write — a palette change without a bless is a
+  stale table. 56 pairs, worst pair named per theme; the gradient,
+  blended-fill and UI-exemption edge cases stay asserted in section 20
+  itself.
+- **negtest630** (6 fixtures): the hint set torn three ways, a hint leaked
+  onto the markdown response, the contrast table stale and missing. Shards
+  repacked level — 71 suites, 1,136 fixtures.
+
+### Fixed
+
+- **The 4.9.1 audit's one finding:** the 4.9.0 entry cited the 4.8.0
+  report with a hyphenated filename the reports do not use. One spelling
+  (the unhyphenated form is the reports' own).
+
 ## [4.9.1] — 2026-08-28
 
 **The loop closed.** The 4.9.0 delta review found one real defect, two
@@ -100,7 +160,7 @@ in full: three runtime defects a reader could meet, two ways a green
 they would have misled a new developer today, the history moved out of
 the files a reader and a crawler are served, and the four documents the
 tree never had. Everything the report listed is either done here or
-written down as a decision. (The report: `Night-Watcher-QA-4.8.0.md`,
+written down as a decision. (The report: `NightWatcherQA4.8.0.md`,
 27 August, maintainer-local.)
 
 ### Added

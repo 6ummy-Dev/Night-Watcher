@@ -1019,6 +1019,109 @@ ok("no CSP violation in any state", cspHits.length === 0,
 ok("no uncaught page error in any state", pageErrs.length === 0,
    pageErrs.length ? pageErrs[0].slice(0, 160) : "clean");
 
+/* ---- keyboard: the page is traversable, and focus stays visible (4.9.2) --
+   The ISO triage's Interaction gap, the half that fits the harness: a
+   keyboard-only pass as a named test. From a known state (path chosen, The
+   path, every group collapsed — the traversal is about reachability, not
+   about tabbing through 205 rows), Tab is pressed for real until it reaches
+   the footer tabs: every stop must be visible, must not sit in an inert
+   panel, and must show a focus outline (the :focus-visible rule); the
+   header's three controls, the belt's four, the search box, a chip, a
+   group header and all four footer tabs must all be visited, in document
+   order (header → panel → tabs). A cap turns a focus trap into a failure
+   instead of a hang. The screen-reader pass stays a manual item — a
+   harness cannot listen. */
+await page.evaluate(() => {
+  S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = "all"; S.q = "";
+  S.beltOpen = false; S.beltDrop = false; S.watched = {}; S.skipped = {};
+  setAllGroups(false); render(); snapTo(S.tab); scrollPut(0);
+  /* Sequential focus navigation continues from wherever the drives above
+     left it, blurred or not — so the traversal starts by focusing the
+     page's first control explicitly. */
+  document.getElementById("markBtn").focus();
+});
+await frames();
+const stops = [await page.evaluate(() => {
+  const el = document.activeElement, r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+  /* seeded programmatically, so :focus-visible legitimately may not apply
+     to this one stop — it is exempt from the outline assertion below */
+  return { key: "#" + el.id, tag: el.tagName, visible: r.width > 0 && r.height > 0,
+           inert: false, outline: cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0,
+           isTab: false, seeded: true };
+})];
+let trapped = true;
+for(let i = 0; i < 260; i++){
+  await page.keyboard.press("Tab");
+  const stop = await page.evaluate(() => {
+    const el = document.activeElement;
+    if(!el || el === document.body) return { body: true };
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return {
+      key: (el.id ? "#" + el.id : "") + (el.className && el.className.baseVal === undefined ? "." + String(el.className).split(" ")[0] : "") +
+           (el.dataset ? Object.keys(el.dataset).map(k => "[" + k + "=" + el.dataset[k] + "]").join("") : ""),
+      tag: el.tagName,
+      visible: r.width > 0 && r.height > 0,
+      inert: !!el.closest("[inert]"),
+      outline: cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0,
+      isTab: !!(el.dataset && el.dataset.tab)
+    };
+  });
+  if(stop.body) continue;
+  stops.push(stop);
+  if(stop.isTab && stop.key.indexOf("[tab=stats]") >= 0){ trapped = false; break; }
+}
+{
+  const bad = stops.filter(s2 => !s2.visible || s2.inert);
+  ok("keyboard: every Tab stop is visible and outside inert panels",
+     stops.length > 20 && bad.length === 0,
+     bad.length ? bad[0].key : stops.length + " stops");
+  const noOutline = stops.filter(s2 => s2.tag === "BUTTON" && !s2.outline && !s2.seeded);
+  ok("keyboard: every focused button shows the :focus-visible outline",
+     noOutline.length === 0, noOutline.length ? noOutline[0].key : "all outlined");
+  const keys = stops.map(s2 => s2.key);
+  const find = frag => keys.findIndex(k => k.indexOf(frag) >= 0);
+  /* With a path chosen and the belt closed, the strip is parked and hidden
+     by design; the peek (#beltpeek) is the keyboard door, and the drive
+     below proves the door opens. */
+  const REQUIRED_STOPS = ["#markBtn", "#topBtn", "#ringBtn", "#beltpeek",
+    "#q", ".chip", "[act=group]", "[tab=home]", "[tab=next]",
+    "[tab=watch]", "[tab=stats]"];
+  const missing = REQUIRED_STOPS.filter(frag => find(frag) < 0);
+  ok("keyboard: the header, belt, search, chips, groups and tabs are all reachable",
+     !trapped && missing.length === 0,
+     trapped ? "never reached the footer tabs in 260 presses (a trap, or the cap)" :
+     missing.length ? "unreached: " + missing.join(", ") : keys.length + " stops to the tabs");
+  ok("keyboard: the order runs header, then the panel, then the tabs",
+     find("#markBtn") === 0 && find("#markBtn") < find("#q") &&
+     find("#q") < find("[tab=home]"),
+     [find("#markBtn"), find("#q"), find("[tab=home]")].join(" < "));
+}
+
+/* Enter on the peek drops the belt, and the dropped belt's controls join
+   the tab order — the parked strip is hidden by design, so this is the
+   keyboard path to the path switcher and the pouches. */
+await page.evaluate(() => { document.getElementById("beltpeek").focus(); });
+await page.keyboard.press("Enter");
+await frames();
+const beltStops = [];
+for(let i = 0; i < 12; i++){
+  await page.keyboard.press("Tab");
+  const k = await page.evaluate(() => {
+    const el = document.activeElement;
+    return el && el.dataset ? Object.keys(el.dataset).map(x => "[" + x + "=" + el.dataset[x] + "]").join("") : "";
+  });
+  beltStops.push(k);
+}
+ok("keyboard: Enter on the peek drops the belt and its controls are tabbable",
+   beltStops.some(k => k.indexOf("[path=life]") >= 0) &&
+   beltStops.some(k => k.indexOf("[act=belt]") >= 0),
+   beltStops.filter(Boolean).slice(0, 6).join(" "));
+await page.keyboard.press("Escape");
+await frames();
+const beltShut = await page.evaluate(() => !S.beltDrop && !S.beltOpen);
+ok("keyboard: Escape closes the dropped belt", beltShut, "beltDrop cleared");
+
 /* ---- the offline promise, kept by a real worker in a real browser -------
    3.7.2 (M-5 of the 10 Aug review). Guard 132 executes sw.js's handlers
    against mocks; this is the other half — the registered worker, a real
@@ -1106,6 +1209,39 @@ if(swReady.supported && swReady.active && swReady.controlled){
   ok("offline: the shell the worker serves is THIS build",
      offline.booted && offline.build === onlineBuild,
      offline.err || ("online " + onlineBuild + " vs offline " + offline.build));
+
+  /* ---- offline: tick, reload, still there (4.9.2) ----------------------
+     The ISO triage's honest Reliability gap: the offline test above proves
+     the shell opens; nothing proved a mark made WHILE offline survives an
+     offline reload. The whole chain is exercised: localStorage write under
+     a SW-served page, the debounce flushed by pagehide on the reload, and
+     restore() reading it back from the cache-served shell. */
+  let offTick = { ok: false };
+  try{
+    offTick = await swPage.evaluate(() => {
+      localStorage.removeItem("batwatch-v3");
+      S.path = S.mode = "life"; S.tab = "watch"; S.filter = "all"; S.q = "";
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
+      render(); snapTo(S.tab);
+      const tick = document.querySelector('#view .panel:not([inert]) .film .tick');
+      if(!tick) return { ok: false, err: "no tick in view" };
+      tick.click();
+      const id = tick.dataset.id;
+      return { ok: !!S.watched[id], id: id };
+    });
+    await swPage.reload({ waitUntil: "load" });
+    await swPage.waitForFunction(() => typeof window.render === "function", { timeout: 8000 });
+    const after = await swPage.evaluate((id) => {
+      goTab("watch");
+      return { kept: !!window.S.watched[id],
+               done: !!document.querySelector('#view .panel:not([inert]) .film.done') };
+    }, offTick.id);
+    ok("offline: a tick made offline survives an offline reload",
+       offTick.ok && after.kept && after.done,
+       offTick.err || ("ticked " + offTick.id + ", kept=" + after.kept + ", rendered=" + after.done));
+  }catch(e){
+    ok("offline: a tick made offline survives an offline reload", false, String(e).slice(0, 120));
+  }
   await swCtx.setOffline(false);
   }
 }

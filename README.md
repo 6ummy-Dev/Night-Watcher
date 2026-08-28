@@ -134,6 +134,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `.gitattributes` | LF everywhere and the binaries named — the guards hash and split the tree byte-for-byte |
 | `.npmrc` | `engine-strict=true`, so a Node outside `package.json`'s `engines` fails at `npm ci` instead of warning and failing mid-suite |
 | `qa/share-card.html` | The card's layout, rendered headless by the script above |
+| `qa/contrast.md` | The measured contrast table — written by guard 20 under `npm run bless`, never typed; any other run fails if it is stale |
 | `qa/browser-check.mjs` | A real browser at 390×844, for the header, the jumps and the tick — the things jsdom cannot see |
 | `CHANGELOG.md` | Every shipped change from 4.0.0, newest first. Enforced by the guards |
 | `CHANGELOG-archive.md` | The 1.x–3.x entries, moved whole; a record nothing checks |
@@ -157,7 +158,7 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 70 negative suites, 1129
+trusted. That evidence lives in `qa/negative/` — 71 negative suites, 1136
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps

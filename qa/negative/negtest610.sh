@@ -579,6 +579,11 @@ run_case "the README drops its row for CHANGELOG-archive.md" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('CHANGELOG-archive.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
   guards "" 45
 
+run_case "the README drops its row for qa/contrast.md" \
+  "README's file table does not list: qa/contrast.md" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/contrast.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
 # The sweep guards its own completeness (4.9.1): the head half is held whole
 # by section 153's stray census, and this holds the README half the same way
 # — a row added to the table without a fixture here fails the suite, which
