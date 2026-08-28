@@ -14,6 +14,33 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.9.3] — 2026-08-28
+
+**Zero pending.** The two independent audits of live 4.9.2 (ISO/IEC
+25010 follow-up, 4.7/5; the multi-agent pass, composite 9.00) surfaced
+exactly one in-tree residual between them, and the owner's call was to
+clear it now rather than carry a one-line backlog into the weekend. After
+this cut there is nothing pending in the tree at all — not even a rider.
+
+### Added
+
+- **The corrupt-backup sequence, named.** The ISO follow-up's remaining
+  Reliability residual: every piece existed — junk rejection, malformed
+  ratings, poison imports, the corrupt-store reboot — but not as one
+  named walk. Smoke now runs it under one banner: seed real progress,
+  hand the restore door five corrupt shapes in turn (truncated JSON,
+  containerless JSON, containers of the wrong type, a code of illegal
+  characters, binary noise) — every one refused whole, nothing lost,
+  nothing invented, the stored payload still parses, the app still
+  renders, saving still on. The tolerant half is asserted in the same
+  breath: a TRUNCATED code is not corrupt — it merges what parsed and
+  says it was cut, the designed behaviour since 1.x. 398 → 403 smoke
+  checks.
+- **negtest640** (2 smoke fixtures): a restore door that stops refusing
+  containerless JSON, and an `importCode()` that stops flagging a
+  truncated body, are each caught by name. Shards repacked level —
+  72 suites, 1,138 fixtures.
+
 ## [4.9.2] — 2026-08-28
 
 **The empty backlog.** The owner's call: everything still pending lands

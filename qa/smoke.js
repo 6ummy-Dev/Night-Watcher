@@ -1888,6 +1888,53 @@ win.addEventListener("load", function(){
       return win.importCode(j) === null;
     });
     check("junk is still rejected", junkOk);
+
+    /* --- the corrupt-backup sequence, named (4.9.3) ----------------------
+       The 4.9.2 ISO follow-up's one residual: every piece existed — junk
+       rejection above, malformed ratings, poison imports, the corrupt
+       STORE reboot further down — but not as one named walk. This is it:
+       seed real progress, hand the restore door every corrupt shape in
+       turn, and after the lot nothing is lost, nothing invented, the app
+       still renders and saving is still on. The tolerant half is asserted
+       too: a TRUNCATED code is not corrupt — it merges what parsed and
+       says it was cut, which is the designed behaviour since 1.x. */
+    (function(){
+      var keep = {w:S.watched, k:S.skipped, r:S.rated, l:S.log};
+      var A = FILMS[5].id, B = FILMS[6].id;
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
+      S.watched[A] = 1; S.rated[A] = 4;
+      win.persist(); win.flushPersist();
+      var SHAPES = [
+        ["truncated JSON",              '{"watched":{"' + A.slice(0, 4)],
+        ["JSON with no containers",     '{"app":"night-watcher","v":2,"exported":"2026-08-28"}'],
+        ["containers of the wrong type", '{"watched":"oops","skipped":42,"rated":[1,2,3]}'],
+        ["a code of illegal characters", "NW3W#####"],
+        ["binary noise",                "\u0000\uFFFD not a backup \u0000"]
+      ];
+      var refused = SHAPES.filter(function(sh){ return win.doRestore(sh[1]) !== null; });
+      check("corrupt backup: every corrupt shape is refused whole",
+            refused.length === 0, refused.map(function(sh){ return sh[0]; }).join(", "));
+      check("corrupt backup: nothing was lost and nothing invented",
+            S.watched[A] === 1 && S.rated[A] === 4 &&
+            Object.keys(S.watched).length === 1 && Object.keys(S.skipped).length === 0,
+            Object.keys(S.watched).length + " watched, " + Object.keys(S.skipped).length + " skipped");
+      win.persist(); win.flushPersist();
+      check("corrupt backup: the stored payload still parses and still holds the marks",
+            (function(){
+              try{ var o = JSON.parse(win.localStorage.getItem("batwatch-v3")); return o.watched[A] === 1; }
+              catch(e){ return false; }
+            })());
+      win.render();
+      check("corrupt backup: the app still renders and saving is still on",
+            win.canSave === true && doc.getElementById("app").textContent.length > 500,
+            "canSave=" + win.canSave);
+      var cut = win.doRestore("NW3W" + win.idHash(B) + win.idHash(A).slice(0, 3));
+      check("corrupt backup: a truncated code merges what parsed and says so",
+            !!cut && cut.cut === true && cut.found >= 1 && S.watched[B] === 1,
+            cut ? "found " + cut.found + ", cut " + cut.cut : "REJECTED");
+      S.watched = keep.w; S.skipped = keep.k; S.rated = keep.r; S.log = keep.l;
+      win.persist(); win.flushPersist(); win.render();
+    })();
     /* 4.9.0: a chat client's closing quote, period or bracket after a
        pasted code is trimmed; a junk suffix like "!!!" still rejects. */
     check("a pasted code survives a trailing quote or period",
