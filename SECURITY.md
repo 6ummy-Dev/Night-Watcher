@@ -1,8 +1,10 @@
 # Reporting a problem
 
-Night Watcher is a single static page. It has no server, no accounts, no
-database, and it never transmits your progress anywhere — so the blast radius
-of most bugs is small. That said, if you find something, please say so.
+Night Watcher is a single static page. It has no accounts, no database, and it
+never transmits your progress anywhere; the one piece of code that runs at the
+edge is `worker.js`, which negotiates the root's markdown representation and
+answers `/.well-known/api-catalog`, and stores nothing — so the blast radius of
+most bugs is small. That said, if you find something, please say so.
 
 ## How
 
@@ -17,6 +19,7 @@ it's fixed.
 - Anything that could exfiltrate saved progress off the device
 - Anything that could corrupt or silently discard saved progress
 - A backup code or restore link that resolves to somebody else's progress
+- `worker.js` answering a request with something other than the file it names, or with headers weaker than `docs/_headers` declares
 
 ## What is not
 

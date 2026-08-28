@@ -1,15 +1,11 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "night-watcher",
   "compatibility_date": "2026-07-27",
   /* The apex, bound as a custom domain rather than a route: Cloudflare then
      owns the DNS record and the certificate, and there is one place to look
      when either is wrong. One hostname is one binding — never also a route.
-
-     THERE IS ONE ORIGIN: nightwatcher.life, served by this Worker. GitHub Pages
-     is unpublished and stays unpublished. (A stale version of this comment
-     once argued for the mirror after the project had retired it, and the
-     mirror came back — the story is in NOTES.md.) */
+     THERE IS ONE ORIGIN: nightwatcher.life, served by this Worker; guard 136
+     holds the file half. History: NOTES-history.md. */
   "routes": [
     { "pattern": "nightwatcher.life", "custom_domain": true }
   ],

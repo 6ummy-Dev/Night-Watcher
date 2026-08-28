@@ -1,11 +1,9 @@
 # Releasing Night Watcher
 
-This is the checklist `docs/_headers` has been pointing at since 3.4.2 — it
-did not exist until 3.7.2 (M-3 of the 10 Aug review), which meant an operator
-following the docs would have re-introduced the exact edge-rule failure the
-`_headers` comment narrates. It exists so that the checks no guard can run —
-the ones that need the live wire, a browser, or a human — are written down
-instead of remembered. Everything here is in execution order.
+The release checklist: the checks no guard can run — the ones that need the
+live wire, a browser, or a human — written down instead of remembered.
+Everything here is in execution order. (Why it exists, and the incident that
+produced it: `NOTES-history.md`.)
 
 ## Before the version moves
 
@@ -18,13 +16,13 @@ instead of remembered. Everything here is in execution order.
    the film, season and continuity counts, and guard 91 holds
    `qa/share-card.json` against the data on every run — so a catalogue edit
    is red from the first bless onward until the card is regenerated. That is
-   why this step comes BEFORE the bless and not after it (4.5.2; it used to
-   sit at the end of the list, where the bless in the next step had already
-   gone red on it):
+   why this step comes BEFORE the bless and not after it:
 
    ```
    node qa/make-share-card.mjs        # draws the card, writes the manifest
-   python3 -c "..."                   # the quantize at the top of that script
+   python3 -c "from PIL import Image; i=Image.open('docs/share.png').convert('RGBA'); \
+     i.quantize(colors=256, method=Image.Quantize.FASTOCTREE, \
+     dither=Image.Dither.FLOYDSTEINBERG).save('docs/share.png', optimize=True)"
    ```
 
    The bless in the next step records the quantized file's hash. The Python
@@ -40,8 +38,8 @@ instead of remembered. Everything here is in execution order.
    the share card's hash); a second is only ever needed if something was
    edited after the first.
 4. **The suites.** `npm test` (guards + smoke), then the negative matrix:
-   `bash qa/negative/run-all.sh` (~25 minutes on two cores; suite numbers can
-   be passed to run one). **The full wall, not a selection, before any cut** (4.4.4):
+   `bash qa/negative/run-all.sh` (~35 minutes on two cores; suite numbers can
+   be passed to run one). **The full wall, not a selection, before any cut**:
    several guard messages have fixture twins in suites far from the change —
    the listener count alone is pinned from three different suites — and a
    selective run is exactly the run that misses them. Selections are for
@@ -58,7 +56,7 @@ instead of remembered. Everything here is in execution order.
    belt) is the argument that the behavioral layer does not get skipped on
    release day.
 
-   **The gate, stated as a rule (4.2.4, Q-2 of the 19 Aug re-audit): for any
+   **The gate, stated as a rule: for any
    change touching the belt, scrolling, focus, sticky, content-visibility,
    or the service worker, the browser check is the test and `npm test` is
    only the tripwire.** `npm test` runs jsdom, which has no layout — it can
@@ -76,6 +74,7 @@ instead of remembered. Everything here is in execution order.
    changed this release gets re-read against the rule: describe the premise,
    never the turn. This is the manual review the guards' coverage map admits
    it cannot automate.
+
 **Throughout: verify a new state from a cold start, never from the state that
 produced it.** Three releases in a row were checked by driving the app into the
 new condition and looking at it, which confirms the transition and says nothing
@@ -224,15 +223,18 @@ and not a suggestion.
 
 ## The evidence files
 
-Several CHANGELOG/NOTES/`_headers` passages cite the maintainer's local
-evidence files (`qa/favicon-serp-2026-08.md`, `qa/scan-triage-2026-08-07.md`,
+Several passages in `CHANGELOG.md`, `NOTES-history.md`, `docs/sitemap.xml`
+and `worker.js` cite the maintainer's local evidence files
+(`qa/favicon-serp-2026-08.md`, `qa/scan-triage-2026-08-07.md`,
 `ops/c0-edge-injection.md`, and others). Those are annotated as
 maintainer-local where cited — they are not in the repository, and this file
 is the in-repo home for anything a release actually depends on.
 
-## Freeze notes
+## Standing notes
 
-Written for the sealed tree, for whoever runs the suites on it later.
+The tree was sealed at 4.5.3 (`README.md`, "Status"); every release since is
+a decision with its own entry, cut by this same checklist. These notes are
+for whoever runs the suites on any cut, sealed or later.
 
 - **Guard 140 is the only clock.** It fails thirty days before
   `docs/.well-known/security.txt`'s `Expires` (2027-08-01 as sealed), with
