@@ -14,6 +14,66 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [5.1.0] — 2026-08-29
+
+**Someone in the room.** The sitting's sequel, cut the same evening from
+the plan that shrank 5.0.0: a night with company, a pace off the nights
+5.0.0 started counting, and the Progress tab given back its rank. Two
+additions, one number, three pieces of polish the owner chose on mocks.
+Nothing saved changes meaning.
+
+### Added
+
+- **A certificates chip.** *R / TV-MA off*, on The Path beside the seven
+  chips it already had. An exclude-set, never a ceiling: "nothing above
+  PG-13" would need a ladder across two rating systems, and the badge
+  rule (guard 92) refuses to translate between them. The 26 honest NRs
+  stay on the shelf. A view chip like the others — it moves neither the
+  pool, nor the counts, nor the hero, because moving the hero would be
+  jumping the path.
+- **The road done by.** One line under the nights line on Progress: *at
+  your pace, done by March 2027*. Pace is titles per night times nights
+  per day over the span the log covers; the floor is three nights and
+  two titles, and below it the line says nothing rather than forecast
+  off one evening. A date within sixty days prints as a day, further out
+  as a month. Counted, never awarded; it moves with the log and cannot
+  be earned.
+
+### Changed
+
+- **Home's kick says the count.** *Tonight's patrol ◆ 79 of 200* — the
+  logged count, the same number the header says — where 5.0.0 printed
+  the route position, *80 of 200*, ten pixels under a header saying 79.
+  Both were true; together they read as a disagreement. One number,
+  twice. `routePos()` is gone.
+- **Your data stands out again.** 5.0.0 put two cards after it in the
+  same chrome and the box that matters most on Progress read as one of
+  three. It keeps its place and takes a signal-edged frame, and the plain
+  hairline between the backup half and the Restore half is now the
+  diamond rule — gold at full strength, not the hero's 40% fade — with
+  `.bk .drule` pinning the ink so the card's paragraph colour cannot
+  override it (the first mock showed exactly that). Design B1 of five,
+  chosen on renders of the live tree.
+- **One bone recipe.** *Share the night* and *Create backup code* (and
+  the two bone buttons in The Path's empty states) wear the hero's cut:
+  46px, 11px mono at .12em, the 8px corner cut top-left and
+  bottom-right, no border. Guard 157 holds the Progress polygon
+  byte-equal to `.heroacts .go`'s.
+- **The fold carets are signal.** The `››` on By universe, By era, By
+  decade and Your five stars.
+
+### Under the hood
+
+- Guard 157 and `qa/negative/negtest660.sh` (22 fixtures, every promise
+  shown to fail); smoke +6 (441 → 447): the safe chip driven through The
+  Path with an NR left standing and the count and hero unmoved, the
+  forecast's floor from below and from above, and the kick read against
+  the header's own text. Four older fixtures re-aimed at the lines this
+  release moved (negtest650 the kick, 600 the chip list's tail, 176 the
+  finger-size floor across both bone rules, 200 the scoreboard seat). Four CI
+  shards repacked greedy-by-weight (1023 / 1022 / 1022 / 1021); 74
+  suites, 1,202 fixtures (1,128 guards / 74 smoke).
+
 ## [5.0.0] — 2026-08-29
 
 **The sitting.** Next up names a night you can actually watch. The cut on

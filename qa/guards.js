@@ -144,6 +144,7 @@ function blessHtml(next){
      154  A parked title is on the shelf and off the count
      155  The sitting: two heroes, one card, and the night under the rule
      156  Four small things that never leave the browser
+     157  Someone in the room: the chip, the pace, and the Progress tab's rank
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -13992,7 +13993,7 @@ var ROUTE_VOCAB = [
   box.P = [{id:"a", b:[]}, {id:"b", b:["u"], when:"Late 2026", y:2026}, {id:"c", b:[]}];
   box.P.forEach(function(f){ box.BYID[f.id] = f; });
   new vm.Script([fn("isDone"), fn("isSkip"), fn("isParked"), fn("isParkedId"), fn("counts"),
-                 fn("upNext"), fn("routePos"), fn("behind")].join("\n"))
+                 fn("upNext"), fn("behind")].join("\n"))
     .runInContext(vm.createContext(box));
   var c = box.counts();
   if(c.total !== 2 || c.parked !== 1 || c.left !== 2){
@@ -14002,7 +14003,6 @@ var ROUTE_VOCAB = [
   box.S.watched.a = 1;
   var nx = box.upNext();
   if(!nx || nx.id !== "c") fail("upNext() lands on a parked entry — the hero must be something a reader can watch tonight");
-  if(box.routePos(box.P[2]) !== 2) fail("routePos() counts the parked entry — the kick would read 3 of 2");
   box.S.watched = {}; box.S.skipped = {a:1};
   if(box.upNext().id !== "c") fail("upNext() prefers a skipped title over an unskipped one — a skip is a decision and outranks a date, but not the never-skipped");
   box.S.watched = {a:1}; box.S.skipped = {};
@@ -14075,7 +14075,11 @@ var ROUTE_VOCAB = [
     fail("heroHead() no longer takes the route position for the kick");
   }
   var home = fn("viewHome"), next = fn("viewNext");
-  if(!/routePos\(nxt\) \+ " of " \+ c\.total/.test(home)) fail("Home's kick does not say where the reader stands (“13 of 41”)");
+  /* 5.1.0: the kick says the logged count, the same number the header
+     says — 5.0.0 printed the route position and the two sat ten pixels
+     apart reading 79 and 80. One number, twice. */
+  if(!/c\.done \+ " of " \+ c\.total\)\+/.test(home)) fail("Home's kick does not say where the reader stands (“79 of 200”, the header's own count)");
+  if(/routePos/.test(HTML)) fail("routePos() is back — the kick printed the route position once and it read as a disagreement with the header");
   if(/herorow|data-act="skip"|data-act="choose"|hnote/.test(home)) fail("Home's hero grew a control or a note line — Home is the poster: film, rule, one button");
   if(!/data-act="resume"/.test(home)) fail("Home lost Resume the path");
   /* No "then, when it lands" line: the Then table under the hero draws the
@@ -14155,6 +14159,83 @@ var ROUTE_VOCAB = [
     }
   });
   note("four zero-state features: up-to-here through markWatched(), what's left, nights, five stars");
+})();
+
+/* ---------- 157. Someone in the room: the chip, the pace, and the Progress tab's rank ---- */
+/* 5.1.0. Six small promises, each the kind a tidy-up loses: a certificate
+   chip that excludes and never ranks; a forecast with a floor, counted and
+   never awarded; one number on Home; and three pieces of Progress polish
+   the owner chose on mocks — the Your data card's signal frame with the
+   gold rule inside it, the hero's bone-button cut on every bone button, and
+   signal carets on the folds. */
+
+(function(){
+  /* 1. The chip excludes a set. It never becomes a ceiling, because a
+        ceiling needs a ladder across two rating systems the badge refuses
+        to translate (section 92). */
+  var off = (HTML.match(/var OFFLIMITS = \[([^\]]*)\];/) || [])[1];
+  if(!off || off.replace(/\s|"/g, "") !== "R,TV-MA"){
+    fail("OFFLIMITS is not exactly R and TV-MA — the chip is an exclude-set, never a ceiling; a third value is a ladder in disguise");
+  }
+  if(!/function offLimits\(f\)\{ return OFFLIMITS\.indexOf\(f\.r\) >= 0; \}/.test(HTML)){
+    fail("offLimits() no longer reads the certificate straight off r: — anything else is a translation");
+  }
+  var cs = fn("chipSet");
+  if(!/\["safe","R \/ TV-MA off"\]/.test(cs)) fail("the certificates chip is gone from chipSet(), or its label moved off “R / TV-MA off”");
+  if(!/if\(S\.filter === "safe" && offLimits\(f\)\) return;/.test(fn("groupBlock"))){
+    fail("The path does not honour the safe chip — a view chip that shows everything is a lie with a label");
+  }
+  ["counts", "upNext", "pool", "visible", "onRoute"].forEach(function(name){
+    if(/safe|offLimits/.test(fn(name))) fail(name + "() consults the certificates chip — it is a view, and must not move the pool, the counts or the hero");
+  });
+
+  /* 2. The forecast: a floor, a pace, a date — and no streak. */
+  var db = fn("doneBy");
+  if(!/nt\.nights < DONEBY_NIGHTS \|\| nt\.logged < DONEBY_TITLES/.test(db) || !/var DONEBY_NIGHTS = 3, DONEBY_TITLES = 2;/.test(HTML)){
+    fail("doneBy() lost its floor — one evening's log is not a pace, and a forecast off it is a guess wearing a date");
+  }
+  var box = {};
+  new vm.Script("var DONEBY_NIGHTS = 3, DONEBY_TITLES = 2;\n" + db).runInContext(vm.createContext(box));
+  var day = 864e5, t0 = Date.UTC(2026, 7, 1);
+  var nt = {nights:4, logged:8, first:t0, last:t0 + 7 * day};
+  var d = box.doneBy(nt, 40, t0 + 8 * day);
+  /* 8 titles over an 8-day span = 1 a day; 40 left = 40 days. */
+  if(!d || Math.round((d.getTime() - (t0 + 8 * day)) / day) !== 40){
+    fail("doneBy() paces wrong — 8 titles over 8 days with 40 left should land 40 days out, got " + (d ? Math.round((d.getTime() - (t0 + 8 * day)) / day) : "null"));
+  }
+  if(box.doneBy({nights:2, logged:8, first:t0, last:t0 + day}, 40, t0) !== null) fail("doneBy() forecasts off two nights — below the floor it must say nothing");
+  if(box.doneBy(nt, 0, t0) !== null) fail("doneBy() forecasts a finished route");
+  if(/streak|award|badge/i.test(fn("doneByLine"))) fail("the done-by line awards something — the pace is counted, never awarded");
+  if(!/scoreboard\(c\) \+ nightsLine\(c\) \+ doneByLine\(c\)/.test(fn("viewStats"))){
+    fail("the done-by line left its seat under the nights line");
+  }
+
+  /* 3. Your data: the frame, the rule inside, no hairline. */
+  var vs = fn("viewStats");
+  if(!/<div class="bk yd"><h2>Your data<\/h2>/.test(vs)) fail("the Your data card lost its yd class — the signal frame hangs on it");
+  if(!/<p class="drule gold" aria-hidden="true">\\u25c6<\/p><h2>Restore<\/h2>/.test(vs)) fail("the gold rule between Your data and Restore is gone, or a hairline is back — the seam is the diamond, inside the box");
+  if(/class="bkhr"/.test(HTML) || /\.bkhr\{/.test(HTML)) fail("the plain hairline (.bkhr) is back on Progress");
+  if(!/\.bk\.yd\{[^}]*border-color:var\(--signaledge\)/.test(HTML)) fail("the Your data card lost its signal frame");
+  if(!/\.bk \.drule\{[^}]*color:var\(--signal\)/.test(HTML)) fail("the rule inside a card can lose its ink to the card's paragraph colour again — .bk .drule must pin signal");
+  if(!/\.drule\.gold::before\{background:linear-gradient\(90deg,transparent,var\(--signal\)\);\}/.test(HTML) ||
+     !/\.drule\.gold::after\{background:linear-gradient\(90deg,var\(--signal\),transparent\);\}/.test(HTML)){
+    fail("the gold rule faded back to the hero's 40% line — inside the box it is full signal");
+  }
+
+  /* 4. One bone recipe. The Progress bone buttons wear the hero's cut,
+        which means the same polygon, byte for byte. */
+  var goCut = (HTML.match(/\.heroacts \.go\{[^}]*clip-path:([^;}]+)/) || [])[1];
+  var bkCut = (HTML.match(/\.bkbtn\.primary\{[^}]*clip-path:([^;}]+)/) || [])[1];
+  if(!goCut || !bkCut || goCut !== bkCut) fail("the bone buttons on Progress do not wear the hero's cut — one recipe for bone everywhere, and the polygons must be the same bytes");
+  if(!/\.bkbtn\.primary\{[^}]*min-height:46px/.test(HTML) || !/\.bkbtn\.primary\{[^}]*font-size:11px/.test(HTML) || !/\.bkbtn\.primary\{[^}]*letter-spacing:\.12em/.test(HTML)){
+    fail("a Progress bone button is the wrong size for the recipe (46px, 11px mono at .12em)");
+  }
+  if(!/\.bkbtn\.primary\{[^}]*border:0/.test(HTML)) fail("a cut button with a border draws the border across the cut");
+
+  /* 5. The fold carets. */
+  if(!/\.sfhead \.caret\{color:var\(--signal\);\}/.test(HTML)) fail("the Progress fold carets are not signal");
+
+  note("someone in the room: chip excludes " + off.replace(/\s|"/g, "").split(",").join(" and ") + ", pace floor 3 nights / 2 titles, one bone recipe");
 })();
 
 /* ---------- report ---------- */

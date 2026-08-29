@@ -15,7 +15,7 @@ Four other places carry part of the story and are not repeated here:
   required reading before a change; everything here is written in the
   present tense.
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 156 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 157 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -391,6 +391,26 @@ disarms like the reset button (four seconds) and writes through
 drift. `behind()` is the unwatched, unskipped, released entries before the
 row in route order: a skip stays skipped, because it was a decision.
 
+### `OFFLIMITS` / `offLimits()` — the chip that excludes
+
+Two values, `R` and `TV-MA`, read straight off `r:`. A "nothing above
+PG-13" chip was considered and refused: it needs a ladder across the MPA
+and TV Parental Guidelines systems, and the badge rule (guard 92) says
+the certificate renders what its own system says, never a translation.
+An exclude-set has no ladder. It is a view chip like the seven before
+it: `counts()`, `upNext()` and `pool()` never see it, because a chip that
+moved the hero would be jumping the path.
+
+### `doneBy()` — a pace with a floor
+
+Titles per night, times nights per day over the span the log covers,
+gives a per-day rate; what is left divided by it gives days. Below three
+nights or two titles the function returns null and the line renders
+nothing — a forecast off one evening is a guess wearing a date. Within
+sixty days the line prints a day, further out a month. It moves with the
+log and cannot be earned, which is the difference between a pace and a
+streak.
+
 ### `routeText()` / `favList()` / `nightsOf()`
 
 Three lists off state that already existed. What's left is the pool minus
@@ -681,7 +701,7 @@ door, since mode is not persisted and only a reload undid it.
 Built ONLY for the open row. Emitting it for every entry and hiding it was
 ~220 KB of the ~292 KB this view produced, reparsed on every keystroke.
 
-### `html += '<div class="bk"><h2>Your data</h2>'+`
+### `html += '<div class="bk yd"><h2>Your data</h2>'+`
 
 The path row here duplicated Home's Change. What is left is progress in
 portable form, which is why it stays in Progress.
@@ -1071,6 +1091,22 @@ inherits .film.done's filled state rather than the empty ring, which read as
 1 / -1, not 1 / span 3. A hard span of three kept reserving three grid rows
 after 1.6.2 closed the row down to one, so every collapsed row carried two
 empty tracks and their gaps — 25px of nothing, per row.
+
+### `.bk.yd` / `.drule.gold`
+
+The Your data card's frame is signal-edged and the seam inside it is the
+diamond rule at full signal — not the hero's 40% fade, because inside a
+box on a dark card the fade read as nothing. `.bk .drule` pins the ink:
+`.bk p` colours every paragraph dust at (0,1,1), which beat `.drule`'s
+(0,1,0) in the first mock and greyed the diamond. Design B1 (5.1.0),
+chosen over the hero's cut and over moving the card up.
+
+### `.bkbtn.primary` — one bone recipe
+
+The hero's `.go` recipe — 46px, 11px mono at .12em, the 8px cut, no
+border — on every bone button, so *Share the night* and *Create backup
+code* stop being the square exception. Guard 157 holds the two polygons
+byte-equal; a second copy of a cut is a second thing to drift.
 
 ### `.hero .hnote`
 

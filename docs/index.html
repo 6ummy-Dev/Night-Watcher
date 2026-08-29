@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-s4F/tDWoIkYsgawZhYDt6QKYGd8nbQCiVY2y5dtxjX4='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-pHy7kHzFvZrAasg/RsZM6XDieKs3rpk/6N7OrxZLZpQ='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -253,6 +253,7 @@ main.sw::-webkit-scrollbar{display:none;}
   background:none;border:0;cursor:pointer;text-align:left;font:inherit;color:inherit;}
 .sfmeta{font-family:var(--mono);font-size:10px;color:var(--dim);margin-left:auto;flex:none;}
 .sfold.open .caret{transform:rotate(90deg);}
+.sfhead .caret{color:var(--signal);}
 .sfbody{margin-top:2px;}
 .sharecard{margin:18px 0 8px;}
 .qitem{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-top:1px solid var(--line);width:100%;text-align:left;flex-wrap:wrap;}
@@ -288,6 +289,7 @@ main.sw::-webkit-scrollbar{display:none;}
 .uptonote{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--dim);}
 .nights{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);text-align:center;margin:-8px 0 0;}
 .nights b{color:var(--dust);font-weight:600;}
+.nights.doneby{margin-top:6px;}
 .favs{margin:0 0 13px;}
 .sfold .favs .favrow:first-child{padding-top:8px;}
 .favrow{display:flex;align-items:baseline;gap:10px;margin:0;padding:8px 0;border-top:1px solid var(--line);}
@@ -428,14 +430,18 @@ html[data-beltpark] .pathseg:not([data-held]):not([data-drop]):not([data-ride]){
 .bk .warn{color:var(--dim);font-size:12px;}
 .bkbtns{display:flex;flex-wrap:wrap;gap:8px;}
 .bkbtn{font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;border:1px solid var(--line2);border-radius:0;padding:12px 14px;color:var(--dust);min-height:44px;flex:1;}
-.bkbtn.primary{background:var(--bonebtn);color:var(--ink);border-color:var(--bonebtn);font-weight:600;}
+.bkbtn.primary{background:var(--bonebtn);color:var(--ink);border:0;font-weight:600;min-height:46px;font-size:11px;letter-spacing:.12em;
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);}
 .code{width:100%;background:var(--ink);border:1px solid var(--line2);border-radius:0;color:var(--bone);
   font-family:var(--mono);font-size:16px;line-height:1.5;padding:11px;margin:12px 0 10px;
   word-break:break-all;max-height:96px;overflow:auto;-webkit-user-select:all;user-select:all;resize:none;}
 .bklab{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dust);margin:0 0 7px;}
 .bkin{width:100%;background:var(--ink);border:1px solid var(--line2);border-radius:0;color:var(--bone);
   font-family:var(--mono);font-size:16px;padding:11px;margin:0 0 9px;min-height:62px;resize:vertical;-webkit-appearance:none;}
-.bkhr{border:0;border-top:1px solid var(--line);margin:18px 0;}
+.bk.yd{border-color:var(--signaledge);box-shadow:0 0 18px -6px var(--signalline);}
+.bk .drule{color:var(--signal);margin:18px 0;}
+.drule.gold::before{background:linear-gradient(90deg,transparent,var(--signal));}
+.drule.gold::after{background:linear-gradient(90deg,var(--signal),transparent);}
 .tiers{margin:14px 0 22px;border:1px solid var(--line);border-radius:0;background:var(--sunk);overflow:hidden;}
 .trow{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;min-height:52px;text-align:left;border-top:1px solid var(--line);}
 .trow:first-child{border-top:0;}
@@ -987,7 +993,7 @@ main,.panel{scrollbar-gutter:stable both-edges;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 156 sections, each one negative-tested, which section 138
+   qa/guards.js — 157 sections, each one negative-tested, which section 138
    checks rather than assumes.
 
    Read those before changing something that looks redundant. Most of it is
@@ -1454,7 +1460,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "5.0.0";
+var BUILD = "5.1.0";
 var BUILT = "2026-08-29";
 var KEY = "batwatch-v3";
 var SITE = "https://nightwatcher.life/";
@@ -1821,15 +1827,6 @@ function upNext(){
   for(i=0;i<p.length;i++){ if(!isParked(p[i]) && !isDone(p[i])) return p[i]; }
   return null;
 }
-function routePos(f){
-  var p = pool(), i, n = 0;
-  for(i = 0; i < p.length; i++){
-    if(isParked(p[i])) continue;
-    n++;
-    if(p[i].id === f.id) return n;
-  }
-  return 0;
-}
 function matches(f, q){
   return !q || f.hay.indexOf(q) >= 0;
 }
@@ -1850,6 +1847,8 @@ function metaOf(f, withUniverse){
   if(S.mode === "life" && !f.e && f.out) bits.push(OUTWHY[f.out] || f.out);
   return bits.join(" \u00b7 ");
 }
+var OFFLIMITS = ["R", "TV-MA"];
+function offLimits(f){ return OFFLIMITS.indexOf(f.r) >= 0; }
 function tierOf(f){ return f.b.indexOf("e") >= 0 ? "e" : (f.o ? "o" : "k"); }
 var badgeCache = {};
 function badges(f){
@@ -2414,7 +2413,7 @@ function viewHome(c){
   if(nxt){
     html += '<div class="hero">'+
       heroHead(nxt, isSkip(nxt) ? "Back to a skipped one" : fresh ? "First patrol" : "Tonight\u2019s patrol",
-               routePos(nxt) + " of " + c.total)+
+               c.done + " of " + c.total)+
       '<div class="heroacts"><button class="go" data-act="resume">'+(fresh ? "Begin the path" : "Resume the path")+'</button></div></div>';
   } else {
     html += '<div class="hero"><p class="kick">Case closed</p>'+
@@ -2506,7 +2505,7 @@ function watchNotes(){
 
 function chipSet(){
   return [["all","All"],["left","To watch"],["done","Watched"],["skip","Skipped"],
-          ["ess","Essentials"],["core","Core route"],["opt","Optional"]];
+          ["ess","Essentials"],["core","Core route"],["opt","Optional"],["safe","R / TV-MA off"]];
 }
 function filmRow(f){
   if(isParked(f)) return parkedRow(f);
@@ -2586,6 +2585,7 @@ function groupBlock(g, q, nid){
     if(S.filter === "done" && !isDone(f)) return;
     if(S.filter === "skip" && !isSkip(f)) return;
     if(S.filter === "ess" && tierOf(f) !== "e") return;
+    if(S.filter === "safe" && offLimits(f)) return;
     if(!matches(f, q)) return;
     shown++;
     rows += filmRow(f);
@@ -2860,15 +2860,32 @@ function favText(){
     fav.map(function(f){ return "\u2605 " + lineOf(f); }).join("\n") + "\n";
 }
 function nightsOf(log){
-  var days = Object.create(null), last = null, n = 0;
+  var days = Object.create(null), last = null, n = 0, first = 0, logged = 0;
   log.forEach(function(e){
     if(!e || !validTs(e.ts)) return;
-    var d = new Date(Number(e.ts)), key = d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate();
+    var ts = Number(e.ts), d = new Date(ts), key = d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate();
     if(!days[key]){ days[key] = 0; n++; }
-    days[key]++;
-    if(!last || Number(e.ts) > last.ts) last = {ts:Number(e.ts), key:key};
+    days[key]++; logged++;
+    if(!first || ts < first) first = ts;
+    if(!last || ts > last.ts) last = {ts:ts, key:key};
   });
-  return {nights:n, latest:last ? days[last.key] : 0};
+  return {nights:n, latest:last ? days[last.key] : 0, first:first, last:last ? last.ts : 0, logged:logged};
+}
+var DONEBY_NIGHTS = 3, DONEBY_TITLES = 2;
+function doneBy(nt, left, now){
+  if(!left || nt.nights < DONEBY_NIGHTS || nt.logged < DONEBY_TITLES) return null;
+  var spanDays = Math.max(1, Math.round((nt.last - nt.first) / 864e5) + 1);
+  var perDay = (nt.logged / nt.nights) * (nt.nights / spanDays);
+  if(!(perDay > 0)) return null;
+  return new Date(now + Math.ceil(left / perDay) * 864e5);
+}
+var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+function doneByLine(c){
+  var d = doneBy(nightsOf(S.log), c.left, Date.now());
+  if(!d) return "";
+  var today = new Date(), far = (d - today) > 60 * 864e5;
+  var when = far ? MONTHS[d.getMonth()] + " " + d.getFullYear() : d.getDate() + " " + MONTHS[d.getMonth()];
+  return '<p class="nights doneby">at your pace, done by <b>'+when+'</b></p>';
 }
 function nightsLine(c){
   var nt = nightsOf(S.log);
@@ -2904,7 +2921,7 @@ function viewStats(c){
     skyline(donutGroups, GRIDNAME[S.mode] || "The universes",
           donutGroups.length + " " + donutWord + ", %T topped out \u00b7 width is size \u00b7 gold watched, steel skipped \u00b7 tap a building") +
     '</div>'+
-    scoreboard(c) + nightsLine(c) +
+    scoreboard(c) + nightsLine(c) + doneByLine(c) +
     shareCardBlock();
 
   var u = progRows(uniGroups);
@@ -2919,7 +2936,7 @@ function viewStats(c){
   html += favBlock() + leftBlock(c);
 
   var bkBehind = marksSince(Math.max(S.lastExportAt || 0, S.bkDismissAt || 0));
-  html += '<div class="bk"><h2>Your data</h2>'+
+  html += '<div class="bk yd"><h2>Your data</h2>'+
     '<p>Your progress lives only in this browser \u2014 a new phone, or clearing site data, starts you at zero. '+
     'Make a code and you can carry it anywhere.</p>'+
     (bkBehind >= 10
@@ -2940,7 +2957,7 @@ function viewStats(c){
       '<button class="bkbtn" data-act="copylink">Copy link</button></div>'+
       '<p class="warn">Send the link to yourself. Opening it on another device restores everything.</p>';
   }
-  html += '<hr class="bkhr"><h2>Restore</h2>'+
+  html += '<p class="drule gold" aria-hidden="true">\u25c6</p><h2>Restore</h2>'+
     '<p>Paste a backup code from another device. It merges in \u2014 nothing already ticked is lost.</p>'+
     '<label class="bklab" for="restorebox">Paste a backup</label>'+
     '<textarea class="bkin" id="restorebox" placeholder="Backup code, restore link, or full JSON"></textarea>'+

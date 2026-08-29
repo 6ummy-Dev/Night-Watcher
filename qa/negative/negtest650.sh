@@ -27,11 +27,6 @@ run_case "the hero lands on a parked title" \
   "${P}a='for(i=0;i<p.length;i++){ if(!isParked(p[i]) && !isDone(p[i]) && !isSkip(p[i])) return p[i]; }';assert a in s;s=s.replace(a,'for(i=0;i<p.length;i++){ if(!isDone(p[i]) && !isSkip(p[i])) return p[i]; }',1);${W}" \
   guards "" 154
 
-run_case "the kick counts the parked entry" \
-  "routePos() counts the parked entry" \
-  "${P}a='  for(i = 0; i < p.length; i++){\n    if(isParked(p[i])) continue;\n    n++;';assert a in s;s=s.replace(a,'  for(i = 0; i < p.length; i++){\n    n++;',1);${W}" \
-  guards "" 154
-
 run_case "a skip outranks nothing" \
   "prefers a skipped title over an unskipped one" \
   "${P}a='for(i=0;i<p.length;i++){ if(!isParked(p[i]) && !isDone(p[i]) && !isSkip(p[i])) return p[i]; }\n';assert a in s;s=s.replace(a,'',1);${W}" \
@@ -106,7 +101,7 @@ run_case "the rule climbs back above the blurb" \
 
 run_case "Home stops saying where you stand" \
   "Home's kick does not say where the reader stands" \
-  "${P}a='               routePos(nxt) + \" of \" + c.total)+';assert a in s;s=s.replace(a,'               \"\")+',1);${W}" \
+  "${P}a='               c.done + \" of \" + c.total)+';assert a in s;s=s.replace(a,'               \"\")+',1);${W}" \
   guards "" 155
 
 run_case "Home grows a skip" \

@@ -27,8 +27,10 @@ assert a in s;s=s.replace(a,'',1);${W}"
 
 run_case "a measured control stops declaring a height" \
   "no declared height for the control(s)" \
-  "${P}import re;m=re.search(r'\\.bkbtn\\{[^}]*\\}',s);assert m
-s=s[:m.start()]+re.sub(r'min-height:\\d+px;','',m.group(0))+s[m.end():];${W}"
+  "${P}import re;n=0
+for pat in (r'\\.bkbtn\\{[^}]*\\}', r'\\.bkbtn\\.primary\\{[^}]*\\}'):
+    m=re.search(pat,s);assert m;s=s[:m.start()]+re.sub(r'min-height:\\d+px;','',m.group(0))+s[m.end():];n+=1
+assert n==2;${W}"
 
 rm -rf "$NEG"
 finish "1.7.6 negative tests"

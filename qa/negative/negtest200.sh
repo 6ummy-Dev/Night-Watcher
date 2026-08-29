@@ -82,11 +82,11 @@ assert b in s
 s=s.replace(b,b+'<canvas id=\"pcard\" width=\"1080\" height=\"1920\"></canvas>',1);${W}"
 run_case "the card floats above the scoreboard" \
   "renders above the scoreboard" \
-  "${P}a='''    scoreboard(c) + nightsLine(c) +
+  "${P}a='''    scoreboard(c) + nightsLine(c) + doneByLine(c) +
     shareCardBlock();'''
 assert a in s
 s=s.replace(a,'''    shareCardBlock() +
-    scoreboard(c) + nightsLine(c);''',1);${W}"
+    scoreboard(c) + nightsLine(c) + doneByLine(c);''',1);${W}"
 
 run_case "the card starts reading the theme" \
   "reads the theme" \

@@ -1329,8 +1329,8 @@ win.addEventListener("load", function(){
 
       /* The chips stay, all seven; the one that can show nothing says why. */
       S.tab = "watch"; S.filter = "opt"; win.render();
-      check("The path keeps its seven chips under a narrowed belt",
-            doc.querySelectorAll('#view .panel:not([inert]) .chip').length === 7);
+      check("The path keeps its eight chips under a narrowed belt",
+            doc.querySelectorAll('#view .panel:not([inert]) .chip').length === 8);
       var empty = doc.querySelector('#view .panel:not([inert]) .empty');
       check("the Optional chip under the Core route names the belt, not \"nothing yet\"",
             !!empty && /outside your route/.test(empty.textContent) && /Core route/.test(empty.textContent),
@@ -1402,7 +1402,8 @@ win.addEventListener("load", function(){
       S.tab = "home"; win.render();
       var kick = q(".hero .kick");
       check("Home's kick says where you stand",
-            !!kick && kick.textContent.indexOf((c.done + 1) + " of " + c.total) > 0, kick ? kick.textContent : "no kick");
+            !!kick && kick.textContent.indexOf(c.done + " of " + c.total) > 0 &&
+            doc.getElementById("hsub").textContent.indexOf(c.done + " of " + c.total) >= 0, kick ? kick.textContent : "no kick");
       check("Home's hero is the poster: one button, no stars, no skip, no note",
             qa(".hero .heroacts button").length === 1 && !q(".hero .stars") && !q(".hero .hnote"));
       check("Home's meta line prints the cost of the night",
@@ -1521,6 +1522,41 @@ win.addEventListener("load", function(){
 
       clean(); S.format = f0; S.scope = s0; S.q = q0; S.tab = t0; S.filter = fl0; S.mode = m0; S.path = p0;
       win.render();
+    })();
+
+    /* --- 5.1.0, "Someone in the room": the safe chip, the pace floor. --- */
+    (function(){
+      var f0 = S.format, s0 = S.scope, q0 = S.q, t0 = S.tab, fl0 = S.filter;
+      var V = '#view .panel:not([inert]) ';
+      function q(sel){ return doc.querySelector(V + sel); }
+      S.format = "all"; S.scope = "all"; S.tier = "all"; S.q = "";
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
+      var before = win.counts().total, hero = win.upNext().id;
+      S.tab = "watch"; S.filter = "safe"; win.render();
+      var chip = q('.chip[data-filter="safe"]');
+      check("The path offers the R / TV-MA off chip", !!chip && /R \/ TV-MA off/i.test(chip.textContent), chip ? chip.textContent : "no chip");
+      var rows = Array.prototype.slice.call(doc.querySelectorAll(V + '.film'));
+      check("the R / TV-MA off chip hides every R and TV-MA",
+            rows.length > 0 && rows.every(function(r){ return !/^(R|TV-MA)$/.test((r.querySelector(".bd.rt") || {}).textContent || ""); }),
+            rows.length + " rows");
+      check("and keeps an NR on the shelf",
+            rows.some(function(r){ return ((r.querySelector(".bd.rt") || {}).textContent || "") === "NR"; }));
+      check("the chip moves neither the count nor the hero", win.counts().total === before && win.upNext().id === hero);
+      S.filter = "all";
+      /* The forecast: nothing below the floor, a date above it. */
+      var ids = win.pool().filter(function(f){ return !win.isParked(f); }).map(function(f){ return f.id; });
+      var day = 864e5, t = Date.now() - 10 * day;
+      S.watched[ids[0]] = 1; S.watched[ids[1]] = 1;
+      S.log = [{id:ids[0], ts:t}, {id:ids[1], ts:t + day}];
+      S.tab = "stats"; win.render();
+      check("below the floor, no forecast", !q(".doneby"));
+      S.watched[ids[2]] = 1; S.watched[ids[3]] = 1;
+      S.log.push({id:ids[2], ts:t + 2 * day}, {id:ids[3], ts:t + 3 * day});
+      win.render();
+      var db = q(".doneby");
+      check("three nights on, the route has a date", !!db && /done by/.test(db.textContent), db ? db.textContent : "no line");
+      S.watched = {}; S.log = [];
+      S.format = f0; S.scope = s0; S.q = q0; S.tab = t0; S.filter = fl0; win.render();
     })();
 
     /* --- the search-everything offer matches what search-everything shows (1.7.5) --- */

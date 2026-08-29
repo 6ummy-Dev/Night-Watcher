@@ -179,7 +179,7 @@ run_case "the Optional chip goes back to Nothing in this filter yet" \
 
 run_case "the Optional chip leaves The path" \
   "chip left The path" \
-  "${P}a='[\"core\",\"Core route\"],[\"opt\",\"Optional\"]];';assert a in s;s=s.replace(a,'[\"core\",\"Core route\"]];');${W}" \
+  "${P}a='[\"core\",\"Core route\"],[\"opt\",\"Optional\"],';assert a in s;s=s.replace(a,'[\"core\",\"Core route\"],');${W}" \
   guards "" 152
 
 run_case "the share card drops the route" \
