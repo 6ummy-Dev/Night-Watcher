@@ -1508,8 +1508,12 @@ win.addEventListener("load", function(){
       check("the list is the unwatched route in order, parked excluded",
             txt.split("\n").filter(function(l){ return /^\d+\. /.test(l); }).length === win.counts().left &&
             parked.every(function(f){ return txt.indexOf(f.t + " (") < 0; }));
-      check("no five stars, no shelf", !q('[data-act="copyfav"]'));
+      check("no five stars, no shelf", !q('[data-act="progfold"][data-pk="fav"]'));
       S.rated[liveIds[1]] = 5; S.rated[liveIds[0]] = 4; win.render();
+      var favFold = q('[data-act="progfold"][data-pk="fav"]');
+      check("five stars is a fold, closed by default, that names its count",
+            !!favFold && /1 title/.test(favFold.textContent) && !q(".favrow"), favFold ? favFold.textContent : "no fold");
+      if(favFold) favFold.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
       var favs = qa(".favrow");
       check("a five-star rating opens the shelf, four stars does not",
             favs.length === 1 && favs[0].textContent.indexOf(win.BYID[liveIds[1]].t) >= 0, favs.length + " rows");
@@ -2600,8 +2604,8 @@ win.addEventListener("load", function(){
         S.watched = {};
         /* ...and a five-star shelf on Progress, which only renders once a
            rating reaches five. */
-        S.rated[FILMS[0].id] = 5; S.tab = "stats"; win.render(); sweep();
-        S.rated = {};
+        S.rated[FILMS[0].id] = 5; S.progOpen.fav = true; S.tab = "stats"; win.render(); sweep();
+        S.rated = {}; delete S.progOpen.fav;
       })();
       FILMS.forEach(function(f){ S.watched[f.id] = 1; });
       ["home", "next", "watch", "stats"].forEach(function(t){ S.tab = t; win.render(); sweep(); });

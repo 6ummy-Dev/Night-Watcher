@@ -87,9 +87,13 @@ route. Progress still never leaves the browser.
   already kept. Counted, never awarded; no streaks, and not a tile,
   because the three tiles account the pool and nights are another axis.
 - **Your five stars.** Ratings have existed since 1.4.1 and were only
-  ever visible per row. A card on Progress lists what you rated five,
-  copyable as text. Renders only once a rating reaches five.
-- **Guards 154–156, `qa/negative/negtest650.sh`** (42 fixtures, every
+  ever visible per row. A fold on Progress — closed by default, named
+  with its count, beside the three ordering folds — lists what you
+  rated five, copyable as text. Renders only once a rating reaches
+  five. (It shipped as an open card first and was refolded the same
+  evening: a reader who rates everything got a Progress tab as long as
+  the catalogue.)
+- **Guards 154–156, `qa/negative/negtest650.sh`** (43 fixtures, every
   new guard shown to fail), and a 5.0.0 smoke block that drives the
   parked shelf, both heroes, the bag, the chooser, up-to-here and the
   three Progress cards through the real buttons, plus a "stale skip"

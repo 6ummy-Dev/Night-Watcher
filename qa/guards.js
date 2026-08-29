@@ -14146,6 +14146,9 @@ var ROUTE_VOCAB = [
   var d0 = new Date(2026, 7, 28, 21, 0).getTime(), d1 = new Date(2026, 7, 29, 22, 30).getTime();
   var nt = box.nightsOf([{id:"a", ts:d0}, {id:"b", ts:d0 + 3600e3}, {id:"c", ts:d1}, {id:"d"}]);
   if(nt.nights !== 2 || nt.latest !== 1) fail("nightsOf() counted " + nt.nights + " nights and " + nt.latest + " on the latest — expected 2 and 1");
+  if(!/progFold\("fav", "Your five stars"/.test(fn("favBlock"))){
+    fail("Your five stars is an open list again — a reader who rates everything gets a Progress tab as long as the catalogue; it folds, closed, and names its count");
+  }
   ["copyleft", "dlleft", "copyfav", "upto", "choose"].forEach(function(a){
     if(HTML.indexOf('data-act="' + a + '"') < 0 || HTML.indexOf('act === "' + a + '"') < 0){
       fail("data-act=\"" + a + "\" is rendered without a handler, or handled without a seat");

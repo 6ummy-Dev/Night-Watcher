@@ -191,6 +191,11 @@ run_case "the nights line awards a streak" \
   "${P}a=\"' on patrol'+\";assert a in s;s=s.replace(a,\"' on patrol — a streak! '+\",1);${W}" \
   guards "" 156
 
+run_case "five stars unfolds into an open list" \
+  "an open list again" \
+  "${P}a='  return progFold(\"fav\", \"Your five stars\", fav.length + (fav.length === 1 ? \" title\" : \" titles\"),';assert a in s;s=s.replace(a,'  return progFold(\"favs\", \"Your five stars\", fav.length + (fav.length === 1 ? \" title\" : \" titles\"),',1);${W}" \
+  guards "" 156
+
 run_case "a handler loses its seat" \
   "is rendered without a handler, or handled without a seat" \
   "${P}a='data-act=\"copyfav\"';assert s.count(a)==1;s=s.replace(a,'data-act=\"copyfavs\"',1);${W}" \

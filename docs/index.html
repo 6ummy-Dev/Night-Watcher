@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-1m89+w7sQtMn5wRJjcq3xnYmKrrQCDgs/46IAWKo6C0='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-s4F/tDWoIkYsgawZhYDt6QKYGd8nbQCiVY2y5dtxjX4='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -289,6 +289,7 @@ main.sw::-webkit-scrollbar{display:none;}
 .nights{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);text-align:center;margin:-8px 0 0;}
 .nights b{color:var(--dust);font-weight:600;}
 .favs{margin:0 0 13px;}
+.sfold .favs .favrow:first-child{padding-top:8px;}
 .favrow{display:flex;align-items:baseline;gap:10px;margin:0;padding:8px 0;border-top:1px solid var(--line);}
 .favrow:first-child{border-top:0;padding-top:0;}
 .favt{flex:1;min-width:0;font-family:var(--disp);font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:16px;line-height:1.15;color:var(--dust);}
@@ -2886,12 +2887,12 @@ function leftBlock(c){
 function favBlock(){
   var fav = favList();
   if(!fav.length) return "";
-  return '<div class="bk"><h2>Your five stars</h2>'+
+  return progFold("fav", "Your five stars", fav.length + (fav.length === 1 ? " title" : " titles"),
     '<div class="favs">'+fav.map(function(f){
       return '<p class="favrow"><span class="favt">'+f.tE+
         (subOf(f) ? ' <span class="favsub">'+esc(subOf(f))+'</span>' : '')+'</span><span class="favy">'+f.y+'</span></p>';
     }).join("")+'</div>'+
-    '<div class="bkbtns"><button class="bkbtn" data-act="copyfav">Copy the list</button></div></div>';
+    '<div class="bkbtns"><button class="bkbtn" data-act="copyfav">Copy the list</button></div>');
 }
 function viewStats(c){
   var uniGroups = modeGroups("continuity"), lifeGroups = modeGroups("life"), decGroups = modeGroups("release");
@@ -2915,7 +2916,7 @@ function viewStats(c){
   var dc = progRows(decGroups);
   html += progFold("dec", "By decade", dc.done+" of "+dc.n+" complete", dc.rows);
 
-  html += leftBlock(c) + favBlock();
+  html += favBlock() + leftBlock(c);
 
   var bkBehind = marksSince(Math.max(S.lastExportAt || 0, S.bkDismissAt || 0));
   html += '<div class="bk"><h2>Your data</h2>'+
