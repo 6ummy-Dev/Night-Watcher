@@ -15,7 +15,7 @@ Four other places carry part of the story and are not repeated here:
   required reading before a change; everything here is written in the
   present tense.
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 153 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 156 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -325,6 +325,81 @@ gives it: signal for done, bone for what is left, steel for passed over.
 
 Preference order: never-skipped first. Only when everything left has been
 skipped do we resurface skipped titles, and the hero labels that state.
+Since 5.0.0 a parked title is never the hero at all, in either pass — a
+skip is a decision about the title and outranks a date, which is not one.
+
+### `isParked()` / `dropParkedSkips()`
+
+An entry wearing `u` is parked: on The Path with its date, never the hero,
+never ticked or skipped, off every count that means "what exists". Before
+5.0.0 the only way past an unreleased title was Skip, which turned a date
+into a decision. The five doors a mark comes through — the tap, the read,
+the pasted backup, the JSON restore, the cross-tab merge — each refuse a
+skip on a parked entry; `dropParkedSkips()` runs once after the schema pass
+and clears the ones older builds let in. Dropping them is not a lost mark:
+"not now" on a title nobody can watch says nothing the badge does not.
+Guard 154.
+
+### `counts()` / `routePos()` / `g.size`
+
+`total` is the released entries in the pool; `parked` is counted apart.
+Every group carries `size` (its released entries) beside `films` (its
+shelf): the bars, the folds, the ✓ on a universe card and the skyline's
+crown all read `size`, so a universe holding a 2028 title can top out. The
+skyline's *width* stays `films.length` — width is size on the shelf, fill
+is what exists — and `roofOf()` keeps seeding from the shelf so the card
+and the skyline draw the same roof (guard 150). `routePos()` is the kick's
+"13 of 41": the row's 1-based place among released entries in route order.
+
+### `metaOf()` and the cost of the night
+
+A season already printed its episodes. A film now prints "Film" and a short
+"Short" — the bill for the night, in the meta line, on both heroes and every
+Path row. An entry whose sub label already says the shape ("15 chapters",
+"30 shorts") says nothing twice. Running times were considered for 5.0.0
+and dropped: a film is a film, and 133 sourced minutes with a cut rule to
+argue buy nothing on top of that.
+
+### `heroHead()` — the rule is the seam
+
+The diamond rule moved from between the badges and the blurb to under the
+blurb (5.0.0). The card has two halves now: the film above the rule (kick,
+continuity, title, meta, badges, blurb) and the night below it (the bag line,
+stars and link, the buttons). Home is the poster — the position on the kick,
+one button — and Next up is the desk. The note lines under the rule carry no
+diamond of their own: the rule is the card's one ornament.
+
+No "then, when it lands" line on the hero: the Then table under it draws a
+parked row in place, dimmed, with its date, and the hero does not say it
+twice (owner, 29 Aug).
+
+### `S.pick` / Let Gotham choose
+
+Only on a bag, because only there is no order to break. A tap picks at
+random among the shelf's unwatched, unskipped, released titles and the
+hero shows it for this session; `upNext()` honours the pick only while it
+is still in the pool and still unwatched. It is not in `SCHEMA` — a refresh
+returns to the first row, so the belt stays the only thing that sets the
+route. The circle-arrow is inline SVG, not a glyph: the subset fonts carry
+no U+27F3, and guard 116 would say so.
+
+### `uptoButton()` / `behind()`
+
+Watched up to here is the one bulk write in the app, so it arms and
+disarms like the reset button (four seconds) and writes through
+`markWatched()` like every other tick — the log and the skip-clear cannot
+drift. `behind()` is the unwatched, unskipped, released entries before the
+row in route order: a skip stays skipped, because it was a decision.
+
+### `routeText()` / `favList()` / `nightsOf()`
+
+Three lists off state that already existed. What's left is the pool minus
+watched, skipped and parked, in route order, headed by the route's name
+and the site. Five stars is exactly rating 5. Nights are distinct local
+calendar days in the log — counted on Progress, never awarded, no streaks;
+one line, not a scoreboard tile, because the three tiles account the pool
+and nights are another axis (the same argument that kept Essentials off
+the board).
 
 ### `/* One haystack. It was written out twice \u2014 once to…`
 
@@ -996,6 +1071,17 @@ inherits .film.done's filled state rather than the empty ring, which read as
 1 / -1, not 1 / span 3. A hard span of three kept reserving three grid rows
 after 1.6.2 closed the row down to one, so every collapsed row carried two
 empty tracks and their gaps — 25px of nothing, per row.
+
+### `.hero .hnote`
+
+The bag line, mono, tracked, dust — the same register as the meta line,
+sitting under the rule and above the controls because it is about the
+night, not the film.
+
+### `.film.parked .tick`
+
+A dashed ring, not a button. A solid ring reads as a tick waiting to
+happen; a dashed one reads as a seat that is not open yet.
 
 ### `.herorow`
 

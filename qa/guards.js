@@ -141,6 +141,9 @@ function blessHtml(next){
      151  The splash covers the first frame, and only the first frame
      152  The tier is an include axis, and the belt says what it holds
      153  The head's required tag set, by name
+     154  A parked title is on the shelf and off the count
+     155  The sitting: two heroes, one card, and the night under the rule
+     156  Four small things that never leave the browser
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -761,7 +764,8 @@ PATH.forEach(function(g, gi){
   g.films.forEach(function(f, fx){
     FILMS.push({id:f.i, gi:gi, ix:fx, gn:g.n, gname:g.name, fmt:(f.fmt || g.fmt || "anim"),
                 t:f.t, sub:f.sub||"", ep:f.ep||0, tv:(f.k==="tv"),
-                y:f.y, d:f.d, e:(f.e||0), lo:(f.lo||0), out:f.out||"", r:f.r||"", b:f.b||[], o:!!f.o});
+                y:f.y, d:f.d, e:(f.e||0), lo:(f.lo||0), out:f.out||"", r:f.r||"", b:f.b||[], o:!!f.o,
+                when:f.when||""});
   });
 });
 var FAQDATA = buildFAQ(FILMS, sandbox.MODENOTE, tierOf);
@@ -13059,11 +13063,13 @@ var ROUTE_VOCAB = [
          "polygon, or the frame is either invisible or the whole card");
   }
   /* The diamond is the separator now. The meta line's plain dot was the one
-     the mock replaced; the rule under the badges is the one deco ornament
-     that shipped. Both render ◆ from the system font by decision —
-     section 116 names it in SYSTEM_MARKS. */
+     the mock replaced; the rule under the blurb (5.0.0 moved it there from
+     under the badges) is the one deco ornament that shipped. Both render ◆
+     from the system font by decision — section 116 names it in
+     SYSTEM_MARKS. Since 5.0.0 the kick carries a diamond too, before the
+     route position, so the continuity line is matched by name. */
   var head = fn("heroHead");
-  if(!/class="dsep"[^>]*>\\u25c6</.test(head) || /f\.gn\+' \\u00b7 '/.test(head)){
+  if(!/<p class="hcont">'\+f\.gn\+' <i class="dsep"[^>]*>\\u25c6</.test(head) || /f\.gn\+' \\u00b7 '/.test(head)){
     fail("the hero meta line is back on the plain dot — 4.3.0 set a gold " +
          "◆ between the continuity number and its name (class dsep, " +
          "aria-hidden: it is an ornament, not a word)");
@@ -13960,6 +13966,192 @@ var ROUTE_VOCAB = [
   }
   note("head: " + REQUIRED.length + " required tags present exactly once, 6 font " +
        "preloads, 2 style blocks, every element on the allowlist, no strays");
+})();
+
+/* ---------- 154. A parked title is on the shelf and off the count ---- */
+/* 5.0.0, "The sitting". An unreleased entry used to be a row like any other:
+   it could be the hero, it counted in To go, and the only way past it was
+   Skip — a decision about the title made to get round a date. Now it is
+   PARKED: on The Path with its date, never the hero, never ticked, never
+   skipped, and off every count that means "what exists". The five rules
+   below are the ones a refactor would lose one at a time. */
+
+(function(){
+  /* 1. A parked entry carries when:, a released one never does — the same
+        sourced-or-absent shape as r: in section 92. */
+  FILMS.forEach(function(f){
+    var parked = f.b.indexOf("u") >= 0;
+    if(parked && !f.when) fail(f.id + " is not out yet and carries no when: — a parked row prints its date, and the year alone is not a date");
+    if(!parked && f.when) fail(f.id + ' is released and carries when:"' + f.when + '" — a date rides a parked entry and leaves with the badge');
+  });
+
+  /* 2. The count, the hero and the row's position, driven on the extracted
+        functions with a pool of three: released, parked, released. */
+  var box = {S:{watched:{}, skipped:{}, pick:""}, BYID:Object.create(null)};
+  box.pool = function(){ return box.P; };
+  box.P = [{id:"a", b:[]}, {id:"b", b:["u"], when:"Late 2026", y:2026}, {id:"c", b:[]}];
+  box.P.forEach(function(f){ box.BYID[f.id] = f; });
+  new vm.Script([fn("isDone"), fn("isSkip"), fn("isParked"), fn("isParkedId"), fn("counts"),
+                 fn("upNext"), fn("routePos"), fn("behind")].join("\n"))
+    .runInContext(vm.createContext(box));
+  var c = box.counts();
+  if(c.total !== 2 || c.parked !== 1 || c.left !== 2){
+    fail("counts() still counts a parked entry — total " + c.total + ", parked " + c.parked +
+         ", left " + c.left + "; To go must count what exists");
+  }
+  box.S.watched.a = 1;
+  var nx = box.upNext();
+  if(!nx || nx.id !== "c") fail("upNext() lands on a parked entry — the hero must be something a reader can watch tonight");
+  if(box.routePos(box.P[2]) !== 2) fail("routePos() counts the parked entry — the kick would read 3 of 2");
+  box.S.watched = {}; box.S.skipped = {a:1};
+  if(box.upNext().id !== "c") fail("upNext() prefers a skipped title over an unskipped one — a skip is a decision and outranks a date, but not the never-skipped");
+  box.S.watched = {a:1}; box.S.skipped = {};
+  if(box.behind(box.P[2]).length !== 0) fail("behind() offers a parked or watched entry to Watched up to here");
+  box.S.watched = {};
+  if(box.behind(box.P[2]).length !== 1) fail("behind() misses the released entry before the row — Watched up to here would log nothing");
+
+  /* 3. A skip cannot land on a parked entry from any door: the read, the
+        import, the cross-tab merge, and the tap. */
+  var rb = fn("restore");
+  if(!/dropParkedSkips\(\)/.test(rb) || !/function dropParkedSkips/.test(HTML)){
+    fail("restore() no longer drops the skips a reader placed on titles that were not out yet — a skip on a parked title is “not now” said twice, and it would resurface the day the title lands");
+  }
+  var am = fn("applyMarks");
+  if(!/isParkedId\(id\)/.test(am.slice(am.indexOf("res.skipped")))){
+    fail("applyMarks() lets a pasted backup skip a parked title");
+  }
+  var st = sliceOr('window.addEventListener("storage"', '\ndocument.getElementById("tabs")');
+  if(!/!isParkedId\(k\)/.test(st)) fail("the cross-tab merge lets another tab skip a parked title");
+  if(!/isParkedId\(id\)\) return;/.test(fn("toggleSkip")) || !/isParkedId\(id\)\) return;/.test(fn("toggleWatched"))){
+    fail("a tap can still tick or skip a parked title — toggleWatched()/toggleSkip() must refuse it");
+  }
+
+  /* 4. The row renders no control, and says the date where the meta goes. */
+  if(!/if\(isParked\(f\)\) return parkedRow\(f\);/.test(fn("filmRow"))) fail("filmRow() draws a parked entry as an ordinary row");
+  var pr = fn("parkedRow");
+  if(/data-act="watched"|data-act="skip"|starRow\(/.test(pr)) fail("parkedRow() renders a tick, a skip or stars on a title nobody can watch");
+  if(!/Not out yet \\u00b7 /.test(pr) || !/f\.when \|\| String\(f\.y\)/.test(pr)) fail("parkedRow() does not print the date in the meta line");
+  if(!/\.film\.parked \.tick\{[^}]*border-style:dashed/.test(HTML)) fail("the parked ring is a solid ring — it reads as a tick waiting to happen");
+  if(!/S\.filter === "left" && \(isDone\(f\) \|\| isSkip\(f\) \|\| isParked\(f\)\)/.test(fn("groupBlock"))){
+    fail("the To watch chip shows parked titles — they are not something to watch");
+  }
+
+  /* 5. Every size that means "what exists" reads g.size, and the shelf keeps
+        its width. */
+  if(!/size:fs\.filter\(function\(f\)\{ return !isParked\(f\); \}\)\.length/.test(fn("modeGroups")) || !/bag:!!g\.bag/.test(fn("modeGroups"))){
+    fail("modeGroups() no longer carries size and bag — every group count and the bag line read them");
+  }
+  ["gSub", "gBarFill", "progRows"].forEach(function(name){
+    var src = fn(name);
+    if(/g\.films\.length/.test(src.replace(/g\.size < g\.films\.length \? " \\u00b7 " \+ \(g\.films\.length - g\.size\)/, "")) || !/g\.size/.test(src)){
+      fail(name + "() sizes a group by its shelf, not by what exists — a group with a parked title could never complete");
+    }
+  });
+  var sky = fn("skyline");
+  if(!/var n = g\.films\.length, sz = g\.size;/.test(sky) || !/crownState\(d, k, sz\)/.test(sky) || !/pct\(d, sz\)/.test(sky)){
+    fail("skyline() fills or crowns a building against its shelf width — a parked title must widen the building and never top it");
+  }
+  var card = fn("drawShareCard");
+  if(!/sz = g\.size/.test(card) || !/if\(isParked\(f\)\) return;/.test(card)){
+    fail("drawShareCard() counts a parked title — the card and the ring would disagree");
+  }
+  note("parked: " + FILMS.filter(function(f){ return f.b.indexOf("u") >= 0; }).length +
+       " titles on the shelf and off the count, each with a date");
+})();
+
+/* ---------- 155. The sitting: two heroes, one card, and the night under the rule ---- */
+/* The hero has two halves since 5.0.0: the film above the diamond rule, the
+   night below it. Home is the poster (position on the kick, one button);
+   Next up is the desk (the controls, the bag line, the chooser, the
+   Then table with the parked rows in place). The mocks were approved to the pixel; this pins what
+   the mocks showed. */
+
+(function(){
+  var hh = fn("heroHead");
+  if(hh.indexOf('<p class="blurb">') < 0 || hh.indexOf('<p class="drule"') < hh.indexOf('<p class="blurb">')){
+    fail("the diamond rule sits above the blurb again — it is the seam between the film and the night, and belongs under the blurb");
+  }
+  if(!/pos \? ' <i class="dsep" aria-hidden="true">\\u25c6<\/i> <b>'\+esc\(pos\)\+'<\/b>' : ''/.test(hh)){
+    fail("heroHead() no longer takes the route position for the kick");
+  }
+  var home = fn("viewHome"), next = fn("viewNext");
+  if(!/routePos\(nxt\) \+ " of " \+ c\.total/.test(home)) fail("Home's kick does not say where the reader stands (“13 of 41”)");
+  if(/herorow|data-act="skip"|data-act="choose"|hnote/.test(home)) fail("Home's hero grew a control or a note line — Home is the poster: film, rule, one button");
+  if(!/data-act="resume"/.test(home)) fail("Home lost Resume the path");
+  /* No "then, when it lands" line: the Then table under the hero draws the
+     parked row in place, with its date, and the hero does not say it twice
+     (owner, 29 Aug). */
+  if(/hnext|when it lands|parkedAhead/.test(next)) fail("Next up grew a passed-over line — the Then table already draws the parked row with its date");
+  if(!/bag \? '<p class="hnote">No suggested order \\u2014 these stand alone\.<\/p>' : ''/.test(next)){
+    fail("the bag line is gone or reworded — a bag says so on the hero, above the controls");
+  }
+  var bagLine = next.indexOf('class="hnote">No suggested order'), row = next.indexOf('<div class="herorow">');
+  if(bagLine > row) fail("the bag line sits below the controls — it is about the night and goes above them");
+  if(!/data-act="choose"/.test(next) || !/Let Gotham choose/.test(next) || !/bag \? '<div class="heroacts two">/.test(next)){
+    fail("Let Gotham choose is missing, renamed, or offered off a bag — it exists only where there is no order to break");
+  }
+  if(/<i class="dsep"[^>]*>\\u25c6<\/i>[^']*<\/p>' : ''\)/.test(next.replace(/hcont[\s\S]*?<\/p>/, ""))){
+    fail("a note line carries a diamond — the rule is the card's one ornament");
+  }
+  if(!/data-act="peek" data-id="'\+x\.id/.test(next) || !/pk \? " parked" : ""/.test(next) || !/x\.when \|\| String\(x\.y\)/.test(next)){
+    fail("Then no longer draws a parked row in place with its date");
+  }
+  /* The chooser is a render-time pick, never saved: refresh returns to the
+     first row, so the belt stays the only thing that sets the route. */
+  if(/k:"pick"|k:"upto"/.test(HTML)) fail("the chooser's pick (or the up-to-here arm) is in SCHEMA — neither is saved state");
+  var ch = sliceOr('act === "choose"', 'else if(act === "expand")');
+  if(!/Math\.random\(\)/.test(ch) || !/!isParked\(x\) && !isDone\(x\) && !isSkip\(x\)/.test(ch)){
+    fail("Let Gotham choose picks outside the shelf's unwatched titles, or does not pick at random");
+  }
+  var un = fn("upNext");
+  if(!/S\.pick/.test(un) || !/!isDone\(pk\) && !isSkip\(pk\)/.test(un)) fail("upNext() ignores the pick, or honours a pick that has since been ticked or skipped");
+  /* The cost of the night: a film says Film, a short says Short, a season
+     already said its episodes, and an entry whose sub label says the shape
+     (15 chapters, 30 shorts) says nothing twice. */
+  var mo = fn("metaOf");
+  if(!/else if\(!subOf\(f\)\) bits\.push\(f\.b\.indexOf\("s"\) >= 0 \? "Short" : "Film"\);/.test(mo)){
+    fail("metaOf() no longer prints the cost of the night (Film / Short) beside the year");
+  }
+  ["\\.hero \\.hnote\\{", "\\.heroacts \\.no\\.wide\\{[^}]*flex:1 1 100%", "\\.qitem\\.parked \\.qy\\{[^}]*color:var\\(--steel\\)",
+   "\\.hero \\.kick b\\{[^}]*color:var\\(--dust\\)"].forEach(function(re){
+    if(!new RegExp(re).test(HTML)) fail("the hero's 5.0.0 rules lost " + re.replace(/\\/g, ""));
+  });
+  note("the sitting: Home is the poster, Next up is the desk, the rule is the seam");
+})();
+
+/* ---------- 156. Four small things that never leave the browser ---- */
+/* Watched up to here, What's left, the nights line and Your five stars —
+   each computed from state that already existed, none adding a saved
+   field. The pins are the promises: no bulk write outside markWatched(),
+   no list that includes what cannot be watched, no night awarded. */
+
+(function(){
+  var ub = fn("uptoButton"), uh = sliceOr('act === "upto"', 'else if(act === "group")');
+  if(!/Tap again to log/.test(ub) || !/Watched up to here/.test(ub)) fail("Watched up to here lost its arm-then-confirm wording");
+  if(!/setTimeout\(function\(\)\{ if\(S\.upto === id\)\{ S\.upto = ""; /.test(uh) || !/4000\)/.test(uh)){
+    fail("Watched up to here does not disarm on its own — the one bulk write in the app needs the reset button's four seconds");
+  }
+  if(!/ub\.forEach\(function\(x\)\{ markWatched\(x\.id\); \}\);/.test(uh)) fail("Watched up to here writes progress some way other than markWatched() — the log and the skip-clear would drift");
+  var rt = fn("routeText");
+  if(!/!isParked\(f\) && !isDone\(f\) && !isSkip\(f\)/.test(rt)) fail("routeText() lists something that is watched, skipped or not out yet");
+  if(!/pathName\(S\.mode\)/.test(rt) || !/SITE/.test(rt)) fail("routeText() no longer names the route or the site");
+  var fl = fn("favList");
+  if(!/clampRating\(S\.rated\[f\.id\]\) === 5/.test(fl)) fail("favList() is not exactly the five-star titles");
+  var no = fn("nightsOf");
+  if(!/getFullYear\(\) \+ "-" \+ d\.getMonth\(\) \+ "-" \+ d\.getDate\(\)/.test(no)) fail("nightsOf() does not group by the reader's local calendar day");
+  if(!/validTs\(e\.ts\)/.test(no)) fail("nightsOf() counts a log entry with no usable timestamp");
+  if(/streak|award|badge/i.test(fn("nightsLine"))) fail("the nights line awards something — nights are counted, never awarded");
+  var box = {validTs:function(v){ return typeof v === "number" && isFinite(v); }};
+  new vm.Script(no).runInContext(vm.createContext(box));
+  var d0 = new Date(2026, 7, 28, 21, 0).getTime(), d1 = new Date(2026, 7, 29, 22, 30).getTime();
+  var nt = box.nightsOf([{id:"a", ts:d0}, {id:"b", ts:d0 + 3600e3}, {id:"c", ts:d1}, {id:"d"}]);
+  if(nt.nights !== 2 || nt.latest !== 1) fail("nightsOf() counted " + nt.nights + " nights and " + nt.latest + " on the latest — expected 2 and 1");
+  ["copyleft", "dlleft", "copyfav", "upto", "choose"].forEach(function(a){
+    if(HTML.indexOf('data-act="' + a + '"') < 0 || HTML.indexOf('act === "' + a + '"') < 0){
+      fail("data-act=\"" + a + "\" is rendered without a handler, or handled without a seat");
+    }
+  });
+  note("four zero-state features: up-to-here through markWatched(), what's left, nights, five stars");
 })();
 
 /* ---------- report ---------- */

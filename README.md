@@ -27,7 +27,9 @@ CHANGELOG entry, the same as before. "Sealed" is a record, not a freeze:
 - **One path, chosen once.** Pick by universe (spoiler-safe), the composite chronology of Bruce's life, or straight release order from 1943 to 2028 — and the whole app follows it. No switcher to re-answer on every visit; the header carries the path name and Home leads with its completion ring. Change it whenever you like: switching re-sorts, it never clears a tick.
 - **Shared links are views, not takeovers.** Following someone's `#life` link shows you their ordering and offers to adopt it, rather than silently rewriting yours.
 - **Three tiers.** Everything is tagged **Essential**, **Core**, or **Optional** — tiers are exclusive, with Essential outranking Optional — plus modifiers (Short, Interactive, Not out yet). Nothing is untagged.
-- **Home dashboard.** Resume card, tier meters, scoreboard, a tappable grid of every universe, and your recent watches.
+- **A sitting, not a list.** Next up names a night you can actually watch. A title that is not out yet is **parked**: on The Path with its date, never the hero, never ticked or skipped, and off every count — so *To go* counts what exists and a route can be finished while 2028 sits in the catalogue. A universe with no internal order says so on the hero and offers **Let Gotham choose**. The film sits above the diamond rule, your night below it; Home is the poster (where you stand, one button), Next up is the desk.
+- **Home dashboard.** Resume card with your position on the route, tier meters, scoreboard, a tappable grid of every universe, and your recent watches.
+- **Four things that never leave the browser.** *Watched up to here* on any row logs everything unwatched before it (skips stay skipped); *What's left* copies the rest of your route as plain text; Progress counts your **nights** from the log's own timestamps — counted, never awarded; and **Your five stars** lists what you rated five, copyable.
 - **Progress.** One chart — the chosen ordering's, and it follows the belt: universes, eras of Bruce's life, or decades of release. A skyline of bars, each as wide as its group's share of the catalogue, filling bottom-up as you watch. Tap any bar to jump straight there; the fold lists below carry the same jumps for all three orderings.
 - **Backup & transfer.** A compact code, a link that restores everything when opened on another device, and a full JSON export/import — all client-side, built on frozen IDs so backups stay valid forever. The code is versioned and read tolerantly: it carries your chosen path, and a code written by a newer build still restores everything an older one understands.
 - **Shareable views.** Link straight to a view: [`#life`](https://nightwatcher.life/#life) for the chronology of Bruce's life, `#release`, `#universes` (or `#path`), `#next`, `#progress` — combine with scope like `#life-series` or `#universes-movies`. A restore link is `#nw=` followed by a backup code. A view link shows you the view once and then leaves the address bar; it never rewrites your own choices.
@@ -42,7 +44,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code** — *guarded.* Not one line vendored, and **nothing fetched at runtime at all** — `qa/guards.js` fails on any external script rather than allowing one by name, and the app runs with the network off. Two `<script>` tags, no injected third, and the Content-Security-Policy on the wire is the one in the file — ten directives, one `sha256`. Open `docs/index.html` from disk, or serve it from any other host, and what runs is exactly what you can read.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 250 KB raw and 80 KB gzipped; it is currently 224 KB / 64 KB. The subset webfonts sit outside that budget and are held by their own manifest (`qa/font-subset.json`). Every raise of the ceiling is an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 250 KB raw and 80 KB gzipped; it is currently 233 KB / 67 KB. The subset webfonts sit outside that budget and are held by their own manifest (`qa/font-subset.json`). Every raise of the ceiling is an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -158,14 +160,14 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 72 negative suites, 1138
+trusted. That evidence lives in `qa/negative/` — 73 negative suites, 1180
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
 every fixture onto the section it breaks and fails the build on any section
 without one, and the counts in this paragraph are themselves guarded.
 
-The second half of `npm test` is `qa/smoke.js`, a headless render test that boots the real page in jsdom and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, the cross-tab merge, and the path end to end — 403 checks. jsdom is a declared dev dependency; a local clone without it skips the suite and says so, CI treats the skip as a failure.
+The second half of `npm test` is `qa/smoke.js`, a headless render test that boots the real page in jsdom and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, the cross-tab merge, and the path end to end — 440 checks. jsdom is a declared dev dependency; a local clone without it skips the suite and says so, CI treats the skip as a failure.
 
 ## Releasing
 
@@ -196,9 +198,9 @@ The data lives in the `PATH` array near the top of the `<script>` block in `docs
 
 `i` **stable unique ID** (required) · `t` title · `sub` season label · `y` year · `ep` episode count · `k:"tv"` marks it a series  
 `e` era for the Bruce's-life ordering (`0` = outside any timeline) · `lo` position inside that era, 1..n with no gaps (guard 68; `NOTES.md`, "`lo`") · `out` why an era-0 entry has no place: `who`, `many`, `none`, `flat` or `tbd` — required when `e` is 0, forbidden otherwise (guard 70) · `d` description  
-`b` badges (`e` essential, `u` unreleased, `s` short, `c` interactive) · `o` optional · `r` the certified rating — MPA or TV Parental Guidelines, `NR` where none was ever issued — required on every released entry, absent on an unreleased one (guard 92) · `fmt` `"anim"` or `"live"` on an entry only where it disagrees with its universe
+`b` badges (`e` essential, `u` unreleased, `s` short, `c` interactive) · `o` optional · `r` the certified rating — MPA or TV Parental Guidelines, `NR` where none was ever issued — required on every released entry, absent on an unreleased one (guard 92) · `when` the announced date as prose (`"18 February 2028"`, `"Late 2026"`) — required on an unreleased entry, forbidden on a released one (guard 154); it leaves with the `u` badge · `fmt` `"anim"` or `"live"` on an entry only where it disagrees with its universe
 
-A universe is `{n, name, fmt, note, bag, films}`: `n` the frozen two-digit code (the skyline seeds each roof from it), `name` and `note` display text, `fmt` the default format its entries inherit, `bag:1` for a group with no internal order (its note ends "no order between these; start anywhere").
+A universe is `{n, name, fmt, note, bag, films}`: `n` the frozen two-digit code (the skyline seeds each roof from it), `name` and `note` display text, `fmt` the default format its entries inherit, `bag:1` for a group with no internal order (its note ends "no order between these; start anywhere"; the hero says "No suggested order" and offers Let Gotham choose).
 
 `o:1` marks an entry as off the Core route rather than as a tier — nearly every TV season carries it (*The Penguin* is the one that resolves to Core, deliberately). Always read tiers through `tierOf()`, never by testing `o` directly.
 

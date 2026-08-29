@@ -14,6 +14,107 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [5.0.0] — 2026-08-29
+
+**The sitting.** Next up names a night you can actually watch. The cut on
+the hero always meant "where you stand tonight", and the hero did not
+always deserve it: sometimes it was *Dynamic Duo* (2028), and the only
+way past was Skip — a decision about the title, made to get round a date.
+A date is not a decision. Everything in this release follows from that
+one sentence; nothing in it adds a server, a saved field, a fourth
+chronology, an episode id or a streaming API. The belt still sets the
+route. Progress still never leaves the browser.
+
+### Changed
+
+- **A title that is not out yet is parked.** It stays on The Path, in
+  its place, dimmed, with a dashed ring where the tick would be and its
+  announced date where the meta goes (`when:`, a new catalogue field —
+  required on an unreleased entry, forbidden on a released one, and it
+  leaves with the `u` badge on the trigger patch, guard 154). It is never
+  the hero. It cannot be ticked or skipped, from any door: the tap, the
+  read, a pasted code, a JSON restore, another tab. And it is off every
+  count that means "what exists" — *To go*, the ring, the buckle's
+  "79 of 200", the universe cards, the folds, the skyline's crowns and
+  the share card. A route can be finished while 2028 sits in the
+  catalogue, which is true: you have seen every Batman that is out. The
+  building still widens for it — width is the shelf, fill is what exists
+  — so the skyline and the card keep drawing the same roof (guard 150).
+- **Skips placed on parked titles are dropped at load.** Under 4.x the
+  only way past *The Batman: Part II* was to skip it, and that mark
+  would have resurfaced as "still skipped" the day the film landed. A
+  skip on a title nobody can watch is "not now" said twice; it clears
+  once, after the schema pass, and cannot be placed again. Not a lost
+  mark and not a violation of "the merge only ever adds": there was
+  nothing in it to lose.
+- **The hero is two halves.** The film above the diamond rule — kick,
+  continuity, title, meta, badges, blurb — and the night below it. The
+  rule moved from between the badges and the blurb to under the blurb,
+  because that is the seam. Home is the poster: the kick now says where
+  you stand (**Tonight's patrol ◆ 80 of 200**), and it keeps its one
+  button. Next up is the desk, with everything it had. The meta line
+  prints the cost of the night on both: a season already said its
+  episodes; a film now says **Film** and a short **Short** (an entry
+  whose sub label already says the shape — "15 chapters" — says nothing
+  twice). Running times were considered and dropped: a film is a film.
+- **A bag says so.** Seven universes carry `bag:1` — no internal order.
+  On Next up the hero now carries one line, *No suggested order — these
+  stand alone*, above the controls, and one more button under Mark
+  watched and Skip: **⟳ Let Gotham choose**, which surfaces a random
+  unwatched title from that shelf for this session. Only on a bag,
+  because only there is nothing to break; not saved, so a refresh returns
+  to the first row and the belt stays the only thing that sets the
+  route. The arrow is inline SVG — the subset fonts carry no ⟳ and guard
+  116 said so before the render did.
+- **Then draws a parked row in place.** Dimmed, wearing NOT OUT YET, the
+  date where the year goes. The hero does not say it again: a "then,
+  when it lands" line was built, rendered, and taken out the same
+  afternoon, because the table under it already says it.
+
+### Added
+
+- **Watched up to here.** On any expanded row on The Path: one tap arms
+  it and names the count ("Tap again to log 12"), a second tap logs every
+  unwatched, unskipped, released title before that row on the current
+  route, through `markWatched()` like every other tick. Skips stay
+  skipped — they were decisions. It disarms on its own after four
+  seconds, the way the reset button does. The first-minute feature for
+  someone who has already seen thirty Batman films.
+- **What's left.** A card on Progress: the rest of your route, in order,
+  as plain text — copy it, or take it as a file. Zero state.
+- **Nights.** One line under the scoreboard: *23 nights on patrol · the
+  latest, 3 titles*. Distinct local calendar days in the log the app
+  already kept. Counted, never awarded; no streaks, and not a tile,
+  because the three tiles account the pool and nights are another axis.
+- **Your five stars.** Ratings have existed since 1.4.1 and were only
+  ever visible per row. A card on Progress lists what you rated five,
+  copyable as text. Renders only once a rating reaches five.
+- **Guards 154–156, `qa/negative/negtest650.sh`** (42 fixtures, every
+  new guard shown to fail), and a 5.0.0 smoke block that drives the
+  parked shelf, both heroes, the bag, the chooser, up-to-here and the
+  three Progress cards through the real buttons, plus a "stale skip"
+  reboot for the load-time drop. CI shards repacked greedy-by-weight
+  (986 / 988 / 988 / 987). Five older fixtures re-aimed at the lines
+  this release moved (negtest200 the scoreboard seat, 510 the hero
+  diamond, 550 the skyline crown, 560 and 570 the skip gate in
+  `applyMarks()`), and guard 146 now matches the continuity line by
+  name, since the kick carries a diamond of its own.
+
+### Why MAJOR
+
+*To go* and *Skip* change meaning for a reader who already has progress:
+five titles leave the count on the next load, a skip placed on one of
+them disappears, and a route can now reach 100% before the catalogue
+does. Nothing in a saved payload or a backup code changes shape — a 4.x
+code restores whole — but what the numbers say has, and that is the
+line.
+
+### Records
+
+`claude/plan-5.0.0-sitting-2026-08-29.md` (the plan and the decisions
+that shrank it), the approved render mocks (Home A, Next up, the bag, a
+parked row), and `claude/release-prep-5.0.0.md`.
+
 ## [4.9.5] — 2026-08-29
 
 **The nightly names the node.** A corrective cut two hours after 4.9.4,

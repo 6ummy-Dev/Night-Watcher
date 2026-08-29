@@ -46,8 +46,8 @@ echo "--- 146: the ornament is the diamond, and it stays"
 
 run_case "the meta-line diamond loses its class" \
   "the hero meta line is back on the plain dot" \
-  "${P}a='class=\"dsep\"';assert s.count(a)==1
-s=s.replace(a,'class=\"dxsep\"',1);${W}" \
+  "${P}a='<p class=\"hcont\">\'+f.gn+\' <i class=\"dsep\"';assert s.count(a)==1
+s=s.replace(a,'<p class=\"hcont\">\'+f.gn+\' <i class=\"dxsep\"',1);${W}" \
   guards "" 146
 
 run_case "heroHead drops the diamond rule" \

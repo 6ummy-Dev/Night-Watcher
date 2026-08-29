@@ -26,8 +26,8 @@ echo "--- 111: the third half of the merge invariant"
 
 run_case "the skipped loop stops stepping over watched entries" \
   "lets a skipped mark land on a watched entry" \
-  "${P}a='if(!res.skipped[id] || !BYID[id] || S.watched[id] || S.skipped[id]';assert a in s
-s=s.replace(a,'if(!res.skipped[id] || !BYID[id] || S.skipped[id]',1);${W}" \
+  "${P}a='if(!res.skipped[id] || !BYID[id] || isParkedId(id) || S.watched[id] || S.skipped[id]';assert a in s
+s=s.replace(a,'if(!res.skipped[id] || !BYID[id] || isParkedId(id) || S.skipped[id]',1);${W}" \
   guards "" 111
 
 echo "--- 43: bless re-records a stale ledger, as its message says"

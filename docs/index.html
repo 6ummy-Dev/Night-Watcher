@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-TswVil8ky8uJqszsyJlHetLlIre5OzdmYA7oIiTj0ik='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-1m89+w7sQtMn5wRJjcq3xnYmKrrQCDgs/46IAWKo6C0='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -279,6 +279,26 @@ main.sw::-webkit-scrollbar{display:none;}
   .herorow .linkrow{margin-top:10px;}
 }
 .herorate .stars{margin-left:-4px;}
+.hero .kick b{color:var(--dust);font-weight:400;}
+.hero .hnote{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dust);margin:12px 0 0;line-height:1.6;}
+.heroacts.two{margin-top:9px;}
+.heroacts .no.wide{flex:1 1 100%;}
+.heroacts .spin{width:14px;height:14px;color:var(--signal);margin-right:8px;vertical-align:-3px;}
+.acts.upto{margin-top:8px;}
+.uptonote{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--dim);}
+.nights{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);text-align:center;margin:-8px 0 0;}
+.nights b{color:var(--dust);font-weight:600;}
+.favs{margin:0 0 13px;}
+.favrow{display:flex;align-items:baseline;gap:10px;margin:0;padding:8px 0;border-top:1px solid var(--line);}
+.favrow:first-child{border-top:0;padding-top:0;}
+.favt{flex:1;min-width:0;font-family:var(--disp);font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:16px;line-height:1.15;color:var(--dust);}
+.favsub{font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--dim);text-transform:none;font-weight:400;}
+.favy{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;}
+.film.parked .tick{border-color:var(--line2);border-style:dashed;}
+.film.parked .ftitle{color:var(--dim);}
+.film.parked .fmeta{color:var(--steel);}
+.qitem.parked .qt{color:var(--dim);}
+.qitem.parked .qy{color:var(--steel);}
 .qn{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;width:18px;}
 .qt{font-family:var(--disp);font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:16.5px;line-height:1.1;flex:1;color:var(--dust);}
 .qy{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;}
@@ -966,7 +986,7 @@ main,.panel{scrollbar-gutter:stable both-edges;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 153 sections, each one negative-tested, which section 138
+   qa/guards.js — 156 sections, each one negative-tested, which section 138
    checks rather than assumes.
 
    Read those before changing something that looks redundant. Most of it is
@@ -1069,7 +1089,7 @@ var PATH = [
  {i:"justice-league-x-rwby-part-two-2024",t:"Justice League x RWBY \u2014 Part Two",y:2024,e:7,lo:34,r:"PG",d:"The second half of that crossover.",o:1},
  {i:"suicide-squad-isekai-complete-series-2024",t:"Suicide Squad Isekai",sub:"Complete series",y:2024,ep:10,k:"tv",e:0,out:"none",r:"TV-MA",d:"Task Force X dropped into a sword-and-sorcery anime world. Batman never appears in it \u2014 Katana takes Harley down in the Gotham prologue \u2014 but the city and its people are where it starts.",b:[],o:1},
  {i:"aztec-batman-clash-of-empires-2025",t:"Aztec Batman: Clash of Empires",y:2025,e:0,out:"who",r:"R",d:"Yohualli Coatl in the Aztec empire under Spanish invasion. A genuine reimagining, not a reskin."},
- {i:"dynamic-duo-2028",t:"Dynamic Duo",y:2028,e:3,lo:1,d:"Theatrical, from Swaybox \u2014 puppetry mixed with CG. The origin of Dick Grayson and Jason Todd, and the friendship that breaks between them. 30 June 2028.",b:["u"]}]},
+ {i:"dynamic-duo-2028",t:"Dynamic Duo",y:2028,e:3,lo:1,d:"Theatrical, from Swaybox \u2014 puppetry mixed with CG. The origin of Dick Grayson and Jason Todd, and the friendship that breaks between them. 30 June 2028.",b:["u"],when:"30 June 2028"}]},
 
 {n:"08",name:"The Batman (2004)",
  note:"Its own continuity with a younger, more athletic Bruce, a stylised Gotham and radically redesigned rogues. Starts in Batman\u2019s third year and gradually builds the family around him.",
@@ -1104,7 +1124,7 @@ var PATH = [
  films:[
  {i:"the-batman-2022",t:"The Batman",y:2022,e:2,lo:10,r:"PG-13",d:"Year two, and he still signs his name Vengeance. Gotham as a rain-soaked crime scene, worked by a detective who is barely holding.",b:["e"]},
  {i:"the-penguin-season-1-2024",t:"The Penguin",sub:"Season 1",y:2024,ep:8,k:"tv",e:2,lo:11,r:"TV-MA",d:"The underworld has a vacancy. Batman is barely in it \u2014 this is the city\u2019s story, told from the bottom of it.",b:[]},
- {i:"the-batman-part-ii-2028",t:"The Batman: Part II",y:2028,e:2,lo:12,d:"Year three, 18 February 2028. Nothing more is known, and nothing more should be.",b:["u"]}]},
+ {i:"the-batman-part-ii-2028",t:"The Batman: Part II",y:2028,e:2,lo:12,d:"Year three, 18 February 2028. Nothing more is known, and nothing more should be.",b:["u"],when:"18 February 2028"}]},
 
 {n:"13",name:"The Burton / Schumacher Films",fmt:"live",
  note:"Four films, two directors, one continuity \u2014 and the tone changes completely halfway through. Keaton\u2019s Batman returns thirty years later in The Flash, which is filed under The DC Extended Universe.",
@@ -1197,8 +1217,8 @@ var PATH = [
  note:"Three films adapting the 1993 saga, arriving one at a time. Anson Mount as Batman.",
  films:[
  {i:"batman-knightfall-part-1-2026",t:"Batman: Knightfall \u2014 Part 1: Knightfall",y:2026,e:5,lo:1,r:"R",d:"Bane empties Arkham onto Gotham\u2019s streets and lets exhaustion do the rest."},
- {i:"knightfall-part-2-knightquest-2026",t:"Batman: Knightfall \u2014 Part 2: Knightquest",y:2026,e:5,lo:2,d:"Gotham finds out what a Batman without restraint looks like. Late 2026.",b:["u"]},
- {i:"knightfall-part-3-knightsend-2027",t:"Batman: Knightfall \u2014 Part 3: KnightsEnd",y:2027,e:5,lo:3,d:"The end of the saga. Early 2027.",b:["u"]}]},
+ {i:"knightfall-part-2-knightquest-2026",t:"Batman: Knightfall \u2014 Part 2: Knightquest",y:2026,e:5,lo:2,d:"Gotham finds out what a Batman without restraint looks like. Late 2026.",b:["u"],when:"Late 2026"},
+ {i:"knightfall-part-3-knightsend-2027",t:"Batman: Knightfall \u2014 Part 3: KnightsEnd",y:2027,e:5,lo:3,d:"The end of the saga. Early 2027.",b:["u"],when:"Early 2027"}]},
 
 {n:"27",name:"Standalone Justice League Films",bag:1,
  note:"League films belonging to no continuity. Doom is a Batman story wearing a Justice League jacket \u2014 the plot is his own contingency plans turned against the team \u2014 and Crisis on Two Earths is built around his opposite number; in the rest he ranges from lead to one of the crowd \u2014 no order between these; start anywhere.",
@@ -1355,7 +1375,7 @@ var PATH = [
  note:"James Gunn\u2019s rebooted continuity, shared with the live-action films. Its Batman is one unspoken silhouette \u2014 the group collects the entries that circle a Gotham this universe has not yet shown.",
  films:[
  {i:"creature-commandos-season-1-2024",t:"Creature Commandos",sub:"Season 1",y:2024,ep:7,k:"tv",e:0,out:"tbd",r:"TV-MA",d:"The first thing made in Gunn\u2019s DCU. Batman is a lightning-lit silhouette over a skylight in one flashback and never speaks \u2014 which is the only reason it is here, and all this continuity has shown of him.",b:[],o:1},
- {i:"clayface-2026",t:"Clayface",fmt:"live",y:2026,e:0,out:"tbd",d:"A horror film inside the DC Universe, about a body that will not stay one shape. No Batman in the film \u2014 whether Gotham has one by then is not established. In cinemas from 23 October 2026.",b:["u"],o:1}]}];
+ {i:"clayface-2026",t:"Clayface",fmt:"live",y:2026,e:0,out:"tbd",d:"A horror film inside the DC Universe, about a body that will not stay one shape. No Batman in the film \u2014 whether Gotham has one by then is not established. In cinemas from 23 October 2026.",b:["u"],o:1,when:"23 October 2026"}]}];
 
 var ERAS = [
  {k:1,  name:"Before Batman",        note:"Gotham before there is anyone to answer it. Alfred, the Waynes, and a boy."},
@@ -1410,14 +1430,15 @@ PATH.forEach(function(g, gi){
   g.films.forEach(function(f, fx){
     FILMS.push({id:f.i, gi:gi, ix:fx, gn:g.n, gname:g.name, fmt:(f.fmt || g.fmt || "anim"),
                 t:f.t, sub:f.sub||"", ep:f.ep||0, tv:(f.k==="tv"),
-                y:f.y, d:f.d, e:(f.e||0), lo:(f.lo||0), out:f.out||"", r:f.r||"", b:f.b||[], o:!!f.o});
+                y:f.y, d:f.d, e:(f.e||0), lo:(f.lo||0), out:f.out||"", r:f.r||"", b:f.b||[], o:!!f.o,
+                when:f.when||""});
   });
 });
 
 var S = {tab:"home", scope:"movies", scopePref:"movies", format:"all", tier:"all", path:"", mode:"life", filter:"all", q:"", code:"", beltOpen:false, beltOpening:false, beltDrop:false, beltDropping:false,
          theme:"dark", watched:{}, skipped:{}, rated:{}, open:{}, peek:{}, groupOpen:{}, progOpen:{}, log:[], resetAt:0,
          clk:{w:{}, s:{}, r:{}}, lastExportAt:0, bkDismissAt:0,
-         pending:null, confirmReset:false, insOff:false, fh:null};
+         pending:null, confirmReset:false, insOff:false, fh:null, pick:"", upto:""};
 var installEvt = null;
 var PATHS = [["life","Bruce\u2019s life"], ["continuity","By universe"], ["release","Release order"]];
 var GRIDNAME = {life:"The eras", continuity:"The universes", release:"The decades"};
@@ -1432,7 +1453,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "4.9.5";
+var BUILD = "5.0.0";
 var BUILT = "2026-08-29";
 var KEY = "batwatch-v3";
 var SITE = "https://nightwatcher.life/";
@@ -1607,6 +1628,7 @@ function restore(){
       if(r.put) r.put(v); else S[r.k] = v;
     });
     if(S.path) S.mode = S.path;
+    dropParkedSkips();
   }catch(e){ readFailed = true; canSave = false; }
 }
 
@@ -1704,7 +1726,8 @@ function modeGroups(mode){
     var n = gr.keyOf(g, i), fs = groupFilms(gr.prefix + n);
     if(!fs.length) return;
     if(gr.sort) fs.sort(gr.sort);
-    out.push({key:gr.prefix + n, code:gr.codeOf(g), tag:gr.tag(g), name:g.name, note:g.note, films:fs});
+    out.push({key:gr.prefix + n, code:gr.codeOf(g), tag:gr.tag(g), name:g.name, note:g.note, films:fs,
+              bag:!!g.bag, size:fs.filter(function(f){ return !isParked(f); }).length});
   });
   return out;
 }
@@ -1731,24 +1754,28 @@ function setAllGroups(open){
   S.groupOpen = {};
   if(!open) buildGroups().forEach(function(g){ S.groupOpen[g.key] = false; });
 }
-function heroHead(f, kick){
-  return '<p class="kick">'+esc(kick)+'</p>'+
+function heroHead(f, kick, pos){
+  return '<p class="kick">'+esc(kick)+
+      (pos ? ' <i class="dsep" aria-hidden="true">\u25c6</i> <b>'+esc(pos)+'</b>' : '')+'</p>'+
     '<p class="hcont">'+f.gn+' <i class="dsep" aria-hidden="true">\u25c6</i> '+esc(f.gname)+'</p>'+
     '<h2>'+esc(f.t)+'</h2>'+
     '<p class="yr">'+esc(metaOf(f,false))+'</p>'+
     '<div class="hbadges">'+badges(f)+ratingBadge(f)+'</div>'+
-    '<p class="drule" aria-hidden="true">\u25c6</p>'+
-    '<p class="blurb">'+esc(f.d)+'</p>';
+    '<p class="blurb">'+esc(f.d)+'</p>'+
+    '<p class="drule" aria-hidden="true">\u25c6</p>';
+}
+function groupOf(f){
+  var gs = buildGroups(), i;
+  for(i = 0; i < gs.length; i++){
+    if(gs[i].films.some(function(x){ return x.id === f.id; })) return gs[i];
+  }
+  return null;
 }
 function revealHero(){
   if(!anyOpen()) return;
   var f = upNext(); if(!f) return;
-  var gs = buildGroups(), i, j;
-  for(i = 0; i < gs.length; i++){
-    for(j = 0; j < gs[i].films.length; j++){
-      if(gs[i].films[j].id === f.id){ delete S.groupOpen[gs[i].key]; return; }
-    }
-  }
+  var g = groupOf(f);
+  if(g) delete S.groupOpen[g.key];
 }
 function pool(){
   var key = groupsKey();
@@ -1757,6 +1784,13 @@ function pool(){
 }
 function isDone(f){ return !!S.watched[f.id]; }
 function isSkip(f){ return !!S.skipped[f.id]; }
+function isParked(f){ return f.b.indexOf("u") >= 0; }
+function isParkedId(id){ return !!BYID[id] && isParked(BYID[id]); }
+function dropParkedSkips(){
+  var k, n = 0;
+  for(k in S.skipped){ if(isParkedId(k)){ delete S.skipped[k]; n++; } }
+  return n;
+}
 function scoreTile(tf, n, lab, cls){
   return '<button data-act="tier" data-tf="'+tf+'" aria-label="'+n+' '+
     lab.toLowerCase()+' \u2014 show '+lab.toLowerCase()+' in The path">'+
@@ -1770,15 +1804,30 @@ function scoreboard(c){
     '</div>';
 }
 function counts(){
-  var p = pool(), done = 0, skip = 0;
-  p.forEach(function(f){ if(isDone(f)) done++; else if(isSkip(f)) skip++; });
-  return {total:p.length, done:done, skip:skip, left:p.length - done - skip};
+  var p = pool(), total = 0, done = 0, skip = 0, parked = 0;
+  p.forEach(function(f){
+    if(isParked(f)){ parked++; return; }
+    total++;
+    if(isDone(f)) done++; else if(isSkip(f)) skip++;
+  });
+  return {total:total, done:done, skip:skip, left:total - done - skip, parked:parked};
 }
 function upNext(){
-  var p = pool(), i;
-  for(i=0;i<p.length;i++){ if(!isDone(p[i]) && !isSkip(p[i])) return p[i]; }
-  for(i=0;i<p.length;i++){ if(!isDone(p[i])) return p[i]; }
+  var p = pool(), i, pk = S.pick ? BYID[S.pick] : null;
+  if(pk && p.indexOf(pk) >= 0 && !isDone(pk) && !isSkip(pk)) return pk;
+  S.pick = "";
+  for(i=0;i<p.length;i++){ if(!isParked(p[i]) && !isDone(p[i]) && !isSkip(p[i])) return p[i]; }
+  for(i=0;i<p.length;i++){ if(!isParked(p[i]) && !isDone(p[i])) return p[i]; }
   return null;
+}
+function routePos(f){
+  var p = pool(), i, n = 0;
+  for(i = 0; i < p.length; i++){
+    if(isParked(p[i])) continue;
+    n++;
+    if(p[i].id === f.id) return n;
+  }
+  return 0;
 }
 function matches(f, q){
   return !q || f.hay.indexOf(q) >= 0;
@@ -1795,6 +1844,7 @@ function metaOf(f, withUniverse){
   if(subOf(f)) bits.push(subOf(f));
   bits.push(String(f.y));
   if(f.ep) bits.push(f.ep + (f.ep === 1 ? " episode" : " episodes"));
+  else if(!subOf(f)) bits.push(f.b.indexOf("s") >= 0 ? "Short" : "Film");
   if(withUniverse) bits.push(f.gname);
   if(S.mode === "life" && !f.e && f.out) bits.push(OUTWHY[f.out] || f.out);
   return bits.join(" \u00b7 ");
@@ -1883,6 +1933,11 @@ function watchLinks(f){
   return '<a class="lnk" href="'+watchUrl(f)+
          '" target="_blank" rel="noopener noreferrer">Where to watch \u2197</a>';
 }
+function putClipboard(text, ok, fail){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){ toast(ok); }, function(){ toast(fail); });
+  } else { toast(fail); }
+}
 var toastT;
 function toast(msg){
   var el = document.getElementById("toast");
@@ -1903,11 +1958,13 @@ function unmarkWatched(id){
   S.log = S.log.filter(function(e){ return e.id !== id; });
 }
 function toggleWatched(id){
+  if(isParkedId(id)) return;
   if(S.watched[id]) unmarkWatched(id);
   else markWatched(id);
   persist(); tickUpdate(id);
 }
 function toggleSkip(id){
+  if(isParkedId(id)) return;
   if(S.skipped[id]){ delete S.skipped[id]; stampMark("s", id); }
   else { S.skipped[id] = 1; stampMark("s", id); unmarkWatched(id); askDurable(); }
   persist(); tickUpdate(id);
@@ -2226,7 +2283,7 @@ function applyMarks(res, stamp, gate){
     out.added.push(id); out.changed++;
   }
   for(id in res.skipped){
-    if(!res.skipped[id] || !BYID[id] || S.watched[id] || S.skipped[id] || (gate && gate("s", id))) continue;
+    if(!res.skipped[id] || !BYID[id] || isParkedId(id) || S.watched[id] || S.skipped[id] || (gate && gate("s", id))) continue;
     S.skipped[id] = 1; if(stamp) stampMark("s", id); out.changed++;
   }
   for(id in res.rated){
@@ -2355,7 +2412,8 @@ function viewHome(c){
 
   if(nxt){
     html += '<div class="hero">'+
-      heroHead(nxt, isSkip(nxt) ? "Back to a skipped one" : fresh ? "First patrol" : "Tonight\u2019s patrol")+
+      heroHead(nxt, isSkip(nxt) ? "Back to a skipped one" : fresh ? "First patrol" : "Tonight\u2019s patrol",
+               routePos(nxt) + " of " + c.total)+
       '<div class="heroacts"><button class="go" data-act="resume">'+(fresh ? "Begin the path" : "Resume the path")+'</button></div></div>';
   } else {
     html += '<div class="hero"><p class="kick">Case closed</p>'+
@@ -2387,7 +2445,7 @@ function viewHome(c){
           '<p class="gridnote">'+esc(pathBlurb(S.mode))+'</p><div class="ugrid">';
   buildGroups().forEach(function(g){
     var done = gDone(g), skip = gSkip(g);
-    html += '<button class="ucard'+(done + skip === g.films.length ? " full" : "")+'" data-act="jump" data-gk="'+g.key+'">'+
+    html += '<button class="ucard'+(done + skip === g.size ? " full" : "")+'" data-act="jump" data-gk="'+g.key+'">'+
       '<span class="uname">'+esc(g.name)+'</span>'+
       '<span class="udesc">'+esc(cardBlurb(g.note))+'</span>'+
       '<span class="ubar">'+gBarFill(g, done, skip)+'</span>'+
@@ -2408,19 +2466,22 @@ function viewNext(c){
     return masterChooser()+'<div class="empty"><div class="big">Case closed</div><p>All '+c.total+
       ' logged \u2014 '+allLoggedWord()+'. Go back to Mask of the Phantasm.</p></div>'+activityBlock();
   }
-  var p = pool(), i = p.indexOf(f);
+  var p = pool(), i = p.indexOf(f), g = groupOf(f), bag = !!(g && g.bag);
   var queue = p.slice(i+1).filter(function(x){ return !isDone(x) && !isSkip(x); }).slice(0,4);
   var qhtml = queue.map(function(x, k){
-    return '<button class="qitem" data-act="peek" data-id="'+x.id+'" aria-expanded="'+
+    var pk = isParked(x);
+    return '<button class="qitem'+(pk ? " parked" : "")+'" data-act="peek" data-id="'+x.id+'" aria-expanded="'+
            (!!S.peek[x.id])+'"><span class="qn">'+(k+2)+'</span><span class="qt">'+esc(x.t)+
            (subOf(x) ? ' <span style="color:var(--dim);font-size:11px">'+esc(subOf(x))+'</span>' : '')+
-           '</span><span class="qy">'+x.y+'</span>'+
+           (pk ? ' <span class="badges"><span class="bd u">'+BADGE.u+'</span></span>' : '')+
+           '</span><span class="qy">'+esc(pk ? (x.when || String(x.y)) : String(x.y))+'</span>'+
            (S.peek[x.id]
              ? '<span class="qpeek">'+badges(x)+ratingBadge(x)+'<span class="qg">'+esc(x.gname)+'</span></span>'
              : '')+'</button>';
   }).join("");
   return masterChooser()+'<div class="hero">'+
     heroHead(f, isSkip(f) ? "Back to a skipped one" : "Tonight\u2019s patrol")+
+    (bag ? '<p class="hnote">No suggested order \u2014 these stand alone.</p>' : '')+
     '<div class="herorow">'+
       '<div class="herorate">'+starRow(f)+'</div>'+
       '<div class="linkrow">'+watchLinks(f)+'</div>'+
@@ -2428,7 +2489,10 @@ function viewNext(c){
     '<div class="heroacts">'+
       '<button class="go" data-act="watched" data-id="'+f.id+'">Mark watched</button>'+
       '<button class="no" data-act="skip" data-id="'+f.id+'">Skip</button>'+
-    '</div></div>'+
+    '</div>'+
+    (bag ? '<div class="heroacts two"><button class="no wide" data-act="choose" data-id="'+f.id+'">'+
+             '<svg class="spin" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M13.6 1.6v3.2h-3.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Let Gotham choose</button></div>' : '')+
+    '</div>'+
     (qhtml ? '<div class="queue"><p class="qhead big">Then</p>'+qhtml+'</div>' : '')+
     activityBlock()+watchNotes();
 }
@@ -2444,6 +2508,7 @@ function chipSet(){
           ["ess","Essentials"],["core","Core route"],["opt","Optional"]];
 }
 function filmRow(f){
+  if(isParked(f)) return parkedRow(f);
   var isOpen = !!S.open[f.id];
   var cls = "film" + (isDone(f)?" done":"") + (isSkip(f)?" skip":"") + (isOpen?" open":"");
   var meta = metaOf(f, S.mode !== "continuity");
@@ -2454,7 +2519,7 @@ function filmRow(f){
         (isDone(f)?"Watched":"Mark watched")+'</button>'+
       '<button class="act" data-act="skip" data-id="'+f.id+'">'+(isSkip(f)?"Unskip":"Skip")+'</button>'+
       starRow(f)+
-    '</div><div class="linkrow">'+watchLinks(f)+'</div></div>';
+    '</div>'+uptoButton(f)+'<div class="linkrow">'+watchLinks(f)+'</div></div>';
   }
   return '<div class="'+cls+'"><div class="frow">'+
     '<button class="tick" data-act="watched" data-id="'+f.id+'" aria-label="Mark '+esc(f.t)+' watched" aria-pressed="'+isDone(f)+'"></button>'+
@@ -2462,6 +2527,32 @@ function filmRow(f){
       '<span class="ftitle">'+f.tE+'</span><span class="fmeta">'+esc(meta)+
         (clampRating(S.rated[f.id]) ? ' \u00b7 <span style="color:var(--signal)">'+stars(S.rated[f.id])+'</span>' : '')+'</span>'+badges(f)+ratingBadge(f)+
     '</button></div>'+detail+'</div>';
+}
+function behind(f){
+  var p = pool(), i = p.indexOf(f), out = [];
+  for(i = i - 1; i >= 0; i--){
+    if(!isParked(p[i]) && !isDone(p[i]) && !isSkip(p[i])) out.push(p[i]);
+  }
+  return out;
+}
+function uptoButton(f){
+  var n = behind(f).length;
+  if(!n) return "";
+  var armed = S.upto === f.id;
+  return '<div class="acts upto"><button class="act'+(armed ? " primary" : "")+'" data-act="upto" data-id="'+f.id+'">'+
+    (armed ? 'Tap again to log '+n : 'Watched up to here')+'</button>'+
+    (armed ? '' : '<span class="uptonote">'+n+' before this one</span>')+'</div>';
+}
+function parkedRow(f){
+  var isOpen = !!S.open[f.id];
+  var meta = "Not out yet \u00b7 " + (f.when || String(f.y)) +
+             (S.mode !== "continuity" ? " \u00b7 " + f.gname : "");
+  return '<div class="film parked'+(isOpen?" open":"")+'"><div class="frow">'+
+    '<span class="tick" aria-hidden="true"></span>'+
+    '<button class="fmain" data-act="expand" data-id="'+f.id+'" aria-expanded="'+isOpen+'">'+
+      '<span class="ftitle">'+f.tE+'</span><span class="fmeta">'+esc(meta)+'</span>'+badges(f)+
+    '</button></div>'+
+    (isOpen ? '<div class="fdetail"><p>'+f.dE+'</p></div>' : '')+'</div>';
 }
 function gDone(g){
   var d = 0, i;
@@ -2476,20 +2567,21 @@ function gSkip(g){
 function gSub(g, d, k){
   if(d == null) d = gDone(g);
   if(k == null) k = gSkip(g);
-  return d + " of " + g.films.length + (k ? " \u00b7 " + k + " skipped" : "");
+  return d + " of " + g.size + (k ? " \u00b7 " + k + " skipped" : "") +
+    (g.size < g.films.length ? " \u00b7 " + (g.films.length - g.size) + " not out yet" : "");
 }
 function gBarFill(g, d, k){
   if(d == null) d = gDone(g);
   if(k == null) k = gSkip(g);
-  return '<i style="width:' + pct(d, g.films.length) + '%"></i>' +
-    (k ? '<i class="sk" style="width:' + pct(k, g.films.length) + '%"></i>' : '');
+  return '<i style="width:' + pct(d, g.size) + '%"></i>' +
+    (k ? '<i class="sk" style="width:' + pct(k, g.size) + '%"></i>' : '');
 }
 function groupBlock(g, q, nid){
   var rows = "", shown = 0;
   g.films.forEach(function(f){
     if(S.filter === "core" && tierOf(f) === "o") return;
     if(S.filter === "opt" && tierOf(f) !== "o") return;
-    if(S.filter === "left" && (isDone(f) || isSkip(f))) return;
+    if(S.filter === "left" && (isDone(f) || isSkip(f) || isParked(f))) return;
     if(S.filter === "done" && !isDone(f)) return;
     if(S.filter === "skip" && !isSkip(f)) return;
     if(S.filter === "ess" && tierOf(f) !== "e") return;
@@ -2597,12 +2689,12 @@ function crownState(d, k, n){
 }
 function skyline(groups, title, sub){
   var total = 0, done = 0, topped = 0, bars = "";
-  groups.forEach(function(g){ total += g.films.length; done += gDone(g); });
+  groups.forEach(function(g){ total += g.size; done += gDone(g); });
   if(!total) return "";
   groups.forEach(function(g){
-    var n = g.films.length;
+    var n = g.films.length, sz = g.size;
     var d = gDone(g), k = gSkip(g);
-    var st = crownState(d, k, n), roof = roofOf(g.code, n), crown = "";
+    var st = sz ? crownState(d, k, sz) : "", roof = roofOf(g.code, n), crown = "";
     if(st) topped++;
     roof.levels.forEach(function(lv){
       var hpx = Math.max(1, Math.round(lv[0] * roof.k * SKYSHAFT));
@@ -2613,11 +2705,11 @@ function skyline(groups, title, sub){
       crown += lv[1].length === 1 ? ps : '<i class="lv" style="height:'+hpx+'px">'+ps+'</i>';
     });
     bars += '<button class="seg'+(st ? " "+st : "")+'" data-act="jump" data-gk="'+g.key+'" style="flex-grow:'+n+'" '+
-      'aria-label="'+esc(g.name)+', '+d+' of '+n+' watched'+
+      'aria-label="'+esc(g.name)+', '+d+' of '+sz+' watched'+
       (k ? ', '+k+' skipped' : '')+'">'+
       '<span class="cr" aria-hidden="true">'+crown+'</span>'+
-      '<span class="sh"><i style="height:'+pct(d, n)+'%"></i>'+
-      (k ? '<i class="sk" style="bottom:'+pct(d, n)+'%;height:'+pct(k, n)+'%"></i>' : '')+
+      '<span class="sh"><i style="height:'+pct(d, sz)+'%"></i>'+
+      (k ? '<i class="sk" style="bottom:'+pct(d, sz)+'%;height:'+pct(k, sz)+'%"></i>' : '')+
       '</span></button>';
   });
   return '<div class="pie"><p class="pietitle">'+title+'</p>'+
@@ -2632,16 +2724,17 @@ function drawShareCard(cv){
   var Y = "#FFCF1F", MN = '"NW Mono"';
   var c = counts(), fD = 0, fN = 0, sD = 0, sN = 0;
   pool().forEach(function(f){
+    if(isParked(f)) return;
     if(f.tv){ sN++; if(isDone(f)) sD++; } else { fN++; if(isDone(f)) fD++; }
   });
   var pm = S.path || S.mode;
   var word = GRIDWORD[pm] || "universes";
   var bars = [], closed = 0, totN = 0;
   modeGroups(pm).forEach(function(g){
-    var fs = g.films, d = fs.filter(isDone).length, sk = fs.filter(isSkip).length;
-    if(d === fs.length) closed++;
-    totN += fs.length;
-    bars.push([fs.length, d, sk, 0, crownState(d, sk, fs.length), roofOf(g.code, fs.length)]);
+    var fs = g.films, d = fs.filter(isDone).length, sk = fs.filter(isSkip).length, sz = g.size;
+    if(sz && d === sz) closed++;
+    totN += sz;
+    bars.push([fs.length, d, sk, 0, sz ? crownState(d, sk, sz) : "", roofOf(g.code, fs.length)]);
   });
   var full = c.done === c.total, fresh = !c.done;
   function T(f, col, t, y){ x.font = f; x.fillStyle = col; x.fillText(t, 540, y); }
@@ -2739,14 +2832,66 @@ function progRows(groups){
   var rows = "", n = 0, done = 0;
   groups.forEach(function(g){
     var d = gDone(g), k = gSkip(g);
-    n++; if(d + k === g.films.length) done++;
+    n++; if(d + k === g.size) done++;
     rows += '<button class="srow" data-act="jump" data-gk="'+g.key+'" aria-label="'+
-      esc(g.name)+', '+d+' of '+g.films.length+' watched'+
+      esc(g.name)+', '+d+' of '+g.size+' watched'+
       (k ? ', '+k+' skipped' : '')+'"><span class="sn">'+esc(g.name)+'</span>'+
       '<span class="sb">'+gBarFill(g, d, k)+'</span>'+
-      '<span class="sc">'+d+'/'+g.films.length+'</span></button>';
+      '<span class="sc">'+d+'/'+g.size+'</span></button>';
   });
   return {rows:rows, n:n, done:done};
+}
+function lineOf(f){
+  return f.t + (subOf(f) ? " \u2014 " + subOf(f) : "") + " (" + f.y + ")";
+}
+function routeText(){
+  var left = pool().filter(function(f){ return !isParked(f) && !isDone(f) && !isSkip(f); });
+  var head = "Night Watcher \u00b7 what\u2019s left on " + pathName(S.mode) + " \u00b7 " + left.length +
+             (left.length === 1 ? " title" : " titles") + "\n" + SITE + "\n\n";
+  return head + left.map(function(f, i){ return (i + 1) + ". " + lineOf(f); }).join("\n") + "\n";
+}
+function favList(){
+  return FILMS.filter(function(f){ return clampRating(S.rated[f.id]) === 5; });
+}
+function favText(){
+  var fav = favList();
+  return "Night Watcher \u00b7 five stars \u00b7 " + fav.length + "\n" + SITE + "\n\n" +
+    fav.map(function(f){ return "\u2605 " + lineOf(f); }).join("\n") + "\n";
+}
+function nightsOf(log){
+  var days = Object.create(null), last = null, n = 0;
+  log.forEach(function(e){
+    if(!e || !validTs(e.ts)) return;
+    var d = new Date(Number(e.ts)), key = d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate();
+    if(!days[key]){ days[key] = 0; n++; }
+    days[key]++;
+    if(!last || Number(e.ts) > last.ts) last = {ts:Number(e.ts), key:key};
+  });
+  return {nights:n, latest:last ? days[last.key] : 0};
+}
+function nightsLine(c){
+  var nt = nightsOf(S.log);
+  if(!nt.nights) return "";
+  return '<p class="nights"><b>'+nt.nights+'</b> '+(nt.nights === 1 ? "night" : "nights")+' on patrol'+
+    (nt.nights > 1 ? ' \u00b7 the latest, '+nt.latest+(nt.latest === 1 ? ' title' : ' titles') : '')+'</p>';
+}
+function leftBlock(c){
+  if(!c.left) return "";
+  return '<div class="bk"><h2>What\u2019s left</h2>'+
+    '<p>'+c.left+(c.left === 1 ? ' title' : ' titles')+' to go on '+esc(pathName(S.mode))+
+    ', in order, as plain text \u2014 for a notes app, a friend, or the fridge.</p>'+
+    '<div class="bkbtns"><button class="bkbtn" data-act="copyleft">Copy the list</button>'+
+    '<button class="bkbtn" data-act="dlleft">Text file</button></div></div>';
+}
+function favBlock(){
+  var fav = favList();
+  if(!fav.length) return "";
+  return '<div class="bk"><h2>Your five stars</h2>'+
+    '<div class="favs">'+fav.map(function(f){
+      return '<p class="favrow"><span class="favt">'+f.tE+
+        (subOf(f) ? ' <span class="favsub">'+esc(subOf(f))+'</span>' : '')+'</span><span class="favy">'+f.y+'</span></p>';
+    }).join("")+'</div>'+
+    '<div class="bkbtns"><button class="bkbtn" data-act="copyfav">Copy the list</button></div></div>';
 }
 function viewStats(c){
   var uniGroups = modeGroups("continuity"), lifeGroups = modeGroups("life"), decGroups = modeGroups("release");
@@ -2758,7 +2903,7 @@ function viewStats(c){
     skyline(donutGroups, GRIDNAME[S.mode] || "The universes",
           donutGroups.length + " " + donutWord + ", %T topped out \u00b7 width is size \u00b7 gold watched, steel skipped \u00b7 tap a building") +
     '</div>'+
-    scoreboard(c) +
+    scoreboard(c) + nightsLine(c) +
     shareCardBlock();
 
   var u = progRows(uniGroups);
@@ -2769,6 +2914,8 @@ function viewStats(c){
 
   var dc = progRows(decGroups);
   html += progFold("dec", "By decade", dc.done+" of "+dc.n+" complete", dc.rows);
+
+  html += leftBlock(c) + favBlock();
 
   var bkBehind = marksSince(Math.max(S.lastExportAt || 0, S.bkDismissAt || 0));
   html += '<div class="bk"><h2>Your data</h2>'+
@@ -3172,7 +3319,7 @@ window.addEventListener("storage", function(e){
     if(!newer("s", k)) continue;
     S.clk.s[k] = inc.s[k];
     if(o.skipped && o.skipped[k]){
-      if(!S.skipped[k] && !S.watched[k]){ S.skipped[k] = 1; moved++; }
+      if(!S.skipped[k] && !S.watched[k] && !isParkedId(k)){ S.skipped[k] = 1; moved++; }
     } else if(S.skipped[k]){
       delete S.skipped[k]; moved++;
     }
@@ -3279,6 +3426,15 @@ document.getElementById("view").addEventListener("click", function(e){
   else if(act === "skip"){ var k = !!S.skipped[id]; toggleSkip(id); toast(k ? "Back in the queue" : "Skipped"); }
   else if(act === "rate"){ rate(id, parseInt(b.dataset.n,10)); }
   else if(act === "peek"){ S.peek[id] = !S.peek[id]; render(); }
+  else if(act === "choose"){
+    var cur = BYID[id], cg = cur ? groupOf(cur) : null, shelf = [];
+    if(cg) cg.films.forEach(function(x){
+      if(x.id !== id && !isParked(x) && !isDone(x) && !isSkip(x)) shelf.push(x);
+    });
+    if(!shelf.length){ toast("Nothing else on this shelf"); return; }
+    S.pick = shelf[Math.floor(Math.random() * shelf.length)].id;
+    render(); toast("Gotham chose");
+  }
   else if(act === "takelink"){
     var pend = S.pending; S.pending = null;
     if(pend){ applyImport(pend); toast("Restored " + pend.found + " from your backup"); }
@@ -3286,6 +3442,18 @@ document.getElementById("view").addEventListener("click", function(e){
   }
   else if(act === "droplink"){ S.pending = null; clearPendingHash(); render(); toast("Left as it was"); }
   else if(act === "expand"){ S.open[id] = !S.open[id]; rowUpdate(id); }
+  else if(act === "upto"){
+    var uf = BYID[id], ub = uf ? behind(uf) : [];
+    if(!ub.length){ S.upto = ""; rowUpdate(id); return; }
+    if(S.upto !== id){
+      S.upto = id; rowUpdate(id);
+      setTimeout(function(){ if(S.upto === id){ S.upto = ""; if(S.tab === "watch") rowUpdate(id); } }, 4000);
+      return;
+    }
+    S.upto = "";
+    ub.forEach(function(x){ markWatched(x.id); });
+    persist(); render(); toast(ub.length + " logged");
+  }
   else if(act === "group"){ var gk = b.dataset.gk; S.groupOpen[gk] = (S.groupOpen[gk] === false); persist(); groupUpdate(gk); }
   else if(act === "belt"){
     if(!S.beltOpen){ openBelt(); }
@@ -3321,14 +3489,11 @@ document.getElementById("view").addEventListener("click", function(e){
   else if(act === "mkcode"){ S.code = exportCode(); S.lastExportAt = Date.now(); persist(); render(); toast("Code ready"); }
   else if(act === "bklater"){ S.bkDismissAt = Date.now(); persist(); render(); }
   else if(act === "copylink"){
-    var lk = restoreLink(S.code);
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(lk).then(function(){ toast("Link copied"); },
-                                            function(){ toast("Could not copy \u2014 use Copy code"); });
-    } else {
-      toast("Could not copy \u2014 use Copy code");
-    }
+    putClipboard(restoreLink(S.code), "Link copied", "Could not copy \u2014 use Copy code");
   }
+  else if(act === "copyleft"){ putClipboard(routeText(), "List copied", "Could not copy \u2014 use the text file"); }
+  else if(act === "dlleft"){ toast(download("night-watcher-whats-left.txt", routeText()) ? "Downloaded" : "Download unavailable"); }
+  else if(act === "copyfav"){ putClipboard(favText(), "List copied", "Could not copy"); }
   else if(act === "copy"){
     var box = document.getElementById("codebox");
     if(box){

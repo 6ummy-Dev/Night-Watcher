@@ -109,7 +109,7 @@ echo "--- smoke: the crown is a render claim"
 
 run_case "a builder lights every crown" \
   "a building still rising wears no crown colour of its own" \
-  "${P}a='var st = crownState(d, k, n), roof = roofOf(g.code, n), crown = \"\";';assert a in s
+  "${P}a='var st = sz ? crownState(d, k, sz) : \"\", roof = roofOf(g.code, n), crown = \"\";';assert a in s
 s=s.replace(a,'var st = \"lit\", roof = roofOf(g.code, n), crown = \"\";',1);${W}" \
   smoke main
 

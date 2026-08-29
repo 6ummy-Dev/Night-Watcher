@@ -25,7 +25,7 @@ change (and flushed on `pagehide`/hidden), read once at boot by
 
 | Key | Written as | Read back as |
 | --- | --- | --- |
-| `watched`, `skipped` | `{slug: 1}` | `marksOf()`: own truthy keys only, each becomes `1`; anything not an object → `{}` |
+| `watched`, `skipped` | `{slug: 1}` | `marksOf()`: own truthy keys only, each becomes `1`; anything not an object → `{}`. A skip on a **parked** entry (one wearing `u`) is dropped after the schema pass by `dropParkedSkips()` — 5.0.0 made parked titles unskippable, so a skip placed on one under an older build is "not now" said twice, and keeping it would resurface it the day the title lands. `applyMarks()` and the cross-tab merge refuse the same skip at their own doors (guard 154). |
 | `rated` | `{slug: 1..5}` | `ratingsOf()`: each value through `clampRating()` (integer 1–5, else dropped) |
 | `clk` | `{w:{}, s:{}, r:{}}` — per-mark clocks, `Date.now()` of the last change in either direction | `clocksOf()`: finite positive numbers only, prototype-free maps |
 | `log` | `[{id, ts}]`, the activity list in time order | `dedupeLog()`: known slugs with a valid timestamp, one per slug (earliest kept) |
@@ -114,5 +114,8 @@ device-local and never part of any format.
 
 `S.mode`, `S.scope` when it is a view, the filter chip, search text, open
 rows, the belt's state, `clk`, `resetAt` and the stamps: transient, or
-device bookkeeping. A backup restored a year later must not bring last
+device bookkeeping. So are `S.pick` (the title Let Gotham choose surfaced —
+a refresh returns to the first row, so the belt stays the only thing that
+sets the route) and `S.upto` (the armed Watched-up-to-here row, which
+disarms on its own after four seconds). A backup restored a year later must not bring last
 year's erase with it.

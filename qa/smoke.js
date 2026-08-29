@@ -1279,7 +1279,11 @@ win.addEventListener("load", function(){
       S.format = "all"; S.scope = "all"; S.tier = "all"; S.q = ""; S.filter = "all";
       S.tab = "home"; S.beltOpen = true; win.render();
       var all = win.counts().total;
-      check("+ Optional counts the whole catalogue", all === FILMS.length, all + " of " + FILMS.length);
+      /* 5.0.0: the five parked titles are on the shelf and off the count. */
+      var lives = FILMS.filter(function(f){ return f.b.indexOf("u") < 0; }).length;
+      check("+ Optional counts every released entry", all === lives, all + " of " + lives);
+      check("and the parked ones are counted apart",
+            win.counts().parked === FILMS.length - lives, win.counts().parked + " parked");
       var pouch = doc.querySelectorAll('#view .panel:not([inert]) .includes .scope');
       check("the belt drops three pouches", pouch.length === 3, pouch.length + " pouches");
       var labels = Array.prototype.map.call(
@@ -1299,8 +1303,9 @@ win.addEventListener("load", function(){
             pool.every(function(f){ return tierOf(f) !== "o"; }));
       check("and the Essentials are still on it",
             pool.some(function(f){ return tierOf(f) === "e"; }));
+      var poolLive = pool.filter(function(f){ return !win.isParked(f); }).length;
       check("the header ring counts the route, not the catalogue",
-            doc.getElementById("hsub").textContent.indexOf("of " + pool.length) > 0,
+            doc.getElementById("hsub").textContent.indexOf("of " + poolLive) > 0,
             doc.getElementById("hsub").textContent);
       win.flushPersist();
       check("the tier is persisted", JSON.parse(win.localStorage.getItem("batwatch-v3")).tier === "core");
@@ -1359,6 +1364,158 @@ win.addEventListener("load", function(){
       S.path = p0;
 
       S.format = f0; S.scope = s0; S.q = q0; S.tab = t0; S.filter = fl0; S.tier = "all";
+      win.render();
+    })();
+
+    /* --- 5.0.0, "The sitting": the parked shelf, the two heroes and the four
+       zero-state features, driven through the real buttons. --- */
+    (function(){
+      var f0 = S.format, s0 = S.scope, q0 = S.q, t0 = S.tab, fl0 = S.filter, m0 = S.mode, p0 = S.path;
+      var V = '#view .panel:not([inert]) ';
+      function q(sel){ return doc.querySelector(V + sel); }
+      function qa(sel){ return doc.querySelectorAll(V + sel); }
+      function clean(){ S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.open = {}; S.pick = ""; S.upto = ""; }
+      S.format = "all"; S.scope = "all"; S.tier = "all"; S.q = ""; S.filter = "all";
+      S.path = S.mode = "continuity"; clean(); win.setAllGroups(true);
+      var parked = FILMS.filter(function(f){ return f.b.indexOf("u") >= 0; });
+      check("the catalogue holds parked titles to drive", parked.length >= 3, parked.length + " parked");
+
+      /* Everything released before the first parked title is watched, so the
+         first unwatched row on the route IS the parked one — and the hero
+         must step past it. */
+      var pl = win.pool(), firstParked = -1, i;
+      for(i = 0; i < pl.length; i++){ if(win.isParked(pl[i])){ firstParked = i; break; } }
+      for(i = 0; i < firstParked; i++){ if(!win.isParked(pl[i])) S.watched[pl[i].id] = 1; }
+      var hero = win.upNext();
+      check("the hero is never a parked title", !!hero && !win.isParked(hero), hero ? hero.id : "none");
+      check("the hero is the first released title after the parked one",
+            !!hero && pl.indexOf(hero) > firstParked &&
+            pl.slice(firstParked + 1, pl.indexOf(hero)).every(win.isParked), hero ? hero.id : "none");
+      S.tab = "next"; win.render();
+      check("the hero says nothing about the title it passed — Then does", !q(".hero .hnext"));
+      check("the rule sits under the blurb, above the controls",
+            !!q(".hero .blurb + .drule") && !!q(".hero .drule ~ .herorow"));
+      var c = win.counts();
+      check("To go does not count a parked title",
+            c.total === pl.filter(function(f){ return !win.isParked(f); }).length && c.parked === parked.length,
+            c.total + " / " + c.parked);
+      S.tab = "home"; win.render();
+      var kick = q(".hero .kick");
+      check("Home's kick says where you stand",
+            !!kick && kick.textContent.indexOf((c.done + 1) + " of " + c.total) > 0, kick ? kick.textContent : "no kick");
+      check("Home's hero is the poster: one button, no stars, no skip, no note",
+            qa(".hero .heroacts button").length === 1 && !q(".hero .stars") && !q(".hero .hnote"));
+      check("Home's meta line prints the cost of the night",
+            /episodes?|Film|Short|chapters|shorts/.test(q(".hero .yr").textContent), q(".hero .yr").textContent);
+
+      /* The Path: a parked row has no control, says its date, and the To
+         watch chip does not offer it. */
+      S.tab = "watch"; win.render();
+      var prow = q('.film.parked');
+      check("The Path draws a parked row", !!prow);
+      check("a parked row has no tick, no skip, no stars",
+            !!prow && !prow.querySelector('button.tick') && !prow.querySelector('[data-act="skip"]') && !prow.querySelector('.stars'));
+      check("a parked row prints its date where the meta goes",
+            !!prow && /Not out yet/.test(prow.querySelector(".fmeta").textContent) &&
+            prow.querySelector(".fmeta").textContent.indexOf(pl[firstParked].when) >= 0,
+            prow ? prow.querySelector(".fmeta").textContent : "");
+      var pid = pl[firstParked].id, wBefore = Object.keys(S.watched).length;
+      win.toggleWatched(pid); win.toggleSkip(pid);
+      check("a parked title cannot be ticked or skipped", !S.watched[pid] && !S.skipped[pid] && Object.keys(S.watched).length === wBefore);
+      S.filter = "left"; win.render();
+      check("To watch hides the parked rows", !q('.film.parked'));
+      S.filter = "all";
+
+      /* The Then queue draws a parked row in place with its date. */
+      clean();
+      S.tab = "next"; win.render();
+      var qp = q(".qitem.parked");
+      /* Only when a parked title is within the next four. */
+      var next4 = win.pool().slice(win.pool().indexOf(win.upNext()) + 1).filter(function(x){ return !win.isDone(x) && !win.isSkip(x); }).slice(0, 4);
+      var expectParked = next4.some(win.isParked);
+      check("Then draws a parked row exactly when one is due",
+            !!qp === expectParked, "row=" + !!qp + " due=" + expectParked);
+
+      /* The bag: the line, and Let Gotham choose stays on the shelf. */
+      clean();
+      var gs = win.buildGroups(), bags = 0, bagGroup = null;
+      gs.forEach(function(g){
+        if(g.bag){ bags++; if(bags === 2) bagGroup = g; }
+        if(bags < 2) g.films.forEach(function(f){ if(!win.isParked(f)) S.watched[f.id] = 1; });
+      });
+      S.tab = "next"; win.render();
+      check("the hero on a bag carries the bag line",
+            !!bagGroup && win.upNext().gname === bagGroup.name && !!q(".hero .hnote") &&
+            /No suggested order/.test(q(".hero .hnote").textContent));
+      var bagLine = q(".hero .hnote"), row = q(".hero .herorow");
+      check("the bag line sits above the controls",
+            !!bagLine && !!row && (bagLine.compareDocumentPosition(row) & 4) !== 0);
+      var choose = q('[data-act="choose"]');
+      check("a bag offers Let Gotham choose", !!choose && /Let Gotham choose/.test(choose.textContent));
+      var heroBefore = win.upNext().id, picks = {}, k;
+      for(k = 0; k < 12 && choose; k++){
+        choose.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+        picks[S.pick] = 1;
+        choose = q('[data-act="choose"]');
+      }
+      check("Let Gotham choose stays on the shelf",
+            Object.keys(picks).every(function(id){ return bagGroup.films.some(function(f){ return f.id === id; }) && !win.isParked(win.BYID[id]); }),
+            Object.keys(picks).join(","));
+      check("and the hero is the pick", S.pick && win.upNext().id === S.pick && q(".hero h2").textContent === win.BYID[S.pick].t);
+      check("a pick is not saved", (function(){ win.flushPersist(); return !("pick" in JSON.parse(win.localStorage.getItem("batwatch-v3"))); })());
+      win.toggleWatched(S.pick);
+      check("ticking the pick releases it", S.pick === "" || win.upNext().id !== heroBefore);
+      S.pick = "";
+      var off = gs.filter(function(g){ return !g.bag; })[0];
+      clean(); S.tab = "next"; win.render();
+      check("off a bag there is no chooser and no bag line",
+            win.upNext().gname === off.name && !q('[data-act="choose"]') && !q(".hero .hnote"));
+
+      /* Watched up to here: arms, disarms, logs the unwatched before the row
+         and leaves a skip alone. */
+      clean();
+      var target = win.pool().filter(function(f){ return !win.isParked(f); })[6];
+      S.skipped[win.pool().filter(function(f){ return !win.isParked(f); })[2].id] = 1;
+      S.tab = "watch"; S.open[target.id] = 1; win.render();
+      var up = q('[data-act="upto"][data-id="' + target.id + '"]');
+      check("an expanded row offers Watched up to here", !!up && /Watched up to here/.test(up.textContent));
+      if(up) up.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+      up = q('[data-act="upto"][data-id="' + target.id + '"]');
+      check("the first tap arms it and names the count",
+            S.upto === target.id && !!up && /Tap again to log 5/.test(up.textContent), up ? up.textContent : "");
+      check("nothing is logged on the first tap", Object.keys(S.watched).length === 0);
+      if(up) up.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+      check("the second tap logs everything unwatched before the row",
+            Object.keys(S.watched).length === 5 && !S.watched[target.id] && S.log.length === 5,
+            Object.keys(S.watched).length + " watched, " + S.log.length + " logged");
+      check("Watched up to here leaves a skipped title skipped", Object.keys(S.skipped).length === 1);
+      check("and disarms", S.upto === "");
+
+      /* Progress: the nights line, What's left, Your five stars. */
+      clean();
+      var d0 = new Date(2026, 7, 28, 21, 0).getTime(), d1 = new Date(2026, 7, 29, 22, 0).getTime();
+      var liveIds = win.pool().filter(function(f){ return !win.isParked(f); }).map(function(f){ return f.id; });
+      S.watched[liveIds[0]] = 1; S.watched[liveIds[1]] = 1; S.watched[liveIds[2]] = 1;
+      S.log = [{id:liveIds[0], ts:d0}, {id:liveIds[1], ts:d0 + 3600e3}, {id:liveIds[2], ts:d1}];
+      S.tab = "stats"; win.render();
+      var nl = q(".nights");
+      check("Progress counts the nights", !!nl && /2 nights/.test(nl.textContent) && /the latest, 1 title/.test(nl.textContent), nl ? nl.textContent : "");
+      var leftCard = q('[data-act="copyleft"]') ? q('[data-act="copyleft"]').closest(".bk") : null;
+      check("What's left counts what is left",
+            !!leftCard && new RegExp((win.counts().left) + " titles to go").test(leftCard.textContent),
+            leftCard ? leftCard.textContent.slice(0, 60) : "no card");
+      var txt = win.routeText();
+      check("the list is the unwatched route in order, parked excluded",
+            txt.split("\n").filter(function(l){ return /^\d+\. /.test(l); }).length === win.counts().left &&
+            parked.every(function(f){ return txt.indexOf(f.t + " (") < 0; }));
+      check("no five stars, no shelf", !q('[data-act="copyfav"]'));
+      S.rated[liveIds[1]] = 5; S.rated[liveIds[0]] = 4; win.render();
+      var favs = qa(".favrow");
+      check("a five-star rating opens the shelf, four stars does not",
+            favs.length === 1 && favs[0].textContent.indexOf(win.BYID[liveIds[1]].t) >= 0, favs.length + " rows");
+      check("the five-star text lists exactly the five", win.favText().split("\n").filter(function(l){ return /^★ /.test(l); }).length === 1);
+
+      clean(); S.format = f0; S.scope = s0; S.q = q0; S.tab = t0; S.filter = fl0; S.mode = m0; S.path = p0;
       win.render();
     })();
 
@@ -2114,7 +2271,18 @@ win.addEventListener("load", function(){
             check("a tick after a corrupt read does not overwrite the unread bytes",
                   w5.localStorage.getItem("batwatch-v3") === corrupt,
                   "stored: " + String(w5.localStorage.getItem("batwatch-v3")).slice(0, 40));
-            runBlocked();
+            /* 5.0.0: a skip placed on a title that was not out yet, under
+               an older build, is "not now" said twice — dropped at load. */
+            var staleSkips = {};
+            FILMS.forEach(function(f){ if(f.b.indexOf("u") >= 0) staleSkips[f.id] = 1; });
+            staleSkips[FILMS[0].id] = 1;
+            var staleSkip = JSON.stringify({watched:{}, skipped:staleSkips, rated:{}, log:[]});
+            reboot(staleSkip, "stale skip", function(w6){
+              var left = Object.keys(w6.S.skipped);
+              check("a skip placed on a title that was not out yet is dropped at load",
+                    left.length === 1 && left[0] === FILMS[0].id, left.join(","));
+              runBlocked();
+            });
           });
         });
       });
@@ -2419,6 +2587,22 @@ win.addEventListener("load", function(){
       win.toast("x"); sweep();
       S.tab = "watch"; win.setAllGroups(false); win.render(); sweep();
       win.setAllGroups(true);
+      /* 5.0.0: the hero on a bag — everything up to the second bag is
+         watched, so the hero is that bag's first row and the card carries
+         the bag line and the chooser. Not reachable by walking the tabs. */
+      (function(){
+        var gs = win.buildGroups(), bags = 0;
+        gs.forEach(function(g){
+          if(g.bag) bags++;
+          if(bags < 2) g.films.forEach(function(f){ if(!win.isParked(f)) S.watched[f.id] = 1; });
+        });
+        S.tab = "next"; win.render(); sweep();
+        S.watched = {};
+        /* ...and a five-star shelf on Progress, which only renders once a
+           rating reaches five. */
+        S.rated[FILMS[0].id] = 5; S.tab = "stats"; win.render(); sweep();
+        S.rated = {};
+      })();
       FILMS.forEach(function(f){ S.watched[f.id] = 1; });
       ["home", "next", "watch", "stats"].forEach(function(t){ S.tab = t; win.render(); sweep(); });
       /* 4.5.0: the city's steel crown — every building topped out by skips,
