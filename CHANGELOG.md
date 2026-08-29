@@ -14,6 +14,45 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.9.5] — 2026-08-29
+
+**The nightly names the node.** A corrective cut two hours after 4.9.4,
+for a red that was not 4.9.4's: the 03:17 UTC nightly (QA #410) went
+red on the untouched 4.9.3 tree with `FAIL axe (first-run chooser): no
+serious violations — color-contrast ×1`, the 4.9.4 upload (#411) went
+red with the same line, and a re-run of #410 made it three for three.
+The night before (#407) had passed on the same tree, the same lockfile
+and the same pinned Chrome build. So: deterministic, and the world
+moved, not the code — which is exactly what the nightly exists to
+catch. What it could not do was say WHERE.
+
+### Changed
+
+- **An axe failure now carries the node.** The detail used to be the
+  rule id and a count, and that was the entire message: `color-contrast
+  ×1`. It now lists every offending node's target selector and, for
+  contrast, the foreground and background axe measured, the ratio it
+  computed, the floor it applied, and the text's size and weight — the
+  numbers axe already had and the check threw away. The state is
+  photographed too (`qa/.shots/shot-axe-<state>.png`, full page), so
+  the artifact a red run uploads shows what axe was looking at. No new
+  check, no count moved; a green run prints exactly what it printed.
+- **The 4.9.4 verdict stands.** Every text token on the chooser
+  measures above its floor in `qa/contrast.md` (worst text pair 5.24:1)
+  and the tree passes 108/108 on the Chromium available to the cutting
+  host, which is older than the runner's Chrome 151 and cannot fetch
+  it. Whatever the runner now measures differently — a blended fill, a
+  transition mid-flight, a Chrome change in how it resolves a
+  background — is unknown until this cut's first red run says so. The
+  fix, or the recorded exemption, is the next patch, and it will be
+  written against a named element and a measured ratio rather than a
+  guess.
+
+### Why PATCH
+
+One diagnostic in `qa/browser-check.mjs`. Nothing served changed but
+the BUILD string.
+
 ## [4.9.4] — 2026-08-29
 
 **One letter.** Two small things that arrived on the same day, neither a

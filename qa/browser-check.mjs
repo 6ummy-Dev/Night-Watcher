@@ -975,9 +975,29 @@ async function axeState(name, setup, verify){
     runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] }
   }));
   const v = r.violations.filter(x => x.impact !== "minor");
+  /* 4.9.5: A RED HERE NAMES THE NODE, OR IT NAMES NOTHING. On 29 Aug the
+     nightly went red with "color-contrast ×1" on a tree that had passed the
+     night before — same lockfile, same pinned Chrome build, three runs in a
+     row — and that was the whole message. Nothing on the runner could be
+     read from it, and the build it came from could not be fetched to look.
+     So the detail now carries what axe already knew: every node's target
+     selector and, for contrast, the colours and ratio it measured against
+     the floor it applied. And the state is photographed, so the artifact a
+     red run uploads shows what axe was looking at. */
+  const describe = (x) => x.id + " ×" + x.nodes.length + " [" + x.nodes.map(n => {
+    const d = (n.any && n.any[0] && n.any[0].data) || {};
+    const t = Array.isArray(n.target) ? n.target.join(" ") : String(n.target);
+    return d.contrastRatio !== undefined
+      ? t + " " + d.fgColor + " on " + d.bgColor + " = " + d.contrastRatio +
+        " (floor " + d.expectedContrastRatio + ", " + d.fontSize + " " + d.fontWeight + ")"
+      : t;
+  }).join("; ") + "]";
+  if(v.length){
+    await page.screenshot({ path: shot("shot-axe-" + name.replace(/\W+/g, "-") + ".png"),
+                            fullPage: true });
+  }
   ok("axe (" + name + "): no serious violations", v.length === 0,
-     v.length ? v.map(x => x.id + " ×" + x.nodes.length).join(", ")
-              : r.violations.length + " minor");
+     v.length ? v.map(describe).join(", ") : r.violations.length + " minor");
 }
 
 await axeState("first-run chooser", () => {
