@@ -62,7 +62,7 @@ jobs:
   # not only on pull requests: releases here are direct commits to main, so a
   # PR-gated job never runs (it did not, for a long time — NOTES.md).
   #
-  # Cost: 1181 fixtures, of which 1110 run guards.js and 71 run smoke.js — most
+  # Cost: 1202 fixtures, of which 1128 run guards.js and 74 run smoke.js — most
   # of those scoped to one phase by SMOKE_ONLY. The split is guarded in this
   # file the same as the README's counts, so the next drift fails the build.
   # run-all.sh dispatches longest-first; this job shards 4-way on top, packed
@@ -86,13 +86,13 @@ jobs:
       matrix:
         include:
           - shard: "1"
-            pick: 'negtest(131|162|163|176|182|252|300|350|370|380|410|460|470|480|540)\.sh'
+            pick: 'negtest(165|180|182|210|270|300|380|440|450|476|478|520|580|630|640)\.sh|negtest\.sh'
           - shard: "2"
-            pick: 'negtest(165|171|172|180|185|186|190|200|330|390|440|476|478|520|530|620|640|650)\.sh|negtest\.sh'
+            pick: 'negtest(131|170|176|183|187|190|200|220|260|310|330|360|390|400|430|510|590|620|650)\.sh'
           - shard: "3"
-            pick: 'negtest(164|170|175|183|187|195|260|270|271|310|320|360|400|450|475|500|510|560|590)\.sh'
+            pick: 'negtest(161|163|164|166|175|181|195|250|251|271|272|350|475|490|500|550|560|570|610)\.sh'
           - shard: "4"
-            pick: 'negtest(161|166|177|181|210|220|250|251|272|273|340|420|430|490|550|570|580|600|610|630)\.sh'
+            pick: 'negtest(162|171|172|177|185|186|252|273|320|340|370|410|420|460|470|480|530|540|600|660)\.sh'
     steps:
       - uses: actions/checkout@v5
 
