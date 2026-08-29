@@ -14,6 +14,43 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [4.9.4] — 2026-08-29
+
+**One letter.** Two small things that arrived on the same day, neither a
+defect a user could meet, both worth a line so nobody undoes them.
+
+### Changed
+
+- **The straight answer to "which order" now says "watch order" in the
+  singular.** The owner searched. For *batman watch orders no spoilers*
+  the site is first, above the AI Overview — an exact match on the title,
+  in a phrasing so rare Google offers *"Did you mean: order"*. For
+  *batman watch order no spoilers*, the phrasing people actually type, the
+  site is nowhere: a Reddit thread feeds the Overview and a listicle holds
+  the first slot. Google stems, so the two are near-equivalent — near, not
+  equal — and the singular had never appeared on the page at all. The
+  FAQ's first answer now opens *"There is no single Batman watch order —
+  three honest answers instead of one fake one"*, which is what the app
+  has always meant and happens to be the sentence the query wants. One
+  source (`buildFAQ()` in guards), so the crawlable seed and the FAQPage
+  schema moved together under bless. The title is not touched: it is
+  doing its job. No ranking is promised on the singular — on that query a
+  referring domain matters and wording does not.
+- **Guard 152's tier labels are stored plain and escaped at the
+  pattern.** They used to be stored regex-escaped (`"\\+ Optional"`) and
+  un-escaped again for the failure message with `.replace("\\", "")`,
+  which replaces one backslash — CodeQL `js/incomplete-sanitization`,
+  alert #34, the same class as the three selector escapes 3.5.0 fixed.
+  Three literals, one backslash at most, build-time only: nothing was
+  reachable, and the alert was dismissed on that basis. Fixed anyway,
+  in the shape that cannot regress — the label is never decoded, only
+  ever encoded, at the one place a pattern is built from it.
+
+### Why PATCH
+
+One FAQ sentence, one guard's internal string handling. No behaviour
+change in the app, no catalogue change, nothing touching saved progress.
+
 ## [4.9.3] — 2026-08-28
 
 **Zero pending.** The two independent audits of live 4.9.2 (ISO/IEC

@@ -698,8 +698,10 @@ function buildFAQ(FILMS, MODENOTE, tierOf){
   var curated = FILMS.filter(function(f){ return tierOf(f) !== "o"; }).length;
   return [
     ["Which order should I watch Batman in?",
-     "Three honest answers instead of one fake one \u2014 every Batman film and series in each, " +
-     "no spoilers. By universe: " + first("continuity") +
+     /* 4.9.4: the singular "watch order" is the phrasing people type, and
+        until now only the plural appeared anywhere on the page. */
+     "There is no single Batman watch order \u2014 three honest answers instead of one fake one, " +
+     "every Batman film and series in each, no spoilers. By universe: " + first("continuity") +
      " Bruce\u2019s life: " + first("life") + " Release order: " + first("release")],
     ["Does this include the animated series?",
      "Yes \u2014 all of it, from the 1966 Batman series through Batman: The Animated Series to the " +
@@ -13696,10 +13698,17 @@ var ROUTE_VOCAB = [
   if(!/segmented\("scope tier", "Tier", "tier", TIERS, S\.tier\)/.test(ts)){
     fail("the tier pouch's buttons carry no data-tier");
   }
-  [["Essentials", "ess"], ["Core route", "core"], ["\\+ Optional", "all"]].forEach(function(pair){
-    if(!new RegExp('\\["' + pair[1] + '","' + pair[0] + '"\\]').test(tiers)){
+  /* 4.9.4: the labels are stored plain and escaped at the RegExp, not the
+     other way round. They used to be stored regex-escaped ("\\+ Optional")
+     and un-escaped for the message with .replace("\\", ""), which replaces
+     one backslash — CodeQL js/incomplete-sanitization, alert #34. Nothing
+     reachable (three literals, one backslash at most), but a message that
+     decodes what the pattern encoded is the shape that regresses. */
+  [["Essentials", "ess"], ["Core route", "core"], ["+ Optional", "all"]].forEach(function(pair){
+    var lit = pair[0].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if(!new RegExp('\\["' + pair[1] + '","' + lit + '"\\]').test(tiers)){
       fail("the tier pouch's " + pair[1] + " button does not read \"" +
-           pair[0].replace("\\", "") + "\" — the wording was settled before code: " +
+           pair[0] + "\" — the wording was settled before code: " +
            "Essentials, Core route, + Optional, narrow to wide");
     }
   });
