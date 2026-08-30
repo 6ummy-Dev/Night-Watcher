@@ -14,6 +14,68 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [5.2.0] — 2026-08-30
+
+**Drawn, not rented.** The owner's review said the diamonds were three
+sizes, the tick didn't read deco, and Next up's footer orphaned its last
+line. The investigation said something better: **no shipped face has ever
+carried ◆, ✓, ★, ↗ or ›.** Reading the actual cmap tables out of all four
+woff2s (the way guard section 116 already does) showed every ornament in
+the app rendering from the reader's OS — Segoe on Windows, SF on Apple,
+Noto elsewhere — at whatever size and seat that font decided. The 13px
+Progress diamond everyone liked best was an accident on top of the
+accident: `.bk p`'s font-size outranking `.drule`'s 8px on specificity.
+So 5.2.0 does not change the font. It stops renting glyphs at all.
+
+### What's new
+
+- **Every ornament is drawn geometry now.** The diamond is a rotated
+  `currentColor` box on two tokens — `--dia` for the rules (the hero,
+  Case closed, and the gold seam on Progress, all one size at last, the
+  big one the owner chose), `--dia-s` for the three footer seats and the
+  kick's separator pins. The tick's check is two square-cornered border
+  strokes, the old −45° counter-turn and the −45° that turns an L into a
+  check folded into one rotation; the skip mark is the same box
+  flattened to a bar. The rating stars are a clip-path polygon (the
+  buttons and the rated line in film meta both). The where-to-watch
+  arrow is an inline SVG like the tab icons. The chevrons — tier rows,
+  group heads, the progress fold, the belt buckle, and now the
+  expand-all button, which gave up its private `::after` text to join
+  the caret family — are bordered boxes on the same turns the text
+  used. One shape per mark, from our own stylesheet, on every device.
+- **Next up closes on one block.** The two watching-truths share one
+  `note foot`, the dates line riding a `buildline` span the way the
+  build footer already stacks its lines — no more orphan drifting a
+  diamond's width below.
+
+### Under the hood
+
+- **SYSTEM_MARKS is down to one entry, and it earns its place.** The
+  "system font by decision" list held four rendered marks; all four are
+  drawn now, so the characters left the page. What remains is the ★
+  written into the five-stars text-file export — a downloaded file that
+  opens in the reader's editor, the one place no font we ship can ever
+  reach. The comment in section 116 now says the next exception has to
+  be argued the same way.
+- **Section 116 reads CSS content escapes.** The tick's `\2713` hid in
+  `content:"…"` for five versions — in no face, in no exception —
+  because the scan only knew the `\uXXXX` spelling. Both spellings are
+  needed characters now; a fixture in negtest300 smuggles one in and
+  watches it go red.
+- Guard sections 116, 146, 148, 155 and 157 rewritten to pin the drawn
+  constructions; ten fixtures re-anchored and seven added across
+  negtest131/300/530/650/660/670 (the caret losing its borders, the
+  skip bar leaving the family, the dsep and drule rules dropping, the
+  stacked-note exception returning, the closing note splitting, the
+  content-escape smuggle).
+
+### Why MINOR
+
+A new decoration system — every glyph seat in the app rebuilt, two new
+tokens, a guard scan that sees a class of character it could not see
+before. Nothing about the catalogue, the orderings, or a reader's
+progress moved; a backup written under 5.1.x restores untouched.
+
 ## [5.1.2] — 2026-08-30
 
 **The node, named.** 5.1.1's first CI run went red on the browser

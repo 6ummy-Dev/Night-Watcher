@@ -14,9 +14,14 @@
 # 44px arithmetic. Fixture 18: §103's grown signature called the old way.
 # Fixtures 19–20 drive the render path through smoke, because a class a
 # builder drops is invisible to every static pin in guards. Fixtures 21–23:
-# the footer diamond — the rule pair dropped, the second stacked note
-# growing one of its own, and a footer taking back a private top margin
-# (the 4.4.1 one-clearance rule).
+# the footer diamond — the rule pair dropped, the stacked-note exception
+# returning, and a footer taking back a private top margin (the 4.4.1
+# one-clearance rule).
+# 5.2.0 redrew the ornaments as geometry (no shipped face ever carried the
+# glyphs), so the anchors here hold the drawn constructions, and the added
+# fixtures undo each drawn claim once: the caret pair losing its borders,
+# the skip bar leaving the family, the dsep and drule diamonds losing their
+# rules, and the closing note splitting back into two blocks.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 echo "--- 148: the square family and the cut sites"
@@ -95,14 +100,20 @@ echo "--- 148: the chevrons, the underline"
 
 run_case "the triangle caret returns" \
   "the triangle caret is back" \
-  "${P}a=r'<span class=\"caret\" aria-hidden=\"true\">\u203A\u203A</span></button></h2>';assert s.count(a)==2
+  "${P}a='<span class=\"caret\" aria-hidden=\"true\"></span></button></h2>';assert s.count(a)==2
 s=s.replace(a,r'<span class=\"caret\" aria-hidden=\"true\">\u25B6</span></button></h2>',1);${W}" \
   guards "" 148
 
 run_case "the shut state stops turning" \
   "chevron states stopped turning" \
-  "${P}a='.allbtn.shut::after{transform:none;}';assert a in s
+  "${P}a='.allbtn.shut .caret{transform:none;}';assert a in s
 s=s.replace(a,'',1);${W}" \
+  guards "" 148
+
+run_case "the caret pair loses its borders" \
+  "the caret stopped being drawn" \
+  "${P}a='.caret::before,.caret::after{content:\"\";width:6px;height:6px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate(45deg);flex:none;}';assert a in s
+s=s.replace(a,'.caret::before,.caret::after{content:\"\";width:6px;height:6px;transform:rotate(45deg);flex:none;}',1);${W}" \
   guards "" 148
 
 run_case "the tab title loses its architecture" \
@@ -120,9 +131,15 @@ s=s.replace(a,'position:relative;}',1);${W}" \
   guards "" 148
 
 run_case "the check lies on its side" \
-  "check rides the rotation" \
-  "${P}a='.tick::after{content:\"\\\\2713\";font-weight:600;transform:rotate(-45deg) scale(1.28);}';assert a in s
-s=s.replace(a,'.tick::after{content:\"\\\\2713\";font-weight:600;}',1);${W}" \
+  "check stopped being drawn" \
+  "${P}a='.tick::after{content:\"\";width:13px;height:7px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-90deg) translate(-1px,-1px);}';assert a in s
+s=s.replace(a,'.tick::after{content:\"\";width:13px;height:7px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;}',1);${W}" \
+  guards "" 148
+
+run_case "the skip mark leaves the family" \
+  "the skip mark left the family" \
+  "${P}a='.film.skip .tick::after{width:12px;height:2px;border:0;background:currentColor;transform:rotate(-45deg);}';assert a in s
+s=s.replace(a,'.film.skip .tick::after{content:\"\\\\2013\";}',1);${W}" \
   guards "" 148
 
 run_case "the halo drops under the thumb floor" \
@@ -145,11 +162,29 @@ run_case "a footer takes back a private top margin" \
 s=s.replace(a,'text-align:center;margin:30px 0 4px;',1);${W}" \
   guards "" 148
 
-run_case "the second stacked note wears the diamond too" \
-  "the second stacked footer note wears the diamond too" \
-  "${P}a='.note.foot+.note.foot::before{content:none;}';assert a in s
-s=s.replace(a,'',1);${W}" \
+run_case "the stacked-note exception sneaks back" \
+  "the stacked-note exception rules are back" \
+  "${P}a='.note.foot{font-family:var(--mono);font-size:9px;';assert a in s
+s=s.replace(a,'.note.foot+.note.foot{margin-top:16px;}\n.note.foot{font-family:var(--mono);font-size:9px;',1);${W}" \
   guards "" 148
+
+run_case "the closing note splits back into two" \
+  "closing note split apart again" \
+  "${P}a='<span class=\"buildline\">Announced dates can move.</span></p>';assert a in s
+s=s.replace(a,'</p><p class=\"note foot\">Announced dates can move.</p>',1);${W}" \
+  guards "" 148
+
+run_case "the dsep stops being drawn" \
+  "the dsep stopped being drawn" \
+  "${P}a='.hero .dsep{display:inline-block;width:.45em;height:.45em;background:var(--signal);transform:rotate(45deg);vertical-align:.02em;}';assert a in s
+s=s.replace(a,'.hero .dsep{display:inline-block;width:.45em;height:.45em;background:var(--signal);vertical-align:.02em;}',1);${W}" \
+  guards "" 146
+
+run_case "the drule diamond loses its token" \
+  "the drule diamond lost its token" \
+  "${P}a='.drule i{width:var(--dia);height:var(--dia);background:currentColor;transform:rotate(45deg);flex:none;}';assert a in s
+s=s.replace(a,'.drule i{width:8px;height:8px;background:currentColor;transform:rotate(45deg);flex:none;}',1);${W}" \
+  guards "" 146
 
 echo "--- 103: the grown signature, called the old way"
 

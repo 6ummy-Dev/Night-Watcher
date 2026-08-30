@@ -1158,7 +1158,7 @@ win.addEventListener("load", function(){
     S.mode = "life"; win.render();
     S.tab = "watch"; S.filter = "all"; win.render();
     check("The Path still carries the rating",
-          doc.getElementById("view").textContent.indexOf("\u2605\u2605\u2605\u2605\u2605") >= 0);
+          doc.querySelectorAll('#view .fmeta .st').length >= 5);
     S.watched = {}; S.rated = {}; S.tab = "home"; win.render();
 
     /* --- the watch link is a Brave search (1.3.2) --- */
@@ -1979,7 +1979,9 @@ win.addEventListener("load", function(){
     var carets = win.document.querySelectorAll("#view .caret");
     check("every rendered caret is the chevron pair",
           carets.length > 0 && Array.prototype.every.call(carets, function(c){
-            return c.textContent === "\u203A\u203A" || c.textContent === "\u203A";
+            /* 5.2.0: the pair is drawn by the stylesheet \u2014 a caret with any
+               text content is a character back from somebody's system font */
+            return c.textContent === "" && c.getAttribute("aria-hidden") === "true";
           }), carets.length + " carets");
     var savedW44 = S.watched; S.watched = {};
     win.FILMS.forEach(function(f){ S.watched[f.id] = 1; });

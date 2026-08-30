@@ -760,7 +760,7 @@ const footGapsAll = await page.evaluate(async () => {
                     prev.getBoundingClientRect().bottom) * 2) / 2
       : null;
     const cs = el ? getComputedStyle(el, "::before") : null;
-    faces[t] = cs ? cs.fontFamily + " @ " + cs.fontSize : null;
+    faces[t] = cs ? cs.width + " x " + cs.height + " @ " + cs.transform : null;
   }
   goTab("watch");
   return { gaps, faces };
@@ -770,11 +770,14 @@ ok("the four tabs end level — one clearance above every closing diamond",
    [...new Set(Object.values(footGaps))].length === 1 &&
    Object.values(footGaps).every(v => v !== null),
    Object.entries(footGaps).map(([k, v]) => k + " " + v).join(", "));
-/* 4.4.3: and the diamond itself is ONE GLYPH IN ONE FACE. The legend
-   inherited the Sans stack while the notes and colophon sat in Mono, so
-   The Path's ◆ drew from a different fallback at a different width —
-   invisible to every source pin, measurable only here. */
-ok("the four closing diamonds share one face at one size",
+/* 4.4.3: the diamond was one glyph in one face — the legend inherited the
+   Sans stack while the notes and colophon sat in Mono, and The Path's ◆
+   drew from a different fallback at a different width. 5.2.0 removed the
+   face from the equation (the diamond is a drawn box on the small token),
+   so the same measurement now holds the BOX: one computed width, height
+   and rotation across all four seats — a seat sizing itself is the 4.4.3
+   spread wearing geometry. */
+ok("the four closing diamonds share one drawn box at one size",
    [...new Set(Object.values(footFaces))].length === 1 &&
    Object.values(footFaces).every(v => v !== null),
    [...new Set(Object.values(footFaces))].map(f => String(f).slice(0, 60)).join(" / "));

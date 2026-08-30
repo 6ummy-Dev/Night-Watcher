@@ -252,7 +252,7 @@ echo "--- the surgical paths stay byte-identical to the full render"
 # attributes included. These four mutations are the four ways it drifts.
 run_case "the group toggle forgets the Collapse all button" \
   "byte-identical to a full render" \
-  "${P}a='    all.textContent = ao ? \"Collapse all\" : \"Expand all\";'
+  "${P}a='    all.querySelector(\".albl\").textContent = ao ? \"Collapse all\" : \"Expand all\";'
 assert a in s;s=s.replace(a,'',1);${W}" \
   "smoke" "main"
 
@@ -545,9 +545,21 @@ io.open(p,'w',encoding='utf-8').write(s+chr(10)+'A title with an unsubset glyph:
 run_case "a recorded system mark turns up in a subset face" \
   "the exception is stale" \
   "import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read()
-a='0x203A: \"the chevron (carets, breadcrumbs, the deco pointer)\"';assert a in s
+a='0x2605: \"the star in the five-stars text file — written to a download, never rendered by the page\"';assert a in s
 s=s.replace(a,'0x0041: \"a letter that is obviously in every face\"',1)
 io.open(p,'w',encoding='utf-8').write(s)"
+
+# 5.2.0 closed the scan gap: a character can render from the stylesheet as
+# easily as from markup — the tick's \\2713 hid in content:\"…\" for five
+# versions, in no face and no exception, because §116 read only the \\u
+# spelling. A content escape for an uncarried glyph must now go red.
+run_case "a CSS content escape smuggles a glyph past the scan" \
+  "does not carry" \
+  "import io;p='docs/index.html';s=io.open(p,encoding='utf-8').read()
+a='.hero .dsep{display:inline-block;';assert a in s
+s=s.replace(a,'.smuggle::after{content:\"\\\\2713\";}\n.hero .dsep{display:inline-block;',1)
+io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 116
 
 run_case "the cmap reader is fed something that is not a woff2" \
   "cannot read the cmap out of" \

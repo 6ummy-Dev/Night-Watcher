@@ -70,7 +70,7 @@ run_case "a note line grows a diamond" \
 
 run_case "heroHead stops taking the position" \
   "no longer takes the route position for the kick" \
-  "${P}q=chr(34);a=\"(pos ? ' <i class=\"+q+\"dsep\"+q+\" aria-hidden=\"+q+\"true\"+q+\">\\\\u25c6</i> <b>'+esc(pos)+'</b>' : '')\";assert a in s, a;s=s.replace(a,\"(pos ? ' <b>'+esc(pos)+'</b>' : '')\",1);${W}" \
+  "${P}q=chr(34);a=\"(pos ? ' <i class=\"+q+\"dsep\"+q+\" aria-hidden=\"+q+\"true\"+q+\"></i> <b>'+esc(pos)+'</b>' : '')\";assert a in s, a;s=s.replace(a,\"(pos ? ' <b>'+esc(pos)+'</b>' : '')\",1);${W}" \
   guards "" 155
 
 run_case "the bag line sinks below the controls" \

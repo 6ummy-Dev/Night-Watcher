@@ -9316,11 +9316,13 @@ var ROUTE_VOCAB = [
    Brotli-compressed sfnt and Node ships zlib.brotliDecompressSync, so the
    cmap's real codepoint set is reachable with no dependency — and "zero
    dependencies" is a guarded claim. It also counts the \uXXXX escapes in the
-   script, which the literal-non-ASCII scan in 106 could not see. The star,
-   the caret, the arrow and the guillemet are a NAMED EXCEPTION: UI marks that
-   render from the system font on purpose, asserted rather than assumed — if
-   one ever turns up inside a face, the reason it was excepted has gone and
-   this fails. (History in NOTES.md.) */
+   script and, since 5.2.0, the CSS content escapes — the two spellings the
+   literal non-ASCII scan in 106 could not see. Until 5.2.0 the star, the
+   caret, the arrow and the guillemet were a NAMED EXCEPTION rendering from
+   the system font on purpose; the decoration pass drew all four, so the one
+   exception left is a mark the page never renders at all (the text-file
+   star) — if it ever turns up inside a subset face, the reason it was
+   excepted has gone and this fails. (History in NOTES.md.) */
 
 (function(){
   var KNOWN_TABLES = ["cmap","head","hhea","hmtx","maxp","name","OS/2","post","cvt ",
@@ -9332,12 +9334,19 @@ var ROUTE_VOCAB = [
 
   /* Symbol marks that come from the system font by decision. Each must stay
      absent from every face; a value here that turns up in a font means the
-     subset grew and this exception is stale. */
+     subset grew and this exception is stale.
+     5.2.0 emptied the rendered set: the star, the arrow, the chevron and
+     the diamond all became drawn geometry (CSS boxes, borders, clip-paths,
+     one inline SVG), because "by decision" had quietly meant "at whatever
+     size and shape each reader's OS decides" — the cmap scan below proved
+     no shipped face ever carried them. One entry remains, and it is not a
+     rendered mark: the ★ written into the five-stars TEXT FILE the reader
+     downloads. That file opens in their editor, where no font we ship can
+     ever reach — the one place the system font genuinely is the decision.
+     The next entry here has to be argued the same way: a mark our fonts
+     cannot govern, not a mark we didn't bother to draw. */
   var SYSTEM_MARKS = {
-    0x2605: "the rating star",
-    0x2197: "the external-link arrow",
-    0x203A: "the chevron (carets, breadcrumbs, the deco pointer)",
-    0x25C6: "the deco diamond"
+    0x2605: "the star in the five-stars text file — written to a download, never rendered by the page"
   };
 
   function base128(buf, p){
@@ -9413,8 +9422,12 @@ var ROUTE_VOCAB = [
     return set;
   }
 
-  /* What the shipped files actually need — literals AND \uXXXX escapes, which
-     is the half section 106 could not see. */
+  /* What the shipped files actually need — literals, \uXXXX escapes (the
+     half section 106 could not see), and since 5.2.0 CSS content escapes
+     too: the tick's old \2713 hid in content:"…" for five versions, never
+     in a face and never in SYSTEM_MARKS, because this scan read only the
+     \u form. A character can render from a stylesheet as easily as from
+     markup; now both spellings are needed characters. */
   var need = {};
   ["index.html", "orders.txt", "llms.txt"].forEach(function(f){
     var fp = path.join(PUBLIC, f);
@@ -9423,6 +9436,11 @@ var ROUTE_VOCAB = [
     for(i = 0; i < t.length; i++){ var c = t.codePointAt(i); if(c > 127) need[c] = 1; }
     (t.match(/\\u[0-9a-fA-F]{4}/g) || []).forEach(function(e){
       var c = parseInt(e.slice(2), 16); if(c > 127) need[c] = 1;
+    });
+    (t.match(/content:"[^"]*"/g) || []).forEach(function(decl){
+      (decl.match(/\\[0-9a-fA-F]{1,6}/g) || []).forEach(function(e){
+        var c = parseInt(e.slice(1), 16); if(c > 127) need[c] = 1;
+      });
     });
   });
   var needed = Object.keys(need).map(Number).sort(function(a, b){ return a - b; });
@@ -13096,20 +13114,40 @@ var ROUTE_VOCAB = [
   }
   /* The diamond is the separator now. The meta line's plain dot was the one
      the mock replaced; the rule under the blurb (5.0.0 moved it there from
-     under the badges) is the one deco ornament that shipped. Both render ◆
-     from the system font by decision — section 116 names it in
-     SYSTEM_MARKS. Since 5.0.0 the kick carries a diamond too, before the
-     route position, so the continuity line is matched by name. */
+     under the badges) is the one deco ornament that shipped. Until 5.2.0
+     both rendered ◆ from the system font by decision — then the cmap scan
+     showed no shipped face had ever carried the glyph, so every reader got
+     whatever their OS drew, at whatever size. 5.2.0 retired the character:
+     the dsep is an empty <i> the stylesheet draws (a rotated currentColor
+     box), same gold, same seat, one shape on every device. The markup pin
+     below holds the empty form — a glyph reappearing inside the dsep is
+     the platform lottery coming back. */
   var head = fn("heroHead");
-  if(!/<p class="hcont">'\+f\.gn\+' <i class="dsep"[^>]*>\\u25c6</.test(head) || /f\.gn\+' \\u00b7 '/.test(head)){
-    fail("the hero meta line is back on the plain dot — 4.3.0 set a gold " +
-         "◆ between the continuity number and its name (class dsep, " +
-         "aria-hidden: it is an ornament, not a word)");
+  if(!/<p class="hcont">'\+f\.gn\+' <i class="dsep" aria-hidden="true"><\/i>/.test(head) || /f\.gn\+' \\u00b7 '/.test(head)){
+    fail("the hero meta line is back on the plain dot, or the dsep carries " +
+         "a character again — since 5.2.0 it is an empty aria-hidden <i> " +
+         "the stylesheet draws, because no shipped face ever had ◆");
   }
-  if(!/class="drule"/.test(head)){
+  if(!/\.hero \.dsep\{[^}]*width:\.45em;height:\.45em;background:var\(--signal\);transform:rotate\(45deg\)/.test(HTML)){
+    fail("the dsep stopped being drawn — the .45em rotated signal box is " +
+         "the diamond now; without the rule the separator is invisible");
+  }
+  if(!/class="drule" aria-hidden="true"><i><\/i>/.test(head)){
     fail("the diamond rule left the hero — heroHead() draws it between the " +
-         "badges and the blurb: one gold ◆ on a gradient hairline, " +
-         "aria-hidden, the one deco ornament the owner kept");
+         "badges and the blurb: one gold drawn diamond on a gradient " +
+         "hairline, aria-hidden, the one deco ornament the owner kept " +
+         "(since 5.2.0 the diamond is the empty <i> the stylesheet draws)");
+  }
+  /* 5.2.0: the rule's diamond is sized by token, not by font. The old 8px
+     glyph and the 13px one on Progress were two accidents — the second was
+     .bk p's font-size outranking .drule's — and the owner chose the big
+     one. --dia is that choice, immune to any paragraph's cascade. */
+  if(!/\.drule i\{width:var\(--dia\);height:var\(--dia\);background:currentColor;transform:rotate\(45deg\)/.test(HTML) ||
+     !/--dia:7px; --dia-s:4\.5px;/.test(HTML)){
+    fail("the drule diamond lost its token — .drule i draws var(--dia) " +
+         "square rotated 45°, and the two size tokens (--dia, --dia-s) are " +
+         "the whole size system; a font-size creeping back in is the " +
+         ".bk p accident of 5.1.x returning");
   }
   var closed = HTML.match(/<p class="kick">Case closed<\/p>[\s\S]{0,400}?class="blurb"/);
   if(!closed || !/class="drule"/.test(closed[0])){
@@ -13289,13 +13327,25 @@ var ROUTE_VOCAB = [
          "pair; section 116's system-marks list already dropped it, so a " +
          "returning triangle also renders from nobody's font subset on paper");
   }
-  if((HTML.match(/class="caret" aria-hidden="true">\\u203A\\u203A</g) || []).length !== 3){
+  /* 5.2.0 drew the pair. › came from the system font (the old
+     SYSTEM_MARKS entry) because no shipped face carried it either — so the
+     caret became two bordered boxes the stylesheet rotates, and the empty
+     span is the pin. Four seats now: group heads, the progress fold, the
+     belt buckle, and the expand-all button, which gave up its ::after
+     text pair to join the same family instead of keeping a private
+     construction. */
+  if((HTML.match(/class="caret" aria-hidden="true"><\/span>/g) || []).length !== 4){
     fail("the chevron pair left a caret site — group heads, the progress " +
-         "fold and the belt buckle all point with \\u203A\\u203A, escaped so " +
-         "section 106's literal scan stays quiet by the same decision as ◆");
+         "fold, the belt buckle and the expand-all button all point with " +
+         "the same drawn pair (an empty aria-hidden span the stylesheet " +
+         "draws); a character inside the span is the system font back");
   }
-  if(!/\.allbtn::after\{content:"\\203A\\203A"/.test(css) ||
-     !/\.allbtn\.shut::after\{transform:none;\}/.test(css) ||
+  if(!/\.caret::before,\.caret::after\{content:"";width:6px;height:6px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate\(45deg\)/.test(css)){
+    fail("the caret stopped being drawn — the pair is two 6px bordered " +
+         "boxes rotated 45°, one shape from our own CSS on every device");
+  }
+  if(!/\.allbtn \.caret\{color:currentColor;transform:rotate\(90deg\);\}/.test(css) ||
+     !/\.allbtn\.shut \.caret\{transform:none;\}/.test(css) ||
      !/\.group\.open \.caret\{transform:rotate\(90deg\)/.test(css)){
     fail("the chevron states stopped turning — the pair points right when " +
          "shut and down when open, on the same rotate the triangle used; " +
@@ -13303,19 +13353,21 @@ var ROUTE_VOCAB = [
   }
 
   /* -- every tab closes on the diamond: the four footers (Home's colophon,
-     the availability notes, the build lines, the legend that closes The
-     Path) share one rule pair — a centre-fading hairline and a ◆ seated on
-     ink over it. The owner's call, extending the hero's ornament to footer
-     rank; only the first of a stacked pair wears it, or Next up ends on
-     two diamonds three lines apart. The double content declaration is the
-     alt-text form where engines have it (the ornament stays silent to a
-     reader) over a plain fallback where they don't. -- */
+     the availability note, the build lines, the legend that closes The
+     Path) share one rule pair — a centre-fading hairline and a diamond
+     seated on ink over it. The owner's call, extending the hero's ornament
+     to footer rank. 5.2.0 replaced the ◆ character (which no shipped face
+     carried — every device drew its own) with a drawn box at the small
+     token, its ink seat now the box-shadow that parts the hairline; the
+     old double content declaration was alt-text for a glyph, and an empty
+     box needs none. -- */
   if(!/\.homefoot,\.note\.foot,\.legend\{position:relative;margin-top:30px;\n  background:linear-gradient\(90deg,transparent,var\(--signalline\) 50%,transparent\) top\/100% 1px no-repeat;\}/.test(css) ||
-     !/\.homefoot::before,\.note\.foot::before,\.legend::before\{content:"\\25C6";content:"\\25C6" \/ "";font-family:var\(--body\);/.test(css)){
+     !/\.homefoot::before,\.note\.foot::before,\.legend::before\{content:"";position:absolute;top:0;left:50%;width:var\(--dia-s\);height:var\(--dia-s\);transform:translate\(-50%,-50%\) rotate\(45deg\);background:var\(--signal\);box-shadow:0 0 0 6px var\(--ink\);\}/.test(css)){
     fail("the footer diamond rule is gone or reshaped — all four tab footers " +
-         "close on the same ◆-on-fading-hairline construction, declared once " +
-         "for the three footer rules; a footer back on the bare --line border " +
-         "is the deco pass un-shipping from the bottom up");
+         "close on the same drawn-diamond-on-fading-hairline construction, " +
+         "declared once for the three footer rules at the small token; a " +
+         "footer back on the bare --line border, or a ◆ character back in " +
+         "the content, is the deco pass un-shipping from the bottom up");
   }
   if(/\.homefoot\{[^}]*border-top/.test(css) || /\n\.note\.foot\{[^}]*border-top/.test(css) ||
      /\.legend\{[^}]*border-top/.test(css)){
@@ -13338,23 +13390,25 @@ var ROUTE_VOCAB = [
          "and the 4.4.0 soak already caught the three-source version: " +
          "30 over Home, 16 over the notes, 14 over the legend");
   }
-  /* 4.4.3, the soak again: The Path's diamond rendered from the Sans
-     stack (the legend inherits the body face) while the other three came
-     from Mono — one glyph, two fallback faces, two sizes, and iOS shows
-     the spread hardest. The ::before pins font-family to the body face,
-     the one the hero's own diamonds already use; the regex above holds it
-     there. Three contexts and no pinned face is the margins bug wearing a
-     font. */
-  if(!/\.note\.foot\+\.note\.foot\{margin-top:16px;/.test(css)){
-    fail("the stacked second note lost its 16px — without it the shared " +
-         "30px applies and Next up's two closing notes drift a diamond's " +
-         "width apart");
+  /* 4.4.3 pinned the glyph's font because the legend drew it from Sans and
+     the rest from Mono — two faces, two sizes. 5.2.0 made that whole class
+     of bug impossible (a drawn box has no face), and it retired the other
+     patient too: the stacked pair. Next up's two closing notes — the
+     availability truth and the dates truth — merged into one note.foot,
+     the second truth riding a buildline span exactly the way the Build /
+     Support footer already stacks its own lines. One block, one diamond,
+     no orphan drifting under it, and the .note.foot+.note.foot exception
+     rules (the private 16px, the stripped diamond) went with it. */
+  if(/\.note\.foot\+\.note\.foot/.test(css)){
+    fail("the stacked-note exception rules are back — since 5.2.0 no tab " +
+         "stacks two note.foot blocks; the second truth lives inside the " +
+         "first block on a buildline span, so the exception has nothing to " +
+         "except and can only mask a footer accidentally split in two");
   }
-  if(!/\.note\.foot\+\.note\.foot\{[^}]*background:none;\}/.test(css) ||
-     !/\.note\.foot\+\.note\.foot::before\{content:none;\}/.test(css)){
-    fail("the second stacked footer note wears the diamond too — Next up " +
-         "would close on two of them three lines apart, which is ornament " +
-         "becoming wallpaper");
+  if(!/class="note foot">Availability changes[\s\S]{0,220}?<span class="buildline">Announced dates can move\.<\/span><\/p>/.test(HTML)){
+    fail("Next up's closing note split apart again — both watching truths " +
+         "share one note.foot, the dates line on a buildline span; a " +
+         "second <p> drifts a diamond's width away and reads as an orphan");
   }
 
   /* -- the stepped underline: the short heavy bar is the you-are-here -- */
@@ -13374,9 +13428,23 @@ var ROUTE_VOCAB = [
          "(the circle was 4.4.0's one piece of muscle-memory spending, and " +
          "half a diamond is neither shape)");
   }
-  if(!/\.tick::after\{[^}]*rotate\(-45deg\)/.test(css)){
-    fail("the tick's check rides the rotation — ::after counter-rotates or " +
-         "every checkmark in the app lies on its side");
+  /* 5.2.0: the check is drawn, not typed — ✓ was never in any shipped
+     face (nor even in SYSTEM_MARKS: its CSS-escape form was invisible to
+     section 116's scan), so every device rendered its own. The ::after is
+     now an L of two borders; its rotation folds the old −45° counter-turn
+     and the −45° that turns an L into a check into one −90°. The skip
+     state overrides the same box into a flat bar (net 0° after the
+     container's 45°). */
+  if(!/\.tick::after\{content:"";width:13px;height:7px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate\(-90deg\)/.test(css)){
+    fail("the tick's check stopped being drawn, or lost its −90° — the " +
+         "container turns +45° and the two-border L needs −45° more to " +
+         "read as a check; any other angle and every checkmark in the app " +
+         "lies on its side, any content back in quotes is the OS's font");
+  }
+  if(!/\.film\.skip \.tick::after\{width:12px;height:2px;border:0;background:currentColor;transform:rotate\(-45deg\);\}/.test(css)){
+    fail("the skip mark left the family — it is the same drawn box flattened " +
+         "to a 2px bar, countered to horizontal; a \\2013 in content is the " +
+         "system font back in the tick");
   }
   if(!/\.tick::before\{content:"";position:absolute;top:-14px;left:-14px;right:-14px;bottom:-14px;\}/.test(css)){
     fail("the tick's halo no longer buys the scale back — at -14px the " +
@@ -14114,7 +14182,7 @@ var ROUTE_VOCAB = [
   if(hh.indexOf('<p class="blurb">') < 0 || hh.indexOf('<p class="drule"') < hh.indexOf('<p class="blurb">')){
     fail("the diamond rule sits above the blurb again — it is the seam between the film and the night, and belongs under the blurb");
   }
-  if(!/pos \? ' <i class="dsep" aria-hidden="true">\\u25c6<\/i> <b>'\+esc\(pos\)\+'<\/b>' : ''/.test(hh)){
+  if(!/pos \? ' <i class="dsep" aria-hidden="true"><\/i> <b>'\+esc\(pos\)\+'<\/b>' : ''/.test(hh)){
     fail("heroHead() no longer takes the route position for the kick");
   }
   var home = fn("viewHome"), next = fn("viewNext");
@@ -14259,7 +14327,7 @@ var ROUTE_VOCAB = [
   /* 3. Your data: the frame, the rule inside, no hairline. */
   var vs = fn("viewStats");
   if(!/<div class="bk yd"><h2>Your data<\/h2>/.test(vs)) fail("the Your data card lost its yd class — the signal frame hangs on it");
-  if(!/<p class="drule gold" aria-hidden="true">\\u25c6<\/p><h2>Restore<\/h2>/.test(vs)) fail("the gold rule between Your data and Restore is gone, or a hairline is back — the seam is the diamond, inside the box");
+  if(!/<p class="drule gold" aria-hidden="true"><i><\/i><\/p><h2>Restore<\/h2>/.test(vs)) fail("the gold rule between Your data and Restore is gone, or a hairline is back — the seam is the diamond (drawn since 5.2.0), inside the box");
   if(/class="bkhr"/.test(HTML) || /\.bkhr\{/.test(HTML)) fail("the plain hairline (.bkhr) is back on Progress");
   if(!/\.bk\.yd\{[^}]*border-color:var\(--signaledge\)/.test(HTML)) fail("the Your data card lost its signal frame");
   if(!/\.bk \.drule\{[^}]*color:var\(--signal\)/.test(HTML)) fail("the rule inside a card can lose its ink to the card's paragraph colour again — .bk .drule must pin signal");

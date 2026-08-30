@@ -141,7 +141,7 @@ run_case "48: the Progress footer describes the old link again" \
 
 run_case "49: the Activity tick reads as unwatched" \
   "Activity tick is unfilled" \
-  "${P}old='.arow .tick{width:24px;height:24px;font-size:11px;align-self:start;margin-top:2px;background:var(--bone);';assert old in s;s=s.replace(old,'.arow .tick{width:24px;height:24px;font-size:11px;align-self:start;margin-top:2px;background:transparent;',1);${W}"
+  "${P}old='.arow .tick{width:24px;height:24px;align-self:start;margin-top:2px;background:var(--bone);';assert old in s;s=s.replace(old,'.arow .tick{width:24px;height:24px;align-self:start;margin-top:2px;background:transparent;',1);${W}"
 
 run_case "52: the chosen format stops being persisted" \
   "format is not persisted" \

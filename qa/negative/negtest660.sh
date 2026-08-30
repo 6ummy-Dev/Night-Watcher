@@ -66,8 +66,8 @@ run_case "the card drops its class" \
   guards "" 157
 
 run_case "the hairline comes back" \
-  "the seam is the diamond, inside the box" \
-  "${P}a='<p class=\"drule gold\" aria-hidden=\"true\">\\\\u25c6</p><h2>Restore</h2>';assert a in s;s=s.replace(a,'<hr><h2>Restore</h2>',1);${W}" \
+  "the seam is the diamond (drawn since 5.2.0), inside the box" \
+  "${P}a='<p class=\"drule gold\" aria-hidden=\"true\"><i></i></p><h2>Restore</h2>';assert a in s;s=s.replace(a,'<hr><h2>Restore</h2>',1);${W}" \
   guards "" 157
 
 run_case "the frame loses its ink" \

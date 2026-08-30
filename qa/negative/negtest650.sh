@@ -96,7 +96,7 @@ echo "--- 155: the sitting"
 
 run_case "the rule climbs back above the blurb" \
   "the diamond rule sits above the blurb again" \
-  "${P}a=\"    '<p class=\\\"blurb\\\">'+esc(f.d)+'</p>'+\n    '<p class=\\\"drule\\\" aria-hidden=\\\"true\\\">\\\\u25c6</p>';\";assert a in s, a;s=s.replace(a,\"    '<p class=\\\"drule\\\" aria-hidden=\\\"true\\\">\\\\u25c6</p>'+\n    '<p class=\\\"blurb\\\">'+esc(f.d)+'</p>';\",1);${W}" \
+  "${P}a=\"    '<p class=\\\"blurb\\\">'+esc(f.d)+'</p>'+\n    '<p class=\\\"drule\\\" aria-hidden=\\\"true\\\"><i></i></p>';\";assert a in s, a;s=s.replace(a,\"    '<p class=\\\"drule\\\" aria-hidden=\\\"true\\\"><i></i></p>'+\n    '<p class=\\\"blurb\\\">'+esc(f.d)+'</p>';\",1);${W}" \
   guards "" 155
 
 run_case "Home stops saying where you stand" \

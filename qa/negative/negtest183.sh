@@ -7,9 +7,9 @@
 # 1.8.2 shape here is re-anchored without it — the marker under test is unchanged.
 # The whole bug, restored: the head carries a marker again and the count is
 # replaced into it afterwards. This is verbatim what 1.8.2 shipped.
-REGRESS="${P}a='''      (ao ? \"Collapse all\" : \"Expand all\")+'</button></div>';'''
+REGRESS="${P}a='''      '<span class=\"albl\">'+(ao ? \"Collapse all\" : \"Expand all\")+'</span><span class=\"caret\" aria-hidden=\"true\"></span></button></div>';'''
 assert a in s
-s=s.replace(a,'''      (ao ? \"Collapse all\" : \"Expand all\")+'</button></div>%%COUNT%%';''',1)
+s=s.replace(a,'''      '<span class=\"albl\">'+(ao ? \"Collapse all\" : \"Expand all\")+'</span><span class=\"caret\" aria-hidden=\"true\"></span></button></div>%%COUNT%%';''',1)
 b='''  var html = head + (q
     ? '<p class=\"scopenote\" role=\"status\" aria-live=\"polite\">'+shownTotal+(shownTotal===1?\" match\":\" matches\")+'</p>'
     : \"\") + body;'''
