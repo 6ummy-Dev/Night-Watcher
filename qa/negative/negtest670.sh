@@ -1,5 +1,5 @@
 #!/bin/bash
-# negtest670 — 5.1.1, the QA 5.1.0 report closed. One fixture per promise in
+# negtest670 — 5.1.1, the QA 5.1.0 report closed; 5.1.2 adds the toast's two. One fixture per promise in
 # section 158 (every door), the date rule added to 154, the fixtures the
 # audit named as missing from 155/156 (2.12), the watchdog's new words, and
 # the What's-left refusal. Plus the un-park sequence the audit asked for:
@@ -99,6 +99,23 @@ run_case "What's left comes back by another name" \
   "What's left is back" \
   "${P}a='function favList(){';assert a in s;s=s.replace(a,'function routeText(){ return \"\"; }\nfunction favList(){',1);${W}" \
   guards "" 156
+
+echo "--- 20: the toast leaves the tree when it fades (5.1.2)"
+
+run_case "the hidden toast fades again" \
+  "mid-fade it is a low-contrast element axe can measure" \
+  "${P}a='z-index:35;visibility:hidden;transition:transform .25s,visibility 0s .25s;';assert a in s;s=s.replace(a,'z-index:35;opacity:0;visibility:hidden;transition:opacity .25s,transform .25s,visibility 0s .25s;',1);${W}" \
+  guards "" 20
+
+run_case "the toast stacks above the tab bar" \
+  "stacks above the tab bar" \
+  "${P}a='z-index:35;visibility:hidden;';assert a in s;s=s.replace(a,'z-index:60;visibility:hidden;',1);${W}" \
+  guards "" 20
+
+run_case "the shown toast slides in invisible" \
+  "slide in invisible" \
+  "${P}a='.toast.show{visibility:visible;transition-delay:0s;';assert a in s;s=s.replace(a,'.toast.show{',1);${W}" \
+  guards "" 20
 
 echo "--- smoke: the drop reaches the disk, every door driven, the watchdog says so"
 

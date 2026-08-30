@@ -14,6 +14,41 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [5.1.2] — 2026-08-30
+
+**The node, named.** 5.1.1's first CI run went red on the browser
+(chromium) job with the line 4.9.5 built the diagnostic to print:
+`axe (first-run chooser): color-contrast ×1 [#toast #0e1118 on #13161d =
+1.04 (floor 4.5:1)]`. Not the chooser. The **toast** — the pill that says
+"Path: Bruce's life" at the bottom — hides at `opacity:0` behind a
+0.25 s fade, and for that quarter second after any toast it is a
+half-transparent bone pill with ink text on it. An axe run that lands
+inside the window measures it and gets 1.04:1; one that lands outside
+gets nothing. That is the whole intermittent: red three nights in a row,
+green for a week, red again on the first push after a chooser state that
+happens to follow a toast. Chrome 151 made the window easier to hit. The
+defect was there since the toast was.
+
+### Fixed
+
+- **The toast no longer fades — it slides behind the tab bar, opaque.**
+  Half-transparency was the whole defect, so it is gone: the pill is
+  opaque for its whole life, slides its 80px down behind the tab bar
+  (stacked under it now, 35 to the bar's 40) and goes `visibility:hidden`
+  the moment the slide ends; `.show` brings it back with no delay. Probed
+  with axe at 0, 60, 120, 200, 240 and 300 ms after the hide: the old
+  rule violated at 120 and 200 ms, the new one never — text occluded by
+  the bar is "incomplete" to axe, not a violation. What a reader sees is a
+  pill that slides up and slides away, where it used to fade. A check in
+  section 20 pins the rule, the stacking and the show state; three
+  fixtures in negtest670 remove each.
+
+### Why PATCH
+
+Two CSS rules and their guard. The 4.9.5 promise — "the fix, or the
+recorded exemption, written against a named element and a measured
+ratio" — is met: `#toast`, 1.04:1, fixed.
+
 ## [5.1.1] — 2026-08-29
 
 **Every door.** The 5.1.0 audit (`NightWatcherQA5.1.0.md`, 29 August,
@@ -93,15 +128,13 @@ missing fixtures — and removes one 5.0.0 feature on the owner's call.
   it predicted — and 5.0.0's smoke delta is counted. The off-tree
   citations in the 4.9.2 and 5.0.0 entries carry the "maintainer-local"
   label the others do.
-- **The 4.9.5 loop, closed.** 4.9.5 armed a diagnostic for the nightly's
-  `color-contrast ×1` on the first-run chooser (runner Chrome 151) and
-  promised "the fix, or the recorded exemption" as the next patch. The
-  nightly went green on the same tree from the next run and has stayed
-  green through 5.0.0 and 5.1.0; the diagnostic never produced a named
-  element. On the record, dated 29 August: no fix was made because none
-  was found; no exemption is recorded because nothing was measured; the
-  diagnostic stays armed, and the first red that names a node reopens
-  this line.
+- **The 4.9.5 loop, closed — for one push.** 4.9.5 armed a diagnostic
+  for the nightly's `color-contrast ×1` on the first-run chooser (runner
+  Chrome 151) and promised "the fix, or the recorded exemption" as the
+  next patch. The nightly went green on the same tree from the next run
+  and stayed green through 5.0.0 and 5.1.0; this entry first recorded
+  that no fix was made because none was found. This patch's own first CI
+  run then named the node. See 5.1.2.
 
 ### Under the hood
 

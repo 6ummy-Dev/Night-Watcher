@@ -1893,6 +1893,33 @@ heroRules.forEach(function(rule){
   note("watch link: --" + fg[1] + " over rgba(" + rgb.join(",") + "," + a + ") clears AA on every surface");
 })();
 
+/* 5.1.2: THE TOAST MID-FADE. The 4.9.5 nightly red — "color-contrast ×1" on
+   the first-run chooser, Chrome 151 — named its node on 5.1.1's first CI
+   run: #toast, ink #0e1118 on #13161d, 1.04:1. The toast hides at opacity:0
+   behind a .25 s fade, and for that quarter second after any toast it is a
+   half-transparent bone pill with ink text on it; an axe run that lands
+   inside the window measures it. Chrome 151 made the window easier to hit;
+   the defect was there since the toast was. The toast no longer fades: it
+   is opaque for its whole life, slides 80px down behind the tab bar
+   (z-index 35, under #tabs' 40) and goes visibility:hidden the moment the
+   slide ends; .show brings it back with no delay. Probed with axe at
+   0/60/120/200/240/300 ms after hide: the old rule violated at 120 and
+   200 ms, the new one never (occluded text is "incomplete", not a
+   violation). Measured tokens above are untouched: this is about what axe
+   sees, not what a reader does. */
+(function(){
+  var toast = (HTML.match(/\.toast\{[^}]*\}/) || [""])[0];
+  var shown = (HTML.match(/\.toast\.show\{[^}]*\}/) || [""])[0];
+  if(/opacity:0/.test(toast) || !/visibility:hidden/.test(toast) || !/transition:transform \.25s,visibility 0s \.25s/.test(toast)){
+    fail("the hidden toast fades again — mid-fade it is a low-contrast element axe can measure (the 4.9.5 nightly red, named on 5.1.1's first run: #toast at 1.04:1); it slides behind the tab bar opaque and goes visibility:hidden when the slide ends");
+  }
+  var tz = (toast.match(/z-index:(\d+)/) || [])[1], bz = (HTML.match(/#tabs\{[^}]*z-index:(\d+)/) || [])[1];
+  if(!tz || !bz || parseInt(tz, 10) >= parseInt(bz, 10)) fail("the toast stacks above the tab bar (" + tz + " vs " + bz + ") — its slide-out would show, not hide");
+  if(!/visibility:visible/.test(shown) || !/transition-delay:0s/.test(shown)){
+    fail("a shown toast does not restore visibility without delay — it would slide in invisible");
+  }
+})();
+
 /* ---------- 21. A blocked store has to say so ------------------------- */
 /* A blocked store used to fail silently. The warning must be inside the
    sticky header, where it cannot scroll away. */
