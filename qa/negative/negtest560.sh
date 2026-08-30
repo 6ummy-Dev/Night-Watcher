@@ -120,8 +120,8 @@ echo "--- 111: one merge"
 
 run_case "the helper loses the BYID gate" \
   "applyMarks() lost the BYID gate" \
-  "${P}a='if(!res.watched[id] || !BYID[id] || S.watched[id]';assert a in s
-s=s.replace(a,'if(!res.watched[id] || S.watched[id]',1)
+  "${P}a='if(!res.watched[id] || !BYID[id] || isParkedId(id) || S.watched[id]';assert a in s
+s=s.replace(a,'if(!res.watched[id] || isParkedId(id) || S.watched[id]',1)
 a='if(!res.skipped[id] || !BYID[id] || isParkedId(id) || S.watched[id]';assert a in s
 s=s.replace(a,'if(!res.skipped[id] || isParkedId(id) || S.watched[id]',1)
 a='if(!rv || !BYID[id] || S.rated[id] === rv';assert a in s

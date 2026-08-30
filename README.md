@@ -30,7 +30,7 @@ CHANGELOG entry, the same as before. "Sealed" is a record, not a freeze:
 - **A sitting, not a list.** Next up names a night you can actually watch. A title that is not out yet is **parked**: on The Path with its date, never the hero, never ticked or skipped, and off every count — so *To go* counts what exists and a route can be finished while 2028 sits in the catalogue. A universe with no internal order says so on the hero and offers **Let Gotham choose**. The film sits above the diamond rule, your night below it; Home is the poster (where you stand, one button), Next up is the desk.
 - **Home dashboard.** Resume card with your position on the route, tier meters, scoreboard, a tappable grid of every universe, and your recent watches.
 - **Someone in the room.** An *R / TV-MA off* chip on The Path for a night with company — an exclude-set, never a ceiling across two rating systems, and a view only: it moves neither the count nor the hero. Under the nights line, Progress forecasts *at your pace, done by March* once three nights are logged; counted, never awarded.
-- **Four things that never leave the browser.** *Watched up to here* on any row logs everything unwatched before it (skips stay skipped); *What's left* copies the rest of your route as plain text; Progress counts your **nights** from the log's own timestamps — counted, never awarded; and **Your five stars** lists what you rated five, copyable.
+- **Three things that never leave the browser.** *Watched up to here* on any row logs everything unwatched before it (skips stay skipped); Progress counts your **nights** from the log's own timestamps — counted, never awarded; and **Your five stars** lists what you rated five, copyable or as a text file. (A fourth, the rest of your route as one-click text, shipped in 5.0.0 and was removed in 5.1.1: it handed a first-time visitor the whole curated route in a click. `orders.txt` remains, for crawlers.)
 - **Progress.** One chart — the chosen ordering's, and it follows the belt: universes, eras of Bruce's life, or decades of release. A skyline of bars, each as wide as its group's share of the catalogue, filling bottom-up as you watch. Tap any bar to jump straight there; the fold lists below carry the same jumps for all three orderings.
 - **Backup & transfer.** A compact code, a link that restores everything when opened on another device, and a full JSON export/import — all client-side, built on frozen IDs so backups stay valid forever. The code is versioned and read tolerantly: it carries your chosen path, and a code written by a newer build still restores everything an older one understands.
 - **Shareable views.** Link straight to a view: [`#life`](https://nightwatcher.life/#life) for the chronology of Bruce's life, `#release`, `#universes` (or `#path`), `#next`, `#progress` — combine with scope like `#life-series` or `#universes-movies`. A restore link is `#nw=` followed by a backup code. A view link shows you the view once and then leaves the address bar; it never rewrites your own choices.
@@ -161,14 +161,14 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 74 negative suites, 1202
+trusted. That evidence lives in `qa/negative/` — 75 negative suites, 1223
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
 every fixture onto the section it breaks and fails the build on any section
 without one, and the counts in this paragraph are themselves guarded.
 
-The second half of `npm test` is `qa/smoke.js`, a headless render test that boots the real page in jsdom and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, the cross-tab merge, and the path end to end — 447 checks. jsdom is a declared dev dependency; a local clone without it skips the suite and says so, CI treats the skip as a failure.
+The second half of `npm test` is `qa/smoke.js`, a headless render test that boots the real page in jsdom and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, the cross-tab merge, and the path end to end — 453 checks. jsdom is a declared dev dependency; a local clone without it skips the suite and says so, CI treats the skip as a failure.
 
 ## Releasing
 
@@ -181,9 +181,12 @@ and the rollback runbook — is `RELEASING.md`.
 
 Write the changelog entry in the same commit as the change. A new feature or a
 catalogue addition is a MINOR bump; fixes, copy, QA tooling and documentation
-are PATCH; MAJOR is reserved for a breaking change to saved progress — which
-should never happen, because every `i:` is frozen. Each MINOR's CHANGELOG entry
-opens by saying what made it a MINOR.
+are PATCH; MAJOR is reserved for a change to saved progress — either its
+shape, which should never happen because every `i:` is frozen, or what its
+numbers mean for a reader who already has some (5.0.0 took five titles off
+*To go* and dropped skips placed on them; nothing saved changed shape). Each
+MINOR's CHANGELOG entry opens by saying what made it a MINOR; each MAJOR's
+says which of the two lines it crossed.
 
 ## Adding to the catalogue
 

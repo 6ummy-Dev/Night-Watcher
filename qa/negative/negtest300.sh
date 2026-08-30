@@ -293,8 +293,8 @@ echo "--- 111: watched and skipped are never both true"
 # smoke check stays honestly green.
 run_case "the cross-tab merge stops clearing the skip" \
   "clears this tab's skip" \
-  "${P}a='if(!S.watched[k]){ S.watched[k] = 1; delete S.skipped[k]; moved++; }'
-assert a in s;s=s.replace(a,'if(!S.watched[k]){ S.watched[k] = 1; moved++; }',1)
+  "${P}a='if(!S.watched[k] && !isParkedId(k)){ S.watched[k] = 1; delete S.skipped[k]; moved++; }'
+assert a in s;s=s.replace(a,'if(!S.watched[k] && !isParkedId(k)){ S.watched[k] = 1; moved++; }',1)
 b='} else { delete S.skipped[k]; }'
 assert b in s;s=s.replace(b,'} else {}',1);${W}" \
   "smoke" "main"

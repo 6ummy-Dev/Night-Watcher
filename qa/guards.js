@@ -145,6 +145,7 @@ function blessHtml(next){
      155  The sitting: two heroes, one card, and the night under the rule
      156  Four small things that never leave the browser
      157  Someone in the room: the chip, the pace, and the Progress tab's rank
+     158  Every door: a mark on a parked title is refused at each seat that writes one
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -3590,7 +3591,10 @@ if(!/kept by 6ummy/.test(HTML)) fail("the credit line is gone from the footer");
                  (navigator.storage), and what this section asserts is what
                  happens to S. */
               askDurable:function(){},
-              tickUpdate:function(){} };
+              tickUpdate:function(){},
+              /* 5.1.1: markWatched() refuses a parked id at the door. This
+                 section's ids are not catalogue slugs, so nothing is parked. */
+              isParkedId:function(){ return false; } };
   /* Hand-written copies of clampRating() and markWatched() lived here until
      1.7.5 and quietly diverged from the app: parseInt where the page uses
      Math.floor(Number()), and a markWatched that never cleared S.skipped. This
@@ -13996,10 +14000,19 @@ var ROUTE_VOCAB = [
                  fn("upNext"), fn("behind")].join("\n"))
     .runInContext(vm.createContext(box));
   var c = box.counts();
-  if(c.total !== 2 || c.parked !== 1 || c.left !== 2){
-    fail("counts() still counts a parked entry — total " + c.total + ", parked " + c.parked +
-         ", left " + c.left + "; To go must count what exists");
+  if(c.total !== 2 || c.left !== 2 || "parked" in c){
+    fail("counts() still counts a parked entry — total " + c.total + ", left " + c.left +
+         ("parked" in c ? ", and carries a parked field nothing reads (dropped in 5.1.1)" : "") +
+         "; To go must count what exists");
   }
+  /* 2.8: when: is the one home for a date. A blurb that repeats it is the
+     first slipped date printing twice. */
+  FILMS.forEach(function(f){
+    if(f.b.indexOf("u") < 0) return;
+    if((f.when && f.d.indexOf(f.when) >= 0) || /\b(19|20)\d\d\b/.test(f.d)){
+      fail(f.id + " carries a date in d: as well as when: — when: is canonical; the row and Then print it, the blurb must not");
+    }
+  });
   box.S.watched.a = 1;
   var nx = box.upNext();
   if(!nx || nx.id !== "c") fail("upNext() lands on a parked entry — the hero must be something a reader can watch tonight");
@@ -14021,7 +14034,7 @@ var ROUTE_VOCAB = [
     fail("applyMarks() lets a pasted backup skip a parked title");
   }
   var st = sliceOr('window.addEventListener("storage"', '\ndocument.getElementById("tabs")');
-  if(!/!isParkedId\(k\)/.test(st)) fail("the cross-tab merge lets another tab skip a parked title");
+  if(!/!S\.watched\[k\] && !isParkedId\(k\)\)\{ S\.skipped\[k\] = 1;/.test(st)) fail("the cross-tab merge lets another tab skip a parked title");
   if(!/isParkedId\(id\)\) return;/.test(fn("toggleSkip")) || !/isParkedId\(id\)\) return;/.test(fn("toggleWatched"))){
     fail("a tap can still tick or skip a parked title — toggleWatched()/toggleSkip() must refuse it");
   }
@@ -14030,6 +14043,9 @@ var ROUTE_VOCAB = [
   if(!/if\(isParked\(f\)\) return parkedRow\(f\);/.test(fn("filmRow"))) fail("filmRow() draws a parked entry as an ordinary row");
   var pr = fn("parkedRow");
   if(/data-act="watched"|data-act="skip"|starRow\(/.test(pr)) fail("parkedRow() renders a tick, a skip or stars on a title nobody can watch");
+  /* The `|| String(f.y)` fallback is dead by rule 1 above (every parked entry
+     carries when:). Pinned anyway: belt and braces on the one line a
+     reader sees the date on. */
   if(!/Not out yet \\u00b7 /.test(pr) || !/f\.when \|\| String\(f\.y\)/.test(pr)) fail("parkedRow() does not print the date in the meta line");
   if(!/\.film\.parked \.tick\{[^}]*border-style:dashed/.test(HTML)) fail("the parked ring is a solid ring — it reads as a tick waiting to happen");
   if(!/S\.filter === "left" && \(isDone\(f\) \|\| isSkip\(f\) \|\| isParked\(f\)\)/.test(fn("groupBlock"))){
@@ -14124,10 +14140,13 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 156. Four small things that never leave the browser ---- */
-/* Watched up to here, What's left, the nights line and Your five stars —
-   each computed from state that already existed, none adding a saved
-   field. The pins are the promises: no bulk write outside markWatched(),
-   no list that includes what cannot be watched, no night awarded. */
+/* Watched up to here, the nights line and Your five stars — each computed
+   from state that already existed, none adding a saved field. The pins are
+   the promises: no bulk write outside markWatched(), no night awarded.
+   What's left (the unwatched route as text) shipped here in 5.0.0 and was
+   removed in 5.1.1 on the owner's call: it was the one place in the app
+   where a click handed a person the whole curated route. It must not come
+   back by another name — the seat census below fails a routeText(). */
 
 (function(){
   var ub = fn("uptoButton"), uh = sliceOr('act === "upto"', 'else if(act === "group")');
@@ -14136,9 +14155,9 @@ var ROUTE_VOCAB = [
     fail("Watched up to here does not disarm on its own — the one bulk write in the app needs the reset button's four seconds");
   }
   if(!/ub\.forEach\(function\(x\)\{ markWatched\(x\.id\); \}\);/.test(uh)) fail("Watched up to here writes progress some way other than markWatched() — the log and the skip-clear would drift");
-  var rt = fn("routeText");
-  if(!/!isParked\(f\) && !isDone\(f\) && !isSkip\(f\)/.test(rt)) fail("routeText() lists something that is watched, skipped or not out yet");
-  if(!/pathName\(S\.mode\)/.test(rt) || !/SITE/.test(rt)) fail("routeText() no longer names the route or the site");
+  if(/function routeText|data-act="copyleft"|data-act="dlleft"|What\\u2019s left/.test(HTML)){
+    fail("What's left is back — the unwatched route as one-click text was removed in 5.1.1 on the owner's call, and orders.txt is for crawlers, not a button");
+  }
   var fl = fn("favList");
   if(!/clampRating\(S\.rated\[f\.id\]\) === 5/.test(fl)) fail("favList() is not exactly the five-star titles");
   var no = fn("nightsOf");
@@ -14153,7 +14172,7 @@ var ROUTE_VOCAB = [
   if(!/progFold\("fav", "Your five stars"/.test(fn("favBlock"))){
     fail("Your five stars is an open list again — a reader who rates everything gets a Progress tab as long as the catalogue; it folds, closed, and names its count");
   }
-  ["copyleft", "dlleft", "copyfav", "upto", "choose"].forEach(function(a){
+  ["copyfav", "dlfav", "upto", "choose"].forEach(function(a){
     if(HTML.indexOf('data-act="' + a + '"') < 0 || HTML.indexOf('act === "' + a + '"') < 0){
       fail("data-act=\"" + a + "\" is rendered without a handler, or handled without a seat");
     }
@@ -14236,6 +14255,43 @@ var ROUTE_VOCAB = [
   if(!/\.sfhead \.caret\{color:var\(--signal\);\}/.test(HTML)) fail("the Progress fold carets are not signal");
 
   note("someone in the room: chip excludes " + off.replace(/\s|"/g, "").split(",").join(" and ") + ", pace floor 3 nights / 2 titles, one bone recipe");
+})();
+
+/* ---------- 158. Every door: a mark on a parked title is refused at each seat that writes one ---- */
+/* 5.1.1. 5.0.0 promised a parked title "cannot be ticked or skipped, from
+   any door" and shipped with the skip doors gated and the watched doors
+   open — the asymmetry sat in one screenful for a release. A promise
+   phrased as EVERY needs a guard that enumerates the set (the head
+   allowlist's pattern): this one lists every statement that writes a
+   watched or skipped mark, requires each to sit behind an isParkedId test,
+   and fails a seventh seat nobody gated. The log is a door too. */
+
+(function(){
+  var writes = HTML.match(/S\.(watched|skipped)\[[A-Za-z0-9_]+\] = 1;/g) || [];
+  var DOORS = [
+    ["the tap (markWatched)",            /function markWatched\(id\)\{\n  if\(S\.watched\[id\] \|\| isParkedId\(id\)\) return;\n  S\.watched\[id\] = 1;/],
+    ["the tap (toggleSkip)",             /function toggleSkip\(id\)\{\n  if\(isParkedId\(id\)\) return;\n[\s\S]{0,120}S\.skipped\[id\] = 1;/],
+    ["a pasted code or JSON (watched)",  /if\(!res\.watched\[id\] \|\| !BYID\[id\] \|\| isParkedId\(id\) \|\| S\.watched\[id\][^\n]*\n    S\.watched\[id\] = 1;/],
+    ["a pasted code or JSON (skipped)",  /if\(!res\.skipped\[id\] \|\| !BYID\[id\] \|\| isParkedId\(id\) \|\| S\.watched\[id\][^\n]*\n    S\.skipped\[id\] = 1;/],
+    ["another tab (watched)",            /if\(!S\.watched\[k\] && !isParkedId\(k\)\)\{ S\.watched\[k\] = 1;/],
+    ["another tab (skipped)",            /if\(!S\.skipped\[k\] && !S\.watched\[k\] && !isParkedId\(k\)\)\{ S\.skipped\[k\] = 1;/]
+  ];
+  DOORS.forEach(function(d){
+    if(!d[1].test(HTML)) fail("a parked title can be marked through " + d[0] + " — the door lost its isParkedId gate, or the seat moved and this list must move with it");
+  });
+  if(writes.length !== DOORS.length){
+    fail(writes.length + " statements write a watched or skipped mark and this section names " + DOORS.length +
+         " — a new door opened without a gate, or one closed without leaving the list");
+  }
+  if(!/BYID\[en\.id\] && !isParkedId\(en\.id\) && validTs\(en\.ts\)/.test(fn("mergeLog"))){
+    fail("mergeLog() accepts a log entry for a parked title — a night would be counted for something nobody could watch");
+  }
+  /* The load-time drop has to reach the disk, and has to win the clock
+     against an old tab or code, or the skip is only asleep until release day. */
+  var dp = fn("dropParkedSkips");
+  if(!/stampMark\("s", k\)/.test(dp)) fail("dropParkedSkips() stamps no clock — an older tab or code re-adds the skip the moment the title lands");
+  if(!/if\(n\) persist\(\);/.test(dp)) fail("dropParkedSkips() never persists — the skip stays in localStorage and resurfaces the day the badge drops");
+  note("every door: " + DOORS.length + " mark-writing seats, each gated; the log gated; the drop stamps and persists");
 })();
 
 /* ---------- report ---------- */

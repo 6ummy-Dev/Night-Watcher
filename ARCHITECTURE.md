@@ -68,8 +68,9 @@ groupFilms(key) = FILMS.filter(visible ∧ GROUPINGS[prefix].has(f, n))
 modeGroups(mode) → [{key, code, tag, name, note, films (sorted by the row's comparator)}], empties dropped
 buildGroups()   = modeGroups(S.mode), memoised on groupsKey(), tags numbered; also caches the flat pool
 pool()          = the groups' films concatenated, in display order
-counts()        = {total, done, skip, left} over pool()
-upNext()        = the first pool entry neither watched nor skipped (then the first unwatched)
+counts()        = {total, done, skip, left} over pool(), parked entries (b has "u") excluded from all four
+upNext()        = S.pick if it is still in the pool, released and unwatched; else the first released pool entry neither
+                  watched nor skipped (then the first released unwatched) — never a parked one
 ```
 
 `tierOf(f)` is exclusive — `"e"` if the entry carries the essential badge,
@@ -91,7 +92,9 @@ vocabulary; the seed's links (guard 90) may use nothing outside it.
 
 ## One render
 
-Mutate `S` → `persist()` (or not, for a transient) → `render()`, in code
+Mutate `S` → `persist()` (or not, for a transient — `S.pick`, the bag
+chooser's hero for this session, and `S.upto`, the armed Watched-up-to-here
+row, are transients alongside the view state) → `render()`, in code
 order:
 
 1. Snapshot the scroll offset first — before anything below can write

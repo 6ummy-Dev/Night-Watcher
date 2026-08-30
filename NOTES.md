@@ -15,7 +15,7 @@ Four other places carry part of the story and are not repeated here:
   required reading before a change; everything here is written in the
   present tense.
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 157 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 158 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -340,16 +340,19 @@ and clears the ones older builds let in. Dropping them is not a lost mark:
 "not now" on a title nobody can watch says nothing the badge does not.
 Guard 154.
 
-### `counts()` / `routePos()` / `g.size`
+### `counts()` / `g.size`
 
-`total` is the released entries in the pool; `parked` is counted apart.
-Every group carries `size` (its released entries) beside `films` (its
-shelf): the bars, the folds, the ✓ on a universe card and the skyline's
-crown all read `size`, so a universe holding a 2028 title can top out. The
-skyline's *width* stays `films.length` — width is size on the shelf, fill
-is what exists — and `roofOf()` keeps seeding from the shelf so the card
-and the skyline draw the same roof (guard 150). `routePos()` is the kick's
-"13 of 41": the row's 1-based place among released entries in route order.
+`total` is the released entries in the pool — `{total, done, skip, left}`,
+nothing else; a `parked` field rode along in 5.0.0 with no reader and was
+dropped in 5.1.1. Every group carries `size` (its released entries) beside
+`films` (its shelf): the bars, the folds, the ✓ on a universe card, Home's
+tier rows, the skyline's crown and the share card's fill all read `size`,
+so a universe holding a 2028 title can top out. Width stays `films.length`
+on the skyline and the card — width is size on the shelf, fill is what
+exists — and `roofOf()` keeps seeding from the shelf so the two draw the
+same roof (guard 150). The kick on Home prints `c.done` of `c.total`, the
+header's own number (5.1.0; the route position it printed in 5.0.0 read as
+a disagreement — NOTES-history has the story).
 
 ### `metaOf()` and the cost of the night
 
@@ -411,11 +414,14 @@ sixty days the line prints a day, further out a month. It moves with the
 log and cannot be earned, which is the difference between a pace and a
 streak.
 
-### `routeText()` / `favList()` / `nightsOf()`
+### `favList()` / `nightsOf()`
 
-Three lists off state that already existed. What's left is the pool minus
-watched, skipped and parked, in route order, headed by the route's name
-and the site. Five stars is exactly rating 5. Nights are distinct local
+Two lists off state that already existed. (A third, `routeText()` — the
+unwatched route as copyable text, "What's left" — shipped in 5.0.0 and
+left in 5.1.1: it was the one place in the app where a click handed a
+person the whole curated route; guard 156 refuses its return. `orders.txt`
+is a different thing: offered to crawlers and no-script readers, never by
+a button.) Five stars is exactly rating 5. Nights are distinct local
 calendar days in the log — counted on Progress, never awarded, no streaks;
 one line, not a scoreboard tile, because the three tiles account the pool
 and nights are another axis (the same argument that kept Essentials off

@@ -117,10 +117,10 @@ from the SECOND request after a deploy, over HTTP/2 or HTTP/3:
 
 ```
 curl -s -o /dev/null https://nightwatcher.life/            # primes the hint cache
-curl -sv -o /dev/null https://nightwatcher.life/ 2>&1 | grep -A7 '< HTTP/2 103'
+curl -sv -o /dev/null https://nightwatcher.life/ 2>&1 | grep -A7 -E '< HTTP/[23] 103'
 ```
 
-Expected: an `HTTP/2 103` block carrying the six `link:
+Expected: an `HTTP/2 103` (or `HTTP/3 103`, if curl negotiated h3) block carrying the six `link:
 </fonts/…>; rel=preload; as=font; crossorigin` lines from `_headers`, then
 the `200`. If the 103 never appears, the toggle is off — flip it and
 re-check; the six Link lines on the `200` are `_headers` working either

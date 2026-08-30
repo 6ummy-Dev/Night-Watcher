@@ -2491,3 +2491,32 @@ release was built to end, landing inside it. 4.9.1 closed that loop and put
 the completeness checks where the prose had been: the sweep counts the
 table's rows, the pointers are read on every run, and the shard balance is
 measured instead of stated.
+
+## 5.0.0 — The kick that said the wrong true number
+
+5.0.0 put a position on Home's kick: *Tonight's patrol ◆ 80 of 200*, the
+row the reader was standing on, 1-based among released entries in route
+order (`routePos()`). Ten pixels above it the header said *79 of 200*, the
+logged count. Both were true. Together they read as a disagreement, and
+the first reader to see them side by side was the owner, on the render
+sheet, the same evening. 5.1.0 made the kick print `c.done` — the header's
+own number from the same `counts()` call — and deleted `routePos()`;
+guard 155 now refuses it coming back. The lesson is smaller than the
+story: two true numbers within a thumb of each other must be the same
+number, or one of them must say what it is.
+
+## 5.0.0 → 5.1.1 — "From any door", and the door left open
+
+5.0.0's changelog promised that a parked title "cannot be ticked or
+skipped, from any door: the tap, the read, a pasted code, a JSON restore,
+another tab". The skip half was true: `toggleSkip`, `applyMarks`'s skipped
+loop and the cross-tab merge's skipped branch each carried an `isParkedId`
+gate. The watched half was not — the two twins beside them did not, and a
+4.x backup code, JSON file, restore link or still-open 4.x tab with *The
+Batman: Part II* ticked would have marked it watched, logged a night for
+it, and re-exported the mark. The 5.1.0 audit found it in one screenful.
+The same audit found the load-time skip drop was in memory only — no
+clock, no persist — so the resurrection the release said it had killed was
+asleep until release day. 5.1.1 closed both, and added guard 158, which
+does what a promise phrased as *every* needs: it enumerates the seats that
+write a mark, requires a gate at each, and fails a seventh nobody named.

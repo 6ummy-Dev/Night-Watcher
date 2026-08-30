@@ -28,7 +28,7 @@ run_case "The path stops honouring the chip" \
 
 run_case "the chip moves the count" \
   "consults the certificates chip" \
-  "${P}a='    if(isParked(f)){ parked++; return; }';assert a in s;s=s.replace(a,'    if(isParked(f) || (S.filter === \"safe\" && offLimits(f))){ parked++; return; }',1);${W}" \
+  "${P}a='    if(isParked(f)) return;\n    total++;';assert a in s;s=s.replace(a,'    if(isParked(f) || (S.filter === \"safe\" && offLimits(f))) return;\n    total++;',1);${W}" \
   guards "" 157
 
 echo "--- 157: the pace has a floor"

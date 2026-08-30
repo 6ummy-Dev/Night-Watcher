@@ -14,6 +14,106 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [5.1.1] — 2026-08-29
+
+**Every door.** The 5.1.0 audit (`NightWatcherQA5.1.0.md`, 29 August,
+maintainer-local) read the six releases since 4.9.1 whole and found the
+defects clustered where the record's own rhetoric was loudest. 5.0.0 said
+a parked title "cannot be ticked or skipped, from any door" and shipped
+with two watched doors open; it said the resurrection of a stale skip was
+dead, and the drop was in memory only. This patch closes the report in
+full — the two P1s, the two missed counts, the record corrections, the
+missing fixtures — and removes one 5.0.0 feature on the owner's call.
+
+### Fixed
+
+- **A parked title cannot be marked watched, from any door — now true.**
+  `applyMarks()`'s watched loop and the cross-tab merge's watched branch
+  carried no parked gate while their skip twins did; a 4.x backup code, a
+  JSON file, a restore link or a still-open 4.x tab with *The Batman:
+  Part II* ticked would have marked it watched, logged a night for it and
+  re-exported the mark. Gated at both, at `markWatched()` itself, and at
+  `mergeLog()`. **Guard 158 enumerates the doors**: every statement that
+  writes a watched or skipped mark is named, each must sit behind an
+  `isParkedId` test, and a seventh seat nobody gated fails — the
+  head-allowlist pattern, applied to a promise phrased as *every*. Smoke
+  drives all four doors and `markWatched()` directly.
+- **The stale-skip drop reaches the disk.** `dropParkedSkips()` deleted
+  from `S.skipped` and stopped: no clock, no persist. A reader who loaded
+  5.x and never ticked anything still had the skip in localStorage, and
+  the day the `u` badge dropped it would have resurfaced as "still
+  skipped" — the exact behaviour 5.0.0 said it removed. It now stamps
+  each dropped id (so an older tab's merge cannot re-add it) and
+  persists. A pasted pre-5.0 backup code restored after release day
+  still restores what it holds, by design — the merge only adds, and a
+  code carries no clock; the record says so rather than pretending
+  otherwise.
+- **Two counts the `g.size` sweep missed.** Home's tier rows divided by a
+  pool that still held the parked titles (the Core route could never
+  complete); the share card's building fill divided by the shelf where
+  the skyline divides by what exists. Both read `size` now; the card's
+  width stays the shelf.
+- **`when:` is the one home for a date.** The five parked blurbs
+  repeated their date in prose, unguarded; the first slipped date would
+  have printed twice and disagreed. The dates are out of the blurbs, and
+  guard 154 refuses a `d:` on a parked entry that carries `when:`'s text
+  or a four-digit year.
+- **Smoke's watchdog scales, and says what it is.** A fixed 180 s wall
+  since 4.5.3, while the suite grew 391 → 453, turned a loaded two-core
+  box into a wrong-reason red ("a document load handler did not fire")
+  twice in the audit. `SMOKE_WATCHDOG` (seconds) sets it; `run-all.sh`
+  doubles it when it packs suites side by side; the timeout message now
+  carries elapsed time and checks completed.
+- Smaller: the forecast's span counts local calendar days like the nights
+  do, and the near date carries its year across a New Year; arming
+  *Watched up to here* on a second row repaints the first; *Your five
+  stars* gains a text-file door beside the copy; `counts().parked` — a
+  field nothing read — is gone; `upNext()` re-checks that a pick is not
+  parked; RELEASING's Early Hints check greps `HTTP/[23] 103`.
+
+### Removed
+
+- **What's left.** The unwatched route as copyable text, shipped in
+  5.0.0, is gone: it was the one place in the app where a click handed a
+  person the whole curated route, and on a first visit that route is the
+  work. `orders.txt` is not the same thing and stays — offered to
+  crawlers and no-script readers, reachable by URL, never by a button.
+  Guard 156 refuses `routeText()` coming back by any name.
+
+### The record, corrected
+
+- README's MAJOR rule now covers both lines — the shape of saved
+  progress, and what its numbers mean — which is the line 5.0.0
+  actually crossed. NOTES no longer documents `routePos()` (its story
+  is in NOTES-history, with "every door"'s). ARCHITECTURE carries
+  `counts()`'s shape, `upNext()`'s pick, and the two transients. The
+  5.1.0 entry says 27 honest NRs, not 26, and records negtest650's
+  43 → 42. Both 5.x entries drop their shard-weight literals — §113
+  holds the property, and the 5.0.0 figures were wrong on arrival, as
+  it predicted — and 5.0.0's smoke delta is counted. The off-tree
+  citations in the 4.9.2 and 5.0.0 entries carry the "maintainer-local"
+  label the others do.
+- **The 4.9.5 loop, closed.** 4.9.5 armed a diagnostic for the nightly's
+  `color-contrast ×1` on the first-run chooser (runner Chrome 151) and
+  promised "the fix, or the recorded exemption" as the next patch. The
+  nightly went green on the same tree from the next run and has stayed
+  green through 5.0.0 and 5.1.0; the diagnostic never produced a named
+  element. On the record, dated 29 August: no fix was made because none
+  was found; no exemption is recorded because nothing was measured; the
+  diagnostic stays armed, and the first red that names a node reopens
+  this line.
+
+### Under the hood
+
+- Guard 158; guard 154's date rule; `qa/negative/negtest670.sh` (22
+  fixtures — every door opened and caught, the seventh door, the date
+  rule twice, the six §155/§156 arms the audit found unproven, the
+  watchdog fired at 30 s, What's left by another name); smoke +6
+  (447 → 453). Six older suites re-aimed at the gates this patch added
+  (650, 300, 660, 480, 490, 560 — all the fixtures that anchored on the
+  ungated watched loops). 75 suites, 1,223 fixtures (1,144 guards / 79
+  smoke), shards repacked level.
+
 ## [5.1.0] — 2026-08-29
 
 **Someone in the room.** The sitting's sequel, cut the same evening from
@@ -27,7 +127,7 @@ Nothing saved changes meaning.
 - **A certificates chip.** *R / TV-MA off*, on The Path beside the seven
   chips it already had. An exclude-set, never a ceiling: "nothing above
   PG-13" would need a ladder across two rating systems, and the badge
-  rule (guard 92) refuses to translate between them. The 26 honest NRs
+  rule (guard 92) refuses to translate between them. The 27 honest NRs
   stay on the shelf. A view chip like the others — it moves neither the
   pool, nor the counts, nor the hero, because moving the hero would be
   jumping the path.
@@ -69,9 +169,10 @@ Nothing saved changes meaning.
   Path with an NR left standing and the count and hero unmoved, the
   forecast's floor from below and from above, and the kick read against
   the header's own text. Four older fixtures re-aimed at the lines this
-  release moved (negtest650 the kick, 600 the chip list's tail, 176 the
+  release moved (negtest650 the kick — whose `routePos` fixture left
+  with the function, 43 → 42 — 600 the chip list's tail, 176 the
   finger-size floor across both bone rules, 200 the scoreboard seat). Four CI
-  shards repacked greedy-by-weight (1023 / 1022 / 1022 / 1021); 74
+  shards repacked greedy-by-weight (§113 holds them level); 74
   suites, 1,202 fixtures (1,128 guards / 74 smoke).
 
 ## [5.0.0] — 2026-08-29
@@ -157,8 +258,10 @@ route. Progress still never leaves the browser.
   new guard shown to fail), and a 5.0.0 smoke block that drives the
   parked shelf, both heroes, the bag, the chooser, up-to-here and the
   three Progress cards through the real buttons, plus a "stale skip"
-  reboot for the load-time drop. CI shards repacked greedy-by-weight
-  (986 / 988 / 988 / 987). Five older fixtures re-aimed at the lines
+  reboot for the load-time drop; 403 → 441 smoke checks. CI shards
+  repacked greedy-by-weight (§113 holds them level — the figures this
+  entry first printed were wrong on arrival, as §113 predicted). Five
+  older fixtures re-aimed at the lines
   this release moved (negtest200 the scoreboard seat, 510 the hero
   diamond, 550 the skyline crown, 560 and 570 the skip gate in
   `applyMarks()`), and guard 146 now matches the continuity line by
@@ -177,7 +280,7 @@ line.
 
 `claude/plan-5.0.0-sitting-2026-08-29.md` (the plan and the decisions
 that shrank it), the approved render mocks (Home A, Next up, the bag, a
-parked row), and `claude/release-prep-5.0.0.md`.
+parked row), and `claude/release-prep-5.0.0.md` — all maintainer-local.
 
 ## [4.9.5] — 2026-08-29
 
@@ -288,10 +391,10 @@ this cut there is nothing pending in the tree at all — not even a rider.
 here, and nothing is left open in the tree. Three things were pending —
 the Early Hints patch parked since the 27 Aug Cloudflare check, the three
 in-tree items from the 26 Aug ISO/IEC 25010 triage, and the one nit from
-the 4.9.1 audit (`NightWatcherQA4.9.1.md`, which otherwise closed clean:
+the 4.9.1 audit (`NightWatcherQA4.9.1.md`, maintainer-local, which otherwise closed clean:
 its "154 sections" baseline line is a miscount — the run it quotes prints
-153). After this cut, `open-items.md` holds only the owner's off-tree
-items and the dated triggers.
+153). After this cut, `open-items.md` (maintainer-local) holds only the
+owner's off-tree items and the dated triggers.
 
 ### Added
 

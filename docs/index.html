@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-pHy7kHzFvZrAasg/RsZM6XDieKs3rpk/6N7OrxZLZpQ='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-bCc0bUaVfbCEbHLaycpcxZqXcXNwea9+DFZ3Fwh6OwI='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -993,7 +993,7 @@ main,.panel{scrollbar-gutter:stable both-edges;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 157 sections, each one negative-tested, which section 138
+   qa/guards.js — 158 sections, each one negative-tested, which section 138
    checks rather than assumes.
 
    Read those before changing something that looks redundant. Most of it is
@@ -1096,7 +1096,7 @@ var PATH = [
  {i:"justice-league-x-rwby-part-two-2024",t:"Justice League x RWBY \u2014 Part Two",y:2024,e:7,lo:34,r:"PG",d:"The second half of that crossover.",o:1},
  {i:"suicide-squad-isekai-complete-series-2024",t:"Suicide Squad Isekai",sub:"Complete series",y:2024,ep:10,k:"tv",e:0,out:"none",r:"TV-MA",d:"Task Force X dropped into a sword-and-sorcery anime world. Batman never appears in it \u2014 Katana takes Harley down in the Gotham prologue \u2014 but the city and its people are where it starts.",b:[],o:1},
  {i:"aztec-batman-clash-of-empires-2025",t:"Aztec Batman: Clash of Empires",y:2025,e:0,out:"who",r:"R",d:"Yohualli Coatl in the Aztec empire under Spanish invasion. A genuine reimagining, not a reskin."},
- {i:"dynamic-duo-2028",t:"Dynamic Duo",y:2028,e:3,lo:1,d:"Theatrical, from Swaybox \u2014 puppetry mixed with CG. The origin of Dick Grayson and Jason Todd, and the friendship that breaks between them. 30 June 2028.",b:["u"],when:"30 June 2028"}]},
+ {i:"dynamic-duo-2028",t:"Dynamic Duo",y:2028,e:3,lo:1,d:"Theatrical, from Swaybox \u2014 puppetry mixed with CG. The origin of Dick Grayson and Jason Todd, and the friendship that breaks between them.",b:["u"],when:"30 June 2028"}]},
 
 {n:"08",name:"The Batman (2004)",
  note:"Its own continuity with a younger, more athletic Bruce, a stylised Gotham and radically redesigned rogues. Starts in Batman\u2019s third year and gradually builds the family around him.",
@@ -1131,7 +1131,7 @@ var PATH = [
  films:[
  {i:"the-batman-2022",t:"The Batman",y:2022,e:2,lo:10,r:"PG-13",d:"Year two, and he still signs his name Vengeance. Gotham as a rain-soaked crime scene, worked by a detective who is barely holding.",b:["e"]},
  {i:"the-penguin-season-1-2024",t:"The Penguin",sub:"Season 1",y:2024,ep:8,k:"tv",e:2,lo:11,r:"TV-MA",d:"The underworld has a vacancy. Batman is barely in it \u2014 this is the city\u2019s story, told from the bottom of it.",b:[]},
- {i:"the-batman-part-ii-2028",t:"The Batman: Part II",y:2028,e:2,lo:12,d:"Year three, 18 February 2028. Nothing more is known, and nothing more should be.",b:["u"],when:"18 February 2028"}]},
+ {i:"the-batman-part-ii-2028",t:"The Batman: Part II",y:2028,e:2,lo:12,d:"Year three. Nothing more is known, and nothing more should be.",b:["u"],when:"18 February 2028"}]},
 
 {n:"13",name:"The Burton / Schumacher Films",fmt:"live",
  note:"Four films, two directors, one continuity \u2014 and the tone changes completely halfway through. Keaton\u2019s Batman returns thirty years later in The Flash, which is filed under The DC Extended Universe.",
@@ -1224,8 +1224,8 @@ var PATH = [
  note:"Three films adapting the 1993 saga, arriving one at a time. Anson Mount as Batman.",
  films:[
  {i:"batman-knightfall-part-1-2026",t:"Batman: Knightfall \u2014 Part 1: Knightfall",y:2026,e:5,lo:1,r:"R",d:"Bane empties Arkham onto Gotham\u2019s streets and lets exhaustion do the rest."},
- {i:"knightfall-part-2-knightquest-2026",t:"Batman: Knightfall \u2014 Part 2: Knightquest",y:2026,e:5,lo:2,d:"Gotham finds out what a Batman without restraint looks like. Late 2026.",b:["u"],when:"Late 2026"},
- {i:"knightfall-part-3-knightsend-2027",t:"Batman: Knightfall \u2014 Part 3: KnightsEnd",y:2027,e:5,lo:3,d:"The end of the saga. Early 2027.",b:["u"],when:"Early 2027"}]},
+ {i:"knightfall-part-2-knightquest-2026",t:"Batman: Knightfall \u2014 Part 2: Knightquest",y:2026,e:5,lo:2,d:"Gotham finds out what a Batman without restraint looks like.",b:["u"],when:"Late 2026"},
+ {i:"knightfall-part-3-knightsend-2027",t:"Batman: Knightfall \u2014 Part 3: KnightsEnd",y:2027,e:5,lo:3,d:"The end of the saga.",b:["u"],when:"Early 2027"}]},
 
 {n:"27",name:"Standalone Justice League Films",bag:1,
  note:"League films belonging to no continuity. Doom is a Batman story wearing a Justice League jacket \u2014 the plot is his own contingency plans turned against the team \u2014 and Crisis on Two Earths is built around his opposite number; in the rest he ranges from lead to one of the crowd \u2014 no order between these; start anywhere.",
@@ -1382,7 +1382,7 @@ var PATH = [
  note:"James Gunn\u2019s rebooted continuity, shared with the live-action films. Its Batman is one unspoken silhouette \u2014 the group collects the entries that circle a Gotham this universe has not yet shown.",
  films:[
  {i:"creature-commandos-season-1-2024",t:"Creature Commandos",sub:"Season 1",y:2024,ep:7,k:"tv",e:0,out:"tbd",r:"TV-MA",d:"The first thing made in Gunn\u2019s DCU. Batman is a lightning-lit silhouette over a skylight in one flashback and never speaks \u2014 which is the only reason it is here, and all this continuity has shown of him.",b:[],o:1},
- {i:"clayface-2026",t:"Clayface",fmt:"live",y:2026,e:0,out:"tbd",d:"A horror film inside the DC Universe, about a body that will not stay one shape. No Batman in the film \u2014 whether Gotham has one by then is not established. In cinemas from 23 October 2026.",b:["u"],o:1,when:"23 October 2026"}]}];
+ {i:"clayface-2026",t:"Clayface",fmt:"live",y:2026,e:0,out:"tbd",d:"A horror film inside the DC Universe, about a body that will not stay one shape. No Batman in the film \u2014 whether Gotham has one by then is not established.",b:["u"],o:1,when:"23 October 2026"}]}];
 
 var ERAS = [
  {k:1,  name:"Before Batman",        note:"Gotham before there is anyone to answer it. Alfred, the Waynes, and a boy."},
@@ -1460,7 +1460,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "5.1.0";
+var BUILD = "5.1.1";
 var BUILT = "2026-08-29";
 var KEY = "batwatch-v3";
 var SITE = "https://nightwatcher.life/";
@@ -1506,7 +1506,7 @@ function mergeLog(entries){
   var have = {}, moved = 0;
   S.log.forEach(function(x){ have[x.id] = 1; });
   (entries || []).forEach(function(en){
-    if(en && en.id && BYID[en.id] && validTs(en.ts) && !have[en.id]){
+    if(en && en.id && BYID[en.id] && !isParkedId(en.id) && validTs(en.ts) && !have[en.id]){
       S.log.push({id:String(en.id), ts:Number(en.ts)}); have[en.id] = 1; moved++;
     }
   });
@@ -1795,7 +1795,8 @@ function isParked(f){ return f.b.indexOf("u") >= 0; }
 function isParkedId(id){ return !!BYID[id] && isParked(BYID[id]); }
 function dropParkedSkips(){
   var k, n = 0;
-  for(k in S.skipped){ if(isParkedId(k)){ delete S.skipped[k]; n++; } }
+  for(k in S.skipped){ if(isParkedId(k)){ delete S.skipped[k]; stampMark("s", k); n++; } }
+  if(n) persist();
   return n;
 }
 function scoreTile(tf, n, lab, cls){
@@ -1811,17 +1812,17 @@ function scoreboard(c){
     '</div>';
 }
 function counts(){
-  var p = pool(), total = 0, done = 0, skip = 0, parked = 0;
+  var p = pool(), total = 0, done = 0, skip = 0;
   p.forEach(function(f){
-    if(isParked(f)){ parked++; return; }
+    if(isParked(f)) return;
     total++;
     if(isDone(f)) done++; else if(isSkip(f)) skip++;
   });
-  return {total:total, done:done, skip:skip, left:total - done - skip, parked:parked};
+  return {total:total, done:done, skip:skip, left:total - done - skip};
 }
 function upNext(){
   var p = pool(), i, pk = S.pick ? BYID[S.pick] : null;
-  if(pk && p.indexOf(pk) >= 0 && !isDone(pk) && !isSkip(pk)) return pk;
+  if(pk && p.indexOf(pk) >= 0 && !isParked(pk) && !isDone(pk) && !isSkip(pk)) return pk;
   S.pick = "";
   for(i=0;i<p.length;i++){ if(!isParked(p[i]) && !isDone(p[i]) && !isSkip(p[i])) return p[i]; }
   for(i=0;i<p.length;i++){ if(!isParked(p[i]) && !isDone(p[i])) return p[i]; }
@@ -1947,7 +1948,7 @@ function toast(msg){
 }
 
 function markWatched(id){
-  if(S.watched[id]) return;
+  if(S.watched[id] || isParkedId(id)) return;
   S.watched[id] = 1; stampMark("w", id);
   if(S.skipped[id]){ delete S.skipped[id]; stampMark("s", id); }
   S.log.push({id:id, ts:Date.now()});
@@ -2277,7 +2278,7 @@ function doRestore(text){
 function applyMarks(res, stamp, gate){
   var id, rv, out = {added:[], changed:0};
   for(id in res.watched){
-    if(!res.watched[id] || !BYID[id] || S.watched[id] || (gate && gate("w", id))) continue;
+    if(!res.watched[id] || !BYID[id] || isParkedId(id) || S.watched[id] || (gate && gate("w", id))) continue;
     S.watched[id] = 1; if(stamp) stampMark("w", id);
     if(S.skipped[id]){ delete S.skipped[id]; if(stamp) stampMark("s", id); }
     out.added.push(id); out.changed++;
@@ -2379,6 +2380,7 @@ function viewHome(c){
   var nxt = upNext();
   var essN = 0, essDone = 0, coreN = 0, coreDone = 0, optN = 0, optDone = 0;
   pool().forEach(function(f){
+    if(isParked(f)) return;
     var d = isDone(f);
     if(tierOf(f) === "e"){ essN++; if(d) essDone++; }
     if(tierOf(f) === "o"){ optN++; if(d) optDone++; }
@@ -2734,8 +2736,8 @@ function drawShareCard(cv){
   modeGroups(pm).forEach(function(g){
     var fs = g.films, d = fs.filter(isDone).length, sk = fs.filter(isSkip).length, sz = g.size;
     if(sz && d === sz) closed++;
-    totN += sz;
-    bars.push([fs.length, d, sk, 0, sz ? crownState(d, sk, sz) : "", roofOf(g.code, fs.length)]);
+    totN += fs.length;
+    bars.push([fs.length, d, sk, 0, sz ? crownState(d, sk, sz) : "", roofOf(g.code, fs.length), sz]);
   });
   var full = c.done === c.total, fresh = !c.done;
   function T(f, col, t, y){ x.font = f; x.fillStyle = col; x.fillText(t, 540, y); }
@@ -2781,8 +2783,8 @@ function drawShareCard(cv){
   var squeeze = (avail - thin) / wide, bx = 16;
   bars.forEach(function(b){
     var bw = b[3] < minw ? minw : b[3] * squeeze;
-    var fh = Math.round(SH * b[1] / b[0]);
-    var sh = Math.round(SH * b[2] / b[0]);
+    var fh = b[6] ? Math.round(SH * b[1] / b[6]) : 0;
+    var sh = b[6] ? Math.round(SH * b[2] / b[6]) : 0;
     var top = 1586 - SH, crown = b[4] === "lit" ? Y : b[4] === "skd" ? "#7295CC" : "#33405C";
     x.fillStyle = "#33405C"; x.fillRect(bx, top, bw, SH);
     if(fh){ x.fillStyle = Y; x.fillRect(bx, 1586 - fh, bw, fh); }
@@ -2845,12 +2847,6 @@ function progRows(groups){
 function lineOf(f){
   return f.t + (subOf(f) ? " \u2014 " + subOf(f) : "") + " (" + f.y + ")";
 }
-function routeText(){
-  var left = pool().filter(function(f){ return !isParked(f) && !isDone(f) && !isSkip(f); });
-  var head = "Night Watcher \u00b7 what\u2019s left on " + pathName(S.mode) + " \u00b7 " + left.length +
-             (left.length === 1 ? " title" : " titles") + "\n" + SITE + "\n\n";
-  return head + left.map(function(f, i){ return (i + 1) + ". " + lineOf(f); }).join("\n") + "\n";
-}
 function favList(){
   return FILMS.filter(function(f){ return clampRating(S.rated[f.id]) === 5; });
 }
@@ -2874,7 +2870,9 @@ function nightsOf(log){
 var DONEBY_NIGHTS = 3, DONEBY_TITLES = 2;
 function doneBy(nt, left, now){
   if(!left || nt.nights < DONEBY_NIGHTS || nt.logged < DONEBY_TITLES) return null;
-  var spanDays = Math.max(1, Math.round((nt.last - nt.first) / 864e5) + 1);
+  var a = new Date(nt.first), b = new Date(nt.last);
+  var spanDays = Math.max(1, Math.round((Date.UTC(b.getFullYear(), b.getMonth(), b.getDate()) -
+                                        Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())) / 864e5) + 1);
   var perDay = (nt.logged / nt.nights) * (nt.nights / spanDays);
   if(!(perDay > 0)) return null;
   return new Date(now + Math.ceil(left / perDay) * 864e5);
@@ -2884,7 +2882,9 @@ function doneByLine(c){
   var d = doneBy(nightsOf(S.log), c.left, Date.now());
   if(!d) return "";
   var today = new Date(), far = (d - today) > 60 * 864e5;
-  var when = far ? MONTHS[d.getMonth()] + " " + d.getFullYear() : d.getDate() + " " + MONTHS[d.getMonth()];
+  var when = far || d.getFullYear() !== today.getFullYear()
+    ? (far ? "" : d.getDate() + " ") + MONTHS[d.getMonth()] + " " + d.getFullYear()
+    : d.getDate() + " " + MONTHS[d.getMonth()];
   return '<p class="nights doneby">at your pace, done by <b>'+when+'</b></p>';
 }
 function nightsLine(c){
@@ -2892,14 +2892,6 @@ function nightsLine(c){
   if(!nt.nights) return "";
   return '<p class="nights"><b>'+nt.nights+'</b> '+(nt.nights === 1 ? "night" : "nights")+' on patrol'+
     (nt.nights > 1 ? ' \u00b7 the latest, '+nt.latest+(nt.latest === 1 ? ' title' : ' titles') : '')+'</p>';
-}
-function leftBlock(c){
-  if(!c.left) return "";
-  return '<div class="bk"><h2>What\u2019s left</h2>'+
-    '<p>'+c.left+(c.left === 1 ? ' title' : ' titles')+' to go on '+esc(pathName(S.mode))+
-    ', in order, as plain text \u2014 for a notes app, a friend, or the fridge.</p>'+
-    '<div class="bkbtns"><button class="bkbtn" data-act="copyleft">Copy the list</button>'+
-    '<button class="bkbtn" data-act="dlleft">Text file</button></div></div>';
 }
 function favBlock(){
   var fav = favList();
@@ -2909,7 +2901,8 @@ function favBlock(){
       return '<p class="favrow"><span class="favt">'+f.tE+
         (subOf(f) ? ' <span class="favsub">'+esc(subOf(f))+'</span>' : '')+'</span><span class="favy">'+f.y+'</span></p>';
     }).join("")+'</div>'+
-    '<div class="bkbtns"><button class="bkbtn" data-act="copyfav">Copy the list</button></div>');
+    '<div class="bkbtns"><button class="bkbtn" data-act="copyfav">Copy the list</button>'+
+    '<button class="bkbtn" data-act="dlfav">Text file</button></div>');
 }
 function viewStats(c){
   var uniGroups = modeGroups("continuity"), lifeGroups = modeGroups("life"), decGroups = modeGroups("release");
@@ -2933,7 +2926,7 @@ function viewStats(c){
   var dc = progRows(decGroups);
   html += progFold("dec", "By decade", dc.done+" of "+dc.n+" complete", dc.rows);
 
-  html += favBlock() + leftBlock(c);
+  html += favBlock();
 
   var bkBehind = marksSince(Math.max(S.lastExportAt || 0, S.bkDismissAt || 0));
   html += '<div class="bk yd"><h2>Your data</h2>'+
@@ -3326,7 +3319,7 @@ window.addEventListener("storage", function(e){
     if(!newer("w", k)) continue;
     S.clk.w[k] = inc.w[k];
     if(o.watched && o.watched[k]){
-      if(!S.watched[k]){ S.watched[k] = 1; delete S.skipped[k]; moved++; }
+      if(!S.watched[k] && !isParkedId(k)){ S.watched[k] = 1; delete S.skipped[k]; moved++; }
     } else if(S.watched[k]){
       delete S.watched[k];
       S.log = S.log.filter(function(en){ return en.id !== k; });
@@ -3464,7 +3457,8 @@ document.getElementById("view").addEventListener("click", function(e){
     var uf = BYID[id], ub = uf ? behind(uf) : [];
     if(!ub.length){ S.upto = ""; rowUpdate(id); return; }
     if(S.upto !== id){
-      S.upto = id; rowUpdate(id);
+      var prev = S.upto; S.upto = id; rowUpdate(id);
+      if(prev && prev !== id) rowUpdate(prev);
       setTimeout(function(){ if(S.upto === id){ S.upto = ""; if(S.tab === "watch") rowUpdate(id); } }, 4000);
       return;
     }
@@ -3509,9 +3503,8 @@ document.getElementById("view").addEventListener("click", function(e){
   else if(act === "copylink"){
     putClipboard(restoreLink(S.code), "Link copied", "Could not copy \u2014 use Copy code");
   }
-  else if(act === "copyleft"){ putClipboard(routeText(), "List copied", "Could not copy \u2014 use the text file"); }
-  else if(act === "dlleft"){ toast(download("night-watcher-whats-left.txt", routeText()) ? "Downloaded" : "Download unavailable"); }
-  else if(act === "copyfav"){ putClipboard(favText(), "List copied", "Could not copy"); }
+  else if(act === "copyfav"){ putClipboard(favText(), "List copied", "Could not copy \u2014 use the text file"); }
+  else if(act === "dlfav"){ toast(download("night-watcher-five-stars.txt", favText()) ? "Downloaded" : "Download unavailable"); }
   else if(act === "copy"){
     var box = document.getElementById("codebox");
     if(box){

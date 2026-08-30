@@ -29,6 +29,10 @@ if [ -z "$JOBS" ]; then
 fi
 case "$JOBS" in ''|*[!0-9]*) JOBS=1 ;; esac
 [ "$JOBS" -lt 1 ] && JOBS=1
+# 5.1.1: a smoke run packed beside another suite on a two-core box is a
+# smoke run at half speed. Give the watchdog the room, unless the caller
+# already chose a number.
+export SMOKE_WATCHDOG="${SMOKE_WATCHDOG:-$((180 * (JOBS > 1 ? 2 : 1)))}"
 
 # NAMING. The suite number encoded the release through negtest300 (3.0.0)
 # and has been a plain +10 counter since negtest340 (3.4.2), with no

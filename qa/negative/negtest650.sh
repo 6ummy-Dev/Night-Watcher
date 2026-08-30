@@ -19,7 +19,7 @@ run_case "a released entry is handed a date" \
 
 run_case "counts() counts the parked ones again" \
   "counts() still counts a parked entry" \
-  "${P}a='    if(isParked(f)){ parked++; return; }\n    total++;';assert a in s;s=s.replace(a,'    if(isParked(f)) parked++;\n    total++;',1);${W}" \
+  "${P}a='    if(isParked(f)) return;\n    total++;';assert a in s;s=s.replace(a,'    total++;',1);${W}" \
   guards "" 154
 
 run_case "the hero lands on a parked title" \
@@ -136,7 +136,7 @@ run_case "the chooser picks the first, not at random" \
 
 run_case "a ticked pick stays the hero" \
   "honours a pick that has since been ticked" \
-  "${P}a='if(pk && p.indexOf(pk) >= 0 && !isDone(pk) && !isSkip(pk)) return pk;';assert a in s;s=s.replace(a,'if(pk && p.indexOf(pk) >= 0) return pk;',1);${W}" \
+  "${P}a='if(pk && p.indexOf(pk) >= 0 && !isParked(pk) && !isDone(pk) && !isSkip(pk)) return pk;';assert a in s;s=s.replace(a,'if(pk && p.indexOf(pk) >= 0 && !isParked(pk)) return pk;',1);${W}" \
   guards "" 155
 
 run_case "the cost of the night goes unprinted" \
@@ -164,11 +164,6 @@ run_case "up-to-here writes straight to S.watched" \
 run_case "up-to-here never disarms" \
   "does not disarm on its own" \
   "${P}a='      setTimeout(function(){ if(S.upto === id){ S.upto = \"\"; if(S.tab === \"watch\") rowUpdate(id); } }, 4000);\n';assert a in s;s=s.replace(a,'',1);${W}" \
-  guards "" 156
-
-run_case "what's left lists the skipped" \
-  "routeText() lists something that is watched" \
-  "${P}a='var left = pool().filter(function(f){ return !isParked(f) && !isDone(f) && !isSkip(f); });';assert a in s;s=s.replace(a,'var left = pool().filter(function(f){ return !isParked(f) && !isDone(f); });',1);${W}" \
   guards "" 156
 
 run_case "four stars make the shelf" \
@@ -200,7 +195,7 @@ echo "--- smoke: the shelf, the heroes and the four features, driven"
 
 run_case "a parked title is counted after all" \
   "+ Optional counts every released entry" \
-  "${P}a='    if(isParked(f)){ parked++; return; }\n    total++;';assert a in s;s=s.replace(a,'    if(isParked(f)) parked++;\n    total++;',1);${W}" \
+  "${P}a='    if(isParked(f)) return;\n    total++;';assert a in s;s=s.replace(a,'    total++;',1);${W}" \
   smoke main
 
 run_case "the hero lands on a parked title (smoke)" \

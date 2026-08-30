@@ -68,17 +68,26 @@ function finish(){
   console.log(fails.length ? "\n" + fails.length + " smoke failure(s)\n" : "\n  ✓ smoke passed\n");
   process.exit(fails.length ? 1 : 0);
 }
+/* 5.1.1: the wall was a fixed 180 s since 4.5.3 while the suite grew 391 →
+   447, and on a loaded two-core box it fired with a message that blamed a
+   load handler — the 5.1.0 audit met it twice. SMOKE_WATCHDOG (seconds)
+   scales it; run-all.sh sets it when it packs suites side by side. A
+   timeout now reads as a timeout: elapsed time and checks completed. */
+var ran = 0;
+var WATCHDOG_S = Math.max(30, parseInt(process.env.SMOKE_WATCHDOG || "180", 10) || 180);
+var startedAt = Date.now();
 var watchdog = setTimeout(function(){
-  fails.push("the run never finished \u2014 a document load handler did not fire");
+  fails.push("the run never finished \u2014 watchdog fired at " + WATCHDOG_S + " s with " + ran +
+             " checks completed (" + Math.round((Date.now() - startedAt) / 1000) + " s elapsed). " +
+             "Either a document load handler did not fire, or the machine is slow: raise SMOKE_WATCHDOG");
   finish();
-}, 180000);
+}, WATCHDOG_S * 1000);
 process.on("exit", function(code){
   if(!finished && code === 0){
     console.log("\n  smoke did not reach the end of its run\n");
     process.exitCode = 1;
   }
 });
-var ran = 0;
 function check(name, cond, detail){
   ran++;
   if(cond) console.log("  ok   " + name);
@@ -1282,8 +1291,8 @@ win.addEventListener("load", function(){
       /* 5.0.0: the five parked titles are on the shelf and off the count. */
       var lives = FILMS.filter(function(f){ return f.b.indexOf("u") < 0; }).length;
       check("+ Optional counts every released entry", all === lives, all + " of " + lives);
-      check("and the parked ones are counted apart",
-            win.counts().parked === FILMS.length - lives, win.counts().parked + " parked");
+      check("and counts() carries no field nothing reads",
+            !("parked" in win.counts()), Object.keys(win.counts()).join(","));
       var pouch = doc.querySelectorAll('#view .panel:not([inert]) .includes .scope');
       check("the belt drops three pouches", pouch.length === 3, pouch.length + " pouches");
       var labels = Array.prototype.map.call(
@@ -1397,8 +1406,7 @@ win.addEventListener("load", function(){
             !!q(".hero .blurb + .drule") && !!q(".hero .drule ~ .herorow"));
       var c = win.counts();
       check("To go does not count a parked title",
-            c.total === pl.filter(function(f){ return !win.isParked(f); }).length && c.parked === parked.length,
-            c.total + " / " + c.parked);
+            c.total === pl.filter(function(f){ return !win.isParked(f); }).length, c.total + " of " + pl.length);
       S.tab = "home"; win.render();
       var kick = q(".hero .kick");
       check("Home's kick says where you stand",
@@ -1492,7 +1500,7 @@ win.addEventListener("load", function(){
       check("Watched up to here leaves a skipped title skipped", Object.keys(S.skipped).length === 1);
       check("and disarms", S.upto === "");
 
-      /* Progress: the nights line, What's left, Your five stars. */
+      /* Progress: the nights line, Your five stars. */
       clean();
       var d0 = new Date(2026, 7, 28, 21, 0).getTime(), d1 = new Date(2026, 7, 29, 22, 0).getTime();
       var liveIds = win.pool().filter(function(f){ return !win.isParked(f); }).map(function(f){ return f.id; });
@@ -1501,14 +1509,8 @@ win.addEventListener("load", function(){
       S.tab = "stats"; win.render();
       var nl = q(".nights");
       check("Progress counts the nights", !!nl && /2 nights/.test(nl.textContent) && /the latest, 1 title/.test(nl.textContent), nl ? nl.textContent : "");
-      var leftCard = q('[data-act="copyleft"]') ? q('[data-act="copyleft"]').closest(".bk") : null;
-      check("What's left counts what is left",
-            !!leftCard && new RegExp((win.counts().left) + " titles to go").test(leftCard.textContent),
-            leftCard ? leftCard.textContent.slice(0, 60) : "no card");
-      var txt = win.routeText();
-      check("the list is the unwatched route in order, parked excluded",
-            txt.split("\n").filter(function(l){ return /^\d+\. /.test(l); }).length === win.counts().left &&
-            parked.every(function(f){ return txt.indexOf(f.t + " (") < 0; }));
+      check("no card hands a reader the route as text (What's left, removed 5.1.1)",
+            !q('[data-act="copyleft"]') && !q('[data-act="dlleft"]'));
       check("no five stars, no shelf", !q('[data-act="progfold"][data-pk="fav"]'));
       S.rated[liveIds[1]] = 5; S.rated[liveIds[0]] = 4; win.render();
       var favFold = q('[data-act="progfold"][data-pk="fav"]');
@@ -2321,6 +2323,37 @@ win.addEventListener("load", function(){
               var left = Object.keys(w6.S.skipped);
               check("a skip placed on a title that was not out yet is dropped at load",
                     left.length === 1 && left[0] === FILMS[0].id, left.join(","));
+              /* 5.1.1: the drop reaches the disk and wins the clock — the
+                 5.1.0 audit found it in memory only, asleep until release day. */
+              w6.flushPersist();
+              var disk = JSON.parse(w6.localStorage.getItem("batwatch-v3"));
+              var parkedIds = Object.keys(staleSkips).filter(function(id){ return id !== FILMS[0].id; });
+              check("the drop is persisted, not just forgotten",
+                    parkedIds.every(function(id){ return !disk.skipped[id]; }) && disk.skipped[FILMS[0].id] === 1,
+                    Object.keys(disk.skipped).join(","));
+              check("the drop stamps a clock, so an older tab or code cannot re-add the skip",
+                    parkedIds.every(function(id){ return disk.clk && disk.clk.s && disk.clk.s[id] > 0; }));
+              /* Every door, driven: a watched mark on a parked title through
+                 a pasted code, a JSON restore, a restore link and another tab. */
+              var pid = parkedIds[0];
+              w6.S.watched = {}; w6.S.skipped = {}; w6.S.log = [];
+              var codeW = "NW3W" + w6.idHash(pid) + "SRO";
+              w6.doRestore(codeW);
+              check("door: a pasted code cannot tick a parked title", !w6.S.watched[pid] && !w6.S.log.length);
+              w6.doRestore(JSON.stringify({watched:(function(o){ o[pid] = 1; return o; })({}), skipped:{}, rated:{},
+                                            log:[{id:pid, ts:Date.now()}]}));
+              check("door: a JSON restore cannot tick a parked title, nor log a night for it",
+                    !w6.S.watched[pid] && !w6.S.log.some(function(e){ return e.id === pid; }));
+              w6.S.pending = w6.importCode(codeW); if(w6.S.pending) w6.applyImport(w6.S.pending); w6.S.pending = null;
+              check("door: a restore link cannot tick a parked title", !w6.S.watched[pid]);
+              var evt = new w6.StorageEvent("storage", {key:"batwatch-v3", newValue:JSON.stringify({
+                watched:(function(o){ o[pid] = 1; return o; })({}), skipped:{}, rated:{},
+                clk:{w:(function(o){ o[pid] = Date.now() + 60000; return o; })({}), s:{}, r:{}},
+                log:[{id:pid, ts:Date.now()}]})});
+              w6.dispatchEvent(evt);
+              check("door: another tab cannot tick a parked title", !w6.S.watched[pid] && !w6.S.log.some(function(e){ return e.id === pid; }));
+              w6.markWatched(pid);
+              check("door: markWatched() itself refuses a parked title", !w6.S.watched[pid]);
               runBlocked();
             });
           });
