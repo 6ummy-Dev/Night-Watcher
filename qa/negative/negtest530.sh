@@ -170,8 +170,14 @@ s=s.replace(a,'.note.foot+.note.foot{margin-top:16px;}\n.note.foot{font-family:v
 
 run_case "the closing note splits back into two" \
   "closing note split apart again" \
-  "${P}a='<span class=\"buildline\">Announced dates can move.</span></p>';assert a in s
-s=s.replace(a,'</p><p class=\"note foot\">Announced dates can move.</p>',1);${W}" \
+  "${P}a='rather than trusting a stored answer. Announced dates can move.</p>';assert a in s
+s=s.replace(a,'rather than trusting a stored answer.</p><p class=\"note foot\">Announced dates can move.</p>',1);${W}" \
+  guards "" 148
+
+run_case "the dates truth gets set apart on a span again" \
+  "closing note split apart again" \
+  "${P}a='rather than trusting a stored answer. Announced dates can move.</p>';assert a in s
+s=s.replace(a,'rather than trusting a stored answer. <span class=\"buildline\">Announced dates can move.</span></p>',1);${W}" \
   guards "" 148
 
 run_case "the dsep stops being drawn" \

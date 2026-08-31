@@ -46,7 +46,7 @@ run_case "Next up drops the watching-truths" \
 
 run_case "the dates note falls out of watchNotes()" \
   "watchNotes() no longer carries both truths" \
-  "${P}a='<span class=\"buildline\">Announced dates can move.</span>';assert a in s;s=s.replace(a,'');${W}"
+  "${P}a=' Announced dates can move.</p>';assert a in s;s=s.replace(a,'</p>');${W}"
 
 run_case "the availability note comes back to Progress" \
   "a watching-truth is back in Progress" \

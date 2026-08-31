@@ -88,7 +88,7 @@ run_case "the head loses manifest" \
 
 run_case "the head loses description" \
   "required tag(s): the description meta" \
-  "${P}a='<meta name=\"description\" content=\"Every Batman story — 137 films and 68 seasons of TV across 44 continuities — in watch orders, no spoilers. By universe, by the arc of one life, or by release.\">';assert a in s;s=s.replace(a,'',1);${W}" \
+  "${P}a='<meta name=\"description\" content=\"Every Batman movie and series in order — 137 films and 68 seasons of TV across 44 continuities — in watch orders, no spoilers. By universe, by the arc of one life, or by release.\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:type" \
@@ -103,7 +103,7 @@ run_case "the head loses og:title" \
 
 run_case "the head loses og:description" \
   "required tag(s): og:description" \
-  "${P}a='<meta property=\"og:description\" content=\"Every Batman story — 137 films and 68 seasons of TV across 44 continuities — in watch orders, no spoilers. Choose a path once and track what you have seen.\">';assert a in s;s=s.replace(a,'',1);${W}" \
+  "${P}a='<meta property=\"og:description\" content=\"Every Batman movie and series in order — 137 films and 68 seasons of TV across 44 continuities — no spoilers. Choose a path once and track what you have seen.\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:url" \

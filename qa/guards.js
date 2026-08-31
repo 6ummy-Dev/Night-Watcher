@@ -708,10 +708,31 @@ function buildFAQ(FILMS, MODENOTE, tierOf){
      "There is no single Batman watch order \u2014 three honest answers instead of one fake one, " +
      "every Batman film and series in each, no spoilers. By universe: " + first("continuity") +
      " Bruce\u2019s life: " + first("life") + " Release order: " + first("release")],
+    /* 5.2.1, from the 30 Aug Trends read: "how many batman movies are there"
+       is a rising query with a featured-snippet shape, and this catalogue is
+       the one place with the definitive count. Derived, so it can never
+       drift from the data the way a typed number would. */
+    ["How many Batman movies are there?",
+     films + " Batman films have been made \u2014 " + span + ", animated and live action " +
+     "both \u2014 with another " + seasons + " seasons of television beside them, across " +
+     PATH.length + " continuities. Every one is here, in a spoiler-safe watch order " +
+     "with a fresh where-to-watch search on the entry."],
     ["Does this include the animated series?",
      "Yes \u2014 all of it, from the 1966 Batman series through Batman: The Animated Series to the " +
      "newest: " + seasons + " seasons of television ride alongside the " + films +
-     " films, animated and live action both, and a switch narrows the shelf whenever you want it narrower."],
+     " films, animated and live action both, and a switch narrows the shelf to just animation, " +
+     "or just live action, whenever you want it narrower."],
+    /* 5.2.1, same read: actor names are the language searchers start from
+       ("christian bale batman movies in order"), and each run is already a
+       continuity here. The names are stated once, against the exact group
+       names, so the answer is the catalogue's own structure in the
+       searcher's words. */
+    ["Which Batman movies go with which actor?",
+     "Each actor\u2019s run is a continuity, kept whole: Adam West is Batman \u201966; " +
+     "Michael Keaton, Val Kilmer and George Clooney are The Burton / Schumacher Films; " +
+     "Christian Bale is The Dark Knight Trilogy; Ben Affleck is The DC Extended Universe; " +
+     "Robert Pattinson is The Batman Epic Crime Saga. Watching by universe plays each one " +
+     "in its own story order."],
     ["Do I have to watch everything?",
      "No. " + curated + " titles are marked as the essentials and the core route \u2014 the spine of " +
      "the thing. Everything else is optional side material, labelled as exactly that \u2014 and " +
@@ -5860,9 +5881,16 @@ var ROUTE_VOCAB = [
        sees; two H1s on the pre-render page is the honest structure — one names
        the site, one names the content. */
     "<h1>Every Batman story ever filmed</h1>",
+    /* 5.2.1: the first paragraph says the job in the words people type for
+       it — "what order to watch Batman", "every movie and series in order",
+       "how to watch" — as sentences, not a keyword pile. The 30 Aug Trends
+       read is the source: the head queries are a dozen phrasings of one
+       question, and the seed answered it while using almost none of them. */
     "<p>Night Watcher lists " + films + " films and " + seasons +
       " seasons of television across " + PATH.length + " continuities, in Batman " +
-      'watch orders, no spoilers: <a href="#universes">by universe</a>, ' +
+      "watch orders, no spoilers — if you have ever asked what order to watch " +
+      "Batman in, this is the answer: every Batman movie and series in order, " +
+      'animated and live action both, <a href="#universes">by universe</a>, ' +
       '<a href="#life">by the arc of one life</a>, or <a href="#release">by release</a>. ' +
       '<a href="#next">Next up</a> names the next unwatched entry, and ' +
       '<a href="#progress">Progress</a> keeps the tally. The app needs JavaScript; ' +
@@ -5936,7 +5964,14 @@ var ROUTE_VOCAB = [
        NOT OUT YET here exactly as it does in the app — announced titles are
        included, honestly marked, never claimed early. */
     "<h2>The continuities</h2>",
-    "<p>Every entry, in each continuity’s own spoiler-safe order. The " +
+    /* 5.2.1: the actor names lead the section, because that is where a
+       searcher starts — Bale's films in order, Pattinson's, West's — and
+       each run already IS a continuity below. Five named, the count of the
+       rest derived so it moves with the catalogue. */
+    "<p>Every entry, in each continuity’s own spoiler-safe order — Adam West’s " +
+      "Batman ’66, the Keaton–Kilmer–Clooney Burton / Schumacher films, Christian " +
+      "Bale’s Dark Knight Trilogy, Robert Pattinson’s Batman Epic Crime Saga, Ben " +
+      "Affleck’s DC Extended Universe, and " + (PATH.length - 5) + " more. The " +
       "essentials and the core route are marked; everything else is optional " +
       "side material.</p>",
     PATH.map(function(g, gi){
@@ -13398,17 +13433,22 @@ var ROUTE_VOCAB = [
      the second truth riding a buildline span exactly the way the Build /
      Support footer already stacks its own lines. One block, one diamond,
      no orphan drifting under it, and the .note.foot+.note.foot exception
-     rules (the private 16px, the stripped diamond) went with it. */
+     rules (the private 16px, the stripped diamond) went with it. 5.2.1,
+     the owner's second look: the buildline span was still its own spaced
+     line — the two truths now run as ONE paragraph, two sentences in the
+     same flow, nothing set apart at all. */
   if(/\.note\.foot\+\.note\.foot/.test(css)){
     fail("the stacked-note exception rules are back — since 5.2.0 no tab " +
          "stacks two note.foot blocks; the second truth lives inside the " +
-         "first block on a buildline span, so the exception has nothing to " +
+         "first block, so the exception has nothing to " +
          "except and can only mask a footer accidentally split in two");
   }
-  if(!/class="note foot">Availability changes[\s\S]{0,220}?<span class="buildline">Announced dates can move\.<\/span><\/p>/.test(HTML)){
+  if(!/rather than trusting a stored answer\. Announced dates can move\.<\/p>'/.test(HTML) ||
+     /class="buildline">Announced dates/.test(HTML)){
     fail("Next up's closing note split apart again — both watching truths " +
-         "share one note.foot, the dates line on a buildline span; a " +
-         "second <p> drifts a diamond's width away and reads as an orphan");
+         "run as one paragraph in the same flow (5.2.1, the owner's call: " +
+         "a buildline span still read as a separate line); a second <p> or " +
+         "a span sets the dates truth apart and it reads as an orphan");
   }
 
   /* -- the stepped underline: the short heavy bar is the you-are-here -- */

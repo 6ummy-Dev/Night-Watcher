@@ -6,8 +6,8 @@
 echo "--- 15: silence must not read as success"
 run_case "a meta count is reworded out of the sentence" \
   "no longer states a films count" \
-  "${P}a='content=\"Every Batman story — 137 films';assert a in s
-s=s.replace(a,'content=\"Every Batman story — a lot of films',1);${W}"
+  "${P}a='content=\"Every Batman movie and series in order — 137 films';assert a in s
+s=s.replace(a,'content=\"Every Batman movie and series in order — a lot of films',1);${W}"
 
 run_case "the counted JSON-LD description loses its counts" \
   "JSON-LD description is missing" \

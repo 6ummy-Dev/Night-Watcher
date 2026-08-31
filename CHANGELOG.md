@@ -14,6 +14,45 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [5.2.1] — 2026-08-30
+
+**The words the searchers use.** The 30 Aug Trends read
+(`claude/trends-analysis-2026-08-30.md`, maintainer-local) said the
+demand for exactly this product is at structural highs and handed over
+the phrasings people type for it — a dozen near-duplicate spellings of
+one question the page answered while using almost none of them. This is
+that copy pass: words, not features, ~1 KB against the ceiling.
+
+### What's new
+
+- **The page speaks the query.** The title is the singular people type
+  ("Batman watch order — every movie and series, no spoilers"), the
+  description leads with "every Batman movie and series in order", and
+  the seed's first paragraph answers "what order to watch Batman in" as
+  a sentence. Animated-and-live-action moved up front, because the
+  animated-order seeker is the fastest-growing visitor.
+- **Two FAQ entries, from the catalogue itself.** "How many Batman
+  movies are there?" — the rising query with a featured-snippet shape —
+  answered with derived counts (137 films, 1943–2028, 68 seasons, 44
+  continuities) that can never drift from the data. And "Which Batman
+  movies go with which actor?" — West, Keaton/Kilmer/Clooney, Bale,
+  Affleck, Pattinson, each mapped to the exact continuity name — because
+  actor names are where searchers start. The continuities section now
+  leads with the same five. The animated FAQ names both narrowings
+  ("animated only or live action only") — the "non animated" demand is
+  real and now stated.
+- **Next up's closing note, actually one line of flow.** 5.2.0 merged
+  the two truths into one block but left the dates line on a `buildline`
+  span, whose 1em gap read as the same orphan. Two sentences, one
+  paragraph now. The guard learned the lesson too: it fails a span that
+  sets the dates truth apart, not just a second block.
+
+### Why PATCH
+
+Copy and one footer line. FAQ answers derive from the same seed the
+guards bless, so the JSON-LD FAQPage moved with them; negtest131/530
+fixtures re-aimed at the one-flow note, one added.
+
 ## [5.2.0] — 2026-08-30
 
 **Drawn, not rented.** The owner's review said the diamonds were three

@@ -49,7 +49,7 @@ run_case "15: the meta description miscounts the films" \
 import io
 p='docs/index.html'
 s=io.open(p,encoding='utf-8').read()
-old='<meta name=\"description\" content=\"Every Batman story'
+old='<meta name=\"description\" content=\"Every Batman movie and series in order'
 i=s.index(old); j=s.index('>',i)
 head=s[:i]; tag=s[i:j]; tail=s[j:]
 assert '137 films' in tag

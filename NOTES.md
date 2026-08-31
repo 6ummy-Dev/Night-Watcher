@@ -722,14 +722,15 @@ skyline follows `S.mode` instead, deliberately: browsing is a question, the
 card is a statement. From 4.1.0 to 4.2.0 the skyline ignored both and always
 drew the universes cut; the mode line was the only honest row on it.
 
-### `'<span class="buildline">Announced dates can move.</span></p>'`
+### `rather than trusting a stored answer. Announced dates can move.</p>`
 
 Named titles here went stale every time one landed or another was
 announced. The fact is about announced dates, not about which ones. It was
-its own `note foot` until 5.2.0, when the owner read the gap between the
-two closing notes as an orphaned line — now it rides a `buildline` span
-inside the availability note, the same way the build footer stacks its own
-lines: one block, one diamond over it.
+its own `note foot` until 5.2.0, which merged it in on a `buildline` span —
+and the span's 1em block gap still read as the same orphaned line, so 5.2.1
+finished the job: two sentences, one paragraph, one flow, one diamond over
+it. The lesson written down: the complaint was the *gap*, and a span that
+reproduces the gap is the old layout wearing new markup.
 
 ### `v`
 
