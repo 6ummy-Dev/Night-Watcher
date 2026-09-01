@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-DLTm6ZoHEfTpDbo/2qb2vB5WuPUIbEeHKYd6Fye3Aog='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-4pvR/JydH9pIA+fi6qThDzdCEaknyt1UU7J9VyyMhnA='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -107,7 +107,7 @@ header{position:sticky;top:0;z-index:30;background:var(--hdr);-webkit-backdrop-f
 .ring:active{opacity:.7;}
 .pies{display:flex;gap:10px;margin:0 0 18px;}
 .pie{flex:1;min-width:0;border:1px solid var(--line);border-radius:0;background:var(--sunk);padding:13px 0 11px;--sh:96px;}
-.pietitle{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.11em;text-transform:uppercase;color:var(--dust);margin:0 13px 10px;text-align:center;}
+.pietitle{font-family:var(--mono);font-size:var(--t-note);letter-spacing:.11em;text-transform:uppercase;color:var(--dust);margin:0 13px 10px;text-align:center;}
 .sky{display:flex;gap:1px;height:138px;margin:0;border-bottom:1px solid var(--line2);}
 .sky .seg{flex:1 1 0;min-width:4px;height:100%;position:relative;background:none;border-radius:0;overflow:hidden;padding:0;}
 .sky .sh{position:absolute;left:0;right:0;bottom:0;height:var(--sh);background:var(--line2);overflow:hidden;}
@@ -225,6 +225,7 @@ main.sw::-webkit-scrollbar{display:none;}
 .stars button{position:relative;width:36px;height:34px;color:var(--staroff);display:inline-grid;place-items:center;}
 .stars button::before{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%);}
 .stars button.on{color:var(--signal);}
+.strun{color:var(--signal);white-space:nowrap;}
 .st{display:inline-block;background:currentColor;clip-path:polygon(50% 2%,61.5% 36%,97% 36%,68.5% 57.5%,79.5% 92%,50% 70.5%,20.5% 92%,31.5% 57.5%,3% 36%,38.5% 36%);}
 .stars button .st{width:16px;height:16px;}
 .fmeta .st{width:9px;height:9px;margin:0 1px -1px 0;}
@@ -255,7 +256,7 @@ main.sw::-webkit-scrollbar{display:none;}
 .heroacts .no{border:1px solid var(--line2);color:var(--dust);flex:0 0 38%;}
 .queue{margin-top:26px;}
 .qhead{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.17em;text-transform:uppercase;color:var(--dim);margin:0 0 12px;}
-.qhead.big{font-size:var(--t-note);letter-spacing:.15em;color:var(--dust);}
+.qhead.big{font-size:var(--t-desc);letter-spacing:.15em;color:var(--dust);}
 .qhead.gap{margin-top:6px;}
 .sfhead .qhead{margin:0;}
 .sfold{margin:26px 0 0;}
@@ -366,7 +367,7 @@ main.sw::-webkit-scrollbar{display:none;}
 .pick.big:first-of-type{margin-top:0;}
 .pick.big + .pick.big{padding-top:23px;}
 .pick.big b{display:block;font-family:var(--deco);font-weight:400;
-  font-size:var(--t-heading);letter-spacing:.02em;text-transform:uppercase;
+  font-size:var(--t-title);letter-spacing:.02em;text-transform:uppercase;
   line-height:1.05;color:var(--bone);}
 .pick.big span{display:block;margin-top:9px;font-size:var(--t-desc);line-height:1.5;color:var(--dust);}
 .pick.big:active{background:var(--card2);}
@@ -450,6 +451,7 @@ html[data-beltpark] .pathseg:not([data-held]):not([data-drop]):not([data-ride]){
   font-family:var(--mono);font-size:var(--t-body);padding:11px;margin:0 0 9px;min-height:62px;resize:vertical;-webkit-appearance:none;}
 .bk.yd{border-color:var(--signaledge);box-shadow:0 0 18px -6px var(--signalline);}
 .bk .drule{color:var(--signal);margin:18px 0;}
+.gbody .drule{margin:2px 0 15px;}
 .drule.gold::before{background:linear-gradient(90deg,transparent,var(--signal));}
 .drule.gold::after{background:linear-gradient(90deg,var(--signal),transparent);}
 .tiers{margin:14px 0 22px;border:1px solid var(--line);border-radius:0;background:var(--sunk);overflow:hidden;}
@@ -1475,7 +1477,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "5.2.3";
+var BUILD = "5.2.4";
 var BUILT = "2026-09-01";
 var KEY = "batwatch-v3";
 var SITE = "https://nightwatcher.life/";
@@ -2541,7 +2543,7 @@ function filmRow(f){
     '<button class="tick" data-act="watched" data-id="'+f.id+'" aria-label="Mark '+esc(f.t)+' watched" aria-pressed="'+isDone(f)+'"></button>'+
     '<button class="fmain" data-act="expand" data-id="'+f.id+'" aria-expanded="'+isOpen+'">'+
       '<span class="ftitle">'+f.tE+'</span><span class="fmeta">'+esc(meta)+
-        (clampRating(S.rated[f.id]) ? ' \u00b7 <span style="color:var(--signal)">'+stars(S.rated[f.id])+'</span>' : '')+'</span>'+badges(f)+ratingBadge(f)+
+        (clampRating(S.rated[f.id]) ? ' \u00b7 <span class="strun">'+stars(S.rated[f.id])+'</span>' : '')+'</span>'+badges(f)+ratingBadge(f)+
     '</button></div>'+detail+'</div>';
 }
 function behind(f){
@@ -2616,7 +2618,7 @@ function groupBlock(g, q, nid){
       '<span class="meta">'+esc(sub)+'</span>'+
       '<span class="gbar">'+gBarFill(g)+'</span></span>'+
     '<span class="caret" aria-hidden="true"></span></button></h2>'+
-    '<div class="gbody"><p class="gnote">'+esc(g.note)+'</p>'+
+    '<div class="gbody"><p class="gnote">'+esc(g.note)+'</p><p class="drule" aria-hidden="true"><i></i></p>'+
     rows+'</div></div>'};
 }
 function viewWatch(){

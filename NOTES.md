@@ -985,6 +985,18 @@ What it replaced: 24 distinct sizes, twelve of them mono, grown one
 half-pixel at a time — the inventory is in the 5.2.1 type pass and the
 5.2.2 entry below this one.
 
+The same-day soak (5.2.4) moved four surfaces to different roles — the
+tokens themselves did not move, which is the point of having them:
+`.qhead.big` (Then, the grid name, the Progress folds) up to `--t-desc`
+— the fold to 12 read too small on glass; `.pietitle` up to `--t-note`
+— a chart's name is not fine print; `.pick.big b` up to `--t-title` —
+the choice Home exists to ask was quieter than the group titles inside
+The Path, so the heading clamp now belongs to `.gname .gtitle` alone.
+The same patch gave The Path's group cards the hero's `.drule` after
+their description (`.gbody .drule`, 2/15) and classed the rating run as
+`.strun` (nowrap, color in the stylesheet) so a fifth star can no
+longer wrap alone — found as a screenshot, fixed as a class.
+
 ### `:root[data-theme="darker"]{`
 
 The black uniform (4.6.0). Until 4.5.4 this was Dark Deco with the lights

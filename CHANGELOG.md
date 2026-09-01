@@ -14,6 +14,40 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [5.2.4] — 2026-09-01
+
+**The soak answers.** 5.2.3 shipped the scale and the owner read it on
+glass the same day. Four sizes came back too small and every one of
+them is fixed by moving a surface to a different role — the token
+block is untouched, which is the scale doing exactly what it was built
+for. Plus one bug the same screenshots caught: a four-star rating could
+wrap its fifth star onto a line of its own.
+
+### Changed
+
+- **Section heads step up a role.** "Then", the grid name and the
+  Progress folds (`.qhead.big`) wear `--t-desc` (14) instead of
+  `--t-note` — the 5.2.3 fold to 12 read too small on device.
+- **The skyline title steps up two.** `.pietitle` ("The universes")
+  wears `--t-note` (12) instead of `--t-fine` — at 9 the chart's own
+  name was fine print.
+- **The chooser titles are landmarks.** `.pick.big b` (Bruce's Life /
+  By Universe / Release Order) wears `--t-title` (24) instead of the
+  heading clamp — the one choice the Home screen exists to ask was
+  quieter than the group titles inside The Path.
+- **The Path's group cards close their description with the diamond
+  rule.** The same `.drule` ornament the hero card carries, after
+  `.gnote`, before the rows (`.gbody .drule` margins 2/15).
+
+### Fixed
+
+- **The star run no longer breaks.** Ratings in a row's meta rendered
+  as five separate glyph spans inside an inline-styled wrapper; a long
+  meta line could take four stars and orphan the fifth onto the next
+  line. The wrapper is now `.strun` — `white-space:nowrap`, color in
+  the stylesheet — so the run wraps as one word or not at all, and the
+  last inline color on a type run went with it.
+
 ## [5.2.3] — 2026-09-01
 
 **One scale.** 5.2.2 closed the seams; the owner looked at what was left

@@ -52,14 +52,14 @@ s=s.replace(a,'<p class=\"hcont\">\'+f.gn+\' <i class=\"dxsep\"',1);${W}" \
 
 run_case "heroHead drops the diamond rule" \
   "the diamond rule left the hero" \
-  "${P}q='class=\"drule\"';parts=s.split(q);assert len(parts)==3
-s=parts[0]+'class=\"drulex\"'+parts[1]+q+parts[2];${W}" \
+  "${P}q='class=\"drule\"';parts=s.split(q);assert len(parts)==4
+s=parts[0]+'class=\"drulex\"'+parts[1]+q+parts[2]+q+parts[3];${W}" \
   guards "" 146
 
 run_case "the Case closed card drops the diamond rule" \
   "the diamond rule left the hero" \
-  "${P}q='class=\"drule\"';parts=s.split(q);assert len(parts)==3
-s=parts[0]+q+parts[1]+'class=\"drulex\"'+parts[2];${W}" \
+  "${P}q='class=\"drule\"';parts=s.split(q);assert len(parts)==4
+s=parts[0]+q+parts[1]+'class=\"drulex\"'+parts[2]+q+parts[3];${W}" \
   guards "" 146
 
 echo "--- 147: the surfaces keep their order"
@@ -82,7 +82,7 @@ echo "--- smoke: the rendered hero wears the ornament"
 
 run_case "a render that drops the ornament is caught in the DOM" \
   "the hero draws the diamond rule" \
-  "${P}q='class=\"drule\"';assert s.count(q)==2
+  "${P}q='class=\"drule\"';assert s.count(q)==3
 s=s.replace(q,'class=\"drulex\"');${W}" \
   smoke main
 
