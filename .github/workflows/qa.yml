@@ -38,15 +38,23 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      # engines advertises ^22 || ^24 || >=26 and until 5.3.0 CI only ever
+      # ran 22 — the QA's point: nightly would catch a 22 patch and never a
+      # 24 break. The fast job runs both advertised LTS lines; the negative
+      # wall and the browser job stay on 22, where the cost lives.
+      matrix:
+        node: [22, 24]
     steps:
       - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
-          # engines pins ^22.22.2 and .npmrc says engine-strict, so a runner
-          # image whose cached Node 22 lags the patch hard-fails at npm ci;
-          # check-latest asks for the newest 22 instead of the cached one.
+          node-version: ${{ matrix.node }}
+          # engines pins ^22.22.2 / ^24.15.0 and .npmrc says engine-strict, so
+          # a runner image whose cached Node lags the patch hard-fails at
+          # npm ci; check-latest asks for the newest of the line instead of
+          # the cached one.
           check-latest: true
           cache: npm
 
@@ -62,7 +70,7 @@ jobs:
   # not only on pull requests: releases here are direct commits to main, so a
   # PR-gated job never runs (it did not, for a long time — NOTES.md).
   #
-  # Cost: 1238 fixtures, of which 1159 run guards.js and 79 run smoke.js — most
+  # Cost: 1258 fixtures, of which 1177 run guards.js and 81 run smoke.js — most
   # of those scoped to one phase by SMOKE_ONLY. The split is guarded in this
   # file the same as the README's counts, so the next drift fails the build.
   # run-all.sh dispatches longest-first; this job shards 4-way on top, packed
