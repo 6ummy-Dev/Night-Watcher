@@ -103,7 +103,7 @@ function blessHtml(next){
      121  The privacy footer says what the README says
 
    LAYOUT
-     17   One hero size, declared once
+     17   The type scale: one source for every size
      80   The ring is drawn with its own circumference
      18   Short views must not shift the centred column
      27   The path is actually load-bearing
@@ -146,6 +146,7 @@ function blessHtml(next){
      156  Four small things that never leave the browser
      157  Someone in the room: the chip, the pace, and the Progress tab's rank
      158  Every door: a mark on a parked title is refused at each seat that writes one
+     159  The drawn marks survive forced colors and speak to AT
 
      120  The page does not read layout after writing it
      122  The scroll restore survives content-visibility
@@ -736,7 +737,7 @@ function buildFAQ(FILMS, MODENOTE, tierOf){
        the one place with the definitive count. Derived, so it can never
        drift from the data the way a typed number would. */
     ["How many Batman movies are there?",
-     films + " Batman films have been made \u2014 " + span + ", animated and live action " +
+     films + " Batman films have been made and announced \u2014 " + span + ", animated and live action " +
      "both \u2014 with another " + seasons + " seasons of television beside them, across " +
      PATH.length + " continuities. Every one is here, in a spoiler-safe watch order " +
      "with a fresh where-to-watch search on the entry."],
@@ -752,7 +753,8 @@ function buildFAQ(FILMS, MODENOTE, tierOf){
        searcher's words. */
     ["Which Batman movies go with which actor?",
      "Each actor\u2019s run is a continuity, kept whole: Adam West is Batman \u201966; " +
-     "Michael Keaton, Val Kilmer and George Clooney are The Burton / Schumacher Films; " +
+     "Michael Keaton, Val Kilmer and George Clooney are The Burton / Schumacher Films — " +
+     "and Keaton suits up once more in the DCEU’s The Flash; " +
      "Christian Bale is The Dark Knight Trilogy; Ben Affleck is The DC Extended Universe; " +
      "Robert Pattinson is The Batman Epic Crime Saga. Watching by universe plays each one " +
      "in its own story order."],
@@ -1602,7 +1604,7 @@ if(!fs.existsSync(changelogPath)){
   }
 }
 
-/* ---------- 17. One hero size, declared once -------------------------- */
+/* ---------- 17. The type scale: one source for every size ------------- */
 /* Home and Next up render the SAME title, so an inline font-size on one makes
    the identical card resize as you tap between them. Keep it in .hero h2. */
 
@@ -1634,7 +1636,7 @@ if(inlineType){
 /* 5.2.3 finished the thought: the stylesheet itself now has one source.
    Every font-size is a var(--t-*) reference into the :root scale — 11
    roles, nine fixed sizes and two clamps, recorded in NOTES.md. The belt
-   buckle micro text (.pathseg .bst/.bs2/.buckle .caret and its 375px step)
+   buckle micro text (.pathseg .bst/.bs2 and their 375px step; the caret is drawn, not set)
    is lettering on furniture, not typography, and keeps its literals. A raw
    px anywhere else is a twelfth size waiting to happen — the ladder this
    patch collapsed grew one half-pixel at a time. */
@@ -1661,7 +1663,7 @@ if(inlineType){
   });
   cssRules().forEach(function(rule){
     if(!/font-size:/.test(rule)) return;
-    if(/\.pathseg \.(bst|bs2|buckle)/.test(rule)) return;   /* belt furniture */
+    if(/\.pathseg \.(bst|bs2)\b/.test(rule)) return;   /* belt lettering — the caret lost its dead glyph size in 5.3.0, so the shelter narrowed to the text that is really there */
     var raw = rule.match(/font-size:\s*(?!var\(--t-|inherit)([^;}]+)/);
     if(!raw) return;
     var sel = rule.slice(0, rule.indexOf("{")).trim().split("\n").pop().trim();
@@ -6824,7 +6826,7 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 92. A rating is certified or absent ---------- */
-/* The sourcing pass over all 205 entries lives in the project's
+/* The sourcing pass over all 206 entries lives in the project's
    catalogue/ratings-findings.md (maintainer-local) — every value there carries its source, and
    the catalogue rule applies unchanged: sourced or absent, never guessed.
    Two systems live on one shelf on purpose (11 film-shelf entries are TV
@@ -6838,16 +6840,18 @@ var ROUTE_VOCAB = [
   var MPA = ["G", "PG", "PG-13", "R", "NR"];
   var TVG = ["TV-Y", "TV-Y7", "TV-Y7-FV", "TV-G", "TV-PG", "TV-14", "TV-MA"];
   /* The distribution the findings doc landed on, rechecks resolved: 93 MPA
-     ratings + 27 honest no-rating-exists NR + 80 TV-system = 200, and the five
+     ratings + 27 honest no-rating-exists NR + 81 TV-system = 201, and the five
      unreleased entries carry none. (Knightfall Part 1 is the 91st MPA: R,
      25 Aug 2026. 4.9.0 added five sourced values: Man of Steel PG-13 and The
      Death and Return of Superman PG-13 (MPA); Elseworlds TV-14 (Arrow's
      hour carries the crossover's strictest rating); Scooby-Doo and Guess
      Who? TV-PG (the series rating); The Dark Knight's First Night NR — a
-     pitch reel, never certified.) A drifted count here means an entry
-     gained, lost or changed a rating nobody sourced. */
+     pitch reel, never certified. 5.3.0 added the Arrowverse Crisis on
+     Infinite Earths, TV-14 by the rule Elseworlds set: a crossover wears
+     its strictest hour's broadcast rating.) A drifted count here means an
+     entry gained, lost or changed a rating nobody sourced. */
   var EXPECT = {"PG-13":55, "PG":19, "R":18, "G":1, "NR":27,
-                "TV-PG":19, "TV-G":15, "TV-Y7":14, "TV-MA":13, "TV-14":11,
+                "TV-PG":19, "TV-G":15, "TV-Y7":14, "TV-MA":13, "TV-14":12,
                 "TV-Y7-FV":6, "TV-Y":2};
   var got = {}, rated = 0;
   FILMS.forEach(function(f){
@@ -6858,7 +6862,7 @@ var ROUTE_VOCAB = [
     }
     if(!f.r){
       fail(f.id + " is released and carries no r: \u2014 the sourcing pass covered " +
-           "all 205 entries, so an absent value on a released entry is a hole, not a TBD");
+           "all 206 entries, so an absent value on a released entry is a hole, not a TBD");
       return;
     }
     if(MPA.indexOf(f.r) < 0 && TVG.indexOf(f.r) < 0){
@@ -8327,7 +8331,7 @@ var ROUTE_VOCAB = [
 
      The page now declares it as what it is — an alternate representation of
      the same catalogue. It stays OUT of sitemap.xml on purpose: the crawlable
-     seed already carries all 205 entries and so does orders.txt, so submitting
+     seed already carries all 206 entries and so does orders.txt, so submitting
      both for indexing asks a search engine to choose between two
      near-identical bodies on one domain. Discoverable is not indexed. */
   if(!/<link rel="alternate" type="text\/plain" href="orders\.txt"/.test(HTML)){
@@ -9554,6 +9558,14 @@ var ROUTE_VOCAB = [
     var fp = path.join(PUBLIC, f);
     if(!fs.existsSync(fp)) return;
     var t = fs.readFileSync(fp, "utf8"), i;
+    /* 5.3.0, from the 5.2.4 QA (2.13): an HTML entity — &#x2713; — would
+       reintroduce a system glyph in a third spelling this scan never
+       reads. None occurs today, so the cheapest close is a refusal: a
+       numeric character reference in a served file is a spelling this
+       section cannot certify; type the character itself, or draw it. */
+    if(/&#[0-9a-zA-Z]/.test(t)){
+      fail(f + " carries a numeric character reference (&#…) — a third escape spelling this section cannot read into the needed set; type the character itself, or draw it");
+    }
     for(i = 0; i < t.length; i++){ var c = t.codePointAt(i); if(c > 127) need[c] = 1; }
     (t.match(/\\u[0-9a-fA-F]{4}/g) || []).forEach(function(e){
       var c = parseInt(e.slice(2), 16); if(c > 127) need[c] = 1;
@@ -14129,6 +14141,20 @@ var ROUTE_VOCAB = [
          " — every other section checks a tag's value once it has found it; " +
          "this one says which tags must be there to be found");
   }
+  /* 5.3.0: 5.2.1's headline deliverable, content-pinned — the query-bearing
+     phrase in the two tags a search engine quotes, the way §78 pins the
+     seed paragraph. og:title keeps the social-card branding on purpose;
+     that split is recorded in the 5.3.0 CHANGELOG entry. */
+  if(!/<title>Batman watch order[^<]*<\/title>/.test(head)){
+    fail("the <title> no longer leads with “Batman watch order” — 5.2.1's headline deliverable is the phrase the searchers type, and without a content pin it could silently revert");
+  }
+  var descTag = (head.match(/<meta name="description" content="([^"]*)">/) || [])[1] || "";
+  if(descTag.indexOf("in order") < 0){
+    fail("the description meta lost its query phrasing — “in order” is what the searchers type, and it is the copy a search engine quotes");
+  }
+  if(descTag.indexOf("in order") >= 0 && descTag.indexOf("in watch orders") >= 0){
+    fail("the description meta says the ordering twice — “in order … in watch orders” was the 5.2.1 merge's doubled phrasing, deduped in 5.3.0");
+  }
   /* The six font preloads are the shape section 124 checks by face; the
      COUNT is pinned here so a seventh face cannot arrive, or a sixth leave,
      without the head's set changing on the record. */
@@ -14367,7 +14393,10 @@ var ROUTE_VOCAB = [
    What's left (the unwatched route as text) shipped here in 5.0.0 and was
    removed in 5.1.1 on the owner's call: it was the one place in the app
    where a click handed a person the whole curated route. It must not come
-   back by another name — the seat census below fails a routeText(). */
+   back — and the census below refuses it BY ITS SHIPPED NAMES (routeText,
+   the two data-acts, the card's title). A reimplementation under fresh
+   names walks past a static pin; that case is a review question, and this
+   comment says so rather than claiming "by any name" (5.3.0, QA 2.11). */
 
 (function(){
   var ub = fn("uptoButton"), uh = sliceOr('act === "upto"', 'else if(act === "group")');
@@ -14489,10 +14518,24 @@ var ROUTE_VOCAB = [
    phrased as EVERY needs a guard that enumerates the set (the head
    allowlist's pattern): this one lists every statement that writes a
    watched or skipped mark, requires each to sit behind an isParkedId test,
-   and fails a seventh seat nobody gated. The log is a door too. */
+   and fails a seventh seat nobody gated. The log is a door too.
+
+   5.3.0, from the two 5.2.4 QAs: restore() is a door as well — marksOf()
+   re-adopts a parked watched mark placed under ≤5.1.0 wholesale, every
+   load, forever — so both sweeps now run behind it, and the watched sweep
+   takes the mark's log nights with it. And the census below was
+   spelling-bound: an impolite S["watched"][id]=1 or an alias walked past
+   the exact canonical regex. The census now reads loose spellings, and a
+   bare alias of the mark objects fails outright — a door nobody can
+   census is a door that does not open. */
 
 (function(){
-  var writes = HTML.match(/S\.(watched|skipped)\[[A-Za-z0-9_]+\] = 1;/g) || [];
+  var writes = HTML.match(/S\s*(?:\.\s*(?:watched|skipped)|\[\s*["'](?:watched|skipped)["']\s*\])\s*\[[^\]\n]+\]\s*=\s*(?:1|true|!0)\b/g) || [];
+  var alias = HTML.match(/=\s*S\.(?:watched|skipped)\s*[;,)\]\n]/g) || [];
+  if(alias.length){
+    fail(alias.length + " statement(s) alias S.watched or S.skipped into another name — " +
+         "an alias is a door the census cannot see; write through the canonical object or add the seat to this list");
+  }
   var DOORS = [
     ["the tap (markWatched)",            /function markWatched\(id\)\{\n  if\(S\.watched\[id\] \|\| isParkedId\(id\)\) return;\n  S\.watched\[id\] = 1;/],
     ["the tap (toggleSkip)",             /function toggleSkip\(id\)\{\n  if\(isParkedId\(id\)\) return;\n[\s\S]{0,120}S\.skipped\[id\] = 1;/],
@@ -14516,7 +14559,65 @@ var ROUTE_VOCAB = [
   var dp = fn("dropParkedSkips");
   if(!/stampMark\("s", k\)/.test(dp)) fail("dropParkedSkips() stamps no clock — an older tab or code re-adds the skip the moment the title lands");
   if(!/if\(n\) persist\(\);/.test(dp)) fail("dropParkedSkips() never persists — the skip stays in localStorage and resurfaces the day the badge drops");
-  note("every door: " + DOORS.length + " mark-writing seats, each gated; the log gated; the drop stamps and persists");
+  /* Restore is a door. The watched sweep is the skip sweep one layer down:
+     same clock, same disk, plus the log — a dropped tick's nights would
+     otherwise keep feeding the pace forecast and the share card. */
+  var dw = fn("dropParkedWatched");
+  if(!/stampMark\("w", k\)/.test(dw)) fail("dropParkedWatched() stamps no clock — an older tab or code re-adds the tick the moment the title lands");
+  if(!/persist\(\);/.test(dw)) fail("dropParkedWatched() never persists — the tick stays in localStorage and resurfaces the day the title lands");
+  if(!/S\.log = S\.log\.filter\(function\(en\)\{ return !isParkedId\(en\.id\); \}\);/.test(dw)){
+    fail("dropParkedWatched() leaves the log — a night on a parked title keeps feeding the pace forecast after its mark is gone");
+  }
+  if(!/dropParkedSkips\(\);\n    dropParkedWatched\(\);/.test(fn("restore"))){
+    fail("restore() no longer runs both sweeps — the door 5.1.1 left open (a parked watched mark re-adopted wholesale from storage) is open again");
+  }
+  /* The other-tab door merges inside a try: a throw mid-merge must not
+     leave an adopted erase in RAM only, where the next tick persists a
+     half-merged state. And the settings ride the same key, so the listener
+     adopts them — otherwise this tab's next persist reverts the other
+     tab's saved theme, order, format, scope and tier. */
+  var lsn = sliceOr('window.addEventListener("storage"', '\ndocument.getElementById("tabs")');
+  if(!/try\{ mergeTab\(o\); \}\n  catch\(err\)\{ persist\(\); render\(\); \}/.test(lsn)){
+    fail("the storage listener no longer merges inside a try — a throw mid-merge leaves the adopted state in RAM only, and the next tick persists a half-merged blob");
+  }
+  if(!/var setts = \{path:1, theme:1, scope:1, format:1, tier:1\};/.test(lsn)){
+    fail("the cross-tab merge stopped adopting settings — tab A's next tick persists A's whole blob and reverts the theme, order, format, scope or tier tab B just saved");
+  }
+  note("every door: " + DOORS.length + " mark-writing seats, each gated; the log gated; both drops stamp and persist; the merge is caught and adopts settings");
+})();
+
+/* ---------- 159. The drawn marks survive forced colors and speak to AT -- */
+/* 5.3.0, from the two 5.2.4 QAs. The 5.2.0 ornament rewrite drew every mark
+   as a currentColor background plus a clip-path — and forced-colors mode
+   strips author backgrounds, so for exactly the users the contrast work
+   serves, the stars became empty rectangles and the skip mark and every
+   diamond disappeared. The pre-5.2.0 text glyphs survived forced colors;
+   the drawn marks now do too, in the system's own ink. And the row-meta
+   star run went silent to assistive tech when the ★ characters left —
+   aria-hidden geometry needs a labelled wrapper. The .strun nowrap is the
+   5.2.4 star-wrap fix, pinned here because zero qa/ references meant it
+   could regress without a sound. */
+
+(function(){
+  if(!/@media \(forced-colors: active\)\{\n\.st,\.film\.skip \.tick::after,\.drule i,\.drule::before,\.drule::after\{forced-color-adjust:none;background:CanvasText;\}/.test(HTML)){
+    fail("the drawn marks die in Windows High Contrast — the forced-colors block must repaint the stars, the skip bar and the diamonds in CanvasText, because forced-colors strips the currentColor backgrounds they are drawn with");
+  }
+  if(!/\.stars button\.on \.st\{background:Highlight;\}/.test(HTML)){
+    fail("a selected star matches an unselected one under forced colors — the .on state repaints in Highlight so the rating still reads");
+  }
+  if(!/\.homefoot::before,\.note\.foot::before,\.legend::before\{forced-color-adjust:none;background:CanvasText;box-shadow:0 0 0 6px Canvas;\}/.test(HTML)){
+    fail("the footer diamonds die in forced colors, or their mask paints the old ink over a forced background — CanvasText diamond, Canvas mask");
+  }
+  if(!/<span class="strun" role="img" aria-label="Rated '\+clampRating\(S\.rated\[f\.id\]\)\+' of 5">/.test(HTML)){
+    fail("the row-meta rating is silent to assistive tech — the .strun wrapper must carry role=img and a Rated-N-of-5 label over its aria-hidden geometry");
+  }
+  if(!/\.strun\{color:var\(--signal\);white-space:nowrap;\}/.test(HTML)){
+    fail("the star run can wrap again — .strun lost its nowrap, the 5.2.4 fix this section exists to pin");
+  }
+  if(!/<span class="st" aria-hidden="true">/.test(fn("stars"))){
+    fail("stars() draws geometry the reader is asked to read — the .st spans are decoration under the .strun label and stay aria-hidden");
+  }
+  note("drawn marks: forced-colors repaint in system ink, the star run labelled and unwrapped, geometry hidden under it");
 })();
 
 /* ---------- report ---------- */

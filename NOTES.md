@@ -15,7 +15,7 @@ Four other places carry part of the story and are not repeated here:
   required reading before a change; everything here is written in the
   present tense.
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 158 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 159 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -86,6 +86,11 @@ e = story era for the composite timeline. 0 = no place in one Bruce's life.
 
 IDs in i:"..." are FROZEN. Titles are display text — rename freely. Adding
 is safe; changing or removing an i breaks saved progress for real people.
+That is also why `knightfall-part-2-knightquest-2026` and
+`knightfall-part-3-knightsend-2027` keep their missing `batman-` prefix
+forever: the inconsistency was noticed after they shipped (the 5.2.4
+external QA raised it), and a cosmetic rename costs real people's marks.
+Lived with, on the record, not a rename-ledger case (5.3.0).
 
 ### `S`
 
@@ -328,7 +333,7 @@ skipped do we resurface skipped titles, and the hero labels that state.
 Since 5.0.0 a parked title is never the hero at all, in either pass — a
 skip is a decision about the title and outranks a date, which is not one.
 
-### `isParked()` / `dropParkedSkips()`
+### `isParked()` / `dropParkedSkips()` / `dropParkedWatched()`
 
 An entry wearing `u` is parked: on The Path with its date, never the hero,
 never ticked or skipped, off every count that means "what exists". Before
@@ -339,6 +344,18 @@ skip on a parked entry; `dropParkedSkips()` runs once after the schema pass
 and clears the ones older builds let in. Dropping them is not a lost mark:
 "not now" on a title nobody can watch says nothing the badge does not.
 Guard 154.
+
+`dropParkedWatched()` (5.3.0) is the skip sweep one layer down, from the
+two 5.2.4 QAs: `marksOf()` filters junk values but not parked ids, so a
+tick placed on a parked title under ≤5.1.0 was re-adopted wholesale from
+storage on every load — invisible in counts and on the row, but riding
+every `exportCode()` backup, feeding the pace forecast through its log
+nights, and overdrawing its group's bar on the share card. The sweep
+deletes the mark, filters every parked id out of the log, stamps the
+clock and persists, so an older tab or code cannot re-add it. It is a
+sweep and not a filter in `marksOf()` on purpose: the cross-tab merge
+deliberately carries ids it cannot render (a future build's titles), and
+a filter on `BYID` would eat them. Guard 158 names restore a door.
 
 ### `counts()` / `g.size`
 
@@ -2023,6 +2040,29 @@ NOTES.md and CHANGELOG.md on purpose — both are records, and a history that
 updates itself is not a history. That is right, and it is also exactly why
 nothing in the build can notice when a *claim* in here stops being true. The
 only control is somebody reading it, which is the control that failed.
+
+### `mergeTab()` — the merge is caught, and the settings ride along (5.3.0)
+
+Two findings from the two 5.2.4 QAs, one seat. First, the listener body
+moved into a named `mergeTab(o)` called inside a `try`: the `resetAt`
+branch wipes RAM before anything else runs, and a throw anywhere between
+the wipe and the closing `persist()` used to leave the erase in memory
+only — the next ordinary tick would then persist a half-merged blob. The
+catch persists and renders, so whatever state the merge reached is the
+state on disk and on screen. (The body was extracted rather than
+re-indented so every fixture anchor on the merge's lines kept its bytes.)
+
+Second, the settings live in the same payload as the marks, and the
+listener merged marks only — so tab A ticking a film would `persistNow()`
+A's whole SCHEMA blob and silently revert the theme, path, format, scope
+or tier tab B had just saved ("I set Darker and it flipped back"). The
+listener now adopts those five from the incoming payload — SCHEMA's own
+readers validate, `r.k in o` guards an ancient partial payload, last
+write wins, same semantics as the persist that was already winning. The
+REAL fix is a second storage key so settings and marks stop sharing a
+blob; that is a saved-shape change, which README reserves for a MAJOR,
+so it is parked here on the record: **if a MAJOR ever happens, split the
+keys first.** Guard 158 pins the try and the adopt.
 
 ### A restore link is held, not applied
 

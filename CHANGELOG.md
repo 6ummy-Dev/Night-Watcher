@@ -14,6 +14,125 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [5.3.0] — 2026-09-01
+
+**Two QAs, one cut.** The owner's deep audit of 5.2.4 and an external
+whole-tree read landed the same day, converging on the storage layer and
+splitting the rest between them. Everything both reports found ships
+here in one MINOR. What makes it a MINOR: a catalogue addition — the
+Arrowverse **Crisis on Infinite Earths** (2019), the one crossover with
+Kevin Conroy's only live-action Bruce Wayne, until now a deliberate-
+looking hole beside Elseworlds. The shelf is 206 entries: 137 films and
+69 seasons, 2,011 episodes — "1,950+" becomes "2,000+" everywhere it
+appears.
+
+### Added
+
+- **Crisis on Infinite Earths — Arrowverse crossover (2019)**, third
+  entry in the Batwoman continuity, after the series it falls inside.
+  Optional, TV-14 by the rule Elseworlds set (a crossover wears its
+  strictest hour's broadcast rating). Share card, orders.txt, seed,
+  JSON-LD and every count surface move together; the ItemList's 74
+  curated titles do not (it enters optional).
+- **The drawn marks survive Windows High Contrast.** One
+  `@media (forced-colors: active)` block repaints the stars, the skip
+  bar, the drule and dsep diamonds and the footer diamonds in the
+  system's own ink (`CanvasText`, selected stars `Highlight`) —
+  forced-colors strips the `currentColor` backgrounds they are drawn
+  with, so for exactly the users the contrast work serves, 5.2.0's
+  ornament rewrite had erased them. The pre-5.2.0 glyphs survived
+  forced colors; now the geometry does too.
+- **The row-meta rating speaks again.** `.strun` carries `role="img"`
+  and "Rated N of 5" over its aria-hidden geometry — the ★ characters
+  were readable before 5.2.0; the drawn stars were silent.
+- **Guard 159** pins all of the above plus the 5.2.4 star-wrap fix
+  (zero `qa/` references meant it could regress without a sound), §158
+  grew the restore door, the widened census, the merge's `try` and the
+  settings adopt, §153 grew content pins on the title and description
+  ("Batman watch order" can no longer silently revert — 5.2.1's
+  headline deliverable, pinned the way §78 pins the seed), §116 refuses
+  numeric character references in served files (the third escape
+  spelling its font scan cannot read), and CI's fast job now runs
+  Node 22 **and** 24 (engines advertised what CI never ran). Twenty
+  fixtures across negtest530/670, six older fixtures across four
+  suites re-aimed at the lines the catalogue and the head moved
+  (negtest170's episode floor, negtest172's terminal-era position,
+  negtest176's JSON-LD description, negtest610's three head-tag
+  spellings); 1,238 → 1,258.
+
+### Fixed
+
+- **Restore was a door.** A tick placed on a parked title under ≤5.1.0
+  sat in localStorage forever: swept from counts since 5.1.1 but
+  re-adopted wholesale by `restore()` on every load — riding every
+  backup `exportCode()` wrote, feeding the pace forecast through its
+  log nights, and overdrawing its group's bar on the share card.
+  `dropParkedWatched()` now runs beside the skip sweep: mark deleted,
+  parked log nights with it, clock stamped, persisted. And guard 158's
+  census was spelling-bound — an impolite `S["watched"][id]=1` or a
+  bare alias walked past the canonical regex; the census reads loose
+  spellings now and an alias fails outright.
+- **Another tab can no longer revert your settings.** The storage
+  listener merged marks only, so tab A's next tick persisted A's whole
+  payload and flipped back the theme, path, format, scope or tier tab B
+  had just saved. The listener adopts the incoming five (SCHEMA's own
+  readers validating, last write wins) — and the whole merge now runs
+  inside a `try` (`mergeTab()`), so a throw between the `resetAt` wipe
+  and the closing persist can no longer leave an erase in RAM only.
+  The real fix — a second storage key — is a saved-shape change, MAJOR
+  by README's own rule, parked in NOTES.md until one happens.
+- **The diamond rule sits where it was asked for.** 5.2.4 read the ask
+  wrong and put it inside every group card; it belongs once, after the
+  path view's description, and that is where it is.
+- **Four one-liners from the external read:** a second import of the
+  same backup filename is no longer a silent no-op (the file input
+  clears after reading); `modeNote()` and the rating badge interpolate
+  through `esc()` (the hole closed for titles in 4.x was still open for
+  the two trusted-catalogue strings — safe today, one catalogue edit
+  from not); and a Home-card jump wears the `.settling` frame the
+  restore path already knew about, so it stops landing against 64px
+  `content-visibility` placeholders.
+- **Blurbs, re-read as the premise rule demands:** `injustice-2021`
+  no longer names the Joker's trick — premise, not the turn. Caped
+  Crusader S2's blurb stops being a pre-release character roster a
+  month after the season landed. Teen Titans Go! ticks 447 → 454 (aired
+  through 29 Aug; the words moved with the number). The Batman ’66 note
+  now matches its own group's order — the order runs by the age Gotham
+  wears, not the year of broadcast (the eras cannot un-age; §51 was
+  right and the note was wrong) — and "final performance" became "final
+  voice performance", which is what it was.
+- **The head finishes 5.2.1's sweep.** The JSON-LD WebApplication
+  description, `manifest.json`'s description and `llms.txt`'s lead now
+  carry the query phrasing the title moved to; the meta description no
+  longer says the ordering twice ("in order … in watch orders", the
+  merge's double). **`og:title` keeps the social-card branding on
+  purpose** — that split is a choice, recorded here.
+- **The actor FAQ stops contradicting the catalogue's own footnote:**
+  Keaton suits up once more in the DCEU's *The Flash*, and the FAQ now
+  says so; "137 films have been made" became "made and announced" —
+  five of them are not out.
+- **QA margins:** negtest670's watchdog fixture arms the timer before
+  the spin (it passed only on machines slow enough — a fast runner
+  flipped it to a false FAIL) and its "two toast fixtures" comment says
+  three; §17's banner names what the section now is (the whole type
+  scale, not one hero size) and its belt exemption narrowed to the
+  lettering that is really there — the caret's dead glyph-era
+  `font-size` is deleted (with `.arow .stars button`'s), so the
+  exemption shelters nothing; §156's comment stops claiming "by any
+  name" for a census that refuses shipped names.
+
+### Records
+
+The 5.3.0 audit corrected four ledger entries in place: 5.2.3's
+"~450 bytes" token-block figure matched no measurement (212 B of
+definitions; +916 B raw / +42 B gz for the patch); 5.2.3's "nothing
+else moves down" missed `.modenote` 15 → 14; 5.2.0 and 5.2.1
+double-counted one fixture between "seven added" and "one added";
+5.1.1 never recorded its own negtest650 42 → 41. The Knightfall
+parts 2–3 slug prefix stays as shipped — frozen means frozen — with
+the reasoning in NOTES.md. Weight: 240 KB raw / 68 KB gzip against
+250/80.
+
 ## [5.2.4] — 2026-09-01
 
 **The soak answers.** 5.2.3 shipped the scale and the owner read it on
@@ -76,7 +195,9 @@ record.
   timeline labels, intro kicker and stats) settles at 9 with the
   footers; badges and pie labels come up from 8/8.5 to 9. Larger or
   equal almost everywhere — the two half-pixel descents are the 9.5
-  chrome and nothing else moves down.
+  chrome and nothing else moves down — except `.modenote`, 15 → 14 in
+  the fold to `--t-desc`, unrecorded on the day (corrected by the 5.3.0
+  audit).
 - **Section 17 grew its other half.** 5.2.2 outlawed inline type in
   markup; now the stylesheet itself has one source — a raw `font-size`
   outside `:root` fails the build (belt exempt by name), the token set
@@ -88,8 +209,10 @@ record.
   link, bone recipe) now resolve the token instead of matching a px
   that no longer exists there.
 
-No features, no catalogue change, nothing ticked moves. The token block
-costs ~450 bytes against the ceiling's headroom; the README weight line
+No features, no catalogue change, nothing ticked moves. The token
+definitions are 212 bytes; the whole patch measured +916 B raw / +42 B
+gzipped against 5.2.2 (the “~450 bytes” recorded on the day matched no
+measurement — corrected by the 5.3.0 audit). The README weight line
 ticks 237→238 KB on rounding.
 
 ## [5.2.2] — 2026-09-01
@@ -184,7 +307,9 @@ that copy pass: words, not features, ~1 KB against the ceiling.
 
 Copy and one footer line. FAQ answers derive from the same seed the
 guards bless, so the JSON-LD FAQPage moved with them; negtest131/530
-fixtures re-aimed at the one-flow note, one added.
+fixtures re-aimed at the one-flow note, one added (that one is inside
+5.2.0's “seven added” — the two entries double-counted it; corrected by
+the 5.3.0 audit).
 
 ## [5.2.0] — 2026-08-30
 
@@ -357,7 +482,9 @@ missing fixtures — and removes one 5.0.0 feature on the owner's call.
   is in NOTES-history, with "every door"'s). ARCHITECTURE carries
   `counts()`'s shape, `upNext()`'s pick, and the two transients. The
   5.1.0 entry says 27 honest NRs, not 26, and records negtest650's
-  43 → 42. Both 5.x entries drop their shard-weight literals — §113
+  43 → 42. (This release's own What's-left removal took negtest650
+  42 → 41 with `routeText`'s fixture — unrecorded on the day, the exact
+  class this entry corrects in 5.1.0's; recorded by the 5.3.0 audit.) Both 5.x entries drop their shard-weight literals — §113
   holds the property, and the 5.0.0 figures were wrong on arrival, as
   it predicted — and 5.0.0's smoke delta is counted. The off-tree
   citations in the 4.9.2 and 5.0.0 entries carry the "maintainer-local"

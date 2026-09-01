@@ -1,7 +1,7 @@
 {
   "name": "Night Watcher",
   "short_name": "Night Watcher",
-  "description": "Every Batman story in watch orders, no spoilers. One path, chosen once.",
+  "description": "Every Batman movie and series in order — watch orders, no spoilers. One path, chosen once.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

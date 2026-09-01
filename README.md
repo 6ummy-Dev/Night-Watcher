@@ -4,7 +4,7 @@
 
 [![QA](https://github.com/6ummy-Dev/Night-Watcher/actions/workflows/qa.yml/badge.svg)](https://github.com/6ummy-Dev/Night-Watcher/actions/workflows/qa.yml)
 
-A single-file web app mapping every Batman story ever filmed — animated and live action — **137 films and 68 seasons of television across 44 continuities** — into watch orders, no spoilers, with progress tracking and a where-to-watch link for every entry.
+A single-file web app mapping every Batman story ever filmed — animated and live action — **137 films and 69 seasons of television across 44 continuities** — into watch orders, no spoilers, with progress tracking and a where-to-watch link for every entry.
 
 **Live:** https://nightwatcher.life/
 
@@ -22,7 +22,7 @@ CHANGELOG entry, the same as before. "Sealed" is a record, not a freeze:
 
 ## What it does
 
-- **Three switches, one catalogue.** **Animated**, **Live action** or **Animated + live** decides which kind of Batman; **Movies** or **Movies + Series** decides how much of it; **Essentials**, **Core route** or **+ Optional** decides how deep — and every count on the page follows, so a core-route watch reaches 100% with nothing skipped. 137 films and 68 seasons — 1,950+ episodes, from *Batman* (1943) to *Dynamic Duo* (2028) — weave into the same orders either way. Tiers are judged inside a format, so nothing has to be ranked against a different medium.
+- **Three switches, one catalogue.** **Animated**, **Live action** or **Animated + live** decides which kind of Batman; **Movies** or **Movies + Series** decides how much of it; **Essentials**, **Core route** or **+ Optional** decides how deep — and every count on the page follows, so a core-route watch reaches 100% with nothing skipped. 137 films and 69 seasons — 2,000+ episodes, from *Batman* (1943) to *Dynamic Duo* (2028) — weave into the same orders either way. Tiers are judged inside a format, so nothing has to be ranked against a different medium.
 - **Where to watch, without picking a side.** Every entry links to a search rather than a service, because availability rotates by country and by month and no stored answer survives that.
 - **One path, chosen once.** Pick by universe (spoiler-safe), the composite chronology of Bruce's life, or straight release order from 1943 to 2028 — and the whole app follows it. No switcher to re-answer on every visit; the header carries the path name and Home leads with its completion ring. Change it whenever you like: switching re-sorts, it never clears a tick.
 - **Shared links are views, not takeovers.** Following someone's `#life` link shows you their ordering and offers to adopt it, rather than silently rewriting yours.
@@ -45,7 +45,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code** — *guarded.* Not one line vendored, and **nothing fetched at runtime at all** — `qa/guards.js` fails on any external script rather than allowing one by name, and the app runs with the network off. Two `<script>` tags, no injected third, and the Content-Security-Policy on the wire is the one in the file — ten directives, one `sha256`. Open `docs/index.html` from disk, or serve it from any other host, and what runs is exactly what you can read.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 250 KB raw and 80 KB gzipped; it is currently 238 KB / 68 KB. The subset webfonts sit outside that budget and are held by their own manifest (`qa/font-subset.json`). Every raise of the ceiling is an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 250 KB raw and 80 KB gzipped; it is currently 240 KB / 68 KB. The subset webfonts sit outside that budget and are held by their own manifest (`qa/font-subset.json`). Every raise of the ceiling is an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -161,14 +161,14 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 77 negative suites, 1238
+trusted. That evidence lives in `qa/negative/` — 77 negative suites, 1258
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
 every fixture onto the section it breaks and fails the build on any section
 without one, and the counts in this paragraph are themselves guarded.
 
-The second half of `npm test` is `qa/smoke.js`, a headless render test that boots the real page in jsdom and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, the cross-tab merge, and the path end to end — 453 checks. jsdom is a declared dev dependency; a local clone without it skips the suite and says so, CI treats the skip as a failure.
+The second half of `npm test` is `qa/smoke.js`, a headless render test that boots the real page in jsdom and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, the cross-tab merge, and the path end to end — 462 checks. jsdom is a declared dev dependency; a local clone without it skips the suite and says so, CI treats the skip as a failure.
 
 ## Releasing
 

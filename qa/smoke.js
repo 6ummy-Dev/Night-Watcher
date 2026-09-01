@@ -2524,7 +2524,72 @@ win.addEventListener("load", function(){
       S.clk = {w:{}, s:{}, r:{}};
       win.persist(); win.flushPersist(); win.render();
     })();
-    tailPhases();
+
+    /* --- the settings ride the same key, so the merge adopts them (5.3.0) --
+       Tab A ticking used to persist A's whole blob and revert the theme,
+       order, format, scope and tier tab B had just saved — the QA's "I set
+       Darker and it flipped back". The listener adopts the incoming five,
+       so this tab's next persist carries the other tab's choice instead of
+       clobbering it. */
+    (function(){
+      var keepScope = S.scopePref, keepTier = S.tier;
+      S.theme = "dark"; S.format = "anim"; S.path = S.mode = "release";
+      win.applyTheme(); win.persist(); win.flushPersist();
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({theme: "darker", format: "live", path: "release"})}));
+      check("another tab's saved theme is adopted, not clobbered",
+            S.theme === "darker" &&
+            doc.documentElement.getAttribute("data-theme") === "darker",
+            "theme=" + S.theme);
+      check("another tab's saved format is adopted", S.format === "live",
+            "format=" + S.format);
+      win.flushPersist();
+      var raw = JSON.parse(win.localStorage.getItem("batwatch-v3") || "{}");
+      check("the adopted settings survive this tab's next persist",
+            raw.theme === "darker" && raw.format === "live",
+            "on disk: theme=" + raw.theme + " format=" + raw.format);
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({theme: "neon"})}));
+      check("a junk setting from another tab is refused", S.theme === "darker",
+            "theme=" + S.theme);
+      S.theme = "dark"; S.format = "anim";
+      S.scope = S.scopePref = keepScope; S.tier = keepTier;
+      win.applyTheme(); win.persist(); win.flushPersist(); win.render();
+    })();
+
+    /* --- restore() is a door too (5.3.0, from the two 5.2.4 QAs) ---------
+       A watched mark ticked on a parked title under ≤5.1.0 sat in storage
+       forever: invisible in counts and on the row, but re-exported in every
+       backup, its nights feeding the pace forecast, its bar overdrawing the
+       share card. The sweep behind restore() drops it, takes its log nights
+       with it, stamps the clock, and persists — driven through a real
+       reboot, because restore() only runs at boot. The reboot's callback
+       carries the tail: finish() is downstream of these checks, so they
+       cannot be skipped by the exit (the watchdog holds the hang case). */
+    (function(){
+      var A = "batman-begins-2005", PK = "clayface-2026";
+      var seed = JSON.stringify({watched: (function(o){ o[A] = 1; o[PK] = 1; return o; })({}),
+        skipped: {}, rated: {},
+        log: [{id: A, ts: 100}, {id: PK, ts: 200}]});
+      reboot(seed, "parked-watched sweep", function(w7){
+        check("a stale parked watched mark is swept at boot",
+              w7.S.watched[A] === 1 && !w7.S.watched[PK],
+              "watched: " + Object.keys(w7.S.watched).join(","));
+        check("the sweep takes the parked night with it",
+              w7.S.log.length === 1 && w7.S.log[0].id === A,
+              "log " + w7.S.log.length);
+        check("the sweep stamps the clock", (w7.S.clk.w[PK] || 0) > 0,
+              "clk=" + w7.S.clk.w[PK]);
+        w7.flushPersist();
+        var raw = JSON.parse(w7.localStorage.getItem("batwatch-v3") || "{}");
+        check("the sweep reaches the disk",
+              raw.watched && !raw.watched[PK] && raw.watched[A] === 1,
+              "on disk: " + Object.keys((raw.watched || {})).join(","));
+        check("no parked title rides the export after the sweep",
+              w7.exportCode().indexOf(w7.idHash(PK)) < 0);
+        tailPhases();
+      });
+    })();
     }
 
     /* The tail: the css sweep and the blocked store (the old-origin

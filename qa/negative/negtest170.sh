@@ -34,7 +34,7 @@ run_case "a continuity is added and the meta tags are not" \
 
 run_case "the episode floor is left behind by a new series" \
   "the floor is far enough behind to be misleading" \
-  "${R}a='1,950+ episodes';assert a in s;s=s.replace(a,'1,700+ episodes');${W}"
+  "${R}a='2,000+ episodes';assert a in s;s=s.replace(a,'1,700+ episodes');${W}"
 
 echo "--- the inclusion rule is on the page, not in someone's head"
 run_case "the README loses the rule for what belongs here" \

@@ -11,8 +11,8 @@ s=s.replace(a,'content=\"Every Batman movie and series in order — a lot of fil
 
 run_case "the counted JSON-LD description loses its counts" \
   "JSON-LD description is missing" \
-  "${P}a='\"description\":\"Every Batman story — 137 films';assert a in s
-s=s.replace(a,'\"description\":\"Every Batman story — lots of things',1);${W}"
+  "${P}a='\"description\":\"Every Batman movie and series in order — 137 films';assert a in s
+s=s.replace(a,'\"description\":\"Every Batman movie and series in order — lots of things',1);${W}"
 
 echo "--- 75: a control is as big as a finger"
 run_case "the chips go back under the touch target" \

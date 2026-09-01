@@ -1,5 +1,5 @@
 #!/bin/bash
-# negtest670 — 5.1.1, the QA 5.1.0 report closed; 5.1.2 adds the toast's two. One fixture per promise in
+# negtest670 — 5.1.1, the QA 5.1.0 report closed; 5.1.2 adds the toast's three. One fixture per promise in
 # section 158 (every door), the date rule added to 154, the fixtures the
 # audit named as missing from 155/156 (2.12), the watchdog's new words, and
 # the What's-left refusal. Plus the un-park sequence the audit asked for:
@@ -143,8 +143,80 @@ run_case "another tab ticks a parked title" \
 run_case "the watchdog fires and says so" \
   "watchdog fired at 30 s" \
   "${P}p='qa/smoke.js';s=io.open(p,encoding='utf-8').read();a='var WATCHDOG_S = Math.max(30, parseInt(process.env.SMOKE_WATCHDOG || \"180\", 10) || 180);';assert a in s;s=s.replace(a,'var WATCHDOG_S = 30;',1)
-a2='var startedAt = Date.now();';assert a2 in s;s=s.replace(a2,a2+'\nvar __spin = Date.now(); while(Date.now() - __spin < 31000){}',1);${W}" \
+a2='process.on(\"exit\", function(code){';assert a2 in s;s=s.replace(a2,'var __spin = Date.now(); while(Date.now() - __spin < 31000){}\nprocess.on(\"exit\", function(code){',1);${W}" \
   smoke
+
+echo "--- 158, 5.3.0: the doors the two 5.2.4 QAs found"
+
+run_case "an impolite spelling walks past the census" \
+  "a new door opened without a gate" \
+  "${P}a='function toggleWatched(id){';assert a in s;s=s.replace(a,'function tickAll2(id){ S[\"watched\"][id] = 1; }\nfunction toggleWatched(id){',1);${W}" \
+  guards "" 158
+
+run_case "an alias hides a door from the census" \
+  "an alias is a door the census cannot see" \
+  "${P}a='function toggleWatched(id){';assert a in s;s=s.replace(a,'var WMAP = S.watched;\nfunction toggleWatched(id){',1);${W}" \
+  guards "" 158
+
+run_case "the watched sweep stops stamping" \
+  "dropParkedWatched() stamps no clock" \
+  "${P}a='delete S.watched[k]; stampMark(\"w\", k); n++;';assert a in s;s=s.replace(a,'delete S.watched[k]; n++;',1);${W}" \
+  guards "" 158
+
+run_case "the watched sweep stops persisting" \
+  "dropParkedWatched() never persists" \
+  "${P}a='    S.log = S.log.filter(function(en){ return !isParkedId(en.id); });\n    persist();';assert a in s;s=s.replace(a,'    S.log = S.log.filter(function(en){ return !isParkedId(en.id); });',1);${W}" \
+  guards "" 158
+
+run_case "the watched sweep leaves the log" \
+  "dropParkedWatched() leaves the log" \
+  "${P}a='    S.log = S.log.filter(function(en){ return !isParkedId(en.id); });\n';assert a in s;s=s.replace(a,'',1);${W}" \
+  guards "" 158
+
+run_case "restore forgets the watched sweep" \
+  "restore() no longer runs both sweeps" \
+  "${P}a='    dropParkedSkips();\n    dropParkedWatched();';assert a in s;s=s.replace(a,'    dropParkedSkips();',1);${W}" \
+  guards "" 158
+
+run_case "the merge sheds its try" \
+  "the storage listener no longer merges inside a try" \
+  "${P}a='  try{ mergeTab(o); }\n  catch(err){ persist(); render(); }';assert a in s;s=s.replace(a,'  mergeTab(o);',1);${W}" \
+  guards "" 158
+
+run_case "the merge stops adopting settings" \
+  "the cross-tab merge stopped adopting settings" \
+  "${P}a='  var setts = {path:1, theme:1, scope:1, format:1, tier:1};';assert a in s;s=s.replace(a,'  var setts = {path:1};',1);${W}" \
+  guards "" 158
+
+run_case "the title sheds the query" \
+  "no longer leads with" \
+  "${P}a='<title>Batman watch order';assert a in s;s=s.replace(a,'<title>Night Watcher',1);${W}" \
+  guards "" 153
+
+run_case "the description sheds the query" \
+  "lost its query phrasing" \
+  "${P}a='<meta name=\"description\" content=\"Every Batman movie and series in order — ';assert a in s;s=s.replace(a,'<meta name=\"description\" content=\"Every Batman movie and series — ',1);${W}" \
+  guards "" 153
+
+run_case "the description doubles its phrasing again" \
+  "says the ordering twice" \
+  "${P}a='continuities — no spoilers. By universe, by the arc of one life, or by release.\">\n<meta property=\"og:type\"';assert a in s;s=s.replace(a,'continuities — in watch orders, no spoilers. By universe, by the arc of one life, or by release.\">\n<meta property=\"og:type\"',1);${W}" \
+  guards "" 153
+
+run_case "an entity smuggles a glyph past the font scan" \
+  "carries a numeric character reference" \
+  "${P}a='<p class=\"drule\" aria-hidden=\"true\"><i></i></p>';assert a in s;s=s.replace(a,'<p class=\"drule\" aria-hidden=\"true\"><i>&#x2713;</i></p>',1);${W}" \
+  guards "" 116
+
+run_case "a merge that stops adopting is seen behaviorally" \
+  "another tab's saved theme is adopted, not clobbered" \
+  "${P}a='  var setts = {path:1, theme:1, scope:1, format:1, tier:1};';assert a in s;s=s.replace(a,'  var setts = {path:1};',1);${W}" \
+  smoke main
+
+run_case "a sweep that never persists is seen behaviorally" \
+  "the sweep reaches the disk" \
+  "${P}a='    S.log = S.log.filter(function(en){ return !isParkedId(en.id); });\n    persist();';assert a in s;s=s.replace(a,'    S.log = S.log.filter(function(en){ return !isParkedId(en.id); });',1);${W}" \
+  smoke main
 
 rm -rf "$NEG"
 finish "negtest670 (5.1.1 — every door)"

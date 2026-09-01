@@ -214,4 +214,42 @@ run_case "the group toggle drops the mark it was holding" \
 s=s.replace(a,';',1);${W}" \
   smoke main
 
+echo "--- 159, 5.3.0: forced colors and the speaking star run"
+
+run_case "the forced-colors repaint loses its adjust" \
+  "the drawn marks die in Windows High Contrast" \
+  "${P}a='.st,.film.skip .tick::after,.drule i,.drule::before,.drule::after{forced-color-adjust:none;background:CanvasText;}';assert a in s
+s=s.replace(a,'.st,.film.skip .tick::after,.drule i,.drule::before,.drule::after{background:CanvasText;}',1);${W}" \
+  guards "" 159
+
+run_case "a selected star stops reading under forced colors" \
+  "a selected star matches an unselected one under forced colors" \
+  "${P}a='.stars button.on .st{background:Highlight;}';assert a in s
+s=s.replace(a,'.stars button.on .st{background:CanvasText;}',1);${W}" \
+  guards "" 159
+
+run_case "the footer diamond keeps the old ink for its mask" \
+  "the footer diamonds die in forced colors" \
+  "${P}a='.homefoot::before,.note.foot::before,.legend::before{forced-color-adjust:none;background:CanvasText;box-shadow:0 0 0 6px Canvas;}';assert a in s
+s=s.replace(a,'.homefoot::before,.note.foot::before,.legend::before{forced-color-adjust:none;background:CanvasText;box-shadow:0 0 0 6px #05070E;}',1);${W}" \
+  guards "" 159
+
+run_case "the star run goes silent again" \
+  "the row-meta rating is silent to assistive tech" \
+  "${P}a='class=\"strun\" role=\"img\"';assert a in s
+s=s.replace(a,'class=\"strun\"',1);${W}" \
+  guards "" 159
+
+run_case "the star run wraps again" \
+  "the star run can wrap again" \
+  "${P}a='.strun{color:var(--signal);white-space:nowrap;}';assert a in s
+s=s.replace(a,'.strun{color:var(--signal);}',1);${W}" \
+  guards "" 159
+
+run_case "the geometry asks to be read" \
+  "stars() draws geometry the reader is asked to read" \
+  "${P}a=\"join('<span class=\\\"st\\\" aria-hidden=\\\"true\\\"></span>')\";assert a in s
+s=s.replace(a,\"join('<span class=\\\"st\\\"></span>')\",1);${W}" \
+  guards "" 159
+
 finish "4.4.0 deco-pass fixtures"

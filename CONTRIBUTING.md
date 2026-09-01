@@ -59,6 +59,16 @@ files (`README.md`, "Checks", lists every one); read the diff.
 7. **Move the counts.** The header block in `docs/index.html` and
    `NOTES.md` state the section count; guard 65 checks both.
 8. `npm test`, then the suite you wrote, then the full wall before the cut.
+   **Laptop green ≠ ship:** `npm test` is guards + smoke only — the
+   browser check (`npm run browser`), the suite with this project's worst
+   shipping history, runs in CI and on the release machine, never inside
+   `npm test` (kept fast on purpose; RELEASING.md states the gate). A
+   change touching the belt, scrolling, focus, sticky, content-visibility
+   or the service worker is not verified until the browser check is green.
+9. **The 5.3.0 line, standing:** a new guard states an invariant or it is
+   not a section; a new guards fixture names its `sect` or it does not
+   ship; `NO_SECT_PINNED` only goes down. Retrofitting old fixtures is
+   optional — growing the unpinned set is not.
 
 ## Adding a negative suite
 
