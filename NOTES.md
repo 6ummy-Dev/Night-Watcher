@@ -916,6 +916,46 @@ the rest (its OFL carries no Reserved Font Name — Limelight's rule does not
 apply), preloaded like the rest, and the stack falls back to the title face
 so a failed load degrades to exactly what 4.1.x looked like.
 
+### `.favsub,.qsub`
+
+One concept, one voice (5.2.2). The queue's sub-label ("3 shorts", part
+titles) shipped as an inline 11px span inheriting Big Shoulders from the
+title — 4.3.1 looked at it and recorded "reads fine in situ, leave". That
+call was made before favorites existed; favorites then rendered the same
+`subOf()` data in mono 10px lowercase, and one datum wearing two faces is
+not a taste, it is a drift. The system's own rule (micro-labels = mono)
+picked the winner: the queue sub joined `.favsub`'s declarations under a
+shared rule, the inline span became `.qsub`, and section 17 — which had
+only ever watched the hero title for inline sizes — now refuses inline
+type anywhere in rendered markup: face, size, tracking or line-height in
+a style attribute is a second source for what the stylesheet owns, the
+same shape the margins pass outlawed for offsets. The data-driven inline
+widths and colors (tier bars, ubars) are values, not type, and stay.
+
+### `.ibody`
+
+The prose ladder, collapsed (5.2.2). Sans prose had grown nine sizes
+across 4.5px — 16, 15, 14.5, 14, 13.5, 13, 12.5, 12, 11.5 — with three
+half-pixel neighbours nobody could defend from the tree: why `.gnote` at
+13.5 over `.bk p`'s 13, why `.note` at 12.5 over `.scopenote`'s 12. Each
+step traced to accretion, not a decision, so the 1 Sept type pass folded
+them: `.ibody` 14.5→14, `.gnote` and `.pick.big span` 13.5→13, `.note`
+12.5→12. The ladder is now 16 (base and inputs) / 15 / 14 / 13 / 12 /
+11.5, line-height 1.5 throughout except `.udesc`'s deliberate tight 1.35.
+The same pass settled the title tier: list rows (`.qt`, `.srow .sn`,
+`.arow .at`, `.favt`) share 16.5px at line-height 1.1 — `.favt` had sat
+alone at 16/1.15, the `.uname` bug from 4.3.1 reborn when favorites
+landed — while `.uname` 1.05 and `.ftitle` 1.06 stay tight as the
+one-liners they are. `.leadkick` joined the kicker band at .19em (the
+band runs .17–.22, widening as size shrinks; it had sat at .16 as the
+smallest kicker, against the rule). On the record as deliberate, so
+nobody "fixes" them: numerals track .025em where display text tracks
+.05em (4.2.0); bare `<b>` in sans prose resolves to the 600 face because
+no 700 ships, and that is the intended weight; `.empty .big` inherits
+line-height 1.5 harmlessly (both empty strings are one line by
+construction); 404.html sets system mono at its own 17/14/12 scale
+because its CSP (`default-src 'none'`) cannot load the app faces.
+
 ### `:root[data-theme="darker"]{`
 
 The black uniform (4.6.0). Until 4.5.4 this was Dark Deco with the lights

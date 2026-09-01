@@ -29,7 +29,7 @@ run_case "the row is allowed to wrap" \
 
 run_case "the title wraps instead of truncating" \
   "the Activity title wraps instead of truncating" \
-  "${P}a='line-height:1.15;color:var(--dim);\n  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}';assert a in s;s=s.replace(a,'line-height:1.15;color:var(--dim);}');${W}"
+  "${P}a='line-height:1.1;color:var(--dim);\n  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}';assert a in s;s=s.replace(a,'line-height:1.1;color:var(--dim);}');${W}"
 
 run_case "the stars come off the row" \
   "no longer carry their stars" \

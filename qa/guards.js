@@ -1592,6 +1592,22 @@ if(!/\.hero h2\{[^}]*font-size:/.test(HTML)){
   fail(".hero h2 has no font-size — the shared hero size has gone missing");
 }
 
+/* 5.2.2 generalized the rule: the hero was only the first surface caught
+   carrying its type inline. The type pass classed the last inline
+   declaration in rendered markup (the queue's 11px sub-label, now .qsub),
+   so the whole family is illegal — a style attribute carrying a face, a
+   size, a tracking or a line-height is a second source for a decision the
+   stylesheet owns, the exact shape the margins pass outlawed for offsets
+   in 4.3.1. Data-driven inline widths and colors (the tier bars, the
+   ubars) are values, not type, and stay legal. */
+var inlineType = HTML.match(/style="[^"]*(?:font-size|font-family|letter-spacing|line-height)/g);
+if(inlineType){
+  fail(inlineType.length + " style attribute(s) carry inline type — a face, size, " +
+       "tracking or line-height in markup is a second source for what the " +
+       "stylesheet owns; the queue's 11px sub-label was the last holdout " +
+       "and it moved to .qsub in 5.2.2");
+}
+
 /* ---------- 18. Short views must not shift the centred column --------- */
 /* Next up is the only view short enough to fit a desktop screen; without a
    reserved gutter the centred column slides ~7.5px sideways. The gutter has

@@ -14,6 +14,61 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [5.2.2] — 2026-09-01
+
+**Type has one source.** The 1 Sept type pass read all 114 rules that
+carry a face, a size, a tracking or a line-height, mapped each to the
+surface it draws, and held the sweep against the system as 4.3.1
+recorded it. The system held — the landmark tier is clean and the mono
+tracking ladder works — but the seams that had opened since got closed,
+and the one class of patch that keeps reopening them is now illegal.
+Words and pixels, no features; the patch weighs less than nothing
+against the ceiling.
+
+### Fixed
+
+- **Favorites titles rejoin the ladder.** `.favt` sat at 16px while
+  every sibling row title (`.qt`, `.srow .sn`, `.arow .at`) sits at
+  16.5 — the exact `.uname` drift 4.3.1 fixed, reborn when favorites
+  landed later. 16.5px, and the list-row tier now shares
+  line-height 1.1 (`.arow .at` and `.favt` were at 1.15 for no
+  recorded reason; `.uname` 1.05 and `.ftitle` 1.06 stay tight as the
+  one-liners they are).
+- **One concept, one voice.** The queue's sub-label ("3 shorts")
+  rendered as an inline 11px Big Shoulders span while favorites set
+  the same `subOf()` data in mono — two faces for one datum. The
+  system's rule (micro-labels = mono) picked the winner: the queue sub
+  is now `.qsub`, sharing `.favsub`'s one rule.
+
+### Changed
+
+- **The prose ladder, nine steps to six.** Sans prose had accreted
+  16 / 15 / 14.5 / 14 / 13.5 / 13 / 12.5 / 12 / 11.5 with half-pixel
+  neighbours nobody could defend from the tree. Folded: `.ibody`
+  14.5→14, `.gnote` and `.pick.big span` 13.5→13, `.note` 12.5→12 —
+  the ladder is 16 / 15 / 14 / 13 / 12 / 11.5, line-height 1.5
+  throughout (`.viewing p` joins from 1.4) except `.udesc`'s
+  deliberate 1.35.
+- **`.leadkick` joins the kicker band** at .19em tracking — it sat at
+  .16em as the smallest kicker while the band (.17–.22) widens as size
+  shrinks.
+- **The two footers share their type block.** `.homefoot` and
+  `.note.foot` carried identical declarations twice; one selector list
+  now, beside the diamond rules that already share.
+
+### Guarded
+
+- **Section 17 grew from "one hero size" to "type has one source":**
+  no style attribute in rendered markup may carry a face, size,
+  tracking or line-height — the queue sub was the last inline holdout,
+  and the hero-only clause never watched anywhere else. Two fixtures
+  in negtest680 (the sub going back inline; inline tracking on a
+  surface the old clause ignored); negtest164 and negtest530
+  re-anchored onto the reshaped strings. Deliberate calls written into
+  NOTES.md so nobody "fixes" them: numeral .025em vs display .05em,
+  bare `<b>` resolving to the 600 face, `.empty .big` inheriting 1.5,
+  404's sealed system-mono scale.
+
 ## [5.2.1] — 2026-08-30
 
 **The words the searchers use.** The 30 Aug Trends read

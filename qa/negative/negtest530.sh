@@ -158,14 +158,14 @@ s=s.replace(a,'.homefootx::before,.note.footx::before,.legendx::before{',1);${W}
 
 run_case "a footer takes back a private top margin" \
   "a footer rule declares its own top margin again" \
-  "${P}a='text-align:center;margin-bottom:4px;';assert a in s
-s=s.replace(a,'text-align:center;margin:30px 0 4px;',1);${W}" \
+  "${P}a='.homefoot{color:var(--dim);margin-bottom:4px;}';assert a in s
+s=s.replace(a,'.homefoot{color:var(--dim);margin:30px 0 4px;}',1);${W}" \
   guards "" 148
 
 run_case "the stacked-note exception sneaks back" \
   "the stacked-note exception rules are back" \
-  "${P}a='.note.foot{font-family:var(--mono);font-size:9px;';assert a in s
-s=s.replace(a,'.note.foot+.note.foot{margin-top:16px;}\n.note.foot{font-family:var(--mono);font-size:9px;',1);${W}" \
+  "${P}a='.homefoot,.note.foot{font-family:var(--mono);font-size:9px;';assert a in s
+s=s.replace(a,'.note.foot+.note.foot{margin-top:16px;}\n.homefoot,.note.foot{font-family:var(--mono);font-size:9px;',1);${W}" \
   guards "" 148
 
 run_case "the closing note splits back into two" \
