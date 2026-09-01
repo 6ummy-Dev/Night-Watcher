@@ -89,12 +89,12 @@ echo "--- 157: one bone recipe, signal carets"
 
 run_case "the Progress bone button gets its own polygon" \
   "the polygons must be the same bytes" \
-  "${P}a='.bkbtn.primary{background:var(--bonebtn);color:var(--ink);border:0;font-weight:600;min-height:46px;font-size:11px;letter-spacing:.12em;\n  clip-path:polygon(8px 0,';assert a in s;s=s.replace(a,'.bkbtn.primary{background:var(--bonebtn);color:var(--ink);border:0;font-weight:600;min-height:46px;font-size:11px;letter-spacing:.12em;\n  clip-path:polygon(6px 0,',1);${W}" \
+  "${P}a='.bkbtn.primary{background:var(--bonebtn);color:var(--ink);border:0;font-weight:600;min-height:46px;font-size:var(--t-label);letter-spacing:.12em;\n  clip-path:polygon(8px 0,';assert a in s;s=s.replace(a,'.bkbtn.primary{background:var(--bonebtn);color:var(--ink);border:0;font-weight:600;min-height:46px;font-size:var(--t-label);letter-spacing:.12em;\n  clip-path:polygon(6px 0,',1);${W}" \
   guards "" 157
 
 run_case "the bone button shrinks back" \
   "wrong size for the recipe" \
-  "${P}a='font-weight:600;min-height:46px;font-size:11px;letter-spacing:.12em;\n  clip-path';assert a in s;s=s.replace(a,'font-weight:600;min-height:44px;font-size:11px;letter-spacing:.12em;\n  clip-path',1);${W}" \
+  "${P}a='font-weight:600;min-height:46px;font-size:var(--t-label);letter-spacing:.12em;\n  clip-path';assert a in s;s=s.replace(a,'font-weight:600;min-height:44px;font-size:var(--t-label);letter-spacing:.12em;\n  clip-path',1);${W}" \
   guards "" 157
 
 run_case "the cut button grows a border" \

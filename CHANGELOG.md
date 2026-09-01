@@ -14,6 +14,50 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [5.2.3] — 2026-09-01
+
+**One scale.** 5.2.2 closed the seams; the owner looked at what was left
+and said the quiet part: 24 distinct font-sizes is not a system, it is a
+history. This patch makes the pattern the file: eleven named roles on
+`:root` — display, title, heading, numeral, two row tiers, body,
+description, footnote, label, fine print — nine fixed sizes and two
+clamps, and every rule in the stylesheet now references a role instead of
+owning a number. The belt buckle's micro lettering (8/7/6.5 with its
+375px step) is furniture, not typography, and keeps its literals on the
+record.
+
+### Changed
+
+- **The ladder, collapsed 24→9+2.** The folds, each recorded: the home
+  intro title joins the display clamp (and its line-height tightens to
+  the display tier's .94); the empty state joins the wordmark at 24; the
+  mode picker joins the group-title clamp; secondary prose (group notes,
+  viewing box, backup prose, picker subtitle, star buttons) rises 13→14
+  into description; the mono section heads drop 13→12 into footnote
+  beside the hero year and `.udesc` (11.5→12); the 11px button tier
+  (hero actions, backup primary, ring label) joins the 10px label
+  workhorse — `.bkbtn.primary`'s emphasis is the bone fill, not a
+  private pixel, and its guard re-pins at the label role; the toast
+  gives up its 10.5; the 9.5 chrome tier (tabs, wordmark subtitle,
+  timeline labels, intro kicker and stats) settles at 9 with the
+  footers; badges and pie labels come up from 8/8.5 to 9. Larger or
+  equal almost everywhere — the two half-pixel descents are the 9.5
+  chrome and nothing else moves down.
+- **Section 17 grew its other half.** 5.2.2 outlawed inline type in
+  markup; now the stylesheet itself has one source — a raw `font-size`
+  outside `:root` fails the build (belt exempt by name), the token set
+  is pinned at exactly the recorded eleven, and a role's value cannot
+  drift without failing against the scale. `negtest681`, three
+  fixtures: the toast taking back its 10.5, a twelfth token appearing
+  unannounced, fine print drifting to 9.5. Guards that read a size off
+  a rule (wordmark, ring floor, input zoom floor, include labels, hero
+  link, bone recipe) now resolve the token instead of matching a px
+  that no longer exists there.
+
+No features, no catalogue change, nothing ticked moves. The token block
+costs ~450 bytes against the ceiling's headroom; the README weight line
+ticks 237→238 KB on rounding.
+
 ## [5.2.2] — 2026-09-01
 
 **Type has one source.** The 1 Sept type pass read all 114 rules that

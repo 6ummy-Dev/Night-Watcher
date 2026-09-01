@@ -12,7 +12,7 @@ run_case "rows the same height again" \
 
 run_case "type shrunk to buy height" \
   "shrinking the type is what wrapped both labels in 1.5.7" \
-  "${P}a='min-height:34px;padding:8px 6px;font-size:9px';assert a in s;s=s.replace(a,'min-height:34px;padding:8px 6px;font-size:8px');${W}"
+  "${P}a='min-height:34px;padding:8px 6px;font-size:var(--t-fine)';assert a in s;s=s.replace(a,'min-height:34px;padding:8px 6px;font-size:8px');${W}"
 
 run_case "shrunk below a tap target" \
   "under 30px they are no longer a thumb-sized target" \

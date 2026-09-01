@@ -18,8 +18,8 @@ run_case "the clamp is removed" \
 
 run_case "the description flexes and out-grows its own clamp" \
   "which lets a -webkit-box grow past its own clamp" \
-  "${P}a='.udesc{font-size:11.5px;line-height:1.35;color:var(--dust);display:-webkit-box;'
-assert a in s;s=s.replace(a,'.udesc{font-size:11.5px;line-height:1.35;color:var(--dust);flex:1;display:-webkit-box;',1);${W}"
+  "${P}a='.udesc{font-size:var(--t-note);line-height:1.35;color:var(--dust);display:-webkit-box;'
+assert a in s;s=s.replace(a,'.udesc{font-size:var(--t-note);line-height:1.35;color:var(--dust);flex:1;display:-webkit-box;',1);${W}"
 
 run_case "the blurb stops being shortened" \
   "cards stop being cards" \

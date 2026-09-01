@@ -956,6 +956,35 @@ line-height 1.5 harmlessly (both empty strings are one line by
 construction); 404.html sets system mono at its own 17/14/12 scale
 because its CSP (`default-src 'none'`) cannot load the app faces.
 
+### The `--t-` scale
+
+One scale (5.2.3). Eleven roles on `:root`, and every `font-size` in the
+stylesheet is a reference into them: `--t-display` clamp(24,6.5vw,36) for
+the three view landmarks (the home intro joined it, giving up its private
+21–28 clamp, its line-height tightening 1.05→.94 to the tier's),
+`--t-title` 24 (wordmark, and the empty state down
+from 26), `--t-heading` clamp(17,5.5vw,20) (group titles, and the picker's
+private 4.4vw/21 clamp folded in), `--t-num` 38, `--t-row-lg` 19.5 (path
+rows keep their presence over the queue — the owner was offered the
+flatten and told no), `--t-row` 16.5, `--t-body` 16 (prose base and every
+focusable field — the iOS zoom floor rides the token now), `--t-desc` 14
+(the 15s and the 13 secondary-prose tier both fold in), `--t-note` 12
+(footnotes, the hero year home again from its 11 detour, `.udesc` up from
+11.5, and the mono section heads down from 13), `--t-label` 10 (the
+workhorse, plus the whole former 11 button tier — `.bkbtn.primary`'s
+emphasis is the bone fill, not a private size — and the toast's 10.5),
+`--t-fine` 9 (footers, the former 9.5 chrome tier, badges and pie labels
+up from 8/8.5; the two 9px pins — hero link, include labels — now pin
+the token). The belt buckle (`.pathseg .bst`/`.bs2`/caret, 8/7/6.5 and
+the 375px step) is lettering on furniture and keeps its literals,
+exempted by name. Tracking was not touched: faces and their tracking
+ladders are the 4.3.1 system and stand. Section 17 holds all of it —
+raw size outside `:root` fails, the token set is pinned to exactly these
+eleven at exactly these values, and negtest681 proves all three doors.
+What it replaced: 24 distinct sizes, twelve of them mono, grown one
+half-pixel at a time — the inventory is in the 5.2.1 type pass and the
+5.2.2 entry below this one.
+
 ### `:root[data-theme="darker"]{`
 
 The black uniform (4.6.0). Until 4.5.4 this was Dark Deco with the lights

@@ -412,6 +412,29 @@ function cssRules(){
   if(CSS_RULES === null) CSS_RULES = cssText().match(/[^{}]+\{[^}]*\}/g) || [];
   return CSS_RULES;
 }
+/* 5.2.3, "one scale": type sizes live as --t-* tokens on :root and every
+   rule references one. Guards that need the number read the rule through
+   this resolver instead of matching a raw px that no longer exists there. */
+var TYPE_TOKENS = null;
+function typeTokens(){
+  if(TYPE_TOKENS === null){
+    TYPE_TOKENS = {};
+    var root = (cssText().match(/:root\{[^}]*\}/) || [""])[0];
+    root.replace(/(--t-[a-z-]+):([^;]+);/g, function(m, k, v){ TYPE_TOKENS[k] = v.trim(); return m; });
+  }
+  return TYPE_TOKENS;
+}
+function typePx(name){
+  var v = typeTokens()[name];
+  var m = v && v.match(/^(\d+(?:\.\d+)?)px$/);
+  return m ? parseFloat(m[1]) : NaN;
+}
+function fontSizeOf(body){
+  var m = body.match(/font-size:\s*var\((--t-[a-z-]+)\)/);
+  if(m) return typePx(m[1]);
+  m = body.match(/(?:^|[;{\s])font-size:\s*([\d.]+)px/);
+  return m ? parseFloat(m[1]) : NaN;
+}
 /* fn() used to throw when a function was missing, which ended the run with a
    stack trace instead of the readable failure the guard was written to print.
    That bug was fixed in place three times — activityBlock, dedupeLog,
@@ -1607,6 +1630,45 @@ if(inlineType){
        "stylesheet owns; the queue's 11px sub-label was the last holdout " +
        "and it moved to .qsub in 5.2.2");
 }
+
+/* 5.2.3 finished the thought: the stylesheet itself now has one source.
+   Every font-size is a var(--t-*) reference into the :root scale — 11
+   roles, nine fixed sizes and two clamps, recorded in NOTES.md. The belt
+   buckle micro text (.pathseg .bst/.bs2/.buckle .caret and its 375px step)
+   is lettering on furniture, not typography, and keeps its literals. A raw
+   px anywhere else is a twelfth size waiting to happen — the ladder this
+   patch collapsed grew one half-pixel at a time. */
+(function(){
+  var EXPECT = {
+    "--t-display":"clamp(24px,6.5vw,36px)", "--t-title":"24px",
+    "--t-heading":"clamp(17px,5.5vw,20px)", "--t-num":"38px",
+    "--t-row-lg":"19.5px", "--t-row":"16.5px", "--t-body":"16px",
+    "--t-desc":"14px", "--t-note":"12px", "--t-label":"10px", "--t-fine":"9px"
+  };
+  var toks = typeTokens();
+  Object.keys(EXPECT).forEach(function(k){
+    if(toks[k] !== EXPECT[k]){
+      fail("type token " + k + " is " + (toks[k] || "missing") + " — the scale says " +
+           EXPECT[k] + "; a role's size changes by decision in NOTES.md and here, " +
+           "not in passing");
+    }
+  });
+  Object.keys(toks).forEach(function(k){
+    if(!(k in EXPECT)){
+      fail("unrecorded type token " + k + " — a twelfth role must be argued into " +
+           "NOTES.md and this table, or the ladder grows back");
+    }
+  });
+  cssRules().forEach(function(rule){
+    if(!/font-size:/.test(rule)) return;
+    if(/\.pathseg \.(bst|bs2|buckle)/.test(rule)) return;   /* belt furniture */
+    var raw = rule.match(/font-size:\s*(?!var\(--t-|inherit)([^;}]+)/);
+    if(!raw) return;
+    var sel = rule.slice(0, rule.indexOf("{")).trim().split("\n").pop().trim();
+    fail(sel + " carries a raw font-size (" + raw[1].trim() + ") — sizes live as " +
+         "--t-* tokens on :root; use a role, or argue a new one into NOTES.md");
+  });
+})();
 
 /* ---------- 18. Short views must not shift the centred column --------- */
 /* Next up is the only view short enough to fit a desktop screen; without a
@@ -3503,7 +3565,11 @@ if(!rmSize){
   var markSvg = (HTML.match(/<button class="mark"[\s\S]*?<\/button>/) || [""])[0];
   var css     = (HTML.match(/\.mark svg\{[^}]*width:(\d+(?:\.\d+)?)px/) || [])[1];
   var vb      = (markSvg.match(/viewBox="([-\d.\s]+)"/) || [])[1];
-  var word    = (HTML.match(/\.wordmark h1\{[^}]*font-size:(\d+(?:\.\d+)?)px/) || [])[1];
+  var word    = (function(){
+    var b = (HTML.match(/\.wordmark h1\{[^}]*\}/) || [""])[0];
+    var v = fontSizeOf(b);                    /* 5.2.3: reads var(--t-title) */
+    return isNaN(v) ? undefined : String(v);
+  })();
   var ringArc = (HTML.match(/<circle id="ringArc"[\s\S]*?\/?>/) || [""])[0];
   var rr  = parseFloat((ringArc.match(/\br="([\d.]+)"/) || [])[1]);
   var rsw = parseFloat((ringArc.match(/stroke-width="([\d.]+)"/) || [])[1]);
@@ -3699,8 +3765,9 @@ if(!/kept by 6ummy/.test(HTML)) fail("the credit line is gone from the footer");
 if(!/\.lnk\{[^}]*white-space:nowrap/.test(HTML)){
   fail('"Where to watch" can wrap again \u2014 it needs white-space:nowrap');
 }
-if(!/\.herorow \.lnk\{[^}]*font-size:9px/.test(HTML)){
-  fail("the hero link is back at full size and will not fit its column");
+if(fontSizeOf((HTML.match(/\.herorow \.lnk\{[^}]*\}/) || [""])[0]) !== 9){
+  fail("the hero link is back at full size and will not fit its column" +
+       " (5.2.3: it wears var(--t-fine), which must resolve to 9px)");
 }
 if(!/@media \(max-width:360px\)/.test(HTML)){
   fail("the narrow-screen fallback is gone \u2014 nowrap would overflow instead");
@@ -4025,7 +4092,7 @@ if(!/b\.dataset\.format/.test(HTML)) fail("nothing handles a format tap");
   }
   /* The one dimension that must not move. Every regression here started by
      taking a pixel off the type to buy a pixel of height. */
-  var subT = parseFloat((sub.match(/font-size:([\d.]+)px/) || [0, 0])[1]);
+  var subT = fontSizeOf(sub);               /* 5.2.3: reads var(--t-fine) */
   if(subT !== 9){
     fail("the include labels are set at " + subT + "px instead of 9px \u2014 shrinking " +
          "the type is what wrapped both labels in 1.5.7; only the height gives");
@@ -4539,14 +4606,14 @@ if(!/function legendBlock/.test(HTML) ||
   rules.forEach(function(rule){
     var sel = rule.slice(0, rule.indexOf("{")).trim();
     var body = rule.slice(rule.indexOf("{"));
-    var fsize = body.match(/(?:^|[;{\s])font-size:\s*([\d.]+)px/);
-    if(!fsize) return;
+    if(!/font-size:/.test(body)) return;
+    var fpx = fontSizeOf(body);               /* 5.2.3: fields wear var(--t-body) */
     FIELDS.forEach(function(f){
       if(!new RegExp("\\." + f + "\\b").test(sel)) return;
       if(/::/.test(sel)) return;
       seen[f] = 1;
-      if(parseFloat(fsize[1]) < 16){
-        fail("." + f + " is " + fsize[1] + "px — iOS zooms the page on any focused " +
+      if(!(fpx >= 16)){
+        fail("." + f + " is " + fpx + "px — iOS zooms the page on any focused " +
              "input under 16px, and the viewport does not cap zoom on purpose");
       }
     });
@@ -6255,7 +6322,10 @@ var ROUTE_VOCAB = [
      0.6em per character, so the width comes from the CSS font-size rather than
      a number anybody remembered; at 11px that is 26.41px, and the measured
      value in a browser is 26.41. */
-  var pctCss = (HTML.match(/\.ring b\{[^}]*font-size:(\d+(?:\.\d+)?)px/) || [])[1];
+  var pctCss = (function(){
+    var v = fontSizeOf((HTML.match(/\.ring b\{[^}]*\}/) || [""])[0]);
+    return isNaN(v) ? undefined : String(v);  /* 5.2.3: reads var(--t-label) */
+  })();
   var sw2    = parseFloat((arc.match(/stroke-width="([\d.]+)"/) || [])[1]);
   if(!pctCss){
     fail("cannot read the ring label's font-size — the ring's floor is the " +
@@ -14397,8 +14467,12 @@ var ROUTE_VOCAB = [
   var goCut = (HTML.match(/\.heroacts \.go\{[^}]*clip-path:([^;}]+)/) || [])[1];
   var bkCut = (HTML.match(/\.bkbtn\.primary\{[^}]*clip-path:([^;}]+)/) || [])[1];
   if(!goCut || !bkCut || goCut !== bkCut) fail("the bone buttons on Progress do not wear the hero's cut — one recipe for bone everywhere, and the polygons must be the same bytes");
-  if(!/\.bkbtn\.primary\{[^}]*min-height:46px/.test(HTML) || !/\.bkbtn\.primary\{[^}]*font-size:11px/.test(HTML) || !/\.bkbtn\.primary\{[^}]*letter-spacing:\.12em/.test(HTML)){
-    fail("a Progress bone button is the wrong size for the recipe (46px, 11px mono at .12em)");
+  if(!/\.bkbtn\.primary\{[^}]*min-height:46px/.test(HTML) ||
+     fontSizeOf((HTML.match(/\.bkbtn\.primary\{[^}]*\}/) || [""])[0]) !== 10 ||
+     !/\.bkbtn\.primary\{[^}]*letter-spacing:\.12em/.test(HTML)){
+    fail("a Progress bone button is the wrong size for the recipe (46px, " +
+         "var(--t-label) mono at .12em — 5.2.3 re-pinned the type from 11 to " +
+         "the label role; emphasis is the bone fill, not a private size)");
   }
   if(!/\.bkbtn\.primary\{[^}]*border:0/.test(HTML)) fail("a cut button with a border draws the border across the cut");
 

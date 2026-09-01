@@ -86,11 +86,11 @@ run_case "the bat overflows its own column" \
 
 run_case "the wordmark is tidied back down" \
   "2.7.3 set it to 24 on the owner" \
-  "${P}s=s.replace('text-transform:uppercase;font-size:24px;line-height:.95;','text-transform:uppercase;font-size:21px;line-height:.95;',1);${W}"
+  "${P}s=s.replace('text-transform:uppercase;font-size:var(--t-title);line-height:.95;','text-transform:uppercase;font-size:21px;line-height:.95;',1);${W}"
 
 run_case "the wordmark is pushed past what a 375px phone fits" \
   "it stops fitting the" \
-  "${P}s=s.replace('text-transform:uppercase;font-size:24px;line-height:.95;','text-transform:uppercase;font-size:30px;line-height:.95;',1);${W}"
+  "${P}s=s.replace('text-transform:uppercase;font-size:var(--t-title);line-height:.95;','text-transform:uppercase;font-size:30px;line-height:.95;',1);${W}"
 
 echo "--- the source stays linked, and stays legible"
 

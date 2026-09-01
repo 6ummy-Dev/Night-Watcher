@@ -46,8 +46,8 @@ s=s.replace(a,'border-color:var(--signal);}',1);${W}" \
 
 run_case "the hero action row rounds again and the pairing sees it" \
   "and Skip declares" \
-  "${P}a='.herorow .lnk{font-size:9px;letter-spacing:.04em;padding:10px 10px;flex:1;justify-content:center;min-height:46px;border-radius:0;}';assert a in s
-s=s.replace(a,'.herorow .lnk{font-size:9px;letter-spacing:.04em;padding:10px 10px;flex:1;justify-content:center;min-height:46px;border-radius:11px;}',1);${W}" \
+  "${P}a='.herorow .lnk{font-size:var(--t-fine);letter-spacing:.04em;padding:10px 10px;flex:1;justify-content:center;min-height:46px;border-radius:0;}';assert a in s
+s=s.replace(a,'.herorow .lnk{font-size:var(--t-fine);letter-spacing:.04em;padding:10px 10px;flex:1;justify-content:center;min-height:46px;border-radius:11px;}',1);${W}" \
   guards "" 119
 
 echo "--- 148: the here-group"
@@ -164,8 +164,8 @@ s=s.replace(a,'.homefoot{color:var(--dim);margin:30px 0 4px;}',1);${W}" \
 
 run_case "the stacked-note exception sneaks back" \
   "the stacked-note exception rules are back" \
-  "${P}a='.homefoot,.note.foot{font-family:var(--mono);font-size:9px;';assert a in s
-s=s.replace(a,'.note.foot+.note.foot{margin-top:16px;}\n.homefoot,.note.foot{font-family:var(--mono);font-size:9px;',1);${W}" \
+  "${P}a='.homefoot,.note.foot{font-family:var(--mono);font-size:var(--t-fine);';assert a in s
+s=s.replace(a,'.note.foot+.note.foot{margin-top:16px;}\n.homefoot,.note.foot{font-family:var(--mono);font-size:var(--t-fine);',1);${W}" \
   guards "" 148
 
 run_case "the closing note splits back into two" \

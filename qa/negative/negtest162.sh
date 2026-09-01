@@ -26,15 +26,15 @@ run_case "a named ink is faded under the floor" \
 echo "--- 62: nothing focusable is small enough to zoom"
 run_case "the search field goes back under 16px" \
   "iOS zooms the page on any focused input under 16px" \
-  "${P}a='font-family:var(--body);font-size:16px;margin-bottom:12px';assert a in s;s=s.replace(a,'font-family:var(--body);font-size:15px;margin-bottom:12px');${W}"
+  "${P}a='font-family:var(--body);font-size:var(--t-body);margin-bottom:12px';assert a in s;s=s.replace(a,'font-family:var(--body);font-size:15px;margin-bottom:12px');${W}"
 
 run_case "the backup paste field goes back under 16px" \
   ".bkin is 11px" \
-  "${P}a='font-family:var(--mono);font-size:16px;padding:11px;margin:0 0 9px';assert a in s;s=s.replace(a,'font-family:var(--mono);font-size:11px;padding:11px;margin:0 0 9px');${W}"
+  "${P}a='font-family:var(--mono);font-size:var(--t-body);padding:11px;margin:0 0 9px';assert a in s;s=s.replace(a,'font-family:var(--mono);font-size:11px;padding:11px;margin:0 0 9px');${W}"
 
 run_case "a field loses its font-size entirely" \
   "has no font-size of its own to measure" \
-  "${P}a='font-family:var(--mono);font-size:16px;line-height:1.5;padding:11px;margin:12px 0 10px;';assert a in s;s=s.replace(a,'font-family:var(--mono);line-height:1.5;padding:11px;margin:12px 0 10px;');${W}"
+  "${P}a='font-family:var(--mono);font-size:var(--t-body);line-height:1.5;padding:11px;margin:12px 0 10px;';assert a in s;s=s.replace(a,'font-family:var(--mono);line-height:1.5;padding:11px;margin:12px 0 10px;');${W}"
 
 echo "--- 63: the grid columns have a floor"
 run_case "the columns go back to a bare 1fr" \
