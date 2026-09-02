@@ -38,7 +38,9 @@ produced it: `NOTES-history.md`.)
    the share card's hash); a second is only ever needed if something was
    edited after the first.
 4. **The suites.** `npm test` (guards + smoke), then the negative matrix:
-   `bash qa/negative/run-all.sh` (~35 minutes on two cores; suite numbers can
+   `bash qa/negative/run-all.sh` (≈63 CPU-minutes — ~32 minutes on two idle
+   cores, ~35 on two shared ones, measured for 5.3.1 with 1,302 fixtures;
+   suite numbers can
    be passed to run one). **The full wall, not a selection, before any cut**:
    several guard messages have fixture twins in suites far from the change —
    the listener count alone is pinned from three different suites — and a
@@ -183,8 +185,9 @@ and that is a finding, not a curiosity.
 
 The recovery story `sw.js` promises, written down:
 
-- **Preferred:** `npx wrangler rollback` — Workers keeps prior deployments;
-  roll back to the previous one. The service worker is network-first and
+- **Preferred:** `npm run rollback` (the same pinned wrangler the deploy
+  script uses) — Workers keeps prior deployments; roll back to the
+  previous one. The service worker is network-first and
   `no-cache`, so clients pick the reverted tree up on their next load.
 - **Equivalent:** check out the last released tree (`git log` — every release
   is one commit on `main`) and `npm run deploy` from it.
@@ -269,4 +272,5 @@ for whoever runs the suites on any cut, sealed or later.
   CRLF checkout goes red across many sections at once, and that is the
   checkout, not the tree.
 - **The negative wall is the release verification**, in full (step 4). It
-  takes ~25 minutes on two cores.
+  takes the time step 4 states — one figure, stated once, measured on the
+  release machine.

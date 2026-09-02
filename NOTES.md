@@ -24,14 +24,38 @@ If you are about to change something in `index.html` that looks redundant, look
 for it here first. Most of it is load-bearing, and this project has a long
 history of rules that only make sense once you know what they were written after.
 
-Contents: [Head](#head) · [Script](#script) · [Styles](#styles) ·
+Contents: [Open](#open) · [Head](#head) · [Script](#script) · [Styles](#styles) ·
 [Known blind spots](#known-blind-spots) · [The sentinel](#the-sentinel-that-the-search-box-could-type) ·
-[What an era note may say](#what-an-era-note-is-allowed-to-say) · [Counting the suites](#counting-the-suites) ·
+[What an era note may say](#what-an-era-note-is-allowed-to-say) · [Catalogue conventions](#catalogue-conventions-written-down-in-531) · [Counting the suites](#counting-the-suites) ·
 [The decisions that can fail](#the-decisions-that-can-fail) · [One ordering per export](#the-plain-text-export-carries-one-ordering) ·
 [Section 24](#section-24-does-not-run-at-file-scope-and-that-is-allowed-once) · [The floor](#the-floor).
 The architecture of the script (the sections of the file, `S`, the counting
 pipeline, the render loop) is `ARCHITECTURE.md`; the storage payload, the
 backup code and the JSON export are `DATA-MODEL.md`.
+
+## Open
+
+The standing items no release has closed — a list, not a backlog, so a
+maintainer knows what is parked and why before touching the layer:
+
+- **The settings key split.** Settings and marks share one `localStorage`
+  key (`batwatch-v3`); the cross-tab merge adopts settings from the incoming
+  payload (5.3.0), which closes the visible clobber, and the `path` row's
+  `put` carries `S.mode` with it (5.3.1). The REAL fix is a second key so a
+  mark write can never touch settings — a saved-shape change, which README
+  reserves for a MAJOR. If a MAJOR ever happens, split the keys first.
+  (`mergeTab()` below has the reasoning.)
+- **The Batwoman season split.** Batwoman ships as one 51-episode bundle
+  and *Crisis on Infinite Earths* as its own five-hour sitting after it;
+  the bundle's ninth hour is one of those five, so that hour is on the
+  shelf twice and the group files the event after the series it falls
+  inside. 5.3.1 says so in the row (the blurbs already admitted it) and
+  records the overlap as accepted: 2,011 episodes is the sum of sittings,
+  2,010 unique. The honest structural fix — three season rows, the bundle
+  retired, Crisis filed after Season 1 — retires a frozen id and re-means a
+  saved tick as three, which is the same MAJOR line, so it waits for the
+  MAJOR that hosts the key split. Never an "already counted" flag: a
+  data-model field for one row.
 
 ---
 
@@ -43,6 +67,20 @@ no-comments policy had only ever been enforced against `/* */`, so about 950
 bytes of explanation lived in the head for three releases after the file was
 supposed to have none. Guard 65 counts both syntaxes now, against a named
 allowlist.
+
+### The JSON-LD sits after the stylesheet, and its graph has one order
+
+Two placements, both bytes (5.3.1, from the 5.3.0 audit). The JSON-LD
+block repeats the seed's FAQ answers and its curated list verbatim; from
+line 43 it sat 69 KB before them with the 40 KB stylesheet between, past
+gzip's 32 KB window, so the repetition cost 1.8 KB of gzip. Just after
+`</style>` — still inside `<head>`, guard 22's static region — the same
+bytes compress to 67 KB instead of 68 (brotli neutral). And the `@graph`
+order matters for the same reason: each JSON-LD blesser (guards 95 and
+100) used to drop its node and push it last, so the order depended on
+which node had changed, and with `FAQPage` before `ItemList` the FAQ text
+fell outside the window again (+1.3 KB, found while blessing). Both write
+one fixed order — WebSite, WebApplication, ItemList, FAQPage.
 
 ### The viewport carries no `maximum-scale`
 
@@ -196,7 +234,7 @@ and how `restore()` reads it back (`read`, which returns the value to adopt
 or `undefined` to keep the default; `put` for the one key that lands in two
 places). Before 4.9.0 the two functions each hand-enumerated the keys and a
 new field was three edits plus a guard; now it is one row, and guards 27,
-35, 36, 52, 93, 131, 134 and 152 read the rows through `schemaRow()`.
+35, 36, 52, 93, 127, 131, 134 and 152 read the rows through `schemaRow()`.
 Nothing is ever taken off the parsed payload as-is: the three progress
 containers go through `marksOf()`/`ratingsOf()`, the clocks through
 `clocksOf()`, the log through `dedupeLog()`, the enums through `oneOf()`
@@ -260,7 +298,7 @@ Keeps only the entries equal to the one meaningful value — `false` for
 is noise from a hand-edited payload, and persisting a default would flip it
 the next time a build changes one.
 
-### `/* Two axes now. Format asks which kind of Batman; scope…`
+### The ordering divider
 
 ---- ordering ----
 
@@ -287,7 +325,8 @@ share card's 100% line all read through it, so the phrase lives once.
 
 ### `yearSpan()`
 
-The span depends on scope: films start 1993, series reach back to 1968.
+The span depends on scope and format: with live action in, films start 1943
+and series reach back to 1966; animated alone starts 1993 and 1968.
 
 ### `pathBlurb()`
 
@@ -299,9 +338,9 @@ at once, which is exactly why they diverged.
 
 ### `groupCache`
 
-Cached on mode|scope|format — the three things membership depends on. Never on
-watched/skipped/rated, so nothing needs to clear it and a new key simply
-misses. If membership ever depends on progress, this cache is wrong.
+Cached on mode|scope|format|tier — the four things membership depends on
+(tier since 4.8.0). Never on watched/skipped/rated, so nothing needs to clear
+it and a new key simply misses. If membership ever depends on progress, this cache is wrong.
 
 ### `anyOpen()`
 
@@ -333,7 +372,7 @@ skipped do we resurface skipped titles, and the hero labels that state.
 Since 5.0.0 a parked title is never the hero at all, in either pass — a
 skip is a decision about the title and outranks a date, which is not one.
 
-### `isParked()` / `dropParkedSkips()` / `dropParkedWatched()`
+### `isParked()` / `dropParkedSkips()` / `dropParkedWatched()` / `dropParkedRated()`
 
 An entry wearing `u` is parked: on The Path with its date, never the hero,
 never ticked or skipped, off every count that means "what exists". Before
@@ -356,6 +395,33 @@ clock and persists, so an older tab or code cannot re-add it. It is a
 sweep and not a filter in `marksOf()` on purpose: the cross-tab merge
 deliberately carries ids it cannot render (a future build's titles), and
 a filter on `BYID` would eat them. Guard 158 names restore a door.
+
+`dropParkedRated()` (5.3.1, from the 5.3.0 audit) closes the door 5.3.0
+did not gate. A rating is a mark: `rate()` itself marks the title watched,
+so a star is a verdict on something seen, and a parked title cannot have
+been. Yet `rate()`, `applyMarks()`'s rated loop and the merge's r-clock loop
+carried no `isParkedId` test, `ratingsOf()` re-adopted a legacy rating every
+boot, and the two sweeps left `S.rated` alone — so a rating a 4.x reader put
+on an unreleased title survived every seat, landed in Your five stars as
+"★ Dynamic Duo (2028)" and rode the backup code as an `O` orphan. The three
+seats are gated, the third sweep runs beside the other two, and `favList()`
+refuses a parked title as belt-and-braces. The alternative reading — a
+rating is taste, not progress — was considered and written down as declined:
+it would have to explain a 2028 film on a list of things you loved. Guard
+158's census is an AST walk now (below, under "The decisions that can
+fail"), so it counts the rated seats, and any seat written in a shape the
+old regex could not read.
+
+### `upNext()` / `pickStands()` / `expirePick()`
+
+`upNext()` is a pure read since 5.3.1. It used to expire the bag chooser's
+pick as a side effect (`S.pick = ""` inside a getter every render path
+called), which is the kind of hidden write a reader of the function cannot
+see. The validity test is `pickStands()` — the pick is still in the pool,
+released, neither watched nor skipped — and the expiry is `expirePick()`,
+called at the three entry points that reach a render: `render()`,
+`tickUpdate()` and `revealHero()`. Nothing reader-visible changed; guard 155
+pins the split and the three calls.
 
 ### `counts()` / `g.size`
 
@@ -444,7 +510,7 @@ one line, not a scoreboard tile, because the three tiles account the pool
 and nights are another axis (the same argument that kept Essentials off
 the board).
 
-### `/* One haystack. It was written out twice \u2014 once to…`
+### A sub that is only the year is not printed twice
 
 Nine Super Friends entries carry the year as their sub label — sub:"1973"
 and so on — so pushing sub and then y printed it twice on every meta line in
@@ -491,7 +557,7 @@ AND Optional, leaving it in no bucket at all.
 Only in All. Under Animated or Live action every row would carry the same
 badge, which is a label for the switch you already set.
 
-### `/* The earliest year the title appeared, not the entry's…`
+### A search engine, not an aggregator
 
 A search engine instead of an aggregator. One URL shape everywhere: no
 country in the path, no localised segment, nothing to verify per market and
@@ -506,7 +572,7 @@ worse query than "\u2026 1992" for the same answer — and every season of a sho
 asking the same question is the point. Titles repeat across the
 catalogue; without a year they all resolve to whichever one is more famous.
 
-### `/* "Rate 3" repeated down a page of films says nothing a…`
+### One star row for two seats
 
 One star row, shared by the detail panel and Next up.
 
@@ -542,7 +608,7 @@ thumb that missed. Scope is deliberately ignored: this is what you did, and
 hiding a series you logged because the toggle now says films would be a lie
 about your own history.
 
-### `/* Drawn with the badge classes themselves, not a colour…`
+### The legend goes last, on The Path
 
 The badges this defines render on The Path and nowhere else. It sat on
 Progress until 1.4.1 — a key printed on a different page. It goes last,
@@ -669,7 +735,7 @@ every tab is an answer to. It used to be split: the path control only on
 Home, a lone scope switch at the top of The Path and Progress, and nothing at
 all on Next up. Same block, same place, everywhere now.
 
-### `/* Counts what the format switch is showing. It used to …`
+### Counts follow the format in view
 
 Counts follow the format in view. Saying "57 seasons" while Live action is
 selected would be describing a catalogue the person cannot see.
@@ -707,8 +773,9 @@ all of that on every tab already. What Home needs is the switch itself.
 
 ### `chipSet()`
 
-All six chips, always. Splicing the tier chip in only while it was active
-left Home as the only route back to Essentials. The row scrolls.
+All eight chips, always (seven until the safe chip, 5.1.0). Splicing the tier
+chip in only while it was active left Home as the only route back to
+Essentials. The row scrolls.
 
 ### `viewing`
 
@@ -853,7 +920,17 @@ it cannot loop), because a merge that lived only in memory left two tabs
 each holding a union neither had on disk; and a clock at or before an
 adopted `resetAt` is stale by definition, so a third tab that never saw the
 erase cannot resurrect what it erased. The post-mortems are in
-NOTES-history.md ("A removal is a fact").
+NOTES-history.md ("A removal is a fact"). Two things the spec (DATA-MODEL.md)
+says since 5.3.1 that the code had done for longer: the clocked loops
+carry an id this build cannot render — a newer build's title arriving from
+its tab during a deploy — on purpose, the one exception to "unknown slugs
+are not kept in state", and a parked id is never adopted by them. And the
+`path` row of `SCHEMA` has a `put` that sets `S.mode` with `S.path`, so the
+merge's settings adoption (5.3.0, `mergeTab()` below) cannot leave the two
+apart: the 5.3.0 adopt set `S.path` and not `S.mode`, and The Path wore the
+shared-link banner ("Viewing Bruce's life. Your path is Release order.")
+for a screen — the 5.3.0 smoke check sent the path the tab already had, so
+the one setting with a follow-on was never exercised.
 
 ### `document.getElementById("topBtn").addEventListener("clic…`
 
@@ -902,7 +979,7 @@ is a supported way to run this. Failure is silent and non-fatal.
 
 ## Styles
 
-### `@font-face{font-family:"Limelight";src:url("fonts/limeli…`
+### `@font-face{font-family:"NW Deco";src:url("fonts/limeli…`
 
 Self-hosted as of 1.4.2. These came from Google's CDN, which meant every
 visit told a third party that someone had loaded the page — an odd thing on
@@ -910,6 +987,18 @@ an app that advertises no tracking, and the reason the page could not be
 fully offline on a first load. All four are OFL-1.1 and redistribution
 requires the licence, which ships as fonts/OFL.txt. Weight 500 was being
 downloaded on every visit and used nowhere.
+
+"NW Deco" is Limelight, subset and renamed (5.3.1). Its OFL header reserves
+the name, so the face shipped whole from 1.4.2 to 5.3.0 — 23,080 bytes, the
+largest face, on the critical path, when the subset is 12,784: the saving is
+TrueType hinting, not glyphs. 4.5.3 had already made the reserved-name call
+for the Plex faces (NW Sans / NW Mono), so this is the same answer applied to
+the one face it skipped; the file keeps its name for the same reason the
+Plex files keep "ibm-plex" — a file name is not the name presented to users,
+and it is what `_headers`, `sw.js` and the manifest address. The rename
+reaches the four seats that say the family: this rule, `--deco`, the story
+card's canvas font, and `qa/share-card.html`. `qa/subset-fonts.py` holds the
+rule; guard 106 holds the file against it.
 
 ### `--ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#…`
 
@@ -1010,7 +1099,9 @@ tokens themselves did not move, which is the point of having them:
 the choice Home exists to ask was quieter than the group titles inside
 The Path, so the heading clamp now belongs to `.gname .gtitle` alone.
 The same patch gave The Path's group cards the hero's `.drule` after
-their description (`.gbody .drule`, 2/15) and classed the rating run as
+their description (`.gbody .drule`, 2/15 — reversed in 5.3.0: the rule
+sits once after the path's description as `.modenote + .drule`, and the
+group template carries none) and classed the rating run as
 `.strun` (nowrap, color in the stylesheet) so a fifth star can no
 longer wrap alone — found as a screenshot, fixed as a class.
 
@@ -1069,12 +1160,12 @@ search on an iPhone began with a zoom the reader had to pinch back out of.
 ### `.gnum`
 
 Sized for two characters and centred, because the tag is not always two.
-By universe zero-pads ("01".."33"); Bruce's life and Release order do not, so
+By universe zero-pads ("01".."44"); Bruce's life and Release order do not, so
 era 10 was the one row in eleven whose title started 6px right of the rest.
 Release order has the same latent bug the moment a 2030s bucket fills, and
 the catalogue already holds a 2028 title.
 
-### `/* The border is on the base rule, transparent, so a fil…`
+### Three kinds of badge, three shapes
 
 Three kinds, three shapes. Tier is the answer to "should I watch this" and
 there is always exactly one, so it is the only filled badge. Modifiers are
@@ -1096,7 +1187,7 @@ a filled badge looks exactly as it did.
 
 tier — filled, one per entry
 
-### `/* The dash carries "different axis"; it used to also ca…`
+### Format is a different axis, and only in All
 
 format — a different axis, and only in All
 
@@ -1158,12 +1249,12 @@ layout: the tick carried grid-row:1/-1 with no column, so on open the stars
 auto-flowed into the first track and shoved every title 104px right. Flex has
 no auto-placement to get wrong.
 
-### `/* Ellipsis, not wrap. A wrapped title makes one row tal…`
+### Activity titles set in the display face
 
 The rows above this in Next up use --disp. Activity inherited body text, which
 is why its titles read as plain web type among styled ones.
 
-### `/* --dim, not --bone. Bone means "press this" and is the…`
+### Ellipsis, not wrap, in Activity
 
 Ellipsis, not wrap. A wrapped title makes one row taller than its neighbours,
 and the whole point of the row is that every one of them is the same.
@@ -1176,7 +1267,7 @@ in --dust. The past was drawn brighter than the future. A step down the
 palette says "done" without fading anything — dimming the block with opacity
 puts five of seven tokens under AA (see guard 61).
 
-### `/* Smaller than the hero's, because five share a line wi…`
+### No date on an Activity row
 
 No date. Four things do not fit one line on a 320px phone — with five stars
 and a date beside them the title was down to 39px, about three characters.
@@ -1189,7 +1280,7 @@ something the layout already told you.
 Smaller than the hero's, because five share a line with a title. The ::before
 tap target is untouched, so the thumb still gets its 44px.
 
-### `/* 1 / -1, not 1 / span 3. A hard span of three kept res…`
+### The Activity tick is filled
 
 Everything in this block is watched — that is what puts it here. The tick
 inherits .film.done's filled state rather than the empty ring, which read as
@@ -1313,11 +1404,51 @@ with nowhere to break, pinned its column at 169px and starved the other. At
 320px that pushed the page to 331px wide and the right column off the screen.
 Row heights are deliberately left to their content.
 
-### `/* A deck, not a list. Seven surfaces in this app share …`
+### One control language at two sizes
 
 One control language at two sizes. The chooser blocks are the same three
 options as the segmented row, large because it is the only decision on the
 screen, small once it has been made.
+
+### The deck is built before the first render (5.3.1)
+
+`render()` opens with `scrollKeep()` — a `scrollTop` read that forces
+style and layout of the document as it stands — and at boot the document
+still held the crawler seed, 431 elements the app never shows; only then
+did `buildDeck()` replace it. The audit measured 55 ms of first Layout at
+4× throttle laid out and thrown away, on the path to first paint, under
+the splash. The boot block builds the deck before its first `render()`;
+`render()`'s own `.sw` check keeps "built once" true, and the first layout
+is four empty panels (4 ms; boot 231 → 160 ms on the audit's box). Guard
+120's order clause could not see it — a count of the property names never
+sees *when* — so it grew a boot clause: `buildDeck(` before the first
+`render(` in the boot block.
+
+### The quiet deck (5.3.1)
+
+`render(o)` takes an option. `{quiet:true}` fills the active panel and
+dirties nobody: a peek on Next up, a fold on Progress, a new backup code,
+the backup nag's "later" and the reset arm each touch exactly one view, and
+every one of them used to dirty the other three — so The Path (~2,700
+elements) was rebuilt at idle after each, a 175–225 ms task once a reader
+had scrolled it (measured at 4× throttle with the scroll kept at 2,500; 52–60
+ms with it at 0). `{keep:{watch:1}}` is `tickUpdate()`'s: a tick from Next
+up, Home or Progress patches the inert Path panel row-level through
+`patchRow(v, id)` — the same row/meta/bar/here surgery the visible panel has
+had since 2.5.0, extracted to take a panel — and leaves it clean, so only
+Home and Progress are rebuilt at idle, and only when they are next. The
+search keystroke never renders at all: `searchApply()` toggles `hidden` on
+the rows the query hides and on the groups that empties, keeps the count
+line and the empty block in step, and writes the input's `value` attribute
+— and a full render produces exactly that DOM (rows the chips would drop
+are still not rendered; rows the query hides are rendered hidden), so the
+identity phase of `qa/smoke.js` holds the in-place pass byte-identical to a
+full render across seven keystroke states, and the patched inert panel
+identical to a fresh `fillPanel()`. A spy on `fillPanel()` proves the six
+actions fill no other panel. Before: 26–38 ms of synchronous render plus a
+108–146 ms long task per debounced keystroke, and the caret put back into
+an input the render had destroyed; after: 4–8 ms in place, no long task, the
+caret never moved. Guards 103 and 143 pin the shapes.
 
 ### `.deck`
 
@@ -1327,7 +1458,7 @@ that asks a question look like another list. These overlap instead, each
 sitting on the one below, so they read as cards to choose between. Nothing
 else in the app overlaps.
 
-### `/* Filled, not outlined. A signal border did not read as…`
+### Signal marks the recommendation
 
 Signal marks the recommendation. It is not a press state, and it is not on
 all three — it means "this one" or it means nothing.
@@ -1337,7 +1468,7 @@ all three — it means "this one" or it means nothing.
 Filled, not outlined. A signal border did not read as "this one" — it read
 as another card with a slightly different edge.
 
-### `/* Shorter than the path row, not smaller. Squeezing for…`
+### Format and scope share one block
 
 Format and scope answer the same question at two depths, so they sit in one
 block. The path control above answers a different one.
@@ -1360,6 +1491,27 @@ chosen pouch inverted to signal-on-ink in 4.6.0 and dimmed in 4.7.0 —
 yellow on the page. A 1px hairline was built first and rolled back the
 same day: it could not be noticed on the phone. See "The belt is yellow"
 and "The cover" below.
+
+### `@media (forced-colors: active)` — ornaments and state, never the palette
+
+5.2.0 drew the stars, the skip bar and the diamonds as `currentColor`
+backgrounds under clip-paths, and Windows High Contrast strips author
+backgrounds, so the marks vanished for exactly the readers the contrast
+work is for; 5.3.0 repainted them in `CanvasText`/`Highlight` (guard 159).
+The external 5.3.0 read then showed the rest: every state a background
+alone carried — the pressed chip, the pressed belt, scope and theme
+buttons, the done tick, the lit belt-peek segment, the essentials segments,
+the skyline crown, the group bar's fill, the here-group's corner gradients
+— washed out under the UA's palette, and the current tab was signal ink
+only. 5.3.1 paints those states in system colours: `Highlight` /
+`HighlightText` for a selected or done control, `CanvasText` for a fill,
+`GrayText` for a skipped one, an underline for the current tab, an outline
+for the here group. The line, on the record: **the palette is the
+reader's.** No `forced-color-adjust: none` on brand chrome — the wordmark,
+the path title, the belt, the group heads, prose all take the system
+colours the reader chose, and guard 159 refuses a rule that overrides them.
+The browser check reads the repaint under emulation; a real Windows High
+Contrast theme is still the honest check and still owed to the owner's eye.
 
 ### `#splash`
 
@@ -1444,8 +1596,9 @@ Guard 51 requires a continuity's eras to advance and never go back. That is righ
 for one arc following one character, and wrong for two other shapes, both of
 which exist here:
 
-- A **bag** — films sharing a shelf, not a world. No arc, so no direction. Six
-  groups carry `bag:1` and say so in their own notes.
+- A **bag** — films sharing a shelf, not a world. No arc, so no direction. Seven
+  groups carry `bag:1` and say so in their own notes (ARCHITECTURE.md has the
+  same seven).
 - A **weave** — several arcs interleaved on purpose. The DCAU's by-universe order
   is a watch order across five shows and its note prescribes it; the era is a
   position in one life. Forcing them to agree would make the note lie. Three are
@@ -1615,15 +1768,6 @@ form, so search still finds them.
 that moved; the year is the one that shipped. It is the only such mismatch in
 the file and it stays, because the slug is frozen and the year is true.
 
-### A backup code carries what this build knows
-
-`exportCode()` walks `FILMS`, so a slug merged in from a newer build's JSON
-survives in storage and in a JSON export but not in a code. The restore toast
-says entries are kept, and for JSON that is exactly true. Changing it means
-hashing the keys of `S.watched` instead of the catalogue, which is a code-format
-change, and the format does not move before the URL migration. Documented rather
-than fixed, deliberately.
-
 ### Two rationales that would not fit in the file they belong to
 
 index.html carries at most two script comments — guard 65 counts them — so
@@ -1637,8 +1781,8 @@ something, so the test is entries, unknown slugs, or a path.
 The group headers stick to a number written for the header at its normal height.
 When saving is blocked the header grows by a line and the stuck headings slid
 underneath it by exactly that much, for exactly the users already having the
-worst time. `flagSave()` measures the header and sets `--ghtop` when the banner
-is up.
+worst time. `flagSave()` measures the header and sets `--hdrh` when the banner
+is up; `--ghtop` is derived from it in the stylesheet.
 
 ### Era 7 is not being split
 
@@ -1718,80 +1862,16 @@ which is the point: an older build can now hand its progress to a newer one that
 does.
 
 
-### Two origins, on purpose, forever
+### Five sections that were history moved out (5.3.1)
 
-**Amended 2.5.1 — the offer is retired; the arrangement is not.** Stage 0 of
-2.5.1 measured what this section assumed: 100 visits on the apex and none on
-the beta address, over the whole life of the analytics beacon. The move offer
-came out. Both addresses still serve, the canonical link on both still points
-at the apex, and `offCanonical()` still exists — it just does one job now
-instead of two: it marks the mirror `noindex`. The reasoning below is kept
-because it is why the beta address is still *serving* rather than redirecting,
-and that part has not changed.
-
-> **Amended 6 Aug 2026 — the mirror is gone.** GitHub Pages was unpublished on
-> the owner's decision that `nightwatcher.life` is the only address. What follows
-> is therefore history rather than description: no second origin serves, and
-> `offCanonical()` has no remaining job. **It is still in the tree on purpose** —
-> every line that would let the mirror come back stays until the retirement has
-> soaked, and removing it is planned as its own PATCH after 19 Sep. The reasoning
-> below is kept because it is why a Pages custom domain was never allowed, which
-> is still what guard 82 enforces.
->
-> **Amended again in 3.3.1 — removed.** The PATCH came early: `offCanonical()`
-> left the tree in 3.3.1, guard 77 inverted to fail if it returns, and
-> `wrangler.jsonc` says the same. Nothing below describes the shipped app.
-
-`nightwatcher.life` is canonical and served by Cloudflare Workers. The old
-GitHub Pages address serves the same tree and is never given a custom domain.
-
-That is not tidiness, it is the only arrangement that works. Configuring a
-custom domain on GitHub Pages writes a `CNAME` file and turns the old address
-into a 301 to the new one, and it cannot be switched off — delete the `CNAME`
-and the custom domain stops working. A redirect runs no JavaScript. Progress
-lives in `localStorage`, which is per-origin, so JavaScript on that origin is
-the only thing that can ever read it. The moment Pages starts redirecting,
-every reader who has not already moved is permanently separated from data that
-is still sitting on their own disk.
-
-So both addresses serve, the canonical link on both points at the apex, and the
-app knows which one it is running on.
-
-### The offer is conditioned on where it is, not on when it is
-
-**Amended 2.5.1 — retired.** There is no banner to condition. `offCanonical()`
-survives for the `noindex` injection alone, and guards section 77 inverted: it
-used to prove the offer was there and now fails if any part of it comes back.
-The reasoning below is the record of why it was built the way it was, which is
-worth more than a deleted section. *(And since 3.3.1 `offCanonical()` itself
-is gone — see the amendment above.)*
-
-`offCanonical()` compares `location.origin + location.pathname` against `SITE`.
-It could have been a date — show the banner until the end of the year — and
-that would have been simpler and wrong, because the person it is written for is
-precisely the one who comes back long after anybody stopped thinking about the
-move.
-
-The link is built from `SITE` and not from `restoreLink()`. `restoreLink()`
-uses `location.origin` deliberately, so on the old address it would produce a
-link back to the address the reader is trying to leave: correct-looking, and
-useless. Guards section 77 checks that specifically, because it is the mistake
-that would not look like one.
-
-The banner renders above every tab rather than inside Home, because a shared
-`#life` link lands on The Path.
-
-### Analytics counts one hostname
-
-> **Amended 3.2.0 — the beacon is gone.** There is no analytics script in the
-> page any more; the host counts visits at the edge. What follows is history.
-
-Cloudflare Web Analytics is per-hostname and the free plan takes one hostname
-per site, so the token in the page is registered to `nightwatcher.life`. Visits
-to the old address are not counted. That is the right way round: it is a
-waiting room, not a destination, and a beacon that gets dropped costs a request
-and tells nobody anything.
-
+Two origins, on purpose, forever · The offer is conditioned on where it is ·
+Analytics counts one hostname · Two signals, because one of them is a request ·
+Cross-tab merging only ever added — each described itself as history or
+superseded ("nothing below describes the shipped app", "what follows is
+history") and stayed here after 4.9.0 moved history out. They are in
+`NOTES-history.md` under their own headings, as written; nothing in them
+describes the app that ships. The slug-mismatch rule below is the first
+present-tense entry after where they stood.
 
 ### The frozen-slug rule has exactly one exception
 
@@ -1839,27 +1919,6 @@ Its links are the page's only anchors, and guards section 90 ties every one of
 them to section 72's frozen route vocabulary — the seed is the one part of the
 page a non-rendering crawler reads, so a dead link there is dead precisely
 where nobody watches.
-
-### Two signals, because one of them is a request
-
-The canonical link points every origin at the apex. That is the mechanism search
-engines use to consolidate, and it is the primary signal.
-
-The injected `noindex` is the second, and it exists because GitHub Pages cannot
-send a header and has to keep serving.
-
-> **Amended 6 Aug 2026.** GitHub Pages was unpublished, so nothing is served from
-> a second origin and the injected `noindex` marks nothing. The canonical link is
-> unchanged and remains the primary signal.
- It says `follow` as well, so the links
-out of that page — the canonical one among them — still count. It is injected
-rather than static: a static robots meta in the markup would apply to the
-canonical origin too and take the whole site out of search, which section 78
-also checks for.
-
-`workers.dev` needed neither. It was turned off, and nothing that does not exist
-competes with anything.
-
 
 ### A clamp that is allowed to flex is not a clamp
 
@@ -1951,7 +2010,7 @@ reverted it — the year sort scattered the LEGO line across 31 slots, which is
 recorded above under *Ordering by year is not ordering by story*. The paragraph
 survived the revert and sat here for two releases contradicting the section that
 described the shipping behaviour, and it also called era 0 the largest era in the
-catalogue when it holds 16 against era 7's 48.
+catalogue when it holds 15 against era 7's 49.
 
 Nothing catches this. Guard 65 keeps the *pointer* to NOTES.md honest, guard 66
 keeps the section *count* honest, and section 14 now checks the README's era
@@ -2000,46 +2059,9 @@ declared inside a bare `{ }` block in section 34, roughly 780 lines above.
 would have crashed section 55 with a `ReferenceError` rather than failing a
 guard, and a crashing suite says nothing about the app.
 
-Each section extracts what it needs now. Extraction is a regex over a 122 KB
-string; doing it twice costs nothing worth this kind of coupling.
-
-### Cross-tab merging only ever added
-
-**SUPERSEDED 15 AUG 2026, AND BOTH HALVES HAD BEEN FIXED FOR SOME TIME BEFORE
-ANYONE NOTICED THIS STILL SAID OTHERWISE.** The entry is kept rather than
-deleted, because the reasoning is still why the code has the shape it has — but
-what follows was being read as current long after it stopped being true.
-
-The `storage` listener merged another tab's marks in and never took any out.
-Untick a film in one tab and the other — which still had it — wrote it back on
-its next save. That was deliberate: losing a tick is a worse failure than an
-unexpected one reappearing, and there was no timestamp on a mark to reconcile
-with. This entry then said, in as many words, that if it ever became a real
-complaint the fix was a per-mark timestamp rather than a smarter merge.
-
-**3.8.0 shipped exactly that.** Every removal is stamped — `clk` in the payload,
-`S.clk` in state — and the merge is last-writer-wins where a clock exists and
-additive where none does, so an untick survives the other tab while a backup
-written before clocks existed still merges the old way. Guard 134 pins it.
-
-**3.7.2 had already closed the other half.** "Clear all progress" was silently
-false with a second tab open: the reset wrote an empty payload, the stale tab
-still held everything in memory, and its next write put all of it back.
-`resetAt` fixed it — and the account of that fix is at the top of THIS FILE,
-which is where the real failure was. One document described the fix in one
-passage and the bug as current in another, and the two never met.
-
-**What survives from the original entry** is the third consequence, which is
-unchanged: writes are whole-payload last-writer-wins, so a tab that merges a
-foreign tick into memory and is never touched again leaves that tick out of
-storage, because the flush is a no-op with no pending timer. That one follows
-from the anti-loss bias and is not a defect in the merge.
-
-**Why it sat: the standing blind spot recorded above.** The count guard excludes
-NOTES.md and CHANGELOG.md on purpose — both are records, and a history that
-updates itself is not a history. That is right, and it is also exactly why
-nothing in the build can notice when a *claim* in here stops being true. The
-only control is somebody reading it, which is the control that failed.
+Each section extracts what it needs now. Extraction is an AST walk (acorn,
+since 4.2.4; a regex before that) over a ~156 KiB script; doing it twice
+costs nothing worth this kind of coupling.
 
 ### `mergeTab()` — the merge is caught, and the settings ride along (5.3.0)
 
@@ -2071,24 +2093,20 @@ in the URL until the banner is answered, so a reload re-parses it rather than
 losing it — that was the 1.6.5 fix. `S.pending` itself is session-only by
 design: an unanswered question should not outlive the tab.
 
-### `wrangler` stays a dev dependency
+### `wrangler` runs through a pinned `npx`, and is not a dependency
 
-It is the large majority of a 130-package lockfile and CI installs it on every
-push, while the tests need only jsdom. It stays because `wrangler.jsonc` is
-guarded — section 13 checks its assets directory against `docs/` and rejects SPA
-fallback, both of which are real rules about how this site is served.
-
-> **Amended in 3.0.0.** This read *"the Workers path is a live option for the
-> domain migration"* and *"if the migration lands on GitHub Pages alone…"* long
-> after it landed. **`nightwatcher.life` has been served by Cloudflare Workers
-> since 2.1.0**; the serving question is answered, GitHub Pages is a mirror
-> rather than a candidate, and the conditional that would have dropped
-> `wrangler` can never be met. It is a build dependency of the live site now,
-> which is a better reason to keep it than the one this section used to give.
->
-> **And amended again 6 Aug 2026:** the mirror was unpublished. `wrangler` is
-> still a build dependency of the live site — and the deployments API confirms it
-> is the *only* mechanism: every version of the Worker was uploaded by hand.
+Since 4.9.0 `wrangler` is not in `package.json` at all: the `deploy`,
+`preview` and (5.3.1) `rollback` scripts run `npx wrangler@4.123.0`, so the
+lockfile carries the four dev dependencies the tests need (acorn, axe-core,
+jsdom, playwright — 43 packages) and CI installs nothing it does not run.
+The pin is the version the site was last deployed with; moving it is a
+decision with a CHANGELOG line. `wrangler.jsonc` is still guarded — section
+13 checks its assets directory against `docs/` and rejects SPA fallback —
+because those are rules about how the site is served, not about what is
+installed. (The section that stood here from 1.x to 5.3.0 argued the
+opposite — that `wrangler` "stays a dev dependency" — and was amended twice
+without ever being retired after 4.9.0 removed it; a maintainer following
+it would have re-added a 130-package dependency. It is in NOTES-history.md.)
 
 ## The sentinel that the search box could type
 
@@ -2148,6 +2166,43 @@ The boundary is where it can be checked: an entry title or a quoted episode name
 inside an era note means the note has stopped describing a period and started
 describing a story. Guard section 81 fails on either.
 
+**An era's rule is about partnership, not presence.** Era 7, "No one in the
+car", holds *Injustice* (2021), and Damian Wayne and Dick Grayson are both in
+that film — neither of them beside Bruce. The 5.3.0 audit asked whether the
+row belonged in era 8 with *Batman vs. TMNT*; it stays, because the era's
+sentence says who is beside him, not who is on screen, and the move would
+renumber `lo` and reorder the export for a row that fits where it sits.
+
+## Catalogue conventions written down in 5.3.1
+
+Two rules the rows had been following inconsistently, with no sentence to
+follow, from the 5.3.0 audit's C-9:
+
+- **A show's seasons take one source.** Four shows carried ratings that
+  differed across seasons with nothing named — The Batman (TV-G then
+  TV-Y7-FV), Justice League (TV-G against a streamer saying TV-Y7),
+  Batwheels (TV-Y then TV-Y7), the Robot Chicken DC specials (TV-MA then
+  TV-14). Each show now takes one source: the current HBO Max listing for
+  the three it carries (The Batman TV-Y7, Justice League TV-Y7, Batwheels
+  TV-Y) and Adult Swim's own content-rating archive for the specials
+  (TV-14-DLSV, all three). Justice League Unlimited stays TV-Y7-FV: already
+  one source, already consistent. Guard 92's distribution names every move.
+- **A season's `y` is the year its slug froze on.** Four seasons straddle a
+  new year and carry the later one — Batman Beyond S2 (premiered Sept 1999,
+  `y:2000`), STAS S3 (Sept 1998, `y:1999`), JLU S3 (Sept 2005, `y:2006`),
+  Brave and the Bold S2 (late 2009, `y:2010`) — against the premiere-year
+  line the other rows follow. The slugs are frozen and guard 84 allows
+  exactly one slug/year mismatch, so the rows stand and the convention is
+  the sentence: `y` is the year the slug carries, and for a season that
+  straddles a year it is the later one. Widening guard 84's exception list
+  would have taught the guard to accept more mismatches, the opposite of
+  its job, for four rows nobody has ever mis-filed.
+
+And two titles: *Knightfall* Parts 2 and 3 were carried under the comics'
+arc names, which are not announced titles and double as spoilers for the
+trilogy's shape; they are "Part Two" and "Part Three" until Warner names
+them (5.3.1). The slugs, as ever, do not move.
+
 ## Counting the suites
 
 Three numbers describe the test suites, and all three had drifted.
@@ -2167,8 +2222,10 @@ The fixture count was worse, because nothing had ever found it. Every negative
 suite defines its own `run_case ()` helper at the top of the file, and a naive
 `^run_case ` count includes that definition — one phantom fixture per suite. The
 total had been reported as **194** across sixteen suites when it was **178**;
-the guard that now counts them off disk matches `^run_case\s+"`, on the quoted
-label a real call always has, and each suite's own end-of-run tally confirms it.
+the guard that now counts them off disk matches `^\s*(?:run_case|green_case)\s+"`
+(green_case since 3.7.1; one reader for every counter since 5.3.1,
+`qa/negative/census.js`), on the quoted label a real call always has, and each
+suite's own end-of-run tally confirms it.
 
 None of these numbers matter. What matters is that a number in prose is a claim
 nobody re-checks, and this project puts a lot of numbers in prose. The general
@@ -2207,9 +2264,59 @@ section or its named hard cases vanish. *Super Best Friends Forever* joined Joke
 OnStar and *Return to the Batcave* in 1.8.5 as the fourth: licensed, released,
 Batman is in it, and still out, because nothing happens in it.
 
-**Verify from a cold start.** A workflow rule, so it goes in the README's
-release section where it is read before the next build, not into a file that only
-runs after one.
+**Verify from a cold start.** A workflow rule, so it goes in the release
+checklist (`RELEASING.md`, since 4.1.1) where it is read before the next
+build, not into a file that only runs after one.
+
+### What the harness proved about itself in 5.3.1
+
+The 5.3.0 audit read the QA code as code, and found four certificates that
+certified more than they proved. Each is fixed by shape, not by wording:
+
+- **Guard 158's census read spelling.** It matched `S.watched[x] = 1` in
+  the shapes it had thought of; a seat written `S.watched[id] =
+  S.watched[id] || 1`, an `Object.assign(S.watched, m)` or a helper handed
+  the object walked past it while the note printed "each gated" — verified
+  with two planted doors. It is an AST walk now: every assignment (any
+  operator) into the three mark objects, every wholesale write, every call
+  handed one, every alias; each member write must be a listed door with
+  `isParkedId(<its own index>)` in the innermost loop or function that holds
+  it. The three spelling pins beside it (the sweep calls, the listener's
+  `try`, the adopt set) are predicates, so a reindent stays green — two
+  `green_case`s prove it.
+- **`_lib.sh` checked the pristine signature only on a green exit.** On a
+  tree already red in a section — the everyday case is an unblessed CSP
+  hash, the state a developer runs "the suite you wrote" in — every fixture
+  aimed at that section passed without proving anything, a no-mutation
+  fixture included. A red pristine tree prints `PRISTINE RED` and counts one
+  failure; the signature check runs on every fixture; and the heal between
+  fixtures is content-based (`cmp -s` over the manifest), not mtime-based.
+- **Guard 138 credited a section for any fixture sharing a phrase.** §33
+  ("One tagline, everywhere") had never had a fixture and read as covered
+  by two §116 fixtures whose expect was a substring of its text; 21 fixtures
+  were crediting 51 sections. A pinned fixture credits its section only; an
+  unpinned one only a unique match. The honest map exposed six sections
+  (33, 38, 46, 48, 61, 117): three got fixtures, six old fixtures were
+  retrofitted their `sect`, four exact duplicates across suites were
+  struck, and `NO_SECT_PINNED` went 764 → 754.
+- **Three smoke checks could not fail** — a tier partition that was an
+  identity for any `tierOf`, a scoreboard that asserted `counts()`' own
+  definition of `left`, a filtered-view fallback that asserted only that
+  something rendered. Each recounts independently now, and each has a
+  fixture that breaks the property.
+
+And the harness's own shape: the byte-identity drive is its own smoke phase
+(`identity`), because 71 `main`-scoped fixtures were each paying its 22
+seconds to observe one message; the css sweep runs its staged states
+before the tab walk (57 → 35 s); the four censuses of "which fixtures are
+smoke" (guards 65, 113, 138 and `run-all.sh`) are one module,
+`qa/negative/census.js`, so the dispatch order and the shard weights can
+never disagree about what a suite costs; negtest560's clock pin is derived
+from `security.txt`'s own `Expires`, so guard 140's 2027 renewal cannot
+turn the suite red for the wrong reason; four more axe states (Darker Home,
+Progress with the restore box and folds open, The Path with the belt
+dropped, Next up on a bag) and the forced-colors repaint read under
+emulation rather than pinned as text.
 
 ## The plain-text export carries one ordering
 

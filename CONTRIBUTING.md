@@ -101,9 +101,11 @@ is what names the release.
    is a substring match.
 4. **A `green_case` proves a guard stays quiet** on a mutation that must not
    fire it. It asserts the exit code and is not harvested for coverage.
-5. **Smoke fixtures** pass `smoke <phase>` (`main`, `css`, `blocked`) as the
-   fourth and fifth arguments so the run stops at the phase that can see
-   the mutation.
+5. **Smoke fixtures** pass `smoke <phase>` (`main`, `identity`, `css`,
+   `blocked`) as the fourth and fifth arguments so the run stops at the
+   phase that can see the mutation — `identity` is the byte-identity drive,
+   the expensive one, so a fixture that trips a check elsewhere never names
+   it.
 6. **Add the suite to a CI shard** — a `pick:` pattern in
    `.github/workflows/qa.yml` (guard 113 fails the build if no shard runs
    it), repacking by weight so the four shards stay level; then move the

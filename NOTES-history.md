@@ -2520,3 +2520,168 @@ clock, no persist — so the resurrection the release said it had killed was
 asleep until release day. 5.1.1 closed both, and added guard 158, which
 does what a promise phrased as *every* needs: it enumerates the seats that
 write a mark, requires a gate at each, and fails a seventh nobody named.
+
+## 1.x–5.3.0 — "`wrangler` stays a dev dependency" (retired in 5.3.1)
+
+The NOTES.md section below stood from the first Workers deploy until 5.3.1 and was twice amended rather than retired. 4.9.0 removed `wrangler` from `devDependencies` in favour of the pinned `npx wrangler@4.123.0` scripts (CHANGELOG 4.9.0), which made every sentence of it false while it went on being the file's present-tense rule; the 5.3.0 audit (D-2) caught it. Kept here as written.
+
+#### `wrangler` stays a dev dependency
+
+It is the large majority of a 130-package lockfile and CI installs it on every
+push, while the tests need only jsdom. It stays because `wrangler.jsonc` is
+guarded — section 13 checks its assets directory against `docs/` and rejects SPA
+fallback, both of which are real rules about how this site is served.
+
+> **Amended in 3.0.0.** This read *"the Workers path is a live option for the
+> domain migration"* and *"if the migration lands on GitHub Pages alone…"* long
+> after it landed. **`nightwatcher.life` has been served by Cloudflare Workers
+> since 2.1.0**; the serving question is answered, GitHub Pages is a mirror
+> rather than a candidate, and the conditional that would have dropped
+> `wrangler` can never be met. It is a build dependency of the live site now,
+> which is a better reason to keep it than the one this section used to give.
+>
+> **And amended again 6 Aug 2026:** the mirror was unpublished. `wrangler` is
+> still a build dependency of the live site — and the deployments API confirms it
+> is the *only* mechanism: every version of the Worker was uploaded by hand.
+
+## 2.1.0–3.3.1 — Two origins, on purpose, forever — moved from NOTES.md in 5.3.1
+
+#### Two origins, on purpose, forever
+
+**Amended 2.5.1 — the offer is retired; the arrangement is not.** Stage 0 of
+2.5.1 measured what this section assumed: 100 visits on the apex and none on
+the beta address, over the whole life of the analytics beacon. The move offer
+came out. Both addresses still serve, the canonical link on both still points
+at the apex, and `offCanonical()` still exists — it just does one job now
+instead of two: it marks the mirror `noindex`. The reasoning below is kept
+because it is why the beta address is still *serving* rather than redirecting,
+and that part has not changed.
+
+> **Amended 6 Aug 2026 — the mirror is gone.** GitHub Pages was unpublished on
+> the owner's decision that `nightwatcher.life` is the only address. What follows
+> is therefore history rather than description: no second origin serves, and
+> `offCanonical()` has no remaining job. **It is still in the tree on purpose** —
+> every line that would let the mirror come back stays until the retirement has
+> soaked, and removing it is planned as its own PATCH after 19 Sep. The reasoning
+> below is kept because it is why a Pages custom domain was never allowed, which
+> is still what guard 82 enforces.
+>
+> **Amended again in 3.3.1 — removed.** The PATCH came early: `offCanonical()`
+> left the tree in 3.3.1, guard 77 inverted to fail if it returns, and
+> `wrangler.jsonc` says the same. Nothing below describes the shipped app.
+
+`nightwatcher.life` is canonical and served by Cloudflare Workers. The old
+GitHub Pages address serves the same tree and is never given a custom domain.
+
+That is not tidiness, it is the only arrangement that works. Configuring a
+custom domain on GitHub Pages writes a `CNAME` file and turns the old address
+into a 301 to the new one, and it cannot be switched off — delete the `CNAME`
+and the custom domain stops working. A redirect runs no JavaScript. Progress
+lives in `localStorage`, which is per-origin, so JavaScript on that origin is
+the only thing that can ever read it. The moment Pages starts redirecting,
+every reader who has not already moved is permanently separated from data that
+is still sitting on their own disk.
+
+So both addresses serve, the canonical link on both points at the apex, and the
+app knows which one it is running on.
+
+## 2.1.0–3.3.1 — The offer is conditioned on where it is, not on when it is — moved from NOTES.md in 5.3.1
+
+#### The offer is conditioned on where it is, not on when it is
+
+**Amended 2.5.1 — retired.** There is no banner to condition. `offCanonical()`
+survives for the `noindex` injection alone, and guards section 77 inverted: it
+used to prove the offer was there and now fails if any part of it comes back.
+The reasoning below is the record of why it was built the way it was, which is
+worth more than a deleted section. *(And since 3.3.1 `offCanonical()` itself
+is gone — see the amendment above.)*
+
+`offCanonical()` compares `location.origin + location.pathname` against `SITE`.
+It could have been a date — show the banner until the end of the year — and
+that would have been simpler and wrong, because the person it is written for is
+precisely the one who comes back long after anybody stopped thinking about the
+move.
+
+The link is built from `SITE` and not from `restoreLink()`. `restoreLink()`
+uses `location.origin` deliberately, so on the old address it would produce a
+link back to the address the reader is trying to leave: correct-looking, and
+useless. Guards section 77 checks that specifically, because it is the mistake
+that would not look like one.
+
+The banner renders above every tab rather than inside Home, because a shared
+`#life` link lands on The Path.
+
+## 2.1.0–3.2.0 — Analytics counts one hostname — moved from NOTES.md in 5.3.1
+
+#### Analytics counts one hostname
+
+> **Amended 3.2.0 — the beacon is gone.** There is no analytics script in the
+> page any more; the host counts visits at the edge. What follows is history.
+
+Cloudflare Web Analytics is per-hostname and the free plan takes one hostname
+per site, so the token in the page is registered to `nightwatcher.life`. Visits
+to the old address are not counted. That is the right way round: it is a
+waiting room, not a destination, and a beacon that gets dropped costs a request
+and tells nobody anything.
+
+## 2.1.0–3.3.1 — Two signals, because one of them is a request — moved from NOTES.md in 5.3.1
+
+#### Two signals, because one of them is a request
+
+The canonical link points every origin at the apex. That is the mechanism search
+engines use to consolidate, and it is the primary signal.
+
+The injected `noindex` is the second, and it exists because GitHub Pages cannot
+send a header and has to keep serving.
+
+> **Amended 6 Aug 2026.** GitHub Pages was unpublished, so nothing is served from
+> a second origin and the injected `noindex` marks nothing. The canonical link is
+> unchanged and remains the primary signal.
+ It says `follow` as well, so the links
+out of that page — the canonical one among them — still count. It is injected
+rather than static: a static robots meta in the markup would apply to the
+canonical origin too and take the whole site out of search, which section 78
+also checks for.
+
+`workers.dev` needed neither. It was turned off, and nothing that does not exist
+competes with anything.
+
+## 1.x–3.8.0 — Cross-tab merging only ever added (superseded 15 Aug 2026) — moved from NOTES.md in 5.3.1
+
+#### Cross-tab merging only ever added
+
+**SUPERSEDED 15 AUG 2026, AND BOTH HALVES HAD BEEN FIXED FOR SOME TIME BEFORE
+ANYONE NOTICED THIS STILL SAID OTHERWISE.** The entry is kept rather than
+deleted, because the reasoning is still why the code has the shape it has — but
+what follows was being read as current long after it stopped being true.
+
+The `storage` listener merged another tab's marks in and never took any out.
+Untick a film in one tab and the other — which still had it — wrote it back on
+its next save. That was deliberate: losing a tick is a worse failure than an
+unexpected one reappearing, and there was no timestamp on a mark to reconcile
+with. This entry then said, in as many words, that if it ever became a real
+complaint the fix was a per-mark timestamp rather than a smarter merge.
+
+**3.8.0 shipped exactly that.** Every removal is stamped — `clk` in the payload,
+`S.clk` in state — and the merge is last-writer-wins where a clock exists and
+additive where none does, so an untick survives the other tab while a backup
+written before clocks existed still merges the old way. Guard 134 pins it.
+
+**3.7.2 had already closed the other half.** "Clear all progress" was silently
+false with a second tab open: the reset wrote an empty payload, the stale tab
+still held everything in memory, and its next write put all of it back.
+`resetAt` fixed it — and the account of that fix is at the top of THIS FILE,
+which is where the real failure was. One document described the fix in one
+passage and the bug as current in another, and the two never met.
+
+**What survives from the original entry** is the third consequence, which is
+unchanged: writes are whole-payload last-writer-wins, so a tab that merges a
+foreign tick into memory and is never touched again leaves that tick out of
+storage, because the flush is a no-op with no pending timer. That one follows
+from the anti-loss bias and is not a defect in the merge.
+
+**Why it sat: the standing blind spot recorded above.** The count guard excludes
+NOTES.md and CHANGELOG.md on purpose — both are records, and a history that
+updates itself is not a history. That is right, and it is also exactly why
+nothing in the build can notice when a *claim* in here stops being true. The
+only control is somebody reading it, which is the control that failed.

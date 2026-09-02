@@ -14,6 +14,224 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [5.3.1] — 2026-09-02
+
+**The two 5.3.0 QAs, whole.** A PATCH, because nothing here adds an
+entry, a feature or a surface: fixes, corrections, QA tooling and
+documents, from the owner's whole-repository audit of 5.3.0 (1 P1 ·
+22 P2 · 17 P3) and an external read of the live tag (all twelve of
+5.3.0's claims held on glass; two residuals and a record drift). Every
+finding in both is taken or declined on the record — none deferred —
+and the two items a MINOR cannot hold (the settings key split, the
+Batwoman season split) are parked in NOTES.md's new "Open" section for
+the MAJOR that hosts them both.
+
+### Fixed
+
+- **The rating was the mark 5.3.0 did not gate.** "Every door" was
+  true of ticks and skips; a rating on a parked title survived every
+  seat — `rate()` itself, a pasted code or JSON, another tab, and the
+  wholesale restore — landed in Your five stars as "★ Dynamic Duo
+  (2028)" and rode the backup code as an orphan. A rating is a mark
+  (`rate()` marks the title watched; a star is a verdict on something
+  seen, and a parked title cannot have been): the three rated seats are
+  gated on `isParkedId`, `dropParkedRated()` runs beside the other two
+  sweeps (delete, stamp, persist), and `favList()` refuses a parked
+  title as belt-and-braces. Guard 158 counts nine seats now, not six.
+- **Guard 158's census read spelling.** `S.watched[id] = S.watched[id]
+  || 1`, `Object.assign(S.watched, m)`, a helper handed the object — the
+  audit planted two of these beside `isParkedId()` and the note went on
+  printing "each gated". The census is an AST walk: every assignment
+  into the three mark objects (any operator), every wholesale write,
+  every call handed one, every alias; each member write must be a
+  listed door with `isParkedId(<its own index>)` in the innermost loop
+  or function that holds it. Five planted shapes, five reds. The three
+  spelling pins beside it (the sweep calls, the listener's `try`, the
+  adopt set) are predicates, so a reindent stays green — two green
+  cases say so.
+- **An adopted path left the mode behind.** The 5.3.0 settings adopt set
+  `S.path` and not `S.mode`, so The Path wore the shared-link banner
+  ("Viewing Bruce's life. Your path is Release order.") for a screen;
+  the 5.3.0 check had sent the tab the path it already had. The `path`
+  row's `put` carries `S.mode`, and the check sends a changed path,
+  plus scope and tier, which nothing sent either.
+- **The epoch is not a night.** `validTs()` required only `isFinite`
+  where its two siblings require `> 0`: a hand-edited backup with
+  `ts:0` printed "1 night on patrol" dated 1970 and pinned the pace
+  forecast's span at ~20,000 days for good. Finite and greater than
+  zero, like `stampOf()` and `clocksOf()`.
+- **A skip counted as two changes** in the backup nudge — its own clock
+  plus the watched tombstone `unmarkWatched()` stamps (the merge's
+  "skip beats a stale tick" signal, which stays). `marksSince()` counts
+  titles, not clocks.
+- **The deck is built before the first render.** `render()` opens with
+  a scroll read that lays out the document as it stands, and at boot
+  that was the crawler seed — 431 elements the app never shows — laid
+  out and thrown away before `buildDeck()` replaced it (the audit
+  measured 55 ms of first Layout at 4× throttle, on the path to first
+  paint). The boot block builds the deck first; the first layout is four
+  empty panels. Guard 120 gained the boot clause its order clause could
+  not see.
+- **Twelve certificates, each with a source.** Harley Quinn's
+  Valentine's special is TV-MA, not TV-14 — the R / TV-MA chip was
+  letting it through. *Teen Titans: The Judas Contract* and *Reign of
+  the Supermen* carry MPA certificates (PG-13; NR means none was ever
+  issued, and both were). *Batman & Mr. Freeze: SubZero* is NR — no
+  certificate anyone can cite. And one source per show for the four
+  shows whose seasons disagreed with nothing named: The Batman (TV-Y7
+  ×5), Justice League (TV-Y7 ×2), Batwheels S3 (TV-Y — the show is
+  TV-Y) off the current HBO Max listing; the two Robot Chicken DC
+  specials TV-14 off Adult Swim's own rating archive. Guard 92's
+  distribution names every move.
+- **Blurbs and notes that argued with their rows.** *Legion of
+  Super-Heroes* said "No Batman in it" — Jensen Ackles voices him; it
+  says he sees her off now, and *Suicide Squad: Hell to Pay* says what
+  README's exception requires it to (no Batman, no Gotham, a link in
+  the chain), so "eight entries qualify" is seven. The DKR Deluxe
+  Edition blurb called itself R-rated beside its own PG-13. The Music
+  Meister is Season 1, not Season 2. Six facts corrected — Gotham
+  Knight's four studios, Return of the Joker's original 2000 release
+  (not a theatrical edit), Gotham Girls' 2000–02, the half-hour
+  Batgirl prologue, Young Justice's nearly six years off the air, a
+  minute and a half of Terry McGinnis — and two counts dropped (young
+  Bruce in *Joker* is in two scenes, and the second is the turn).
+  *Dynamic Duo*'s blurb states the premise, not an outcome. *Knightfall*
+  Parts 2 and 3 are "Part Two" and "Part Three" until Warner names them:
+  the comics' arc names were never announced titles and double as
+  spoilers for the trilogy's shape. Universe 04's note says what closes
+  the weave (the row it names), universe 05's "only one pair" no longer
+  contradicts its own pairs, universe 35's bag suffix ends its note as
+  the rule says, the LEGO shorts' quotes match every other title, and
+  the Valentine's special stopped naming a streamer (guard 32: the app
+  names no services; the bare "Max" was the tell).
+- **The Batwoman overlap, said plainly.** Crisis Part Two *is* Batwoman
+  S1E09 — the hour with Conroy's Bruce Wayne — so the 51-episode bundle
+  already holds the reason the Crisis row exists, that hour is on the
+  shelf twice, and the group files the event after the series it falls
+  inside. The row says so now; the overlap is recorded as accepted
+  (2,011 episodes is the sum of sittings, 2,010 unique; `ep:5` stays);
+  the honest structural fix is a MAJOR, parked with the key split.
+- **High Contrast paints state, never the palette.** 5.3.0 repainted the
+  ornaments and left every state a background alone carried — the
+  pressed chip, the pressed belt, scope and theme buttons, the done
+  tick, the lit belt-peek and essentials segments, the skyline crown,
+  the group bar's fill, the here-group's corners — to wash out under
+  the UA's palette, and the current tab was signal ink only. Those
+  repaint in system colours (`Highlight`/`HighlightText`, `CanvasText`,
+  `GrayText`, an underline, an outline); the wordmark, the path title,
+  the belt, the group heads and the prose take the colours the reader
+  chose. Guard 159 pins each rule and refuses a brand override; the
+  browser check reads the repaint under emulation.
+- **`sw.js` skips a rewrite when nothing moved.** Every load deleted
+  and re-put the 245 KB document and ~65 KB of fonts out of a
+  304-refreshed HTTP-cache entry; the cached entry's ETag is compared
+  first. Guard 132 drives both branches.
+
+### Changed
+
+- **The quiet deck.** A search keystroke, a peek, a fold, a new code,
+  the backup nag's "later" and the reset arm each touch exactly one
+  view, and each rebuilt The Path (~2,700 elements) at idle — a 221–292
+  ms task once a reader had scrolled it (measured at 4× throttle with
+  the scroll kept at 2,500; the audit's 175–225). `render({quiet:true})`
+  dirties nobody for those; a tick from another panel patches the
+  inert Path row-level (`patchRow`, the surgery the visible panel has
+  had since 2.5.0, extracted to take a panel) instead of dirtying it —
+  none, or 50 ms; and a search keystroke never renders: `searchApply()`
+  toggles `hidden` on the rows the query hides and the groups that
+  empties, keeps the count line and the empty block in step, and the
+  caret never moves (26–38 ms plus a 108–146 ms long task per keystroke
+  before; 4–8 ms in place, no long task, after). A full render produces
+  the same DOM, so the identity drive holds both paths byte-for-byte
+  and a spy on `fillPanel()` proves no neighbour is rebuilt.
+- **Limelight is subset and renamed NW Deco** — 23,080 → 12,784 bytes,
+  the largest face, on the critical path; the saving is TrueType
+  hinting, not glyphs. It is the reserved-name answer 4.5.3 gave the
+  Plex faces, applied to the one face it skipped; the file keeps its
+  name as the Plex files keep theirs.
+- **The JSON-LD sits after the stylesheet** — the same bytes, 68 → 67 KB
+  gzip: it repeats the seed's FAQ and curated list, and from line 43
+  they were 69 KB apart with the stylesheet between. Found on the way:
+  the two JSON-LD blessers pushed their node last, so the `@graph`
+  order depended on what had changed — and FAQPage-first cost the same
+  1.3 KB back. Both write one order now, FAQPage last.
+- **Weight nits:** `.homefoot a` (no anchor there) leaves its selector
+  lists; the below-floor prefixes go (`-webkit-backdrop-filter`,
+  `-webkit-overflow-scrolling`, `-webkit-appearance`); `#splash`'s two
+  rules are one; `apple-touch-icon.png` 6,174 → 3,592 B and the tile
+  6,884 → 2,413 B as palette PNGs (the icon within 1/255 of its RGB
+  render).
+- **`upNext()` is a pure read** — the pick's expiry was a write hidden
+  in a getter every render path called; it is `expirePick()` at the
+  three entry points now, `pickStands()` the test. `doneBy()`'s two
+  factors that cancelled are one; `nightsLine()`'s unread argument is
+  gone; `groupBlock()` and `viewHome()` compute their tallies once
+  (noise, measured; taken because they are two-line edits with the
+  identity drive as proof).
+- **The harness certifies what it proves.** `_lib.sh` prints
+  `PRISTINE RED` and counts a failure on a tree already red before any
+  mutation (an unblessed CSP hash is the everyday case — every fixture
+  aimed at that section used to pass without proving anything), runs
+  the pristine-signature check on every fixture, and heals by content
+  (`cmp -s`), not by clock. Guard 138 credits one section per fixture:
+  the honest map exposed §33 (never a fixture; credited on "does not
+  carry", a substring shared with §116), §38, §46, §48, §61 and §117 —
+  three new fixtures, six old ones retrofitted their `sect`, four exact
+  duplicates struck (`NO_SECT_PINNED` 764 → 754). Three smoke checks
+  that could not fail (the tier partition, the scoreboard, the
+  filtered-view fallback) recount independently, each with a fixture
+  that breaks it. negtest560's clock pin is derived from `security.txt`'s
+  own Expires, so guard 140's 2027 renewal cannot turn the suite red
+  for the wrong reason. Four censuses of "which fixtures are smoke"
+  (guards 65, 113, 138, `run-all.sh`) are one module,
+  `qa/negative/census.js`, and the wall dispatches by real weight
+  (negtest610's 113 guards fixtures sorted at `000` behind every
+  one-smoke suite). The byte-identity drive is its own phase
+  (`SMOKE_ONLY=identity`; 71 main-scoped fixtures each paid its 22 s);
+  the css sweep runs its staged states before the tab walk (57 → 35 s).
+  Four more axe states — Darker Home, Progress with the restore box and
+  folds open, The Path with the belt dropped, Next up on a bag with a
+  rated night — and the forced-colors repaint observed under emulation.
+  Guard 67 dates the sitemap's second URL by the bless pattern
+  (`qa/llms-txt.json`). `until()` deleted; the "seven"/"two"/"four"
+  strings corrected; §156 reads the floor constants off the tree; the
+  Playwright cache keyed on its version.
+- **Documents.** README deploys with the pinned script (`npm run deploy`;
+  a `rollback` script joins it) and gains rows for `_lib.sh`,
+  `run-all.sh`, `census.js`, `qa/llms-txt.json` and `qa/.shots/`; its
+  bless list names `qa/contrast.md`; the MINOR clause says what the
+  entries do, and a removal has a clause. NOTES.md gains an "Open"
+  section (the key split, the Batwoman split), retires the `wrangler`
+  section that had argued for a dependency 4.9.0 removed, moves five
+  sections that called themselves history to NOTES-history.md, retitles
+  fifteen headings that quoted the next symbol's comment, and corrects
+  eight present-tense lines (`groupCache`'s key, seven bags, eight
+  chips, `--hdrh`, 1943/1966, the cold-start pointer, `.modenote +
+  .drule`, the backup-code limitation the code no longer has).
+  DATA-MODEL.md catches up three releases: the merge's `try` and
+  settings adoption, the watched and rated sweeps, `mergeLog()`'s
+  refusal, the clocked loops' one exception. ARCHITECTURE.md names the
+  67 functions its table had skipped. RELEASING.md states the wall once.
+  `security.txt` and SECURITY.md agree on the Worker; SECURITY.md names
+  all five headers; three history pointers say NOTES-history.md and
+  guard 65 reads their carriers.
+
+### Records
+
+Two ledger corrections in place: the 5.1.1 entry's "refuses
+`routeText()` coming back by any name" now says "by its shipped
+names" — 5.3.0 softened the census to what it can see and the older
+line went on claiming more; and the 5.3.0 audit's own "≈ −20 s off
+every `npm test`" for the identity phase is mis-attributed (`npm test`
+runs unscoped; the phase saves the wall, the css reorder saves the run
+— both taken, stated apart). Harness: guard sections 159 → 159 (no new
+section; every change is a clause or a predicate replacing a pin), smoke
+462 → 481, negative suites 77 → 78 (negtest690, 47 fixtures, every
+guard shown to fail), fixtures 1,258 → 1,302, browser checks 108 → 117,
+the wall ≈63 CPU-minutes (~32 min on two idle cores; twenty-one older
+suites touched where this cut moved their anchors). Weight: 243 KB
+raw / 67 KB gzip against 250/80.
+
 ## [5.3.0] — 2026-09-01
 
 **Two QAs, one cut.** The owner's deep audit of 5.2.4 and an external
@@ -472,7 +690,9 @@ missing fixtures — and removes one 5.0.0 feature on the owner's call.
   person the whole curated route, and on a first visit that route is the
   work. `orders.txt` is not the same thing and stays — offered to
   crawlers and no-script readers, reachable by URL, never by a button.
-  Guard 156 refuses `routeText()` coming back by any name.
+  Guard 156 refuses `routeText()` coming back by its shipped names
+  (this line said "by any name" until 5.3.1; 5.3.0 softened the census
+  to what it can see).
 
 ### The record, corrected
 

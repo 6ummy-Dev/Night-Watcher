@@ -29,9 +29,10 @@ it's fixed.
   used to sit here was removed in 3.2.0, and the page now fetches nothing.
 - Missing HTTP security headers on any address other than `nightwatcher.life`.
   The canonical site — now the only one — sets `Referrer-Policy`,
-  `X-Frame-Options` and `Permissions-Policy` from `docs/_headers`, and HSTS and
-  `X-Content-Type-Options` at the Cloudflare edge; the CSP travels in a meta
-  tag. The GitHub Pages mirror, which could set no headers at all, was
+  `X-Frame-Options`, `Permissions-Policy`, `Cross-Origin-Opener-Policy` and
+  `Cross-Origin-Resource-Policy` from `docs/_headers` (the five `RELEASING.md`
+  reads back off the wire), and HSTS and `X-Content-Type-Options` at the
+  Cloudflare edge; the CSP travels in a meta tag. The GitHub Pages mirror, which could set no headers at all, was
   unpublished on 6 August 2026.
 - Content disputes about watch order. Those are issues, not vulnerabilities.
 

@@ -9,6 +9,7 @@
     "bless": "node qa/guards.js --bless",
     "browser": "node qa/browser-check.mjs",
     "deploy": "npx wrangler@4.123.0 deploy",
+    "rollback": "npx wrangler@4.123.0 rollback",
     "guards": "node qa/guards.js",
     "preview": "npx wrangler@4.123.0 dev",
     "test": "node qa/guards.js && node qa/smoke.js"

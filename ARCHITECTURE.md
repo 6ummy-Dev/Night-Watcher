@@ -14,28 +14,28 @@ any name below with a search for `function name(`.
 
 | Region | What it holds |
 | --- | --- |
-| `PATH` | The catalogue: 44 universes, each `{n, name, note, films}` plus optional `fmt` (the default format its entries inherit) and `bag:1` (a group with no internal order — seven carry it), each film `{i, t, sub, y, ep, k, e, lo, out, r, d, b, o, fmt}`. `i` is frozen forever. `README.md`, "Adding to the catalogue", has the field list. |
+| `PATH` | The catalogue: 44 universes, each `{n, name, note, films}` plus optional `fmt` (the default format its entries inherit) and `bag:1` (a group with no internal order — seven carry it), each film `{i, t, sub, y, when, ep, k, e, lo, out, r, d, b, o, fmt}`. `i` is frozen forever. `README.md`, "Adding to the catalogue", has the field list. |
 | `ERAS`, `DECADES` | The eleven eras of Bruce's life plus era 0, and the ten decades — the groups of the other two orderings. |
 | `BADGE`, `OUTWHY`, `MODENOTE` | Display vocabularies: the badge labels, the five reasons an entry has no place in a life, the one note per ordering. |
 | `idHash()` | FNV-1a to five base-36 characters — an entry's identity inside a backup code. |
 | `FILMS`, `BYID` | `PATH` flattened, one object per entry with its group index (`gi`), position (`ix`), resolved format and the lowercased search haystack; `BYID` indexes it by slug. |
 | `S` and the constants | The state bag (below), `PATHS`/`PATHCODE`/`CODEPATH`, `BUILD`, `BUILT`, `KEY`, `SITE`. |
-| Storage | `store` (a probed `localStorage`), `persist()` (200 ms debounce) and `persistNow()`, `flushPersist()` on `pagehide`/hidden, the readers (`marksOf`, `ratingsOf`, `clocksOf`, `dedupeLog`, `oneOf`, `flagsOf`, `stampOf`), the `SCHEMA` table and `restore()`. |
+| Storage | `store` (a probed `localStorage`), `persist()` (200 ms debounce) and `persistNow()`, `flushPersist()` on `pagehide`/hidden, the readers (`marksOf`, `ratingsOf`, `clocksOf`, `dedupeLog`, `oneOf`, `flagsOf`, `stampOf`, `validTs`), `mergeLog`, `stampMark`/`marksSince`/`stampOut`, `askDurable`/`saveFailed`/`saveWorked`, the `SCHEMA` table and `restore()`. |
 | Predicates | `visible(f)` = format ∧ scope ∧ `onRoute(f)`; `onRoute` through `tierOf`; `everyBatman()`. |
-| Grouping and the pool | `GROUPINGS` (the three orderings as a table), `modeGroups()`, `buildGroups()` (memoised on `mode|scope|format|tier`), `pool()`, `counts()`, `upNext()`, `groupFilms(key)`. |
-| Row and badge helpers | `metaOf`, `tierOf`, `badges` (memoised), `titleYear`/`watchUrl`, `starRow`, `legendBlock`, `activityBlock`, `ratingBadge`, `watchLinks`, `toast`. |
-| Mutations and in-place patches | `markWatched`/`unmarkWatched`/`toggleWatched`/`toggleSkip`/`rate` → `tickUpdate` (one row repainted, counts refreshed, the "here" mark moved); `rowUpdate` (one row), `groupUpdate` (one group), `themeUpdate`; the focus helpers `focusSnap`/`focusBack`/`focusRestore`. |
-| Backup | `exportCode()` (the `NW3` code), `importCode()`, `download()`, `exportJSON()`, the file-handle five (`fhDB`…`refreshBackupFile`), `doRestore()`, `applyMarks()` (the one merge primitive), `applyImport()`. |
+| Grouping and the pool | `GROUPINGS` (the three orderings as a table), `modeGroups()`, `buildGroups()` (memoised on `mode|scope|format|tier`), `pool()`, `counts()`, `isDone`/`isSkip`/`isParked`/`isParkedId`, the three sweeps `dropParkedSkips`/`dropParkedWatched`/`dropParkedRated`, `pickStands`/`expirePick`/`upNext()`, `behind()`, `groupFilms(key)`. |
+| Row and badge helpers | `metaOf`, `tierOf`, `offLimits` (the safe chip's rule), `badges` (memoised), `titleYear`/`watchUrl`, `starRow`, `clampRating`/`stars`, `legendBlock`, `activityBlock`, `ratingBadge`, `watchLinks`, `attrEsc`, `toast`. |
+| Mutations and in-place patches | `markWatched`/`unmarkWatched`/`toggleWatched`/`toggleSkip`/`rate` → `tickUpdate` (`patchRow` repaints one row in the visible panel — and, for a tick from another panel, in the inert Path — counts refreshed, the "here" mark moved); `rowUpdate` (one row), `groupUpdate` (one group), `searchApply` (a keystroke: `hidden` toggled on rows and groups in place), `themeUpdate`; the focus helpers `focusSnap`/`focusBack`/`focusRestore`. |
+| Backup | `exportCode()` (the `NW3` code), `importCode()`, `download()`, `exportJSON()`, the file-handle seven (`fhDB`, `fhLoad`, `fhKeep`, `fhAllowed`, `fhWrite`, `backupToFile`, `refreshBackupFile`) plus `canSaveFile()`, `doRestore()`, `applyMarks()` (the one merge primitive), `applyImport()`. |
 | Belt partials | `segButtons`/`segmented` and the option tables, `formatSwitch`/`tierSwitch`/`scopeSwitch`/`themeRow`, `includeBlock`, `buckleLines`, `masterChooser`, `introStats`/`introBlock`, `pendingBanner`. |
-| Views | `viewHome`, `viewNext`, `viewWatch` (with `chipSet`, `filmRow`, `groupBlock`, the `g*` group helpers), the skyline (`ROOFS`, `roofOf`, `crownState`, `skyline`), `drawShareCard`, `viewStats` (with `progFold`/`progRows`, `installBlock`). |
+| Views | `viewHome`, `viewNext` (with `uptoButton`, `parkedRow`, `watchNotes`), `viewWatch` (with `chipSet`, `filmRow`, `groupBlock`, `scopeNote`, `emptyBlock`, the `g*` group helpers), the skyline (`ROOFS`, `roofOf`, `crownState`, `skyline`), `drawShareCard`/`shareCardBlock`/`cardFile`/`lineOf`, `viewStats` (with `progFold`/`progRows`, `nightsOf`, `doneBy`/`doneByLine`, `nightsLine`, `favList`/`favText`/`favBlock`, `installBlock`). |
 | `renderHead()` and `render()` | The header (peek, ring, subtitle) and the one render entry point (below). |
 | The panel deck | `NWTABS`, `buildDeck`, `snapTo`, `panelsInert`, `fillPanel`, `queueNeighbors` (idle refill of the two neighbours), `swipeTick`/`swipeRead`. |
 | Belt open / drop / close | `openBelt`, `beltDropOpen`, `closeBelt(via)`, the drop-scroll arming, `beltWatch` (the two observers), `scrubBelt`, `parkFocus`. |
 | Navigation | `goTab`, the scroll helpers (`scroller`, `scrollKeep`, `scrollPut`, `calmScroll`), `goToGroup`. |
-| The cross-tab merge | The `storage` listener: adopt a newer `resetAt`, merge by clock, write back. |
+| The cross-tab merge | The `storage` listener, whose body is `mergeTab(o)` inside a `try` (5.3.0): adopt a newer `resetAt`, merge by clock, adopt the five settings (last write wins; the `path` row's `put` carries `S.mode`), write back. |
 | Delegated events | `#tabs` click; `#topBtn`, `#ringBtn`, `#markBtn`; `#beltpeek` click/keydown and the Escape handler; the one `#view` click handler (every `data-*` action); `#view` change (file import) and input (search, 180 ms). |
 | The iOS viewport heal | `IOSDEVICE`, `isStandalone`, `vpGap`/`vpShrunk`/`vpSync`/`vpHeal`/`vpTick`. |
-| Boot | `restore()`; `routeHash()` in a try; `render()` and `snapTo()` in a try whose `finally` is `splashOff()`. |
+| Boot | `restore()` (the schema pass, then the three parked sweeps); `routeHash()` in a try; `buildDeck()`, `render()` and `snapTo()` in a try whose `finally` is `splashOff()` — the deck first, so the first render lays out four empty panels and not the crawler seed (5.3.1). |
 | Hash routing | `clearHash`, `clearPendingHash`, `routeHash`, the `hashchange` listener. |
 | Service worker, install, file handle | `sw.js` registration over HTTPS/localhost; `beforeinstallprompt`/`appinstalled`; `fhLoad()`. |
 
@@ -104,13 +104,20 @@ order:
    once, on the first render.
 3. Snapshot the active panel's fields (`fieldSnap`) and focused button
    (`focusSnap`), then `fillPanel(S.tab, c)` writes the panel's HTML from
-   its view function; the other three are marked dirty.
+   its view function; the other three are marked dirty — unless the render
+   is `{quiet:true}` (5.3.1: the six one-view actions — a peek, a fold, the
+   code, the nag, the reset arm; the search keystroke never renders at all)
+   or `{keep:{watch:1}}` (a tick from another panel already patched the
+   inert Path row-level).
 4. Tab buttons' `aria-current`; `focusRestore`, `fieldRestore`.
 5. Scroll restore under `.settling` (content-visibility forced visible for
    one frame), then the focused field's drift correction.
 6. `panelsInert()`, the drop-scroll squelch, `queueNeighbors()` (the two
    neighbours refilled at idle), `beltWatch()`.
 
-A tick does not go through `render()`: `tickUpdate` repaints one row,
-refreshes the header and the group's meta, and marks the other panels dirty,
-so the list under the reader's finger never moves (guard 103).
+A tick does not go through `render()`: `tickUpdate` repaints one row
+(`patchRow`), refreshes the header and the group's meta, and marks the other
+panels dirty, so the list under the reader's finger never moves (guard 103).
+A search keystroke does not either: `searchApply` toggles `hidden` on the
+rows and groups the query hides, and a full render produces the same DOM, so
+the identity phase of `qa/smoke.js` holds the two byte-for-byte (5.3.1).

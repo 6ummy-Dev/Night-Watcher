@@ -45,7 +45,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code** — *guarded.* Not one line vendored, and **nothing fetched at runtime at all** — `qa/guards.js` fails on any external script rather than allowing one by name, and the app runs with the network off. Two `<script>` tags, no injected third, and the Content-Security-Policy on the wire is the one in the file — ten directives, one `sha256`. Open `docs/index.html` from disk, or serve it from any other host, and what runs is exactly what you can read.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 250 KB raw and 80 KB gzipped; it is currently 240 KB / 68 KB. The subset webfonts sit outside that budget and are held by their own manifest (`qa/font-subset.json`). Every raise of the ceiling is an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 250 KB raw and 80 KB gzipped; it is currently 243 KB / 67 KB. The subset webfonts sit outside that budget and are held by their own manifest (`qa/font-subset.json`). Every raise of the ceiling is an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -68,7 +68,7 @@ Open `docs/index.html` in any modern browser, or serve the `docs/` folder from a
 
 ```sh
 npm install          # or bun install
-npx wrangler deploy
+npm run deploy       # wrangler, version-pinned in package.json
 ```
 
 The static files live in `docs/`. `wrangler.jsonc` points the assets directory there so `node_modules` is never uploaded.
@@ -126,7 +126,12 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `qa/script-bytes.json` | The blessed script's size and hash — the baseline every bless prints its size jump against; guard 43 holds it to the page |
 | `qa/make-favicon.py` | Rebuilds the favicon set (`favicon.ico`, the tab rasters, the touch icon, the tile) from `icon.png` |
 | `qa/smoke.js` | Headless render test in jsdom — the second half of `npm test`, and CI requires it |
-| `qa/negative/` | The negative suites: each fixture breaks a guard on purpose and asserts it fails (one suite per release that added guards, not per release) |
+| `qa/negative/_lib.sh` | The one harness every negative suite sources: the scratch tree, the content-based heal, `run_case`/`green_case`, the pristine-tree gate |
+| `qa/negative/run-all.sh` | Runs every suite concurrently, heaviest first, and prints the report in file order — the wall, and what CI shards |
+| `qa/negative/census.js` | The one reader of the fixture corpus (5.3.1): which lines are fixtures, which are smoke, what a suite weighs — guards 65, 113, 138 and `run-all.sh` all ask it |
+| `qa/llms-txt.json` | `llms.txt`'s hash and the release that last changed it, blessed by guard 67, so the sitemap's second `<lastmod>` cannot go stale |
+| `qa/.shots/` | Screenshots the browser check writes (ignored by git, uploaded by CI on a red run) |
+| `qa/negative/` | The negative suites: each fixture breaks a guard on purpose and asserts it fails (a suite per release that grew or changed the harness — `CONTRIBUTING.md` has the naming rule; `negtest.sh` is the original) |
 | `qa/renamed-ids.json` | The one recorded slug rename, and the closed window that allowed it |
 | `qa/retired-ids.json` | Slugs that left the catalogue, so a reused id cannot mean two things |
 | `qa/font-subset.json` | Bytes and hash of every shipped face, blessed by the subset script |
@@ -154,21 +159,21 @@ node qa/guards.js          # verify; exits non-zero on failure
 node qa/guards.js --bless  # re-record what the guards hold the tree to (see below)
 ```
 
-`--bless` writes more than the frozen-ID snapshot. It rewrites, from the data: `qa/frozen-ids.json`; the CSP `sha256` in `docs/index.html`'s `<meta>` and the ledger in `qa/script-bytes.json`; the crawlable seed inside `#view` and the JSON-LD `ItemList` and `FAQPage` blocks, also in `docs/index.html`; `docs/orders.txt`; and the hash in `qa/share-card.json`. Expect `docs/index.html` in the diff after a bless, and read it. It refuses two things by design — a frozen ID leaving without `qa/retired-ids.json`, a rename without `qa/renamed-ids.json` — and it re-runs the whole check pass over what it wrote, so a green bless is a green tree.
+`--bless` writes more than the frozen-ID snapshot. It rewrites, from the data: `qa/frozen-ids.json`; the CSP `sha256` in `docs/index.html`'s `<meta>` and the ledger in `qa/script-bytes.json`; the crawlable seed inside `#view` and the JSON-LD `ItemList` and `FAQPage` blocks, also in `docs/index.html`; `docs/orders.txt`; the hash in `qa/share-card.json`; the measured contrast table in `qa/contrast.md`; and, when `llms.txt` changed, its record in `qa/llms-txt.json` and the sitemap's `<lastmod>` for it. Expect `docs/index.html` in the diff after a bless, and read it. It refuses two things by design — a frozen ID leaving without `qa/retired-ids.json`, a rename without `qa/renamed-ids.json` — and it re-runs the whole check pass over what it wrote, so a green bless is a green tree.
 
 One dev dependency for the guards — Acorn, which parses the page's script so every function under test is **extracted from `docs/index.html` and evaluated**, never reimplemented here (a copy drifts from the app and quietly stops testing it, which is the exact failure this file exists to prevent). Without `node_modules` the guards still run on a weaker regex extractor and say so; in CI that is a failure, not a warning. In CI any warning at all is a failure.
 
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 77 negative suites, 1258
+trusted. That evidence lives in `qa/negative/` — 78 negative suites, 1302
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
 every fixture onto the section it breaks and fails the build on any section
 without one, and the counts in this paragraph are themselves guarded.
 
-The second half of `npm test` is `qa/smoke.js`, a headless render test that boots the real page in jsdom and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, the cross-tab merge, and the path end to end — 462 checks. jsdom is a declared dev dependency; a local clone without it skips the suite and says so, CI treats the skip as a failure.
+The second half of `npm test` is `qa/smoke.js`, a headless render test that boots the real page in jsdom and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, the cross-tab merge, and the path end to end — 481 checks. jsdom is a declared dev dependency; a local clone without it skips the suite and says so, CI treats the skip as a failure.
 
 ## Releasing
 
@@ -184,9 +189,12 @@ catalogue addition is a MINOR bump; fixes, copy, QA tooling and documentation
 are PATCH; MAJOR is reserved for a change to saved progress — either its
 shape, which should never happen because every `i:` is frozen, or what its
 numbers mean for a reader who already has some (5.0.0 took five titles off
-*To go* and dropped skips placed on them; nothing saved changed shape). Each
-MINOR's CHANGELOG entry opens by saying what made it a MINOR; each MAJOR's
-says which of the two lines it crossed.
+*To go* and dropped skips placed on them; nothing saved changed shape). A
+removal is a PATCH when nothing saved changes shape or meaning (5.1.1 took
+the What's left card out that way) and a MAJOR when it does. Each MINOR's
+CHANGELOG entry says what made it a MINOR — in its opening paragraph since
+5.3.0 (5.2.0 said it last, 5.1.0 never used the word; both are records and
+stay as written) — and each MAJOR's says which of the two lines it crossed.
 
 ## Adding to the catalogue
 
@@ -226,7 +234,7 @@ In practice that means:
 - **A story, not a sketch.** *Super Best Friends Forever* (2012) is licensed, released, and Batman is in it — three DC Nation shorts, and still out. They are a gag reel about Supergirl, Batgirl and Wonder Woman as children, with no continuity, no arc and nothing that reads as a story once it stops being a joke. The line is not length, which the next bullet settles; it is whether anything happens. Recorded because it is the closest call in the file and it has been asked twice. The *Meet the Batwheels* shorts (2022–) are out by the same test: character-introduction music videos of about a minute each, whereas the *Batwheels* seasons themselves are in. The two-minute 1991 pitch reel for *The Animated Series* is in, because something happens in it.
 - **Any length, any format.** A three-minute DC Nation short counts. So does a fifteen-chapter serial from 1943, a web-shorts run made to sell toys, and a stop-motion parody special. Sets of shorts are entered as one entry each with the count in the label — a reader ticking twenty-two shorts individually is doing bookkeeping, not watching.
 - **Batman has to be in it, or it has to be his.** A DC film with no Batman and no Gotham is out no matter how good — *Lanterns*, *Blue Beetle*, the Shazam! films. *Suicide Squad* (2016) is in because Batman is in three sequences of it; *The Suicide Squad* (2021) is out because he is in none.
-- **One exception, and it is written down.** An entry with no Batman and no Gotham is admitted when it is a link in a continuity that is here for Batman — *Superman: Man of Tomorrow* opens the Tomorrowverse, *Superman: The Animated Series* season one turns the DCAU into a shared universe, *Man of Steel* opens the universe *Batman v Superman* is the direct sequel in — and its description has to say he is not in it. Eight entries qualify. *Scooby-Doo! and Krypto, Too!* did not: no Batman, no Gotham, and no continuity that needed it, so in 1.7.5 it became the first entry ever removed.
+- **One exception, and it is written down.** An entry with no Batman and no Gotham is admitted when it is a link in a continuity that is here for Batman — *Superman: Man of Tomorrow* opens the Tomorrowverse, *Superman: The Animated Series* season one turns the DCAU into a shared universe, *Man of Steel* opens the universe *Batman v Superman* is the direct sequel in — and its description has to say he is not in it. Seven entries qualify. *Scooby-Doo! and Krypto, Too!* did not: no Batman, no Gotham, and no continuity that needed it, so in 1.7.5 it became the first entry ever removed.
 - **Asked about, and out.** *Catwoman* (2004) — a Gotham-less film with no Batman, in a continuity of its own; *Powerless* (2017) — Wayne Security, and a Bruce Wayne who is never in shot; *Superman* (2025) and *Peacemaker* season 2 — the DCU without Gotham. Each fails the bullet above it, and each has been asked. *Creature Commandos* is the DCU entry that is in, for the one silhouette it shows.
 
 When something sits on the line, the tie-breaker is the reader: would somebody working through every Batman story feel cheated to find it missing? That is what put the Columbia serials in, sixty years late.
@@ -245,7 +253,7 @@ The only other outbound links in this app are the where-to-watch searches, which
 send you somewhere you asked to go; the Brave Creators "Support" link beside the
 build line, which is the one way to tip the project and is disclosed here for
 that reason; and the plain-text catalogue's own link in the crawlable seed.
-Chrome does not get to do that.
+Nothing else on the page leaves it.
 
 That covers the writing as well as the code: the entry descriptions, the
 continuity groupings, and the era and tier judgements. They live in the same file
@@ -254,7 +262,7 @@ they always were — titles, years and episode counts belong to nobody.
 
 ## Credits & legal
 
-- Fonts: Limelight, Big Shoulders Display, IBM Plex Sans and IBM Plex Mono, self-hosted in `docs/fonts/` under the SIL Open Font License. The Plex faces ship as subsets renamed NW Sans / NW Mono, as the licence's reserved-name rule asks of a modified version. Their licence ships with them at `docs/fonts/OFL.txt`.
+- Fonts: Limelight, Big Shoulders Display, IBM Plex Sans and IBM Plex Mono, self-hosted in `docs/fonts/` under the SIL Open Font License. Limelight and the Plex faces ship as subsets renamed NW Deco / NW Sans / NW Mono, as the licence's reserved-name rule asks of a modified version. Their licence ships with them at `docs/fonts/OFL.txt`.
 - The favicon and app icon are original bat silhouettes drawn for this project. They are not DC marks.
 - This is an unofficial fan-made tracker. It contains no trademarked logos, symbols or artwork. Batman and all related characters are property of DC / Warner Bros. Discovery; this project is not affiliated with or endorsed by them.
 - Catalogue compiled from public sources. Release dates for unreleased titles are as announced and may change.

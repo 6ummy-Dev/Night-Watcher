@@ -9,7 +9,7 @@
  * the app is one index.html, so a sticky cache is a sticky catalogue and
  * sticky code with no way to push a fix. History: NOTES-history.md ("Where the served and config files' histories went").
  */
-var VERSION = "5.3.0";
+var VERSION = "5.3.1";
 var CACHE   = "night-watcher-" + VERSION;
 /* The shell: everything the page needs to open offline. Guard 13 diffs this
    list against what docs/ serves, crawler-facing files excluded; ./index.html
@@ -74,9 +74,21 @@ self.addEventListener("fetch", function(e){
           /* delete-then-put, both under ignoreVary: put() honours Vary when
              it dedupes, so / could otherwise hold two representations (the
              install's wildcard-Accept entry and a navigation's) and the
-             match above would answer the install-time one forever. */
+             match below (in the catch) would answer the install-time one
+             forever. 5.3.1: when the cached entry carries the same ETag as
+             the response, nothing moved and nothing is written — every load
+             used to delete and re-put the 245 KB document and ~65 KB of
+             fonts out of a 304-refreshed HTTP cache entry. */
           caches.open(CACHE).then(function(c){
-            return c.delete(req, ANY).then(function(){ return c.put(req, copy); });
+            return c.match(req, ANY).then(function(old){
+              var was = old && old.headers && old.headers.get("etag");
+              var now = res.headers && res.headers.get("etag");
+              if(old && was && now && was === now){
+                if(copy.body && copy.body.cancel) copy.body.cancel();
+                return;
+              }
+              return c.delete(req, ANY).then(function(){ return c.put(req, copy); });
+            });
           }).catch(function(){})
         );
       }
