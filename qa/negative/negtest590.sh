@@ -99,8 +99,8 @@ s=s.replace(a,'} finally {\\n}',1);${W}" \
 
 run_case "splashOff() is called before the first render" \
   "is not called after the first render" \
-  "${P}a='try{\\n  render();\\n  snapTo(S.tab);\\n} finally {\\n  splashOff();\\n}';assert a in s
-s=s.replace(a,'splashOff();\\ntry{\\n  render();\\n  snapTo(S.tab);\\n} finally {\\n}',1);${W}" \
+  "${P}a='try{\\n  buildDeck(document.getElementById(\"view\"));\\n  render();\\n  snapTo(S.tab);\\n} finally {\\n  splashOff();\\n}';assert a in s
+s=s.replace(a,'splashOff();\\ntry{\\n  buildDeck(document.getElementById(\"view\"));\\n  render();\\n  snapTo(S.tab);\\n} finally {\\n}',1);${W}" \
   guards "" 151
 
 run_case "splashOff() holds the cover on a timer" \

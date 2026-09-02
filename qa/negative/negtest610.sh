@@ -584,11 +584,29 @@ run_case "the README drops its row for qa/contrast.md" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/contrast.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
   guards "" 45
 
+run_case "the README drops its row for qa/llms-txt.json" \
+  "README's file table does not list: qa/llms-txt.json" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/llms-txt.json')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
 # The sweep guards its own completeness (4.9.1): the head half is held whole
 # by section 153's stray census, and this holds the README half the same way
 # — a row added to the table without a fixture here fails the suite, which
 # is exactly the drift the hand list section 45 replaced kept suffering.
-ROWS=$(grep -cE '^\| `[^`]+` \|' "$SRC/README.md")
+# 5.3.1: a row that section 45 does not REQUIRE cannot be asserted red — a
+# file already covered by a directory row (`qa/negative/_lib.sh` under
+# `qa/negative/`) or an ignored path (`qa/.shots/`). Those rows are
+# documentation the 5.3.0 audit asked for; they are counted out here, by
+# the same two rules the guard applies, rather than swept vacuously.
+ROWS=$(grep -oE '^\| `[^`]+` \|' "$SRC/README.md" | sed 's/^| `//; s/` |$//' | while IFS= read -r row; do
+  covered=0
+  for d in $(grep -oE '^\| `[^`]+/` \|' "$SRC/README.md" | sed 's/^| `//; s/` |$//'); do
+    case "$row" in "$d"?*) covered=1 ;; esac
+  done
+  ignored=0
+  if grep -qxF -- "$row" "$SRC/.gitignore" 2>/dev/null || grep -qxF -- "${row%/}" "$SRC/.gitignore" 2>/dev/null; then ignored=1; fi
+  if [ "$covered" -eq 0 ] && [ "$ignored" -eq 0 ]; then echo "$row"; fi
+done | wc -l)
 SWEPT=$(grep -cE '^run_case "the README drops its row for' "${BASH_SOURCE[0]}")
 if [ "$ROWS" -eq "$SWEPT" ]; then
   echo "  PASS  the sweep covers every table row ($ROWS)"; PASS=$((PASS+1))

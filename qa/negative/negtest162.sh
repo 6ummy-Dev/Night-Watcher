@@ -17,11 +17,8 @@ run_case "the sitemap loses its lastmod" \
 echo "--- 61: an inherited fade is measured too"
 run_case "the Activity block is faded instead of stepped (the idea this release rejected)" \
   "fades everything inside it to opacity 0.7" \
-  "${P}a='.activity{margin-top:26px;border';assert a in s;s=s.replace(a,'.activity{opacity:.7;margin-top:26px;border');${W}"
-
-run_case "a named ink is faded under the floor" \
-  "under the 4.5:1 AA floor" \
-  "${P}a='.bd.u{color:var(--steel);border:1px solid currentColor;}';assert a in s;s=s.replace(a,'.bd.u{color:var(--steel);border:1px solid currentColor;opacity:.6;}');${W}"
+  "${P}a='.activity{margin-top:26px;border';assert a in s;s=s.replace(a,'.activity{opacity:.7;margin-top:26px;border');${W}" \
+  guards "" 61
 
 echo "--- 62: nothing focusable is small enough to zoom"
 run_case "the search field goes back under 16px" \

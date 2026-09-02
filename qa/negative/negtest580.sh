@@ -21,11 +21,13 @@ run_case "a subset face's @font-face goes back to the reserved family" \
 s=s.replace(a,'font-family:\"IBM Plex Sans\";src:url(\"fonts/ibm-plex-sans-latin-400-normal.woff2\")',1);${W}" \
   guards "" 106
 
-run_case "a face whose name table carries a reserved name is marked subset" \
+# 5.3.1: Limelight ships subset and renamed "NW Deco", so marking it subset
+# proves nothing any more; the name-table read is proved the other way
+# round — OFL.txt reserving the name the subset face's table now carries.
+run_case "a subset face's name table carries a name OFL.txt reserves" \
   "its name table still says" \
-  "import json;p='qa/font-subset.json';d=json.load(open(p))
-d['files']['limelight-latin-400-normal.woff2']['subset']=True
-json.dump(d,open(p,'w'),indent=2,sort_keys=True)" \
+  "${O}a='with Reserved Font Name Limelight.';assert a in s
+s=s.replace(a,'with Reserved Font Name Limelight and Reserved Font Name \"NW Deco\".',1);${OW}" \
   guards "" 106
 
 run_case "OFL.txt reserves a name the shipped subsets carry" \

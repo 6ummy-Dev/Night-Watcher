@@ -26,9 +26,9 @@
       "subset": true
     },
     "limelight-latin-400-normal.woff2": {
-      "bytes": 23080,
-      "sha256": "ba3e86ecc0e1ce145784f4eb7fb593af683e88568336ea2ae9c26a486ffe0dfc",
-      "subset": false
+      "bytes": 12784,
+      "sha256": "38efd67204dad01342421e95f30812e323fefe3bdaf13ccf95c3e4f6c45d50f1",
+      "subset": true
     }
   },
   "note": "Blessed by qa/subset-fonts.py. Guard 106 holds it against the files on disk and against the catalogue's own characters. Fonts and this record can only move together.",

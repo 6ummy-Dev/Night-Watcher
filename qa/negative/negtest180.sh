@@ -66,9 +66,10 @@ s=s.replace(a,'(the old GitHub Pages address still works and always will; the mi
 
 echo "--- the addresses themselves"
 run_case "the canonical link is left pointing at the old home" \
-  "canonical" \
+  "but og:url is" \
   "${P}a='<link rel=\"canonical\" href=\"https://nightwatcher.life/\">';assert a in s
-s=s.replace(a,'<link rel=\"canonical\" href=\"https://6ummy-dev.github.io/Night-Watcher/\">',1);${W}"
+s=s.replace(a,'<link rel=\"canonical\" href=\"https://6ummy-dev.github.io/Night-Watcher/\">',1);${W}" \
+  guards "" 38
 
 rm -rf "$NEG"
 finish "1.8.0 negative tests"

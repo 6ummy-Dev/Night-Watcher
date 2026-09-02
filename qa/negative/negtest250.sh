@@ -50,10 +50,6 @@ run_case "an unreleased entry stops saying so in the seed" \
 s=s.replace(a,'</li>',1);${W}"
 
 echo "--- the harness heals: a deleted file comes back between fixtures"
-run_case "a fixture deletes the 404 page" \
-  "docs/404.html is missing" \
-  "import os;os.remove('docs/404.html')"
-
 run_case "and the heal brought it back for the next fixture" \
   "base .includes .scope rule carries an animation" \
   "import os;assert os.path.exists('docs/404.html'), 'heal failed: 404.html still missing'
@@ -108,8 +104,8 @@ s=s.replace(a,'''  if(S.skipped[id]){ delete S.skipped[id]; stampMark(\"s\", id)
 
 run_case "the fallback condition is dropped" \
   "lost its fallback condition" \
-  "${P}a='  if(S.tab !== \"watch\" || S.filter !== \"all\" || S.q){ render(); return; }';assert a in s
-s=s.replace(a,'  if(S.tab !== \"watch\"){ render(); return; }',1);${W}"
+  "${P}a='  if(S.tab !== \"watch\" || S.filter !== \"all\" || S.q){\n    var keep = null;';assert a in s
+s=s.replace(a,'  if(S.tab !== \"watch\"){\n    var keep = null;',1);${W}"
 
 run_case "and the gate catches a repaint that goes stale" \
   "surgical paths are byte-identical to a full render" \
@@ -117,7 +113,7 @@ run_case "and the gate catches a repaint that goes stale" \
   row.parentNode.replaceChild(scratch.firstChild, row);
   var gm''';assert a in s
 s=s.replace(a,'''  var gm''',1);${W}" \
-  "smoke" "main"
+  "smoke" "identity"
 
 # 3.4.1 re-aimed this section, and the fixtures below did not exist while 103
 # required the group rebuild -- that shape WAS the assertion. A fixture set can

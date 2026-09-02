@@ -9,7 +9,8 @@
    size). Playwright and axe-core are declared devDependencies and the
    executable is resolved by Playwright, with an env override kept for
    sandboxes that place it somewhere unusual — a hard-coded browser path is
-   how a check comes to pass because it never executed. (History: NOTES.md.) */
+   how a check comes to pass because it never executed. (History:
+   NOTES-history.md ("Where the served and config files' histories went").) */
 import { chromium, webkit } from "playwright";
 import { createRequire } from "node:module";
 import fs from "node:fs";
@@ -39,13 +40,13 @@ function ok(name, pass, detail){
   if(!pass) bad++;
 }
 /* MEASURE, DON'T SLEEP — the file's own rule, applied to the file (4.9.0:
-   nine fixed sleeps of 80–450 ms were bets on the runner). Three waits, each
+   nine fixed sleeps of 80–450 ms were bets on the runner). Two waits, each
    for the thing a sleep was standing in for: frames() for a render and its
    paint; scrollSettled() for a scroll offset that has stopped moving, which
    is what Chromium's anchoring and the app's own scroll restore leave
-   behind; until() for a state the page will reach on its own timers (the
-   belt's 240 ms close, an observer callback), with a ceiling so a state
-   never reached fails the check that reads it instead of hanging the run. */
+   behind. (A third, until(), was defined here from 4.9.0 to 5.3.0 and never
+   called — the states it was written for are read through frames() and the
+   verify callbacks below.) */
 async function frames(n = 2){
   await page.evaluate(k => new Promise(r => {
     const step = i => i ? requestAnimationFrame(() => step(i - 1)) : r();
@@ -63,9 +64,6 @@ async function scrollSettled(){
     };
     tick();
   }));
-}
-async function until(fn, ms = 1500){
-  await page.waitForFunction(fn, null, { timeout: ms }).catch(() => {});
 }
 
 const browser = WK ? await webkit.launch()
@@ -1031,6 +1029,77 @@ await axeState("a row expanded", () => {
   const controls = document.querySelectorAll("#view .panel:not([inert]) .film.open .linkrow a, #view .film.open button").length;
   return { pass: open === 1 && controls > 0, detail: open + " open row(s), " + controls + " control(s)" };
 });
+
+/* 5.3.1, from the 5.3.0 audit: THE STATES WITH THE WORST HISTORY WERE NEVER
+   SCANNED. The three states above are all Home / The Path in the default
+   theme; the 4.9.5 nightly red lived in Darker, the Restore textarea and the
+   bone buttons live on Progress, the dropped belt is its own DOM, and the
+   5.3.0 star run (`.strun role="img"`) sits in a rated row. Four more, each
+   proving it holds before axe runs. */
+await axeState("Darker on Home", () => {
+  S.theme = "darker"; applyTheme();
+  S.path = S.mode = "continuity"; S.tab = "home"; render(); snapTo(S.tab);
+}, () => {
+  const dark = document.documentElement.getAttribute("data-theme") === "darker";
+  const hero = document.querySelectorAll("#view .panel:not([inert]) .hero").length;
+  return { pass: dark && hero > 0, detail: "theme=" + document.documentElement.getAttribute("data-theme") + ", " + hero + " hero" };
+});
+await axeState("Progress, the restore box, the folds open, the bone buttons", () => {
+  S.theme = "dark"; applyTheme();
+  const f = FILMS[0].id;
+  S.watched[f] = 1; S.rated[f] = 4; S.log = [{ id: f, ts: Date.now() }];
+  S.progOpen = { uni: true, era: true, dec: true, fav: false };
+  S.tab = "stats"; render(); snapTo(S.tab);
+}, () => {
+  const box = !!document.querySelector("#view .panel:not([inert]) #restorebox");
+  const folds = document.querySelectorAll("#view .panel:not([inert]) .sfold.open").length;
+  const bone = document.querySelectorAll("#view .panel:not([inert]) .bkbtn").length;
+  return { pass: box && folds >= 3 && bone > 0, detail: "restore box " + box + ", " + folds + " fold(s) open, " + bone + " bone button(s)" };
+});
+await axeState("The Path, a rated row, the belt dropped", () => {
+  S.tab = "watch"; S.q = ""; S.filter = "all"; setAllGroups(true); render(); snapTo(S.tab);
+  S.beltOpen = true; beltDropOpen();
+}, () => {
+  const drop = !!document.querySelector("#view .panel:not([inert]) .includes[data-drop]");
+  const strun = document.querySelectorAll('#view .panel:not([inert]) .strun[role="img"]').length;
+  return { pass: drop && strun > 0, detail: "belt dropped " + drop + ", " + strun + " star run(s)" };
+});
+/* The forced-colors repaint (§159) is pinned as CSS text; here it is
+   observed: under forced colors the star's background must compute to the
+   system ink a probe painted with CanvasText computes to, and keep its size. */
+await page.emulateMedia({ forcedColors: "active" });
+await frames(2);
+{
+  const fc = await page.evaluate(() => {
+    const probe = document.createElement("i");
+    probe.style.cssText = "position:absolute;width:1px;height:1px;background:CanvasText;forced-color-adjust:none";
+    document.body.appendChild(probe);
+    const ink = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    const st = document.querySelector('#view .panel:not([inert]) .strun .st');
+    if(!st) return { pass: false, detail: "no .st in the dropped-belt state" };
+    const cs = getComputedStyle(st), r = st.getBoundingClientRect();
+    return { pass: cs.backgroundColor === ink && r.width > 8 && r.height > 8,
+             detail: ".st " + cs.backgroundColor + " vs CanvasText " + ink + ", " + Math.round(r.width) + "×" + Math.round(r.height) };
+  });
+  ok("forced colors: the star run repaints in system ink and keeps its geometry", fc.pass, fc.detail);
+}
+await page.emulateMedia({ forcedColors: "none" });
+await page.evaluate(() => { closeBelt("auto"); });
+await axeState("Next up on a bag, a rated night in Activity", () => {
+  S.watched = {}; S.rated = {}; S.log = [];
+  const gs = buildGroups(); let bags = 0, first = null;
+  gs.forEach(g => { if(g.bag) bags++; if(bags < 2) g.films.forEach(f => { if(!isParked(f)){ S.watched[f.id] = 1; if(!first) first = f.id; } }); });
+  if(first){ S.rated[first] = 4; S.log = [{ id: first, ts: Date.now() }]; }
+  S.tab = "next"; render(); snapTo(S.tab);
+}, () => {
+  const hero = document.querySelectorAll("#view .panel:not([inert]) .hero").length;
+  const pick = document.querySelectorAll('#view .panel:not([inert]) [data-act="choose"]').length;
+  const arow = document.querySelectorAll("#view .panel:not([inert]) .arow").length;
+  const stars = document.querySelectorAll("#view .panel:not([inert]) .arow .st").length;
+  return { pass: hero > 0 && pick > 0 && arow > 0 && stars > 0, detail: hero + " hero, " + pick + " chooser, " + arow + " activity row(s), " + stars + " star(s)" };
+});
+await page.evaluate(() => { S.watched = {}; S.rated = {}; S.log = []; S.progOpen = {}; render(); });
 
 /* ---- what the console said, across every state exercised above -------- */
 ok("no CSP violation in any state", cspHits.length === 0,

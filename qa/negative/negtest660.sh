@@ -40,7 +40,7 @@ run_case "the floor is lowered to one night" \
 
 run_case "the pace ignores the span" \
   "doneBy() paces wrong" \
-  "${P}a='  var perDay = (nt.logged / nt.nights) * (nt.nights / spanDays);';assert a in s;s=s.replace(a,'  var perDay = nt.logged / nt.nights;',1);${W}" \
+  "${P}a='  var perDay = nt.logged / spanDays;';assert a in s;s=s.replace(a,'  var perDay = nt.logged / nt.nights;',1);${W}" \
   guards "" 157
 
 run_case "a finished route is forecast" \
@@ -55,7 +55,7 @@ run_case "the line awards a streak" \
 
 run_case "the line leaves its seat" \
   "left its seat under the nights line" \
-  "${P}a='    scoreboard(c) + nightsLine(c) + doneByLine(c) +';assert a in s;s=s.replace(a,'    doneByLine(c) + scoreboard(c) + nightsLine(c) +',1);${W}" \
+  "${P}a='    scoreboard(c) + nightsLine() + doneByLine(c) +';assert a in s;s=s.replace(a,'    doneByLine(c) + scoreboard(c) + nightsLine() +',1);${W}" \
   guards "" 157
 
 echo "--- 157: Your data's rank"

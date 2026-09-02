@@ -59,7 +59,7 @@ run_case "a tap can skip a parked title" \
 
 run_case "the row draws parked like any other" \
   "filmRow() draws a parked entry as an ordinary row" \
-  "${P}a='  if(isParked(f)) return parkedRow(f);\n';assert a in s;s=s.replace(a,'',1);${W}" \
+  "${P}a='  if(isParked(f)) return parkedRow(f, hid);\n';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 154
 
 run_case "the parked row grows a tick" \
@@ -136,7 +136,7 @@ run_case "the chooser picks the first, not at random" \
 
 run_case "a ticked pick stays the hero" \
   "honours a pick that has since been ticked" \
-  "${P}a='if(pk && p.indexOf(pk) >= 0 && !isParked(pk) && !isDone(pk) && !isSkip(pk)) return pk;';assert a in s;s=s.replace(a,'if(pk && p.indexOf(pk) >= 0 && !isParked(pk)) return pk;',1);${W}" \
+  "${P}a='return !!(pk && pool().indexOf(pk) >= 0 && !isParked(pk) && !isDone(pk) && !isSkip(pk));';assert a in s;s=s.replace(a,'return !!(pk && pool().indexOf(pk) >= 0 && !isParked(pk));',1);${W}" \
   guards "" 155
 
 run_case "the cost of the night goes unprinted" \

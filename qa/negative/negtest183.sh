@@ -10,13 +10,10 @@
 REGRESS="${P}a='''      '<span class=\"albl\">'+(ao ? \"Collapse all\" : \"Expand all\")+'</span><span class=\"caret\" aria-hidden=\"true\"></span></button></div>';'''
 assert a in s
 s=s.replace(a,'''      '<span class=\"albl\">'+(ao ? \"Collapse all\" : \"Expand all\")+'</span><span class=\"caret\" aria-hidden=\"true\"></span></button></div>%%COUNT%%';''',1)
-b='''  var html = head + (q
-    ? '<p class=\"scopenote\" role=\"status\" aria-live=\"polite\">'+shownTotal+(shownTotal===1?\" match\":\" matches\")+'</p>'
-    : \"\") + body;'''
+b='''  var html = head + (q ? scopeNote(shownTotal) : \"\") + body;'''
 assert b in s
 s=s.replace(b,'''  var html = head + body;
-  html = html.replace(\"%%COUNT%%\", q
-    ? '<p class=\"scopenote\" role=\"status\" aria-live=\"polite\">'+shownTotal+(shownTotal===1?\" match\":\" matches\")+'</p>' : \"\");''',1)
+  html = html.replace(\"%%COUNT%%\", q ? scopeNote(shownTotal) : \"\");''',1)
 ${W}"
 
 echo "--- 79: no marker a user could type"

@@ -174,7 +174,7 @@ run_case "the watched sweep leaves the log" \
   guards "" 158
 
 run_case "restore forgets the watched sweep" \
-  "restore() no longer runs both sweeps" \
+  "restore() no longer runs every sweep" \
   "${P}a='    dropParkedSkips();\n    dropParkedWatched();';assert a in s;s=s.replace(a,'    dropParkedSkips();',1);${W}" \
   guards "" 158
 

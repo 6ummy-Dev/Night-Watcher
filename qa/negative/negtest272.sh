@@ -76,8 +76,10 @@ run_case "the sitemap declares no locations at all" \
 green_case "the export is named only in a sitemap COMMENT" \
   "${S}a='<urlset';assert a in s;s=s.replace(a,'<!-- orders.txt is deliberately not submitted here -->\n'+a,1);${SW}"
 
+# 5.3.1: guard 67 dates the llms.txt URL, so the mutation adds a third URL
+# rather than renaming the second one out from under it.
 green_case "a location merely CONTAINS the export name without being it" \
-  "${S}a='<loc>https://nightwatcher.life/llms.txt</loc>';assert a in s;s=s.replace(a,'<loc>https://nightwatcher.life/about-orders.txt-policy</loc>',1);${SW}"
+  "${S}a='</urlset>';assert a in s;s=s.replace(a,'  <url>\n    <loc>https://nightwatcher.life/about-orders.txt-policy</loc>\n    <lastmod>2026-09-01</lastmod>\n  </url>\n'+a,1);${SW}"
 
 rm -rf "$NEG"
 finish "2.7.2 negative tests"

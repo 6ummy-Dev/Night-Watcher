@@ -15,11 +15,20 @@ time a title arrives with an accent the catalogue has never carried. This
 catalogue takes data patches by design. The safe superset costs 21 KB and
 removes the failure mode.
 
-WHY LIMELIGHT IS NOT SUBSET. Its OFL header reads "with Reserved Font Name
-Limelight". Under OFL 1.1 a Modified Version may not carry the reserved name as
-presented to users, so subsetting it means renaming the family in the name
-table, in @font-face and in --deco. Real CSS churn and a licensing judgement,
-for 10.3 KB. Left whole on purpose.
+WHY LIMELIGHT SHIPPED WHOLE UNTIL 5.3.1, AND IS "NW DECO" NOW. Its OFL header
+reads "with Reserved Font Name Limelight". Under OFL 1.1 a Modified Version may
+not carry the reserved name as presented to users, so subsetting it meant
+renaming the family in the name table, in @font-face, in --deco and in the
+story card's canvas font — "real CSS churn and a licensing judgement, for
+10.3 KB", and it was left whole. 4.5.3 then made exactly that judgement for
+the Plex faces (below), so 5.3.1 applies the same answer to the one face it
+had skipped: subset, renamed "NW Deco" (name IDs 1, 3, 4, 16; "NWDeco" for the
+PostScript name, which takes no spaces), 23,080 → 12,792 bytes — the saving is
+TrueType hinting, not glyphs, and the face is display-size only. The file
+name keeps "limelight", as the Plex files keep "ibm-plex" (a file name is not
+the name presented to users), so _headers, sw.js and the manifest address it
+unchanged; a returning visitor's year-old immutable copy still renders under
+the new family name, and the saving reaches every new visitor now.
 
 WHY THE PLEX FACES ARE RENAMED (4.5.3). IBM's upstream header reserves "Plex"
 too — a clause the shipped OFL.txt had dropped, so for two releases the notes
@@ -56,7 +65,12 @@ OUT    = os.path.join(ROOT, "qa", "font-subset.json")
 RANGES = ["U+0020-007E", "U+00A0-00FF", "U+2010-2015", "U+2018-201F",
           "U+2026", "U+2032-2033", "U+20AC", "U+2122"]
 
-KEEP_WHOLE = ["limelight-latin-400-normal.woff2"]   # Reserved Font Name
+KEEP_WHOLE = []   # 5.3.1: nothing ships whole; every reserved name is renamed below
+
+# Regenerate one face without re-subsetting the others (the others are
+# already subsets, and re-subsetting a subset moves bytes for nothing):
+#     python3 qa/subset-fonts.py --only limelight
+ONLY = [a for a in sys.argv[1:] if not a.startswith("--")]
 
 # Family renames for subset faces whose upstream reserves the name. Applied to
 # name IDs 1 (family), 4 (full), 6 (PostScript), 16 (typographic family) and
@@ -65,6 +79,7 @@ KEEP_WHOLE = ["limelight-latin-400-normal.woff2"]   # Reserved Font Name
 RENAME = {
     "ibm-plex-sans-": [("IBM Plex Sans", "NW Sans"), ("IBMPlexSans", "NWSans")],
     "ibm-plex-mono-": [("IBM Plex Mono", "NW Mono"), ("IBMPlexMono", "NWMono")],
+    "limelight-":     [("Limelight", "NW Deco")],
 }
 
 
@@ -77,6 +92,8 @@ def rename_family(path, pairs):
         txt = rec.toUnicode()
         for old, new in pairs:
             txt = txt.replace(old, new)
+        if rec.nameID == 6:
+            txt = txt.replace(" ", "")   # a PostScript name takes no spaces
         rec.string = txt
     font.flavor = "woff2"
     font.save(path)
@@ -106,6 +123,9 @@ def main():
         p = os.path.join(FONTS, f)
         if f in KEEP_WHOLE:
             print("keep whole  %-42s %6d" % (f, os.path.getsize(p)))
+            continue
+        if ONLY and not any(f.startswith(o) for o in ONLY):
+            print("kept as is  %-42s %6d" % (f, os.path.getsize(p)))
             continue
         before = os.path.getsize(p)
         subprocess.check_call([

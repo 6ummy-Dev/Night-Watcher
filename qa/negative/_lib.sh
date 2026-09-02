@@ -48,10 +48,22 @@ PASS=0; FAILED=0
 # re-tarred for every fixture. After each fixture, three sweeps
 # restore the pristine state: files a mutation created are removed, files it
 # deleted come back, files it rewrote are re-copied from the source tree —
-# found by mtime against a stamp touched after the previous heal, and by a
-# manifest cut at unpack. An incomplete heal cannot be silent: the next
-# fixture's mutation asserts its anchors against the healed tree and reports
-# SETUP BROKE if they are gone.
+# found by CONTENT (5.3.1: a `cmp -s` pass over the manifest; the mtime
+# stamp it replaced missed a rewrite landing in the stamp's own second on a
+# one-second filesystem, and an additive mutation leaves the next fixture's
+# anchors intact, so the "cannot be silent" claim below held only for
+# anchor-destroying mutations). An incomplete heal still cannot be silent
+# for those: the next fixture's mutation asserts its anchors against the
+# healed tree and reports SETUP BROKE if they are gone.
+#
+# 5.3.1: the pristine run's EXIT CODE is kept as well as its signature. On a
+# tree already red in a section — the everyday case is an unblessed CSP hash,
+# exactly the state a developer runs "the suite you wrote" in — every fixture
+# aimed at that section used to pass without proving anything, a no-mutation
+# fixture included. A red pristine tree now prints PRISTINE RED once and
+# counts one failure for the suite, and the pristine-signature check runs on
+# every fixture, not only the ones that exit green.
+PRISTINE_RC=0
 ensure_tree () {
   [ -d "$NEG" ] && return
   mkdir -p "$NEG"
@@ -68,8 +80,13 @@ ensure_tree () {
   # on a warning line the pristine tree does NOT emit — an expected string
   # that a healthy run also prints proves the mutation broke nothing, which
   # is the false-pass run_case used to report as PASS.
-  ( cd "$NEG" && node qa/guards.js 2>&1 ) | grep -vE '^  (ok|·) ' > "$NEG.pristine" || true
-  touch "$NEG.stamp"
+  ( cd "$NEG" && node qa/guards.js > "$NEG.pristine.raw" 2>&1 ); PRISTINE_RC=$?
+  grep -vE '^  (ok|·) ' "$NEG.pristine.raw" > "$NEG.pristine" || true
+  if [ "$PRISTINE_RC" -ne 0 ]; then
+    echo "  PRISTINE RED  the source tree is red before any mutation (guards.js exit $PRISTINE_RC) — every fixture below proves nothing until the tree is green"
+    grep -E '✗' "$NEG.pristine" | sed 's/^/        /' | head -3
+    FAILED=$((FAILED+1))
+  fi
 }
 
 heal_tree () {
@@ -81,11 +98,10 @@ heal_tree () {
   comm -13 "$cur" "$NEG.manifest" | while IFS= read -r rel; do
     mkdir -p "$NEG/$(dirname "$rel")"; cp "$SRC/$rel" "$NEG/$rel"
   done
-  # rewritten by the mutation -> re-copy
-  find "$NEG" -type f -newer "$NEG.stamp" -not -path "*/node_modules/*" | while IFS= read -r f; do
-    rel="${f#$NEG/}"; cp "$SRC/$rel" "$f"
-  done
-  touch "$NEG.stamp"
+  # rewritten by the mutation -> re-copy, by content, not by clock
+  while IFS= read -r rel; do
+    cmp -s "$NEG/$rel" "$SRC/$rel" || cp "$SRC/$rel" "$NEG/$rel"
+  done < "$NEG.manifest"
 }
 
 run_case () {
@@ -127,13 +143,16 @@ run_case () {
         echo "        got: the text matched, but the run exited GREEN and the match is not a warning — the mutation broke nothing this suite can see"
         FAILED=$((FAILED+1)); return
       fi
-      if [ "$suite" = "guards" ] && [ -z "$phase" ] && [ -z "${NEG_ARGS:-}" ] &&
-         [ -f "$NEG.pristine" ] && grep -qF "$expect" "$NEG.pristine"; then
-        echo "  FAIL  $label"
-        echo "        expected: $expect"
-        echo "        got: a pristine run prints the same text — the expected string is not caused by the mutation"
-        FAILED=$((FAILED+1)); return
-      fi
+    fi
+    # Green or red, an expected string the PRISTINE tree also prints is not
+    # caused by the mutation (5.3.1: this used to sit inside the green branch,
+    # so a tree red for another reason passed every fixture aimed at it).
+    if [ "$suite" = "guards" ] && [ -z "$phase" ] && [ -z "${NEG_ARGS:-}" ] &&
+       [ -f "$NEG.pristine" ] && grep -qF "$expect" "$NEG.pristine"; then
+      echo "  FAIL  $label"
+      echo "        expected: $expect"
+      echo "        got: a pristine run prints the same text — the expected string is not caused by the mutation"
+      FAILED=$((FAILED+1)); return
     fi
     echo "  PASS  $label"; PASS=$((PASS+1))
   else

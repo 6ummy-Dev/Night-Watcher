@@ -56,10 +56,10 @@ s=s.replace(a,'  for(k in v){ if(HAS.call(v, k)) out[k] = v[k]; }',1);${W}"
 run_case "the fold handler forgets to persist" \
   "the fold handler does not persist" \
   "${P}a='''if(S.progOpen[pk] === true) delete S.progOpen[pk]; else S.progOpen[pk] = true;
-    persist(); render();'''
+    persist(); render({quiet:true});'''
 assert a in s
 s=s.replace(a,'''if(S.progOpen[pk] === true) delete S.progOpen[pk]; else S.progOpen[pk] = true;
-    render();''',1);${W}"
+    render({quiet:true});''',1);${W}"
 
 run_case "the caret stops turning" \
   "the fold caret does not turn" \

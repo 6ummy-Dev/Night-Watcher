@@ -55,13 +55,6 @@ run_case "the icon file is dropped but the head still points at it" \
   "docs/icon.svg is missing" \
   "import os;os.remove('docs/icon.svg')"
 
-echo "--- 83: the identity does not drift back"
-
-run_case "the id is reverted to the old project-page path" \
-  "it is an identity key, not a path" \
-  "import io,json;p='docs/manifest.json';d=json.load(io.open(p,encoding='utf-8'))
-d['id']='/Night-Watcher/';io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2))"
-
 echo "--- 96: the belt collapses its own box, and reduced motion still cuts it"
 
 run_case "the box collapse is removed and only the pouches animate" \

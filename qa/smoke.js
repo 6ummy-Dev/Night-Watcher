@@ -1,8 +1,13 @@
 #!/usr/bin/env node
 /* Headless render test. Boots docs/index.html in jsdom and drives what the
-   guards cannot reach: rendering, scope switching, hostile import, the path,
-   and a second document with storage throwing.
-   Requires jsdom (dev-only): npm i -D jsdom      Run: node qa/smoke.js */
+   guards cannot reach: rendering, scope switching, hostile import, the
+   backup matrix (old, forward-dated, pasted, cut and malformed codes), the
+   cross-tab merge through real storage events, the reboots (collapse, path,
+   theme, the parked sweeps), the byte-identity drive (its own phase since
+   5.3.1), the dead-rule sweep, the path end to end, and a second document
+   with storage throwing.
+   Requires jsdom (dev-only): npm i -D jsdom      Run: node qa/smoke.js
+   Phases: SMOKE_ONLY=main|identity|css|blocked, or unset for the full run. */
 "use strict";
 var fs = require("fs"), path = require("path");
 var ROOT = path.join(__dirname, "..");
@@ -33,9 +38,11 @@ var fails = [];
 /* 2.2.0, optimization report §5.4: a negative fixture that exists to trip one
    check does not need the whole run — 21 seconds to observe one message. A
    scoped run boots the same first document, then runs only the phase named:
-     main    — the primary document, its reboots, and the restore-link block
-     css     — the dead-rule sweep
-     blocked — the throwing-store document
+     main     — the primary document, its reboots, and the restore-link block
+     identity — the surgical-vs-full render drive (5.3.1: split out of main,
+                where 71 main-scoped fixtures each paid its 22 seconds)
+     css      — the dead-rule sweep
+     blocked  — the throwing-store document
    "origin" was listed here until 3.0.0 and left PHASES in 2.5.1 with the move
    offer it booted a document for. A phase named in the prose and not in the
    array is a fixture waiting to be written against nothing.
@@ -44,7 +51,7 @@ var fails = [];
    run is still the bar, and a fixture naming a phase that does not exist is
    a broken fixture, not a shorter one — the run refuses. */
 var ONLY = process.env.SMOKE_ONLY || "";
-var PHASES = ["main", "css", "blocked"];
+var PHASES = ["main", "identity", "css", "blocked"];
 if(ONLY && PHASES.indexOf(ONLY) < 0){
   console.log("unknown SMOKE_ONLY phase \"" + ONLY + "\" — one of: " +
               PHASES.join(", ") + ", or unset for the full run");
@@ -141,6 +148,7 @@ win.addEventListener("load", function(){
        and goes straight to the tail — whose own gates run just the phase
        asked for. tailPhases() is declared below runBlocked(); function
        declarations hoist. */
+    if(ONLY === "identity"){ identityDrive(); tailPhases(); return; }
     if(ONLY && ONLY !== "main"){ tailPhases(); return; }
 
     /* --- first run: Home IS the chooser, and nothing else --- */
@@ -291,7 +299,70 @@ win.addEventListener("load", function(){
              (doc.querySelector('meta[name="theme-color"]') || {getAttribute:function(){ return "none"; }})
                .getAttribute("content");
     }
+    /* 5.3.1: THE IDENTITY DRIVE IS ITS OWN PHASE. It is 144 surgical-vs-full
+       render pairs and ≈22 s of a 29 s main phase, and 71 fixtures scoped to
+       `main` were each paying it to observe one message elsewhere — some
+       40% of the negative wall. An unscoped run still walks it here, in the
+       order it always did; SMOKE_ONLY=identity runs it alone; SMOKE_ONLY=main
+       skips it. The six "byte-identical" fixtures name the phase. */
+    /* --- 5.3.1: the six one-view actions do not rebuild their neighbours --
+       render() and tickUpdate() dirtied every other panel unconditionally,
+       so a search keystroke, a peek, a fold, the code, the nag and the
+       reset arm — each touching exactly one view — rebuilt the inert Path
+       (~2,700 elements, a 175–225 ms task with a kept scroll) at idle.
+       A spy on fillPanel(): after each, no OTHER panel is filled. The idle
+       callback is made synchronous so the count is read at once. */
     (function(){
+      var realFill = win.fillPanel, realIdle = win.requestIdleCallback, filled = [];
+      var keepExport = S.lastExportAt, keepPeek = S.peek, NWTABS_ALL = win.NWTABS;
+      win.fillPanel = function(t, c){ filled.push(t); return realFill(t, c); };
+      win.requestIdleCallback = function(f){ f(); };
+      /* Earlier renders queued their refill on a jsdom timer that has not
+         fired, and the queue is guarded by one flag — clear it before each
+         action, or nothing here could refill anything and the checks would
+         pass for the wrong reason. */
+      function arm(){ win.nwIdleQ = false; filled = []; }
+      function others(){ return filled.filter(function(t){ return t !== S.tab; }); }
+      S.path = S.mode = "continuity"; S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.peek = {};
+      S.tab = "watch"; S.q = ""; win.render(); arm();
+      var inp = doc.querySelector('#view .panel:not([inert]) #q');
+      S.q = "bat"; if(inp) inp.value = "bat"; win.searchApply();
+      check("a search keystroke fills no other panel", others().length === 0, "filled " + filled.join(","));
+      S.q = ""; win.render();
+      var A = win.pool()[0]; S.watched[A.id] = 1;
+      S.tab = "next"; win.render(); arm();
+      var pk = doc.querySelector('#view .panel:not([inert]) [data-act="peek"]');
+      if(pk) pk.click();
+      check("a peek fills no other panel", !!pk && others().length === 0, !pk ? "no peek to drive" : "filled " + filled.join(","));
+      S.tab = "stats"; win.render(); arm();
+      var fold = doc.querySelector('#view .panel:not([inert]) [data-act="progfold"]');
+      if(fold) fold.click();
+      check("a fold fills no other panel", !!fold && others().length === 0, !fold ? "no fold to drive" : "filled " + filled.join(","));
+      arm();
+      var mk = doc.querySelector('#view .panel:not([inert]) [data-act="mkcode"]');
+      if(mk) mk.click();
+      check("a new code fills no other panel", !!mk && others().length === 0, !mk ? "no code button" : "filled " + filled.join(","));
+      /* And a tick from Next up fills Home and Progress but NOT the Path,
+         which took the row-level patch instead. */
+      S.tab = "next"; win.render(); win.fillPanel("watch", win.counts()); arm();
+      var go = doc.querySelector('#view .panel:not([inert]) [data-act="watched"][data-id]');
+      if(go) go.click();
+      /* Home is Next up's other neighbour and is refilled at idle; Progress
+         is not a neighbour and waits dirty; The Path took the patch. */
+      check("a tick from Next up refills Home but not The Path, which took the row-level patch",
+            !!go && filled.indexOf("watch") < 0 && filled.indexOf("home") >= 0 && win.nwDirty.watch === false && win.nwDirty.stats === true,
+            !go ? "no hero to tick" : "filled " + filled.join(",") + " dirty watch=" + win.nwDirty.watch + " stats=" + win.nwDirty.stats);
+      win.fillPanel = realFill; win.requestIdleCallback = realIdle;
+      S.tab = "watch"; S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.code = ""; S.progOpen = {};
+      S.peek = keepPeek; S.lastExportAt = keepExport;
+      S.q = ""; win.render(); win.flushPersist();
+      /* Leave no stale neighbour behind: the refill rides a timer that has
+         not fired, and the checks below read the deck, not one panel. */
+      NWTABS_ALL.forEach(function(t){ if(t !== S.tab) win.fillPanel(t, win.counts()); });
+    })();
+
+    if(wants("identity")) identityDrive();
+    function identityDrive(){
       var v = doc.getElementById("view");
       var mismatches = [], drove = 0;
       ["continuity", "life", "release"].forEach(function(pt){
@@ -394,15 +465,62 @@ win.addEventListener("load", function(){
             mismatches.length === 0 && drove >= 120, mismatches.slice(0, 3).join("  |  ") ||
             (drove + " driven"));
       S.filter = "left"; win.render();
-      var t2 = v.querySelector('.tick[data-id]');
+      var t2 = v.querySelector('.panel:not([inert]) .tick[data-id]'), t2id = t2 ? t2.getAttribute("data-id") : "";
       if(t2) t2.click();
+      /* 5.3.1: this used to assert only that a .group or .empty existed — a
+         fallback that never fired passed. The tick must land, and the row
+         must leave the "left" view, which only a full render does. */
       check("a filtered view ticks through the full render (the fallback)",
-            !!v.querySelector(".group") || !!v.querySelector(".empty"),
-            "the filtered view rendered nothing at all");
+            !!t2 && !!S.watched[t2id] &&
+            !v.querySelector('.panel:not([inert]) .tick[data-id="' + t2id + '"]') &&
+            (!!v.querySelector(".group") || !!v.querySelector(".empty")),
+            !t2 ? "no tick to drive in the left view" :
+            "watched=" + !!S.watched[t2id] + " still listed as left=" +
+            !!v.querySelector('.tick[data-id="' + t2id + '"]'));
       S.filter = "all"; S.watched = {}; S.skipped = {}; S.log = []; S.open = {};
       S.path = S.mode = "continuity"; S.format = "all"; S.scope = "all";
       win.render(); win.flushPersist();
-    })();
+
+      /* --- 5.3.1: the two new surgical paths, held to the same arithmetic ---
+         A search keystroke toggles hidden on rows and groups in place
+         (searchApply) instead of rebuilding The Path — so after every
+         keystroke, a forced full render must serialize to the SAME bytes,
+         including the scope note, the empty block and the input's value
+         attribute, for a query that narrows, one that matches nothing, and
+         the way back to no query. And a tick from another panel patches
+         the inert Path panel row-level (patchRow) instead of dirtying it —
+         so the patched panel must equal a fresh fillPanel() of it. */
+      (function(){
+        var mm = [], n = 0;
+        S.tab = "watch"; S.q = ""; win.setAllGroups(true); win.render();
+        var inp = v.querySelector("#q");
+        ["bat", "batman begins", "zzzznomatch", "joker", "", "dark", ""].forEach(function(q){
+          S.q = q; if(inp) inp.value = q; win.searchApply();
+          var after = shot();
+          win.render();
+          if(shot() !== after) mm.push("search:" + JSON.stringify(q));
+          n++;
+        });
+        check("a search keystroke's in-place pass is byte-identical to a full render (" + n + " driven)",
+              mm.length === 0, mm.join("  |  "));
+        S.q = ""; win.render();
+        var pw = win.panelOf("watch");
+        S.tab = "next"; win.render();
+        win.fillPanel("watch", win.counts());
+        var go = doc.querySelector('#view .panel:not([inert]) [data-act="watched"][data-id]');
+        var gid = go ? go.getAttribute("data-id") : "";
+        if(go) go.click();
+        var clean = win.nwDirty.watch === false;
+        var patched = pw.innerHTML;
+        win.fillPanel("watch", win.counts());
+        check("a tick from Next up patches the inert Path row-level, and the patch equals a full fill",
+              !!go && !!S.watched[gid] && clean && patched === pw.innerHTML,
+              !go ? "no hero to tick" : "watched=" + !!S.watched[gid] + " clean=" + clean +
+              " identical=" + (patched === pw.innerHTML));
+        S.tab = "watch"; S.watched = {}; S.skipped = {}; S.log = []; S.open = {}; S.q = "";
+        win.render(); win.flushPersist();
+      })();
+    }
 
     /* --- a Home card stays inside your path (1.7.7) --- */
     /* Until 1.7.7 Home always drew the universes, so tapping one of its cards
@@ -494,10 +612,19 @@ win.addEventListener("load", function(){
     ["movies", "all"].forEach(function(scope){
       S.scope = scope;
       var p = FILMS.filter(win.visible);
-      var core = p.filter(function(f){ return tierOf(f) !== "o"; }).length;
-      var opt  = p.filter(function(f){ return tierOf(f) === "o"; }).length;
-      check("tier partition closes (scope=" + scope + ")", core + opt === p.length,
-            "core " + core + " + opt " + opt + " vs " + p.length);
+      /* 5.3.1: core + opt === p.length was an identity for ANY tierOf, one
+         returning undefined included. The partition is recounted off the raw
+         flags — e wins, then o, else core — and held against tierOf(). */
+      var raw = {e: 0, o: 0, k: 0}, got = {e: 0, o: 0, k: 0, other: 0};
+      p.forEach(function(f){
+        raw[f.b.indexOf("e") >= 0 ? "e" : (f.o ? "o" : "k")]++;
+        var t = tierOf(f); if(got.hasOwnProperty(t)) got[t]++; else got.other++;
+      });
+      check("tier partition closes (scope=" + scope + ")",
+            got.other === 0 && got.e === raw.e && got.o === raw.o && got.k === raw.k &&
+            raw.e + raw.o + raw.k === p.length && raw.k > 0 && raw.e > 0 && raw.o > 0,
+            "tierOf e/o/k " + got.e + "/" + got.o + "/" + got.k + " (other " + got.other +
+            ") vs flags " + raw.e + "/" + raw.o + "/" + raw.k + " of " + p.length);
     });
 
     /* B:TAS S1 must be reachable from the Core route, not orphaned */
@@ -528,7 +655,7 @@ win.addEventListener("load", function(){
     S.mode = "life"; S.tab = "watch"; S.format = "all"; S.scope = "all";
     S.watched = {}; S.log = []; win.render();
     (function(){
-      var rows = Array.prototype.map.call(doc.querySelectorAll("#view .panel:not([inert]) .grow, #view .qitem, #view [data-id]"),
+      var rows = Array.prototype.map.call(doc.querySelectorAll("#view .panel:not([inert]) .grow, #view .panel:not([inert]) .qitem, #view .panel:not([inert]) [data-id]"),
                                           function(e){ return e.dataset.id; }).filter(Boolean);
       var seen = [], want = ["batman-year-one-2011", "batman-begins-2005", "batman-gotham-knight-2008"];
       want.forEach(function(id){ seen.push(rows.indexOf(id)); });
@@ -1036,8 +1163,19 @@ win.addEventListener("load", function(){
       check("no entry is watched and skipped at once", both.length === 0,
             both.map(function(f){ return f.id; }).join(","));
       var c = win.counts();
-      check("the scoreboard adds up", c.done + c.left + c.skip === c.total,
-            c.done + "+" + c.left + "+" + c.skip + " vs " + c.total);
+      /* 5.3.1: done + left + skip === total was counts()' own definition of
+         left, so it could not fail. Each figure is recounted off the pool
+         and the marks, independently of counts(). */
+      var pl = win.pool().filter(function(f){ return !win.isParked(f); });
+      var rc = {total: pl.length,
+                done: pl.filter(function(f){ return !!S.watched[f.id]; }).length,
+                skip: pl.filter(function(f){ return !S.watched[f.id] && !!S.skipped[f.id]; }).length,
+                left: pl.filter(function(f){ return !S.watched[f.id] && !S.skipped[f.id]; }).length};
+      check("the scoreboard adds up",
+            c.total === rc.total && c.done === rc.done && c.skip === rc.skip && c.left === rc.left &&
+            rc.done > 0 && rc.total > rc.done,
+            "counts() " + c.done + "/" + c.skip + "/" + c.left + " of " + c.total +
+            " vs recount " + rc.done + "/" + rc.skip + "/" + rc.left + " of " + rc.total);
       clean(); win.render();
     })();
 
@@ -1336,7 +1474,7 @@ win.addEventListener("load", function(){
               doc.querySelector('#view .panel:not([inert]) .buckle').getAttribute("aria-label")));
       S.format = "all"; S.scope = "all";
 
-      /* The chips stay, all seven; the one that can show nothing says why. */
+      /* The chips stay, all eight; the one that can show nothing says why. */
       S.tab = "watch"; S.filter = "opt"; win.render();
       check("The path keeps its eight chips under a narrowed belt",
             doc.querySelectorAll('#view .panel:not([inert]) .chip').length === 8);
@@ -2533,28 +2671,94 @@ win.addEventListener("load", function(){
        clobbering it. */
     (function(){
       var keepScope = S.scopePref, keepTier = S.tier;
-      S.theme = "dark"; S.format = "anim"; S.path = S.mode = "release";
-      win.applyTheme(); win.persist(); win.flushPersist();
+      S.theme = "dark"; S.format = "anim"; S.path = S.mode = "life"; S.tab = "watch";
+      win.applyTheme(); win.persist(); win.flushPersist(); win.render();
+      /* 5.3.1: the 5.3.0 check sent the path the tab already had, so the one
+         setting with a follow-on (S.mode) was never exercised — the adopt
+         left S.mode behind and The Path wore the shared-link banner
+         ("Viewing Bruce's life. Your path is Release order.") for a screen.
+         A CHANGED path, plus scope and tier, which nothing sent either. */
       win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
-        newValue: JSON.stringify({theme: "darker", format: "live", path: "release"})}));
+        newValue: JSON.stringify({theme: "darker", format: "live", path: "release",
+                                  scope: "all", tier: "core"})}));
       check("another tab's saved theme is adopted, not clobbered",
             S.theme === "darker" &&
             doc.documentElement.getAttribute("data-theme") === "darker",
             "theme=" + S.theme);
       check("another tab's saved format is adopted", S.format === "live",
             "format=" + S.format);
+      check("another tab's changed path is adopted and the mode follows it",
+            S.path === "release" && S.mode === "release",
+            "path=" + S.path + " mode=" + S.mode);
+      check("another tab's scope and tier are adopted",
+            S.scopePref === "all" && S.scope === "all" && S.tier === "core",
+            "scope=" + S.scope + " tier=" + S.tier);
+      check("an adopted path never shows the shared-view banner",
+            !doc.querySelector("#panel-watch .viewing"),
+            "banner: " + (doc.querySelector("#panel-watch .viewing") || {textContent: ""}).textContent.slice(0, 60));
       win.flushPersist();
       var raw = JSON.parse(win.localStorage.getItem("batwatch-v3") || "{}");
       check("the adopted settings survive this tab's next persist",
-            raw.theme === "darker" && raw.format === "live",
-            "on disk: theme=" + raw.theme + " format=" + raw.format);
+            raw.theme === "darker" && raw.format === "live" && raw.path === "release" &&
+            raw.scope === "all" && raw.tier === "core",
+            "on disk: theme=" + raw.theme + " format=" + raw.format + " path=" + raw.path);
       win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
         newValue: JSON.stringify({theme: "neon"})}));
       check("a junk setting from another tab is refused", S.theme === "darker",
             "theme=" + S.theme);
-      S.theme = "dark"; S.format = "anim";
+      S.theme = "dark"; S.format = "anim"; S.path = S.mode = "release";
       S.scope = S.scopePref = keepScope; S.tier = keepTier;
       win.applyTheme(); win.persist(); win.flushPersist(); win.render();
+    })();
+
+    /* --- a throw mid-merge is caught (5.3.1) ------------------------------
+       5.3.0 wrapped mergeTab() in a try whose catch persists and renders,
+       and pinned the spelling; nothing ever threw. An erase adopted before
+       the throw must still reach the disk, or the next tick persists a
+       half-merged blob. clocksOf() is the first call after the resetAt
+       branch, so a poisoned one is the throw. */
+    (function(){
+      var A = "batman-begins-2005";
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.resetAt = 0;
+      S.clk = {w:{}, s:{}, r:{}};
+      S.watched[A] = 1; S.clk.w[A] = 5000; win.persist(); win.flushPersist();
+      var real = win.clocksOf, escaped = null;
+      /* jsdom reports a listener's uncaught throw as a window error event,
+         not to the dispatcher — so the escape is read there. */
+      var onErr = function(ev){ escaped = ev.error || ev.message || true; ev.preventDefault(); };
+      win.addEventListener("error", onErr);
+      win.clocksOf = function(){ throw new Error("poisoned clocks"); };
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({resetAt: 9500, watched: {}, clk: {w:{}, s:{}, r:{}}})}));
+      win.clocksOf = real;
+      win.removeEventListener("error", onErr);
+      win.flushPersist();
+      var raw = JSON.parse(win.localStorage.getItem("batwatch-v3") || "{}");
+      check("a throw mid-merge does not escape the listener", !escaped, String(escaped));
+      check("an erase adopted before the throw still reaches the disk",
+            raw.resetAt === 9500 && !(raw.watched || {})[A] && !S.watched[A],
+            "on disk resetAt=" + raw.resetAt + " watched=" + Object.keys(raw.watched || {}).join(","));
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.resetAt = 0;
+      S.clk = {w:{}, s:{}, r:{}};
+      win.persist(); win.flushPersist(); win.render();
+    })();
+
+    /* --- a log entry at the epoch is not a night (5.3.1) ------------------
+       validTs() required only isFinite, while its two siblings require > 0:
+       a hand-edited backup with ts:0 printed "1 night on patrol" dated
+       1970-01-01, and because the first night is the minimum over the log,
+       the pace forecast's span became ~20,000 days for good. */
+    (function(){
+      var A = "batman-begins-2005";
+      S.watched = {}; S.log = []; S.clk = {w:{}, s:{}, r:{}};
+      win.doRestore(JSON.stringify({app: "night-watcher", v: 2,
+        watched: (function(o){ o[A] = 1; return o; })({}),
+        log: [{id: A, ts: 0}, {id: A, ts: -5}, {id: A, ts: "0"}]}));
+      check("a log entry at or before the epoch is refused",
+            S.log.every(function(en){ return en.ts > 0; }),
+            "log: " + JSON.stringify(S.log));
+      S.watched = {}; S.log = []; S.clk = {w:{}, s:{}, r:{}};
+      win.persist(); win.flushPersist(); win.render();
     })();
 
     /* --- restore() is a door too (5.3.0, from the two 5.2.4 QAs) ---------
@@ -2587,7 +2791,47 @@ win.addEventListener("load", function(){
               "on disk: " + Object.keys((raw.watched || {})).join(","));
         check("no parked title rides the export after the sweep",
               w7.exportCode().indexOf(w7.idHash(PK)) < 0);
-        tailPhases();
+
+        /* --- the rating is a mark too (5.3.1, from the 5.3.0 audit) ------
+           A rating on a parked title survived every seat 5.3.0 gated —
+           rate() itself, the pasted code or JSON, the other tab, and the
+           wholesale restore — named a 2028 film under Your five stars and
+           rode the backup code as an orphan. Its own reboot, with no parked
+           tick or skip aboard, so the rated sweep's persist is the only one
+           and "never persists" stays observable for the fixtures. */
+        var seed2 = JSON.stringify({watched: (function(o){ o[A] = 1; return o; })({}),
+          skipped: {}, rated: (function(o){ o[A] = 5; o[PK] = 5; return o; })({}),
+          log: [{id: A, ts: 100}]});
+        reboot(seed2, "parked-rated sweep", function(w8){
+          check("a stale parked rating is swept at boot",
+                w8.S.rated[A] === 5 && !w8.S.rated[PK],
+                "rated: " + Object.keys(w8.S.rated).join(","));
+          check("the rated sweep stamps the clock", (w8.S.clk.r[PK] || 0) > 0,
+                "clk=" + w8.S.clk.r[PK]);
+          check("Your five stars never names a parked title",
+                w8.favList().length === 1 && w8.favList()[0].id === A &&
+                w8.favText().indexOf("Clayface") < 0,
+                "favs: " + w8.favList().map(function(f){ return f.id; }).join(","));
+          w8.flushPersist();
+          var raw2 = JSON.parse(w8.localStorage.getItem("batwatch-v3") || "{}");
+          check("the rated sweep reaches the disk",
+                raw2.rated && !raw2.rated[PK] && raw2.rated[A] === 5,
+                "on disk: " + Object.keys((raw2.rated || {})).join(","));
+          check("no parked rating rides the export after the sweep",
+                w8.exportCode().indexOf(w8.idHash(PK)) < 0);
+          /* The four doors, for the rating: a pasted JSON, the seat itself,
+             another tab. */
+          w8.doRestore(JSON.stringify({app: "night-watcher", v: 2, watched: {},
+            rated: (function(o){ o[PK] = 4; return o; })({})}));
+          w8.rate(PK, 3);
+          w8.dispatchEvent(new w8.StorageEvent("storage", {key: w8.KEY,
+            newValue: JSON.stringify({rated: (function(o){ o[PK] = 2; return o; })({}),
+              clk: {w:{}, s:{}, r:(function(o){ o[PK] = Date.now() + 60000; return o; })({})}})}));
+          check("a rating on a parked title is refused at every door",
+                !w8.S.rated[PK] && !w8.S.watched[PK],
+                "rated=" + w8.S.rated[PK] + " watched=" + w8.S.watched[PK]);
+          tailPhases();
+        });
       });
     })();
     }
@@ -2654,18 +2898,13 @@ win.addEventListener("load", function(){
       }
       S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.open = {}; S.q = "";
       S.path = ""; S.tab = "home"; win.render(); sweep();
-      ["continuity", "life", "release"].forEach(function(pt){
-        S.path = S.mode = pt;
-        ["anim", "live", "all"].forEach(function(fm){
-          S.format = fm;
-          ["movies", "all"].forEach(function(sc){
-            S.scope = sc;
-            ["home", "next", "watch", "stats"].forEach(function(t){
-              S.tab = t; S.filter = "all"; win.render(); sweep();
-            });
-          });
-        });
-      });
+      /* 5.3.1: THE SPECIAL STATES RUN FIRST. The tab walk below (3 paths ×
+         3 formats × 2 scopes × 4 tabs, 72 renders) retires about nine
+         selectors and cost most of a 46-second phase; the staged states
+         after it retire about ninety-five. They run first now, and the walk
+         runs last against whatever is left — sweep() early-exits once the
+         worklist is empty, so the walk is close to free. The verdict cannot
+         change: matched only grows, and the dead list reads matched. */
       S.path = S.mode = "continuity"; S.format = "all"; S.scope = "all";
       FILMS.slice(0, 40).forEach(function(f, i){
         S.watched[f.id] = 1; if(i < 5) S.log.push({id:f.id, ts:1785000000000 + i * 86400000});
@@ -2775,6 +3014,24 @@ win.addEventListener("load", function(){
       doc.body.insertBefore(sp, doc.body.firstChild); sweep();
       sp.className = "gone"; sweep();
       doc.body.removeChild(sp);
+      /* The tab walk, last (see above); a render costs more than the probe
+         it feeds, so an empty worklist skips the render too. */
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.open = {}; S.peek = {}; S.q = "";
+      S.filter = "all"; S.beltOpen = false;
+      ["continuity", "life", "release"].forEach(function(pt){
+        S.path = S.mode = pt;
+        ["anim", "live", "all"].forEach(function(fm){
+          S.format = fm;
+          ["movies", "all"].forEach(function(sc){
+            S.scope = sc;
+            ["home", "next", "watch", "stats"].forEach(function(t){
+              if(unmatched === 0) return;
+              S.tab = t; S.filter = "all"; win.render(); sweep();
+            });
+          });
+        });
+      });
+      S.path = S.mode = "continuity"; S.format = "all"; S.scope = "all";
       var dead = sels.filter(function(sel){ return !matched[sel]; });
       check("every CSS rule matches something in some state",
             dead.length === 0, dead.join("  |  "));

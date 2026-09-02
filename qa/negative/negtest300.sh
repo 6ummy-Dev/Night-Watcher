@@ -254,19 +254,19 @@ run_case "the group toggle forgets the Collapse all button" \
   "byte-identical to a full render" \
   "${P}a='    all.querySelector(\".albl\").textContent = ao ? \"Collapse all\" : \"Expand all\";'
 assert a in s;s=s.replace(a,'',1);${W}" \
-  "smoke" "main"
+  "smoke" "identity"
 
 run_case "the row repaint drops the open class" \
   "byte-identical to a full render" \
   "${P}a='  scratch.innerHTML = filmRow(f);'
 assert a in s;s=s.replace(a,'  scratch.innerHTML = filmRow(f).replace(\' open\\\"\', \'\\\"\');',1);${W}" \
-  "smoke" "main"
+  "smoke" "identity"
 
 run_case "the theme toggle leaves the buttons stale" \
   "byte-identical to a full render" \
   "${P}a='    b.setAttribute(\"aria-pressed\", String(S.theme === b.dataset.theme));'
 assert a in s;s=s.replace(a,'',1);${W}" \
-  "smoke" "main"
+  "smoke" "identity"
 
 # applyTheme() moves two document-level attributes and this drops the second.
 # The status-bar check catches it first, which is the right answer — the gate is
@@ -283,7 +283,7 @@ run_case "the row builder is reimplemented for the fast path" \
   "byte-identical to a full render" \
   "${P}a='  scratch.innerHTML = filmRow(f);'
 assert a in s;s=s.replace(a,'  scratch.innerHTML = \\'<div class=\"film\"><div class=\"frow\"></div></div>\\';',1);${W}" \
-  "smoke" "main"
+  "smoke" "identity"
 
 echo "--- 111: watched and skipped are never both true"
 

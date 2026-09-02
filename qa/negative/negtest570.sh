@@ -145,8 +145,8 @@ echo "--- smoke: the closed view has an absolute ceiling again"
 # each is 30 KB — invisible to the relation, over the ceiling.
 run_case "the closed view grows past its ceiling without opening a panel" \
   "closed view stays under its absolute ceiling" \
-  "${P}a='return \x27<div class=\"\x27+cls+\x27\"><div class=\"frow\">\x27+';assert a in s
-s=s.replace(a,'return \x27<div class=\"\x27+cls+\x27\" data-pad=\"'+'x'*150+'\"><div class=\"frow\">\x27+',1);${W}" \
+  "${P}a='return \x27<div class=\"\x27+cls+\x27\"\x27+(hid ? \x27 hidden=\"\"\x27 : \x27\x27)+\x27><div class=\"frow\">\x27+';assert a in s
+s=s.replace(a,'return \x27<div class=\"\x27+cls+\x27\" data-pad=\"'+'x'*150+'\"\x27+(hid ? \x27 hidden=\"\"\x27 : \x27\x27)+\x27><div class=\"frow\">\x27+',1);${W}" \
   smoke main
 
 rm -rf "$NEG"

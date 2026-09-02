@@ -124,8 +124,8 @@ run_case "the helper loses the BYID gate" \
 s=s.replace(a,'if(!res.watched[id] || isParkedId(id) || S.watched[id]',1)
 a='if(!res.skipped[id] || !BYID[id] || isParkedId(id) || S.watched[id]';assert a in s
 s=s.replace(a,'if(!res.skipped[id] || isParkedId(id) || S.watched[id]',1)
-a='if(!rv || !BYID[id] || S.rated[id] === rv';assert a in s
-s=s.replace(a,'if(!rv || S.rated[id] === rv',1);${W}" \
+a='if(!rv || !BYID[id] || isParkedId(id) || S.rated[id] === rv';assert a in s
+s=s.replace(a,'if(!rv || isParkedId(id) || S.rated[id] === rv',1);${W}" \
   guards "" 111
 
 run_case "applyImport grows its own copy of the loop back" \
@@ -195,7 +195,11 @@ echo "--- 140: the archival clock"
 # unset — this script's environment only; run-all.sh and the shard are
 # untouched — and the refusal gets its own fixture.
 unset CI
-export NW_TODAY=2027-07-15
+# 5.3.1: the pin is DERIVED from the file's own Expires (17 days before it),
+# so guard 140's renewal in 2027 cannot move this fixture into the ">366
+# days" branch and turn the suite red for the wrong reason on renewal day.
+NW_EXP="$(sed -n 's/^Expires: \([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\).*/\1/p' docs/.well-known/security.txt)"
+export NW_TODAY="$(python3 -c "import datetime,sys;print((datetime.date.fromisoformat(sys.argv[1])-datetime.timedelta(days=17)).isoformat())" "$NW_EXP")"
 run_case "the clock pinned a fortnight before expiry goes red" \
   "renew the Expires field" \
   "print('no mutation: the clock is the mutation')" \

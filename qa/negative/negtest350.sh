@@ -130,13 +130,13 @@ run_case "mergeLog goes back to isFinite on its own" \
 
 run_case "validTs admits null again" \
   "validTs(null) is true" \
-  "${P}a='return (typeof v === \"number\" || (typeof v === \"string\" && v !== \"\")) && isFinite(v);';assert a in s
+  "${P}a='return (typeof v === \"number\" || (typeof v === \"string\" && v !== \"\")) && isFinite(v) && Number(v) > 0;';assert a in s
 s=s.replace(a,'return isFinite(v);',1);${W}"
 
 run_case "validTs rejects a real timestamp" \
   "validTs() rejects a real timestamp" \
-  "${P}a='&& isFinite(v);';assert a in s
-s=s.replace(a,'&& isFinite(v) && typeof v === \"number\";',1);${W}"
+  "${P}a='&& isFinite(v) && Number(v) > 0;';assert a in s
+s=s.replace(a,'&& isFinite(v) && Number(v) > 0 && typeof v === \"number\";',1);${W}"
 
 echo "--- 98: the share block's title tracks the level the tab uses"
 

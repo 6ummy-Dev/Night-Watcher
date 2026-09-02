@@ -138,14 +138,16 @@ run_case "llms.txt drops a claim the README makes" \
   "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read()
 a='animated and live action';assert a in s
 s=s.replace(a,'live action',1)
-io.open(p,'w',encoding='utf-8').write(s)"
+io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 117
 
 run_case "the README loses the sentence llms.txt is checked against" \
   "the README's canonical sentence no longer makes the both-media claim" \
   "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
 a='animated and live action';assert a in s
 s=s.replace(a,'live action',1)
-io.open(p,'w',encoding='utf-8').write(s)"
+io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 117
 
 echo "--- 3.1.0: the 404's bat"
 # The first two came back GREEN against the three-copy version of section 115 —

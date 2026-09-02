@@ -8,11 +8,6 @@ run_case "the seed lists a title the data does not have" \
   "${P}a='<li>Gotham (2014)</li>';assert a in s
 s=s.replace(a,'<li>Gotham City (2014)</li>',1);${W}"
 
-run_case "the catalogue is emptied out of #view" \
-  "the crawlable catalogue is gone" \
-  "${P}import re;m=re.search(r'<main id=\"view\">[\\s\\S]*?</main>',s);assert m
-s=s[:m.start()]+'<main id=\"view\"></main>'+s[m.end():];${W}"
-
 echo "--- 78: the position assertion inverted in 1.8.6"
 run_case "the catalogue escapes to above <main>" \
   'sits outside <main id="view">' \

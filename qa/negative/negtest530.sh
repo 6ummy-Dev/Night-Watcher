@@ -212,7 +212,7 @@ run_case "the group toggle drops the mark it was holding" \
   "byte-identical to a full render" \
   "${P}a=' + (grp.classList.contains(\"here\") ? \" here\" : \"\");';assert a in s
 s=s.replace(a,';',1);${W}" \
-  smoke main
+  smoke identity
 
 echo "--- 159, 5.3.0: forced colors and the speaking star run"
 

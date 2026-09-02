@@ -125,12 +125,18 @@ if th > 144:  # a taller-than-wide source would overflow; fit the long side
 glyph = bat.resize((tw, th), Image.LANCZOS)
 tile.paste(glyph, ((180 - tw) // 2, (180 - th) // 2), glyph)
 atp = os.path.join(ROOT, "docs", "apple-touch-icon.png")
-tile.convert("RGB").save(atp, format="PNG", optimize=True)
+# 5.3.1: a 256-colour palette — the tile is two inks on a flat ground, so the
+# RGB encoding was 6,174 bytes for ~3,600 bytes of picture, on every first
+# Safari visit. MAXCOVERAGE keeps every pixel within 1/255 of the RGB render;
+# the mstile below is RGBA (Windows paints the tile colour behind it), where
+# only FASTOCTREE quantizes with alpha — ±30/255 on antialiased edge pixels
+# of a 144 px legacy tile, measured, invisible.
+tile.convert("RGB").quantize(colors=256, method=Image.Quantize.MAXCOVERAGE, dither=Image.Dither.NONE).save(atp, format="PNG", optimize=True)
 print("docs/apple-touch-icon.png — %d bytes, glyph %dx%d of 180 (%.0f%% wide)"
       % (os.path.getsize(atp), tw, th, 100.0 * tw / 180))
 
 # mstile: 144×144, transparent — Windows paints msapplication-TileColor
 # behind it, and that meta pins the same surface the theme-color declares.
 ms = os.path.join(ROOT, "docs", "mstile-144x144.png")
-src.resize((144, 144), Image.LANCZOS).save(ms, format="PNG", optimize=True)
+src.resize((144, 144), Image.LANCZOS).quantize(colors=256, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.NONE).save(ms, format="PNG", optimize=True)
 print("docs/mstile-144x144.png — %d bytes" % os.path.getsize(ms))

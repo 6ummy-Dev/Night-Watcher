@@ -38,7 +38,8 @@ run_case "the chip is narrowed below two characters" \
 echo "--- 61: contrast measured on the ink that renders"
 run_case "the format-badge fade comes back (the bug this release fixed)" \
   "renders --dim at opacity 0.8" \
-  "${P}a='.bd.fmanim{color:var(--dim);border:1px dashed currentColor;}';assert a in s;s=s.replace(a,'.bd.fmanim{color:var(--dim);border:1px dashed currentColor;opacity:.8;}');${W}"
+  "${P}a='.bd.fmanim{color:var(--dim);border:1px dashed currentColor;}';assert a in s;s=s.replace(a,'.bd.fmanim{color:var(--dim);border:1px dashed currentColor;opacity:.8;}');${W}" \
+  guards "" 61
 
 # 3.8.4 moved the SHORT fade from .55 to .7 — the fade guard itself forced the
 # move the moment --bone dimmed under the darker theme (bone@.55 over the
@@ -47,7 +48,8 @@ run_case "the format-badge fade comes back (the bug this release fixed)" \
 # bare-token replace would mutate rules this case never meant to touch.
 run_case "Short is faded one step further" \
   "renders --bone at opacity 0.5" \
-  "${P}a='.bd.s{color:var(--bone);border:1px solid currentColor;opacity:.7;}';assert a in s;s=s.replace(a,'.bd.s{color:var(--bone);border:1px solid currentColor;opacity:.5;}');${W}"
+  "${P}a='.bd.s{color:var(--bone);border:1px solid currentColor;opacity:.7;}';assert a in s;s=s.replace(a,'.bd.s{color:var(--bone);border:1px solid currentColor;opacity:.5;}');${W}" \
+  guards "" 61
 
 run_case "a modifier is dimmed into the floor" \
   "under the 4.5:1 AA floor" \

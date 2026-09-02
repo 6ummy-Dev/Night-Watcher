@@ -69,20 +69,19 @@ run_one () {
 export -f run_one
 export WORK
 
-# Dispatch longest-first. The wall clock of a concurrent run is whatever suite
+# Dispatch heaviest-first. The wall clock of a concurrent run is whatever suite
 # finishes last, and a smoke fixture costs ~40× a guards fixture — so a heavy
 # suite picked up late by xargs used to run alone after everything else had
-# drained. Sorting the dispatch by smoke-fixture count (descending; name as
-# tiebreak, so the order is deterministic) starts the heavy suites first and
-# packs the cheap ones behind them. The report still prints in file order.
-#
-# The count matches the suite argument where it actually sits — quoted or
-# bare, at the end of the call, comments excluded — because a bare `smoke
-# main` once counted as zero and its fixtures started whenever xargs got
-# around to them. It agrees with the census guard 65 runs over the same
-# files; the guard holds the number, this comment deliberately does not.
-DISPATCH="$(for f in "${SUITES[@]}"; do
-  printf '%03d %s\n' "$(grep -vE '^[[:space:]]*#' "$f" | grep -cE '[" ]smoke"?( +("[a-z]+"|main|css|blocked|everything))? *$')" "$f"
+# drained. The weight is guard 113's (guards fixtures + 40 × smoke fixtures),
+# read from the one census every counter shares since 5.3.1
+# (qa/negative/census.js) — this file used to sort by its own grep of the
+# smoke count, so negtest610 (113 guards fixtures, ≈2.5 min) sorted at 000
+# behind every one-smoke suite. Name as tiebreak, so the order is
+# deterministic. The report still prints in file order.
+DISPATCH="$(node "$HERE/census.js" --weights | while read -r w name; do
+  for f in "${SUITES[@]}"; do
+    if [ "$(basename "$f")" = "$name" ]; then printf '%05d %s\n' "$w" "$f"; fi
+  done
 done | sort -k1,1r -k2,2 | cut -d' ' -f2-)"
 
 echo "  ${#SUITES[@]} suites, $JOBS at a time, longest first"

@@ -25,10 +25,16 @@ run_case "the blurb stops being shortened" \
   "cards stop being cards" \
   "${P}a='  if(t.length > 72)';assert a in s;s=s.replace(a,'  if(false)',1);${W}"
 
+# 5.3.1: every bag note ENDS with the suffix now (universe 35's sat mid-note
+# until then), so the stripper's live case is gone and removing it alone
+# proves nothing. The fixture plants a bag note whose first sentence carries
+# the suffix — the shape the stripper exists for — and then removes it.
 run_case "the bag suffix leaks into a card" \
   "carries the bag suffix" \
   "${P}a='.replace(/\\\\s*\\\\u2014\\\\s*no order between these.*\$/, \"\")';assert a in s
-s=s.replace(a,'',1);${W}"
+s=s.replace(a,'',1)
+b='note:\"Films where Batman is a supporting player, a punchline, or a guest in someone else\\\\u2019s comedy. Included for completeness';assert b in s
+s=s.replace(b,'note:\"Films where Batman is a supporting player \\\\u2014 no order between these; start anywhere. Included for completeness',1);${W}"
 
 echo "--- 8: a cut code has to say so"
 run_case "a truncated code stops being reported" \

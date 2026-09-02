@@ -110,7 +110,7 @@ s=s.replace('you watch ','you watch <a href=\"https://github.com/6ummy-Dev/Night
 
 run_case "the underline goes and only colour is left to mark it" \
   "the source link is not underlined" \
-  "${P}s=s.replace('.homefoot a,.note a{color:inherit;text-decoration:underline;','.homefoot a,.note a{color:var(--steel);',1);${W}"
+  "${P}a='.note a{color:inherit;text-decoration:underline;';assert a in s;s=s.replace(a,'.note a{color:var(--steel);',1);${W}"
 
 
 echo "--- the support line holds its seat, its words and its link"
