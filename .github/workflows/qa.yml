@@ -71,7 +71,7 @@ jobs:
   # PR-gated job never runs (it did not, for a long time — NOTES-history.md
   # ("Where the served and config files' histories went")).
   #
-  # Cost: 1337 fixtures, of which 1240 run guards.js and 97 run smoke.js — most
+  # Cost: 1371 fixtures, of which 1265 run guards.js and 106 run smoke.js — most
   # of those scoped to one phase by SMOKE_ONLY. The split is guarded in this
   # file the same as the README's counts, so the next drift fails the build.
   # run-all.sh dispatches longest-first; this job shards 4-way on top, packed
@@ -95,13 +95,13 @@ jobs:
       matrix:
         include:
           - shard: "1"
-            pick: 'negtest(161|162|164|166|176|177|190|195|210|251|272|300|360|390|400|420|490|570)\.sh|negtest\.sh'
+            pick: 'negtest(162|165|186|190|260|300|310|340|360|370|440|540|560|570|590|610|660|680|681)\.sh|negtest\.sh'
           - shard: "2"
-            pick: 'negtest(171|180|181|182|200|252|270|271|370|380|430|440|475|480|500|520|530|550|680|690)\.sh'
+            pick: 'negtest(163|166|172|177|180|183|185|187|200|210|271|330|420|475|478|500|510|520|690|700)\.sh'
           - shard: "3"
-            pick: 'negtest(163|165|183|185|186|273|310|320|340|410|450|460|470|540|610|640|660|670|681|700)\.sh'
+            pick: 'negtest(131|161|164|171|175|176|220|251|270|350|390|410|460|490|530|550|620|630|640|710)\.sh'
           - shard: "4"
-            pick: 'negtest(131|170|172|175|187|220|250|260|330|350|476|478|510|560|580|590|600|620|630|650)\.sh'
+            pick: 'negtest(170|181|182|195|250|252|272|273|320|380|400|430|450|470|476|480|580|600|650|670)\.sh'
     steps:
       - uses: actions/checkout@v5
 
