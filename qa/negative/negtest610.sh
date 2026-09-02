@@ -595,9 +595,11 @@ run_case "the README drops its row for qa/llms-txt.json" \
 # is exactly the drift the hand list section 45 replaced kept suffering.
 # 5.3.1: a row that section 45 does not REQUIRE cannot be asserted red — a
 # file already covered by a directory row (`qa/negative/_lib.sh` under
-# `qa/negative/`) or an ignored path (`qa/.shots/`). Those rows are
-# documentation the 5.3.0 audit asked for; they are counted out here, by
-# the same two rules the guard applies, rather than swept vacuously.
+# `qa/negative/`), or a gitignored path (none today: a row for `qa/.shots/`
+# lasted one CI run — a fresh checkout has no such directory and the
+# guard's ghost rule refused it). Those rows are documentation the 5.3.0
+# audit asked for; they are counted out here, by the same two rules the
+# guard applies, rather than swept vacuously.
 ROWS=$(grep -oE '^\| `[^`]+` \|' "$SRC/README.md" | sed 's/^| `//; s/` |$//' | while IFS= read -r row; do
   covered=0
   for d in $(grep -oE '^\| `[^`]+/` \|' "$SRC/README.md" | sed 's/^| `//; s/` |$//'); do

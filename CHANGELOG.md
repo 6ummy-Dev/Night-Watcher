@@ -198,9 +198,14 @@ the MAJOR that hosts them both.
   Playwright cache keyed on its version.
 - **Documents.** README deploys with the pinned script (`npm run deploy`;
   a `rollback` script joins it) and gains rows for `_lib.sh`,
-  `run-all.sh`, `census.js`, `qa/llms-txt.json` and `qa/.shots/`; its
-  bless list names `qa/contrast.md`; the MINOR clause says what the
-  entries do, and a removal has a clause. NOTES.md gains an "Open"
+  `run-all.sh`, `census.js` and `qa/llms-txt.json` (`qa/.shots/` is named
+  in the browser check's row — a table row for a directory that exists
+  only after a browser run made a fresh checkout red on this release's
+  first CI run, caught the same morning: guard 45's ghost rule was right
+  and the row was wrong); its bless list names `qa/contrast.md`; the
+  MINOR clause says what the entries do, and a removal has a clause; its
+  status line leads with what is live and keeps the seal as the record
+  it is. NOTES.md gains an "Open"
   section (the key split, the Batwoman split), retires the `wrangler`
   section that had argued for a dependency 4.9.0 removed, moves five
   sections that called themselves history to NOTES-history.md, retitles

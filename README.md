@@ -15,10 +15,10 @@ assets. **`nightwatcher.life` is the only address** (the GitHub Pages mirror
 it started on was unpublished in August 2026; a backup taken there still
 restores here).
 
-**Status:** the tree was sealed at 4.5.3 on 24 August 2026 — three audits,
-each shipped whole — and everything after it is a new decision with its own
-CHANGELOG entry, the same as before. "Sealed" is a record, not a freeze:
-`RELEASING.md` still applies to every cut.
+**Status:** in active release — the newest `CHANGELOG.md` entry is what is
+live, and every cut goes through `RELEASING.md`. The tree was sealed at
+4.5.3 on 24 August 2026 after three audits shipped whole; "sealed" was a
+record, not a freeze, and everything since is a decision with its own entry.
 
 ## What it does
 
@@ -130,7 +130,6 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `qa/negative/run-all.sh` | Runs every suite concurrently, heaviest first, and prints the report in file order — the wall, and what CI shards |
 | `qa/negative/census.js` | The one reader of the fixture corpus (5.3.1): which lines are fixtures, which are smoke, what a suite weighs — guards 65, 113, 138 and `run-all.sh` all ask it |
 | `qa/llms-txt.json` | `llms.txt`'s hash and the release that last changed it, blessed by guard 67, so the sitemap's second `<lastmod>` cannot go stale |
-| `qa/.shots/` | Screenshots the browser check writes (ignored by git, uploaded by CI on a red run) |
 | `qa/negative/` | The negative suites: each fixture breaks a guard on purpose and asserts it fails (a suite per release that grew or changed the harness — `CONTRIBUTING.md` has the naming rule; `negtest.sh` is the original) |
 | `qa/renamed-ids.json` | The one recorded slug rename, and the closed window that allowed it |
 | `qa/retired-ids.json` | Slugs that left the catalogue, so a reused id cannot mean two things |
@@ -143,7 +142,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `.npmrc` | `engine-strict=true`, so a Node outside `package.json`'s `engines` fails at `npm ci` instead of warning and failing mid-suite |
 | `qa/share-card.html` | The card's layout, rendered headless by the script above |
 | `qa/contrast.md` | The measured contrast table — written by guard 20 under `npm run bless`, never typed; any other run fails if it is stale |
-| `qa/browser-check.mjs` | A real browser at 390×844, for the header, the jumps and the tick — the things jsdom cannot see |
+| `qa/browser-check.mjs` | A real browser at 390×844, for the header, the jumps and the tick — the things jsdom cannot see; its screenshots land in `qa/.shots/` (ignored by git, uploaded by CI on a red run) |
 | `CHANGELOG.md` | Every shipped change from 4.0.0, newest first. Enforced by the guards |
 | `CHANGELOG-archive.md` | The 1.x–3.x entries, moved whole; a record nothing checks |
 | `LICENSE` | AGPL-3.0 for the code, with the writing, DC's marks and the fonts set out separately |
