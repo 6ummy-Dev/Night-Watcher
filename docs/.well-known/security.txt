@@ -1,8 +1,11 @@
 # Night Watcher — https://nightwatcher.life/
 #
-# There is no server here, no account, no database and no form: the site is one
-# static page and a service worker. That makes the blast radius of most bugs
-# small, which is a reason to be reachable rather than a reason not to be.
+# No account, no database, no form, and nothing that stores a visitor's
+# progress anywhere but their own browser: the site is one static page, a
+# service worker, and a small Worker at the edge that negotiates the root's
+# markdown form and answers /.well-known/api-catalog (SECURITY.md puts it in
+# scope). That makes the blast radius of most bugs small, which is a reason
+# to be reachable rather than a reason not to be.
 # SECURITY.md states what is in scope and what is not; this file only says where
 # to knock, in the format a scanner can read.
 #
