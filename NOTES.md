@@ -35,27 +35,12 @@ backup code and the JSON export are `DATA-MODEL.md`.
 
 ## Open
 
-The standing items no release has closed — a list, not a backlog, so a
-maintainer knows what is parked and why before touching the layer:
-
-- **The settings key split.** Settings and marks share one `localStorage`
-  key (`batwatch-v3`); the cross-tab merge adopts settings from the incoming
-  payload (5.3.0), which closes the visible clobber, and the `path` row's
-  `put` carries `S.mode` with it (5.3.1). The REAL fix is a second key so a
-  mark write can never touch settings — a saved-shape change, which README
-  reserves for a MAJOR. If a MAJOR ever happens, split the keys first.
-  (`mergeTab()` below has the reasoning.)
-- **The Batwoman season split.** Batwoman ships as one 51-episode bundle
-  and *Crisis on Infinite Earths* as its own five-hour sitting after it;
-  the bundle's ninth hour is one of those five, so that hour is on the
-  shelf twice and the group files the event after the series it falls
-  inside. 5.3.1 says so in the row (the blurbs already admitted it) and
-  records the overlap as accepted: 2,011 episodes is the sum of sittings,
-  2,010 unique. The honest structural fix — three season rows, the bundle
-  retired, Crisis filed after Season 1 — retires a frozen id and re-means a
-  saved tick as three, which is the same MAJOR line, so it waits for the
-  MAJOR that hosts the key split. Never an "already counted" flag: a
-  data-model field for one row.
+Nothing. The two items this section carried from 5.3.1 to 5.4.0 — the
+settings key split and the Batwoman season split, both parked as "MAJOR
+only" — shipped together in 6.0.0, the MAJOR that hosted them (`KEY`,
+`SKEY` and `mergeTab()` below say how; `qa/split-ids.json` says why the
+bundle left). The section stays, empty, so the next parked item has a
+place to be written down before someone touches the layer.
 
 ---
 
@@ -146,6 +131,50 @@ VERSION and the changelog must agree or guards fail the build.
 every existing reader, which is the progress loss this project exists to
 prevent. A storage-shape change is absorbed by `SCHEMA`'s readers (each row
 normalises whatever it finds) — never by a new key. Guard 21 pins it.
+
+### `SKEY`, `payloadOf()`, `wrote` — the settings key (6.0.0)
+
+`batwatch-settings`. The settings rows of `SCHEMA` carry `s:1` and
+serialise under it; the progress rows stay under `KEY`, whose shape did
+not change (a 5.x reader still finds every mark where it was). Why a second
+key rather than the merge's adoption: the 5.3.0 adopt closed the visible
+clobber ("I set Darker and it flipped back") by copying five settings out
+of the other tab's progress blob, but as long as one serialisation held
+both sides, every tick was a settings write — a race patched, not a door
+closed. `persistNow()` now serialises each side and writes a key only when
+that side's serialisation moved since this tab last wrote it (`wrote.m`,
+`wrote.s`), so a mark write cannot reach the settings key by construction;
+smoke counts the writes per key. `restore()` seeds `wrote` from what it
+read, leaving a side blank when the disk must be written — the progress
+side after a split moved something, the settings side when the key did
+not exist yet — and the boot's `persist()` writes exactly those. The
+migration is that one write: a pre-6.0.0 blob is read for its settings
+once, the settings key is written, and the blob's stale settings leave
+with the next progress write (until then a 5.x rollback still reads them;
+RELEASING.md, "Rollback"). `adoptSettings()` is the settings key's
+`storage` handler: every settings row through its reader, last write
+wins, `wrote.s` refreshed to what was adopted, render, no write back. It
+does not persist because the disk already holds what it adopted, and a
+write-back of identical bytes fires no event anyway.
+
+### `SPLIT`, `splitPayload()` — one slug that became three (6.0.0)
+
+The mirror of `qa/split-ids.json`, held equal to it by guard 2. It runs on
+every payload before the payload is read — the progress blob in
+`restore()`, the other tab's blob in `mergeTab()`, the parsed code in
+`importCode()`, the parsed file in `doRestore()` — and never on `S`
+itself: the fan-out lands in state through the doors guard 158 already
+lists (the schema pass, the clocked loops, `applyMarks()`), not through a
+new one. A payload is a plain object, so writing into it is not a mark
+write. The rules: watched and rated copy to every season the payload does
+not already hold; a skip copies only to a season not watched; a clock only
+where the season's is older or absent; a night only where the season has
+none; then the old slug leaves every container. `importCode()` maps the
+old hash to the old slug first, so a 5.x code is not "unknown" — it is
+three found. The bundle's `ep:51` is the three seasons' 20 + 18 + 13, so
+"2,000+" and the sum of sittings (2,011; 2,010 unique — the Crisis hour is
+still on the shelf twice, on purpose, and Season 1's row says so) did not
+move; the seasons count did (69 → 71).
 
 ### `restoreLink()`
 
@@ -2090,7 +2119,7 @@ Each section extracts what it needs now. Extraction is an AST walk (acorn,
 since 4.2.4; a regex before that) over a ~156 KiB script; doing it twice
 costs nothing worth this kind of coupling.
 
-### `mergeTab()` — the merge is caught, and the settings ride along (5.3.0)
+### `mergeTab()` — the merge is caught, and the settings rode along (5.3.0; their own key since 6.0.0)
 
 Two findings from the two 5.2.4 QAs, one seat. First, the listener body
 moved into a named `mergeTab(o)` called inside a `try`: the `resetAt`
@@ -2108,10 +2137,13 @@ or tier tab B had just saved ("I set Darker and it flipped back"). The
 listener now adopts those five from the incoming payload — SCHEMA's own
 readers validate, `r.k in o` guards an ancient partial payload, last
 write wins, same semantics as the persist that was already winning. The
-REAL fix is a second storage key so settings and marks stop sharing a
+REAL fix was a second storage key so settings and marks stop sharing a
 blob; that is a saved-shape change, which README reserves for a MAJOR,
-so it is parked here on the record: **if a MAJOR ever happens, split the
-keys first.** Guard 158 pins the try and the adopt.
+and 6.0.0 was that MAJOR: the adopt left `mergeTab()` (a setting arriving
+on the progress key is a 5.x tab in the deploy window, read for its
+marks only) and lives in `adoptSettings()`, fed by the settings key's own
+event (`SKEY` above). Guard 158 pins the try, the two bodies, and that
+`adoptSettings()` leaves on `!r.s`.
 
 ### A restore link is held, not applied
 

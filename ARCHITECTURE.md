@@ -19,8 +19,8 @@ any name below with a search for `function name(`.
 | `BADGE`, `OUTWHY`, `MODENOTE` | Display vocabularies: the badge labels, the five reasons an entry has no place in a life, the one note per ordering. |
 | `idHash()` | FNV-1a to five base-36 characters — an entry's identity inside a backup code. |
 | `FILMS`, `BYID` | `PATH` flattened, one object per entry with its group index (`gi`), position (`ix`), resolved format and the lowercased search haystack; `BYID` indexes it by slug. |
-| `S` and the constants | The state bag (below), `PATHS`/`PATHCODE`/`CODEPATH` with `isPath()`/`pathName()`, `BUILD`, `BUILT`, `KEY`, `SITE`, `restoreLink()` (the `#nw=` link for a code). |
-| Storage | `store` (a probed `localStorage`), `persist()` (200 ms debounce) and `persistNow()`, `flushPersist()` on `pagehide`/hidden, the readers (`marksOf`, `ratingsOf`, `clocksOf`, `dedupeLog`, `oneOf`, `flagsOf`, `stampOf`, `validTs`), `mergeLog`, `stampMark`/`marksSince`/`stampOut`, `askDurable`/`saveFailed`/`saveWorked`, the `SCHEMA` table and `restore()`. |
+| `S` and the constants | The state bag (below), `PATHS`/`PATHCODE`/`CODEPATH` with `isPath()`/`pathName()`, `BUILD`, `BUILT`, `KEY` (progress) and `SKEY` (settings, 6.0.0), `SPLIT` (the slugs that became several — the mirror of `qa/split-ids.json`), `SITE`, `restoreLink()` (the `#nw=` link for a code). |
+| Storage | `store` (a probed `localStorage`), `persist()` (200 ms debounce) and `persistNow()` (two keys since 6.0.0: `payloadOf(side)` serialises one side of `SCHEMA`, and each key is written only when its own serialisation moved — `wrote` remembers the last), `flushPersist()` on `pagehide`/hidden, the readers (`marksOf`, `ratingsOf`, `clocksOf`, `dedupeLog`, `oneOf`, `flagsOf`, `stampOf`, `validTs`), `mergeLog`, `stampMark`/`marksSince`/`stampOut`, `askDurable`/`saveFailed`/`saveWorked`, the `SCHEMA` table (each settings row carries `s:1`), `splitPayload()` (a retired slug's marks, clocks and nights fanned out to its seasons, on any payload that is not `S`) and `restore()`. |
 | Predicates | `visible(f)` = format ∧ scope ∧ `onRoute(f)`; `onRoute` through `tierOf`; `matches(f, q)` (the search haystack); `everyBatman()` and `allLoggedWord()` (the phrase for a finished route, once); `yearSpan()` and the one-note-per-ordering readers `noteFor`/`modeNote`/`pathBlurb`, `cardBlurb` (a universe note shortened for its card). |
 | Grouping and the pool | `GROUPINGS` (the three orderings as a table, each with its comparator — `lifeCmp`, `releaseCmp` — and `eraTag`/`eraIndex` for the life rows), `grouping`/`groupingOfKey` (a key's prefix back to its row), `modeGroups()`, `buildGroups()` (memoised on `groupsKey()` = `mode|scope|format|tier`), `pool()`, `counts()`, `isDone`/`isSkip`/`isParked`/`isParkedId`, the three sweeps `dropParkedSkips`/`dropParkedWatched`/`dropParkedRated`, `pickStands`/`expirePick`/`upNext()`, `groupOf(f)`, `revealHero()` (opens the hero's group), `anyOpen`/`setAllGroups` (the fold-all state), `behind()`, `groupFilms(key)`. |
 | Row and badge helpers | `metaOf` (with `subOf`, the season label when it is not just the year), `tierOf`, `offLimits` (the safe chip's rule), `badges` (memoised), `titleYear`/`watchUrl`, `starRow`, `clampRating`/`stars`, `legendBlock`, `activityBlock`, `ratingBadge`, `watchLinks`, `attrEsc`, `esc` (HTML escape), `pct` (a rounded percentage), `toast`, `putClipboard`. |
@@ -32,20 +32,22 @@ any name below with a search for `function name(`.
 | The panel deck | `NWTABS`, `buildDeck`, `panelOf(tab)`, `snapTo`, `panelsInert`, `fillPanel`, `queueNeighbors` (idle refill of the two neighbours), `swipeTick`/`swipeRead`. |
 | Belt open / drop / close | `openBelt`, `beltDropOpen`, `closeBelt(via)`, the drop-scroll arming (`armDropScroll`/`disarmDropScroll`/`dropScrollOnce` — the one scroll the drop is allowed), `beltWatch` (the two observers), `scrubBelt`, `parkFocus`. |
 | Navigation | `goTab`, the scroll helpers (`scroller`, `scrollKeep`, `scrollPut`, `calmScroll`), `goToGroup`. |
-| The cross-tab merge | The `storage` listener, whose body is `mergeTab(o)` inside a `try` (5.3.0): adopt a newer `resetAt`, merge by clock, adopt the five settings (last write wins; the `path` row's `put` carries `S.mode`), write back. |
+| The cross-tab merge | The `storage` listener, one `try` (5.3.0) around two bodies keyed on the event: the progress key's is `mergeTab(o)` — `splitPayload(o)` first, then adopt a newer `resetAt`, merge by clock, write back — and the settings key's is `adoptSettings(o)`, every settings row through its own reader, last write wins (the `path` row's `put` carries `S.mode`), no write back (the disk already holds it). |
 | Delegated events | `#tabs` click; `#topBtn`, `#ringBtn`, `#markBtn`; `#beltpeek` click/keydown and the Escape handler; the one `#view` click handler (every `data-*` action); `#view` change (file import) and input (search, 180 ms). |
 | The iOS viewport heal | `IOSDEVICE`, `isStandalone`, `vpGap`/`vpShrunk`/`vpSync`/`vpHeal`/`vpTick`. |
-| Boot | `restore()` (the schema pass, then the three parked sweeps); `routeHash()` in a try; `buildDeck()`, `render()` and `snapTo()` in a try whose `finally` is `splashOff()` — the deck first, so the first render lays out four empty panels and not the crawler seed (5.3.1). |
+| Boot | `restore()` (both keys read, `splitPayload()` on the progress blob, the schema pass — a settings row off the settings key when it exists and off the progress blob when it does not, which is how a pre-6.0.0 save migrates on its first boot — then the three parked sweeps); `routeHash()` in a try; `buildDeck()`, `render()` and `snapTo()` in a try whose `finally` is `splashOff()` — the deck first, so the first render lays out four empty panels and not the crawler seed (5.3.1). |
 | Hash routing | `clearHash`, `clearPendingHash`, `routeHash`, the `hashchange` listener. |
 | Service worker, install, file handle | `sw.js` registration over HTTPS/localhost; `beforeinstallprompt`/`appinstalled`; `fhLoad()`. |
 
 ## `S`, the state bag
 
-Persisted (through `SCHEMA`, under `KEY`): `watched`, `skipped`, `rated`,
-`clk` (per-mark clocks in three maps), `log` (the activity list), `path`,
+Persisted through `SCHEMA`, under two keys since 6.0.0. Under `KEY`
+(`batwatch-v3`, progress): `watched`, `skipped`, `rated`, `clk` (per-mark
+clocks in three maps), `log` (the activity list), `resetAt`,
+`lastExportAt`, `bkDismissAt`. Under `SKEY` (`batwatch-settings`): `path`,
 `theme`, `scope` (written from `scopePref`), `format`, `tier`, `groupOpen`
-(only `false` entries), `progOpen` (only `true`), `insOff`, `resetAt`,
-`lastExportAt`, `bkDismissAt`.
+(only `false` entries), `progOpen` (only `true`), `insOff`. A mark write
+cannot reach a setting: the two are never in one serialisation.
 
 Transient: `tab`, `mode` (what is on screen; `path` is what was chosen),
 `scopePref` (the preference behind a view's scope), `filter`, `q`, `code`,

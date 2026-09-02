@@ -79,16 +79,16 @@ echo "--- 127: a failed write does not stop them forever"
 
 run_case "the write failure latches with no way back" \
   "has no way back from a write failure" \
-  "${P}a='  try{ store.set(KEY, JSON.stringify(payload)); saveWorked(); }'
+  "${P}a='    saveWorked();\n  }'
 assert a in s
-s=s.replace(a,'  try{ store.set(KEY, JSON.stringify(payload)); }',1)
+s=s.replace(a,'  }',1)
 a2='function saveWorked(){ if(!canSave){ canSave = true; flagSave(); } }\n';assert a2 in s
 s=s.replace(a2,'',1);${W}"
 
 run_case "the old catch-and-latch shape comes back" \
   "that is the 2.4 shape returning" \
-  "${P}a='  try{ store.set(KEY, JSON.stringify(payload)); saveWorked(); }\n  catch(e){ saveFailed(); }';assert a in s
-s=s.replace(a,'  try{ store.set(KEY, JSON.stringify(payload)); saveWorked(); }\n  catch(e){ canSave = false; flagSave(); }',1);${W}"
+  "${P}a='  catch(e){ saveFailed(); }';assert a in s
+s=s.replace(a,'  catch(e){ canSave = false; flagSave(); }',1);${W}"
 
 echo "--- 127: a restored container has to be a container"
 

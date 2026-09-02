@@ -1,7 +1,7 @@
 Night Watcher — every Batman story ever filmed, in order
 https://nightwatcher.life/
 
-An unofficial fan guide. 137 films and 69 seasons of television across 44 continuities.
+An unofficial fan guide. 137 films and 71 seasons of television across 44 continuities.
 Content ratings are the certified MPA / TV Parental Guidelines values —
 sourced or absent, never guessed. Announced titles are included and marked
 NOT OUT YET; nothing is claimed before it exists.
@@ -356,8 +356,10 @@ ORDERING 1 OF 3 — BY UNIVERSE
 42. Batwoman
 ------------
   1. Elseworlds — Arrowverse crossover (2018) · live action · series · optional · TV-14
-  2. Batwoman — Complete series (2019) · live action · series · optional · TV-14
+  2. Batwoman — Season 1 (2019) · live action · series · optional · TV-14
   3. Crisis on Infinite Earths — Arrowverse crossover (2019) · live action · series · optional · TV-14
+  4. Batwoman — Season 2 (2021) · live action · series · optional · TV-14
+  5. Batwoman — Season 3 (2021) · live action · series · optional · TV-14
 
 43. Single-Season Gotham Shows
 ------------------------------
@@ -593,9 +595,11 @@ ORDERING 2 OF 3 — BRUCE'S LIFE
 ------------------
   1. Birds of Prey — Complete series (2002) · live action · series · optional · TV-14
   2. Elseworlds — Arrowverse crossover (2018) · live action · series · optional · TV-14
-  3. Batwoman — Complete series (2019) · live action · series · optional · TV-14
+  3. Batwoman — Season 1 (2019) · live action · series · optional · TV-14
   4. Crisis on Infinite Earths — Arrowverse crossover (2019) · live action · series · optional · TV-14
-  5. Gotham Knights — Complete series (2023) · live action · series · optional · TV-14
+  5. Batwoman — Season 2 (2021) · live action · series · optional · TV-14
+  6. Batwoman — Season 3 (2021) · live action · series · optional · TV-14
+  7. Gotham Knights — Complete series (2023) · live action · series · optional · TV-14
 
 —. Outside any timeline
 -----------------------
@@ -788,7 +792,7 @@ ORDERING 3 OF 3 — RELEASE ORDER
   84. LEGO DC Batman: Family Matters (2019) · animated · core · TV-PG
   85. Young Justice — Season 3: Outsiders (2019) · animated · series · optional · TV-14
   86. Harley Quinn — Season 1 (2019) · animated · series · optional · TV-MA
-  87. Batwoman — Complete series (2019) · live action · series · optional · TV-14
+  87. Batwoman — Season 1 (2019) · live action · series · optional · TV-14
   88. Crisis on Infinite Earths — Arrowverse crossover (2019) · live action · series · optional · TV-14
 
 2020s. The 2020s
@@ -807,44 +811,46 @@ ORDERING 3 OF 3 — RELEASE ORDER
   12. Injustice (2021) · animated · core · R
   13. Young Justice — Season 4: Phantoms (2021) · animated · series · optional · TV-14
   14. Zack Snyder’s Justice League (2021) · live action · optional · R
-  15. The Long Halloween — Deluxe Edition (2022) · animated · optional · R
-  16. Green Lantern: Beware My Power (2022) · animated · optional · PG-13
-  17. Catwoman: Hunted (2022) · animated · optional · PG-13
-  18. Battle of the Super Sons (2022) · animated · optional · PG-13
-  19. The Batman (2022) · live action · essential · PG-13
-  20. Mayhem in the Multiverse — with Teen Titans Go! (2022) · animated · optional · PG
-  21. Batwheels — Season 1 (2022) · animated · series · optional · TV-Y
-  22. DC League of Super-Pets (2022) · animated · optional · PG
-  23. Harley Quinn — Season 3 (2022) · animated · series · optional · TV-MA
-  24. Legion of Super-Heroes (2023) · animated · optional · PG-13
-  25. Justice League: Warworld (2023) · animated · core · R
-  26. The Doom That Came to Gotham (2023) · animated · core · PG-13
-  27. Justice League x RWBY — Part One (2023) · animated · optional · PG
-  28. The Flash (2023) · live action · optional · PG-13
-  29. Harley Quinn — Valentine’s Day special (2023) · animated · optional · TV-MA
-  30. Harley Quinn — Season 4 (2023) · animated · series · optional · TV-MA
-  31. Merry Little Batman (2023) · animated · essential · PG
-  32. Gotham Knights — Complete series (2023) · live action · series · optional · TV-14
-  33. Joker: Folie à Deux (2024) · live action · optional · R
-  34. Crisis on Infinite Earths — Part One (2024) · animated · core · PG-13
-  35. Crisis on Infinite Earths — Part Two (2024) · animated · core · PG-13
-  36. Crisis on Infinite Earths — Part Three (2024) · animated · core · PG-13
-  37. Justice League x RWBY — Part Two (2024) · animated · optional · PG
-  38. Suicide Squad Isekai — Complete series (2024) · animated · series · optional · TV-MA
-  39. Batman: Caped Crusader — Season 1 (2024) · animated · series · essential · TV-14
-  40. The Penguin — Season 1 (2024) · live action · series · core · TV-MA
-  41. Batwheels — Season 2 (2024) · animated · series · optional · TV-Y
-  42. Kite Man: Hell Yeah! — Season 1 (2024) · animated · series · optional · TV-MA
-  43. Creature Commandos — Season 1 (2024) · animated · series · optional · TV-MA
-  44. Aztec Batman: Clash of Empires (2025) · animated · core · R
-  45. Batwheels — Season 3 (2025) · animated · series · optional · TV-Y
-  46. Batman Ninja vs. Yakuza League (2025) · animated · core · PG-13
-  47. Harley Quinn — Season 5 (2025) · animated · series · optional · TV-MA
-  48. Bat-Fam — Season 1 (2025) · animated · series · optional · TV-Y7
-  49. Batman: Caped Crusader — Season 2 (2026) · animated · series · optional · TV-14
-  50. Batman: Knightfall — Part One: Knightfall (2026) · animated · core · R
-  51. Batman: Knightfall — Part Two (2026) · animated · core · NOT OUT YET
-  52. Clayface (2026) · live action · optional · NOT OUT YET
-  53. Batman: Knightfall — Part Three (2027) · animated · core · NOT OUT YET
-  54. Dynamic Duo (2028) · animated · core · NOT OUT YET
-  55. The Batman: Part II (2028) · live action · core · NOT OUT YET
+  15. Batwoman — Season 2 (2021) · live action · series · optional · TV-14
+  16. Batwoman — Season 3 (2021) · live action · series · optional · TV-14
+  17. The Long Halloween — Deluxe Edition (2022) · animated · optional · R
+  18. Green Lantern: Beware My Power (2022) · animated · optional · PG-13
+  19. Catwoman: Hunted (2022) · animated · optional · PG-13
+  20. Battle of the Super Sons (2022) · animated · optional · PG-13
+  21. The Batman (2022) · live action · essential · PG-13
+  22. Mayhem in the Multiverse — with Teen Titans Go! (2022) · animated · optional · PG
+  23. Batwheels — Season 1 (2022) · animated · series · optional · TV-Y
+  24. DC League of Super-Pets (2022) · animated · optional · PG
+  25. Harley Quinn — Season 3 (2022) · animated · series · optional · TV-MA
+  26. Legion of Super-Heroes (2023) · animated · optional · PG-13
+  27. Justice League: Warworld (2023) · animated · core · R
+  28. The Doom That Came to Gotham (2023) · animated · core · PG-13
+  29. Justice League x RWBY — Part One (2023) · animated · optional · PG
+  30. The Flash (2023) · live action · optional · PG-13
+  31. Harley Quinn — Valentine’s Day special (2023) · animated · optional · TV-MA
+  32. Harley Quinn — Season 4 (2023) · animated · series · optional · TV-MA
+  33. Merry Little Batman (2023) · animated · essential · PG
+  34. Gotham Knights — Complete series (2023) · live action · series · optional · TV-14
+  35. Joker: Folie à Deux (2024) · live action · optional · R
+  36. Crisis on Infinite Earths — Part One (2024) · animated · core · PG-13
+  37. Crisis on Infinite Earths — Part Two (2024) · animated · core · PG-13
+  38. Crisis on Infinite Earths — Part Three (2024) · animated · core · PG-13
+  39. Justice League x RWBY — Part Two (2024) · animated · optional · PG
+  40. Suicide Squad Isekai — Complete series (2024) · animated · series · optional · TV-MA
+  41. Batman: Caped Crusader — Season 1 (2024) · animated · series · essential · TV-14
+  42. The Penguin — Season 1 (2024) · live action · series · core · TV-MA
+  43. Batwheels — Season 2 (2024) · animated · series · optional · TV-Y
+  44. Kite Man: Hell Yeah! — Season 1 (2024) · animated · series · optional · TV-MA
+  45. Creature Commandos — Season 1 (2024) · animated · series · optional · TV-MA
+  46. Aztec Batman: Clash of Empires (2025) · animated · core · R
+  47. Batwheels — Season 3 (2025) · animated · series · optional · TV-Y
+  48. Batman Ninja vs. Yakuza League (2025) · animated · core · PG-13
+  49. Harley Quinn — Season 5 (2025) · animated · series · optional · TV-MA
+  50. Bat-Fam — Season 1 (2025) · animated · series · optional · TV-Y7
+  51. Batman: Caped Crusader — Season 2 (2026) · animated · series · optional · TV-14
+  52. Batman: Knightfall — Part One: Knightfall (2026) · animated · core · R
+  53. Batman: Knightfall — Part Two (2026) · animated · core · NOT OUT YET
+  54. Clayface (2026) · live action · optional · NOT OUT YET
+  55. Batman: Knightfall — Part Three (2027) · animated · core · NOT OUT YET
+  56. Dynamic Duo (2028) · animated · core · NOT OUT YET
+  57. The Batman: Part II (2028) · live action · core · NOT OUT YET

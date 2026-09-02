@@ -4,7 +4,7 @@
 
 [![QA](https://github.com/6ummy-Dev/Night-Watcher/actions/workflows/qa.yml/badge.svg)](https://github.com/6ummy-Dev/Night-Watcher/actions/workflows/qa.yml)
 
-A single-file web app mapping every Batman story ever filmed — animated and live action — **137 films and 69 seasons of television across 44 continuities** — into watch orders, no spoilers, with progress tracking and a where-to-watch link for every entry.
+A single-file web app mapping every Batman story ever filmed — animated and live action — **137 films and 71 seasons of television across 44 continuities** — into watch orders, no spoilers, with progress tracking and a where-to-watch link for every entry.
 
 **Live:** https://nightwatcher.life/
 
@@ -22,7 +22,7 @@ record, not a freeze, and everything since is a decision with its own entry.
 
 ## What it does
 
-- **Three switches, one catalogue.** **Animated**, **Live action** or **Animated + live** decides which kind of Batman; **Movies** or **Movies + Series** decides how much of it; **Essentials**, **Core route** or **+ Optional** decides how deep — and every count on the page follows, so a core-route watch reaches 100% with nothing skipped. 137 films and 69 seasons — 2,000+ episodes, from *Batman* (1943) to *Dynamic Duo* (2028) — weave into the same orders either way. Tiers are judged inside a format, so nothing has to be ranked against a different medium.
+- **Three switches, one catalogue.** **Animated**, **Live action** or **Animated + live** decides which kind of Batman; **Movies** or **Movies + Series** decides how much of it; **Essentials**, **Core route** or **+ Optional** decides how deep — and every count on the page follows, so a core-route watch reaches 100% with nothing skipped. 137 films and 71 seasons — 2,000+ episodes, from *Batman* (1943) to *Dynamic Duo* (2028) — weave into the same orders either way. Tiers are judged inside a format, so nothing has to be ranked against a different medium.
 - **Where to watch, without picking a side.** Every entry links to a search rather than a service, because availability rotates by country and by month and no stored answer survives that.
 - **One path, chosen once.** Pick by universe (spoiler-safe), the composite chronology of Bruce's life, or straight release order from 1943 to 2028 — and the whole app follows it. No switcher to re-answer on every visit; the header carries the path name and Home leads with its completion ring. Change it whenever you like: switching re-sorts, it never clears a tick.
 - **Shared links are views, not takeovers.** Following someone's `#life` link shows you their ordering and offers to adopt it, rather than silently rewriting yours.
@@ -34,7 +34,7 @@ record, not a freeze, and everything since is a decision with its own entry.
 - **Progress.** One chart — the chosen ordering's, and it follows the belt: universes, eras of Bruce's life, or decades of release. A skyline of bars, each as wide as its group's share of the catalogue, filling bottom-up as you watch. Tap any bar to jump straight there; the fold lists below carry the same jumps for all three orderings.
 - **Backup & transfer.** A compact code, a link that restores everything when opened on another device, and a full JSON export/import — all client-side, built on frozen IDs so backups stay valid forever. The code is versioned and read tolerantly: it carries your chosen path, and a code written by a newer build still restores everything an older one understands.
 - **Shareable views.** Link straight to a view: [`#life`](https://nightwatcher.life/#life) for the chronology of Bruce's life, `#release`, `#universes` (or `#path`), `#next`, `#progress` — combine with scope like `#life-series` or `#universes-movies`. A restore link is `#nw=` followed by a backup code. A view link shows you the view once and then leaves the address bar; it never rewrites your own choices.
-- **Progress that sticks.** Watched, skipped and star ratings saved in your browser (localStorage). No accounts, no server; your watch data never leaves your device — and if the browser refuses to save (Private Browsing, a full quota, some in-app webviews) the app says so in the header instead of losing your evening silently.
+- **Progress that sticks.** Watched, skipped and star ratings saved in your browser (localStorage — progress under one key, settings under another since 6.0.0, so a tick can never touch a setting). No accounts, no server; your watch data never leaves your device — and if the browser refuses to save (Private Browsing, a full quota, some in-app webviews) the app says so in the header instead of losing your evening silently.
 - **Two uniforms.** Dark Deco is the blue-and-grey suit: navy surfaces, cape-blue steel, a yellow utility belt for the path switcher. Darker is the black suit — true black for an actually dark room, including the system status bar — with every surface and grey gone neutral and a silver bone. Type and accents are the same in both.
 - **Anonymous visit counts, server-side only.** Cloudflare counts requests as the host answering them — no script on the page, no cookies, no fingerprinting, nothing added to what you download — only what any host can see by answering a request at all.
 
@@ -45,7 +45,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code** — *guarded.* Not one line vendored, and **nothing fetched at runtime at all** — `qa/guards.js` fails on any external script rather than allowing one by name, and the app runs with the network off. Two `<script>` tags, no injected third, and the Content-Security-Policy on the wire is the one in the file — ten directives, one `sha256`. Open `docs/index.html` from disk, or serve it from any other host, and what runs is exactly what you can read.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 250 KB raw and 80 KB gzipped; it is currently 243 KB / 68 KB. The subset webfonts sit outside that budget and are held by their own manifest (`qa/font-subset.json`). Every raise of the ceiling is an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 250 KB raw and 80 KB gzipped; it is currently 246 KB / 68 KB. The subset webfonts sit outside that budget and are held by their own manifest (`qa/font-subset.json`). Every raise of the ceiling is an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -132,6 +132,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `qa/llms-txt.json` | `llms.txt`'s hash and the release that last changed it, blessed by guard 67, so the sitemap's second `<lastmod>` cannot go stale |
 | `qa/negative/` | The negative suites: each fixture breaks a guard on purpose and asserts it fails (a release that adds or changes guard clauses brings its fixtures in a suite of its own or in the suite that already holds that section — `CONTRIBUTING.md` has the naming rule; `negtest.sh` is the original) |
 | `qa/renamed-ids.json` | The one recorded slug rename, and the closed window that allowed it |
+| `qa/split-ids.json` | The one recorded split — a slug that became several, whose saved marks fan out to them (6.0.0); mirrored by `SPLIT` in the app |
 | `qa/retired-ids.json` | Slugs that left the catalogue, so a reused id cannot mean two things |
 | `qa/font-subset.json` | Bytes and hash of every shipped face, blessed by the subset script |
 | `qa/subset-fonts.py` | Rebuilds the subset faces to a fixed set of ranges (not the catalogue's codepoints — its docstring says why) and blesses `qa/font-subset.json` |
@@ -158,21 +159,21 @@ node qa/guards.js          # verify; exits non-zero on failure
 node qa/guards.js --bless  # re-record what the guards hold the tree to (see below)
 ```
 
-`--bless` writes more than the frozen-ID snapshot. It rewrites, from the data: `qa/frozen-ids.json`; the CSP `sha256` in `docs/index.html`'s `<meta>` and the ledger in `qa/script-bytes.json`; the crawlable seed inside `#view` and the JSON-LD `ItemList` and `FAQPage` blocks, also in `docs/index.html`; `docs/orders.txt`; the hash in `qa/share-card.json`; the measured contrast table in `qa/contrast.md`; and, when `llms.txt` changed, its record in `qa/llms-txt.json` and the sitemap's `<lastmod>` for it. Expect `docs/index.html` in the diff after a bless, and read it. It refuses two things by design — a frozen ID leaving without `qa/retired-ids.json`, a rename without `qa/renamed-ids.json` — and it re-runs the whole check pass over what it wrote, so a green bless is a green tree.
+`--bless` writes more than the frozen-ID snapshot. It rewrites, from the data: `qa/frozen-ids.json`; the CSP `sha256` in `docs/index.html`'s `<meta>` and the ledger in `qa/script-bytes.json`; the crawlable seed inside `#view` and the JSON-LD `ItemList` and `FAQPage` blocks, also in `docs/index.html`; `docs/orders.txt`; the hash in `qa/share-card.json`; the measured contrast table in `qa/contrast.md`; and, when `llms.txt` changed, its record in `qa/llms-txt.json` and the sitemap's `<lastmod>` for it. Expect `docs/index.html` in the diff after a bless, and read it. It refuses a frozen ID leaving without a ledger entry — `qa/retired-ids.json`, `qa/renamed-ids.json` or `qa/split-ids.json` — and it re-runs the whole check pass over what it wrote, so a green bless is a green tree.
 
 One dev dependency for the guards — Acorn, which parses the page's script so every function under test is **extracted from `docs/index.html` and evaluated**, never reimplemented here (a copy drifts from the app and quietly stops testing it, which is the exact failure this file exists to prevent). Without `node_modules` the guards still run on a weaker regex extractor and say so; in CI that is a failure, not a warning. In CI any warning at all is a failure.
 
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 79 negative suites, 1337
+trusted. That evidence lives in `qa/negative/` — 80 negative suites, 1371
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
 every fixture onto the section it breaks and fails the build on any section
 without one, and the counts in this paragraph are themselves guarded.
 
-The second half of `npm test` is `qa/smoke.js`, a headless render test that boots the real page in jsdom and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, the cross-tab merge, and the path end to end — 488 checks. jsdom is a declared dev dependency; a local clone without it skips the suite and says so, CI treats the skip as a failure.
+The second half of `npm test` is `qa/smoke.js`, a headless render test that boots the real page in jsdom and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, the cross-tab merge, and the path end to end — 511 checks. jsdom is a declared dev dependency; a local clone without it skips the suite and says so, CI treats the skip as a failure.
 
 ## Releasing
 
@@ -215,7 +216,7 @@ A universe is `{n, name, fmt, note, bag, films}`: `n` the frozen two-digit code 
 
 `o:1` marks an entry as off the Core route rather than as a tier — nearly every TV season carries it (*The Penguin* is the one that resolves to Core, deliberately). Always read tiers through `tierOf()`, never by testing `o` directly.
 
-**Important:** Always give every entry a unique, permanent `i:` slug. **Never change an existing `i:`** — it is the frozen key that preserves user progress across updates. Adding new entries is always safe; renaming or deleting an `i:` will break saved progress for anyone who already marked that title. `qa/guards.js` enforces this against `qa/frozen-ids.json`; run it before committing.
+**Important:** Always give every entry a unique, permanent `i:` slug. **Never change an existing `i:`** — it is the frozen key that preserves user progress across updates. Adding new entries is always safe; renaming or deleting an `i:` will break saved progress for anyone who already marked that title. `qa/guards.js` enforces this against `qa/frozen-ids.json`; run it before committing. A slug leaves the snapshot only through one of three ledgers, each with a written reason: `qa/retired-ids.json` (gone, its meaning with it), `qa/renamed-ids.json` (the one pre-launch rename), or `qa/split-ids.json` (6.0.0: one row that became several — the old key keeps its meaning, a tick on it fans out to the new rows at every door, and its hash is still read). A split re-means a saved tick, which is README's MAJOR line, so it ships only in a MAJOR.
 
 A whole new continuity is simply one more object in the same `PATH` array.
 

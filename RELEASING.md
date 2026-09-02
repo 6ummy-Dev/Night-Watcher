@@ -30,10 +30,13 @@ produced it: `NOTES-history.md`.)
    `qa/requirements-tooling.txt`. If the catalogue did not move, skip this.
 3. **Bless.** `npm run bless`. Since 3.7.2 a bless run re-checks the tree it
    wrote and exits red if anything is still wrong, so a green bless IS a
-   green tree — but bless still refuses two things by design: a frozen ID
-   leaving the catalogue without a `qa/retired-ids.json` entry, and a rename
-   without `qa/renamed-ids.json`. If bless refuses, record the retirement;
-   do not fight the refusal, it is the product's oldest promise. One bless
+   green tree — but bless still refuses one thing by design: a frozen ID
+   leaving the catalogue without a ledger entry — `qa/retired-ids.json`
+   (gone), `qa/renamed-ids.json` (renamed), or `qa/split-ids.json` (6.0.0:
+   one row become several, the app's `SPLIT` table held equal to it). If
+   bless refuses, record the retirement; do not fight the refusal, it is the
+   product's oldest promise. A split or a retirement re-means saved
+   progress, so it ships only in a MAJOR (README, "Releasing"). One bless
    covers everything that blesses (the CSP hash, the script-bytes ledger,
    the share card's hash); a second is only ever needed if something was
    edited after the first.
@@ -198,6 +201,16 @@ The recovery story `sw.js` promises, written down:
   and read the wire again.
 - A rollback is a release: it gets a CHANGELOG line saying what was rolled
   back and why, dated the day it happened.
+- **Rolling back across a MAJOR loses what the MAJOR re-meant.** A reader
+  who booted 6.0.0 once has their settings under `batwatch-settings` and
+  the Batwoman bundle's marks fanned out to three season slugs; a 5.x
+  tree reads neither — it boots them on default settings (the progress
+  key still carries the old settings until 6.0.0's first progress write,
+  after which it does not) with the three seasons ticked under slugs it
+  cannot render and the bundle unticked. Progress is not lost — the bytes
+  stay under the same key, and 6.0.0 reads them back — but a rollback
+  across 6.0.0 is a visible regression for anyone who ticked Batwoman, and
+  the CHANGELOG line says so.
 
 ## Recovering a deleted or mis-bound Worker
 

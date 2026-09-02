@@ -29,7 +29,7 @@ run_case "the tier starts narrow" \
 
 run_case "persistNow() forgets the tier" \
   "does not write the tier" \
-  "${P}a='  {k:\"tier\",         read:oneOf([\"ess\", \"core\", \"all\"], \"all\")},\n';assert a in s;s=s.replace(a,'');${W}" \
+  "${P}a='  {k:\"tier\",      s:1, read:oneOf([\"ess\", \"core\", \"all\"], \"all\")},\n';assert a in s;s=s.replace(a,'');${W}" \
   guards "" 152
 
 run_case "restore() defaults an old save to the Core route" \

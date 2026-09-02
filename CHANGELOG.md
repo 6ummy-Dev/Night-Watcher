@@ -14,6 +14,100 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.0.0] — 2026-09-02
+
+**Two keys, three seasons.** The first MAJOR since 5.0.0, and it crosses
+both of README's lines at once, on purpose: the saved state changes
+shape — settings leave the progress blob for a key of their own — and a
+saved tick changes meaning — the one on the 51-episode Batwoman bundle
+now means three season rows. Those were the two items NOTES.md's "Open"
+section had carried since 5.3.1 as "MAJOR only", the last two things
+pending anywhere in the tree, and the owner's ask was that nothing stay
+pending. Nothing does: "Open" is empty. Neither change loses a reader
+anything. Progress stays under the key it has always had, in the shape it
+has always had; the settings are read off the old blob once and written
+to their own key on the first boot; and a tick, skip, rating, clock or
+night saved against the bundle lands on all three seasons at every door a
+mark can arrive through. The seasons count moves with it: 69 → 71, in the
+head, the FAQ, the share card, README and `llms.txt` — every copy of the
+number is read off the data or guarded against it.
+
+### Changed
+
+- **Settings have a key of their own: `batwatch-settings`.** The path,
+  theme, scope, format, tier, the fold states and the install dismissal
+  serialise under it; `batwatch-v3` keeps the marks, the clocks, the log
+  and the three stamps, and its shape does not change — a 5.x reader
+  still finds every mark where it was. `persistNow()` serialises each
+  side of `SCHEMA` (the settings rows carry `s:1`) and writes a key only
+  when that side moved since this tab last wrote it, so a tick reaches
+  the progress key and never the settings key, and a theme change the
+  reverse — smoke counts the writes per key. This is the door 5.3.0 could
+  only patch: the merge adopted five settings out of the other tab's
+  progress blob so a tick would not revert the theme the other tab had
+  just saved, but as long as one serialisation held both, every tick was
+  a settings write and the fix was a race won. The adoption moves to the
+  settings key's own `storage` event (`adoptSettings()`: every settings
+  row through its reader, last write wins, no write back), the merge
+  adopts nothing (a setting arriving on the progress key is a 5.x tab in
+  the deploy window, read for its marks only), and guard 158 pins the two
+  bodies, that `adoptSettings()` leaves on `!r.s`, and that no mark row
+  sits on the settings side. Migration is one write: a pre-6.0.0 save is
+  read for its settings once, the settings key is written on that boot,
+  and the stale settings inside the progress blob leave with the next
+  progress write. A settings key that does not parse is a failed read
+  like a progress key that does not parse (guard 127). Guard 21 freezes
+  the new key the way it froze the old one and pins the per-side write.
+- **Batwoman is three seasons, and Crisis is filed where it falls.**
+  `batwoman-complete-series-2019` (51 episodes, one row) retires into
+  `batwoman-season-1-2019` (20), `batwoman-season-2-2021` (18) and
+  `batwoman-season-3-2021` (13), with *Crisis on Infinite Earths* between
+  the first and the second — inside Season 1's ninth hour, which is where
+  it happens, instead of after the whole series. The overlap 5.3.1
+  accepted is still accepted, and still said in the row: Season 1's ninth
+  hour is one of Crisis's five, so that hour is on the shelf twice, on
+  purpose (2,011 episodes the sum of sittings, 2,010 unique; the owner's
+  call over a Season 1 that says 19). The retirement goes through a third
+  ledger, `qa/split-ids.json`, beside the retired and renamed ones — the
+  one exit that keeps the old key's meaning. The app carries the same
+  table as `SPLIT`, held equal to the ledger by guard 2, and
+  `splitPayload()` runs on every payload before it is read: the progress
+  blob at boot, another tab's blob in the merge, a pasted code (the
+  bundle's hash is still mapped, so a 5.x code is three found, not one
+  unknown), a JSON file. Watched and rated copy to every season; a skip
+  only to a season not already watched; a clock only where the season's
+  is older; a night only where the season has none; then the bundle
+  leaves every container, and the first boot writes the split to disk.
+  It never runs on `S`: the fan-out enters state through the doors guard
+  158 already lists. Guard 2 requires all four doors to call it; guard 3
+  counts the bundle's hash in the collision space, since it is still
+  read. Era 11 re-positioned (Gotham Knights 5 → 7); guard 92: TV-14
+  10 → 12, no value moved.
+- **Documents.** README: the storage line, the three ledgers under the
+  frozen-slug rule, `qa/split-ids.json` in the file table, 71 seasons,
+  the weight. RELEASING: the bless refusal names all three ledgers, and
+  the rollback runbook says what a rollback across a MAJOR costs (settings
+  on defaults, Batwoman's three season ticks under slugs a 5.x tree
+  cannot render — progress kept, not shown). DATA-MODEL: §1 is two
+  payloads, the migration, the merge without settings and the settings
+  event beside it, the split at each of the three transports. NOTES:
+  "Open" is empty and says why; `SKEY`/`payloadOf()`/`wrote` and
+  `SPLIT`/`splitPayload()` have entries; `mergeTab()`'s entry says where
+  the adoption went. ARCHITECTURE names the three new functions and
+  splits the persisted state by key.
+
+### Records
+
+Harness: guard sections 159 → 159 (clauses on §2, §3, §21, §127, §158;
+§92's count), smoke 488 → 511, negative suites 79 → 80 (negtest710, 33
+fixtures, every new clause and every new smoke check shown to fail),
+fixtures 1,337 → 1,371, browser checks 117 → 117, the wall
+≈61 CPU-minutes under `time` (32 min on two shared cores; eight older
+suites touched where this cut moved their anchors — 172, 195, 350, 600,
+610, 670, 690, and the three smoke reboots the migration write was
+masking). Weight:
+246 KB raw / 68 KB gzip against 250/80.
+
 ## [5.4.0] — 2026-09-02
 
 **The day has a name.** Batman Day is 19 September, and the page says

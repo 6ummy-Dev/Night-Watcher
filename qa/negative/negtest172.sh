@@ -41,7 +41,7 @@ run_case "an era loses a position" \
 
 run_case "the new terminal era is emptied into the old one" \
   "positions run 1..n" \
-  "${P}a=',e:11,lo:5';assert a in s;s=s.replace(a,',e:11,lo:6');${W}"
+  "${P}a=',e:11,lo:7';assert a in s;s=s.replace(a,',e:11,lo:8');${W}"
 
 echo "--- the era scheme itself"
 # NOT TESTED, deliberately. "An era may say who is in it, never what happens to

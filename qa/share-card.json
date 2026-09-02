@@ -1,7 +1,7 @@
 {
  "films": 137,
- "seasons": 69,
+ "seasons": 71,
  "continuities": 44,
- "sha256": "6a2e2f7d9ed3bdf059952c63ed97a012eba4cbcf2a107566b6ccab20d674bd13",
+ "sha256": "f92d1fdc4ba136b17e05fe170921a81133517f228ef8fa727ac0bd81b9a3dc74",
  "generator": "qa/make-share-card.mjs"
 }

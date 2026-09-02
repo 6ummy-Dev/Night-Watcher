@@ -1,7 +1,7 @@
 # Night Watcher — the data model and the persistence spec
 
 Three formats leave the app, and each is read back with tolerance rules of
-its own. This is the specification; the reasons are in `NOTES.md` (under
+its own — and since 6.0.0 the live state is two keys, not one. This is the specification; the reasons are in `NOTES.md` (under
 `SCHEMA`, `store`, `KEY`, `importCode()`, "A code carries your progress,
 not the catalogue" and `mergeTab()`) and the guards that hold each rule are
 named.
@@ -11,18 +11,44 @@ named.
 Every entry has a slug `i` (lowercase, `[a-z0-9-]`), frozen forever: it is
 the key progress is saved under and what every backup code hashes.
 `qa/frozen-ids.json` is the snapshot; a slug may leave only through
-`qa/retired-ids.json` and be renamed only through `qa/renamed-ids.json`,
-each with a written reason (guard 2). Titles, years and every other field
+`qa/retired-ids.json`, be renamed only through `qa/renamed-ids.json`, or be
+**split** only through `qa/split-ids.json` (6.0.0), each with a written
+reason (guard 2). A split is the one exit that keeps the old key's
+meaning: the app carries the same table as `SPLIT`, held equal to the
+ledger, and `splitPayload()` runs on every payload before it is read — the
+progress blob at boot, another tab's blob, a pasted code's result, a JSON
+file — so a tick, skip, rating, clock or night saved against the old slug
+lands on each of its new slugs (a skip never onto a season already
+watched; a clock only where the new slug's is older; a night only where
+the new slug has none) and the old slug leaves the payload. The old hash
+is still read by `importCode()` (guard 3 counts it in the space). Re-meaning
+a saved tick is README's MAJOR line, which is why a split ships only in a
+MAJOR. The one split: `batwoman-complete-series-2019` → three season rows. Titles, years and every other field
 are display text. `harley-quinn-season-5-2024` is the standing example: the
 season slid to 2025 after the slug shipped, the year moved, the slug did not
 (guard 84).
 
-## 1. The live payload — `localStorage["batwatch-v3"]`
+## 1. The live payloads — `localStorage["batwatch-v3"]` and `["batwatch-settings"]`
 
-One JSON object, written whole by `persistNow()` 200 ms after the last
-change (and flushed on `pagehide`/hidden), read once at boot by
-`restore()`. The key never changes; the readers absorb every shape (guard
-21, and `NOTES.md` under `KEY`).
+Two JSON objects since 6.0.0, one per side of `SCHEMA`: **progress** under
+`batwatch-v3` (the rows below down to `log`, plus `resetAt`, `lastExportAt`
+and `bkDismissAt`) and **settings** under `batwatch-settings` (every row
+marked `s:1` — `path`, `theme`, `scope`, `format`, `tier`, `groupOpen`,
+`progOpen`, `insOff`). `persistNow()` runs 200 ms after the last change
+(and on `pagehide`/hidden), serialises each side, and writes a key only when
+its own serialisation moved since this tab last wrote it (`wrote`) — so a
+tick reaches the progress key and never the settings key, and a theme
+change the reverse. The progress key never changes; the readers absorb
+every shape (guard 21, and `NOTES.md` under `KEY`).
+
+**Migration, once.** A save written before 6.0.0 has both sides under
+`batwatch-v3`. `restore()` reads both keys; a settings row reads off the
+settings key when it exists and off the progress blob when it does not,
+and when the settings key was absent the boot writes it (one write of the
+settings side). The stale settings inside the progress blob are ignored
+from then on and leave it with the next progress write. A settings key that
+does not parse is a failed read like a progress key that does not parse:
+`readFailed` latches, nothing writes (guard 127).
 
 | Key | Written as | Read back as |
 | --- | --- | --- |
@@ -63,14 +89,22 @@ erase in memory only, where the next tick would persist a half-merged blob.
 3. `applyMarks()` adds whatever remains that neither side has clocked.
 4. Watched beats skipped unless the skip's clock is newer.
 5. The log is merged for watched entries.
-6. The five settings — `path`, `theme`, `scope`, `format`, `tier` — are
-   adopted from the incoming payload through SCHEMA's own readers, last
-   write wins (5.3.0): a tick in one tab no longer reverts the theme or
-   order the other tab just saved. The `path` row's `put` sets `S.mode`
-   with it (5.3.1), so an adopted path never shows the shared-view banner.
-   Settings and marks still share one key; the split is the standing MAJOR
-   item in `NOTES.md` ("Open").
-7. If anything moved, render and **write the merged state back**.
+6. If anything moved, render and **write the merged state back** (the
+   progress key only — a merge cannot touch a setting).
+
+Before step 1, `splitPayload(o)` fans a retired slug's marks out to its
+seasons, so a 5.x tab's blob in the deploy window merges by the new slugs.
+A setting arriving on the progress key — the same 5.x tab — is read for
+its marks only.
+
+**The settings key's event** is the other body of the same listener,
+`adoptSettings(o)`: every settings row through its own reader, last write
+wins (the `path` row's `put` sets `S.mode` with it, 5.3.1, so an adopted
+path never shows the shared-view banner), render if anything moved, no
+write back — the disk already holds what was adopted. This is what 5.3.0
+patched inside the merge when the two sides shared one key ("I set Darker
+and it flipped back"); since 6.0.0 the clobber cannot happen, because a
+tick has no way to reach a setting.
 
 Payloads from builds without clocks merge additively and can never
 resurrect a clocked removal. Smoke drives all of this through real
@@ -88,7 +122,8 @@ NW3  W <5 chars per watched slug>  S <5 per skipped>  R <one base-36 digit per W
 
 - Each slug is `idHash(slug)`: FNV-1a over the slug, truncated to five
   base-36 characters (36⁵ ≈ 60 million; guard 3 fails on any collision in
-  the catalogue and prints the birthday risk).
+  the catalogue — split slugs included, since their hashes are still read —
+  and prints the birthday risk).
 - `R` runs parallel to `W`, one digit per watched entry (`0` = unrated),
   trailing zeros trimmed. `O` carries ratings on entries not marked watched.
 - `P` is the path code (`c`/`l`/`r`) and is optional.
@@ -99,6 +134,9 @@ period or bracket is trimmed (a chat client's), unknown hashes are counted
 (`unknown`) rather than refused (a code from a newer catalogue), and a body
 whose segment lengths do not divide is flagged `cut`. `NW1` and `NW2` codes
 (the 1.x layouts, ratings as six-character records) still import (guard 8).
+A code written before 6.0.0 that carries the Batwoman bundle's hash imports
+as the three seasons (`splitPayload()` on the parsed result, before it is
+counted as found).
 Restoring a code merges through `applyMarks()` with fresh clocks: nothing
 already ticked is lost, and a skip never lands on a watched entry.
 
@@ -116,7 +154,8 @@ messenger carries.
 Read by `doRestore()` when a paste starts with `{`: each of the three
 containers must be a plain object (at least one present), own truthy keys
 count, ratings are clamped, and unknown slugs are counted and reported —
-not refused, and not kept in state: `applyMarks()` admits only catalogue
+not refused, and not kept in state (a split slug is not unknown: it is
+fanned out to its seasons first, log entries included): `applyMarks()` admits only catalogue
 ids, so the file itself is what preserves them, and restoring it again on a
 newer build recovers them (the same rule as an unknown hash in a backup
 code). The one exception is the cross-tab merge's clocked loops (§1), which

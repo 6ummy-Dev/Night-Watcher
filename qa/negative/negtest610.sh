@@ -88,7 +88,7 @@ run_case "the head loses manifest" \
 
 run_case "the head loses description" \
   "required tag(s): the description meta" \
-  "${P}a='<meta name=\"description\" content=\"Every Batman movie and series in order — 137 films and 69 seasons of TV across 44 continuities — no spoilers. By universe, by the arc of one life, or by release.\">';assert a in s;s=s.replace(a,'',1);${W}" \
+  "${P}a='<meta name=\"description\" content=\"Every Batman movie and series in order — 137 films and 71 seasons of TV across 44 continuities — no spoilers. By universe, by the arc of one life, or by release.\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:type" \
@@ -103,7 +103,7 @@ run_case "the head loses og:title" \
 
 run_case "the head loses og:description" \
   "required tag(s): og:description" \
-  "${P}a='<meta property=\"og:description\" content=\"Every Batman movie and series in order — 137 films and 69 seasons of TV across 44 continuities — no spoilers. Choose a path once and track what you have seen.\">';assert a in s;s=s.replace(a,'',1);${W}" \
+  "${P}a='<meta property=\"og:description\" content=\"Every Batman movie and series in order — 137 films and 71 seasons of TV across 44 continuities — no spoilers. Choose a path once and track what you have seen.\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses og:url" \
@@ -153,7 +153,7 @@ run_case "the head loses og:image:height" \
 
 run_case "the head loses og:image:alt" \
   "required tag(s): og:image:alt" \
-  "${P}a='<meta property=\"og:image:alt\" content=\"Night Watcher — 137 films, 69 seasons, 44 continuities. Batman watch orders. No spoilers.\">';assert a in s;s=s.replace(a,'',1);${W}" \
+  "${P}a='<meta property=\"og:image:alt\" content=\"Night Watcher — 137 films, 71 seasons, 44 continuities. Batman watch orders. No spoilers.\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses icon favicon.ico" \
@@ -582,6 +582,11 @@ run_case "the README drops its row for CHANGELOG-archive.md" \
 run_case "the README drops its row for qa/contrast.md" \
   "README's file table does not list: qa/contrast.md" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/contrast.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for qa/split-ids.json" \
+  "README's file table does not list: qa/split-ids.json" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/split-ids.json')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
   guards "" 45
 
 run_case "the README drops its row for qa/llms-txt.json" \

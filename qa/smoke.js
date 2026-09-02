@@ -219,8 +219,12 @@ win.addEventListener("load", function(){
           /Bruce/.test(doc.getElementById("hsub").textContent),
           doc.getElementById("hsub").textContent);
     win.flushPersist();
+    /* 6.0.0: the path is a setting, and settings live under their own key. */
     check("the choice was written to storage",
-          /"path":"life"/.test(win.localStorage.getItem("batwatch-v3") || ""));
+          /"path":"life"/.test(win.localStorage.getItem("batwatch-settings") || ""));
+    check("the progress key carries no setting",
+          !/"path":|"theme":|"format":|"tier":|"scope":/.test(win.localStorage.getItem("batwatch-v3") || ""),
+          (win.localStorage.getItem("batwatch-v3") || "").slice(0, 80));
 
     /* --- The Path stops asking --- */
     S.tab = "watch"; win.render();
@@ -236,7 +240,7 @@ win.addEventListener("load", function(){
     check("viewing does not change the stored path", S.path === "life");
     win.flushPersist();
     check("stored payload still says life after viewing",
-          /"path":"life"/.test(win.localStorage.getItem("batwatch-v3") || ""));
+          /"path":"life"/.test(win.localStorage.getItem("batwatch-settings") || ""));
     doc.querySelector('.viewing button[data-path="release"]').click();
     check("adopting the view sets the path", S.path === "release" && S.mode === "release");
     S.tab = "watch"; S.path = S.mode = "life"; win.persist(); win.flushPersist(); win.render();
@@ -248,7 +252,7 @@ win.addEventListener("load", function(){
       var keep = {path:S.path, mode:S.mode, watched:S.watched};
       S.path = ""; S.mode = "continuity"; S.watched = {};
       S.watched[FILMS[0].id] = 1; win.persist(); win.flushPersist();
-      var raw = win.localStorage.getItem("batwatch-v3") || "";
+      var raw = win.localStorage.getItem("batwatch-settings") || "";
       /* 4.9.0: the payload no longer carries the legacy `mode` mirror. */
       check("persisting with no path chosen writes no ordering",
             /"path":""/.test(raw) && !/"mode":/.test(raw),
@@ -262,17 +266,30 @@ win.addEventListener("load", function(){
        and a flush with nothing pending stays silent. The suite's own
        persist-then-read sites all flush through the same door the app's
        pagehide handler uses, so this is not a test-only path. */
+    /* 6.0.0: two keys, and a flush writes only the one whose side changed —
+       a tick burst reaches the progress key once and the settings key never;
+       a theme change reaches the settings key once and the progress key
+       never. The clobber the 5.3.0 merge patched over cannot happen by
+       construction: a mark write has no way to touch a setting. */
     (function(){
-      var writes = 0, realSet = win.store.set;
-      win.store.set = function(k, v){ writes++; return realSet(k, v); };
+      var writes = [], realSet = win.store.set;
+      win.store.set = function(k, v){ writes.push(k); return realSet(k, v); };
+      S.watched[FILMS[3].id] = 1;
       win.persist(); win.persist(); win.persist();
-      check("a tick burst does not write synchronously", writes === 0,
-            writes + " writes before any flush");
+      check("a tick burst does not write synchronously", writes.length === 0,
+            writes.length + " writes before any flush");
       win.flushPersist();
-      check("the flush writes exactly once", writes === 1, writes + " writes");
+      check("the flush writes exactly once", writes.length === 1, writes.length + " writes");
+      check("and a tick reaches the progress key only", writes.join(",") === "batwatch-v3", writes.join(","));
       win.flushPersist();
-      check("a flush with nothing pending writes nothing", writes === 1,
-            writes + " writes after a second flush");
+      check("a flush with nothing pending writes nothing", writes.length === 1,
+            writes.length + " writes after a second flush");
+      writes.length = 0;
+      S.theme = "darker"; win.persist(); win.flushPersist();
+      check("a settings change reaches the settings key only", writes.join(",") === "batwatch-settings", writes.join(","));
+      S.theme = "dark"; delete S.watched[FILMS[3].id]; win.persist(); win.flushPersist();
+      check("a change on both sides writes both keys, each once",
+            writes.slice(1).sort().join(",") === "batwatch-settings,batwatch-v3", writes.join(","));
       win.store.set = realSet;
     })();
 
@@ -600,7 +617,7 @@ win.addEventListener("load", function(){
           doc.documentElement.getAttribute("data-theme") === "darker");
     check("darker repaints the status bar", bar() === "#000000", bar());
     win.flushPersist();
-    check("darker is persisted", /"theme":"darker"/.test(win.localStorage.getItem("batwatch-v3") || ""));
+    check("darker is persisted", /"theme":"darker"/.test(win.localStorage.getItem("batwatch-settings") || ""));
     doc.querySelector('#view .panel:not([inert]) [data-theme="dark"]').click();
     check("switching back restores the bar", bar() === "#0C111C", bar());
     S.tab = "stats"; win.render();
@@ -1243,7 +1260,7 @@ win.addEventListener("load", function(){
 
     /* Persistence: the whole reason the state stopped being session-only. */
     win.flushPersist();
-    var savedRaw = win.localStorage.getItem("batwatch-v3") || "";
+    var savedRaw = win.localStorage.getItem("batwatch-settings") || "";
     check("collapse state reached storage",
           !!savedRaw && JSON.parse(savedRaw).groupOpen &&
           Object.keys(JSON.parse(savedRaw).groupOpen).length > 0,
@@ -1425,7 +1442,7 @@ win.addEventListener("load", function(){
           "scopePref=" + S.scopePref);
     win.persist(); win.flushPersist();
     check("and persisting after it stores the preference, not the view",
-          JSON.parse(win.localStorage.getItem("batwatch-v3")).scope === "movies");
+          JSON.parse(win.localStorage.getItem("batwatch-settings")).scope === "movies");
     S.scope = "movies";
     /* 4.9.0: a view hash is consumed once it has routed, the way #nw= is —
        left in the address bar, a reload re-applied it over whatever the
@@ -1474,7 +1491,7 @@ win.addEventListener("load", function(){
             doc.getElementById("hsub").textContent.indexOf("of " + poolLive) > 0,
             doc.getElementById("hsub").textContent);
       win.flushPersist();
-      check("the tier is persisted", JSON.parse(win.localStorage.getItem("batwatch-v3")).tier === "core");
+      check("the tier is persisted", JSON.parse(win.localStorage.getItem("batwatch-settings")).tier === "core");
       check("the tap toasts what the count did",
             /Core route only/.test(doc.getElementById("toast").textContent),
             doc.getElementById("toast").textContent);
@@ -1628,7 +1645,7 @@ win.addEventListener("load", function(){
             Object.keys(picks).every(function(id){ return bagGroup.films.some(function(f){ return f.id === id; }) && !win.isParked(win.BYID[id]); }),
             Object.keys(picks).join(","));
       check("and the hero is the pick", S.pick && win.upNext().id === S.pick && q(".hero h2").textContent === win.BYID[S.pick].t);
-      check("a pick is not saved", (function(){ win.flushPersist(); return !("pick" in JSON.parse(win.localStorage.getItem("batwatch-v3"))); })());
+      check("a pick is not saved", (function(){ win.flushPersist(); return !("pick" in JSON.parse(win.localStorage.getItem("batwatch-v3"))) && !("pick" in JSON.parse(win.localStorage.getItem("batwatch-settings"))); })());
       win.toggleWatched(S.pick);
       check("ticking the pick releases it", S.pick === "" || win.upNext().id !== heroBefore);
       S.pick = "";
@@ -2322,11 +2339,22 @@ win.addEventListener("load", function(){
     /* Every call site passed a label and reboot() ignored it, so five useful
        names went nowhere and a failure inside a rebooted document did not say
        which reload it came from. It says now. */
+    /* 6.0.0: a seed of {m, s} fills both keys; a string seed is a pre-6.0.0
+       blob, settings and marks in one, and the boot reads the settings off
+       it once and writes them to their own key. SETTLED is that second key
+       for the reboots whose point is that something ELSE reached the disk:
+       with no settings key the migration write lands on every boot and
+       masks a sweep that never persists (5.1.1's fixture, and 5.3.1's). */
+    var SETTLED = JSON.stringify({path:"life", theme:"dark", scope:"movies",
+      format:"all", tier:"all", groupOpen:{}, progOpen:{}});
     function reboot(seed, label, then){
+      var sseed = seed && typeof seed === "object" ? seed.s : "";
+      if(seed && typeof seed === "object") seed = seed.m;
       var d = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://nightwatcher.life/",
         pretendToBeVisual:true, beforeParse:function(w){
           floor(w);
           w.localStorage.setItem("batwatch-v3", seed);
+          if(sseed) w.localStorage.setItem("batwatch-settings", sseed);
         }});
       /* restore() is synchronous once the store answers, and the app renders
          before "load" fires. The 200ms was padding, at five reboots a run. */
@@ -2347,8 +2375,10 @@ win.addEventListener("load", function(){
     S.path = S.mode = "continuity"; S.groupOpen = {};
     win.buildGroups().forEach(function(g){ S.groupOpen[g.key] = false; });
     win.persist(); win.flushPersist();
-    reboot(win.localStorage.getItem("batwatch-v3"), "collapse", function(w3, d3){
+    reboot({m:win.localStorage.getItem("batwatch-v3"), s:win.localStorage.getItem("batwatch-settings")}, "collapse", function(w3, d3){
       w3.S.tab = "watch"; w3.render();
+      check("a reload reads its settings off the settings key",
+            !!w3.localStorage.getItem("batwatch-settings") && Object.keys(w3.S.groupOpen).length > 0);
       check("a reload comes back collapsed",
             d3.querySelectorAll("#view .panel:not([inert]) .group").length > 1 &&
             d3.querySelectorAll("#view .panel:not([inert]) .group.open").length === 0,
@@ -2358,9 +2388,9 @@ win.addEventListener("load", function(){
     S.groupOpen = {};
 
     S.path = S.mode = "release"; S.theme = "darker"; win.persist(); win.flushPersist();
-    var saved = win.localStorage.getItem("batwatch-v3");
+    var saved = win.localStorage.getItem("batwatch-v3"), savedS = win.localStorage.getItem("batwatch-settings");
 
-    reboot(saved, "1.2.0", function(w2, d2){
+    reboot({m:saved, s:savedS}, "1.2.0", function(w2, d2){
       check("a reload comes back on the chosen path", w2.S.path === "release", "path=" + w2.S.path);
       check("a reload does not ask again", !d2.querySelector(".pick"));
       check("a reload comes back in the chosen theme",
@@ -2497,7 +2527,7 @@ win.addEventListener("load", function(){
             FILMS.forEach(function(f){ if(f.b.indexOf("u") >= 0) staleSkips[f.id] = 1; });
             staleSkips[FILMS[0].id] = 1;
             var staleSkip = JSON.stringify({watched:{}, skipped:staleSkips, rated:{}, log:[]});
-            reboot(staleSkip, "stale skip", function(w6){
+            reboot({m:staleSkip, s:SETTLED}, "stale skip", function(w6){
               var left = Object.keys(w6.S.skipped);
               check("a skip placed on a title that was not out yet is dropped at load",
                     left.length === 1 && left[0] === FILMS[0].id, left.join(","));
@@ -2701,24 +2731,34 @@ win.addEventListener("load", function(){
       win.persist(); win.flushPersist(); win.render();
     })();
 
-    /* --- the settings ride the same key, so the merge adopts them (5.3.0) --
-       Tab A ticking used to persist A's whole blob and revert the theme,
+    /* --- the settings have a key of their own, and it is adopted whole (6.0.0)
+       5.3.0 had the merge adopt five settings off the progress blob, because
+       tab A ticking used to persist A's whole blob and revert the theme,
        order, format, scope and tier tab B had just saved — the QA's "I set
-       Darker and it flipped back". The listener adopts the incoming five,
-       so this tab's next persist carries the other tab's choice instead of
-       clobbering it. */
+       Darker and it flipped back". Since 6.0.0 the settings live under
+       batwatch-settings and a tick cannot reach them; the listener adopts
+       the settings key's event through the same readers, last write wins,
+       and a settings payload arriving on the PROGRESS key (a 5.x tab in the
+       deploy window) is read for its marks only. */
     (function(){
       var keepScope = S.scopePref, keepTier = S.tier;
       S.theme = "dark"; S.format = "anim"; S.path = S.mode = "life"; S.tab = "watch";
       win.applyTheme(); win.persist(); win.flushPersist(); win.render();
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+        newValue: JSON.stringify({watched: {}, theme: "darker", format: "live", path: "release",
+                                  scope: "all", tier: "core"})}));
+      check("a setting arriving on the progress key is not adopted",
+            S.theme === "dark" && S.format === "anim" && S.path === "life",
+            "theme=" + S.theme + " format=" + S.format + " path=" + S.path);
       /* 5.3.1: the 5.3.0 check sent the path the tab already had, so the one
          setting with a follow-on (S.mode) was never exercised — the adopt
          left S.mode behind and The Path wore the shared-link banner
          ("Viewing Bruce's life. Your path is Release order.") for a screen.
          A CHANGED path, plus scope and tier, which nothing sent either. */
-      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
-        newValue: JSON.stringify({theme: "darker", format: "live", path: "release",
-                                  scope: "all", tier: "core"})}));
+      var other = JSON.stringify({theme: "darker", format: "live", path: "release",
+                                  scope: "all", tier: "core"});
+      win.localStorage.setItem("batwatch-settings", other);
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.SKEY, newValue: other}));
       check("another tab's saved theme is adopted, not clobbered",
             S.theme === "darker" &&
             doc.documentElement.getAttribute("data-theme") === "darker",
@@ -2734,19 +2774,140 @@ win.addEventListener("load", function(){
       check("an adopted path never shows the shared-view banner",
             !doc.querySelector("#panel-watch .viewing"),
             "banner: " + (doc.querySelector("#panel-watch .viewing") || {textContent: ""}).textContent.slice(0, 60));
-      win.flushPersist();
-      var raw = JSON.parse(win.localStorage.getItem("batwatch-v3") || "{}");
+      S.watched[FILMS[4].id] = 1; win.persist(); win.flushPersist();
+      var raw = JSON.parse(win.localStorage.getItem("batwatch-settings") || "{}");
       check("the adopted settings survive this tab's next persist",
             raw.theme === "darker" && raw.format === "live" && raw.path === "release" &&
             raw.scope === "all" && raw.tier === "core",
             "on disk: theme=" + raw.theme + " format=" + raw.format + " path=" + raw.path);
-      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
+      delete S.watched[FILMS[4].id];
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.SKEY,
         newValue: JSON.stringify({theme: "neon"})}));
       check("a junk setting from another tab is refused", S.theme === "darker",
             "theme=" + S.theme);
       S.theme = "dark"; S.format = "anim"; S.path = S.mode = "release";
       S.scope = S.scopePref = keepScope; S.tier = keepTier;
       win.applyTheme(); win.persist(); win.flushPersist(); win.render();
+    })();
+
+    /* --- one save, two keys: the first boot after 6.0.0 --------------------
+       A 5.4.0 blob carries marks and settings under batwatch-v3. The boot
+       reads the settings off it once, writes them to batwatch-settings, and
+       the next progress write leaves the settings out of the progress key
+       for good — so a mark write can never touch a setting again. */
+    (function(){
+      var A = FILMS[2].id;
+      var legacy = JSON.stringify({watched:(function(o){ o[A] = 1; return o; })({}), skipped:{}, rated:{},
+        clk:{w:(function(o){ o[A] = 4000; return o; })({}), s:{}, r:{}}, log:[{id:A, ts:4000}],
+        path:"release", theme:"darker", scope:"all", format:"live", tier:"core",
+        groupOpen:{}, progOpen:{}});
+      reboot(legacy, "5.4.0 blob", function(w9, d9){
+        check("a 5.4.0 save boots with its settings",
+              w9.S.path === "release" && w9.S.theme === "darker" && w9.S.scopePref === "all" &&
+              w9.S.format === "live" && w9.S.tier === "core" && w9.S.watched[A] === 1,
+              "path=" + w9.S.path + " theme=" + w9.S.theme + " tier=" + w9.S.tier);
+        w9.flushPersist();
+        var sk = JSON.parse(w9.localStorage.getItem("batwatch-settings") || "null");
+        check("and writes them to the settings key on that boot",
+              !!sk && sk.path === "release" && sk.theme === "darker" && sk.tier === "core" && sk.format === "live",
+              w9.localStorage.getItem("batwatch-settings"));
+        check("the progress key is left as it was until progress moves",
+              w9.localStorage.getItem("batwatch-v3") === legacy);
+        w9.S.watched[FILMS[3].id] = 1; w9.persist(); w9.flushPersist();
+        var pk = JSON.parse(w9.localStorage.getItem("batwatch-v3"));
+        check("the next progress write carries no setting",
+              pk.watched[A] === 1 && pk.watched[FILMS[3].id] === 1 && !("theme" in pk) && !("path" in pk) &&
+              !("tier" in pk) && !("format" in pk) && !("scope" in pk) && !("groupOpen" in pk),
+              Object.keys(pk).join(","));
+        /* A corrupt settings key is a failed read like a corrupt progress key. */
+        reboot({m:JSON.stringify({watched:{}, skipped:{}, rated:{}, log:[]}), s:"{not json"}, "corrupt settings", function(w10, d10){
+          check("a corrupt settings key stops the writes like a corrupt progress key",
+                w10.readFailed === true && w10.canSave === false && !d10.getElementById("nosave").hidden,
+                "readFailed=" + w10.readFailed);
+        });
+      });
+    })();
+
+    /* --- the Batwoman split: one saved tick means three (6.0.0) -----------
+       The 51-episode bundle retired into three season rows; README's MAJOR
+       line. A tick, skip, rating, clock or night saved against the bundle
+       fans out to the seasons at every door — restore, another tab, a
+       pasted code carrying the bundle's hash, a JSON file carrying its
+       slug — and the bundle's slug leaves the state. */
+    (function(){
+      var OLD = Object.keys(win.SPLIT)[0], NEW = win.SPLIT[OLD];
+      check("the split table names a slug that left and three that exist",
+            !!OLD && !win.BYID[OLD] && NEW.length === 3 && NEW.every(function(id){ return !!win.BYID[id]; }),
+            OLD + " -> " + NEW.join(","));
+      check("the seasons sit in one group with Crisis after Season 1",
+            (function(){
+              var g = win.BYID[NEW[0]].gname, rows = [];
+              win.PATH.forEach(function(gr){ if(gr.name === g) gr.films.forEach(function(f){ rows.push(f.i); }); });
+              var c = rows.indexOf("crisis-on-infinite-earths-arrowverse-crossover-2019");
+              return rows.indexOf(NEW[0]) === c - 1 && rows.indexOf(NEW[1]) === c + 1 && rows.indexOf(NEW[2]) === c + 2;
+            })());
+      /* restore: watched + rating + clock + night on the bundle */
+      var seed = JSON.stringify({watched:(function(o){ o[OLD] = 1; return o; })({}), skipped:{},
+        rated:(function(o){ o[OLD] = 4; return o; })({}),
+        clk:{w:(function(o){ o[OLD] = 6000; return o; })({}), s:{}, r:(function(o){ o[OLD] = 6100; return o; })({})},
+        log:[{id:OLD, ts:6000}]});
+      reboot(seed, "bundle tick", function(w11){
+        var Sx = w11.S;
+        check("door: restore fans a bundle tick out to the three seasons",
+              NEW.every(function(id){ return Sx.watched[id] === 1 && Sx.rated[id] === 4; }) && !Sx.watched[OLD] && !Sx.rated[OLD],
+              Object.keys(Sx.watched).join(","));
+        check("and carries the bundle's clocks and night with it",
+              NEW.every(function(id){ return Sx.clk.w[id] === 6000 && Sx.clk.r[id] === 6100 &&
+                        Sx.log.some(function(e){ return e.id === id && e.ts === 6000; }); }) &&
+              !Sx.log.some(function(e){ return e.id === OLD; }) && !Sx.clk.w[OLD],
+              JSON.stringify(Sx.log));
+        w11.flushPersist();
+        var disk = JSON.parse(w11.localStorage.getItem("batwatch-v3"));
+        check("the split reaches the disk on that boot",
+              NEW.every(function(id){ return disk.watched[id] === 1; }) && !(OLD in disk.watched) && !(OLD in disk.clk.w),
+              Object.keys(disk.watched).join(","));
+        w11.S.scope = w11.S.scopePref = "all"; w11.S.format = "all"; w11.S.tier = "all"; w11.render();
+        check("Progress counts three sittings, not one",
+              w11.FILMS.filter(w11.isDone).length === 3 && w11.counts().done === 3, "done=" + w11.counts().done);
+        /* a skip on the bundle lands only where nothing is watched */
+        var seed2 = JSON.stringify({watched:(function(o){ o[NEW[1]] = 1; return o; })({}),
+          skipped:(function(o){ o[OLD] = 1; return o; })({}), rated:{}, log:[]});
+        reboot(seed2, "bundle skip", function(w12){
+          var Sy = w12.S;
+          check("door: restore fans a bundle skip out, never onto a watched season",
+                Sy.skipped[NEW[0]] === 1 && Sy.skipped[NEW[2]] === 1 && !Sy.skipped[NEW[1]] && Sy.watched[NEW[1]] === 1 && !Sy.skipped[OLD],
+                Object.keys(Sy.skipped).join(","));
+        });
+      });
+      /* the other three doors, on the live document */
+      var keep = {w:S.watched, k:S.skipped, r:S.rated, l:S.log, c:S.clk};
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.clk = {w:{}, s:{}, r:{}};
+      var res = win.doRestore("NW3W" + win.idHash(OLD) + "SR4O");
+      check("door: a code carrying the bundle's hash ticks and rates the three seasons",
+            !!res && res.unknown === 0 && NEW.every(function(id){ return S.watched[id] === 1 && S.rated[id] === 4; }) && !S.watched[OLD],
+            res ? "found " + res.found + " unknown " + res.unknown + ": " + Object.keys(S.watched).join(",") : "REJECTED");
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.clk = {w:{}, s:{}, r:{}};
+      var js = win.doRestore(JSON.stringify({app:"night-watcher", v:2, watched:(function(o){ o[OLD] = 1; return o; })({}),
+                skipped:{}, rated:{}, log:[{id:OLD, ts:7000}]}));
+      check("door: a JSON file carrying the bundle's slug ticks the three seasons and logs their night",
+            !!js && js.unknown === 0 && js.found === 3 && NEW.every(function(id){ return S.watched[id] === 1 &&
+              S.log.some(function(e){ return e.id === id && e.ts === 7000; }); }) && !S.watched[OLD],
+            js ? "found " + js.found + " unknown " + js.unknown : "REJECTED");
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.clk = {w:{}, s:{}, r:{}};
+      win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY, newValue: JSON.stringify({
+        watched:(function(o){ o[OLD] = 1; return o; })({}), skipped:{}, rated:{},
+        clk:{w:(function(o){ o[OLD] = Date.now() + 60000; return o; })({}), s:{}, r:{}}, log:[{id:OLD, ts:8000}]})}));
+      check("door: a 5.x tab's bundle tick lands on the three seasons",
+            NEW.every(function(id){ return S.watched[id] === 1; }) && !S.watched[OLD] && !("" + OLD in S.clk.w),
+            Object.keys(S.watched).join(","));
+      win.toggleWatched(NEW[0]);
+      check("a season is its own mark: unticking one leaves the other two",
+            !S.watched[NEW[0]] && S.watched[NEW[1]] === 1 && S.watched[NEW[2]] === 1);
+      var out = win.exportCode();
+      check("a fresh code carries the seasons, never the bundle",
+            out.indexOf(win.idHash(NEW[1])) > 0 && out.indexOf(win.idHash(OLD)) < 0);
+      S.watched = keep.w; S.skipped = keep.k; S.rated = keep.r; S.log = keep.l; S.clk = keep.c;
+      win.persist(); win.flushPersist(); win.render();
     })();
 
     /* --- a throw mid-merge is caught (5.3.1) ------------------------------
@@ -2824,7 +2985,7 @@ win.addEventListener("load", function(){
       var seed = JSON.stringify({watched: (function(o){ o[A] = 1; o[PK] = 1; return o; })({}),
         skipped: {}, rated: {},
         log: [{id: A, ts: 100}, {id: PK, ts: 200}]});
-      reboot(seed, "parked-watched sweep", function(w7){
+      reboot({m:seed, s:SETTLED}, "parked-watched sweep", function(w7){
         check("a stale parked watched mark is swept at boot",
               w7.S.watched[A] === 1 && !w7.S.watched[PK],
               "watched: " + Object.keys(w7.S.watched).join(","));
@@ -2851,7 +3012,7 @@ win.addEventListener("load", function(){
         var seed2 = JSON.stringify({watched: (function(o){ o[A] = 1; return o; })({}),
           skipped: {}, rated: (function(o){ o[A] = 5; o[PK] = 5; return o; })({}),
           log: [{id: A, ts: 100}]});
-        reboot(seed2, "parked-rated sweep", function(w8){
+        reboot({m:seed2, s:SETTLED}, "parked-rated sweep", function(w8){
           check("a stale parked rating is swept at boot",
                 w8.S.rated[A] === 5 && !w8.S.rated[PK],
                 "rated: " + Object.keys(w8.S.rated).join(","));

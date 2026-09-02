@@ -44,7 +44,7 @@ s=s.replace(a,'two rating systems',1);${W}"
 echo "--- 93: the Progress lists fold, and remember"
 run_case "progOpen leaves the saved payload" \
   "progOpen is not written to the saved payload" \
-  "${P}a='  {k:\"progOpen\",     read:function(v){ return flagsOf(v, true); }},\n';assert a in s
+  "${P}a='  {k:\"progOpen\",  s:1, read:function(v){ return flagsOf(v, true); }},\n';assert a in s
 s=s.replace(a,'',1);${W}"
 
 run_case "restore takes any value, inverting the closed default" \

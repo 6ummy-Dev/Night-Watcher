@@ -63,9 +63,9 @@ run_case "a wholesale write is a door" \
   "${P}a='function toggleWatched(id){';assert a in s;s=s.replace(a,'function wholesale(o){ S.watched = o.watched; }\nfunction toggleWatched(id){',1);${W}" \
   guards "" 158
 
-run_case "the merge's key set grows a mark" \
-  "stopped adopting settings (setts = {format,path,rated,scope,theme,tier})" \
-  "${P}a='  var setts = {path:1, theme:1, scope:1, format:1, tier:1};';assert a in s;s=s.replace(a,'  var setts = {path:1, theme:1, scope:1, format:1, tier:1, rated:1};',1);${W}" \
+run_case "a mark row joins the settings side" \
+  "the settings side of SCHEMA is {format,groupOpen,insOff,path,progOpen,rated,scope,theme,tier}" \
+  "${P}a='  {k:\"rated\",        read:ratingsOf},';assert a in s;s=s.replace(a,'  {k:\"rated\",   s:1, read:ratingsOf},',1);${W}" \
   guards "" 158
 
 NEG_ARGS="--bless"
@@ -73,7 +73,7 @@ green_case "re-spelling restore's sweep calls stays green (the pin is a predicat
   "${P}a='    dropParkedSkips();\n    dropParkedWatched();\n    dropParkedRated();';assert a in s;s=s.replace(a,'    dropParkedSkips(); dropParkedWatched();\n    dropParkedRated();',1);${W}"
 
 green_case "re-spelling the listener's try stays green (the pin is a predicate)" \
-  "${P}a='  try{ mergeTab(o); }\n  catch(err){ persist(); render(); }';assert a in s;s=s.replace(a,'  try {\n    mergeTab(o);\n  } catch (e) { persist(); render(); }',1);${W}"
+  "${P}a='  try{ if(e.key === SKEY) adoptSettings(o); else mergeTab(o); }\n  catch(err){ persist(); render(); }';assert a in s;s=s.replace(a,'  try {\n    if (e.key === SKEY) { adoptSettings(o); } else { mergeTab(o); }\n  } catch (err) { persist(); render(); }',1);${W}"
 NEG_ARGS=
 
 echo "--- 127, 142: the epoch is not a night, the nudge counts titles"
@@ -107,7 +107,7 @@ run_case "the adopted path leaves the mode behind" \
 
 run_case "a throw mid-merge escapes the listener" \
   "a throw mid-merge does not escape the listener" \
-  "${P}a='  try{ mergeTab(o); }\n  catch(err){ persist(); render(); }';assert a in s;s=s.replace(a,'  mergeTab(o);',1);${W}" \
+  "${P}a='  try{ if(e.key === SKEY) adoptSettings(o); else mergeTab(o); }\n  catch(err){ persist(); render(); }';assert a in s;s=s.replace(a,'  if(e.key === SKEY) adoptSettings(o); else mergeTab(o);',1);${W}" \
   smoke main
 
 run_case "a log entry at the epoch is counted as a night" \

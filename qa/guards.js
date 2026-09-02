@@ -668,7 +668,7 @@ function schemaRow(key){
   tbl.elements.forEach(function(el){
     var k = objProp(el, "k");
     if(k && k.value === key){
-      hit = {src: srcOf(el)};
+      hit = {src: srcOf(el), s: !!objProp(el, "s")};
       ["get", "read", "put"].forEach(function(f){ hit[f] = srcOf(objProp(el, f)); });
     }
   });
@@ -737,7 +737,9 @@ vm.runInContext(
   /* 3.9.6: the app's own two comparators, so section 105 can publish the
      orderings it used to decline to publish. They are extracted, never
      rewritten — the whole reason they were given names in index.html. */
-  fn("lifeCmp") + "\n" + fn("releaseCmp") + "\n",
+  fn("lifeCmp") + "\n" + fn("releaseCmp") + "\n" +
+  /* 6.0.0: the split table, so section 2 can hold it against qa/split-ids.json. */
+  sliceOr("var SPLIT = {", "var SITE") + "\n",
   sandbox
 );
 
@@ -891,13 +893,63 @@ if(fs.existsSync(RETIREDFILE)){
     RETIRED[k] = rl[k];
   });
 }
+/* 6.0.0: the third way out, and the only one that keeps the old key's
+   meaning. A SPLIT is a retirement whose saved marks carry forward: the old
+   slug leaves the catalogue, its hash is still read by importCode(), and a
+   tick, skip, rating, clock or night saved against it fans out to every
+   slug in `to` at every door. It is recorded in qa/split-ids.json exactly
+   like a rename, and the app carries the same table as SPLIT — the two must
+   agree to the character, because the ledger is what a reviewer reads and
+   the table is what runs. Re-meaning a saved tick is README's MAJOR line;
+   the ledger says which release crossed it. */
+var SPLITS = {}, SPLITFILE = path.join(ROOT, "qa", "split-ids.json");
+if(fs.existsSync(SPLITFILE)){
+  var sl = JSON.parse(fs.readFileSync(SPLITFILE, "utf8"));
+  Object.keys(sl).forEach(function(k){
+    if(!sl[k] || !Array.isArray(sl[k].to) || sl[k].to.length < 2){
+      return fail("split-ids.json gives no list of new ids for " + k + " \u2014 a split is one slug becoming several");
+    }
+    if(!sl[k].why || sl[k].why.length < 40) fail("split-ids.json gives no real reason for splitting " + k);
+    if(!/^\d+\.\d+\.\d+$/.test(String(sl[k]["in"]))) fail("split-ids.json does not say which release split " + k);
+    SPLITS[k] = sl[k].to.slice();
+  });
+}
 var filmIds = FILMS.map(function(f){ return f.id; }).sort();
 filmIds.forEach(function(i){
   if(RETIRED[i]) fail("retired id is back in the data: " + i +
                       " \u2014 removal is not reversible by re-adding the slug");
   if(RENAMED[i]) fail("renamed id is back in the data: " + i + " \u2014 it was renamed to " +
                       RENAMED[i] + ", and having both is worse than having either");
+  if(SPLITS[i]) fail("split id is back in the data: " + i + " \u2014 it was split into " +
+                     SPLITS[i].join(", ") + ", and a saved tick on it already means those");
 });
+Object.keys(SPLITS).forEach(function(k){
+  SPLITS[k].forEach(function(t){
+    if(filmIds.indexOf(t) < 0) fail("split-ids.json says " + k + " became " + t + ", which is not in the catalogue");
+  });
+  if(RETIRED[k]) fail(k + " is in both retired-ids.json and split-ids.json \u2014 a slug was retired or it was split, not both");
+  if(RENAMED[k]) fail(k + " is in both renamed-ids.json and split-ids.json \u2014 a slug was renamed or it was split, not both");
+});
+(function(){
+  var app = sandbox.SPLIT, want = JSON.stringify(SPLITS), got;
+  if(!app || typeof app !== "object") return fail("index.html carries no SPLIT table \u2014 the split recorded in qa/split-ids.json is not honoured by the app, so a saved tick on the old slug means nothing");
+  got = JSON.stringify(Object.keys(app).sort().reduce(function(o, k){ o[k] = app[k]; return o; }, {}));
+  if(got !== JSON.stringify(Object.keys(SPLITS).sort().reduce(function(o, k){ o[k] = SPLITS[k]; return o; }, {}))){
+    fail("index.html's SPLIT table is not qa/split-ids.json \u2014 the ledger says " + want + ", the app says " + got +
+         "; the file is what a reviewer reads and the table is what runs, and they must agree to the character");
+  }
+  /* The fan-out runs on every payload before it is read \u2014 the four doors
+     a saved mark arrives through. A door that skips it hands the old slug
+     to a reader that does not know it, and the tick is "unknown". */
+  ["restore", "mergeTab", "importCode", "doRestore"].forEach(function(door){
+    if(!fnCalls(door, "splitPayload")){
+      fail(door + "() no longer runs splitPayload() on what it reads \u2014 a tick saved against a split slug arrives at that door and means nothing");
+    }
+  });
+  if(!/Object\.keys\(SPLIT\)\.forEach\(function\(old\)\{ map\[idHash\(old\)\] = old; \}\);/.test(fn("importCode"))){
+    fail("importCode() no longer maps a split slug's hash \u2014 a code written before the split counts its tick as unknown instead of three found");
+  }
+})();
 Object.keys(RENAMED).forEach(function(k){
   if(filmIds.indexOf(RENAMED[k]) < 0){
     fail("renamed-ids.json says " + k + " became " + RENAMED[k] +
@@ -938,7 +990,7 @@ if(BLESS){
   var laundered = [];
   if(fs.existsSync(SNAP)){
     JSON.parse(fs.readFileSync(SNAP, "utf8")).forEach(function(fi){
-      if(filmIds.indexOf(fi) < 0 && !RETIRED[fi] && !RENAMED[fi]){
+      if(filmIds.indexOf(fi) < 0 && !RETIRED[fi] && !RENAMED[fi] && !SPLITS[fi]){
         laundered.push(fi);
       }
     });
@@ -948,7 +1000,7 @@ if(BLESS){
          " — bless refuses to launder a retirement. Saved progress and " +
          "backup codes in circulation still point at this slug, so removal is " +
          "recorded, never silent: write it into qa/retired-ids.json (or " +
-         "qa/renamed-ids.json) with a reason, then bless. The snapshot was " +
+         "qa/renamed-ids.json, or qa/split-ids.json) with a reason, then bless. The snapshot was " +
          "left untouched");
   } else {
     fs.writeFileSync(SNAP, JSON.stringify(filmIds, null, 1) + "\n");
@@ -961,10 +1013,11 @@ if(BLESS){
   var now = {}; filmIds.forEach(function(i){ now[i] = 1; });
   var was = {}; prev.forEach(function(i){ was[i] = 1; });
   prev.forEach(function(i){
-    if(!now[i] && !RETIRED[i] && !RENAMED[i]){
+    if(!now[i] && !RETIRED[i] && !RENAMED[i] && !SPLITS[i]){
       fail("FROZEN ID REMOVED OR RENAMED: " + i + "  (this voids saved progress)");
     }
     if(!now[i] && RENAMED[i]) note("renamed since the last bless: " + i + " -> " + RENAMED[i]);
+    if(!now[i] && SPLITS[i]) note("split since the last bless: " + i + " -> " + SPLITS[i].join(", "));
   });
   var added = filmIds.filter(function(i){ return !was[i]; });
   if(added.length) note(added.length + " new id(s) added — safe. Re-bless when ready.");
@@ -1023,6 +1076,13 @@ FILMS.forEach(function(f){
   if(byHash[h]){ fail("idHash COLLISION " + h + ": " + byHash[h] + " <-> " + f.id); collisions++; }
   else byHash[h] = f.id;
 });
+/* A split slug's hash is still read by importCode() (6.0.0), so it shares
+   the space with every live one. */
+Object.keys(SPLITS).forEach(function(old){
+  var h = idHash(old);
+  if(byHash[h]){ fail("idHash COLLISION " + h + ": " + byHash[h] + " <-> " + old + " (a split slug, still read)"); collisions++; }
+  else byHash[h] = old;
+});
 var space = Math.pow(36, 5);
 var risk = 1 - Math.exp(-(FILMS.length * (FILMS.length - 1)) / (2 * space));
 note("hash space 36^5=" + space.toLocaleString("en-US") +
@@ -1076,7 +1136,10 @@ sandbox.FILMS = FILMS;
 /* A path has to be set, or exportCode() emits no P segment at all — which made
    every P-segment test below assert against a code that had none. */
 sandbox.S = {watched:{}, skipped:{}, rated:{}, path:"life"};
-vm.runInContext(fn("exportCode") + "\n" + fn("importCode") + "\n", sandbox);
+/* 6.0.0: importCode() fans a split slug's hash out through splitPayload(),
+   which needs HAS — both extracted, never rewritten. */
+sandbox.HAS = Object.prototype.hasOwnProperty;
+vm.runInContext(fn("exportCode") + "\n" + fn("importCode") + "\n" + fn("splitPayload") + "\n", sandbox);
 var exportCode = sandbox.exportCode, importCode = sandbox.importCode;
 
 var S = sandbox.S;
@@ -2064,6 +2127,28 @@ if(!/\bvar KEY = "batwatch-v3";/.test(HTML)){
   fail("the storage key is not \"batwatch-v3\" — every saved progress lives under " +
        "that name and nothing migrates from another; changing it orphans them all");
 }
+/* 6.0.0: the settings have a key of their own, frozen the same way, and
+   the writer serialises each side and writes a key only when that side
+   moved since this tab last wrote it. That comparison is what makes "a
+   tick cannot touch a setting" a construction rather than a promise:
+   remove it and every persist writes both keys again. */
+if(!/\bvar SKEY = "batwatch-settings";/.test(HTML)){
+  fail("the settings key is not \"batwatch-settings\" — every saved setting lives under that name since 6.0.0; changing it boots every reader on defaults");
+}
+(function(){
+  var pn = fn("persistNow");
+  if(!/if\(m !== wrote\.m\)\{ store\.set\(KEY, m\); wrote\.m = m; \}/.test(pn) ||
+     !/if\(s !== wrote\.s\)\{ store\.set\(SKEY, s\); wrote\.s = s; \}/.test(pn)){
+    fail("persistNow() no longer writes each key only when its own side moved — a tick would write the settings key again, and the clobber 5.3.0 patched is a race again");
+  }
+  if(!/\bvar wrote = \{m:"", s:""\};/.test(HTML)){
+    fail("the per-key write memory (wrote) is gone or reshaped — persistNow() cannot tell which side moved");
+  }
+  var po = fn("payloadOf");
+  if(!/if\(!r\.s === !side\)/.test(po)){
+    fail("payloadOf() no longer splits SCHEMA by side — one serialisation holding both sides is the one key 6.0.0 ended");
+  }
+})();
 if(!/id="nosave"/.test(HTML)){
   fail("the storage-blocked warning (#nosave) is gone — a blocked store fails silently again");
 } else {
@@ -3469,7 +3554,7 @@ if(!/watchUrl\(f\)/.test(fn("watchLinks"))){
   var FLOOR = ["LICENSE", "SECURITY.md", "README.md", "CHANGELOG.md", "RELEASING.md",
    "package.json", "package-lock.json", "wrangler.jsonc", "worker.js", ".gitignore",
    ".gitattributes", ".npmrc", ".github/workflows/qa.yml", "qa/guards.js", "qa/smoke.js",
-   "qa/frozen-ids.json", "qa/script-bytes.json", "qa/make-favicon.py",
+   "qa/frozen-ids.json", "qa/split-ids.json", "qa/script-bytes.json", "qa/make-favicon.py",
    "docs/.well-known/security.txt", "docs/.well-known/brave-rewards-verification.txt"];
   var tracked = trackedFiles();
   (tracked || FLOOR).forEach(function(f){
@@ -6961,11 +7046,13 @@ var ROUTE_VOCAB = [
      TV-MA off the same page as The Batman, Justice League and Batwheels;
      and Justice League Unlimited, whose TV-Y7-FV had no source named, is
      TV-Y7 ×3 off its own HBO Max listing — the FV descriptor is a broadcast
-     artefact the badge never rendered, and it leaves the distribution. A
-     drifted count here means an entry gained, lost or changed a rating
-     nobody sourced. */
+     artefact the badge never rendered, and it leaves the distribution.
+     6.0.0: the Batwoman bundle became three season rows, each TV-14 as the
+     bundle was (the CW's rating for the whole run; HBO Max lists all three
+     seasons TV-14) — TV-14 10 → 12, no value moved. A drifted count here
+     means an entry gained, lost or changed a rating nobody sourced. */
   var EXPECT = {"PG-13":57, "PG":18, "R":18, "G":1, "NR":26,
-                "TV-PG":19, "TV-G":11, "TV-Y7":23, "TV-MA":15, "TV-14":10,
+                "TV-PG":19, "TV-G":11, "TV-Y7":23, "TV-MA":15, "TV-14":12,
                 "TV-Y":3};
   var got = {}, rated = 0;
   FILMS.forEach(function(f){
@@ -10670,9 +10757,16 @@ var ROUTE_VOCAB = [
          "marksOf()/ratingsOf() — groupOpen and progOpen have had that check " +
          "since 1.4.x and these carry the progress");
   }
-  if(!/SCHEMA\.forEach/.test(rbody) || !/r\.read\(o\[r\.k\], o\)/.test(rbody)){
+  /* 6.0.0: two keys. A settings row (r.s) reads off the settings payload
+     when there is one and off the progress blob when there is not — a save
+     written before 6.0.0 carried both in one key, and the first boot after
+     it reads them from there once. Either way the row's own reader shapes
+     the value. */
+  if(!/SCHEMA\.forEach/.test(rbody) || !/var src = \(r\.s && so\) \? so : o;/.test(rbody) ||
+     !/r\.read\(src\[r\.k\], src\)/.test(rbody)){
     fail("restore() does not read every SCHEMA row through its reader — a row " +
-         "read by hand is the hand-enumerated list the table replaced");
+         "read by hand is the hand-enumerated list the table replaced (and a " +
+         "settings row reads off the settings key when it exists, else off the progress blob)");
   }
 
   var box = {};
@@ -10730,7 +10824,7 @@ var ROUTE_VOCAB = [
     }
   }
 
-  if(!/try\{ raw = store\.get\(KEY\); \}\s*catch\(e\)\{ readFailed = true; canSave = false; return; \}/.test(rbody)){
+  if(!/try\{ raw = store\.get\(KEY\); sraw = store\.get\(SKEY\); \}\s*catch\(e\)\{ readFailed = true; canSave = false; return; \}/.test(rbody)){
     fail("restore()'s failed read no longer stops the writes. The failure " +
          "path used to leave saving on, so the app booted empty and the first " +
          "tick overwrote the reader's whole saved state with one entry. A read " +
@@ -14877,12 +14971,12 @@ var ROUTE_VOCAB = [
   /* The two seats that write S[<key>] through the SCHEMA table: restore()
      (gated by the sweeps below) and the merge's settings adoption (gated
      by its key set, checked below). */
-  var OPAQUE_OK = {restore:1, mergeTab:1};
+  var OPAQUE_OK = {restore:1, adoptSettings:1};
   /* 5.4.0: computed READS in an alias position — the payload serializer
      hands S[r.k] on, stampOut() returns S[k], the merge compares against
      S[r.k]. A read cannot mark; a computed read stored under another name
      could be written through later, so they are listed, not inferred. */
-  var OPAQUE_READ_OK = {persistNow:1, stampOut:1, mergeTab:1, restore:1};
+  var OPAQUE_READ_OK = {payloadOf:1, stampOut:1, adoptSettings:1, restore:1};
 
   if(!fnIndex()){
     /* No parser (a bare local clone): the 5.3.0 spelling census stands in,
@@ -15038,15 +15132,28 @@ var ROUTE_VOCAB = [
       fail(seats.length + " statements write a mark and this section names " + DOORS.length +
            " — a new door opened without a gate, or one closed without leaving the list");
     }
-    /* The merge's settings adoption writes S[r.k] through the table; the key
-       set it filters by must not name a mark. */
-    var setts = null;
-    walk(fnNode("mergeTab"), function(n){
-      if(n.type === "VariableDeclarator" && n.id.name === "setts") setts = n.init;
+    /* 6.0.0: the settings adoption is its own seat, adoptSettings(), fed by
+       the settings key's storage event; it writes S[r.k] through the table
+       and must filter by the row's side (r.s), which no mark row carries —
+       the table is checked below to say so. mergeTab() adopts no setting:
+       the progress key carries none since 6.0.0, and a 5.x tab's blob in the
+       deploy window is read for its marks only. */
+    var sideGate = false;
+    walk(fnNode("adoptSettings"), function(n){
+      if(n.type === "IfStatement" && /^!r\.s\b/.test(srcOf(n.test)) && /^(Return|Continue)Statement$/.test(n.consequent.type)) sideGate = true;
     });
-    var keys = setts && setts.type === "ObjectExpression" ? setts.properties.map(function(p){ return p.key.name || p.key.value; }).sort().join(",") : "";
-    if(keys !== "format,path,scope,theme,tier"){
-      fail("the cross-tab merge stopped adopting settings (setts = {" + keys + "}) — tab A's next tick persists A's whole blob and reverts the theme, order, format, scope or tier tab B just saved");
+    if(!sideGate) fail("adoptSettings() no longer leaves on !r.s — the settings key's storage event would write mark rows through the table, a door with no gate");
+    /* The side is checked in BOTH directions, and the set is named: a mark
+       row on the settings side is adopted whole from another tab, past every
+       clock; a settings row on the progress side is written by every tick,
+       which is the 5.3.0 clobber returning. This is the successor to the
+       `setts` key-set check the merge used to carry. */
+    var side = schemaKeys().filter(function(k){ var r = schemaRow(k); return r && r.s; }).sort().join(",");
+    if(side !== "format,groupOpen,insOff,path,progOpen,scope,theme,tier"){
+      fail("the settings side of SCHEMA is {" + side + "} — a settings row left on the progress key is written by every tick (the clobber 5.3.0 could only patch), and a mark row on the settings key is adopted whole from another tab, past every clock");
+    }
+    if(fnCalls("mergeTab", "adoptSettings") || /\bsetts\b/.test(fn("mergeTab"))){
+      fail("mergeTab() adopts settings again — the progress key carries none since 6.0.0, and a tick's payload is not where the theme lives");
     }
     /* The other-tab door merges inside a try: a throw mid-merge must not
        leave an adopted erase in RAM only, where the next tick persists a
@@ -15118,7 +15225,7 @@ var ROUTE_VOCAB = [
        calleeName(x.argument.callee) === "isParked") favGated = true;
   });
   if(fnIndex() && !favGated) fail("favList() lists a parked title — Your five stars would name a film nobody can have seen");
-  note("every door: " + DOORS.length + " mark-writing seats, each gated by shape; the log gated; three sweeps stamp and persist; the merge is caught and adopts settings");
+  note("every door: " + DOORS.length + " mark-writing seats, each gated by shape; the log gated; three sweeps stamp and persist; the merge is caught; settings adopt off their own key");
 })();
 
 /* ---------- 159. The drawn marks survive forced colors and speak to AT -- */

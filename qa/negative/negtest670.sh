@@ -180,12 +180,12 @@ run_case "restore forgets the watched sweep" \
 
 run_case "the merge sheds its try" \
   "the storage listener no longer merges inside a try" \
-  "${P}a='  try{ mergeTab(o); }\n  catch(err){ persist(); render(); }';assert a in s;s=s.replace(a,'  mergeTab(o);',1);${W}" \
+  "${P}a='  try{ if(e.key === SKEY) adoptSettings(o); else mergeTab(o); }\n  catch(err){ persist(); render(); }';assert a in s;s=s.replace(a,'  if(e.key === SKEY) adoptSettings(o); else mergeTab(o);',1);${W}" \
   guards "" 158
 
-run_case "the merge stops adopting settings" \
-  "the cross-tab merge stopped adopting settings" \
-  "${P}a='  var setts = {path:1, theme:1, scope:1, format:1, tier:1};';assert a in s;s=s.replace(a,'  var setts = {path:1};',1);${W}" \
+run_case "a settings row left on the progress side" \
+  "the settings side of SCHEMA is" \
+  "${P}a='  {k:\"theme\",     s:1, read:oneOf([\"dark\", \"darker\"])},';assert a in s;s=s.replace(a,'  {k:\"theme\",          read:oneOf([\"dark\", \"darker\"])},',1);${W}" \
   guards "" 158
 
 run_case "the title sheds the query" \
@@ -208,9 +208,9 @@ run_case "an entity smuggles a glyph past the font scan" \
   "${P}a='<p class=\"drule\" aria-hidden=\"true\"><i></i></p>';assert a in s;s=s.replace(a,'<p class=\"drule\" aria-hidden=\"true\"><i>&#x2713;</i></p>',1);${W}" \
   guards "" 116
 
-run_case "a merge that stops adopting is seen behaviorally" \
+run_case "an adoption that skips a row is seen behaviorally" \
   "another tab's saved theme is adopted, not clobbered" \
-  "${P}a='  var setts = {path:1, theme:1, scope:1, format:1, tier:1};';assert a in s;s=s.replace(a,'  var setts = {path:1};',1);${W}" \
+  "${P}a='    if(!r.s || !(r.k in o)) return;';assert a in s;s=s.replace(a,'    if(!r.s || r.k === \"theme\" || !(r.k in o)) return;',1);${W}" \
   smoke main
 
 run_case "a sweep that never persists is seen behaviorally" \
