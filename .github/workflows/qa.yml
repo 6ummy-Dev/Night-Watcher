@@ -68,9 +68,10 @@ jobs:
   # copy of the tree and asserts the guards go red for the right reason — the
   # only evidence that any of them protects anything. They run on every push,
   # not only on pull requests: releases here are direct commits to main, so a
-  # PR-gated job never runs (it did not, for a long time — NOTES.md).
+  # PR-gated job never runs (it did not, for a long time — NOTES-history.md
+  # ("Where the served and config files' histories went")).
   #
-  # Cost: 1258 fixtures, of which 1177 run guards.js and 81 run smoke.js — most
+  # Cost: 1302 fixtures, of which 1209 run guards.js and 93 run smoke.js — most
   # of those scoped to one phase by SMOKE_ONLY. The split is guarded in this
   # file the same as the README's counts, so the next drift fails the build.
   # run-all.sh dispatches longest-first; this job shards 4-way on top, packed
@@ -94,13 +95,13 @@ jobs:
       matrix:
         include:
           - shard: "1"
-            pick: 'negtest(162|164|165|183|200|210|252|260|300|340|390|420|478|510|540|560|640|680|681)\.sh'
+            pick: 'negtest(161|163|165|172|182|183|185|187|200|210|260|300|310|320|470|475|630|681)\.sh'
           - shard: "2"
-            pick: 'negtest(131|171|177|180|185|186|190|271|273|360|410|430|450|490|500|550|590|610|650)\.sh'
+            pick: 'negtest(162|166|186|195|271|350|360|390|400|430|440|450|480|540|570|580|590|620|690)\.sh'
           - shard: "3"
-            pick: 'negtest(161|163|166|182|270|272|310|320|350|370|400|480|520|530|570|580|630|660|670)\.sh'
+            pick: 'negtest(171|190|220|252|270|272|330|380|410|460|478|490|500|520|530|550|600|640|670|680)\.sh'
           - shard: "4"
-            pick: 'negtest(170|172|175|176|181|187|195|220|250|251|330|380|440|460|470|475|476|600|620)\.sh|negtest\.sh'
+            pick: 'negtest(131|164|170|175|176|177|180|181|250|251|273|340|370|420|476|510|560|610|650|660)\.sh|negtest\.sh'
     steps:
       - uses: actions/checkout@v5
 
@@ -120,7 +121,8 @@ jobs:
       # never run in CI. Every shard asserts the union covers every suite on
       # disk, reading the patterns out of this file rather than restating them
       # (a restated copy drifted, and failed loudly about the wrong thing
-      # while quietly skipping the work — NOTES.md). It asserts it read four,
+      # while quietly skipping the work — NOTES-history.md ("Where the served
+      # and config files' histories went")). It asserts it read four,
       # because a check that reads zero calls every suite uncovered and one
       # that reads three waves a whole missing shard through.
       - name: every suite lands in some shard
@@ -182,12 +184,15 @@ jobs:
       - run: npm ci
 
       # ~150 MB re-downloaded on every run was this job's dominant cost. The
-      # key carries the lockfile hash, so a Playwright bump invalidates it and
-      # nothing else does.
+      # key carries the installed Playwright version (5.3.1 — it carried the
+      # whole lockfile's hash before, so a jsdom bump re-downloaded a browser
+      # for nothing), so a Playwright bump invalidates it and nothing else does.
+      - id: pwv
+        run: echo "v=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ matrix.engine }}-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: playwright-${{ matrix.engine }}-${{ runner.os }}-${{ steps.pwv.outputs.v }}
 
       - run: npx playwright install ${{ matrix.engine }} --with-deps
 
