@@ -325,8 +325,11 @@ share card's 100% line all read through it, so the phrase lives once.
 
 ### `yearSpan()`
 
-The span depends on scope and format: with live action in, films start 1943
-and series reach back to 1966; animated alone starts 1993 and 1968.
+The span depends on scope, format and tier: with live action in, films start
+1943 and series reach back to 1966; animated alone starts 1991 (the pitch
+reel, optional since 4.9.0) and 1968 at the default tier, and 1993 with
+Optional off — where no animated series is left at all, every one being
+optional.
 
 ### `pathBlurb()`
 
@@ -476,6 +479,13 @@ disarms like the reset button (four seconds) and writes through
 `markWatched()` like every other tick — the log and the skip-clear cannot
 drift. `behind()` is the unwatched, unskipped, released entries before the
 row in route order: a skip stays skipped, because it was a decision.
+
+The arm, the disarm and the four-second timer each re-insert the row
+through `rowUpdate()`, and since 5.3.1 a live query can hide a row in place
+— so the re-insert carries the row's own `hidden` (`filmRow(f, row.hidden)`,
+in `patchRow()` too), or the disarm timer put a non-matching row back on
+the shelf (the 5.3.1 audit's reproduction). A full render agrees with both
+paths, and guard 103 reads the argument.
 
 ### `OFFLIMITS` / `offLimits()` — the chip that excludes
 
@@ -685,6 +695,12 @@ Sanitised to the same shape the storage listener writes. It used to
 push the whole foreign object, so extra fields from a hand-edited
 backup persisted into storage forever and a string ts sorted oddly.
 
+A JSON file that carries a log is merged through here and nothing else,
+so until 5.4.0 a watched title whose every entry was refused (`ts:0`, the
+5.3.1 tightening) arrived watched with no night — Progress printed none.
+`doRestore()` now stamps a fresh timestamp for any watched title the merge
+did not take, the same fallback a file with no log always had.
+
 ### `if(!S.path && isPath(res.path)){ S.path = S.mode = res.p…`
 
 Restore merges progress; it must not overwrite a path chosen here.
@@ -815,6 +831,17 @@ and the span's 1em block gap still read as the same orphaned line, so 5.2.1
 finished the job: two sentences, one paragraph, one flow, one diamond over
 it. The lesson written down: the complaint was the *gap*, and a span that
 reproduces the gap is the old layout wearing new markup.
+
+**The day has a name (5.4.0).** Batman Day — 19 September 2026 — gets one
+dated sentence on the page, and this paragraph is its seat: `dayLine()`
+opens it, first in the same flow, no banner and no new surface (the
+Batman Day plan's call: a season-shaped line that reads fine either side
+of the day, not a day-of line with a removal patch of its own). Its
+counts are read off `FILMS` and `PATH` at render time the way
+`introStats()` reads its own, so the line cannot say 137 while the head
+says 138; guard 131 refuses a typed count. The line is dated: the Clayface
+trigger patch (23 October 2026) removes it, and the guard clause and the
+smoke check leave with it.
 
 ### `v`
 
@@ -1817,7 +1844,7 @@ handed. Together that meant tapping a card on your own home screen moved you
 into an ordering you had not asked for and raised the borrowed-view banner.
 
 Home calls `buildGroups()` now — the same function The Path uses, already cached
-on mode, scope and format — so the grid is the eras, the universes or the
+on mode, scope, format and tier — so the grid is the eras, the universes or the
 decades depending on where you are, and the card number is whatever that
 grouping already computed. `goToGroup()` keeps its mode line, because Progress
 genuinely needs it: tapping an era slice while your path is By universe has to
@@ -2184,24 +2211,49 @@ follow, from the 5.3.0 audit's C-9:
   Batwheels (TV-Y then TV-Y7), the Robot Chicken DC specials (TV-MA then
   TV-14). Each show now takes one source: the current HBO Max listing for
   the three it carries (The Batman TV-Y7, Justice League TV-Y7, Batwheels
-  TV-Y) and Adult Swim's own content-rating archive for the specials
-  (TV-14-DLSV, all three). Justice League Unlimited stays TV-Y7-FV: already
-  one source, already consistent. Guard 92's distribution names every move.
+  TV-Y). 5.3.1 sent the Robot Chicken specials to "Adult Swim's own
+  content-rating archive" (TV-14-DLSV, all three); the 5.3.1 audit found
+  that archive to be a fan-maintained Google Site, while HBO Max — the
+  source every other show takes — files "Robot Chicken: DC Comics" TV-MA
+  with all three specials under it, and Prime Video agrees. So 5.4.0 applies
+  the rule as written: the three specials are TV-MA off HBO Max, and
+  Justice League Unlimited, whose TV-Y7-FV had no source named, is TV-Y7
+  ×3 off its own HBO Max listing (the FV descriptor is a broadcast artefact
+  the badge never rendered). Guard 92's distribution names every move.
 - **A season's `y` is the year its slug froze on.** Four seasons straddle a
   new year and carry the later one — Batman Beyond S2 (premiered Sept 1999,
   `y:2000`), STAS S3 (Sept 1998, `y:1999`), JLU S3 (Sept 2005, `y:2006`),
   Brave and the Bold S2 (late 2009, `y:2010`) — against the premiere-year
   line the other rows follow. The slugs are frozen and guard 84 allows
   exactly one slug/year mismatch, so the rows stand and the convention is
-  the sentence: `y` is the year the slug carries, and for a season that
-  straddles a year it is the later one. Widening guard 84's exception list
-  would have taught the guard to accept more mismatches, the opposite of
-  its job, for four rows nobody has ever mis-filed.
+  the sentence, and only the sentence: `y` is the year the slug froze on.
+  (5.3.1 added "for a season that straddles a year it is the later one",
+  and Batman Beyond S3, The Batman S5, Young Justice S4 and TAS S2 all
+  straddle and carry the earlier — the clause described four rows and
+  contradicted four others, so 5.4.0 struck it.) Widening guard 84's
+  exception list would have taught the guard to accept more mismatches, the
+  opposite of its job, for four rows nobody has ever mis-filed.
+- **A running season carries no clock (5.4.0).** 4.9.0 retired "and
+  counting" from the catalogue — nothing in it needs a clock to stay true —
+  and 5.3.0 and 5.3.1 each put one back (Teen Titans Go! "and counting",
+  Batwheels Season 3 "so far") without recording the reversal. Both rows
+  are clockless again. A running season's `ep` is the count that had aired
+  at the cut that last touched the row, and it moves with the next cut that
+  touches the catalogue for its own reason — a catalogue fact like any
+  other, never a dated obligation of the tree's (guard 140's `Expires` stays
+  the only clock).
 
 And two titles: *Knightfall* Parts 2 and 3 were carried under the comics'
 arc names, which are not announced titles and double as spoilers for the
 trilogy's shape; they are "Part Two" and "Part Three" until Warner names
-them (5.3.1). The slugs, as ever, do not move.
+them (5.3.1), and Part 1 is "Part One: Knightfall" (5.4.0) — every other
+split title in the file spells its part (DKR, Long Halloween, Crisis, RWBY;
+DKR normalised from Warner's own "Part 1/Part 2"), and the official subtitle
+stays. The slugs, as ever, do not move: `knightfall-part-2-knightquest-2026`
+and `knightfall-part-3-knightsend-2027` still carry the arc names, and
+surface in `exportJSON()` keys and every `data-id` — a frozen id is display
+text nowhere, and the rule that freezes it outranks the one that hides the
+word. Part Two's blurb states its premise and not Part One's turn.
 
 ## Counting the suites
 
@@ -2317,6 +2369,78 @@ turn the suite red for the wrong reason; four more axe states (Darker Home,
 Progress with the restore box and folds open, The Path with the belt
 dropped, Next up on a bag) and the forced-colors repaint read under
 emulation rather than pinned as text.
+
+### What the harness proved about itself in 5.4.0
+
+The 5.3.1 audit read the 5.3.1 harness the same way and left residuals,
+each again fixed by shape:
+
+- **The pristine signature existed for one run shape.** `_lib.sh` captured
+  a signature of the unscoped guards run only; the 93 smoke fixtures and
+  the 15 `--bless` fixtures were held against nothing, so on a tree whose
+  smoke was already red a no-mutation smoke fixture passed (the audit
+  planted one). Every shape a fixture can ask for has a signature now —
+  `guards`, `guards --bless`, and each smoke phase (`smoke.main`,
+  `smoke.identity`, `smoke.css`, `smoke.blocked`, `smoke.full`) — captured
+  lazily the first time a suite asks, on the healed tree, before the
+  mutation; a red one prints `PRISTINE RED (<shape>)` and counts a
+  failure. A scoped smoke run costs 20–40 s and 34 suites carry smoke
+  fixtures, so `run-all.sh` captures the shapes the picked suites use once
+  for the whole wall (four runs in parallel on one unmutated tree; `census.js
+  --phases` says which) and hands them in through `NEG_PRISTINE`; a
+  standalone suite still captures its own. The one phase the harness
+  refuses ("everything", negtest220's own fixture) has no signature, since
+  the refusal is what that fixture tests. The heal also restores shape:
+  a directory a mutation created is removed, an executable bit it flipped
+  is put back (the pristine tree's `find -perm -u+x` list) — a full mode
+  restore is not done, and no fixture writes one.
+- **Guard 158 dropped one shape and read aliases from one spelling**, and
+  its gate test was presence, not dominance. `S[kind][id] = 1` (the shape
+  `stampMark()` uses for clocks) was dropped instead of sent to the opaque
+  list; `var box = {m:S.rated}; box.m[id] = 5` was invisible because an
+  alias was read only off a bare `= S.<mark>`; and `if(isParkedId(id))
+  log(); S.watched[id] = 1;` counted as gated because the call existed
+  somewhere in the loop. Every reference to a mark object is now
+  classified by the node that holds it (member object, argument, assignment
+  target, `for-in`/`in` right side, `delete` — and a literal handed
+  straight to a listed reader, which is how `exportJSON()` reads), anything
+  else is an alias; a computed key in a write or an alias position is
+  opaque, which only `restore()` and `mergeTab()` may hold (and, for reads,
+  the payload serializer and `stampOut()`); and the gate must dominate the
+  write — in the test of the if/?:/&&/|| whose branch holds it, or an
+  earlier `if(<test>) return|continue|break|throw` of the same block. Two
+  more planted doors, two reds, and the seat written `else if(!isParkedId
+  (id))` stays green. The 5.3.1 spelling pins beside it (the three sweeps,
+  `favList()`'s gate) are shape predicates, as the Records line said they
+  would be.
+- **Guard 159's brand rule was a blocklist and its state pins were
+  whole-rule regexes.** Twelve named selectors could not be painted; a
+  thirteenth (`.wordmark span`) could. The rule is an allowlist now: a rule
+  inside the forced-colors block may carry `forced-color-adjust:none` only
+  if every selector in it is a painted state the section lists, and a new
+  one is added after a look. The five state pins read the block at the
+  declaration level — a rule is its selector set and its property map, so a
+  reordered selector or declaration stays green and a missing one goes red.
+- **Guard 67 chose the date off the record and never checked the record.**
+  Bless, then edit `llms.txt` again in the same cut (RELEASING allows it):
+  the sitemap already said today, the tree was green with a stale record,
+  and the next release would have gone red for the wrong reason. A verify
+  run requires the record's hash to be the file's.
+- **Guard 138 credited blind.** A pinned fixture whose phrase is in no
+  section's text is credited on its pin alone — honest as long as the wall
+  is green, since the wall reports a mis-aimed pin at run time, but the
+  static map over-states. The note counts them and names the sections
+  covered only that way (§61 and §117 at this cut).
+- **Smaller.** The smoke check that poisons `clocksOf()` counts the calls
+  the stub took, so a merge that stopped calling it cannot pass the check
+  having proved nothing; `qa/negative/census.js` is required inside a
+  readable `fail()` and its three readers skip when it is broken, instead
+  of the run crashing at §65; negtest560 reads `security.txt` under `$SRC`
+  like every other path; a bag's note ends on the suffix README states and
+  no ordered universe wears it (§155, the seven notes themselves — until
+  now only `cardBlurb()`'s stripper was tested); and the last spelling pins
+  the audit named (`tickUpdate()`'s inert patch and keep option, the two
+  dirty marks, `searchApply()`'s two `hidden` writes) read the tree.
 
 ## The plain-text export carries one ordering
 

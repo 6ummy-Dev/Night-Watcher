@@ -58,7 +58,8 @@ erase in memory only, where the next tick would persist a half-merged blob.
    adopted `resetAt`: take the incoming state for that mark, present or
    absent (an absent mark with a newer clock is a tombstone). A parked
    entry's mark is never adopted (guard 158). The clocked loops carry an
-   id this build cannot render (a newer build's title) on purpose — see §4.
+   id this build cannot render (a newer build's title) on purpose — see §3,
+   "The JSON export", where the exception is stated.
 3. `applyMarks()` adds whatever remains that neither side has clocked.
 4. Watched beats skipped unless the skip's clock is newer.
 5. The log is merged for watched entries.
@@ -119,9 +120,15 @@ not refused, and not kept in state: `applyMarks()` admits only catalogue
 ids, so the file itself is what preserves them, and restoring it again on a
 newer build recovers them (the same rule as an unknown hash in a backup
 code). The one exception is the cross-tab merge's clocked loops (§1), which
-carry a clocked id from a newer build's tab on purpose — `backlog.md` and
-`NOTES.md` under `applyMarks()` record it as accepted. The log is merged when present; otherwise watched entries get a
-fresh timestamp. Like the code, it carries no clocks and merges additively. The
+carry a clocked id from a newer build's tab on purpose — `NOTES.md` records
+it as accepted under the storage listener's own entry
+(`window.addEventListener("storage", …)`, in the Script section). The log
+is merged when present (`mergeLog()`: catalogue ids, released, a timestamp
+after the epoch, one entry per id), and any watched entry the merge did not
+leave a night for — a file with no log, or a file whose entries for that
+title were all refused — gets a fresh timestamp (5.4.0; until then the
+fallback ran only when the log was absent). Like the code, it carries no
+clocks and merges additively. The
 "Save to a file" button keeps a `FileSystemFileHandle` in IndexedDB
 (`nw-backup-handle`) so later saves refresh the same file; the handle is
 device-local and never part of any format.

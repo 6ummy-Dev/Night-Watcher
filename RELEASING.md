@@ -38,9 +38,10 @@ produced it: `NOTES-history.md`.)
    the share card's hash); a second is only ever needed if something was
    edited after the first.
 4. **The suites.** `npm test` (guards + smoke), then the negative matrix:
-   `bash qa/negative/run-all.sh` (≈63 CPU-minutes — ~32 minutes on two idle
-   cores, ~35 on two shared ones, measured for 5.3.1 with 1,302 fixtures;
-   suite numbers can
+   `bash qa/negative/run-all.sh` (≈84 CPU-minutes under `time` — 44 minutes
+   on two shared cores, measured for 5.4.0 with 1,337 fixtures; the first
+   three minutes are the four pristine smoke signatures the wall captures
+   once and hands to every suite; suite numbers can
    be passed to run one). **The full wall, not a selection, before any cut**:
    several guard messages have fixture twins in suites far from the change —
    the listener count alone is pinned from three different suites — and a

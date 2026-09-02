@@ -202,7 +202,7 @@ run_case "the here group loses its outline under forced colors" \
   guards "" 159
 
 run_case "the forced-colors block paints the wordmark" \
-  "paints brand chrome" \
+  "with forced-color-adjust:none — the palette is the reader's" \
   "${P}a='.group.here{outline:2px solid Highlight;outline-offset:2px;}\n';assert a in s;s=s.replace(a,a+'.wordmark{forced-color-adjust:none;color:#FFCF1F;}\n',1);${W}" \
   guards "" 159
 

@@ -2,7 +2,10 @@
 <!--
   Two URLs, and the home page is FIRST: guard 67 reads the first <lastmod>
   here and holds it against the JSON-LD dateModified, the newest CHANGELOG
-  date and the BUILT line. llms.txt is listed because nothing else on the
+  date and the BUILT line; the second <lastmod> is llms.txt's own, held to
+  qa/llms-txt.json (the file's hash and the release that last changed it —
+  the same date until the body changes, the newest release when it does).
+  llms.txt is listed because nothing else on the
   open web points at it. The plain-text catalogue export is deliberately NOT
   listed (guard 105 fails the build if it ever is): it carries the same
   entries as the crawlable seed in the root page, and submitting both asks
@@ -19,7 +22,7 @@
   </url>
   <url>
     <loc>https://nightwatcher.life/llms.txt</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-09-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>

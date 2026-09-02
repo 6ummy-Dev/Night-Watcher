@@ -14,6 +14,187 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [5.4.0] — 2026-09-02
+
+**The day has a name.** Batman Day is 19 September, and the page says
+so: one dated sentence, first in Next up's closing note, with the
+shelf's own counts — the one thing on the shelf that was not a fix,
+and what makes this a MINOR (the owner's call, from the Batman Day
+plan; a fixes-only cut is a PATCH by README's rule, and this cut is
+everything else). Everything else is the 5.3.1 audit closed whole — 2
+P2 · 18 P3 (6 P2 · 14 P3 by the report's own count; four of its P2s
+were residuals of 5.3.0 findings and are counted with them here) — and
+every item the backlog and the open list still carried that a tree can
+hold: nothing deferred, nothing parked, the two MAJOR-only items in
+NOTES.md's "Open" section exactly as they were. The line is dated and
+the Clayface trigger patch (23 October) removes it; that patch was
+already on the calendar.
+
+### Added
+
+- **Batman Day, 19 September.** "Eighty-seven years, 137 films, 69
+  seasons, 44 continuities — and one map through all of it. Start
+  anywhere." opens Next up's closing note, in the same paragraph as the
+  two watching truths: one flow, one diamond, no banner, no new surface
+  (the plan's season-shaped line, which reads fine either side of the
+  day, over a day-of line with a removal patch of its own). The counts
+  are read off the shelf at render time, the way the intro's are, so the
+  line cannot disagree with the head; guard 131 refuses a typed one, and
+  the smoke check reads the rendered sentence against its own count.
+  Not in the crawler seed: the page's crawlable answer to the count is
+  the FAQ it has carried since 5.2.x, and this line is for the person on
+  the page.
+
+### Fixed
+
+- **The Robot Chicken specials are TV-MA, and JLU is TV-Y7.** 5.3.1
+  filed the two DC specials TV-14 "off Adult Swim's own rating archive";
+  the audit found that archive to be a fan-maintained Google Site, while
+  the one source the release had chosen for every other show — the
+  current HBO Max listing — files "Robot Chicken: DC Comics" TV-MA with
+  all three specials under it (Prime Video agrees), so the R / TV-MA
+  chip was passing two specials the streamer flags TV-MA. All three are
+  TV-MA off the same page as The Batman, Justice League and Batwheels.
+  And *Justice League Unlimited*, whose TV-Y7-FV had no source named, is
+  TV-Y7 ×3 off its own HBO Max listing — the FV descriptor is a
+  broadcast artefact the badge never rendered, and it leaves the
+  distribution (guard 92: TV-MA 12 → 15, TV-14 13 → 10, TV-Y7 20 → 23,
+  TV-Y7-FV 3 → 0). Six certificates, one source each.
+- **A row re-inserted under a live search kept its place, not its
+  `hidden`.** Arm *Watched up to here*, type a query the row does not
+  match, let the four-second disarm fire: `rowUpdate()` rebuilt the row
+  through `filmRow(f)` alone and the non-matching row was back on the
+  shelf until the next full render (the audit's reproduction). Both
+  re-insert sites — `rowUpdate()` and the tick's `patchRow()` — hand the
+  row's own `hidden` through; guard 103 reads the argument; a smoke
+  check arms, searches and disarms.
+- **A JSON file whose log was all refused left its watched titles with
+  no night.** When the file carried a log, `mergeLog()` was the only
+  path, so a title whose every entry was refused (`ts:0`, since 5.3.1's
+  tightening) arrived watched and Progress printed no night for it. The
+  fresh-timestamp fallback runs for whatever the merge did not take, as
+  it always had for a file with no log.
+- **Three rows, said right.** *Legion of Super-Heroes*: 5.3.1 replaced
+  "No Batman in it" with "Batman sees her off", and Superman is the one
+  who takes Kara to the 31st century — Batman is in the opening rescue
+  and the S.T.A.R. Labs raid and not at the departure; it says so now.
+  *Knightfall* Part 1 is "Part One: Knightfall", in words like every
+  other split title in the file (the official subtitle stays; the slugs,
+  as ever, do not move, and NOTES says why the arc names survive in
+  them). Part Two's blurb states its premise and no longer Part One's
+  turn — the reason the arc names left the titles in 5.3.1.
+- **The two running seasons carry no clock.** 4.9.0 retired "and
+  counting" from the catalogue; 5.3.0 and 5.3.1 each put one back (Teen
+  Titans Go!, Batwheels Season 3) without recording the reversal. Both
+  rows are clockless again; a running season's `ep` is the count that
+  had aired at the cut that last touched the row and moves with the next
+  cut that touches the catalogue — a catalogue fact, never a dated
+  obligation of the tree's. Guard 140's `Expires` stays the only clock.
+- **The hero's separator is on the token.** `.hero .dsep` was `.45em`
+  of a 10px kick — 4.5px by arithmetic where every other small diamond
+  is `--dia-s` by name, the one size left that a font-size could move
+  (the item the backlog had parked as "equal today, left alone"). Same
+  pixels, one size system; guard 146 reads the token.
+
+### Changed
+
+- **The harness certifies every shape it runs.** `_lib.sh` held a
+  fixture's expected text against a pristine signature of the unscoped
+  guards run only — the 93 smoke fixtures and the 15 `--bless` fixtures
+  were held against nothing, so on a tree whose smoke was already red a
+  no-mutation smoke fixture passed (the audit planted one). Every run
+  shape has a signature now: `guards`, `guards --bless`, each smoke phase
+  and the full run, captured lazily on the healed tree before the
+  mutation, red ones printed as `PRISTINE RED (<shape>)` and counted;
+  `run-all.sh` captures the smoke shapes the picked suites use once for
+  the whole wall (four parallel runs on one unmutated tree, which
+  `census.js --phases` names) and hands them to every suite, so the wall
+  pays four captures and not forty-two. The heal restores shape as well
+  as content — a directory a mutation created, an executable bit it
+  flipped. negtest560 reads `security.txt` under `$SRC`, as every other
+  path is read, so a run from any directory but the root no longer falls
+  back to the live clock.
+- **Guard 158 reads every reference, and the gate must dominate.** Two
+  door shapes still walked past 5.3.1's census — a write through a
+  computed key (`S[kind][id] = 1`, the shape `stampMark()` uses for
+  clocks) was dropped instead of sent to the opaque list, and an alias
+  was read only off a bare `= S.<mark>`, so `var box = {m:S.rated};
+  box.m[id] = 5` was invisible — and the gate test was presence, so
+  `if(isParkedId(id)) log(); S.watched[id] = 1;` counted as gated. Every
+  reference to a mark object is classified by the node that holds it, a
+  computed key in a write or an alias position is opaque (only
+  `restore()` and `mergeTab()` may hold one; the payload serializer and
+  `stampOut()` for reads), and the gate must sit in the test of the
+  branch that holds the write or in an earlier `if(…) return|continue`
+  of the same block. Two more planted doors, two reds; a seat written
+  `else if(!isParkedId(id))` stays green. The 5.3.1 spelling pins beside
+  it — the three sweeps, `favList()`'s gate — are shape predicates, as
+  the Records line had claimed.
+- **Guard 159's brand rule is an allowlist.** Twelve named selectors
+  could not be painted under forced colors; a thirteenth (`.wordmark
+  span`) could. A rule inside the forced-colors block may carry
+  `forced-color-adjust:none` only if every selector in it is a painted
+  state the section lists; the five state pins read the block at the
+  declaration level, so a reordered selector or declaration stays green
+  and a missing one goes red.
+- **Smaller harness truths.** Guard 67 requires `qa/llms-txt.json` to
+  match the file, not only to choose a date off it (bless, then edit
+  `llms.txt` again in the same cut, and the tree was green with a stale
+  record until the next release went red for the wrong reason). Guard
+  138's note counts the fixtures it credits blind — a pinned fixture
+  whose phrase is in no section's text — and names the sections covered
+  only that way. The smoke check that poisons `clocksOf()` counts the
+  calls the stub took. `census.js` is required inside a readable
+  `fail()` and its three readers skip when it is broken, instead of the
+  run crashing at §65. Guard 155 holds the seven bag notes to README's
+  suffix and refuses it on an ordered universe (until now only
+  `cardBlurb()`'s stripper was tested — 5.3.1 fixed a note by hand).
+  Guard 31 counts the no-Batman exception off a list, so README's
+  "eight entries qualify" cannot be typed again while the set moves.
+  Guard 145 requires ARCHITECTURE.md to name every top-level function,
+  and it names all 197. The last spelling pins the audit listed —
+  `tickUpdate()`'s inert patch and keep option, the two dirty marks,
+  `searchApply()`'s two `hidden` writes — read the tree. negtest700, one
+  fixture per new clause, every one shown to fail; older fixtures
+  re-aimed where this cut moved their anchors.
+- **Documents.** `docs/fonts/OFL.txt` declares the Limelight subset as
+  a Modified Version renamed NW Deco, in the paragraph the Plex files
+  already had. README: "Eight entries qualify"; the negative-suites row
+  says what CONTRIBUTING's naming rule says; the weight line. NOTES:
+  the running-season convention, the certificate sources as they are
+  now, the premiere-year convention without the clause that contradicted
+  four rows (Batman Beyond S3, The Batman S5, Young Justice S4 and TAS S2
+  straddle and carry the earlier year), `groupCache`'s second mention
+  keyed on tier, `yearSpan()`'s animated floor (1991 at the default
+  tier, 1993 with Optional off — where no animated series is left at
+  all), the day line, the two fixes, and what the harness proved about
+  itself in 5.4.0. DATA-MODEL: the "§4" pointer (§3), the `backlog.md`
+  pointer (the storage listener's entry in NOTES), the JSON import's
+  night rule. ARCHITECTURE names every function, `dayLine()` included.
+  The sitemap's comment and `llms.txt`'s last line describe both URLs'
+  date rules. Six counts in the 5.3.1 entry corrected in place, below.
+
+### Records
+
+Six ledger corrections in place, all in the 5.3.1 entry, from the
+5.3.1 audit: "Twelve certificates" is fourteen rows (guard 92's
+comment said twelve too); "the 245 KB document" was decimal kB of the
+5.3.0 file beside "243 KB raw" in KiB — 240 KB in the file's own
+convention; "twenty-one older suites touched" is twenty-four;
+"negtest610's 113 guards fixtures" is 114; "§156 reads the floor
+constants" is §157; "Two ledger corrections in place" was one in-tree
+edit and one correction of the audit's attribution; and "two green
+cases" cover two of the three predicates (the adopt set has none).
+Harness: guard sections 159 → 159 (every change is a clause, or a
+predicate replacing a pin), smoke 481 → 488, negative suites
+78 → 79 (negtest700, 35 fixtures, every new clause shown to fail),
+fixtures 1,302 → 1,337, browser checks 117 → 117, the wall
+≈84 CPU-minutes under `time` (44 min on two shared cores; the four
+shared pristine smoke signatures are three minutes of it; six older
+suites touched where this cut moved their anchors — 195, 250, 300, 530,
+560, 690). Weight: 243 KB raw / 68 KB gzip against
+250/80.
+
 ## [5.3.1] — 2026-09-02
 
 **The two 5.3.0 QAs, whole.** A PATCH, because nothing here adds an
@@ -48,7 +229,7 @@ the MAJOR that hosts them both.
   or function that holds it. Five planted shapes, five reds. The three
   spelling pins beside it (the sweep calls, the listener's `try`, the
   adopt set) are predicates, so a reindent stays green — two green
-  cases say so.
+  cases say so for two of the three.
 - **An adopted path left the mode behind.** The 5.3.0 settings adopt set
   `S.path` and not `S.mode`, so The Path wore the shared-link banner
   ("Viewing Bruce's life. Your path is Release order.") for a screen;
@@ -72,7 +253,7 @@ the MAJOR that hosts them both.
   paint). The boot block builds the deck first; the first layout is four
   empty panels. Guard 120 gained the boot clause its order clause could
   not see.
-- **Twelve certificates, each with a source.** Harley Quinn's
+- **Fourteen certificates, each with a source.** Harley Quinn's
   Valentine's special is TV-MA, not TV-14 — the R / TV-MA chip was
   letting it through. *Teen Titans: The Judas Contract* and *Reign of
   the Supermen* carry MPA certificates (PG-13; NR means none was ever
@@ -123,7 +304,7 @@ the MAJOR that hosts them both.
   chose. Guard 159 pins each rule and refuses a brand override; the
   browser check reads the repaint under emulation.
 - **`sw.js` skips a rewrite when nothing moved.** Every load deleted
-  and re-put the 245 KB document and ~65 KB of fonts out of a
+  and re-put the 240 KB document and ~65 KB of fonts out of a
   304-refreshed HTTP-cache entry; the cached entry's ETag is compared
   first. Guard 132 drives both branches.
 
@@ -185,7 +366,7 @@ the MAJOR that hosts them both.
   for the wrong reason. Four censuses of "which fixtures are smoke"
   (guards 65, 113, 138, `run-all.sh`) are one module,
   `qa/negative/census.js`, and the wall dispatches by real weight
-  (negtest610's 113 guards fixtures sorted at `000` behind every
+  (negtest610's 114 guards fixtures sorted at `000` behind every
   one-smoke suite). The byte-identity drive is its own phase
   (`SMOKE_ONLY=identity`; 71 main-scoped fixtures each paid its 22 s);
   the css sweep runs its staged states before the tab walk (57 → 35 s).
@@ -194,7 +375,7 @@ the MAJOR that hosts them both.
   rated night — and the forced-colors repaint observed under emulation.
   Guard 67 dates the sitemap's second URL by the bless pattern
   (`qa/llms-txt.json`). `until()` deleted; the "seven"/"two"/"four"
-  strings corrected; §156 reads the floor constants off the tree; the
+  strings corrected; §157 reads the floor constants off the tree; the
   Playwright cache keyed on its version.
 - **Documents.** README deploys with the pinned script (`npm run deploy`;
   a `rollback` script joins it) and gains rows for `_lib.sh`,
@@ -223,7 +404,7 @@ the MAJOR that hosts them both.
 
 ### Records
 
-Two ledger corrections in place: the 5.1.1 entry's "refuses
+One ledger correction in place: the 5.1.1 entry's "refuses
 `routeText()` coming back by any name" now says "by its shipped
 names" — 5.3.0 softened the census to what it can see and the older
 line went on claiming more; and the 5.3.0 audit's own "≈ −20 s off
@@ -233,7 +414,7 @@ runs unscoped; the phase saves the wall, the css reorder saves the run
 section; every change is a clause or a predicate replacing a pin), smoke
 462 → 481, negative suites 77 → 78 (negtest690, 47 fixtures, every
 guard shown to fail), fixtures 1,258 → 1,302, browser checks 108 → 117,
-the wall ≈63 CPU-minutes (~32 min on two idle cores; twenty-one older
+the wall ≈63 CPU-minutes (~32 min on two idle cores; twenty-four older
 suites touched where this cut moved their anchors). Weight: 243 KB
 raw / 67 KB gzip against 250/80.
 

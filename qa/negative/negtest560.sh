@@ -198,7 +198,10 @@ unset CI
 # 5.3.1: the pin is DERIVED from the file's own Expires (17 days before it),
 # so guard 140's renewal in 2027 cannot move this fixture into the ">366
 # days" branch and turn the suite red for the wrong reason on renewal day.
-NW_EXP="$(sed -n 's/^Expires: \([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\).*/\1/p' docs/.well-known/security.txt)"
+# 5.4.0: read under "$SRC" like every other path a suite opens — from any
+# cwd but the root the relative path found nothing, NW_TODAY fell back to
+# the live clock, and the suite went red for the wrong reason after all.
+NW_EXP="$(sed -n 's/^Expires: \([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}\).*/\1/p' "$SRC/docs/.well-known/security.txt")"
 export NW_TODAY="$(python3 -c "import datetime,sys;print((datetime.date.fromisoformat(sys.argv[1])-datetime.timedelta(days=17)).isoformat())" "$NW_EXP")"
 run_case "the clock pinned a fortnight before expiry goes red" \
   "renew the Expires field" \

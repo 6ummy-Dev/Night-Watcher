@@ -109,7 +109,7 @@ s=s.replace(a,'  if(S.tab !== \"watch\"){\n    var keep = null;',1);${W}"
 
 run_case "and the gate catches a repaint that goes stale" \
   "surgical paths are byte-identical to a full render" \
-  "${P}a='''  scratch.innerHTML = filmRow(f);
+  "${P}a='''  scratch.innerHTML = filmRow(f, row.hidden);
   row.parentNode.replaceChild(scratch.firstChild, row);
   var gm''';assert a in s
 s=s.replace(a,'''  var gm''',1);${W}" \
@@ -135,8 +135,8 @@ run_case "the tick goes back to rebuilding the whole group" \
 s=s.replace(a,'  var gbx = groupBlock(g, S.q.toLowerCase());\n  var gm = head.querySelector(\".meta\");',1);${W}"
 
 run_case "the row builder is inlined instead of shared" \
-  "does not rebuild the row through filmRow()" \
-  "${P}a='''  scratch.innerHTML = filmRow(f);
+  "does not rebuild the row through filmRow(f, row.hidden)" \
+  "${P}a='''  scratch.innerHTML = filmRow(f, row.hidden);
   row.parentNode.replaceChild(scratch.firstChild, row);
   var gm''';assert a in s
 s=s.replace(a,'''  scratch.innerHTML = String(f.id);

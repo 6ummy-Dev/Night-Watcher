@@ -271,7 +271,15 @@ function graphOrder(graph){
 var FIXTURE_CENSUS = null;
 function fixtureCensus(){
   if(FIXTURE_CENSUS) return FIXTURE_CENSUS;
-  FIXTURE_CENSUS = require(path.join(__dirname, "negative", "census.js")).census(path.join(__dirname, "negative"));
+  /* 5.4.0: a missing or broken census used to crash the run at its first
+     reader (§65) — caught by the handler above, red, but "the sections after
+     it never ran". It fails readably instead and the three readers skip. */
+  try {
+    FIXTURE_CENSUS = require(path.join(__dirname, "negative", "census.js")).census(path.join(__dirname, "negative"));
+  } catch(e){
+    FIXTURE_CENSUS = {broken: String((e && e.message) || e).replace(/\s+/g, " ").slice(0, 120),
+                      suites: [], totals: {suites: 0, fixtures: 0, smoke: 0, guards: 0, weight: 0}};
+  }
   return FIXTURE_CENSUS;
 }
 function sections(){
@@ -2532,6 +2540,30 @@ if(README.indexOf("## What belongs in the catalogue") < 0){
            "settle the cases on the line, and those are the cases");
     }
   });
+}
+
+/* 5.4.0, from the 5.3.1 audit: THE EXCEPTION IS COUNTED. "Seven entries
+   qualify" had been eight since 5.3.1's Hell to Pay blurb; the sentence
+   was typed while the set moved. The set is a list here — an entry with no
+   Batman and no Gotham admitted as a link in a continuity that is here for
+   Batman, the rule's own words — each blurb must say he is not in it, and
+   README's number is the list's length. A new one is added after a look,
+   never inferred: "no Batman" alone also describes the Gotham stories
+   (Birds of Prey, Joker) that are in by a different bullet. */
+var NO_BATMAN_LINKS = ["superman-the-animated-series-season-1-1996", "superman-man-of-tomorrow-2020",
+                       "justice-society-world-war-ii-2021", "green-lantern-beware-my-power-2022",
+                       "man-of-steel-2013", "wonder-woman-bloodlines-2019", "constantine-city-of-demons-2018",
+                       "suicide-squad-hell-to-pay-2018"];
+NO_BATMAN_LINKS.forEach(function(id){
+  var f = FILMS.filter(function(x){ return x.id === id; })[0];
+  if(!f) fail(id + " is on the no-Batman exception list and not in the catalogue");
+  else if(!/no Batman/i.test(f.d)) fail(id + " is admitted by the exception (no Batman, no Gotham, a link in the chain) and its description no longer says he is not in it — the rule requires the sentence");
+});
+var WORDS = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"];
+var qualify = (README.match(/\b(\w+) entries qualify\b/) || [])[1];
+if(qualify !== WORDS[NO_BATMAN_LINKS.length]){
+  fail("README says \"" + qualify + " entries qualify\" for the no-Batman exception and the list here has " + NO_BATMAN_LINKS.length +
+       " — the count moved with a blurb, or the list did not");
 }
 
 var readmeStale = ["QR", "qrcode", "scannable", "Kazuhiko"];
@@ -5022,6 +5054,10 @@ if(!/function legendBlock/.test(HTML) ||
          share, so a fixture one counter could not read cannot be counted by
          the others and not by it. */
       var cen = fixtureCensus();
+      if(cen.broken){
+        fail("qa/negative/census.js could not be read (" + cen.broken + ") — guards 65, 113 and 138 and " +
+             "run-all.sh all read the fixture corpus through it; a missing or broken census switches the three off");
+      } else {
       counts.push(["negative suites", cen.totals.suites, /(\d+)\s+negative suites\b/]);
       counts.push(["negative fixtures", cen.totals.fixtures, /(\d+)\s+fixtures\b/]);
       /* 3.9.2: THE SPLIT IS GUARDED TOO. qa.yml's cost comment said "the counts
@@ -5030,6 +5066,7 @@ if(!/function legendBlock/.test(HTML) ||
          freely. */
       counts.push(["run guards.js", cen.totals.guards, /(\d+)\s+run guards\.js/, "qa.yml"]);
       counts.push(["run smoke.js",  cen.totals.smoke,  /(\d+)\s+run smoke\.js/,  "qa.yml"]);
+      }
     }
 
     /* Every place a live count is stated, not only the README. 1.8.3 fixed the
@@ -5354,6 +5391,15 @@ if(!/function legendBlock/.test(HTML) ||
     var llmsSha = require("crypto").createHash("sha256").update(fs.readFileSync(llmsPath)).digest("hex");
     var rec = fs.existsSync(LLMS_REC) ? JSON.parse(fs.readFileSync(LLMS_REC, "utf8")) : null;
     var want = rec && rec.sha256 === llmsSha ? rec.lastmod : rel;
+    /* 5.4.0, from the 5.3.1 audit: the hash chose the date but was never
+       itself required to match. Bless, then edit llms.txt again in the same
+       cut (RELEASING allows it): the sitemap already carries today's date,
+       want === rel, and the tree is green with a stale record — until the
+       next release goes red for the wrong reason. A verify run requires the
+       record to be current. */
+    if(!BLESS && rec && rec.sha256 !== llmsSha){
+      fail("llms.txt changed since qa/llms-txt.json was blessed (the record's hash is not the file's) — the sitemap's date for it is chosen off a stale record. Fix with: npm run bless");
+    }
     if(llmsLast !== want){
       if(BLESS){
         var sm2 = sm.replace(llmsBlock, llmsBlock.replace(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/, "<lastmod>" + want + "</lastmod>"));
@@ -6906,14 +6952,21 @@ var ROUTE_VOCAB = [
      disagreed with no source named — the current HBO Max listing: The
      Batman TV-Y7 ×5 (was TV-G ×2, TV-Y7-FV ×3), Justice League TV-Y7 ×2
      (was TV-G), Batwheels Season 3 TV-Y (was TV-Y7; the show is TV-Y), and
-     the Adult Swim content-rating archive for the two Robot Chicken DC
-     specials TV-14 (was TV-MA; all three specials aired TV-14-DLSV).
-     JLU's TV-Y7-FV stays: one show, one source, already consistent. A
+     "the Adult Swim content-rating archive" for the two Robot Chicken DC
+     specials TV-14 (was TV-MA). 5.4.0, from the 5.3.1 audit: that archive
+     is a fan-maintained Google Site, not the network's, and the one source
+     the release had chosen for every other show says otherwise — the
+     current HBO Max listing files "Robot Chicken: DC Comics" TV-MA with all
+     three specials under it (Prime Video and TVDB agree), so the three are
+     TV-MA off the same page as The Batman, Justice League and Batwheels;
+     and Justice League Unlimited, whose TV-Y7-FV had no source named, is
+     TV-Y7 ×3 off its own HBO Max listing — the FV descriptor is a broadcast
+     artefact the badge never rendered, and it leaves the distribution. A
      drifted count here means an entry gained, lost or changed a rating
      nobody sourced. */
   var EXPECT = {"PG-13":57, "PG":18, "R":18, "G":1, "NR":26,
-                "TV-PG":19, "TV-G":11, "TV-Y7":20, "TV-MA":12, "TV-14":13,
-                "TV-Y7-FV":3, "TV-Y":3};
+                "TV-PG":19, "TV-G":11, "TV-Y7":23, "TV-MA":15, "TV-14":10,
+                "TV-Y":3};
   var got = {}, rated = 0;
   FILMS.forEach(function(f){
     if(f.b.indexOf("u") >= 0){
@@ -7855,7 +7908,18 @@ var ROUTE_VOCAB = [
      another panel patches the INERT Path panel too, instead of dirtying it
      for a 2,700-element rebuild at idle. The pins below read the pair. */
   var tu = fn("tickUpdate") + "\n" + fn("patchRow");
-  if(!/patchRow\(panelOf\("watch"\), id\)/.test(fn("tickUpdate")) || !/keep:keep/.test(fn("tickUpdate"))){
+  /* 5.4.0: read off the tree, not the spelling — a patchRow() call whose
+     first argument is panelOf("watch"), and a render() handed an object
+     with a keep key, both inside tickUpdate(). */
+  var inertPatch = false, keptRender = false;
+  walk(fnNode("tickUpdate"), function(n){
+    if(n.type !== "CallExpression") return;
+    var c = calleeName(n.callee), a0 = n.arguments[0];
+    if(c === "patchRow" && a0 && a0.type === "CallExpression" && calleeName(a0.callee) === "panelOf" &&
+       a0.arguments[0] && a0.arguments[0].value === "watch") inertPatch = true;
+    if(c === "render") walk(a0, function(m){ if(m.type === "Property" && (m.key.name || m.key.value) === "keep") keptRender = true; });
+  });
+  if(fnIndex() && !(inertPatch && keptRender)){
     fail("a tick from another panel no longer patches the inert Path row-level — the panel is dirtied and rebuilt whole at idle (the 175–225 ms task the 5.3.0 audit measured)");
   }
   if(!/S\.tab !== "watch" \|\| S\.filter !== "all" \|\| S\.q/.test(tu)){
@@ -7873,10 +7937,18 @@ var ROUTE_VOCAB = [
          "no remembered size for it, and it renders at contain-intrinsic-size " +
          "\u2014 3418px to 66px, measured. The tick repaints a ROW");
   }
-  if(!/filmRow\(f\)/.test(tu)){
-    fail("tickUpdate() does not rebuild the row through filmRow() \u2014 whatever " +
-         "it does instead is a second implementation of the row, and the smoke " +
-         "gate exists because that is how the two drift");
+  /* 5.4.0, from the 5.3.1 audit: the row is rebuilt WITH the hidden it
+     had. searchApply() hides a row in place; a re-insert through filmRow(f)
+     alone brought a hidden row back — reproduced on the up-to-here disarm
+     timer under a live query. Both re-insert sites (patchRow, rowUpdate)
+     hand the row's own hidden through; a full render agrees. */
+  if(!/filmRow\(f, row\.hidden\)/.test(tu)){
+    fail("tickUpdate() does not rebuild the row through filmRow(f, row.hidden) \u2014 whatever " +
+         "it does instead is a second implementation of the row, or one that drops the hidden " +
+         "the live search gave it, and the smoke gate exists because that is how the two drift");
+  }
+  if(!/filmRow\(f, row\.hidden\)/.test(fn("rowUpdate"))){
+    fail("rowUpdate() re-inserts a row without its hidden \u2014 arm Watched up to here, type a query that hides the row, let the disarm timer fire: the row is back although it does not match");
   }
   if(!/gSub\(g\)/.test(tu) || !/gBarFill\(g\)/.test(tu)){
     fail("tickUpdate() no longer writes the group head through gSub()/" +
@@ -9301,6 +9373,7 @@ var ROUTE_VOCAB = [
      smoke fixtures, the same model run-all.sh dispatches by. */
   var weights = picks.map(function(){ return 0; });
   var cenW = {};
+  if(fixtureCensus().broken) return;
   fixtureCensus().suites.forEach(function(s){ cenW[s.file] = s.weight; });
   suites.forEach(function(f){
     /* 5.3.1: the weight (guards fixtures + 40 × smoke fixtures) comes from
@@ -11639,6 +11712,22 @@ var ROUTE_VOCAB = [
          "sentence will drift; that is guard 121's lesson, applied here " +
          "before the drift instead of after");
   }
+  /* 5.4.0: THE DAY HAS A NAME. Batman Day (19 September 2026) gets one
+     dated sentence on the page, and its seat is this note — first in the
+     same paragraph, one flow, no banner, no new surface (the plan's call:
+     a season-shaped line that reads fine either side of the day). Its
+     counts are read off the shelf (FILMS, PATH) the way introStats() reads
+     its own, never typed, so the line cannot say 137 while the head says
+     138. The line is dated and leaves with the Clayface trigger patch
+     (23 October 2026); this clause leaves with it. */
+  var dl = fn("dayLine");
+  if(!/Batman Day, 19 September\./.test(dl) || wn.indexOf("'+dayLine()+'Availability") < 0){
+    fail("the Batman Day line is gone from the closing note, or no longer opens it — one dated sentence, first in the same paragraph as the two watching truths, one flow (5.4.0)");
+  }
+  if(!/FILMS\.forEach/.test(dl) || !/PATH\.length/.test(dl) ||
+     /\d{2,}/.test(dl.replace(/\\u[0-9a-f]{4}/g, "").replace(/19 September/, "").replace(/^function dayLine[^{]*\{/, ""))){
+    fail("the Batman Day line types a count — its films, seasons and continuities are read off FILMS and PATH at render time, like introStats(), so the line and the head cannot disagree");
+  }
   if(/Progress saves automatically in this browser/.test(HTML)){
     fail("the saves-line is back in Progress — 4.2.2 removed it as a second " +
          "copy of the Your-data card's own first sentence, and two copies " +
@@ -12575,6 +12664,7 @@ var ROUTE_VOCAB = [
      are read the way bash reads them — by qa/negative/census.js since 5.3.1,
      the same reader 65, 113 and run-all.sh use. */
   var NO_SECT_PINNED = 754;  /* 5.3.1: six retrofitted a sect when the credit rule tightened (negtest161 ×2, 162, 180, 210 ×2); four exact duplicates struck (negtest162, 186, 250, 270) */
+  if(fixtureCensus().broken) return;
   fixtureCensus().suites.forEach(function(su){
     su.cases.forEach(function(c){
       if(c.helper !== "run_case") return;
@@ -12603,17 +12693,24 @@ var ROUTE_VOCAB = [
      not in that section's failure text and is in another's — a mis-aimed
      pin the wall reports at run time); an unpinned one credits only a
      UNIQUE match. The floor stays at twelve characters. */
-  var covered = {};
+  /* 5.4.0: a pinned fixture whose phrase is in NO section's text is
+     credited BLIND — honest as long as the wall is green (the wall reports
+     a mis-aimed pin at run time), but the static map over-states, so the
+     note says how many, and which sections are covered only that way. */
+  var covered = {}, seen = {}, blind = 0, blindOnly = [];
   expects.forEach(function(x){
     var q = norm(x.e.replace(/\\\$/g, "$"));
     if(q.length < 12) return;
     var hits = secs.filter(function(s){ return s.t.indexOf(q) >= 0; }).map(function(s){ return s.n; });
     if(x.sect){
-      if(hits.indexOf(x.sect) >= 0 || !hits.length) covered[x.sect] = 1;
+      if(hits.indexOf(x.sect) >= 0){ covered[x.sect] = 1; seen[x.sect] = 1; }
+      else if(!hits.length){ covered[x.sect] = 1; blind++; }
     } else if(hits.length === 1){
-      covered[hits[0]] = 1;
+      covered[hits[0]] = 1; seen[hits[0]] = 1;
     }
   });
+  Object.keys(covered).forEach(function(n){ if(!seen[n]) blindOnly.push(Number(n)); });
+  blindOnly.sort(function(a, b){ return a - b; });
 
   var uncovered = secs.map(function(s){ return s.n; })
                       .filter(function(n){ return !covered[n]; });
@@ -12638,6 +12735,8 @@ var ROUTE_VOCAB = [
     }
   });
   note("negative coverage: " + (secs.length - uncovered.length) + "/" + secs.length +
+       " (" + blind + " pinned fixtures credit blind — their phrase is in no section's text; " +
+       (blindOnly.length ? "§" + blindOnly.join(", §") + " covered only that way" : "no section covered only that way") + ") ·" +
        " sections mapped from " + expects.length + " fixtures, " + STILL_OWED.length +
        " still owed, " + noSect + " pre-4.2.4 fixtures without sect (pinned)");
 })();
@@ -13090,8 +13189,24 @@ var ROUTE_VOCAB = [
      at idle), {keep:{watch:1}} when a tick from another panel has already
      patched the inert Path row-level (patchRow). Its dirty mark carries
      that clause; tickUpdate()'s surgical path keeps the bare one. */
-  var dirtyMarks = (HTML.match(/NWTABS\.forEach\(function\(t\)\{\s*if\(t !== S\.tab(?: && !\(o && o\.keep && o\.keep\[t\]\))?\) nwDirty\[t\] = true;\s*\}\)/g) || []).length;
-  if(rb.indexOf("fillPanel(S.tab, c)") < 0 || dirtyMarks !== 2 || !/if\(!\(o && o\.quiet\)\) NWTABS\.forEach/.test(rb)){
+  /* 5.4.0: read off the tree — every `nwDirty[<tab>] = true` in the
+     program, the function it sits in, and whether the one in render() is
+     guarded by the quiet option and skips the keep set. */
+  var dirtyMarks = 0, dirtyIn = {}, quietGuard = false, keepSkip = false;
+  walk(FN_AST.body, function(n){
+    if(n.type === "FunctionDeclaration" && n.id){
+      walk(n.body, function(x){
+        if(x.type === "AssignmentExpression" && x.left.type === "MemberExpression" && x.left.object.name === "nwDirty" &&
+           x.left.computed && x.right.value === true){ dirtyMarks++; dirtyIn[n.id.name] = 1; }
+      });
+    }
+  });
+  walk(fnNode("render"), function(x){
+    if(x.type !== "IfStatement") return;
+    if(/o\.quiet/.test(srcOf(x.test)) && callsIn(x.consequent).indexOf("NWTABS.forEach") >= 0) quietGuard = true;
+    if(/o\.keep\[t\]/.test(srcOf(x.test)) && /nwDirty\[t\] = true/.test(srcOf(x.consequent))) keepSkip = true;
+  });
+  if(rb.indexOf("fillPanel(S.tab, c)") < 0 || dirtyMarks !== 2 || !dirtyIn.render || !dirtyIn.tickUpdate || !quietGuard || !keepSkip){
     fail("render() no longer fills the active panel and dirties the other " +
          "three — the dirty mark must appear exactly twice, render() and " +
          "tickUpdate()'s surgical path (found " + dirtyMarks + ") — a state " +
@@ -13127,7 +13242,14 @@ var ROUTE_VOCAB = [
   if(!qh || qCalls.indexOf("searchApply") < 0 || qCalls.indexOf("render") >= 0){
     fail("the search input handler no longer filters in place — a keystroke must go through searchApply() (hidden toggled on rows and groups) and never render(), or every keystroke rebuilds The Path and drops the caret");
   }
-  if(!/row\.hidden = hid;/.test(fn("searchApply")) || !/gel\.hidden = !shown;/.test(fn("searchApply"))){
+  /* 5.4.0: two distinct objects take a `.hidden` write inside searchApply()
+     — a row and its group — read as shape rather than as the two spellings. */
+  var hiddenOn = {};
+  walk(fnNode("searchApply"), function(x){
+    if(x.type === "AssignmentExpression" && x.left.type === "MemberExpression" && !x.left.computed &&
+       x.left.property.name === "hidden" && x.left.object.type === "Identifier") hiddenOn[x.left.object.name] = 1;
+  });
+  if(fnIndex() && Object.keys(hiddenOn).length < 2){
     fail("searchApply() no longer hides both the non-matching rows and the groups left empty — the in-place pass and a full render would disagree");
   }
   if(!/nwDirty\[t\]/.test(qn)){
@@ -13335,8 +13457,23 @@ var ROUTE_VOCAB = [
          "same commit");
     return;
   }
+  /* 5.4.0, from the 5.3.1 audit: THE MAP IS COMPLETE. ARCHITECTURE.md is
+     the reader's map of the script, and it had skipped 67 functions by
+     5.3.0 and 34 helpers still after 5.3.1 — a map that names most of the
+     streets drifts one release at a time. Every top-level declaration is
+     named in it (backticked, as `name(` or `name` — a table row or a prose
+     mention), so a function added without a line in the map fails here. */
+  var arch = fs.readFileSync(path.join(ROOT, "ARCHITECTURE.md"), "utf8"), unmapped = [];
+  FN_AST.body.forEach(function(n){
+    if(n.type !== "FunctionDeclaration" || !n.id) return;
+    if(!new RegExp("`" + n.id.name + "\\b").test(arch) && !new RegExp("/" + n.id.name + "\\b").test(arch)) unmapped.push(n.id.name);
+  });
+  if(unmapped.length){
+    fail(unmapped.length + " top-level function(s) are not named in ARCHITECTURE.md: " + unmapped.slice(0, 6).join(", ") +
+         (unmapped.length > 6 ? ", …" : "") + " — the map names every function in the script; add the name to the region it belongs to");
+  }
   note("every top-level function is a declaration; the index cannot be " +
-       "emptied by a style shift");
+       "emptied by a style shift; ARCHITECTURE.md names every one");
 })();
 
 /* ---------- 146. The hero wears the cut --------------------------------- */
@@ -13395,9 +13532,13 @@ var ROUTE_VOCAB = [
          "a character again — since 5.2.0 it is an empty aria-hidden <i> " +
          "the stylesheet draws, because no shipped face ever had ◆");
   }
-  if(!/\.hero \.dsep\{[^}]*width:\.45em;height:\.45em;background:var\(--signal\);transform:rotate\(45deg\)/.test(HTML)){
-    fail("the dsep stopped being drawn — the .45em rotated signal box is " +
-         "the diamond now; without the rule the separator is invisible");
+  /* 5.4.0: the dsep is sized by --dia-s like every other small diamond —
+     it was .45em of the kick's 10px, the same 4.5px by arithmetic rather
+     than by token, and the last size in the file that a font-size could
+     move (the item NOTES had parked). */
+  if(!/\.hero \.dsep\{[^}]*width:var\(--dia-s\);height:var\(--dia-s\);background:var\(--signal\);transform:rotate\(45deg\)/.test(HTML)){
+    fail("the dsep stopped being drawn on the token — the var(--dia-s) rotated signal box is " +
+         "the diamond now; a size in em is the kick's font-size back in charge of an ornament");
   }
   if(!/class="drule" aria-hidden="true"><i><\/i>/.test(head)){
     fail("the diamond rule left the hero — heroHead() draws it between the " +
@@ -14491,6 +14632,16 @@ var ROUTE_VOCAB = [
   }
   var bagLine = next.indexOf('class="hnote">No suggested order'), row = next.indexOf('<div class="herorow">');
   if(bagLine > row) fail("the bag line sits below the controls — it is about the night and goes above them");
+  /* 5.4.0, from the 5.3.1 audit: the bag's NOTE has a rule too (README, "A
+     universe is…": a bag's note ends "no order between these; start
+     anywhere") and until now only cardBlurb()'s stripper was tested (§76),
+     never the seven notes themselves — 5.3.1 fixed universe 35's by hand.
+     Every bag ends on the suffix; no ordered universe wears it. */
+  PATH.forEach(function(g){
+    var wears = /\u2014 no order between these; start anywhere\.?$/.test(g.note || "");
+    if(g.bag && !wears) fail("universe " + g.n + " (" + g.name + ") is a bag and its note does not end \u201c\u2014 no order between these; start anywhere\u201d — the suffix is the shelf saying so, and cardBlurb() strips exactly that phrase");
+    if(!g.bag && wears) fail("universe " + g.n + " (" + g.name + ") is ordered and its note ends on the bag suffix — either the group is a bag (bag:1) or the note is wrong");
+  });
   if(!/data-act="choose"/.test(next) || !/Let Gotham choose/.test(next) || !/bag \? '<div class="heroacts two">/.test(next)){
     fail("Let Gotham choose is missing, renamed, or offered off a bag — it exists only where there is no order to break");
   }
@@ -14688,7 +14839,24 @@ var ROUTE_VOCAB = [
    function that holds it; a wholesale write may only be an erase (`= {}`);
    a call may only be a listed reader; anything else is red by shape, not
    by spelling. DOORS is the allowlist: nine seats — the tap, a pasted
-   code or JSON, another tab — three marks each. */
+   code or JSON, another tab — three marks each.
+
+   5.4.0, from the 5.3.1 audit — two shapes still walked past, and the
+   gate test was presence, not dominance. A write whose first key is
+   computed (`S[kind][id] = 1`, the shape stampMark() uses for clocks) was
+   dropped instead of sent to the opaque list; an alias was read only off
+   a bare `= S.<mark>`, so `var box = {m:S.rated}; box.m[id] = 5` was
+   invisible. Now EVERY reference to a mark object is classified by the
+   node that holds it: the object of a member access, an argument (judged
+   by READERS), the left of an assignment (judged as wholesale), the right
+   of `for-in` or `in` — a read — and anything else is an alias, whatever
+   the statement. A computed `S[<key>]` in any of the alias positions or as
+   the object of a write goes to the opaque list, which only restore() and
+   mergeTab() may hold. And the gate must DOMINATE the write: the
+   isParkedId(<index>) call sits in the test of an if/?:/&&/|| whose branch
+   holds the write, or in an earlier `if(<test>) return|continue|break|
+   throw` of the same block — `if(isParkedId(id)) log(); S.watched[id] =
+   1;` no longer counts as gated. Two more planted doors, two reds. */
 
 (function(){
   var MARKS = {watched:1, skipped:1, rated:1};
@@ -14705,11 +14873,16 @@ var ROUTE_VOCAB = [
   ];
   /* Readers that take the object itself. A new one is added here, on
      purpose, after a look — not inferred. */
-  var READERS = {"Object.keys":1};
+  var READERS = {"Object.keys":1, "JSON.stringify":1};
   /* The two seats that write S[<key>] through the SCHEMA table: restore()
      (gated by the sweeps below) and the merge's settings adoption (gated
      by its key set, checked below). */
   var OPAQUE_OK = {restore:1, mergeTab:1};
+  /* 5.4.0: computed READS in an alias position — the payload serializer
+     hands S[r.k] on, stampOut() returns S[k], the merge compares against
+     S[r.k]. A read cannot mark; a computed read stored under another name
+     could be written through later, so they are listed, not inferred. */
+  var OPAQUE_READ_OK = {persistNow:1, stampOut:1, mergeTab:1, restore:1};
 
   if(!fnIndex()){
     /* No parser (a bare local clone): the 5.3.0 spelling census stands in,
@@ -14729,29 +14902,55 @@ var ROUTE_VOCAB = [
     }
     function nameOf(n){ return n.type === "Identifier" ? n.name : srcOf(n); }
     var seats = [], aliases = [], wholesale = [], opaque = [], handed = [];
-    /* One walk, carrying the chain of enclosing functions and the innermost
-       loop-or-function body the current node sits in. */
-    function visit(node, fns, scope){
+    /* One walk, carrying the chain of enclosing functions, the innermost
+       loop-or-function body the current node sits in, and the parents
+       between that scope and the node (each with the key it hangs from). */
+    function visit(node, fns, scope, parents){
       if(!node || typeof node !== "object") return;
-      if(Array.isArray(node)){ node.forEach(function(n){ visit(n, fns, scope); }); return; }
+      if(Array.isArray(node)){ node.forEach(function(n){ visit(n, fns, scope, parents); }); return; }
       if(typeof node.type !== "string") return;
       var isFn = /^(FunctionDeclaration|FunctionExpression|ArrowFunctionExpression)$/.test(node.type);
       if(isFn) fns = fns.concat([node.id ? node.id.name : (fns.length ? fns[fns.length - 1] : "<top>")]);
-      if(isFn || /^(ForInStatement|ForOfStatement|ForStatement|WhileStatement|DoWhileStatement)$/.test(node.type)) scope = node;
+      if(isFn || /^(ForInStatement|ForOfStatement|ForStatement|WhileStatement|DoWhileStatement)$/.test(node.type)){ scope = node; parents = []; }
       var outer = fns.length ? fns[0] : "<top>";
+      var parent = parents.length ? parents[parents.length - 1] : null;
+      if(node.type === "MemberExpression"){
+        var mk = markOf(node), pk = parent ? parent.key : "";
+        var held = !parent ||
+          (parent.node.type === "MemberExpression" && pk === "object") ||
+          (parent.node.type === "CallExpression" && pk === "arguments") ||
+          (parent.node.type === "AssignmentExpression" && pk === "left") ||
+          (parent.node.type === "ForInStatement" && pk === "right") ||
+          (parent.node.type === "BinaryExpression" && parent.node.operator === "in" && pk === "right") ||
+          (parent.node.type === "UnaryExpression" && parent.node.operator === "delete");
+        /* A mark inside a literal that is itself an argument — exportJSON()'s
+           {watched:S.watched, …} handed straight to JSON.stringify — is
+           handed, not aliased, and the callee is judged like any reader. */
+        if(mk && !held){
+          var up = parents.length - 1;
+          while(up >= 0 && /^(Property|ObjectExpression|ArrayExpression)$/.test(parents[up].node.type)) up--;
+          if(up >= 0 && up < parents.length - 1 && parents[up].node.type === "CallExpression" && parents[up].key === "arguments"){
+            if(mk !== "<computed>") handed.push({fn: outer, callee: calleeName(parents[up].node.callee), mark: mk, src: srcOf(parents[up].node)});
+            else opaque.push({fn: outer, src: srcOf(parents[up].node)});
+            held = true;
+          }
+        }
+        if(mk && mk !== "<computed>" && !held) aliases.push(srcOf(parent.node));
+        if(mk === "<computed>" && !held) opaque.push({fn: outer, src: srcOf(parent.node)});
+      }
       if(node.type === "AssignmentExpression"){
         var m = markOf(node.left);
         if(m === "<computed>") opaque.push({fn: outer, src: srcOf(node)});
         else if(m) wholesale.push({fn: outer, mark: m, node: node});
         var mm = node.left.type === "MemberExpression" ? markOf(node.left.object) : null;
-        if(mm && mm !== "<computed>") seats.push({fn: outer, mark: mm, index: node.left.property, scope: scope, src: srcOf(node)});
-        if(markOf(node.right) && markOf(node.right) !== "<computed>") aliases.push(srcOf(node));
+        if(mm === "<computed>") opaque.push({fn: outer, src: srcOf(node)});
+        else if(mm) seats.push({fn: outer, mark: mm, index: node.left.property, scope: scope, node: node, path: parents.slice(), src: srcOf(node)});
       }
       if(node.type === "UpdateExpression" && node.argument.type === "MemberExpression"){
         var um = markOf(node.argument.object);
-        if(um && um !== "<computed>") seats.push({fn: outer, mark: um, index: node.argument.property, scope: scope, src: srcOf(node)});
+        if(um === "<computed>") opaque.push({fn: outer, src: srcOf(node)});
+        else if(um) seats.push({fn: outer, mark: um, index: node.argument.property, scope: scope, node: node, path: parents.slice(), src: srcOf(node)});
       }
-      if(node.type === "VariableDeclarator" && markOf(node.init) && markOf(node.init) !== "<computed>") aliases.push(srcOf(node));
       if(node.type === "CallExpression"){
         var callee = calleeName(node.callee);
         node.arguments.forEach(function(a){
@@ -14761,10 +14960,10 @@ var ROUTE_VOCAB = [
       }
       Object.keys(node).forEach(function(k){
         if(k === "type" || k === "start" || k === "end") return;
-        visit(node[k], fns, scope);
+        visit(node[k], fns, scope, parents.concat([{node: node, key: k}]));
       });
     }
-    visit(FN_AST.body, [], null);
+    visit(FN_AST.body, [], null, []);
 
     if(aliases.length){
       fail(aliases.length + " statement(s) alias S.watched, S.skipped or S.rated into another name (" + aliases[0].slice(0, 40) +
@@ -14778,7 +14977,9 @@ var ROUTE_VOCAB = [
       }
     });
     opaque.forEach(function(o){
-      if(!OPAQUE_OK[o.fn]) fail(o.fn + "() writes S[<key>] = … (" + o.src.slice(0, 40) + ") — an opaque key can be a mark; only restore() and mergeTab() write through the SCHEMA table");
+      if(!OPAQUE_OK[o.fn] && !(OPAQUE_READ_OK[o.fn] && !/=[^=]/.test(o.src.replace(/[!<>=]=/g, "")))){
+        fail(o.fn + "() reaches a mark through a computed key (" + o.src.slice(0, 40) + ") — an opaque key can be a mark; only restore() and mergeTab() write through the SCHEMA table, and only the listed readers hand one on");
+      }
     });
     handed.forEach(function(h){
       if(!READERS[h.callee]) fail(h.fn + "() hands S." + h.mark + " to " + h.callee + "() — a door the census cannot see through; " +
@@ -14795,13 +14996,39 @@ var ROUTE_VOCAB = [
         return;
       }
       found[di]++;
-      var idx = nameOf(st.index), gated = false;
-      walk(st.scope, function(n){
-        if(n.type === "CallExpression" && calleeName(n.callee) === "isParkedId" && n.arguments.length === 1 &&
-           nameOf(n.arguments[0]) === idx) gated = true;
-      });
+      var idx = nameOf(st.index);
+      function testsIdx(n){
+        var hit = false;
+        walk(n, function(c){
+          if(c.type === "CallExpression" && calleeName(c.callee) === "isParkedId" && c.arguments.length === 1 &&
+             nameOf(c.arguments[0]) === idx) hit = true;
+        });
+        return hit;
+      }
+      function jumps(stmt){
+        if(!stmt) return false;
+        if(/^(ReturnStatement|ContinueStatement|BreakStatement|ThrowStatement)$/.test(stmt.type)) return true;
+        return stmt.type === "BlockStatement" && stmt.body.length > 0 && jumps(stmt.body[stmt.body.length - 1]);
+      }
+      /* Up the chain from the write to its scope: the write sits in a
+         branch whose test names the gate, or an earlier statement of the
+         same block leaves on it. */
+      var gated = false, chain = st.path, child = st.node;
+      for(var ci = chain.length - 1; ci >= 0 && !gated; ci--){
+        var pn = chain[ci].node, pk2 = chain[ci].key;
+        if((pn.type === "IfStatement" || pn.type === "ConditionalExpression") && (pk2 === "consequent" || pk2 === "alternate") && testsIdx(pn.test)) gated = true;
+        if(pn.type === "LogicalExpression" && pk2 === "right" && testsIdx(pn.left)) gated = true;
+        if(pn.type === "BlockStatement" || pn.type === "Program"){
+          var at = pn.body.indexOf(child);
+          for(var sj = 0; sj < at && !gated; sj++){
+            if(pn.body[sj].type === "IfStatement" && testsIdx(pn.body[sj].test) && jumps(pn.body[sj].consequent)) gated = true;
+          }
+        }
+        child = pn;
+      }
       if(!gated) fail("a parked title can be marked through " + DOORS[di][0] + " — the seat lost its isParkedId(" + idx +
-                      ") gate, or the gate moved out of the loop or function that holds the write");
+                      ") gate, or the gate no longer dominates the write: it must sit in the test of the branch that holds the write, " +
+                      "or in an earlier if(...) return/continue of the same block");
     });
     DOORS.forEach(function(d, i){
       if(found[i] !== 1) fail("this section names " + d[0] + " as a door and the census finds " + found[i] +
@@ -14844,22 +15071,53 @@ var ROUTE_VOCAB = [
     fail("mergeLog() accepts a log entry for a parked title — a night would be counted for something nobody could watch");
   }
   /* The load-time drops have to reach the disk, and have to win the clock
-     against an old tab or code, or the mark is only asleep until release day. */
-  var dp = fn("dropParkedSkips");
-  if(!/stampMark\("s", k\)/.test(dp)) fail("dropParkedSkips() stamps no clock — an older tab or code re-adds the skip the moment the title lands");
-  if(!/if\(n\) persist\(\);/.test(dp)) fail("dropParkedSkips() never persists — the skip stays in localStorage and resurfaces the day the badge drops");
-  var dw = fn("dropParkedWatched");
-  if(!/stampMark\("w", k\)/.test(dw)) fail("dropParkedWatched() stamps no clock — an older tab or code re-adds the tick the moment the title lands");
-  if(!/persist\(\);/.test(dw)) fail("dropParkedWatched() never persists — the tick stays in localStorage and resurfaces the day the title lands");
-  if(!/S\.log = S\.log\.filter\(function\(en\)\{ return !isParkedId\(en\.id\); \}\);/.test(dw)){
+     against an old tab or code, or the mark is only asleep until release day.
+     5.4.0: read as shape, not spelling — a for-in over the mark object whose
+     body deletes the key and stamps the mark's own clock letter, and a
+     persist() call in the function (the 5.3.1 pins here were the exact
+     strings, against the Records line that says every change is a
+     predicate replacing a pin). */
+  function sweepShape(name, mark, letter){
+    var n = fnNode(name), loop = null, deleted = false, stamped = false;
+    if(!n) return null;
+    walk(n, function(x){
+      if(x.type === "ForInStatement" && x.right.type === "MemberExpression" && x.right.object.name === "S" &&
+         (x.right.property.name || x.right.property.value) === mark) loop = x;
+    });
+    if(loop) walk(loop.body, function(x){
+      if(x.type === "UnaryExpression" && x.operator === "delete" && x.argument.type === "MemberExpression" &&
+         x.argument.object.type === "MemberExpression" && x.argument.object.object.name === "S" &&
+         (x.argument.object.property.name || x.argument.object.property.value) === mark) deleted = true;
+      if(x.type === "CallExpression" && calleeName(x.callee) === "stampMark" && x.arguments[0] && x.arguments[0].value === letter) stamped = true;
+    });
+    return {loop: !!loop, deleted: deleted, stamped: stamped, persists: fnCalls(name, "persist")};
+  }
+  [["dropParkedSkips", "skipped", "s", "the skip stays in localStorage and resurfaces the day the badge drops"],
+   ["dropParkedWatched", "watched", "w", "the tick stays in localStorage and resurfaces the day the title lands"],
+   ["dropParkedRated", "rated", "r", "the rating stays in localStorage and resurfaces in Your five stars"]].forEach(function(sw){
+    var sh = fnIndex() ? sweepShape(sw[0], sw[1], sw[2]) : null;
+    if(!fnIndex()) return;
+    if(!sh || !sh.loop || !sh.deleted) fail(sw[0] + "() no longer sweeps S." + sw[1] + " — a for-in over the mark object that deletes each parked key is the door 5.1.1 left open, open again");
+    else if(!sh.stamped) fail(sw[0] + "() stamps no clock — stampMark(\"" + sw[2] + "\", <key>) is what beats an older tab or code re-adding the mark the moment the title lands");
+    else if(!sh.persists) fail(sw[0] + "() never persists — " + sw[3]);
+  });
+  var logSwept = false;
+  walk(fnNode("dropParkedWatched"), function(x){
+    if(x.type === "AssignmentExpression" && srcOf(x.left) === "S.log" && x.right.type === "CallExpression" &&
+       calleeName(x.right.callee) === "?.filter" && callsIn(x.right).indexOf("isParkedId") >= 0) logSwept = true;
+  });
+  if(fnIndex() && !logSwept){
     fail("dropParkedWatched() leaves the log — a night on a parked title keeps feeding the pace forecast after its mark is gone");
   }
-  var dr = fn("dropParkedRated");
-  if(!/stampMark\("r", k\)/.test(dr)) fail("dropParkedRated() stamps no clock — an older tab or code re-adds the rating the moment the title lands");
-  if(!/if\(n\) persist\(\);/.test(dr)) fail("dropParkedRated() never persists — the rating stays in localStorage and resurfaces in Your five stars");
   /* Belt and braces: the five-stars list refuses a parked title even if a
-     rating reached it. */
-  if(!/!isParked\(f\) && clampRating\(S\.rated\[f\.id\]\) === 5/.test(fn("favList"))) fail("favList() lists a parked title — Your five stars would name a film nobody can have seen");
+     rating reached it (§156 pins the list's shape; this reads only the gate:
+     an isParked(<entry>) call under a `!` inside favList's filter). */
+  var favGated = false;
+  walk(fnNode("favList"), function(x){
+    if(x.type === "UnaryExpression" && x.operator === "!" && x.argument.type === "CallExpression" &&
+       calleeName(x.argument.callee) === "isParked") favGated = true;
+  });
+  if(fnIndex() && !favGated) fail("favList() lists a parked title — Your five stars would name a film nobody can have seen");
   note("every door: " + DOORS.length + " mark-writing seats, each gated by shape; the log gated; three sweeps stamp and persist; the merge is caught and adopts settings");
 })();
 
@@ -14909,21 +15167,54 @@ var ROUTE_VOCAB = [
      The browser check reads the repaint under emulation; this pins the
      rules. */
   var fc = (HTML.match(/@media \(forced-colors: active\)\{[\s\S]*?\n\}/) || [""])[0];
-  [
-    [/\.chip\[aria-pressed="true"\],\.scope button\[aria-pressed="true"\],\.pathseg button\[aria-pressed="true"\],\.themerow button\[aria-pressed="true"\],\.film\.done \.tick\{forced-color-adjust:none;background:Highlight;color:HighlightText;border-color:Highlight;\}/,
-     "a pressed chip, belt, scope or theme button, or a done tick, matches its unpressed twin under forced colors — the state repaints in Highlight/HighlightText"],
-    [/#tabs button\[aria-current\]\{text-decoration:underline;/,
-     "the current tab is signal ink only, which forced colors flatten — it must underline"],
-    [/\.segs i\.on,\.sky \.seg\.lit \.cr \.p,\.sky \.sh i,#beltpeek::after\{forced-color-adjust:none;background:Highlight;\}/,
-     "the lit segments (essentials, skyline crown, belt peek) die under forced colors — they repaint in Highlight"],
-    [/\.gbar i\{forced-color-adjust:none;background:CanvasText;\}/,
-     "the group bar's fill dies under forced colors — it repaints in CanvasText"],
-    [/\.group\.here\{outline:2px solid Highlight;/,
-     "the here-group's corner marks are gradients, which forced colors strip — the group takes a Highlight outline"]
-  ].forEach(function(pin){ if(!pin[0].test(fc)) fail(pin[1]); });
-  if(/(?:^|\n|,)(?:\.wordmark|\.pathtitle|\.ghead|\.hero|h1|\.intro|body|p|\.includes|\.pathseg|\.chip|\.ucard)\{[^}]*forced-color-adjust:none/.test(fc)){
-    fail("the forced-colors block paints brand chrome (wordmark, path title, group heads, hero, prose) — the palette is the reader's; only a state is painted, in system colours");
+  /* 5.4.0, from the 5.3.1 audit: the block is read at the declaration
+     level — a rule is its selector SET and its property MAP, so a reordered
+     selector or declaration stays green and a missing one goes red — and
+     the brand rule is an allowlist, not a blocklist: every rule that
+     carries forced-color-adjust:none must name only painted STATES (the
+     selectors below), because a 12-name blocklist passed `.wordmark span`. */
+  function fcRules(block){
+    return (block.replace(/^@media[^{]*\{/, "").match(/[^{}]+\{[^}]*\}/g) || []).map(function(r){
+      var m = r.match(/^([^{]+)\{([^}]*)\}$/), decls = {};
+      m[2].split(";").forEach(function(d){ var i = d.indexOf(":"); if(i > 0) decls[d.slice(0, i).trim()] = d.slice(i + 1).trim(); });
+      return {sels: m[1].split(",").map(function(x){ return x.trim(); }).filter(Boolean), decls: decls};
+    });
   }
+  var rules159 = fcRules(fc);
+  function stateRule(sels, want){
+    var hit = rules159.filter(function(r){
+      return r.sels.length === sels.length && sels.every(function(x){ return r.sels.indexOf(x) >= 0; });
+    })[0];
+    return !!hit && Object.keys(want).every(function(k){ return hit.decls[k] === want[k]; });
+  }
+  if(!stateRule([".chip[aria-pressed=\"true\"]", ".scope button[aria-pressed=\"true\"]", ".pathseg button[aria-pressed=\"true\"]", ".themerow button[aria-pressed=\"true\"]", ".film.done .tick"],
+                {"forced-color-adjust": "none", background: "Highlight", color: "HighlightText", "border-color": "Highlight"})){
+    fail("a pressed chip, belt, scope or theme button, or a done tick, matches its unpressed twin under forced colors — the state repaints in Highlight/HighlightText");
+  }
+  if(!stateRule(["#tabs button[aria-current]"], {"text-decoration": "underline"})){
+    fail("the current tab is signal ink only, which forced colors flatten — it must underline");
+  }
+  if(!stateRule([".segs i.on", ".sky .seg.lit .cr .p", ".sky .sh i", "#beltpeek::after"], {"forced-color-adjust": "none", background: "Highlight"})){
+    fail("the lit segments (essentials, skyline crown, belt peek) die under forced colors — they repaint in Highlight");
+  }
+  if(!stateRule([".gbar i"], {"forced-color-adjust": "none", background: "CanvasText"})){
+    fail("the group bar's fill dies under forced colors — it repaints in CanvasText");
+  }
+  if(!stateRule([".group.here"], {outline: "2px solid Highlight"})){
+    fail("the here-group's corner marks are gradients, which forced colors strip — the group takes a Highlight outline");
+  }
+  var PAINTED = [".st", ".film.skip .tick::after", ".drule i", ".drule::before", ".drule::after", ".stars button.on .st", ".hero .dsep",
+                 ".homefoot::before", ".note.foot::before", ".legend::before",
+                 ".chip[aria-pressed=\"true\"]", ".scope button[aria-pressed=\"true\"]", ".pathseg button[aria-pressed=\"true\"]",
+                 ".themerow button[aria-pressed=\"true\"]", ".film.done .tick", ".segs i.on", ".sky .seg.lit .cr .p", ".sky .sh i",
+                 "#beltpeek::after", ".gbar i"];
+  rules159.forEach(function(r){
+    if(!("forced-color-adjust" in r.decls)) return;
+    var brand = r.sels.filter(function(x){ return PAINTED.indexOf(x) < 0; });
+    if(brand.length){
+      fail("the forced-colors block paints " + brand.join(", ") + " with forced-color-adjust:none — the palette is the reader's; only a painted state (the listed ornaments and selected/done/lit marks) may opt out, and a new one is added to this section's list after a look, not inferred");
+    }
+  });
   note("drawn marks: forced-colors repaint in system ink, states in Highlight/CanvasText/GrayText, the palette the reader's; the star run labelled and unwrapped, geometry hidden under it");
 })();
 

@@ -63,6 +63,16 @@ PASS=0; FAILED=0
 # fixture included. A red pristine tree now prints PRISTINE RED once and
 # counts one failure for the suite, and the pristine-signature check runs on
 # every fixture, not only the ones that exit green.
+#
+# 5.4.0: EVERY SHAPE a fixture can ask for has a pristine signature, not only
+# the unscoped guards run — `guards.js --bless` and each smoke phase too. A
+# smoke fixture aimed at a check that was already red on the source tree
+# passed without a mutation (the 5.3.1 audit planted one: PASS). The
+# signatures are captured lazily, the first time a suite asks for a shape,
+# on the healed tree and before the fixture's mutation; run-all.sh captures
+# the smoke phases the picked suites use ONCE for the whole wall and hands
+# them in through NEG_PRISTINE (a scoped smoke run costs 20–40 s, and 34
+# suites carry smoke fixtures — 42 lazy captures against four shared ones).
 PRISTINE_RC=0
 ensure_tree () {
   [ -d "$NEG" ] && return
@@ -75,18 +85,74 @@ ensure_tree () {
   # no objects, no refs — is enough for a reader that only wants the paths.
   if [ -f "$SRC/.git/index" ]; then mkdir -p "$NEG/.git"; cp "$SRC/.git/index" "$NEG/.git/index"; fi
   ( cd "$NEG" && find . -type f -not -path "./node_modules/*" | sort ) > "$NEG.manifest"
+  # 5.4.0: the heal reads shape as well as content — the directories, and
+  # which files carry the executable bit (the one mode that means anything
+  # here: the suites and the scripts). A mutation that created a directory
+  # or flipped a mode used to survive into the next fixture.
+  ( cd "$NEG" && find . -type d -not -path "./node_modules*" -not -path "./.git*" | sort ) > "$NEG.dirs"
+  ( cd "$NEG" && find . -type f -perm -u+x -not -path "./node_modules/*" | sort ) > "$NEG.exec"
   # The signature of a PRISTINE guards run, captured while the tree is
   # provably unmutated. A fixture whose run exits green may only pass
   # on a warning line the pristine tree does NOT emit — an expected string
   # that a healthy run also prints proves the mutation broke nothing, which
   # is the false-pass run_case used to report as PASS.
-  ( cd "$NEG" && node qa/guards.js > "$NEG.pristine.raw" 2>&1 ); PRISTINE_RC=$?
-  grep -vE '^  (ok|·) ' "$NEG.pristine.raw" > "$NEG.pristine" || true
-  if [ "$PRISTINE_RC" -ne 0 ]; then
-    echo "  PRISTINE RED  the source tree is red before any mutation (guards.js exit $PRISTINE_RC) — every fixture below proves nothing until the tree is green"
-    grep -E '✗' "$NEG.pristine" | sed 's/^/        /' | head -3
+  capture_sig guards guards "" ""
+  PRISTINE_RC="$(cat "$NEG.pristine.guards.rc")"
+  report_sig guards guards
+}
+
+# capture_sig <key> <suite> <phase> <args> — run one shape of qa/<suite>.js on
+# the tree as it stands and keep its signature (the run minus its green
+# lines), raw output and exit code as $NEG.pristine.<key>{,.raw,.rc}.
+capture_sig () {
+  local key="$1" suite="$2" phase="$3" args="$4"
+  local f="$NEG.pristine.$key"
+  ( cd "$NEG" && SMOKE_ONLY="$phase" node "qa/$suite.js" $args > "$f.raw" 2>&1 ); printf '%s' "$?" > "$f.rc"
+  grep -vE '^  (ok|·) ' "$f.raw" > "$f" || true
+}
+# report_sig <key> <suite> — a red pristine shape prints once and counts one
+# failure: every fixture that runs this shape proves nothing until it is green.
+report_sig () {
+  local key="$1" suite="$2" rc=""
+  rc="$(cat "$NEG.pristine.$key.rc")"
+  if [ "$rc" -ne 0 ]; then
+    echo "  PRISTINE RED ($key)  the source tree is red before any mutation ($suite.js exit $rc) — every fixture below that runs this shape proves nothing until the tree is green"
+    grep -E '✗|FAIL|failed' "$NEG.pristine.$key" | sed 's/^/        /' | head -3
     FAILED=$((FAILED+1))
   fi
+}
+# pristine_key <suite> <phase> <args> — the signature a fixture's run shape is
+# held against, or nothing for a shape the harness itself refuses (a phase
+# nobody wrote: the refusal is what that fixture tests).
+pristine_key () {
+  local suite="$1" phase="$2" args="$3"
+  if [ "$suite" = "guards" ]; then
+    if [ -z "$args" ]; then printf 'guards'; else printf 'guards.%s' "$(printf '%s' "$args" | tr -c 'a-z0-9' '_')"; fi
+    return
+  fi
+  if [ "$suite" = "smoke" ]; then
+    case "$phase" in ''|main|identity|css|blocked) printf 'smoke.%s' "${phase:-full}" ;; esac
+  fi
+}
+# pristine_sig <suite> <phase> <args> — sets PSIG to the signature file for
+# that shape, capturing it now (on a healed tree) or taking run-all.sh's copy.
+PSIG=""
+pristine_sig () {
+  local suite="$1" phase="$2" args="$3" key=""; key="$(pristine_key "$suite" "$phase" "$args")"
+  PSIG=""
+  [ -z "$key" ] && return
+  local f="$NEG.pristine.$key"
+  if [ ! -f "$f" ]; then
+    if [ -n "${NEG_PRISTINE:-}" ] && [ -f "$NEG_PRISTINE.$key" ]; then
+      cp "$NEG_PRISTINE.$key" "$f"; cp "$NEG_PRISTINE.$key.rc" "$f.rc"
+    else
+      capture_sig "$key" "$suite" "$phase" "$args"
+      # a bless run writes; the tree is pristine again before the fixture
+      [ -n "$args" ] && heal_tree
+    fi
+    report_sig "$key" "$suite"
+  fi
+  PSIG="$f"
 }
 
 heal_tree () {
@@ -102,12 +168,21 @@ heal_tree () {
   while IFS= read -r rel; do
     cmp -s "$NEG/$rel" "$SRC/$rel" || cp "$SRC/$rel" "$NEG/$rel"
   done < "$NEG.manifest"
+  # a directory the mutation created -> remove (deepest first); a mode it
+  # flipped -> put back, by the executable bit the pristine tree recorded
+  ( cd "$NEG" && find . -type d -not -path "./node_modules*" -not -path "./.git*" | sort ) > "$cur"
+  comm -23 "$cur" "$NEG.dirs" | sort -r | while IFS= read -r rel; do rmdir "$NEG/$rel" 2>/dev/null; done
+  ( cd "$NEG" && find . -type f -perm -u+x -not -path "./node_modules/*" | sort ) > "$cur"
+  comm -23 "$cur" "$NEG.exec" | while IFS= read -r rel; do chmod u-x "$NEG/$rel"; done
+  comm -13 "$cur" "$NEG.exec" | while IFS= read -r rel; do chmod u+x "$NEG/$rel"; done
 }
 
 run_case () {
   local label="$1"; local expect="$2"; local pyscript="$3"; local suite="${4:-guards}"; local phase="${5:-}"; local sect="${6:-}"
   ensure_tree
   heal_tree
+  # 5.4.0: the pristine signature for THIS run shape, before the mutation
+  pristine_sig "$suite" "$phase" "${NEG_ARGS:-}"
   ( cd "$NEG" && python3 -c "$pyscript" ) || { echo "  SETUP BROKE  $label"; FAILED=$((FAILED+1)); return; }
   # The green lines ("  · <note>", "  ok   <check>") are filtered out before
   # matching: a fixture whose expected string is a check NAME rather than a
@@ -147,8 +222,9 @@ run_case () {
     # Green or red, an expected string the PRISTINE tree also prints is not
     # caused by the mutation (5.3.1: this used to sit inside the green branch,
     # so a tree red for another reason passed every fixture aimed at it).
-    if [ "$suite" = "guards" ] && [ -z "$phase" ] && [ -z "${NEG_ARGS:-}" ] &&
-       [ -f "$NEG.pristine" ] && grep -qF "$expect" "$NEG.pristine"; then
+    # 5.4.0: held against the signature of the fixture's own run shape —
+    # guards, guards --bless, or the smoke phase it names.
+    if [ -n "$PSIG" ] && [ -f "$PSIG" ] && grep -qF "$expect" "$PSIG"; then
       echo "  FAIL  $label"
       echo "        expected: $expect"
       echo "        got: a pristine run prints the same text — the expected string is not caused by the mutation"

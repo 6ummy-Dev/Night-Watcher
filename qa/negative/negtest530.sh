@@ -182,8 +182,8 @@ s=s.replace(a,'rather than trusting a stored answer. <span class=\"buildline\">A
 
 run_case "the dsep stops being drawn" \
   "the dsep stopped being drawn" \
-  "${P}a='.hero .dsep{display:inline-block;width:.45em;height:.45em;background:var(--signal);transform:rotate(45deg);vertical-align:.02em;}';assert a in s
-s=s.replace(a,'.hero .dsep{display:inline-block;width:.45em;height:.45em;background:var(--signal);vertical-align:.02em;}',1);${W}" \
+  "${P}a='.hero .dsep{display:inline-block;width:var(--dia-s);height:var(--dia-s);background:var(--signal);transform:rotate(45deg);vertical-align:.02em;}';assert a in s
+s=s.replace(a,'.hero .dsep{display:inline-block;width:var(--dia-s);height:var(--dia-s);background:var(--signal);vertical-align:.02em;}',1);${W}" \
   guards "" 146
 
 run_case "the drule diamond loses its token" \

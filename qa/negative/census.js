@@ -10,6 +10,10 @@
 
      node qa/negative/census.js            # per-suite table + totals
      node qa/negative/census.js --weights  # "WEIGHT FILE" lines for run-all.sh
+     node qa/negative/census.js --phases [negtestNNN.sh ...]
+                                           # the smoke shapes those suites run
+                                           # (5.4.0: run-all.sh captures one
+                                           # pristine signature per shape)
 
    A fixture is a run_case or green_case call at the start of a line (leading
    whitespace allowed; a commented-out or quoted mention is not a call). Its
@@ -83,12 +87,33 @@ function census(dir){
   return {suites: suites, totals: tot};
 }
 
-module.exports = {census: census, readSuite: readSuite, tokenize: tokenize, SMOKE_WEIGHT: SMOKE_WEIGHT};
+/* The pristine-signature keys (_lib.sh's pristine_key) the smoke fixtures of
+   the given suites — or all suites — ask for: "smoke.main", "smoke.full", …
+   A phase the harness refuses ("everything", negtest220's own fixture) has
+   no signature and is not listed. */
+var PHASES = ["main", "identity", "css", "blocked"];
+function smokeShapes(c, files){
+  var keys = {};
+  c.suites.forEach(function(s){
+    if(files && files.length && files.indexOf(s.file) < 0) return;
+    s.cases.forEach(function(k){
+      if(!k.smoke) return;
+      if(!k.phase) keys["smoke.full"] = 1;
+      else if(PHASES.indexOf(k.phase) >= 0) keys["smoke." + k.phase] = 1;
+    });
+  });
+  return Object.keys(keys).sort();
+}
+
+module.exports = {census: census, readSuite: readSuite, tokenize: tokenize, smokeShapes: smokeShapes, SMOKE_WEIGHT: SMOKE_WEIGHT};
 
 if(require.main === module){
   var c = census(__dirname);
   if(process.argv.indexOf("--weights") >= 0){
     c.suites.forEach(function(s){ console.log(s.weight + " " + s.file); });
+  } else if(process.argv.indexOf("--phases") >= 0){
+    var files = process.argv.slice(process.argv.indexOf("--phases") + 1).map(function(f){ return path.basename(f); });
+    console.log(smokeShapes(c, files).join(" "));
   } else {
     c.suites.forEach(function(s){
       console.log(String(s.weight).padStart(5) + "  " + String(s.fixtures).padStart(4) + " fixtures  " +

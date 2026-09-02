@@ -17,8 +17,8 @@ s=s.replace(a,',d:\"Frank Miller',1);${W}"
 # fixture hands the certificate to Part 2 — still unreleased, still undated.
 run_case "an unreleased entry is handed a certificate early" \
   "is not out yet and carries r:" \
-  "${P}a=',d:\"Gotham finds out what';assert s.count(a)==1
-s=s.replace(a,',r:\"R\",d:\"Gotham finds out what',1);${W}"
+  "${P}a=',d:\"Bane\\\\u2019s Gotham, and what';assert s.count(a)==1
+s=s.replace(a,',r:\"R\",d:\"Bane\\\\u2019s Gotham, and what',1);${W}"
 
 run_case "a value from neither system" \
   "not a value in either system" \

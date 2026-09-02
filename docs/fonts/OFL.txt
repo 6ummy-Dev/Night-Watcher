@@ -1,5 +1,13 @@
 Copyright (c) 2010 by Sorkin Type Co (eben@eyebytes.com) with Reserved Font Name Limelight. This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: http://scripts.sil.org/OFL
 
+The Limelight file shipped here (limelight-latin-400-normal.woff2) is a
+subset — a Modified Version under the licence — and is therefore renamed,
+per its section 3: the font family it presents is "NW Deco" (name table and
+@font-face alike), not the reserved name above. The file name keeps
+"limelight" so the file stays addressable; a file name is not the name
+presented to users. The copyright notice above travels with it unchanged,
+as the licence requires.
+
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
 http://scripts.sil.org/OFL

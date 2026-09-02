@@ -84,6 +84,29 @@ DISPATCH="$(node "$HERE/census.js" --weights | while read -r w name; do
   done
 done | sort -k1,1r -k2,2 | cut -d' ' -f2-)"
 
+# 5.4.0: THE PRISTINE SMOKE SIGNATURES, ONCE. Every fixture's expected text
+# is held against a pristine run of its own shape (_lib.sh, 5.4.0) — and a
+# scoped smoke run costs 20–40 s, so the 34 suites that carry smoke fixtures
+# would each capture their own. The wall captures each shape the picked
+# suites use once, in parallel, on one unmutated tree, and hands the
+# signatures to every suite through NEG_PRISTINE. A standalone suite still
+# captures lazily for itself.
+SHAPES="$(node "$HERE/census.js" --phases "${SUITES[@]}")"
+if [ -n "$SHAPES" ]; then
+  echo "  pristine smoke: $SHAPES"
+  (
+    export NEGDIR="$WORK/pristine"
+    . "$HERE/_lib.sh"
+    ensure_tree > "$WORK/pristine.txt" 2>&1
+    for key in $SHAPES; do
+      ( phase="${key#smoke.}"; [ "$phase" = "full" ] && phase=""
+        capture_sig "$key" smoke "$phase" "" ) &
+    done
+    wait
+  )
+  export NEG_PRISTINE="$WORK/pristine/tree.pristine"
+fi
+
 echo "  ${#SUITES[@]} suites, $JOBS at a time, longest first"
 printf '%s\n' "$DISPATCH" | xargs -P "$JOBS" -I{} bash -c 'run_one "$@"' _ {}
 

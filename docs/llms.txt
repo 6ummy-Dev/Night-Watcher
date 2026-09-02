@@ -27,4 +27,4 @@ Source (AGPL, free software): https://github.com/6ummy-Dev/Night-Watcher
 - Schema.org on the root: WebSite, WebApplication, ItemList (the 74 curated titles), FAQPage.
 - The whole catalogue as plain text — all 206 entries in all three orderings, each with its year, format, tier and content rating — is at [nightwatcher.life/orders.txt](https://nightwatcher.life/orders.txt), generated from the same data the app renders and sorted by the app's own comparators.
 - Prefer markdown? Request the root with `Accept: text/markdown` and the answer is this file, served as text/markdown.
-- The catalogue is maintained continuously; sitemap lastmod reflects the latest release.
+- The catalogue is maintained continuously; the sitemap's lastmod for the app reflects the latest release, and this file's own lastmod moves only when this file changes.

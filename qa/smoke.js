@@ -709,6 +709,25 @@ win.addEventListener("load", function(){
     S.tab = "next"; win.render();
     check("no Activity block before anything is watched", !doc.querySelector(".activity"));
 
+    /* --- the day has a name (5.4.0) ---------------------------------------
+       Batman Day's one dated sentence opens Next up's closing note — the
+       same paragraph as the two watching truths, one block, one diamond —
+       and its counts are the shelf's, read independently here. It leaves
+       with the Clayface trigger patch (23 October 2026), and so does this. */
+    (function(){
+      var feet = doc.querySelectorAll("#view .panel:not([inert]) .note.foot");
+      var films = 0, tv = 0;
+      win.FILMS.forEach(function(f){ if(f.tv) tv++; else films++; });
+      var want = "Batman Day, 19 September. Eighty-seven years, " + films + " films, " + tv + " seasons, " +
+                 win.PATH.length + " continuities \u2014 and one map through all of it. Start anywhere. Availability changes";
+      check("Next up's closing note opens with the Batman Day line, counts off the shelf",
+            feet.length === 1 && feet[0].textContent.indexOf(want) === 0,
+            feet.length + " notes; " + (feet[0] ? feet[0].textContent.slice(0, 120) : ""));
+      check("the line does not repeat on Home or Progress",
+            (function(){ var hit = 0; ["home", "stats"].forEach(function(t){ S.tab = t; win.render();
+              if(/Batman Day/.test(doc.querySelector("#view .panel:not([inert])").textContent)) hit++; }); S.tab = "next"; win.render(); return hit === 0; })());
+    })();
+
     /* --- The deco hero (4.3.0) --- */
     var hc = doc.querySelector("#view .panel:not([inert]) .hero .hcont");
     check("the hero draws the diamond rule",
@@ -1637,6 +1656,25 @@ win.addEventListener("load", function(){
             Object.keys(S.watched).length + " watched, " + S.log.length + " logged");
       check("Watched up to here leaves a skipped title skipped", Object.keys(S.skipped).length === 1);
       check("and disarms", S.upto === "");
+
+      /* 5.4.0, from the 5.3.1 audit: arm, then type a query the row does
+         not match, then let the disarm fire — rowUpdate() re-inserted the
+         row through filmRow(f) alone and the hidden the live search had
+         given it was gone: back on the shelf although it does not match. */
+      clean(); S.q = ""; S.tab = "watch"; S.open[target.id] = 1; win.render();
+      up = q('[data-act="upto"][data-id="' + target.id + '"]');
+      if(up) up.dispatchEvent(new win.MouseEvent("click", {bubbles:true}));
+      S.q = "zzqx-no-title-matches-this"; win.searchApply();
+      var armedRow = q('.fmain[data-id="' + target.id + '"]').closest(".film");
+      check("a live query hides the armed row", S.upto === target.id && armedRow.hidden === true);
+      S.upto = ""; win.rowUpdate(target.id);
+      armedRow = q('.fmain[data-id="' + target.id + '"]').closest(".film");
+      check("the disarm re-inserts the row with the hidden the search gave it",
+            armedRow.hidden === true && armedRow.closest(".group").hidden === true,
+            "row hidden=" + armedRow.hidden);
+      S.q = ""; win.searchApply();
+      armedRow = q('.fmain[data-id="' + target.id + '"]').closest(".film");
+      check("clearing the query shows it again", armedRow.hidden === false);
 
       /* Progress: the nights line, Your five stars. */
       clean();
@@ -2722,18 +2760,22 @@ win.addEventListener("load", function(){
       S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.resetAt = 0;
       S.clk = {w:{}, s:{}, r:{}};
       S.watched[A] = 1; S.clk.w[A] = 5000; win.persist(); win.flushPersist();
-      var real = win.clocksOf, escaped = null;
+      var real = win.clocksOf, escaped = null, poisonedCalls = 0;
       /* jsdom reports a listener's uncaught throw as a window error event,
          not to the dispatcher — so the escape is read there. */
       var onErr = function(ev){ escaped = ev.error || ev.message || true; ev.preventDefault(); };
       win.addEventListener("error", onErr);
-      win.clocksOf = function(){ throw new Error("poisoned clocks"); };
+      win.clocksOf = function(){ poisonedCalls++; throw new Error("poisoned clocks"); };
       win.dispatchEvent(new win.StorageEvent("storage", {key: win.KEY,
         newValue: JSON.stringify({resetAt: 9500, watched: {}, clk: {w:{}, s:{}, r:{}}})}));
       win.clocksOf = real;
       win.removeEventListener("error", onErr);
       win.flushPersist();
       var raw = JSON.parse(win.localStorage.getItem("batwatch-v3") || "{}");
+      /* 5.4.0: the stub counts — if mergeTab() stopped calling clocksOf()
+         before the throw, both checks below would pass having proved
+         nothing about a throw. */
+      check("the poisoned clocksOf() was reached by the merge", poisonedCalls === 1, "calls=" + poisonedCalls);
       check("a throw mid-merge does not escape the listener", !escaped, String(escaped));
       check("an erase adopted before the throw still reaches the disk",
             raw.resetAt === 9500 && !(raw.watched || {})[A] && !S.watched[A],
@@ -2756,6 +2798,13 @@ win.addEventListener("load", function(){
         log: [{id: A, ts: 0}, {id: A, ts: -5}, {id: A, ts: "0"}]}));
       check("a log entry at or before the epoch is refused",
             S.log.every(function(en){ return en.ts > 0; }),
+            "log: " + JSON.stringify(S.log));
+      /* 5.4.0, from the 5.3.1 audit: when the file carried a log, mergeLog()
+         was the only path, so a title whose every entry was refused was
+         watched with no night — Progress printed none. The fresh-timestamp
+         fallback runs for whatever the log did not take. */
+      check("a watched title whose log entries were all refused still gets a night",
+            S.watched[A] === 1 && S.log.length === 1 && S.log[0].id === A && S.log[0].ts > 0,
             "log: " + JSON.stringify(S.log));
       S.watched = {}; S.log = []; S.clk = {w:{}, s:{}, r:{}};
       win.persist(); win.flushPersist(); win.render();

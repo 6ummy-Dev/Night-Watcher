@@ -258,8 +258,8 @@ assert a in s;s=s.replace(a,'',1);${W}" \
 
 run_case "the row repaint drops the open class" \
   "byte-identical to a full render" \
-  "${P}a='  scratch.innerHTML = filmRow(f);'
-assert a in s;s=s.replace(a,'  scratch.innerHTML = filmRow(f).replace(\' open\\\"\', \'\\\"\');',1);${W}" \
+  "${P}a='  scratch.innerHTML = filmRow(f, row.hidden);'
+assert a in s;s=s.replace(a,'  scratch.innerHTML = filmRow(f, row.hidden).replace(\' open\\\"\', \'\\\"\');',1);${W}" \
   "smoke" "identity"
 
 run_case "the theme toggle leaves the buttons stale" \
@@ -281,7 +281,7 @@ assert a in s;s=s.replace(a,'function themeUpdate(){\n  document.documentElement
 # rather than reimplemented for exactly this reason.
 run_case "the row builder is reimplemented for the fast path" \
   "byte-identical to a full render" \
-  "${P}a='  scratch.innerHTML = filmRow(f);'
+  "${P}a='  scratch.innerHTML = filmRow(f, row.hidden);'
 assert a in s;s=s.replace(a,'  scratch.innerHTML = \\'<div class=\"film\"><div class=\"frow\"></div></div>\\';',1);${W}" \
   "smoke" "identity"
 
