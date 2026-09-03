@@ -174,25 +174,38 @@ a='<svg class=\"bat\"';assert a in s
 s=s.replace(a,'<svg class=\"bat\" xmlns=\"http://www.w3.org/2000/svg\"',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
-run_case "the bat is loaded with url() instead of inlined" \
+run_case "the alley is loaded with url() instead of inlined" \
   "404.html fetches something with url()" \
   "import io;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
-a='opacity:.09;';assert a in s
-s=s.replace(a,'opacity:.09;background:url(icon.svg);',1)
-io.open(p,'w',encoding='utf-8').write(s)"
+a='.bat{position:absolute;';assert a in s
+s=s.replace(a,'.bat{background:url(icon.svg);position:absolute;',1)
+io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 101
 
-run_case "the bat is turned up past the contrast floor" \
+run_case "the alley is turned up past the contrast floor" \
   "under the 4.5:1 AA floor" \
   "import io;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
-a='opacity:.09;';assert a in s
-s=s.replace(a,'opacity:.3;',1)
-io.open(p,'w',encoding='utf-8').write(s)"
+a='--wall-b:#0E1420;';assert a in s
+s=s.replace(a,'--wall-b:#E7E9F0;',1)
+b='--scrim:.84;';assert b in s
+s=s.replace(b,'--scrim:.10;',1)
+io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 118
+
+run_case "the 404 stops hiding the alley for prefers-contrast" \
+  "no longer drops its alley" \
+  "import io;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
+a='@media (prefers-contrast:more){.alley,.scrim{display:none;}}';assert a in s
+s=s.replace(a,'@media (prefers-contrast:more){.scrim{display:none;}}',1)
+io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 118
 
 run_case "the 404 clips its own body" \
   "404.html clips its own body" \
   "import io;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
-a='text-align:center;padding:24px;}';assert a in s
-s=s.replace(a,'text-align:center;padding:24px;overflow:hidden;}',1)
-io.open(p,'w',encoding='utf-8').write(s)"
+a='text-align:center;padding:24px;position:relative;}';assert a in s
+s=s.replace(a,'text-align:center;padding:24px;position:relative;overflow:hidden;}',1)
+io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 118
 
 finish "negtest210"

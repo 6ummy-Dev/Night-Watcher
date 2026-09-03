@@ -108,6 +108,14 @@ rule, and a large-looking one.
   that claim is unchanged, the token under it moved.
 - **Section 46 and section 29 speak KiB**, with the three negative fixtures
   that quote their wording re-aimed.
+- **negtest210's three 404 fixtures were aimed at the bat** — they anchored on
+  `opacity:.09` and the old `body` rule, strings the alley deleted rather than
+  changed, so a pattern sweep of *changed* strings missed them and CI caught
+  them. Re-aimed at the alley, and a fourth added for the clause section 118
+  gained: a page that stops hiding the alley under `prefers-contrast:more`.
+  All four now name the section they aim at, which retired three of the
+  corpus's blind fixtures — **`NO_SECT_PINNED` 754 → 751**, a number that only
+  ever goes down. Fixture count 1,371 → 1,372 in README and `qa.yml`.
 
 ### Notes
 
