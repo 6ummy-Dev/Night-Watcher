@@ -165,7 +165,7 @@ function blessHtml(next){
      110  The page can still be pinch-zoomed
      115  Four copies of the bat, and they agree
      112  The Restore box survives a render nobody asked for
-     118  The 404 still reads over its own bat
+     118  The 404 still reads over its own alley
 
    DEPLOY
      10   No vendored third-party code
@@ -1726,17 +1726,20 @@ if(inlineType){
 }
 
 /* 5.2.3 finished the thought: the stylesheet itself now has one source.
-   Every font-size is a var(--t-*) reference into the :root scale — 11
-   roles, nine fixed sizes and two clamps, recorded in NOTES.md. The belt
+   Every font-size is a var(--t-*) reference into the :root scale — nine
+   roles, seven fixed sizes and two clamps, recorded in NOTES.md. 6.0.1 took
+   it from eleven: --t-row (16.5) folded into --t-body (16), measured at zero
+   changed pixels, and --t-row-lg (19.5) into --t-heading's clamp, which also
+   ended a size relation that flipped between 320 and 390. The belt
    buckle micro text (.pathseg .bst/.bs2 and their 375px step; the caret is drawn, not set)
    is lettering on furniture, not typography, and keeps its literals. A raw
-   px anywhere else is a twelfth size waiting to happen — the ladder this
+   px anywhere else is a tenth size waiting to happen — the ladder this
    patch collapsed grew one half-pixel at a time. */
 (function(){
   var EXPECT = {
     "--t-display":"clamp(24px,6.5vw,36px)", "--t-title":"24px",
     "--t-heading":"clamp(17px,5.5vw,20px)", "--t-num":"38px",
-    "--t-row-lg":"19.5px", "--t-row":"16.5px", "--t-body":"16px",
+    "--t-body":"16px",
     "--t-desc":"14px", "--t-note":"12px", "--t-label":"10px", "--t-fine":"9px"
   };
   var toks = typeTokens();
@@ -1749,7 +1752,7 @@ if(inlineType){
   });
   Object.keys(toks).forEach(function(k){
     if(!(k in EXPECT)){
-      fail("unrecorded type token " + k + " — a twelfth role must be argued into " +
+      fail("unrecorded type token " + k + " — a tenth role must be argued into " +
            "NOTES.md and this table, or the ladder grows back");
     }
   });
@@ -2442,7 +2445,7 @@ if(!/isStandalone\(\)\s*\?\s*"#000000"/.test(HTML)){
 var zlib = require("zlib");
 var rawKB  = Buffer.byteLength(HTML) / 1024;
 var gzipKB = zlib.gzipSync(Buffer.from(HTML)).length / 1024;
-note("index.html " + rawKB.toFixed(1) + " KB raw, " + gzipKB.toFixed(1) + " KB gzipped");
+note("index.html " + rawKB.toFixed(1) + " KiB raw, " + gzipKB.toFixed(1) + " KiB gzipped");
 /* Raised 150 -> 160 in 1.9.5 (ratings data + the machine-readable curated
    list), 160 -> 165 in 2.0.0 (the progress card's drawing code, tightened
    first), and 165 -> 200 in 2.5.0 alongside the FIRST gzip raise, 50 -> 80 —
@@ -2457,8 +2460,8 @@ note("index.html " + rawKB.toFixed(1) + " KB raw, " + gzipKB.toFixed(1) + " KB g
    the raise anyway. The ceilings moved; the discipline did not:
    arithmetic still fails the build, and every raise is still a recorded
    owner decision, never a drift. */
-if(rawKB > 250) fail("index.html is " + rawKB.toFixed(1) + " KB raw, over the 250 KB budget");
-if(gzipKB > 80) fail("index.html is " + gzipKB.toFixed(1) + " KB gzipped, over the 80 KB budget");
+if(rawKB > 250) fail("index.html is " + rawKB.toFixed(1) + " KiB raw, over the 250 KiB budget");
+if(gzipKB > 80) fail("index.html is " + gzipKB.toFixed(1) + " KiB gzipped, over the 80 KiB budget");
 
 /* Zero runtime dependencies is a promise in the README. There is no
    third-party code in index.html at all — the vendored QR encoder was the last
@@ -3584,7 +3587,7 @@ if(!/watchUrl\(f\)/.test(fn("watchLinks"))){
 /* ---------- 46. The README states the real weight --------------------- */
 /* It drifts every release, and it is the first number anyone reads. */
 
-var rmSize = README.match(/currently (\d+) KB \/ (\d+) KB/);
+var rmSize = README.match(/currently (\d+) KiB \/ (\d+) KiB/);
 if(!rmSize){
   fail("README no longer states the current size — the weight figure is the first number anyone reads, and section 46 exists to hold it");
 } else {
@@ -3593,8 +3596,8 @@ if(!rmSize){
      number the budget is not measuring. */
   var realGz  = Math.round(require("zlib").gzipSync(Buffer.from(HTML)).length / 1024);
   if(parseInt(rmSize[1], 10) !== realRaw || parseInt(rmSize[2], 10) !== realGz){
-    fail("README says " + rmSize[1] + " KB / " + rmSize[2] + " KB, actual is " +
-         realRaw + " KB / " + realGz + " KB");
+    fail("README says " + rmSize[1] + " KiB / " + rmSize[2] + " KiB, actual is " +
+         realRaw + " KiB / " + realGz + " KiB");
   }
 }
 
@@ -3819,9 +3822,13 @@ if(!/<h1><button id="topBtn">/.test(HTML)){
 /* Every row in Recent activity is watched — that is what puts it there. The
    tick drew as an empty ring until 1.4.3, which reads as "not watched" in a
    list of things you had just watched. 1.4.1 tested that the tick existed, was
-   labelled, and worked. Nothing tested what it looked like. */
+   labelled, and worked. Nothing tested what it looked like.
 
-if(!/\.arow \.tick\{[^}]*background:var\(--bone\)/.test(HTML)){
+   6.0.1 moved the fill from --bone to --suit: every surface you press is the
+   suit grey now, and --bone went back to being ink on dark. The tick still has
+   to be FILLED — that is the claim — it is just filled with the other token. */
+
+if(!/\.arow \.tick\{[^}]*background:var\(--suit\)/.test(HTML)){
   fail("the Activity tick is unfilled \u2014 it reads as unwatched on entries that " +
        "are watched by definition");
 }
@@ -4167,7 +4174,7 @@ if(!/b\.dataset\.format/.test(HTML)) fail("nothing handles a format tap");
     fail("the chosen path is not an ink pouch lettered in signal \u2014 on a " +
          "signal belt that inversion is the only mark it has");
   }
-  if(/bonebtn|var\(--bone\)/.test(chosen)){
+  if(/var\(--suit\)|var\(--bone\)/.test(chosen)){
     fail("the chosen path borrowed the fill the app uses for primary actions");
   }
   var strip = (HTML.match(/\.pathseg\{[^}]*\}/) || [""])[0];
@@ -7908,9 +7915,17 @@ var ROUTE_VOCAB = [
            "whatever address missed, so a relative reference on it resolves " +
            "against a directory nobody chose. The mark is inline or it is nothing");
     }
-    if(Buffer.byteLength(ft) > 4096){
+    /* 6.0.1 RAISED THIS FROM 4096, AND THE PRINCIPLE DID NOT MOVE. The page is
+       still one file with no fetches, no url(), no font and no script — that is
+       what "one sentence and a door" was protecting, and every clause enforcing
+       it is above, untouched. What changed is that the door now stands in an
+       alley: the copy has said "nothing down this alley" since 3.1.0 and the
+       picture behind it was a bat. The alley is 8.2 KB of inline geometry, one
+       wall drawn once and mirrored with <use>, 2.6 KB on the wire. The owner's
+       call, 3 Sept 2026, recorded in the CHANGELOG like every weight raise. */
+    if(Buffer.byteLength(ft) > 9000){
       fail("404.html is " + Buffer.byteLength(ft) + " bytes \u2014 it is one " +
-           "sentence and a door, not a page");
+           "sentence, a door and an alley, not a page");
     }
   }
   var wtxt = fs.readFileSync(path.join(ROOT, "wrangler.jsonc"), "utf8");
@@ -9940,23 +9955,30 @@ var ROUTE_VOCAB = [
   note("llms.txt summary carries the README's claims: filmed, animated and live action, no spoilers");
 })();
 
-/* ---------- 118. The 404 still reads over its own bat ----------------- */
+/* ---------- 118. The 404 still reads over its own alley ---------------- */
 /* SECTION 20 READS index.html ONLY, so nothing in this suite has ever measured
    a colour on the error page — and until 3.1.0 nothing needed to, because
-   there was nothing behind the text. There is now.
+   there was nothing behind the text.
 
-   The arithmetic, not a screenshot. A screenshot of an error page is the one
-   thing nobody looks at twice, and the failure mode here is gradual: somebody
-   decides the mark is too faint, raises the opacity, and the page a reader
-   meets when something is ALREADY broken becomes the least readable page on
-   the origin. At .09 the h1 reads 14.6:1 and the body 6.7:1 against AA's 4.5,
-   so there is a great deal of room — which is exactly why this needs a number
-   rather than a judgement.
+   3.1.0 put a ghosted bat back there and this section measured it. 6.0.1
+   replaced the bat with an alley: two walls in perspective, a scrim over them,
+   and the copy standing in the gap. The claim is unchanged and so is the
+   arithmetic — only the thing being measured moved. A screenshot of an error
+   page is the one thing nobody looks at twice, and the failure mode is
+   gradual: somebody decides the city is too faint, lifts a fill or thins the
+   scrim, and the page a reader meets when something is ALREADY broken becomes
+   the least readable page on the origin.
+
+   The worst case for light text on a dark page is the LIGHTEST thing behind
+   it, and that is --wall-b, the nearer of the two wall fills. Over it sits the
+   scrim at its centre stop, --scrim, exactly where the text is. Lit windows
+   are brighter still and are deliberately not measured: they are 5px specks,
+   not a background, and nothing sets type on one.
 
    A5, and it is the other half: `overflow:hidden` on <body> must not go in. A
    position:fixed box contributes nothing to document overflow, so it buys
    nothing, and section 110's whole argument is that this page can be
-   pinch-zoomed. */
+   pinch-zoomed. The alley clips inside its own fixed wrapper for that reason. */
 
 (function(){
   var fp = path.join(PUBLIC, "404.html");
@@ -9968,47 +9990,58 @@ var ROUTE_VOCAB = [
       sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\{([^}]*)\\}"));
     return m ? m[2] : null;
   }
-  var body = rule("body"), bat = rule(".bat"), para = rule("p");
-  if(!body || !bat){ fail("404.html has no body or .bat rule — the bat cannot be measured"); return; }
+  function tok(name){
+    var m = src.match(new RegExp("--" + name + ":\\s*([^;]+);"));
+    return m ? m[1].trim() : null;
+  }
+  var body = rule("body");
+  var ink = tok("ink"), wall = tok("wall-b"), h1 = tok("bone"), pc = tok("dust");
+  var scrim = parseFloat(tok("scrim"));
 
-  var bg = (body.match(/background:\s*(#[0-9A-Fa-f]{6})/) || [])[1];
-  var h1 = (body.match(/color:\s*(#[0-9A-Fa-f]{6})/) || [])[1];
-  var pc = (String(para || "").match(/color:\s*(#[0-9A-Fa-f]{6})/) || [])[1];
-  var op = parseFloat((bat.match(/opacity:\s*([\d.]+)/) || [])[1]);
-  var fill = (src.match(/<svg class="bat"[\s\S]*?fill="(#[0-9A-Fa-f]{6})"/) || [])[1];
-
-  if(!bg || !h1 || !pc || !fill || !(op >= 0)){
-    fail("cannot read the 404's page colour, text colours, bat fill or bat opacity — " +
-         "this section is measuring nothing and would report green forever");
+  if(!body || !ink || !wall || !h1 || !pc || !(scrim >= 0)){
+    fail("cannot read the 404's page colour, wall fill, text colours or scrim " +
+         "opacity — this section is measuring nothing and would report green forever");
     return;
   }
+  if(!/\.scrim\{/.test(src) || !/rgba\(8,9,15,var\(--scrim\)\)/.test(src)){
+    fail("the 404's scrim is gone or no longer reads --scrim — the alley would " +
+         "sit at full strength behind the copy and section 118 would be measuring " +
+         "a number the page does not use");
+  }
 
+  /* the scrim paints the page colour over the wall at its centre stop */
   var eff = "#";
   for(var i = 0; i < 3; i++){
-    var b = parseInt(bg.substr(1 + i * 2, 2), 16);
-    var f = parseInt(fill.substr(1 + i * 2, 2), 16);
-    var v = Math.round(b + (f - b) * op);
+    var w = parseInt(wall.substr(1 + i * 2, 2), 16);
+    var k = parseInt(ink.substr(1 + i * 2, 2), 16);
+    var v = Math.round(w + (k - w) * scrim);
     eff += (v < 16 ? "0" : "") + v.toString(16);
   }
 
   [[h1, "the heading"], [pc, "the sentence"]].forEach(function(t){
     var r = contrast(t[0], eff);
     if(r < 4.5){
-      fail("the 404's bat at opacity " + op + " puts " + t[1] + " (" + t[0] + ") at " +
-           r.toFixed(2) + ":1 over the lit background (" + eff + ") — under the 4.5:1 " +
-           "AA floor. This is the page somebody reaches when something is already " +
-           "broken; it does not get to be the hardest one to read");
+      fail("the 404's alley puts " + t[1] + " (" + t[0] + ") at " + r.toFixed(2) +
+           ":1 over the nearest wall under the scrim (" + eff + ") — under the " +
+           "4.5:1 AA floor. This is the page somebody reaches when something is " +
+           "already broken; it does not get to be the hardest one to read");
     }
   });
 
+  if(!/@media \(prefers-contrast:more\)\{\.alley,\.scrim\{display:none;\}\}/.test(src)){
+    fail("the 404 no longer drops its alley under prefers-contrast:more — the " +
+         "reader who asked for more contrast gets the picture instead");
+  }
+
   if(/overflow:\s*hidden/.test(body)){
-    fail("404.html clips its own body — a position:fixed mark contributes nothing " +
+    fail("404.html clips its own body — a position:fixed alley contributes nothing " +
          "to document overflow, so this buys nothing and costs the pinch-zoom " +
          "section 110 exists to protect");
   }
 
-  note("404 bat: " + fill + " at " + op + " over " + bg + " = " + eff + "; heading " +
-       contrast(h1, eff).toFixed(2) + ":1, sentence " + contrast(pc, eff).toFixed(2) + ":1");
+  note("404 alley: " + wall + " under scrim " + scrim + " over " + ink + " = " + eff +
+       "; heading " + contrast(h1, eff).toFixed(2) + ":1, sentence " +
+       contrast(pc, eff).toFixed(2) + ":1");
 })();
 
 /* ---------- 119. Where to watch has a rank of its own ----------------- */

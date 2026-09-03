@@ -123,8 +123,8 @@ run_case "og:title sheds the tagline" \
   guards "" 33
 
 run_case "the README's weight figure drifts" \
-  "KB, actual is" \
-  "$(pro README.md)a='it is currently ';assert a in s;s=s.replace(a,'it is currently 190 KB / 60 KB; it was ',1);${W}" \
+  "KiB, actual is" \
+  "$(pro README.md)a='it is currently ';assert a in s;s=s.replace(a,'it is currently 190 KiB / 60 KiB; it was ',1);${W}" \
   guards "" 46
 
 run_case "the Progress footer names the retired link again" \

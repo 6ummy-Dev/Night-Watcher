@@ -2,8 +2,22 @@
 <!-- The share card layout. Filled and rendered by qa/make-share-card.mjs;
      every face, color and mark below is the app's own. {{ROOT}} becomes a
      file:// URL to the repository root, {{BAT}} a data URL of the bat
-     silhouette extracted from docs/icon.png, and the three counts come from
-     PATH itself — the card cannot say something the catalogue does not. -->
+     silhouette extracted from docs/icon.png, the SKY placeholder the generated
+     skyline, and the three counts come from PATH itself — the card cannot say
+     something the catalogue does not.
+
+     6.0.1 replaced the ghosted bat behind the type with a city. The app
+     already draws a skyline, so the card now speaks the product's own visual
+     vocabulary rather than a second one: symmetric stepped setbacks, ziggurat
+     caps, tallest at centre, outlined --line2, windows lit in signal. It is
+     atmosphere, not a figure — nothing on it is filled to a percentage, and
+     there is no beacon (4.5.0 took beacons out of the app and the card, and at
+     this size the mast would land inside the numerals).
+
+     The uppercase, tracked labels carry text-indent equal to their own
+     letter-spacing. Tracking adds a trailing space INSIDE the box, so a
+     centred label sits half a space left of centre — measured at 3.0px on the
+     labels before this was added. -->
 <html><head><meta charset="utf-8">
 <style>
 @font-face{font-family:"NW Deco";src:url("{{ROOT}}/docs/fonts/limelight-latin-400-normal.woff2") format("woff2");}
@@ -14,24 +28,28 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:#000;}
 #card{width:1200px;height:630px;position:relative;overflow:hidden;
-  background:radial-gradient(ellipse 1000px 760px at 50% 8%, #111a2d 0%, #05070C 60%);}
-#card .ghost{position:absolute;right:-70px;top:110px;width:600px;opacity:.06;}
-#card .top{position:absolute;top:58px;left:0;width:100%;text-align:center;}
-#card .top img{width:78px;display:block;margin:0 auto 14px;}
-#card .top .w{font-family:"NW Deco";color:#E7E9F0;font-size:44px;text-transform:uppercase;letter-spacing:.04em;}
-#card .stats{position:absolute;top:238px;left:0;width:100%;display:flex;justify-content:center;}
-#card .st{flex:0 0 310px;text-align:center;}
+  background:radial-gradient(ellipse 1000px 780px at 50% 4%, #131d33 0%, #05070C 64%);}
+#card .skywrap{position:absolute;inset:0;}
+#card .skywrap svg{position:absolute;left:0;bottom:0;}
+#card .skywrap::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(rgba(5,7,12,.96) 0%,rgba(5,7,12,.86) 22%,rgba(5,7,12,.60) 46%,rgba(5,7,12,.20) 74%,rgba(5,7,12,0) 100%);}
+#card .top{position:absolute;top:42px;left:0;width:100%;text-align:center;}
+#card .top img{width:96px;display:block;margin:0 auto 20px;}
+#card .top .w{font-family:"NW Deco";color:#E7E9F0;font-size:54px;text-transform:uppercase;letter-spacing:.04em;}
+#card .stats{position:absolute;top:211px;left:0;width:100%;display:flex;justify-content:center;}
+#card .st{flex:0 0 344px;text-align:center;}
 #card .st + .st{border-left:1px solid #252E42;}
-#card .st .n{font-family:"Big Shoulders Display";font-weight:700;color:#FFCF1F;font-size:154px;line-height:1;text-shadow:0 0 60px rgba(255,207,31,.18);}
-#card .st .l{font-family:"NW Mono";font-weight:400;color:#93A0B8;font-size:23px;letter-spacing:.22em;text-transform:uppercase;margin-top:12px;}
-#card .tag{position:absolute;bottom:104px;width:100%;text-align:center;font-family:"NW Sans";font-weight:400;color:#93A0B8;font-size:28px;}
-#card .site{position:absolute;bottom:36px;width:100%;text-align:center;font-family:"NW Mono";font-weight:400;color:#5f6b84;font-size:20px;letter-spacing:.08em;}
-#card .strip{position:absolute;bottom:0;left:0;width:100%;height:8px;display:flex;gap:3px;}
+#card .st .n{font-family:"Big Shoulders Display";font-weight:700;color:#FFCF1F;font-size:148px;line-height:1;text-shadow:0 0 60px rgba(255,207,31,.18);}
+#card .st .l{font-family:"NW Mono";font-weight:400;color:#93A0B8;font-size:26px;letter-spacing:.22em;text-indent:.22em;text-transform:uppercase;margin-top:12px;}
+#card .tag{position:absolute;bottom:168px;width:100%;text-align:center;font-family:"NW Sans";font-weight:400;color:#93A0B8;font-size:31px;}
+#card .site{position:absolute;bottom:78px;width:100%;text-align:center;}
+#card .site b{display:inline-block;background:#FFCF1F;color:#08090F;font-family:"NW Mono";font-weight:600;font-size:23px;letter-spacing:.08em;text-indent:.08em;padding:14px 26px;}
+#card .strip{position:absolute;bottom:0;left:0;width:100%;height:8px;display:flex;gap:3px;z-index:3;}
 #card .strip i{flex:1;background:#FFCF1F;opacity:.22;}
 #card .strip i:nth-child(5n){opacity:.5;}
 </style></head><body>
 <div id="card">
-  <img class="ghost" src="{{BAT}}">
+  <div class="skywrap">{{SKY}}</div>
   <div class="top"><img src="{{BAT}}"><div class="w">Night Watcher</div></div>
   <div class="stats">
     <div class="st"><div class="n">{{FILMS}}</div><div class="l">Films</div></div>
@@ -39,7 +57,7 @@ body{background:#000;}
     <div class="st"><div class="n">{{CONTINUITIES}}</div><div class="l">Continuities</div></div>
   </div>
   <div class="tag">Batman watch orders. No spoilers.</div>
-  <div class="site">nightwatcher.life</div>
+  <div class="site"><b>nightwatcher.life</b></div>
   <div class="strip">{{TICKS}}</div>
 </div>
 </body></html>

@@ -31,7 +31,7 @@ s=s.replace(a,'.legend .rleg{display:flex;',1);${W}"
 
 echo "--- 29: the owner's ceilings, held by arithmetic"
 run_case "the file grows past the gzip budget" \
-  "over the 80 KB budget" \
+  "over the 80 KiB budget" \
   "${P}import hashlib
 pad=''; seed=b'night-watcher'
 while len(pad)<120000: seed=hashlib.md5(seed).hexdigest().encode(); pad+=seed.decode()

@@ -99,6 +99,75 @@ The one head comment that stayed is the notice about marks and lettering. It is
 not an explanation of the code; it is a statement about the file, and it belongs
 in the file it is about.
 
+### Type: nine tokens, and what actually sets tracking (6.0.1)
+
+Sizes live as `--t-*` on `:root` and nothing else sets one — section 17 holds
+the table and refuses a raw px anywhere but the belt lettering. **There are
+nine roles**, down from eleven in 6.0.1: `--t-row` (16.5) folded into
+`--t-body` (16), rendered before and after at zero changed pixels, and
+`--t-row-lg` (19.5) into `--t-heading`'s clamp, which made row titles
+responsive and ended a size relation that flipped with the viewport — at 320
+a row title was 1.9px larger than the group heading above it, at 390 it was
+0.5px smaller.
+
+`--t-title` (24) serves three roles at once: the wordmark, the empty state and
+the mode picker. That is a token working, not a token overloaded — three uses
+that genuinely want the same size — and it is written down so the next reader
+does not "fix" it.
+
+**Tracking is set by ROLE, and widens as size shrinks WITHIN a band.** The
+older phrasing, "tracking widens as size shrinks", is violated on nearly every
+line: at 9px alone the tree spans .04em to .22em. Sorted by role it is orderly,
+and this is the ladder:
+
+| Band | Tracking |
+|---|---|
+| Kickers / eyebrows | .17 – .22 |
+| Section heads | .15 – .17 |
+| Chrome / badges | .11 – .12 |
+| Buttons | .09 – .12 |
+| Data / meta | .04 – .06 |
+| Row titles (BSD) | .05 |
+| Landmarks (Deco) | .02 |
+
+A value outside its band is a defect; a value inside it is a decision. 6.0.1
+moved two that had drifted into the data band while being buttons —
+`.herorow .lnk` to .08em and `.pathseg button` to .09em.
+
+**The centring artefact, measured and declined.** Tracked uppercase carries a
+trailing letter-space inside its box, so a centred label sits half a space left
+of true centre. On the share card that measured 3.0px at .22em/26px and is
+compensated there with `text-indent`. In the app the worst case is `.pietitle`
+at 0.66px and `#tabs button` at 0.54px — under a pixel on a device pixel grid.
+Recorded so the next type pass does not rediscover it and think it found
+something.
+
+### `--bone` and `--suit` (6.0.1)
+
+Two jobs that were one token. **`--bone` is ink on dark**: body text, the
+search field, `.lnk`, `.bd.s`, `.istats b`. **`--suit` is every surface you
+press**: the primary buttons, pressed chips, scope and theme buttons, both
+ticks, and the toast. The suit is grey (`#A6ADBA`, one value in both themes)
+because the suit is grey — bone was a near-white standing in for it.
+
+Ink on the suit reads 8.81:1 in Dark Deco and 9.31:1 in Darker, so no text
+colour moved with it. Section 49 asserts the activity tick is *filled* and
+section 157 refuses the chosen path borrowing the primary-action fill; both
+name `--suit` now. A guard that kept naming `--bonebtn` would have gone on
+passing while permitting the thing it exists to forbid.
+
+### `docs/404.html` is generated once, and stays that way (6.0.1)
+
+The alley is inline SVG drawn from the app's own `ROOFS` forms — one wall,
+mirrored with `<use>` — and it carries no data, so it never regenerates. The
+script that drew it lives in the 6.0.1 release-prep record rather than in
+`qa/`: there is no defect behind keeping a generator in the tree for a file
+that will not change, and the harness does not grow without one.
+
+Section 101 caps the page at 9,000 bytes, raised from 4,096 in 6.0.1 by the
+owner. What the cap protects did not move: one file, no fetches, no `url()`,
+no font, no script. The page is 8,433 bytes raw and 2,976 on the wire.
+
 ## Script
 
 ### `PATH`

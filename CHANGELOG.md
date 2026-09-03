@@ -14,6 +14,109 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.0.1] — 2026-09-03
+
+**The front door.** Everything a stranger meets before they meet the app:
+the card that renders when the URL is pasted, the page a wrong address
+lands on, and the colour of every control you press. No feature, no
+catalogue change, nothing that touches a saved mark — a PATCH by README's
+rule, and a large-looking one.
+
+### Changed
+
+- **The share card's background is a city.** It was a ghosted bat. The app
+  has drawn a skyline since 4.5.0, so the card now speaks the product's own
+  visual vocabulary instead of a second one: symmetric stepped setbacks,
+  ziggurat caps, tallest tower at centre, outlined in `--line2`, windows lit
+  in signal, under a graded scrim. It is atmosphere and not a figure —
+  nothing on it is filled to a percentage — and there is no beacon, because
+  4.5.0 took beacons out of the app and the card and at this size the mast
+  would land inside the numerals.
+
+  The three counts still come from `PATH` at generation time and still can
+  not drift from the catalogue. The lockup is larger throughout and the URL
+  is a plaque — signal fill, ink mono — the treatment the off-site cards
+  have used since August. **20,363 bytes against roughly 20,000 before.**
+
+  Every centred label carries `text-indent` equal to its own tracking.
+  Tracked uppercase puts a trailing letter-space inside the box, so a
+  centred label sits half a space left of centre: measured at **3.0px** on
+  the three stat labels before this was added. The same artefact was
+  measured in the app and left alone — the worst case there is 0.66px, and
+  eleven declarations to move something under a pixel is not a trade.
+
+- **The 404 is an alley.** The copy has said *nothing down this alley* since
+  3.1.0 and the picture behind it was a bat. It is a corridor now: two walls
+  in perspective, each face wearing a form from the app's own `ROOFS` table —
+  `setback`, `zig2`, `block`, `zig3`, `twin`, `spire` — with its crown carried
+  along the perspective slope, so a ziggurat still steps like one from
+  underneath. One wall is drawn and the other is `<use>` of it, which is why
+  the alley is symmetric by construction rather than by care. The bat stays,
+  at the vanishing point, dim, with the walls closing over its edges.
+
+  The link is square now. It carried `border-radius:10px` and was **the only
+  rounded corner in the product** — `index.html` holds 41 declarations of
+  `border-radius:0`.
+
+- **Every surface you press is the suit, not bone.** `--bone` was doing two
+  jobs: ink on dark, and the fill of anything pressed. The second was wrong —
+  the suit is grey. New `--suit:#A6ADBA`, one value in both themes, on the
+  primary buttons, pressed chips, scope and theme buttons, both ticks and the
+  toast. Text keeps `--bone`. Ink on the suit reads 8.81:1 in Dark Deco and
+  9.31:1 in Darker, so no text colour moved.
+
+### Changed — type
+
+- **Nine tokens, down from eleven.** `--t-row` (16.5) folded into `--t-body`
+  (16) — rendered before and after, **0.00% of pixels changed** and Progress
+  came out byte-identical. `--t-row-lg` (19.5) folded into `--t-heading`'s
+  clamp, which makes row titles responsive (17.6px at 320, 20px at 390) and
+  ends a size relation that flipped with the viewport: at 320 a row title was
+  1.9px *larger* than the group heading above it, at 390 it was 0.5px smaller.
+- **Two tracking values back into the button band.** `.herorow .lnk` .04em →
+  .08em and `.pathseg button` .04em → .09em; both were sitting in the data
+  band while being buttons. Measured at 320/360/390 first: neither overflows,
+  though the hero link fits at 390 with no margin at all, which is why it took
+  .08 and not the .10 of its own parent rule.
+- **NOTES records the rule the tracking actually follows.** The stated one —
+  "tracking widens as size shrinks" — is violated on nearly every line: at 9px
+  alone the tree spans .04em to .22em. Sorted by role it is orderly, and that
+  is the rule: tracking is set by role, and widens as size shrinks *within* a
+  band.
+
+### Changed — documentation
+
+- **The weight figures say KiB, because that is what is measured.** Guard 29
+  divides by 1024; the same file read in decimal kB is 252 and looks like an
+  overshoot it is not. The 6.0.0 audit made exactly that reading, and 5.4.0
+  corrected the same confusion once already.
+- **`security.txt`'s `Expires`** renewed to 2027-09-01.
+
+### Guarded
+
+- **Section 118 measures the alley instead of the bat.** Same claim, same
+  arithmetic, new subject: it reads `--wall-b` and `--scrim` from the page's
+  own tokens, blends them, and holds the heading and the sentence to AA
+  (16.21:1 and 7.45:1). It also refuses a page that drops the scrim or stops
+  hiding the alley under `prefers-contrast:more`.
+- **Section 101's ceiling is 9,000 bytes, raised from 4,096** — the owner's
+  call, recorded like every weight raise. The principle it protects did not
+  move: still one file, no fetches, no `url()`, no font, no script. The alley
+  is 8,433 bytes raw and 2,976 on the wire.
+- **Section 17's table is nine tokens** and its wording follows.
+- **Section 49 reads `--suit`.** It asserts the activity tick is *filled* —
+  that claim is unchanged, the token under it moved.
+- **Section 46 and section 29 speak KiB**, with the three negative fixtures
+  that quote their wording re-aimed.
+
+### Notes
+
+- `docs/404.html` is generated once and committed; it carries no data, so it
+  never regenerates. The generator that drew it is in the release-prep record,
+  deliberately not in the tree — there is no defect behind keeping it there.
+- The sub-pixel centring artefact in the app is recorded as declined, so the
+  next type pass does not rediscover it and think it found something.
+
 ## [6.0.0] — 2026-09-02
 
 **Two keys, three seasons.** The first MAJOR since 5.0.0, and it crosses

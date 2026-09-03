@@ -59,6 +59,76 @@ sandbox.PATH.forEach(g => g.films.forEach(f => { f.k === "tv" ? seasons++ : film
 const continuities = sandbox.PATH.length;
 console.log(`counts from PATH: ${films} films · ${seasons} seasons · ${continuities} continuities`);
 
+/* ---- the skyline, generated ----------------------------------------------
+   The card's background is a city, not a figure: symmetric about the centre,
+   tallest tower at the middle, stepped setbacks with ziggurat caps, outlined
+   in --line2, windows lit in --signal. It encodes nothing — the counts do
+   that, three of them, in type. Deterministic from one seed so the card is
+   byte-stable across runs, which is what lets guard 91 hold its hash. */
+function skylineSvg() {
+  const W = 1200, BAND = 472;
+  const LINE2 = "#33405C", SUNK = "#0C111C", SIG = "#FFCF1F";
+  let h = 20260903 >>> 0;
+  const rnd = () => ((h = (h * 1664525 + 1013904223) >>> 0) / 4294967296);
+  const CW = 118, CH = 300;
+  const ts = [{ x: W / 2 - CW / 2, w: CW, h: CH, mast: true }];
+  let x = W / 2 + CW / 2 + 4, i = 1;
+  while (x < W) {
+    const w = 42 + Math.round(rnd() * 58);
+    const hh = Math.max(60, Math.round(CH * Math.pow(0.90, i) + rnd() * 34));
+    ts.push({ x, w, h: hh, mast: false });
+    x += w + 4; i++;
+  }
+  const tower = (t, mirror) => {
+    const x0 = mirror ? W - t.x - t.w : t.x;
+    const steps = t.h > 190 ? 3 : t.h > 110 ? 2 : 1;
+    let g = "", cw = t.w, cx = x0, cy = BAND;
+    const parts = [];
+    for (let s = 0; s <= steps; s++) {
+      const frac = s === 0 ? 0.62 : s === steps ? 0.16 : 0.22;
+      const hh = Math.round(t.h * frac);
+      parts.push({ x: cx, y: cy - hh, w: cw, h: hh });
+      cy -= hh;
+      const shrink = Math.max(6, Math.round(cw * 0.22));
+      cx += shrink / 2; cw -= shrink;
+      if (cw < 8) break;
+    }
+    parts.forEach(p => {
+      g += `<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" fill="${SUNK}" ` +
+           `stroke="${LINE2}" stroke-width="1" stroke-opacity=".7"/>`;
+    });
+    const top = parts[parts.length - 1];
+    if (top && top.w > 14) {
+      const capW = Math.round(top.w * 0.5), capX = top.x + (top.w - capW) / 2;
+      g += `<rect x="${capX}" y="${top.y - 7}" width="${capW}" height="7" fill="${SUNK}" ` +
+           `stroke="${LINE2}" stroke-width="1" stroke-opacity=".7"/>`;
+    }
+    if (t.mast && top) {
+      const mx = top.x + top.w / 2;
+      g += `<rect x="${mx - 2}" y="${top.y - 40}" width="4" height="40" fill="${LINE2}"/>`;
+    }
+    let seed = (t.x * 2654435761) >>> 0;
+    const r2 = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+    parts.forEach(p => {
+      const cols = Math.max(1, Math.floor((p.w - 10) / 12));
+      const rows = Math.max(1, Math.floor((p.h - 12) / 16));
+      for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) {
+        const wx = p.x + 6 + c * 12, wy = p.y + 9 + r * 16, roll = r2();
+        if (roll < 0.10)
+          g += `<rect x="${wx}" y="${wy}" width="5" height="8" fill="${SIG}" opacity="${(0.45 + r2() * 0.55).toFixed(2)}"/>`;
+        else if (roll < 0.35)
+          g += `<rect x="${wx}" y="${wy}" width="5" height="8" fill="${LINE2}" opacity=".55"/>`;
+      }
+    });
+    return g;
+  };
+  let body = "";
+  ts.forEach(t => { body += tower(t, false); });
+  ts.slice(1).forEach(t => { body += tower(t, true); });
+  return `<svg width="${W}" height="${BAND}" viewBox="0 0 ${W} ${BAND}">${body}` +
+         `<rect x="0" y="${BAND - 1}" width="${W}" height="1" fill="${LINE2}"/></svg>`;
+}
+
 /* ---- render ---- */
 const browser = await chromium.launch({
   executablePath: process.env.SHARE_CARD_CHROMIUM || undefined,
@@ -107,6 +177,7 @@ const bat = await page.evaluate(() => new Promise((resolve, reject) => {
 const tpl = fs.readFileSync(path.join(ROOT, "qa", "share-card.html"), "utf8")
   .replaceAll("{{ROOT}}", pathToFileURL(ROOT).href)
   .replaceAll("{{BAT}}", bat)
+  .replace("{{SKY}}", skylineSvg())
   .replace("{{FILMS}}", String(films))
   .replace("{{SEASONS}}", String(seasons))
   .replace("{{CONTINUITIES}}", String(continuities))

@@ -7,26 +7,68 @@
 <meta name="robots" content="noindex">
 <title>Nothing down this alley · Night Watcher</title>
 <style>
+/* The page says alley, so the page is an alley: two walls in perspective,
+   ten faces a side, each face wearing a form from the app's own ROOFS table
+   (setback, zig2, block, zig3, twin, spire) with its crown carried along the
+   perspective slope. The right wall is the left one mirrored. Generated once
+   and committed — it carries no data, so it never regenerates.
+
+   The bat hangs at the vanishing point, dim, with the walls closing over its
+   edges — the mark stays on the page (section 115 counts four copies of the
+   glyph and they must agree) and it reads as something seen down the street
+   rather than a watermark behind the type.
+
+   --wall-b is the lightest area fill in the picture and --scrim is what sits
+   over it where the text is: section 118 does the arithmetic on those two and
+   holds h1 and p to AA. Change either and the guard recomputes. */
+:root{--ink:#08090F;--wall-a:#0B0F1A;--wall-b:#0E1420;--line2:#33405C;
+  --bone:#E7E9F0;--dust:#93A0B8;--signal:#FFCF1F;--win:#151D2C;--scrim:.84;}
 body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:#08090F;color:#E7E9F0;font-family:ui-monospace,Menlo,Consolas,monospace;
-  text-align:center;padding:24px;}
-.bat{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:min(115vw,560px);height:auto;opacity:.09;pointer-events:none;}
+  background:var(--ink);color:var(--bone);font-family:ui-monospace,Menlo,Consolas,monospace;
+  text-align:center;padding:24px;position:relative;}
+.alley{position:fixed;inset:0;pointer-events:none;overflow:hidden;}
+.far{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(64vw,470px);height:min(48vh,350px);
+  background:radial-gradient(ellipse at 50% 62%,rgba(255,207,31,.09),rgba(255,207,31,.025) 46%,transparent 74%);}
+.bat{position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);
+  width:min(30vw,250px);height:auto;opacity:.08;}
+.wall{position:absolute;top:0;height:100%;width:min(34vw,470px);}
+.wall.l{left:0;}
+.wall.r{right:0;transform:scaleX(-1);}
+.wall .a{fill:var(--wall-a);}
+.wall .b{fill:var(--wall-b);}
+.wall .c{stroke:var(--line2);stroke-width:1;stroke-opacity:.65;}
+.wall .s{stroke:var(--line2);stroke-width:1;stroke-opacity:.45;}
+.wall .e{stroke:var(--line2);stroke-width:1.3;stroke-opacity:.8;}
+.wall .g{fill:none;stroke:var(--line2);stroke-width:1.4;stroke-opacity:.55;}
+.wall .w{fill:var(--win);opacity:.45;}
+.wall .l{fill:var(--signal);opacity:.55;}
+.scrim{position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(8,9,15,var(--scrim)) 0%,rgba(8,9,15,.6) 56%,rgba(8,9,15,.18) 100%);}
 main{max-width:420px;position:relative;}
 h1{font-size:17px;letter-spacing:.09em;text-transform:uppercase;margin:0 0 12px;}
-p{color:#93A0B8;font-size:14px;line-height:1.6;margin:0 0 24px;}
-a{display:inline-block;background:#FFCF1F;color:#08090F;text-decoration:none;font-weight:600;
-  padding:13px 22px;border-radius:10px;font-size:12px;letter-spacing:.07em;text-transform:uppercase;}
-@media (prefers-contrast:more){.bat{display:none;}}
+p{color:var(--dust);font-size:14px;line-height:1.6;margin:0 0 24px;}
+a{display:inline-block;background:var(--signal);color:var(--ink);text-decoration:none;font-weight:600;
+  padding:14px 24px;border-radius:0;font-size:12px;letter-spacing:.07em;text-indent:.07em;
+  text-transform:uppercase;}
+@media (max-width:560px){
+  .wall{width:22vw;}
+  .scrim{background:radial-gradient(ellipse 70% 44% at 50% 50%,rgba(8,9,15,.94) 0%,rgba(8,9,15,.74) 52%,rgba(8,9,15,.24) 100%);}
+}
+@media (prefers-contrast:more){.alley,.scrim{display:none;}}
 </style>
 </head>
 <body>
+<div class="alley" aria-hidden="true"><div class="far"></div>
 <svg class="bat" viewBox="8 16 84 70" aria-hidden="true"><g fill="#B4AE9C" transform="translate(0,5)">
-  <path d="M50 36 C 44 25, 29 21, 12 30 C 21 34, 25 41, 24 50 C 31 45, 37 47, 39 55 C 43 50, 47 51, 49 58 L 50 61 L 51 58 C 53 51, 57 50, 61 55 C 63 47, 69 45, 76 50 C 75 41, 79 34, 88 30 C 71 21, 56 25, 50 36 Z"/>
-  <path d="M42 32 L49 29 L38 17 Z"/><path d="M58 32 L62 17 L51 29 Z"/>
-  <ellipse cx="50" cy="42" rx="10" ry="11"/>
-  <path d="M50 51 C 45 60, 45 69, 50 78 C 55 69, 55 60, 50 51 Z"/>
+<path d="M50 36 C 44 25, 29 21, 12 30 C 21 34, 25 41, 24 50 C 31 45, 37 47, 39 55 C 43 50, 47 51, 49 58 L 50 61 L 51 58 C 53 51, 57 50, 61 55 C 63 47, 69 45, 76 50 C 75 41, 79 34, 88 30 C 71 21, 56 25, 50 36 Z"/>
+<path d="M42 32 L49 29 L38 17 Z"/><path d="M58 32 L62 17 L51 29 Z"/>
+<ellipse cx="50" cy="42" rx="10" ry="11"/>
+<path d="M50 51 C 45 60, 45 69, 50 78 C 55 69, 55 60, 50 51 Z"/>
 </g></svg>
+<svg class="wall l" viewBox="0 0 470 800" preserveAspectRatio="none"><g id="w"><polygon class="b" points="0,0 122,77 122,731 0,800"/><polygon class="b c" points="10,6 112,71 112,-47 10,-111"/><polygon class="b c" points="27,-101 95,-57 95,-166 27,-209"/><line class="s" x1="122" y1="77" x2="122" y2="731"/><line class="e" x1="0" y1="0" x2="122" y2="77"/><rect class="w" x="20" y="127" width="24" height="40"/><rect class="w" x="68" y="149" width="24" height="37"/><rect class="w" x="20" y="325" width="24" height="40"/><rect class="w" x="68" y="332" width="24" height="37"/><rect class="w l" x="20" y="523" width="24" height="40"/><rect class="w" x="68" y="515" width="24" height="37"/><polygon class="a" points="122,77 216,136 216,679 122,731"/><polygon class="a c" points="130,82 209,131 209,62 130,13"/><polygon class="a c" points="141,20 197,55 197,-1 141,-36"/><polygon class="a c" points="152,-29 186,-8 186,-47 152,-69"/><line class="s" x1="216" y1="136" x2="216" y2="679"/><line class="e" x1="122" y1="77" x2="216" y2="136"/><rect class="w" x="137" y="180" width="19" height="33"/><rect class="w" x="175" y="197" width="19" height="30"/><rect class="w" x="137" y="342" width="19" height="33"/><rect class="w" x="175" y="348" width="19" height="30"/><rect class="w" x="137" y="505" width="19" height="33"/><rect class="w" x="175" y="499" width="19" height="30"/><polygon class="b" points="216,136 291,184 291,636 216,679"/><polygon class="b c" points="222,140 285,180 285,57 222,17"/><line class="s" x1="291" y1="184" x2="291" y2="636"/><line class="e" x1="216" y1="136" x2="291" y2="184"/><rect class="w" x="228" y="221" width="15" height="27"/><rect class="w" x="258" y="235" width="15" height="25"/><rect class="w" x="228" y="356" width="15" height="27"/><rect class="w" x="258" y="361" width="15" height="25"/><rect class="w" x="228" y="491" width="15" height="27"/><rect class="w l" x="258" y="486" width="15" height="25"/><polygon class="a" points="291,184 348,219 348,605 291,636"/><polygon class="a c" points="296,186 343,216 343,184 296,154"/><polygon class="a c" points="302,158 338,181 338,154 302,131"/><polygon class="a c" points="307,135 332,151 332,130 307,114"/><polygon class="a c" points="313,118 326,126 326,111 313,103"/><line class="s" x1="348" y1="219" x2="348" y2="605"/><line class="e" x1="291" y1="184" x2="348" y2="219"/><rect class="w" x="300" y="254" width="11" height="23"/><rect class="w" x="323" y="264" width="11" height="21"/><rect class="w" x="300" y="367" width="11" height="23"/><rect class="w" x="323" y="370" width="11" height="21"/><rect class="w" x="300" y="480" width="11" height="23"/><rect class="w" x="323" y="477" width="11" height="21"/><polygon class="b" points="348,219 395,249 395,578 348,605"/><polygon class="b c" points="352,221 391,246 391,219 352,195"/><polygon class="b c" points="355,197 365,203 365,155 355,149"/><polygon class="b c" points="376,210 385,216 385,168 376,162"/><line class="s" x1="395" y1="249" x2="395" y2="578"/><line class="e" x1="348" y1="219" x2="395" y2="249"/><rect class="w" x="355" y="279" width="9" height="19"/><rect class="w" x="374" y="287" width="9" height="18"/><rect class="w" x="355" y="375" width="9" height="19"/><rect class="w l" x="374" y="378" width="9" height="18"/><rect class="w" x="355" y="472" width="9" height="19"/><rect class="w" x="374" y="469" width="9" height="18"/><polygon class="a" points="395,249 432,272 432,557 395,578"/><polygon class="a c" points="398,251 429,270 429,239 398,219"/><polygon class="a c" points="403,223 424,236 424,207 403,194"/><line class="s" x1="432" y1="272" x2="432" y2="557"/><line class="e" x1="395" y1="249" x2="432" y2="272"/><rect class="w" x="401" y="299" width="8" height="17"/><rect class="w l" x="416" y="306" width="8" height="16"/><rect class="w" x="401" y="382" width="8" height="17"/><rect class="w" x="416" y="384" width="8" height="16"/><rect class="w" x="401" y="465" width="8" height="17"/><rect class="w" x="416" y="462" width="8" height="16"/><polyline class="g" points="0,800 470,536"/></g></svg><svg class="wall r" viewBox="0 0 470 800" preserveAspectRatio="none"><use href="#w"/></svg>
+</div>
+<div class="scrim" aria-hidden="true"></div>
 <main>
 <h1>Nothing down this alley</h1>
 <p>The address you followed does not exist here. The whole app lives on one page — and this is not it.</p>

@@ -56,7 +56,7 @@ run_case "the chosen path goes back to a signal fill" \
 
 run_case "the chosen path borrows the primary-action fill" \
   "borrowed the fill the app uses for primary actions" \
-  "${P}a='.pathseg button[aria-pressed=\"true\"]{background:var(--ink);color:var(--signal);';assert a in s;s=s.replace(a,'.pathseg button[aria-pressed=\"true\"]{background:var(--ink);color:var(--signal);outline-color:var(--bonebtn);');${W}" \
+  "${P}a='.pathseg button[aria-pressed=\"true\"]{background:var(--ink);color:var(--signal);';assert a in s;s=s.replace(a,'.pathseg button[aria-pressed=\"true\"]{background:var(--ink);color:var(--signal);outline-color:var(--suit);');${W}" \
   guards "" 54
 
 run_case "the belt goes dark again" \
