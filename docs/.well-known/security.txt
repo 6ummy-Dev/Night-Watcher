@@ -26,7 +26,7 @@
 # release, and a panel can be none of those.
 
 Contact: https://github.com/6ummy-Dev/Night-Watcher/security/advisories/new
-Expires: 2027-08-01T00:00:00.000Z
+Expires: 2027-09-01T00:00:00.000Z
 Policy: https://github.com/6ummy-Dev/Night-Watcher/blob/main/SECURITY.md
 Canonical: https://nightwatcher.life/.well-known/security.txt
 Preferred-Languages: en, es
