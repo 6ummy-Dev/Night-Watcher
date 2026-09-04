@@ -14,6 +14,37 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.0.3] — 2026-09-04
+
+**A variant is not the control.** One guard fix, in the family that exists
+because silence used to read as success. Nothing ships to a reader — QA
+tooling, a PATCH by README's rule.
+
+### Fixed
+
+- **Section 75 measured the wrong button.** The touch-target section asks
+  first whether a control declares a height at all: a control the CSS never
+  sizes cannot be measured, so the 44px floor is switched off for it and the
+  section says nothing — the failure 4.9.1 promoted the missing-height check
+  to catch. It answered that question from *any* rule whose subject carried
+  the class, variants included. Yesterday's 6.0.2 gave `.bkbtn.installbtn` a
+  48px height of its own, and that one variant was enough to answer for
+  every plain `.bkbtn` on the page: the bare rule could have lost its
+  `min-height` and section 75 would have gone on reporting a measured
+  control.
+
+  The floor still reads every rule — the tick is 30px at rest and 24px in a
+  row, and both have to be seen. Only the *is it measured* question is now
+  asked of the bare class. A variant measures the variant.
+
+  It was the negative test that said so, not a reading: `negtest176`'s
+  missing-height fixture strips the height from `.bkbtn` and
+  `.bkbtn.primary` and expects section 75 to fire, and since 6.0.2 it went
+  red on section 157's line instead — the fixture had stopped proving its
+  own claim the moment the third rule arrived. It passes again unchanged,
+  and it now names section 75, so the phrase has to land on that section's
+  line and not another's. The no-sect pin moves 751 → 750.
+
 ## [6.0.2] — 2026-09-04
 
 **One more type pass, and the button you press once.** Three readings off

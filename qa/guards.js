@@ -5893,7 +5893,14 @@ var ROUTE_VOCAB = [
   var css = cssText();
   var rules = cssRules();
   var CONTROLS = ["chip", "allbtn", "tick", "trow", "bkbtn", "ucard", "srow", "sfhead"];
-  var height = {}, pad = {};
+  /* height: every rule that sizes the class, variants included, for the floor.
+     base: only the rules whose subject is the BARE class, for the missing
+     check. 6.0.2 gave .bkbtn.installbtn a 48px height of its own, and that
+     one variant was enough to answer "is bkbtn measured?" for every plain
+     .bkbtn on the page — the base rule could have lost its height and this
+     section would have gone on reporting a measured control. A variant
+     measures the variant; only the bare class measures the control. */
+  var height = {}, base = {}, pad = {};
   rules.forEach(function(rule){
     var sel  = rule.slice(0, rule.indexOf("{")).trim();
     var body = rule.slice(rule.indexOf("{"));
@@ -5907,6 +5914,7 @@ var ROUTE_VOCAB = [
       if(mh && !/::/.test(sel)){
         var v = parseFloat(mh[1]);
         if(height[c] === undefined || v < height[c]) height[c] = v;
+        if(subject === "." + c && (base[c] === undefined || v < base[c])) base[c] = v;
       }
       /* An inset ::before is a hit area, not decoration, when every edge is
          negative. */
@@ -5918,12 +5926,14 @@ var ROUTE_VOCAB = [
       }
     });
   });
-  var missing = CONTROLS.filter(function(c){ return height[c] === undefined; });
+  var missing = CONTROLS.filter(function(c){ return base[c] === undefined; });
   if(missing.length){
     fail("no declared height for the control(s) " + missing.join(", ") +
-         " — their target cannot be measured from the CSS, so the " +
-         "touch-target rule is switched off for them (the last of the " +
-         "silence-reads-as-success family, promoted in 4.9.1)");
+         " — the bare class declares none, so their target cannot be " +
+         "measured from the CSS and the touch-target rule is switched off " +
+         "for them (the last of the silence-reads-as-success family, " +
+         "promoted in 4.9.1; the bare class since 6.0.3 — a variant's " +
+         "height measures the variant)");
   }
   Object.keys(height).forEach(function(c){
     var eff = height[c] + (pad[c] || 0);
@@ -12801,7 +12811,7 @@ var ROUTE_VOCAB = [
      its second argument is python, not an expected failure. The arguments
      are read the way bash reads them — by qa/negative/census.js since 5.3.1,
      the same reader 65, 113 and run-all.sh use. */
-  var NO_SECT_PINNED = 751;  /* 5.3.1: six retrofitted a sect when the credit rule tightened (negtest161 ×2, 162, 180, 210 ×2); four exact duplicates struck (negtest162, 186, 250, 270) */
+  var NO_SECT_PINNED = 750;  /* 5.3.1: six retrofitted a sect when the credit rule tightened (negtest161 ×2, 162, 180, 210 ×2); four exact duplicates struck (negtest162, 186, 250, 270). 6.0.3: one more retrofitted — negtest176’s missing-height fixture, whose mutation trips §157 as well */
   if(fixtureCensus().broken) return;
   fixtureCensus().suites.forEach(function(su){
     su.cases.forEach(function(c){

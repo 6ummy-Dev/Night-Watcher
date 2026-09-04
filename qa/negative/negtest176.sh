@@ -25,12 +25,18 @@ run_case "the tick loses its hit area" \
   "${P}a='.tick::before{content:\"\";position:absolute;top:-14px;left:-14px;right:-14px;bottom:-14px;}\n'
 assert a in s;s=s.replace(a,'',1);${W}"
 
+# The variant left standing is the point: .bkbtn.installbtn keeps its own
+# 48px, so the only thing gone is the BARE class's height. Before 6.0.3 that
+# one variant answered "is bkbtn measured?" for every plain .bkbtn on the
+# page and this fixture went red on §157's line instead. The section is named
+# because the same mutation trips §157 too — .bkbtn.primary's 46px is pinned
+# there — and the phrase must land on §75's own line.
 run_case "a measured control stops declaring a height" \
   "no declared height for the control(s)" \
   "${P}import re;n=0
 for pat in (r'\\.bkbtn\\{[^}]*\\}', r'\\.bkbtn\\.primary\\{[^}]*\\}'):
     m=re.search(pat,s);assert m;s=s[:m.start()]+re.sub(r'min-height:\\d+px;','',m.group(0))+s[m.end():];n+=1
-assert n==2;${W}"
+assert n==2;${W}" guards "" 75
 
 rm -rf "$NEG"
 finish "1.7.6 negative tests"
