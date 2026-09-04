@@ -11783,17 +11783,28 @@ var ROUTE_VOCAB = [
          "installEvt gate the button renders where tapping it can do " +
          "nothing, which is a banner with worse manners");
   }
-  if(/installbtn(?:[^"]*\bprimary\b|")/.test(HTML) &&
-     /class="[^"]*\bprimary\b[^"]*\binstallbtn\b|class="[^"]*\binstallbtn\b[^"]*\bprimary\b/.test(HTML)){
-    fail("the install button took the bone fill — the decision was the quiet " +
-         "outline: Progress already carries two primary fills, install is " +
-         "tapped once ever, and an element that exists on one platform and " +
-         "not another cannot hold primary weight");
+  /* 6.0.2: THE SIGNAL SEAT. 3.7.0 read "tapped once ever" as a reason for
+     the quiet outline. The owner's call reverses the conclusion from the
+     same fact: a control tapped once ever has exactly one chance to be
+     seen, and an outline in a column of outlines is not seen. Install
+     takes the signal fill — the only one in Progress, which is what keeps
+     it a hierarchy rather than a second primary. It is still not
+     `primary`: that tier is the suit fill and Progress spends it on the
+     backup code. */
+  if(/class="[^"]*\bprimary\b[^"]*\binstallbtn\b|class="[^"]*\binstallbtn\b[^"]*\bprimary\b/.test(HTML)){
+    fail("the install button took the suit fill — Progress already spends " +
+         "that tier on the backup code, and install's weight is its own: " +
+         "the signal fill, the only one in the view");
   }
   if(HTML.indexOf('<button class="bkbtn installbtn" data-act="install">') < 0){
-    fail("the install button left the bkbtn outline tier — quiet outline, " +
-         "full width, under the saves-line: never bone, never signal fill, " +
+    fail("the install button left its seat — bkbtn base, installbtn on top, " +
+         "full width under the saves-line: the signal fill, never suit, " +
          "never crimson");
+  }
+  if(!/\.bkbtn\.installbtn\{[^}]*background:var\(--signal\)/.test(HTML)){
+    fail("the install button lost the signal fill — 6.0.2's call: a control " +
+         "tapped once ever has one chance to be seen, and an outline in a " +
+         "column of outlines is not it");
   }
   if(HTML.indexOf('var iev = installEvt; installEvt = null;') < 0){
     fail("the offer is no longer spent before prompt() — prompt() throws on " +
@@ -11876,7 +11887,7 @@ var ROUTE_VOCAB = [
 
   note("the install seat: standalone renders nothing, the button waits for " +
        "a held offer and spends it, the iOS hint dismisses forever " +
-       "(only-true), quiet outline never a fill, one seat; the " +
+       "(only-true), the signal fill and the only one in the view, one seat; the " +
        "watching-truths live on Next up and the machinery notes in Progress");
 })();
 

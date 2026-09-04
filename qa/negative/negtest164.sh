@@ -22,7 +22,7 @@ run_case "subOf stops skipping a sub that is only the year" \
 
 run_case "the queue goes back to reading .sub directly" \
   "reads .sub directly instead of subOf()" \
-  "${P}a='(subOf(x) ? \\' <span class=\\\"qsub\\\">\\'+esc(subOf(x))';assert a in s;s=s.replace(a,'(x.sub ? \\' <span class=\\\"qsub\\\">\\'+esc(x.sub)');${W}"
+  "${P}a='(subOf(x) ? \\'<span class=\\\"qsub\\\">\\'+esc(subOf(x))';assert a in s;s=s.replace(a,'(x.sub ? \\'<span class=\\\"qsub\\\">\\'+esc(x.sub)');${W}"
 
 echo "--- smoke: no CSS rule is left behind"
 run_case "a rule outlives the markup it styled" \

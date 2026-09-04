@@ -14,6 +14,66 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.0.2] — 2026-09-04
+
+**One more type pass, and the button you press once.** Three readings off
+the tree, all of them about weight rather than size: the control that gets
+one chance to be seen, a description set at a label token, and a subtitle
+riding inside the title it qualifies. No feature, no catalogue change,
+nothing that touches a saved mark — a PATCH by README's rule.
+
+### Changed
+
+- **The install button takes the signal fill.** 3.7.0 gave it the quiet
+  outline and wrote the reasoning into guard 131: *install is tapped once
+  ever, so it cannot hold primary weight.* The same fact reads the other
+  way round. A control tapped once ever has exactly one chance to be seen,
+  and it was sitting in Progress as the fifth outline in a column of
+  outlines, below a crimson one. It is signal now — the ink-on-yellow
+  lockup at **13.44:1**, `--signalpress` on hold at 11.02:1, the primary
+  clip and 48px of height.
+
+  It is not `.primary`. That tier is the suit fill, and Progress spends it
+  on the backup code; install is a tier of its own and **the only signal
+  fill in the view**, which is what keeps this a hierarchy instead of a
+  second shout.
+
+### Changed — type
+
+- **The chosen path's description moves off a label token.** `.gridnote` —
+  the path blurb that sits under THE ERAS on Home — was `--t-note` (12px)
+  in `--dim`. It is prose, and it is the *same sentence* the path view sets
+  at `--t-desc` (14px) in `--dust`. Two treatments of one sentence is the
+  drift guard 121 keeps catching; it now matches `.modenote` exactly.
+- **The row subtitle gets its own line.** `.favsub` / `.qsub` was inline
+  inside the row title, separated by a word space — measured at **6–7px,
+  identical to the word gaps inside the title itself**, so *TEEN TITANS GO!
+  All seasons* read as one five-word string. It is a block now, under the
+  title and left-aligned with it: one column down the rows, and the same
+  title-over-meta shape the film rows have used since 4.0.0. Long subs wrap
+  instead of stretching the row, and the parked badge moved ahead of the
+  sub in the markup so it stays on the title's line.
+
+### Guarded
+
+- **Section 131's install clause is reversed, not deleted.** The old rule
+  refused a fill; the new one refuses the *absence* of one — and still
+  refuses `.primary` on the install seat, because the suit tier is spoken
+  for. The comment carries both readings of "tapped once ever" so the next
+  pass does not rediscover the first one and think it found a regression.
+- **Three fixtures re-aimed, one added.** negtest131's fill fixture now
+  expects the suit message instead of the outline one; negtest680 and
+  negtest164 both anchored on `' <span class="qsub">'` **with the word
+  space**, which this cut deleted — a pattern sweep of changed strings would
+  have found them, and did. The added fixture covers the clause section 131
+  gained (a seat with no signal fill) and names its section, so
+  `NO_SECT_PINNED` stays 751. Fixture count 1,372 → 1,373 in README and
+  `qa.yml`, and the guards-vs-smoke split with it.
+
+### Notes
+
+- No release notes: a PATCH.
+
 ## [6.0.1] — 2026-09-03
 
 **The front door.** Everything a stranger meets before they meet the app:

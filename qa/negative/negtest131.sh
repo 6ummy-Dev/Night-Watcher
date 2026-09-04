@@ -11,9 +11,16 @@ run_case "the button stops waiting for a held offer" \
   "the install button no longer waits for a held offer" \
   "${P}a='if(installEvt){';assert a in s;s=s.replace(a,'if(true){');${W}"
 
-run_case "the button takes the bone fill" \
-  "the install button left the bkbtn outline tier" \
+run_case "the button takes the suit fill" \
+  "the install button took the suit fill" \
   "${P}a='class=\"bkbtn installbtn\"';assert a in s;s=s.replace(a,'class=\"bkbtn primary installbtn\"');${W}"
+
+# 6.0.2: the clause section 131 gained when the seat went to signal — the
+# old rule refused a fill, this one refuses its absence.
+run_case "the button loses the signal fill" \
+  "the install button lost the signal fill" \
+  "${P}a='.bkbtn.installbtn{display:block;width:100%;margin-top:12px;background:var(--signal);';assert a in s;s=s.replace(a,'.bkbtn.installbtn{display:block;width:100%;margin-top:12px;');${W}" \
+  guards "" 131
 
 run_case "the offer is no longer spent before prompt()" \
   "the offer is no longer spent before prompt()" \

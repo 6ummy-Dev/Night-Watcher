@@ -2102,6 +2102,38 @@ of that sweep only tried the last seventy characters — which is ratings and th
 path, where losing everything loses no entries — and passed against a build with
 the reporting removed.
 
+### "Tapped once ever" argues for weight, not against it
+
+3.7.0 gave the install button the quiet outline, and wrote the reasoning
+into guard 131: install is tapped once ever, so it cannot hold primary
+weight. 6.0.2 kept the fact and reversed the conclusion. A control tapped
+once ever has exactly one chance to be seen, and it was the fifth outline
+down a column of outlines in Progress, below a crimson one; nothing about
+being rare makes it quiet.
+
+What keeps the reversal from becoming a second shout is the tier, not the
+colour. `.primary` is the suit fill, and Progress already spends it on the
+backup code. Install is `--signal` and is the only signal fill in the
+view — one tier, one member. Both readings of "tapped once ever" are in
+guard 131's comment on purpose, so the next pass finds the argument rather
+than rediscovering half of it and filing a regression.
+
+### A subtitle inside a title is not a subtitle
+
+`.favsub` / `.qsub` were inline spans inside the row title, separated by a
+word space. Measured, that space was 6–7px — the same as the word gaps
+inside the title itself — so *TEEN TITANS GO! All seasons* had no boundary
+in it at all and read as one five-word string. The baselines were exact;
+the alignment was never the problem.
+
+They are blocks now, under the title and sharing its left edge, which is
+the shape the film rows have used since 4.0.0 (`.ftitle` over `.fmeta`) and
+which puts every sub in one column down the list. Two consequences worth
+knowing: a long sub wraps rather than stretching the row (the longest in
+the catalogue is 51 characters and takes three lines at 320), and the
+parked badge had to move ahead of the sub in the markup, or a block sub
+would push it onto a third line of its own.
+
 
 ## Known blind spots
 

@@ -45,7 +45,7 @@ These are the constraints the app is built around, not features nobody has got t
 - **No accounts, ever.** Nothing to sign up for, nothing to log into.
 - **No server.** Progress lives in your browser and is never transmitted. Backup and transfer happen through a code you carry yourself.
 - **No third-party code** — *guarded.* Not one line vendored, and **nothing fetched at runtime at all** — `qa/guards.js` fails on any external script rather than allowing one by name, and the app runs with the network off. Two `<script>` tags, no injected third, and the Content-Security-Policy on the wire is the one in the file — ten directives, one `sha256`. Open `docs/index.html` from disk, or serve it from any other host, and what runs is exactly what you can read.
-- **A weight budget** — *guarded.* `docs/index.html` must stay under 250 KiB raw and 80 KiB gzipped; it is currently 246 KiB / 68 KiB — guard 29 measures `bytes / 1024`, so every weight figure here is KiB, and the same file read in decimal kB is 252 and looks like an overshoot it is not. The subset webfonts sit outside that budget and are held by their own manifest (`qa/font-subset.json`). Every raise of the ceiling is an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
+- **A weight budget** — *guarded.* `docs/index.html` must stay under 250 KiB raw and 80 KiB gzipped; it is currently 247 KiB / 68 KiB — guard 29 measures `bytes / 1024`, so every weight figure here is KiB, and the same file read in decimal kB is 252 and looks like an overshoot it is not. The subset webfonts sit outside that budget and are held by their own manifest (`qa/font-subset.json`). Every raise of the ceiling is an owner's call recorded in the CHANGELOG, never a drift. A single file that opens instantly is the whole premise, and arithmetic is the only thing protecting it.
 - **No comparison, no leaderboards, no social graph.** The moment progress is comparable between people it needs accounts and a server, and the two promises above stop being true.
 
 ## The chronology
@@ -166,7 +166,7 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 80 negative suites, 1372
+trusted. That evidence lives in `qa/negative/` — 80 negative suites, 1373
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
