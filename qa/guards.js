@@ -1515,7 +1515,22 @@ if(PUBLIC !== ROOT){
                         name and bytes are Brave's contract, not this repo's.
                         Written for a machine that never runs the app, same
                         reasoning as the IndexNow key. */
-                     ".well-known/brave-rewards-verification.txt"];
+                     ".well-known/brave-rewards-verification.txt",
+                     /* 6.0.7. The rotation probe, and the second of its kind:
+                        vp.html measured the standalone grant in 4.0.7-4.0.9,
+                        this one measures what a ROTATION does to it. Three
+                        cuts in one day could not reproduce the owner's
+                        "flip to landscape and back and the header is gone" in
+                        any engine this project can run — Chromium is clean
+                        through a scripted rotation and no WebKit build is
+                        reachable from a sandbox — so the numbers have to come
+                        off the device, the same way 4.0.9's did. It is not
+                        cached for the same reason nothing diagnostic is: an
+                        offline copy of a measurement is a measurement of the
+                        wrong moment. LIKE vp.html, IT LEAVES WHEN THE QUESTION
+                        CLOSES; if this comment outlives the answer, delete the
+                        file and this entry with it. */
+                     "vp-rotate.html"];
   /* vp.html, the iOS viewport probe, sat here from 4.0.7 to 4.9.0; the
      question it measured closed in 4.0.9 and the file left with the 4.8.0
      report (NOTES.md, "vp.html"). */
@@ -5151,6 +5166,40 @@ if(!/function legendBlock/.test(HTML) ||
          "(vh/lvh stripes below the render edge), so a heal that cannot " +
          "move innerHeight must stop at one attempt, not burn its cap " +
          "toggling #app");
+  }
+  /* 6.0.7: the give-up above is per-SESSION, and a rotation is a new question.
+     The owner's report is a flip to landscape and back leaving the sticky
+     header off the top of the screen for good, and the measured shift is
+     62.7pt — the status-bar height, the same 62pt iOS withholds from a
+     standalone grant, which is not a number any scroll or snap produces. The
+     working reading is that the rotation hands the frame a stale geometry and
+     nothing asks WebKit to re-resolve it, exactly the 4.0.8 mechanism on a
+     trigger 4.0.8 did not have. So vpRotate() re-arms the heal: vpTries back
+     to 0 and vpForce past the shrink gate, because after a stale rotation the
+     gate's own reads may be the stale ones — a heal that cannot run when the
+     grant is wrong is a heal that cannot fix the case it was written for. Two
+     delays, because iOS settles the frame after the event. The force flag is
+     cleared in a finally: left true, every later vpTick would toggle #app on a
+     legitimately short window (iPad, desktop installs) and the 4.0.8 gates
+     would mean nothing. NOT VERIFIED ON DEVICE — docs/vp-rotate.html is the
+     probe that will say whether this is the mechanism. */
+  if(!/var vpForce = false;/.test(HTML) || !/return vpForce \|\| vpGap\(\) > 24;/.test(HTML)){
+    fail("vpShrunk()'s force flag is gone — after a stale rotation the gate's " +
+         "own window reads can be the stale ones, so the rotation path has to " +
+         "be able to run the heal past the shrink test (6.0.7)");
+  }
+  var rotBody = optionalFn("vpRotate", "the rotation re-arm cannot be checked");
+  if(!/vpTries = 0/.test(rotBody) || !/vpForce = true/.test(rotBody) ||
+     !/vpHeal\(\)/.test(rotBody) || !/finally/.test(rotBody)){
+    fail("vpRotate() is not the re-arm — it must reset vpTries, set vpForce, " +
+         "call vpHeal() and clear the flag in a finally. Left set, every " +
+         "later vpTick toggles #app on a legitimately short window and the " +
+         "4.0.8 gates stop meaning anything (6.0.7)");
+  }
+  if(!/window\.addEventListener\("orientationchange", function\(\)\{\n    setTimeout\(vpRotate, 260\);\n    setTimeout\(vpRotate, 900\);/.test(HTML)){
+    fail("the orientationchange trigger is gone or lost one of its two " +
+         "delays — iOS settles the frame after the event, so one shot can " +
+         "land before the geometry it is meant to re-measure (6.0.7)");
   }
   /* The window is not the scroller any more, so a window scroll call is a
      call to the element that no longer moves — a silent no-op in every
