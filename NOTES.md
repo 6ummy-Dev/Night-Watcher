@@ -317,6 +317,32 @@ appears when a write fails and goes when one succeeds. Nothing else clears it.
 
 CSS cannot reach the system status bar; the meta tag has to follow.
 
+**iOS is no longer one of the browsers that reads it (6.0.4).** Safari stopped
+honouring `theme-color` in iOS 26 and instead tints its own chrome by sampling
+the `background-color` *and* the `backdrop-filter` of fixed and sticky elements
+near the viewport edges. Where it cannot find a solid colour in the top inset
+it fills that inset with Liquid Glass, and iOS/iPadOS 27 raised the contrast of
+that glass — which is how the installed app grew a blur band across its top on
+the day 27 shipped. This page lines up for it exactly: a `sticky` header at
+`top:0` carrying `--hdr` at 96% opacity plus a 14px blur, `viewport-fit=cover`,
+and a status bar the page had asked to render under. 6.0.4 takes the narrow
+fix — `apple-mobile-web-app-status-bar-style` `black-translucent` → `default`,
+so the status bar is opaque and the content insets below it. The tag is inert
+outside standalone mode, so no Safari visitor can be reached by it; the
+alternative fix (an opaque `header` background, the blur moved or dropped) is
+more elegant and touches the surface every visitor sees, which is why it was
+not taken in a week that had to stay low-risk. Two consequences worth knowing:
+under `default`, `env(safe-area-inset-top)` reports 0, so `--hdrh` degrades
+from `calc(inset + 71px)` to `71px` and the header's top padding from
+`calc(inset + 12px)` to `12px` — the dropped belt's
+`top:calc(var(--hdrh) + var(--beltH) - 4px)` moves with it, so the two stay in
+step. And **the tag is read at install time**: an already-installed copy keeps
+the old behaviour until it is deleted and re-added, which is a delete an
+installed app does not survive without a backup code first, its storage
+container being separate from Safari's. `THEMEBAR` itself stays and is still
+guarded, because every browser that does honour `theme-color` still needs it
+kept in step with the theme.
+
 ### `dedupeLog()`
 
 One entry per id, earliest timestamp wins — that is when it was actually
@@ -1636,7 +1662,39 @@ reader's.** No `forced-color-adjust: none` on brand chrome — the wordmark,
 the path title, the belt, the group heads, prose all take the system
 colours the reader chose, and guard 159 refuses a rule that overrides them.
 The browser check reads the repaint under emulation; a real Windows High
-Contrast theme is still the honest check and still owed to the owner's eye.
+Contrast theme is still the honest check, and it was run on Desert and Night
+sky on 3 September 2026 — every allowlisted state repainted, the NW Deco
+wordmark took the reader's palette, and no defect came back.
+
+6.0.4 closed the two things that pass did not reach, both found by a
+forced-colors sweep of every state on 11 September.
+
+**A fill is not a shape.** Forced colors replace an author background with
+`Canvas`. A control drawn as a fill with `border:0` therefore does not
+flatten — it disappears as a control and leaves bare text sitting on the page
+ground, with nothing to say where it begins or ends. Five were built that way:
+`.heroacts .go` (Begin the path, Mark watched), `.bkbtn.primary` (Share the
+night, Create backup code, Search everything, Add optional),
+`.bkbtn.installbtn`, `.viewing button` (Restore, on an incoming shared link)
+and `.toast`. Each now declares a border inside the block — `ButtonText` for
+the buttons, `CanvasText` for the toast. The chamfer `clip-path` on three of
+them cuts the frame at two corners, which reads as a clipped frame rather than
+as a missing one. Deliberately not in the list: `.ghead` and the belt's
+`.buckle` lose a fill too, but each sits inside a container whose border
+forced colors keep, so the shape survives without help.
+
+**A state rule inside the block still loses a cascade it does not win.** With
+the belt open, `.includes .scope button[aria-pressed="true"]` (specificity
+0,3,1) selects the pressed switches and outranks the block's own `.scope
+button[aria-pressed="true"]` (0,2,1) on `background` and `color` — while the
+block's `forced-color-adjust: none` goes on applying. The result was the one
+thing the rule above forbids: Animated + Live, Movies and + Optional painting
+`--signaldim` `#B8941A` on `--ink`, brand gold with forcing switched off. The
+guard reads the block as text and so cannot see a loss that happens outside
+it. The fix is a state rule at the winning specificity, and the lesson is that
+a text pin proves a rule is written, never that it wins — which is why the
+browser check now observes the computed colour of a pressed switch in the open
+belt against a `Highlight` probe.
 
 ### `#splash`
 

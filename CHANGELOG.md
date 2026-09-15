@@ -14,6 +14,100 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.0.4] — 2026-09-15
+
+**The reader's colours, all the way down.** A forced-colors sweep of every
+state on 11 September found two things the 3 September pass on real Windows
+themes had not reached, and both are here. Beside them: the narrow fix for the
+glass band iOS 27 put across the top of the installed app, one sentence of
+release procedure that two outside readers have now filed as missing, and
+three words on the end of the Batman Day line. Fixes, QA tooling, copy and
+documents — a PATCH by README's rule. No entry moves, no surface is added, and
+nothing saved changes shape or meaning.
+
+### Fixed
+
+- **A fill is not a shape.** Under `forced-colors: active` an author
+  background becomes `Canvas`, so a control drawn as a fill with `border:0`
+  does not flatten — it stops reading as a control at all and leaves bare text
+  on the page ground. Five were built that way: Begin the path and Mark
+  watched (`.heroacts .go`); Share the night, Create backup code, Search
+  everything and Add optional (`.bkbtn.primary`); Install
+  (`.bkbtn.installbtn`); Restore on an incoming shared link (`.viewing
+  button`); and every toast. The four button families take a `1px solid
+  ButtonText` border inside the forced-colors block, the toast a `1px solid
+  CanvasText` one. `.ghead` and the belt's `.buckle` lose a fill too and are
+  deliberately left alone — each sits inside a bordered container forced
+  colors keep.
+- **The open belt's pressed switches painted brand gold under High
+  Contrast.** `.includes .scope button[aria-pressed="true"]` (0,3,1) outranks
+  the forced-colors block's own `.scope button[aria-pressed="true"]` (0,2,1)
+  on `background` and `color`, while the block's `forced-color-adjust: none`
+  went on applying — so with the belt open, Animated + Live, Movies and +
+  Optional rendered `--signaldim` `#B8941A` on `--ink` with forcing switched
+  off, which is exactly what 5.3.1's rule forbids. A state rule at the winning
+  specificity repaints them in `Highlight`/`HighlightText`. Section 159 reads
+  the block as text and could not see a cascade lost outside it; the browser
+  check now observes the computed colour instead.
+- **The glass band on the installed app (iOS/iPadOS 27).** Safari stopped
+  honouring `theme-color` in iOS 26 and now tints its own chrome by sampling
+  the background and `backdrop-filter` of fixed and sticky elements at the
+  viewport edges; where it finds no solid colour in the top inset it fills
+  that inset with Liquid Glass, and 27 raised the contrast of that glass
+  enough to make the band obvious. `apple-mobile-web-app-status-bar-style`
+  goes `black-translucent` → `default`, so the status bar is opaque and the
+  content insets below it. One value, chosen over the more elegant fix (an
+  opaque `header`, the blur moved or dropped) because the tag is inert outside
+  standalone mode and so cannot reach a visitor in a browser tab, while the
+  `header` rule renders for everyone. Under `default`,
+  `env(safe-area-inset-top)` reports 0, so `--hdrh` becomes `71px` and the
+  header's top padding `12px`; the dropped belt's
+  `top:calc(var(--hdrh) + var(--beltH) - 4px)` moves with it and the two stay
+  in step. **The tag is read at install time** — an installed copy keeps the
+  old behaviour until it is deleted and re-added, and an installed app's
+  storage container is separate from Safari's, so export a backup code from
+  Progress before deleting it.
+
+### Changed
+
+- **The Batman Day line ends on the day's own three words.** `dayLine()`
+  gains `Rule the night.` after `Start anywhere.`, so the page and the day's
+  post close the same way. Copy only: the counted clause is untouched, the
+  counts still render off `FILMS`/`PATH`, and section 131's day clause still
+  refuses a typed count. It leaves with the rest of the line in the Clayface
+  patch.
+
+### QA
+
+- **Section 159 gains three clauses** — the button set's `ButtonText` border,
+  the toast's `CanvasText` border, and the includes state's Highlight map —
+  and `.includes .scope button[aria-pressed="true"]` joins `PAINTED`, so the
+  allowlist admits the one new opt-out after a look rather than by inference.
+  The section's comment carries both 6.0.4 readings.
+- **negtest700 gains three fixtures**, one per clause: 1,373 → **1,376**
+  (guards 1,267 → 1,270), in `README.md` and `qa.yml`.
+- **The browser check reads the belt state under forced colors** — with the
+  belt dropped, every pressed include switch must compute to the colour a
+  `Highlight` probe computes to. 117 → **118**. This is the assertion a text
+  pin cannot be.
+- **Two re-aims**, the copy-lock tax: `negtest610`'s status-bar fixture
+  asserts the new `content="default"` string before deleting it, and smoke's
+  "the day has a name" expects the new tail.
+
+### Documentation
+
+- **RELEASING.md, step 7, says the tagging rule.** `x.y.0` minors and majors
+  are tagged and get a GitHub Release; patches are not, so Releases trails
+  `origin` between minors by design. Two external reads (5.3.1, 6.0.3) filed
+  the gap as a finding because no document in the tree said it.
+- **NOTES.md** records both forced-colors lessons in its
+  `@media (forced-colors: active)` section, and the iOS status-bar reading
+  under `THEMEBAR`.
+- **The stale comment at section 28** said the status bar is painted from
+  `<meta name="theme-color">`. Not true on iOS since 26; the comment now says
+  so and says why `THEMEBAR` still has to be kept in step for the browsers
+  that do read it.
+
 ## [6.0.3] — 2026-09-04
 
 **A variant is not the control.** One guard fix, in the family that exists

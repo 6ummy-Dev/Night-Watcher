@@ -2401,7 +2401,14 @@ if(/payload = JSON\.stringify\(\{[^}]*mode:S\.mode/.test(HTML)){
 /* ---------- 28. Theme reaches the chrome, not just the CSS ------------ */
 /* The status bar is painted from <meta name="theme-color">, which CSS cannot
    touch. Switch theme without updating it and an installed app shows a header
-   in one colour under a system bar in the other. */
+   in one colour under a system bar in the other.
+   6.0.4: that has not been true on iOS since 26 — Safari ignores theme-color
+   there and tints its own chrome by sampling the background and backdrop-filter
+   of fixed and sticky elements at the viewport edges, which is what put a glass
+   band over the installed app on iOS 27 and is why the status-bar-style tag is
+   now `default`. The comment stays because THEMEBAR still has to be kept in
+   step for every other browser that does honour theme-color, Android's
+   installed shell among them; iOS simply is not one of them any more. */
 
 var barM = HTML.match(/var THEMEBAR = \{([^}]*)\}/);
 if(!barM){
@@ -14525,7 +14532,7 @@ var ROUTE_VOCAB = [
     ["the Content-Security-Policy meta", /<meta http-equiv="Content-Security-Policy" content="/],
     ["apple-mobile-web-app-capable",     /<meta name="apple-mobile-web-app-capable" content="yes">/],
     ["mobile-web-app-capable",           /<meta name="mobile-web-app-capable" content="yes">/],
-    ["apple-mobile-web-app-status-bar-style", /<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">/],
+    ["apple-mobile-web-app-status-bar-style", /<meta name="apple-mobile-web-app-status-bar-style" content="default">/],
     ["apple-mobile-web-app-title",       /<meta name="apple-mobile-web-app-title" content="Night Watcher">/],
     ["the manifest link",                /<link rel="manifest" href="manifest.json">/],
     ["<title>",                          /<title>[^<]+<\/title>/],
@@ -15364,11 +15371,48 @@ var ROUTE_VOCAB = [
   if(!stateRule([".group.here"], {outline: "2px solid Highlight"})){
     fail("the here-group's corner marks are gradients, which forced colors strip — the group takes a Highlight outline");
   }
+  /* 6.0.4, from the 11 September forced-colors sweep. TWO READINGS, ONE
+     BLOCK.
+
+     A FILL IS NOT A SHAPE. Forced colors replace an author background with
+     Canvas, so a control drawn as a fill with `border:0` is not a flattened
+     button — it is bare text on the page ground, with nothing to say where
+     it begins or ends. Five controls were built that way (Begin the path
+     and Mark watched; Share the night, Create backup code, Search
+     everything and Add optional, all `.bkbtn.primary`; Install; Restore on
+     an incoming shared link; and every toast), and each now declares a
+     border inside this block so the shape survives the repaint. The
+     chamfer clip-path on three of them cuts the frame at two corners,
+     which reads as a clipped frame rather than a lost one. Controls whose
+     fill sits inside a bordered container (`.ghead`, the belt's `.buckle`)
+     are deliberately not in the list: the container keeps the shape.
+
+     A STATE RULE IN THIS BLOCK STILL LOSES A CASCADE IT DOES NOT WIN.
+     `.includes .scope button[aria-pressed="true"]` (0,3,1) outside the
+     block beats the block's own `.scope button[aria-pressed="true"]`
+     (0,2,1) on background and color, while the block's
+     forced-color-adjust:none goes on applying — so with the belt open the
+     three pressed switches painted brand gold with forcing switched off,
+     the exact thing 5.3.1's rule forbids. Reading the block as text cannot
+     see a loss that happens outside it; the answer is a state rule at the
+     winning specificity, and the browser check now observes the computed
+     result under emulation. */
+  if(!stateRule([".heroacts .go", ".bkbtn.primary", ".bkbtn.installbtn", ".viewing button"], {border: "1px solid ButtonText"})){
+    fail("a filled control loses its shape under forced colors — Begin the path, a primary backup button, Install and Restore are drawn as a fill with border:0, so forced colors leave bare text; each takes a 1px ButtonText border in this block");
+  }
+  if(!stateRule([".toast"], {border: "1px solid CanvasText"})){
+    fail("the toast loses its shape under forced colors — its fill becomes Canvas and the message floats on the page ground; it takes a 1px CanvasText border in this block");
+  }
+  if(!stateRule([".includes .scope button[aria-pressed=\"true\"]"],
+                {"forced-color-adjust": "none", background: "Highlight", color: "HighlightText", "border-color": "Highlight"})){
+    fail("the open belt's pressed switches paint brand gold under forced colors — .includes .scope button[aria-pressed=\"true\"] outside this block outranks the block's own .scope rule, so the includes state needs its own rule here at the winning specificity");
+  }
   var PAINTED = [".st", ".film.skip .tick::after", ".drule i", ".drule::before", ".drule::after", ".stars button.on .st", ".hero .dsep",
                  ".homefoot::before", ".note.foot::before", ".legend::before",
                  ".chip[aria-pressed=\"true\"]", ".scope button[aria-pressed=\"true\"]", ".pathseg button[aria-pressed=\"true\"]",
                  ".themerow button[aria-pressed=\"true\"]", ".film.done .tick", ".segs i.on", ".sky .seg.lit .cr .p", ".sky .sh i",
-                 "#beltpeek::after", ".gbar i"];
+                 "#beltpeek::after", ".gbar i",
+                 ".includes .scope button[aria-pressed=\"true\"]"];
   rules159.forEach(function(r){
     if(!("forced-color-adjust" in r.decls)) return;
     var brand = r.sels.filter(function(x){ return PAINTED.indexOf(x) < 0; });

@@ -94,6 +94,13 @@ section until 4.1.1; it belongs in the checklist that runs.)
 7. **Deploy.** `npm run deploy` (wrangler, to the Worker that serves
    `docs/`). Releases here ship from a green tree on `main` — there is no
    staging origin, which is exactly why everything above runs first.
+   **Tagging: `x.y.0` minors and majors are tagged and get a GitHub Release;
+   patches are not** — so the Releases page trails `origin/main` between
+   minors by design, and an outside reader who counts tags against the
+   CHANGELOG will find the gap and should not file it (two already have).
+   Read the tags with `git ls-remote --tags origin`, never from a `--depth`
+   clone, which omits them and has produced a false "tagging lapsed" finding
+   of its own.
 
 ## The wire checks — after every deploy
 

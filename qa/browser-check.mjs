@@ -1084,6 +1084,32 @@ await frames(2);
   });
   ok("forced colors: the star run repaints in system ink and keeps its geometry", fc.pass, fc.detail);
 }
+/* 6.0.4. The state the text pins could not see: with the belt OPEN, the
+   pressed include switches are selected by `.includes .scope
+   button[aria-pressed="true"]` (0,3,1), which outranks the forced-colors
+   block's own `.scope button[aria-pressed="true"]` (0,2,1) — so before this
+   cut they kept brand gold with forced-color-adjust:none still applying, and
+   reading the block as CSS text said nothing was wrong. This reads what the
+   engine computed: the pressed switch must land on the same colour a probe
+   painted with Highlight computes to. */
+{
+  const belt = await page.evaluate(() => {
+    const probe = document.createElement("i");
+    probe.style.cssText = "position:absolute;width:1px;height:1px;background:Highlight;forced-color-adjust:none";
+    document.body.appendChild(probe);
+    const hi = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    const drop = document.querySelector('#view .panel:not([inert]) .includes[data-drop]');
+    if(!drop) return { pass: false, detail: "the belt is not dropped in this state" };
+    const on = Array.from(drop.querySelectorAll('.scope button[aria-pressed="true"]'));
+    if(!on.length) return { pass: false, detail: "no pressed switch in the open belt" };
+    const off = on.filter(b => getComputedStyle(b).backgroundColor !== hi)
+                  .map(b => (b.textContent || "").trim() + " " + getComputedStyle(b).backgroundColor);
+    return { pass: off.length === 0,
+             detail: on.length + " pressed switch(es) vs Highlight " + hi + (off.length ? "; off: " + off.join(", ") : "") };
+  });
+  ok("forced colors: the open belt's pressed switches repaint in Highlight, not brand gold", belt.pass, belt.detail);
+}
 await page.emulateMedia({ forcedColors: "none" });
 await page.evaluate(() => { closeBelt("auto"); });
 await axeState("Next up on a bag, a rated night in Activity", () => {

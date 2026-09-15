@@ -736,7 +736,7 @@ win.addEventListener("load", function(){
       var films = 0, tv = 0;
       win.FILMS.forEach(function(f){ if(f.tv) tv++; else films++; });
       var want = "Batman Day, 19 September. Eighty-seven years, " + films + " films, " + tv + " seasons, " +
-                 win.PATH.length + " continuities \u2014 and one map through all of it. Start anywhere. Availability changes";
+                 win.PATH.length + " continuities \u2014 and one map through all of it. Start anywhere. Rule the night. Availability changes";
       check("Next up's closing note opens with the Batman Day line, counts off the shelf",
             feet.length === 1 && feet[0].textContent.indexOf(want) === 0,
             feet.length + " notes; " + (feet[0] ? feet[0].textContent.slice(0, 120) : ""));
