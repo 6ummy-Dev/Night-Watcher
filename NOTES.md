@@ -361,13 +361,47 @@ than traded away:
   indicator on the tab labels. Retired rather than left unused, so nothing can
   wire a second consumer to it. `vpHeal()` stays for the keyboard bug.
 - **`#app` is clamped.** `height:100%` is still the ICB and still
-  authoritative — both 16 August reports stand — but a rotation under `default`
-  left it resolving against the full screen inside a shorter grant, the
-  document overflowed for the first time since 3.9.7 moved scroll onto `#app`,
-  and iOS scrolled the sticky header off the top with no way back.
-  `max-height:100dvh` only ever shrinks: if `dvh` overshoots it does nothing,
-  and if the ICB goes stale-tall it catches it. The failure direction is a gap
-  at the bottom, never a lost header.
+  authoritative — both 16 August reports stand — and `max-height:100dvh` only
+  ever shrinks beside it: if `dvh` overshoots the clamp does nothing, and if
+  the ICB goes stale-tall it catches it. The failure direction is a gap at the
+  bottom, never a lost header. **It was added for the rotation bug and did not
+  fix it** (see below); it stays because the property it guarantees is worth
+  having regardless.
+
+### The rotation: what is known, and what is not (6.0.7)
+
+Flip the installed app to landscape and back and the sticky header is off the
+top of the screen, permanently. It survived 6.0.6 and it is **not diagnosed**.
+
+What is measured: the shift is **62.7pt**, with about 7pt of header still
+showing. That is the status-bar height — the same 62pt iOS withholds from a
+standalone grant — and it is not a number any scroll position, snap offset or
+header height in this tree produces.
+
+What was wrong: 6.0.6 read that as a document overflow — `#app{height:100%}`
+resolving against the full screen inside a shorter grant, the document
+scrolling for the first time since 3.9.7 moved scroll onto `#app`, and the
+sticky header going with it because its scrollport is `#app` and not the
+document. If that were the mechanism, `max-height:100dvh` would have caught it.
+It did not. The likelier reading now is that the rotation hands the frame a
+stale geometry — the webview back at full-screen origin while
+`env(safe-area-inset-top)` still reports 0 under `default`, so the header
+renders in the top 70pt of the *screen* with 62 of them behind the opaque
+status bar. That is not a scroll, and no height rule reaches it.
+
+What cannot be done here: reproduce it. A scripted rotation (390×844 → 844×390
+→ back, from two tabs) is clean in Chromium — header top 0, every scroll offset
+zero, the deck re-snapped — and WebKit cannot be installed in a sandbox whose
+proxy refuses `cdn.playwright.dev`. Two fixes have now been reasoned rather
+than measured and both were wrong.
+
+So 6.0.7 does two things. `vpRotate()` re-arms `vpHeal()` on
+`orientationchange` — the tree's own re-measure, on a trigger 4.0.8 never gave
+it, past the shrink gate because after a stale rotation the gate's own window
+reads may be the stale ones. And `docs/vp-rotate.html` is the probe that will
+say whether that is the mechanism at all, the way `vp.html` answered the
+4.0.7–4.0.9 question. **Neither is a conclusion.** When the probe answers, this
+section gets rewritten as one and the probe leaves with it.
 
 **The tag is read at install time**, in both directions: an already-installed
 copy keeps the behaviour it was installed with until it is deleted and re-added,

@@ -14,6 +14,55 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.0.7] — 2026-09-15
+
+**The rotation, and an honest admission that it is not yet diagnosed.** 6.0.6
+closed the glass band, the black band and the tab bar's clearance, and left one
+thing standing: flip the installed app to landscape and back and the sticky
+header is off the top of the screen for good. Two attempts at it have now been
+reasoned rather than measured, and both were wrong. This cut ships the
+mechanism the tree already has — re-armed on the trigger it was never given —
+and, beside it, the probe that will say whether that is the mechanism at all.
+Fixes and QA tooling — a PATCH by README's rule. No entry moves, no surface is
+added, and nothing saved changes shape or meaning.
+
+### Fixed
+
+- **`vpRotate()`: the heal, re-armed on a rotation.** 4.0.8 built `vpHeal()`
+  because a standalone app whose document never scrolls never asks WebKit to
+  re-resolve a stale viewport grant, and 4.0.9 gave it a give-up — one
+  unchanged re-measure and it stops, because the short render turned out to be
+  real. That give-up is per session, and a rotation is a new question. An
+  `orientationchange` listener now resets `vpTries` and runs the heal past the
+  shrink gate (a new `vpForce` flag on `vpShrunk()`, cleared in a `finally`,
+  because after a stale rotation the gate's own window reads may themselves be
+  stale). Two delays, 260ms and 900ms, because iOS settles the frame after the
+  event. **This is the tree's own re-measure on a trigger it did not have, not
+  a new mechanism, and it is not verified on a device.**
+
+### QA
+
+- **`docs/vp-rotate.html`, temporary.** A standalone probe that copies the
+  app's frame shape-for-shape — the same `#app` flex column, the same sticky
+  header, the same standalone height override — and prints, for portrait at
+  load, landscape, and portrait after coming back: `screen`, `innerWidth`/
+  `innerHeight`, the visual viewport and its offset, `documentElement.clientHeight`,
+  the four resolved vh units, both safe-area insets, and the top and height of
+  `#app`, the header and the tab bar. It marks every reading that fails to
+  return to its starting value. It is added to the Home Screen on its own, so
+  it costs no reinstall of the app and touches no saved progress.
+  This is the second probe of its kind; `vp.html` answered the 4.0.7–4.0.9
+  question the same way, sat in guard 13's not-cached list for two minor
+  versions, and left when the question closed. This one leaves the same way.
+- **Why a probe rather than a test.** A scripted rotation (390×844 → 844×390 →
+  back, from two different tabs) is clean in Chromium: header top 0, `#app`
+  height correct, every scroll offset zero, the deck re-snapped. WebKit cannot
+  be installed here — `cdn.playwright.dev` and the Microsoft mirror both answer
+  403 through the sandbox proxy. So no engine this project can run reproduces
+  it, and the only honest next step is the device.
+- Section 64 gains three clauses for the re-arm — the force flag, `vpRotate()`'s
+  shape, and the two-delay trigger — with fixtures in negtest478.
+
 ## [6.0.6] — 2026-09-15
 
 **The tag is the switch.** 6.0.5 tried to close the iOS 27 glass band the

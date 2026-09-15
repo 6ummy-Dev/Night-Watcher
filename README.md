@@ -102,6 +102,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `docs/auth.md` | The no-auth statement for agents: no accounts exist, by design |
 | `docs/_headers` | The security headers and cache policy, kept in the tree so they can be diffed, guarded and shipped |
 | `docs/404.html` | The wrong-alley page. Self-contained, noindexed, served with a real 404 status |
+| `docs/vp-rotate.html` | **Temporary (6.0.7).** Standalone rotation probe — prints the viewport, safe-area and frame geometry before, during and after a flip, on the device, because no engine this project can run reproduces the bug. Noindexed, not cached, and it leaves when the question closes, the way `vp.html` did in 4.9.0 |
 | `docs/.well-known/security.txt` | RFC 9116 disclosure pointer, with an `Expires` guard 140 watches — the tree's only clock |
 | `docs/.well-known/brave-rewards-verification.txt` | Brave Creators ownership token |
 | `docs/fonts/limelight-latin-400-normal.woff2` | Display face for the wordmark and headings |
@@ -166,7 +167,7 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 80 negative suites, 1386
+trusted. That evidence lives in `qa/negative/` — 80 negative suites, 1390
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
