@@ -1,0 +1,125 @@
+# header
+- banner:
+  - button "Home"
+  - heading "Night Watcher" [level=1]:
+    - button "Night Watcher"
+  - paragraph: By universe · 1 of 110
+  - button "1% — open progress": 1%
+  - button "Path switcher — open"
+# panel
+- region "The path":
+  - heading "By universe" [level=2]
+  - paragraph: Every universe kept whole, each in its own story order, and the universes themselves in the order their stories start. Nothing spoils anything ahead of it. The completist’s way through.
+  - searchbox "Search the catalogue"
+  - group "Filter":
+    - button "All" [pressed]
+    - button "To watch"
+    - button "Watched"
+    - button "Skipped"
+    - button "Essentials"
+    - button "Core route"
+    - button "Optional"
+    - button "R / TV-MA off"
+  - button "Collapse all"
+  - heading "2 DC Animated Universe 1 of 10" [level=2]:
+    - button "2 DC Animated Universe 1 of 10" [expanded]
+  - paragraph: "Bruce Timm’s world, Kevin Conroy’s voice — the foundation everything after gets measured against. The full weave: the two-minute pitch reel first, then The Animated Series, dropping Mask of the Phantasm in around season two and SubZero after it. Then The New Batman Adventures, detouring into Superman’s ‘World’s Finest’ and ‘Knight Time’, and finishing with Mystery of the Batwoman and Chase Me — the Gotham Girls shorts sit alongside these, and Batman and Harley Quinn was made two decades later but belongs here too. Static Shock is its own show with three crossings into Batman’s, which is why it is filed in the middle. Then Batman Beyond, Zeta and Return of the Joker — fifty years on, and they run before Justice League, because JLU’s ‘Epilogue’ is Beyond’s ending rather than its trailer. Justice League and Unlimited close the weave, with Batman and Harley Quinn filed last as the late coda it is."
+  - button "Mark The Dark Knight’s First Night watched" [pressed]
+  - button "The Dark Knight’s First Night 1991 · Short OPTIONAL SHORT Rated NR":
+    - text: The Dark Knight’s First Night 1991 · Short OPTIONAL SHORT
+    - img "Rated NR": NR
+  - 'button "Mark Batman: Mask of the Phantasm watched"'
+  - 'button "Batman: Mask of the Phantasm 1993 · Film ESSENTIAL Rated PG"':
+    - text: "Batman: Mask of the Phantasm 1993 · Film ESSENTIAL"
+    - img "Rated PG": PG
+  - 'button "Mark Batman & Mr. Freeze: SubZero watched"'
+  - 'button "Batman & Mr. Freeze: SubZero 1998 · Film CORE Rated NR"':
+    - text: "Batman & Mr. Freeze: SubZero 1998 · Film CORE"
+    - img "Rated NR": NR
+  - 'button "Mark The Batman Superman Movie: World’s Finest watched"'
+  - 'button "The Batman Superman Movie: World’s Finest 1997 · Film OPTIONAL Rated TV-PG"':
+    - text: "The Batman Superman Movie: World’s Finest 1997 · Film OPTIONAL"
+    - img "Rated TV-PG": TV-PG
+  - 'button "Mark Batman: Mystery of the Batwoman watched"'
+  - 'button "Batman: Mystery of the Batwoman 2003 · Film CORE Rated PG"':
+    - text: "Batman: Mystery of the Batwoman 2003 · Film CORE"
+    - img "Rated PG": PG
+  - button "Mark Chase Me watched"
+  - button "Chase Me 2003 · Short OPTIONAL SHORT Rated NR":
+    - text: Chase Me 2003 · Short OPTIONAL SHORT
+    - img "Rated NR": NR
+  - button "Mark Gotham Girls watched"
+  - button "Gotham Girls 30 shorts · 2000 OPTIONAL SHORT Rated NR":
+    - text: Gotham Girls 30 shorts · 2000 OPTIONAL SHORT
+    - img "Rated NR": NR
+  - 'button "Mark Batman Beyond: The Movie watched"'
+  - 'button "Batman Beyond: The Movie 1999 · Film OPTIONAL Rated NR"':
+    - text: "Batman Beyond: The Movie 1999 · Film OPTIONAL"
+    - img "Rated NR": NR
+  - 'button "Mark Batman Beyond: Return of the Joker watched"'
+  - 'button "Batman Beyond: Return of the Joker 2000 · Film ESSENTIAL Rated PG-13"':
+    - text: "Batman Beyond: Return of the Joker 2000 · Film ESSENTIAL"
+    - img "Rated PG-13": PG-13
+  - button "Mark Batman and Harley Quinn watched"
+  - button "Batman and Harley Quinn 2017 · Film CORE Rated PG-13":
+    - text: Batman and Harley Quinn 2017 · Film CORE
+    - img "Rated PG-13": PG-13
+  - heading "2 The Comic Adaptations 0 of 8" [level=2]:
+    - button "2 The Comic Adaptations 0 of 8"
+  - heading "2 Tomorrowverse 0 of 11" [level=2]:
+    - button "2 Tomorrowverse 0 of 11"
+  - heading "2 Standalone Films 0 of 15 · 1 not out yet" [level=2]:
+    - button "2 Standalone Films 0 of 15 · 1 not out yet"
+  - heading "2 The Batman (2004) 0 of 1" [level=2]:
+    - button "2 The Batman (2004) 0 of 1"
+  - heading "2 The Scooby-Doo Crossovers 0 of 2" [level=2]:
+    - button "2 The Scooby-Doo Crossovers 0 of 2"
+  - heading "3 The LEGO Movieverse 0 of 4" [level=2]:
+    - button "3 The LEGO Movieverse 0 of 4"
+  - heading "3 Teen Titans 0 of 1" [level=2]:
+    - button "3 Teen Titans 0 of 1"
+  - heading "3 Teen Titans Go! 0 of 1" [level=2]:
+    - button "3 Teen Titans Go! 0 of 1"
+  - heading "3 DC Super Hero Girls 0 of 1" [level=2]:
+    - button "3 DC Super Hero Girls 0 of 1"
+  - heading "3 Batman ’66 0 of 2" [level=2]:
+    - button "3 Batman ’66 0 of 2"
+  - heading "4 Batman Unlimited 0 of 4" [level=2]:
+    - button "4 Batman Unlimited 0 of 4"
+  - heading "4 Arkhamverse 0 of 1" [level=2]:
+    - button "4 Arkhamverse 0 of 1"
+  - heading "5 Knightfall Trilogy 0 of 1 · 2 not out yet" [level=2]:
+    - button "5 Knightfall Trilogy 0 of 1 · 2 not out yet"
+  - heading "6 Standalone Justice League Films 0 of 7" [level=2]:
+    - button "6 Standalone Justice League Films 0 of 7"
+  - 'heading "6 LEGO Batman: DC Super Heroes 0 of 1" [level=2]':
+    - 'button "6 LEGO Batman: DC Super Heroes 0 of 1"'
+  - heading "6 Batman in Supporting Roles 0 of 3" [level=2]:
+    - button "6 Batman in Supporting Roles 0 of 3"
+  - heading "6 The Brave and the Bold (2008) 0 of 1" [level=2]:
+    - button "6 The Brave and the Bold (2008) 0 of 1"
+  - heading "6 Robot Chicken DC Comics 0 of 3" [level=2]:
+    - button "6 Robot Chicken DC Comics 0 of 3"
+  - heading "7 Superman/Batman Duology 0 of 2" [level=2]:
+    - button "7 Superman/Batman Duology 0 of 2"
+  - heading "7 DC Animated Movie Universe 0 of 17" [level=2]:
+    - button "7 DC Animated Movie Universe 0 of 17"
+  - heading "7 LEGO DC Direct-to-Video 0 of 9" [level=2]:
+    - button "7 LEGO DC Direct-to-Video 0 of 9"
+  - heading "7 Justice League Action 0 of 1" [level=2]:
+    - button "7 Justice League Action 0 of 1"
+  - heading "8 Ninjaverse 0 of 2" [level=2]:
+    - button "8 Ninjaverse 0 of 2"
+  - heading "8 Harley Quinn’s Gotham 0 of 1" [level=2]:
+    - button "8 Harley Quinn’s Gotham 0 of 1"
+  - heading "8 Merry Little Universe 0 of 1" [level=2]:
+    - button "8 Merry Little Universe 0 of 1"
+  - text: "ESSENTIAL — do not skip CORE — the main route OPTIONAL — side material NOT OUT YET INTERACTIVE SHORT — under 30 min PG-13 / TV-14 — the certified rating where one exists: MPA for films, TV Parental Guidelines for television; NR where none was ever issued"
+# tabs
+- navigation "Views":
+  - button "Home"
+  - button "Next up"
+  - button "The path"
+  - button "Progress"
+# toast
+- status: Logged

@@ -333,6 +333,16 @@ run_case "the README drops its row for docs/share.png" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('docs/share.png')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
   guards "" 45
 
+run_case "the README drops its row for docs/shot-narrow.png" \
+  "README's file table does not list: docs/shot-narrow.png" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('docs/shot-narrow.png')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for docs/shot-wide.png" \
+  "README's file table does not list: docs/shot-wide.png" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('docs/shot-wide.png')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
 run_case "the README drops its row for docs/google38dc2f1303c788e7.html" \
   "README's file table does not list: docs/google38dc2f1303c788e7.html" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('docs/google38dc2f1303c788e7.html')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
@@ -496,6 +506,21 @@ run_case "the README drops its row for qa/make-share-card.mjs" \
 run_case "the README drops its row for qa/share-card.json" \
   "README's file table does not list: qa/share-card.json" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/share-card.json')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for qa/make-screenshots.mjs" \
+  "README's file table does not list: qa/make-screenshots.mjs" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/make-screenshots.mjs')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for qa/screenshots.json" \
+  "README's file table does not list: qa/screenshots.json" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/screenshots.json')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for qa/aria/" \
+  "README's file table does not list: qa/aria/" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/aria/')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
   guards "" 45
 
 run_case "the README drops its row for qa/requirements-tooling.txt" \

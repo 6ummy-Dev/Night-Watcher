@@ -27,7 +27,19 @@ produced it: `NOTES-history.md`.)
 
    The bless in the next step records the quantized file's hash. The Python
    tooling (Pillow, fonttools, brotli) is declared in
-   `qa/requirements-tooling.txt`. If the catalogue did not move, skip this.
+   `qa/requirements-tooling.txt`.
+
+   **The install screenshots move with it (6.1.0).** The narrow one prints
+   the same three counts, and guard 160 holds `qa/screenshots.json` against
+   the data the same way guard 91 holds the card:
+
+   ```
+   node qa/make-screenshots.mjs       # draws both, quantizes, writes the record
+   ```
+
+   It serves `docs/` itself and quantizes itself, so no bless is needed for
+   it; regenerate it too when Home or The Path changes shape, which no guard
+   can see. If the catalogue did not move, skip this step.
 3. **Bless.** `npm run bless`. Since 3.7.2 a bless run re-checks the tree it
    wrote and exits red if anything is still wrong, so a green bless IS a
    green tree — but bless still refuses one thing by design: a frozen ID
@@ -62,6 +74,19 @@ produced it: `NOTES-history.md`.)
    belt) is the argument that the behavioral layer does not get skipped on
    release day.
 
+   **The ARIA corpus is part of it (6.1.0).** `qa/aria/` is what a screen
+   reader can reach in eight states, and the check diffs it on Chromium. A
+   change that moves a word a reader hears there — copy, a label, a count
+   after a catalogue cut — is red until it is re-recorded:
+
+   ```
+   npm run browser -- --bless         # rewrites qa/aria/, then read the diff
+   ```
+
+   A stale run leaves the live record in `qa/.shots/aria-<state>.yml`. The
+   Batman Day line, `BUILD` and `BUILT` are normalised out, so a version bump
+   alone never needs this.
+
    **The gate, stated as a rule: for any
    change touching the belt, scrolling, focus, sticky, content-visibility,
    or the service worker, the browser check is the test and `npm test` is
@@ -94,6 +119,14 @@ section until 4.1.1; it belongs in the checklist that runs.)
 7. **Deploy.** `npm run deploy` (wrangler, to the Worker that serves
    `docs/`). Releases here ship from a green tree on `main` — there is no
    staging origin, which is exactly why everything above runs first.
+   **Tagging: `x.y.0` minors and majors are tagged and get a GitHub Release;
+   patches are not** — so the Releases page trails `origin/main` between
+   minors by design, and an outside reader who counts tags against the
+   CHANGELOG will find the gap and should not file it (three already have:
+   5.3.1, 6.0.3 and 6.0.9 — the last because 6.0.9's revert took this
+   sentence out with the rest of 6.0.4). Read the tags with
+   `git ls-remote --tags origin`, never from a `--depth` clone, which omits
+   them and has produced a false "tagging lapsed" finding of its own.
 
 ## The wire checks — after every deploy
 

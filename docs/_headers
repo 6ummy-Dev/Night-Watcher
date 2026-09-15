@@ -15,10 +15,11 @@
 # a returning browser learns the app changed, and a non-SW visitor must
 # revalidate the document or a bad deploy is sticky). The fonts are
 # content-addressed by qa/font-subset.json and take a year, immutable. The
-# icons, the manifest and the share card take a day: a year is only honest
-# behind a hashed filename, and an unstable favicon is a listed Google cause
-# of non-appearance. The agent-facing files and security.txt are no-cache:
-# an agent asks once and writes the answer down.
+# icons, the manifest, the share card and the install screenshots take a
+# day: a year is only honest behind a hashed filename, and an unstable
+# favicon is a listed Google cause of non-appearance. The agent-facing files
+# and security.txt are no-cache: an agent asks once and writes the answer
+# down.
 #
 # The Link: lines sit under /, not /*: a canonical relation is a statement
 # about a document, and _headers matches on path only, cumulatively, with no
@@ -108,6 +109,12 @@
   Cache-Control: public, max-age=86400
 
 /share.png
+  Cache-Control: public, max-age=86400
+
+/shot-narrow.png
+  Cache-Control: public, max-age=86400
+
+/shot-wide.png
   Cache-Control: public, max-age=86400
 
 /manifest.json

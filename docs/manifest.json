@@ -27,5 +27,21 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "shot-narrow.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Night Watcher on a first visit: every Batman film and series, and the three ways through them"
+    },
+    {
+      "src": "shot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "The Path in Bruce’s life order, every universe blended into one watch order"
+    }
   ]
 }

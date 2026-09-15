@@ -1,0 +1,76 @@
+# header
+- banner:
+  - button "Home"
+  - heading "Night Watcher" [level=1]:
+    - button "Night Watcher"
+  - paragraph: By universe · 0 of 110
+  - button "0% — open progress": 0%
+  - button "Path switcher — open"
+# panel
+- region "Progress":
+  - paragraph: The universes
+  - button "DC Animated Universe, 0 of 10 watched"
+  - button "The Comic Adaptations, 0 of 8 watched"
+  - button "Tomorrowverse, 0 of 11 watched"
+  - button "Standalone Films, 0 of 15 watched"
+  - button "The Batman (2004), 0 of 1 watched"
+  - button "The Scooby-Doo Crossovers, 0 of 2 watched"
+  - button "The LEGO Movieverse, 0 of 4 watched"
+  - button "Teen Titans, 0 of 1 watched"
+  - button "Teen Titans Go!, 0 of 1 watched"
+  - button "DC Super Hero Girls, 0 of 1 watched"
+  - button "Batman ’66, 0 of 2 watched"
+  - button "Batman Unlimited, 0 of 4 watched"
+  - button "Arkhamverse, 0 of 1 watched"
+  - button "Knightfall Trilogy, 0 of 1 watched"
+  - button "Standalone Justice League Films, 0 of 7 watched"
+  - 'button "LEGO Batman: DC Super Heroes, 0 of 1 watched"'
+  - button "Batman in Supporting Roles, 0 of 3 watched"
+  - button "The Brave and the Bold (2008), 0 of 1 watched"
+  - button "Robot Chicken DC Comics, 0 of 3 watched"
+  - button "Superman/Batman Duology, 0 of 2 watched"
+  - button "DC Animated Movie Universe, 0 of 17 watched"
+  - button "LEGO DC Direct-to-Video, 0 of 9 watched"
+  - button "Justice League Action, 0 of 1 watched"
+  - button "Ninjaverse, 0 of 2 watched"
+  - button "Harley Quinn’s Gotham, 0 of 1 watched"
+  - button "Merry Little Universe, 0 of 1 watched"
+  - paragraph: 0 / 110 · 26 universes, 0 topped out · width is size · gold watched, steel skipped · tap a building
+  - button "0 watched — show watched in The path": 0 Watched
+  - button "110 to go — show to go in The path": 110 To go
+  - button "0 skipped — show skipped in The path": 0 Skipped
+  - heading "Share your progress" [level=2]
+  - paragraph: A story card of your progress. Drawn in your browser, nothing uploaded.
+  - button "Share the night"
+  - heading "By universe 0 of 26 complete" [level=2]:
+    - button "By universe 0 of 26 complete"
+  - heading "By era of Bruce’s life 0 of 10 complete" [level=2]:
+    - button "By era of Bruce’s life 0 of 10 complete"
+  - heading "By decade 0 of 4 complete" [level=2]:
+    - button "By decade 0 of 4 complete"
+  - heading "Your data" [level=2]
+  - paragraph: Your progress lives only in this browser — a new phone, or clearing site data, starts you at zero. Make a code and you can carry it anywhere.
+  - button "Create backup code"
+  - button "JSON file"
+  - button "Save to a file"
+  - heading "Restore" [level=2]
+  - paragraph: Paste a backup code from another device. It merges in — nothing already ticked is lost.
+  - text: Paste a backup
+  - textbox "Paste a backup":
+    - /placeholder: Backup code, restore link, or full JSON
+  - button "Restore progress"
+  - button "Import a file"
+  - button "Clear all progress"
+  - paragraph:
+    - text: Build {BUILD} · updated {BUILT} ·
+    - link "read the source":
+      - /url: https://github.com/6ummy-Dev/Night-Watcher
+    - text: Keep the path lit.
+    - link "Support":
+      - /url: https://publishers.basicattentiontoken.org/en/c/nightwatcher
+# tabs
+- navigation "Views":
+  - button "Home"
+  - button "Next up"
+  - button "The path"
+  - button "Progress"

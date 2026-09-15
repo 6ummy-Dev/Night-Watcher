@@ -84,6 +84,21 @@ run_case "a pressed state loses its text colour" \
   "${P}a='.film.done .tick{forced-color-adjust:none;background:Highlight;color:HighlightText;border-color:Highlight;}';assert a in s;s=s.replace(a,'.film.done .tick{forced-color-adjust:none;background:Highlight;border-color:Highlight;}',1);${W}" \
   guards "" 159
 
+run_case "the filled controls lose their forced-colors border (6.0.4)" \
+  "a filled control loses its shape under forced colors" \
+  "${P}a='.heroacts .go,.bkbtn.primary,.bkbtn.installbtn,.viewing button{border:1px solid ButtonText;}\n';assert a in s;s=s.replace(a,'',1);${W}" \
+  guards "" 159
+
+run_case "the toast loses its forced-colors border (6.0.4)" \
+  "the toast loses its shape under forced colors" \
+  "${P}a='.toast{border:1px solid CanvasText;}\n';assert a in s;s=s.replace(a,'',1);${W}" \
+  guards "" 159
+
+run_case "the open belt's pressed switches lose their state rule (6.0.4)" \
+  "the open belt's pressed switches paint brand gold" \
+  "${P}a='.includes .scope button[aria-pressed=\"true\"]{forced-color-adjust:none;background:Highlight;color:HighlightText;border-color:Highlight;}\n';assert a in s;s=s.replace(a,'',1);${W}" \
+  guards "" 159
+
 NEG_ARGS="--bless"
 green_case "a state rule's declarations reordered stays green" \
   "${P}a='.gbar i{forced-color-adjust:none;background:CanvasText;}';assert a in s;s=s.replace(a,'.gbar i{background:CanvasText;forced-color-adjust:none;}',1);${W}"

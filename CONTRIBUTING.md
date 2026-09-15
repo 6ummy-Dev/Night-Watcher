@@ -65,6 +65,10 @@ files (`README.md`, "Checks", lists every one); read the diff.
    `npm test` (kept fast on purpose; RELEASING.md states the gate). A
    change touching the belt, scrolling, focus, sticky, content-visibility
    or the service worker is not verified until the browser check is green.
+   A change a screen reader would hear moves the ARIA corpus in `qa/aria/`
+   (6.1.0): re-record it with `npm run browser -- --bless` and read the
+   diff before committing it — a bless is a claim that the new tree is the
+   intended one.
 9. **The 5.3.0 line, standing:** a new guard states an invariant or it is
    not a section; a new guards fixture names its `sect` or it does not
    ship; `NO_SECT_PINNED` only goes down. Retrofitting old fixtures is

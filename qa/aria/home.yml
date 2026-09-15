@@ -1,0 +1,63 @@
+# header
+- banner:
+  - button "Home"
+  - heading "Night Watcher" [level=1]:
+    - button "Night Watcher"
+  - paragraph: By universe · 0 of 110
+  - button "0% — open progress": 0%
+  - button "Path switcher — open"
+# panel
+- region "Home":
+  - paragraph: An unofficial fan guide
+  - heading "One path through every Batman" [level=2]
+  - paragraph: Every Batman story ever filmed, sorted into watch orders, no spoilers — by universe, by the arc of one life, or by release. Films only, or every series too. Tap anything for what it is and where to watch it. Tick them off as you go; your progress stays in this browser.
+  - text: 113 films 59 seasons of TV 1968–2028
+  - paragraph: First patrol 0 of 110
+  - paragraph: 04 DC Animated Universe
+  - heading "The Dark Knight’s First Night" [level=2]
+  - paragraph: 1991 · Short
+  - text: OPTIONAL SHORT
+  - img "Rated NR": NR
+  - paragraph: "The two-minute reel Bruce Timm and Eric Radomski made to sell Fox on the series: Batman against three jewel thieves on a rooftop, gone before Gordon arrives. The style is already all there; the soundtrack was lost, so it ships with the show’s theme over it."
+  - button "Begin the path"
+  - button "Essentials 0/12"
+  - button "Core route 0/48"
+  - button "Optional 0/62"
+  - paragraph: The universes
+  - paragraph: Every universe kept whole, each in its own story order, and the universes themselves in the order their stories start. Nothing spoils anything ahead of it.
+  - button "DC Animated Universe Bruce Timm’s world, Kevin Conroy’s voice — the foundation everything… 0 of 10"
+  - button "The Comic Adaptations Unconnected adaptations that happen to line up into one whole life 0 of 8"
+  - button "Tomorrowverse A planned ten-film run, 2020–2024, closed out by the Crisis trilogy 0 of 11"
+  - button "Standalone Films Self-contained films, each a different answer to the question of what… 0 of 15 · 1 not out yet"
+  - button "The Batman (2004) Its own continuity with a younger, more athletic Bruce, a stylised… 0 of 1"
+  - button "The Scooby-Doo Crossovers Two Scooby crossovers half a century apart, each with a Batman of its… 0 of 2"
+  - button "The LEGO Movieverse The LEGO feature line — three theatrical films, plus the shorts made… 0 of 4"
+  - button "Teen Titans The 2003 series and the film that closes it 0 of 1"
+  - button "Teen Titans Go! The 2013 comedy reboot, which shares character names with the 2003… 0 of 1"
+  - button "DC Super Hero Girls Lauren Faust’s Metropolis, where the heroes are teenagers with homework 0 of 1"
+  - 'button "Batman ’66 Adam West’s Gotham, entire: the series, the film shot between its… 0 of 2"'
+  - button "Batman Unlimited Three films and thirty-three web shorts, built around a Mattel toyline 0 of 4"
+  - button "Arkhamverse The Arkham games’ continuity, and the only screen entry it has 0 of 1"
+  - button "Knightfall Trilogy Three films adapting the 1993 saga, arriving one at a time 0 of 1 · 2 not out yet"
+  - button "Standalone Justice League Films League films belonging to no continuity 0 of 7"
+  - 'button "LEGO Batman: DC Super Heroes One film, adapting the LEGO Batman 2 video game, and connected to… 0 of 1"'
+  - button "Batman in Supporting Roles Films where Batman is a supporting player, a punchline, or a guest in… 0 of 3"
+  - button "The Brave and the Bold (2008) Diedrich Bader’s Batman in a bright silver-age world, teaming up with… 0 of 1"
+  - button "Robot Chicken DC Comics Three licensed stop-motion specials, made with DC’s blessing and none… 0 of 3"
+  - button "Superman/Batman Duology A two-film continuity of its own, adapting the first two arcs of Jeph… 0 of 2"
+  - button "DC Animated Movie Universe Sixteen films running 2013–2020 (and one recut of two of them), Jason… 0 of 17"
+  - button "LEGO DC Direct-to-Video Nine LEGO films sharing a style rather than a story 0 of 9"
+  - button "Justice League Action Eleven-minute episodes at a relentless pace, with Kevin Conroy back… 0 of 1"
+  - button "Ninjaverse Batman and his rogues thrown into feudal Japan, animated by Kamikaze… 0 of 2"
+  - button "Harley Quinn’s Gotham An adult, profane satire of the whole mythos 0 of 1"
+  - button "Merry Little Universe A gentler Damian Wayne, and the start of its own small continuity… 0 of 1"
+  - group "Theme":
+    - button "Dark deco" [pressed]
+    - button "Darker"
+  - paragraph: Night Watcher · an unofficial fan guide · progress saves in this browser only · the host counts visits, never what you watch · free software under the AGPL · kept by 6ummy, with Claude on the night shift
+# tabs
+- navigation "Views":
+  - button "Home"
+  - button "Next up"
+  - button "The path"
+  - button "Progress"

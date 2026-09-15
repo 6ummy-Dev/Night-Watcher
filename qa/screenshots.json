@@ -1,0 +1,22 @@
+{
+ "films": 137,
+ "seasons": 71,
+ "continuities": 44,
+ "shots": {
+  "shot-narrow.png": {
+   "form_factor": "narrow",
+   "sizes": "780x1688",
+   "label": "Night Watcher on a first visit: every Batman film and series, and the three ways through them",
+   "bytes": 42267,
+   "sha256": "7dd85b4a02e81e007af4e84cc547a7bceeda5f9fac91c66049f79e027a2a35a3"
+  },
+  "shot-wide.png": {
+   "form_factor": "wide",
+   "sizes": "1280x720",
+   "label": "The Path in Bruce’s life order, every universe blended into one watch order",
+   "bytes": 19578,
+   "sha256": "088afecd2311f25dbb54870b81f1ebef95c856d353f33015e419f88440667287"
+  }
+ },
+ "generator": "qa/make-screenshots.mjs"
+}

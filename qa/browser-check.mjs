@@ -1084,6 +1084,32 @@ await frames(2);
   });
   ok("forced colors: the star run repaints in system ink and keeps its geometry", fc.pass, fc.detail);
 }
+/* 6.0.4, withdrawn by 6.0.9's revert, back in 6.1.0. The state the text pins
+   could not see: with the belt OPEN, the pressed include switches are selected by `.includes .scope
+   button[aria-pressed="true"]` (0,3,1), which outranks the forced-colors
+   block's own `.scope button[aria-pressed="true"]` (0,2,1) — so without the
+   state rule they keep brand gold with forced-color-adjust:none still applying, and
+   reading the block as CSS text said nothing was wrong. This reads what the
+   engine computed: the pressed switch must land on the same colour a probe
+   painted with Highlight computes to. */
+{
+  const belt = await page.evaluate(() => {
+    const probe = document.createElement("i");
+    probe.style.cssText = "position:absolute;width:1px;height:1px;background:Highlight;forced-color-adjust:none";
+    document.body.appendChild(probe);
+    const hi = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    const drop = document.querySelector('#view .panel:not([inert]) .includes[data-drop]');
+    if(!drop) return { pass: false, detail: "the belt is not dropped in this state" };
+    const on = Array.from(drop.querySelectorAll('.scope button[aria-pressed="true"]'));
+    if(!on.length) return { pass: false, detail: "no pressed switch in the open belt" };
+    const off = on.filter(b => getComputedStyle(b).backgroundColor !== hi)
+                  .map(b => (b.textContent || "").trim() + " " + getComputedStyle(b).backgroundColor);
+    return { pass: off.length === 0,
+             detail: on.length + " pressed switch(es) vs Highlight " + hi + (off.length ? "; off: " + off.join(", ") : "") };
+  });
+  ok("forced colors: the open belt's pressed switches repaint in Highlight, not brand gold", belt.pass, belt.detail);
+}
 await page.emulateMedia({ forcedColors: "none" });
 await page.evaluate(() => { closeBelt("auto"); });
 await axeState("Next up on a bag, a rated night in Activity", () => {
@@ -1196,7 +1222,19 @@ for(let i = 0; i < 260; i++){
 await page.evaluate(() => { document.getElementById("beltpeek").focus(); });
 await page.keyboard.press("Enter");
 await frames();
-const beltStops = [];
+/* 6.1.0: the peek hides the moment the belt drops, and until this cut the
+   focus it held fell to <body> — Tab only found the belt because Chromium
+   remembers where focus was lost, and a screen reader has no such luck.
+   The ARIA corpus's first run found it. Enter now lands on the pressed path. */
+const dropLanding = await page.evaluate(() => {
+  const el = document.activeElement;
+  return { pressed: !!el && el.getAttribute("aria-pressed") === "true" && !!el.closest(".pathseg[data-drop]"),
+           key: el && el.dataset ? Object.keys(el.dataset).map(x => "[" + x + "=" + el.dataset[x] + "]").join("") : "",
+           tag: el ? el.tagName : "" };
+});
+ok("keyboard: Enter on the peek puts focus on the pressed path inside the dropped belt",
+   dropLanding.pressed, dropLanding.tag + " " + dropLanding.key);
+const beltStops = [dropLanding.key];
 for(let i = 0; i < 12; i++){
   await page.keyboard.press("Tab");
   const k = await page.evaluate(() => {
@@ -1206,13 +1244,250 @@ for(let i = 0; i < 12; i++){
   beltStops.push(k);
 }
 ok("keyboard: Enter on the peek drops the belt and its controls are tabbable",
-   beltStops.some(k => k.indexOf("[path=life]") >= 0) &&
+   beltStops.some(k => k.indexOf("[path=") >= 0) &&
    beltStops.some(k => k.indexOf("[act=belt]") >= 0),
    beltStops.filter(Boolean).slice(0, 6).join(" "));
+/* The loss case, driven through the real doors: twelve Tabs walk out of the
+   belt (and a reader who has moved on is deliberately left where they are),
+   so close it, scroll the list until the strip parks behind the peek, drop
+   it again with Enter on the peek, and press Escape from inside. A parked
+   strip is visibility:hidden, so the control that had focus goes with it —
+   that is the focus beltFocus() hands back. */
+await page.evaluate(() => { if(S.beltDrop || S.beltOpen) closeBelt("auto"); });
+await frames();
+await page.evaluate(() => { scroller().scrollTop = 600; });
+await scrollSettled();
+/* The park is an observer's answer, so wait for it rather than for time. */
+const parkedForEsc = await page.waitForSelector("#beltpeek[data-on]", { timeout: 5000 })
+                               .then(() => true, () => false);
+await page.evaluate(() => { document.getElementById("beltpeek").focus(); });
+await page.keyboard.press("Enter");
+await frames();
+const inBelt = await page.evaluate(() => !!document.activeElement &&
+                                         !!document.activeElement.closest(".pathseg[data-drop]"));
 await page.keyboard.press("Escape");
 await frames();
 const beltShut = await page.evaluate(() => !S.beltDrop && !S.beltOpen);
 ok("keyboard: Escape closes the dropped belt", beltShut, "beltDrop cleared");
+/* 6.1.0, the other half: the dropped belt leaves with the focus inside it.
+   Once it has gone, focus is handed back to the peek (or to the strip's
+   pressed path when the strip is showing) — never left on the page. */
+const escLanding = await page.waitForFunction(() => {
+  const el = document.activeElement;
+  return el && el !== document.body ? (el.id || el.getAttribute("aria-label") || el.textContent.trim()) : false;
+}, null, { timeout: 3000 }).then(h => h.jsonValue(), () => "");
+ok("keyboard: after Escape, focus is on the path switcher, not the page",
+   parkedForEsc && inBelt && /^(beltpeek|By universe|Bruce’s life|Release order)$/.test(escLanding),
+   (parkedForEsc ? "" : "the strip never parked; ") + (inBelt ? "" : "focus was not in the belt; ") +
+   (escLanding || "document.body"));
+/* Where the strip stays hidden after the close, the focused control goes
+   with it — which state the list comes back in is an observer's timing in
+   this long-lived page, so the loss case is driven once more on a cold page,
+   where it is deterministic (measured both ways for 6.1.0). */
+{
+  const lctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: "block" });
+  const lp = await lctx.newPage();
+  await lp.addInitScript(() => { try{ localStorage.clear();
+    localStorage.setItem("batwatch-settings", JSON.stringify({ path: "continuity" })); }catch(e){} });
+  await lp.goto(SITE_URL + "#path", { waitUntil: "load" });
+  await lp.waitForFunction(() => typeof window.render === "function" && !document.getElementById("splash"));
+  await lp.evaluate(() => { scroller().scrollTop = 600; });
+  const lParked = await lp.waitForSelector("#beltpeek[data-on]", { timeout: 5000 }).then(() => true, () => false);
+  await lp.focus("#beltpeek");
+  await lp.keyboard.press("Enter");
+  /* the drop is allowed one scroll; let it land before closing */
+  await lp.evaluate(() => new Promise(res => {
+    let last = null, same = 0; const t0 = performance.now();
+    const tick = () => {
+      const y = scroller().scrollTop;
+      if(y === last){ if(++same >= 5) return res(); } else { same = 0; last = y; }
+      if(performance.now() - t0 > 2000) return res();
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }));
+  await lp.keyboard.press("Escape");
+  const reParked = await lp.waitForFunction(() => !S.beltDrop && !scroller().querySelector(".includes.closing") &&
+                                                  document.getElementById("beltpeek").hasAttribute("data-on"),
+                                            null, { timeout: 3000 }).then(() => true, () => false);
+  const lLanding = await lp.waitForFunction(() => {
+    const el = document.activeElement;
+    return el && el !== document.body ? (el.id || el.getAttribute("aria-label") || el.textContent.trim()) : false;
+  }, null, { timeout: 2000 }).then(h => h.jsonValue(), () => "");
+  ok("keyboard: Escape from a parked drop hands the lost focus back to the peek",
+     lParked && reParked && lLanding === "beltpeek",
+     (lParked ? "" : "the strip never parked; ") + (reParked ? "" : "the strip did not park again after the close; ") +
+     (lLanding || "document.body"));
+  await lctx.close();
+}
+
+/* ---- the header survives a rotation, and is not sticky (6.1.0) ----------
+   NightWatcherQA6.0.9 P2-1. Guard 128's Q5 pins the rule; this reads what
+   the engine computed and turns the phone round twice. Chromium has never
+   reproduced the iOS compositor skip — a green line here is evidence the
+   relative header lays out where the sticky one did, not a close of the
+   installed-app report, which stays the owner's check on a real device. */
+{
+  const readHead = () => page.evaluate(() => {
+    const h = document.querySelector("header");
+    return { pos: getComputedStyle(h).position, top: Math.round(h.getBoundingClientRect().top),
+             z: getComputedStyle(h).zIndex };
+  });
+  const r0 = await readHead();
+  await page.setViewportSize({ width: 844, height: 390 });
+  await frames(3);
+  const r1 = await readHead();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await frames(3);
+  const r2 = await readHead();
+  ok("rotation: the header is position:relative at z-index 30, and sits at the top through a turn and back",
+     [r0, r1, r2].every(r => r.pos === "relative" && r.z === "30" && r.top === 0),
+     [r0, r1, r2].map(r => r.pos + "@" + r.top).join(" → "));
+}
+
+/* ---- the accessibility tree, recorded (6.1.0) --------------------------
+   The ARIA-snapshot corpus, left out on 2 Sept and again on 14 Sept, taken
+   in 6.1.0 so nothing on the reference list is waiting. axe proves no rule
+   is broken in seven states; this pins WHAT the tree says in eight, so a
+   renamed control, a lost label or a panel leaking through the inert wall
+   is a red run instead of a surprise on somebody's screen reader.
+
+   What it is and what it is not: Playwright's computed tree in Chromium,
+   blessed against the device pass's VoiceOver read of 3 Sept (clean). It is
+   not VoiceOver. It is recorded from Chromium and diffed on Chromium only;
+   the WebKit job runs the two assertions below and says it did not diff.
+
+   Each state is a fresh page from seeded storage and a real door (a hash
+   route, a click, a key), never a poked S — a state no reader can reach is
+   not worth recording. Each record is the header, the LIVE panel and the
+   tab bar (plus the toast where there is one): the inert panels are what a
+   screen reader cannot reach, so they are not what it hears.
+
+   Three things are normalised before a record is written or compared, so
+   the corpus goes stale on a real change and on nothing else: the Batman
+   Day line (dated copy the 23 Oct cut deletes — cut out, so the record
+   already reads the way that cut will leave it), BUILD and BUILT (every
+   release moves them). The install offer is held back for the same reason —
+   it arrives when Chromium decides the page is installable, which is a race
+   and not a state.
+
+   Bless: npm run browser -- --bless  (Chromium). Anything that moves a word
+   a reader hears in these states moves a record; read the diff. */
+const ARIA_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "aria");
+const ARIA_BLESS = process.argv.includes("--bless");
+const ARIA_STATES = ["home-first-run", "home", "next-up", "path", "path-belt-open",
+                     "path-row-open", "progress", "toast"];
+{
+  if(ARIA_BLESS && WK){ console.error("aria corpus: bless on Chromium — WebKit does not write the record"); process.exit(1); }
+  const SETTINGS = { path: "continuity", theme: "dark", scope: "movies", format: "anim", tier: "all" };
+  const recipe = {
+    "home-first-run": { settings: {}, hash: "" },
+    "home":           { settings: SETTINGS, hash: "" },
+    "next-up":        { settings: SETTINGS, hash: "#next" },
+    "path":           { settings: SETTINGS, hash: "#path" },
+    "path-belt-open": { settings: SETTINGS, hash: "#path", go: async p => {
+        await p.click('#view .panel:not([inert]) [data-act="allgroups"]');
+        await p.waitForSelector("#beltpeek[data-on]", { timeout: 5000 });
+        await p.focus("#beltpeek");
+        await p.keyboard.press("Enter");
+        await p.waitForSelector('#view .panel:not([inert]) .pathseg[data-drop]', { timeout: 5000 });
+      } },
+    "path-row-open":  { settings: SETTINGS, hash: "#path", go: async p => {
+        await p.click('#view .panel:not([inert]) [data-act="allgroups"]');
+        await p.click('#view .panel:not([inert]) .ghead[data-act="group"]');
+        await p.click('#view .panel:not([inert]) .fmain[data-act="expand"]');
+      } },
+    "progress":       { settings: SETTINGS, hash: "#progress" },
+    "toast":          { settings: SETTINGS, hash: "#path", go: async p => {
+        await p.click('#view .panel:not([inert]) [data-act="allgroups"]');
+        await p.click('#view .panel:not([inert]) .ghead[data-act="group"]');
+        await p.click('#view .panel:not([inert]) .film .tick');
+        await p.waitForSelector("#toast.show");
+      } },
+  };
+  fs.mkdirSync(ARIA_DIR, { recursive: true });
+  const actx = await browser.newContext({ viewport: { width: 390, height: 844 },
+                                          serviceWorkers: "block", reducedMotion: "reduce" });
+  const stale = [], named = [], unnamed = [];
+  let toastLive = null;
+  for(const name of ARIA_STATES){
+    const r = recipe[name];
+    const ap = await actx.newPage();
+    const errs = [];
+    ap.on("pageerror", e => errs.push(String(e)));
+    await ap.addInitScript(set => {
+      window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); e.stopImmediatePropagation(); }, true);
+      try{
+        localStorage.clear();
+        if(set.path !== undefined) localStorage.setItem("batwatch-settings", JSON.stringify(set));
+      }catch(e){}
+    }, r.settings);
+    await ap.goto(SITE_URL + r.hash, { waitUntil: "load" });
+    await ap.waitForFunction(() => typeof window.render === "function" && !document.getElementById("splash"),
+                             null, { timeout: 15000 });
+    if(r.go) await r.go(ap);
+    await ap.evaluate(() => new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res))));
+    const fixed = await ap.evaluate(() => ({ day: typeof dayLine === "function" ? dayLine().trim() : "",
+                                             build: BUILD, built: BUILT }));
+    /* The day line is cut out, not replaced: the paragraph it opens reads
+       the same with it gone as it will after the 23 Oct cut deletes it. */
+    const norm = t => {
+      if(fixed.day) t = t.split(fixed.day + " ").join("").split(fixed.day).join("");
+      return t.split("Build " + fixed.build).join("Build {BUILD}").split(fixed.built).join("{BUILT}");
+    };
+    const parts = [["header", "body > #app > header"], ["panel", "#view .panel:not([inert])"], ["tabs", "#tabs"]];
+    if(name === "toast") parts.push(["toast", "#toast"]);
+    let rec = "";
+    for(const [label, sel] of parts){
+      rec += "# " + label + "\n" + norm(await ap.locator(sel).first().ariaSnapshot()) + "\n";
+    }
+    const focus = await ap.evaluate(() => document.activeElement && document.activeElement !== document.body);
+    if(focus){
+      const f = await ap.locator(":focus").ariaSnapshot().catch(() => "");
+      (/^- [a-z]+ "[^"]+"/.test(f.split("\n")[0]) ? named : unnamed).push(name + ": " + f.split("\n")[0]);
+    }
+    if(name === "toast"){
+      toastLive = await ap.evaluate(() => {
+        const t = document.getElementById("toast");
+        return { role: t.getAttribute("role"), live: t.getAttribute("aria-live"),
+                 text: t.textContent.trim(), shown: t.classList.contains("show") };
+      });
+    }
+    if(errs.length) stale.push(name + " threw: " + errs[0].slice(0, 80));
+    const file = path.join(ARIA_DIR, name + ".yml");
+    if(ARIA_BLESS){
+      fs.writeFileSync(file, rec);
+    } else if(!WK){
+      const had = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null;
+      if(had !== rec){
+        stale.push(name + (had === null ? " (no record)" : ""));
+        fs.writeFileSync(shot("aria-" + name + ".yml"), rec);
+      }
+    }
+    await ap.close();
+  }
+  await actx.close();
+  if(WK){
+    out.push("  skip aria corpus diff — the record is Chromium's computed tree; " +
+             "the focus and live-region assertions below still run on WebKit");
+  } else {
+    ok("aria corpus: the tree in " + ARIA_STATES.length + " states matches qa/aria/" +
+       (ARIA_BLESS ? " (blessed this run)" : ""),
+       stale.length === 0,
+       stale.length ? "stale: " + stale.join(", ") + " — the live record is in qa/.shots/; " +
+                      "read it, then npm run browser -- --bless" : ARIA_STATES.join(", "));
+  }
+  /* WebKit does not focus a button on a mouse click (it is a platform
+     choice, and Safari's), so only the keyboard-driven belt state carries
+     focus there; Chromium carries it in three. */
+  ok("aria corpus: focus lands on something with a name",
+     unnamed.length === 0 && named.length >= (WK ? 1 : 3),
+     unnamed.length ? "unnamed: " + unnamed.join("; ") : named.length + " state(s) with focus, all named");
+  ok("aria corpus: the toast is a polite live region, shown, with words in it",
+     !!toastLive && toastLive.role === "status" && toastLive.live === "polite" &&
+     toastLive.shown && toastLive.text.length > 0,
+     JSON.stringify(toastLive));
+}
 
 /* ---- the offline promise, kept by a real worker in a real browser -------
    3.7.2 (M-5 of the 10 Aug review). Guard 132 executes sw.js's handlers

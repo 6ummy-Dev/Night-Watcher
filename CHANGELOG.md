@@ -14,6 +14,155 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.1.0] — 2026-09-15
+
+**The front door, and the six things 6.0.9 left open.** The install dialog
+now shows the app before you install it — two screenshots in the manifest,
+drawn by the app itself — and that is what makes this a MINOR by README's
+rule: a new feature. Everything else is the 6.0.9 deep QA taken whole (one
+P1, two P2, two P3, nothing deferred), the ARIA-snapshot corpus the
+reference notes had carried as "left out for now" since 2 September, and the
+focus defect that corpus found on its first run. No entry moves and nothing
+saved changes shape or meaning. **No reinstall** beyond the one 6.0.9
+already asked for: the status-bar tag is untouched. Tagged, because minors
+are.
+
+### Added
+
+- **Two install screenshots.** `docs/manifest.json` declares
+  `docs/shot-narrow.png` (Home on a first visit, 780×1688, with Animated +
+  Live and Movies + Series chosen so the hero reads the whole shelf — 137
+  films, 71 seasons) and `docs/shot-wide.png` (The Path in Bruce's life
+  order, 1280×720), each with a form factor, a size and a label. That is
+  what turns Chrome's minimal install prompt — the one the 3 September device
+  pass saw — into the richer dialog on Android and the desktop. iOS reads
+  none of it. `qa/make-screenshots.mjs` draws both from the served tree on
+  `share.png`'s pattern: storage seeded before the first paint, nothing
+  clicked (a click fires a toast, and a stable hash of a toast blesses the
+  bug), a settle predicate read off the DOM rather than a clock, motion
+  reduced, the service worker blocked, then the same Pillow quantize the card
+  gets (42,267 and 19,578 bytes). Three runs, byte-identical. Neither view
+  carries the Batman Day line, so neither file goes stale on 23 October.
+  `qa/screenshots.json` records the catalogue the shots were drawn from and
+  each file's form factor, size, label and hash. Both files stay out of the
+  offline shell (install-dialog chrome, rendered by no view) and take a day
+  in `_headers`, like the card.
+- **The ARIA-snapshot corpus, `qa/aria/`.** Eight states — Home before and
+  after a path is chosen, Next up, The Path, the belt dropped, a row open,
+  Progress, and a toast showing — each recorded as the header, the live panel
+  and the tab bar: what a screen reader can reach, not the inert panels
+  behind the wall. Every state is a fresh page from seeded storage and a real
+  door (a hash route, a click, a key). The Batman Day line is cut out (so
+  the record already reads the way the 23 October cut will leave Next up),
+  and `BUILD` and `BUILT` are normalised, so the corpus goes stale on a real
+  change and never on the calendar; the install offer is held back because it arrives
+  on Chromium's timing, not on a state. Written and diffed by
+  `qa/browser-check.mjs` (`npm run browser -- --bless`) in Chromium; the
+  WebKit job runs the two assertions and says it did not diff. It is
+  Playwright's computed tree, blessed against the 3 September VoiceOver read
+  — not VoiceOver.
+
+### Fixed
+
+- **The live SHA was red (P1-1).** 6.0.9 said the served files went back to
+  6.0.3, and `docs/vp-rotate.html` did not go: the README row and the guard
+  13 exclusion that made it legal were the half that reverted, so guards 13
+  and 45 failed on `main` and every negative shard in CI #482 printed
+  PRISTINE RED. **The probe is deleted.** The question it measured was the
+  sticky header, which this cut removes (below), and a probe of a withdrawn
+  mechanism is not a reason to keep a file on the origin. Guard 13's comment
+  now carries both probes' history and the rule that one comes back only
+  with its own rows.
+- **The header is not sticky (P2-1).** `header{position:sticky;top:0}` →
+  `position:relative`, as 6.0.8 had it and for 6.0.8's reason: the header's
+  scroll container is `#app`, which never scrolls, so the sticky has been a
+  layout no-op since 4.0.0 — and a WebKit scrolling-tree node the compositor
+  can move while every `scrollTop` in the document reads 0, which is the
+  installed app's 62.7pt rotation. The bug reproduced under both status-bar
+  tags, so `black` does not retire it; 6.0.9 put the sticky back only because
+  "revert to 6.0.3" included it. `z-index:30` still applies. The blur stays,
+  `black` stays, and there is no heal, no clamp and no probe. Chromium turns
+  the phone round clean and always has, so the browser check's new rotation
+  line is evidence, not a close — the installed rotation is the owner's.
+- **High Contrast: a fill is a shape again (P2-2).** 6.0.4's two fixes,
+  withdrawn with it, re-land as their own item rather than riding a
+  status-bar cut: Begin the path / Mark watched, the primary backup buttons,
+  Install and Restore take a `1px solid ButtonText` border under
+  `forced-colors`, the toast a `CanvasText` one, and the open belt's pressed
+  switches get a state rule at the specificity that wins, so they paint
+  `Highlight` instead of `#B8941A` with forcing off. Guard 159 gets its three
+  clauses and the allowlist entry back, negtest700 its three fixtures, and
+  the browser check reads the pressed switches' computed colour against a
+  `Highlight` probe again.
+- **The installed Dark Deco app has no step at the top (P3-2).** Under the
+  `black` bar the first thing on screen is the header, and Dark Deco's
+  `--hdr` is navy. Installed, `--hdr` is now Darker's own black in both
+  themes (`@media (display-mode: standalone)`), which is what the status bar,
+  Android's bar and the desktop title bar already are — `theme-color` has
+  answered `#000000` when standalone since 4.0.5. A browser tab is untouched.
+  Going back to `default` to paint the bar instead is 6.0.4's 62pt band and
+  was not considered.
+- **Focus no longer falls to the page when the belt drops or closes.** Found
+  by the ARIA corpus on its first run, not by the QA. Enter (or a tap) on the
+  peek drops the belt, the peek hides, and the focus it held fell to
+  `<body>`; Escape on a dropped belt over a parked strip did the same with the
+  control that had focus. Tab recovered only because Chromium remembers
+  where focus was lost — a screen reader's cursor has no such luck. The peek's
+  two doors now call `dropFocus()`, which lands on the pressed path inside
+  the dropped belt, and Escape schedules `beltFocus()` after the close, which
+  hands a *lost* focus back to the peek (or the strip's pressed path) and
+  leaves a reader who has already moved on where they are. Both go through
+  `focusBack`, so neither moves the viewport, and neither shows a ring to a
+  mouse or a finger.
+
+### QA
+
+- **Section 128** — Q4 counts three `--hdr` declarations with one alpha; Q5
+  (not sticky, positioned) is back; Q6 pins the installed header to Darker's
+  black; Q7 pins both peek doors, `dropFocus()`, `beltFocus()`'s
+  lost-focus-only rule and the Escape schedule.
+- **Section 159** — 6.0.4's three clauses and the includes state's
+  allowlist entry, back.
+- **Section 160, new** — the install screenshots as the dialog reads them
+  (PNG, 320–3840 a side, long side ≤ 2.3× short, a known form factor that
+  matches the orientation, one aspect per form factor, `sizes` equal to the
+  pixels, a label), the record against the files, the manifest and the
+  catalogue, a 150,000-byte ceiling, and both files out of the shell.
+- **Section 161, new** — the ARIA corpus's shape: every state the browser
+  check names has a record holding the banner, the live region and the Views
+  navigation; no orphan; no day line, `BUILD` or `BUILT` in any record; the
+  diff and the two assertions still in the check.
+- Section 13 lists the screenshots as not shelled; section 104 holds their
+  day-long cache rule.
+- **The browser check** gains the rotation line, the belt's forced-colors
+  read, two focus assertions (Enter lands on the pressed path; Escape from a
+  parked drop hands focus to the peek, driven on a cold page where the loss
+  is deterministic) and the corpus's three lines. Both focus assertions were
+  run against the tree without the fix: red three times in three, green
+  three in three with it.
+- **negtest720**, new: 44 fixtures across sections 13, 104, 128, 160 and
+  161, and one green case. negtest610 +5 — one per new README row, where
+  every row's delete-and-assert-red lives (the wall's first pass caught the
+  sweep's completeness check at 74 rows against 69 fixtures). negtest700 +3
+  (159). negtest360 re-aimed: its "the peek goes mouse-only" fixture
+  anchored on the keyboard door's old body.
+- Census **1368 → 1421** (1315 guards / 106 smoke), 80 → 81 suites; 159 →
+  161 sections.
+
+### Documentation
+
+- **RELEASING.md** — step 7 says the tagging rule again (6.0.4 wrote it,
+  6.0.9's revert took it: `x.y.0` minors and majors are tagged, patches are
+  not); step 2 regenerates the screenshots with the card; step 5 names the
+  corpus bless.
+- **NOTES.md** — "Open" holds the one question no session can close (the
+  installed rotation, until a device survives it); the two forced-colors
+  lessons; the header, the installed header and the focus hand-offs; the
+  screenshots and the corpus.
+- README (the file table, the weight — 246 KiB, 252 in decimal kB — and the
+  counts), ARCHITECTURE (`dropFocus`, `beltFocus`), CONTRIBUTING, and
+  `qa.yml` (the counts and the shard for negtest720).
+
 ## [6.0.9] — 2026-09-15
 
 **Back to 6.0.3, with the one fix the glass needed.** 6.0.4 through 6.0.8 are

@@ -1,0 +1,39 @@
+# header
+- banner:
+  - button "Home"
+  - heading "Night Watcher" [level=1]:
+    - button "Night Watcher"
+  - paragraph: By universe · 0 of 110
+  - button "0% — open progress": 0%
+  - button "Path switcher — open"
+# panel
+- region "Next up":
+  - paragraph: Tonight’s patrol
+  - paragraph: 04 DC Animated Universe
+  - heading "The Dark Knight’s First Night" [level=2]
+  - paragraph: 1991 · Short
+  - text: OPTIONAL SHORT
+  - img "Rated NR": NR
+  - paragraph: "The two-minute reel Bruce Timm and Eric Radomski made to sell Fox on the series: Batman against three jewel thieves on a rooftop, gone before Gordon arrives. The style is already all there; the soundtrack was lost, so it ships with the show’s theme over it."
+  - group "Rating for The Dark Knight’s First Night":
+    - 'button "The Dark Knight’s First Night: rate 1 star"'
+    - 'button "The Dark Knight’s First Night: rate 2 stars"'
+    - 'button "The Dark Knight’s First Night: rate 3 stars"'
+    - 'button "The Dark Knight’s First Night: rate 4 stars"'
+    - 'button "The Dark Knight’s First Night: rate 5 stars"'
+  - link "Where to watch":
+    - /url: https://search.brave.com/search?q=where%20to%20watch%20The%20Dark%20Knight%E2%80%99s%20First%20Night%201991
+  - button "Mark watched"
+  - button "Skip"
+  - paragraph: Then
+  - 'button "2 Batman: Mask of the Phantasm 1993"'
+  - 'button "3 Batman & Mr. Freeze: SubZero 1998"'
+  - 'button "4 The Batman Superman Movie: World’s Finest 1997"'
+  - 'button "5 Batman: Mystery of the Batwoman 2003"'
+  - paragraph: Availability changes constantly and differs by country, so “Where to watch” runs a fresh search each time rather than trusting a stored answer. Announced dates can move.
+# tabs
+- navigation "Views":
+  - button "Home"
+  - button "Next up"
+  - button "The path"
+  - button "Progress"

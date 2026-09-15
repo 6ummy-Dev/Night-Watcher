@@ -166,6 +166,7 @@ function blessHtml(next){
      115  Four copies of the bat, and they agree
      112  The Restore box survives a render nobody asked for
      118  The 404 still reads over its own alley
+     161  The accessibility tree is a record, and it survives the calendar
 
    DEPLOY
      10   No vendored third-party code
@@ -183,6 +184,7 @@ function blessHtml(next){
      117  llms.txt says what the README says
      82   No CNAME file, ever
      83   The manifest id is an identity, not a path
+     160  The install dialog shows the app that ships
      46   The README states the real weight
      132  The offline promise is executed, not grepped
      144  The wrangler state stays out of the index
@@ -1515,10 +1517,21 @@ if(PUBLIC !== ROOT){
                         name and bytes are Brave's contract, not this repo's.
                         Written for a machine that never runs the app, same
                         reasoning as the IndexNow key. */
-                     ".well-known/brave-rewards-verification.txt"];
+                     ".well-known/brave-rewards-verification.txt",
+                     /* 6.1.0. The install dialog's screenshots. Read by the
+                        browser's own install UI before the app is installed,
+                        never by the app — no view renders them, and a reader
+                        who is offline has already installed. Same reasoning as
+                        share.png; section 160 fails the build if either ever
+                        sneaks INTO the shell. */
+                     "shot-narrow.png", "shot-wide.png"];
   /* vp.html, the iOS viewport probe, sat here from 4.0.7 to 4.9.0; the
      question it measured closed in 4.0.9 and the file left with the 4.8.0
-     report (NOTES.md, "vp.html"). */
+     report (NOTES.md, "vp.html"). Its successor, vp-rotate.html, was served
+     from 6.0.7 to 6.0.9 — listed here by 6.0.8, orphaned by 6.0.9's revert
+     (the listing reverted, the file did not, and this section went red on
+     the live SHA), and deleted in 6.1.0 with the sticky header it measured.
+     A probe comes back only with its own row here and in the README. */
   var served = [];
   (function walk(dir, pre){
     fs.readdirSync(dir).forEach(function(name){
@@ -8337,6 +8350,12 @@ var ROUTE_VOCAB = [
      "a day, same reasoning as /favicon.ico"],
     ["/share.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
      "a day — the card is regenerated under a stable name"],
+    /* 6.1.0: the install screenshots are regenerated under stable names like
+       the card, and read by the install dialog rather than the app. */
+    ["/shot-narrow.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day — the screenshot is regenerated under a stable name"],
+    ["/shot-wide.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
+     "a day — the screenshot is regenerated under a stable name"],
     ["/manifest.json", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
      "a day — the manifest changes with releases, under a stable name"]
   ];
@@ -11027,25 +11046,91 @@ var ROUTE_VOCAB = [
          "must name them: *,::before,::after");
   }
 
-  /* (Q4) The two --hdr declarations move together. The token LOOKS like one
-     value and is declared twice — default theme and darker. F2's ghosting fix
-     raised the default; the rule is the relationship, not the two literals:
-     if one alpha moves, the other moves with it. Same lesson as the ring and
-     the bat in 3.0.0 — pin the relationship, survive the next honest change. */
+  /* (Q4) The --hdr declarations move together. The token LOOKS like one
+     value and is declared more than once — default theme and darker, and
+     since 6.1.0 the installed app (Q6 below). F2's ghosting fix raised the
+     default; the rule is the relationship, not the literals: if one alpha
+     moves, the others move with it. Same lesson as the ring and the bat in
+     3.0.0 — pin the relationship, survive the next honest change. */
   var alphas = [];
   (HTML.match(/--hdr:rgba\([^)]*\)/g) || []).forEach(function(d){
     var a = d.match(/,\s*(\.?\d+(?:\.\d+)?)\)$/);
     if(a) alphas.push(a[1]);
   });
-  if(alphas.length !== 2){
+  if(alphas.length !== 3){
     fail("--hdr is declared " + alphas.length + " time(s); the two themes " +
-         "declare it twice, and a third declaration (or a lost one) is a " +
-         "theme this section has never seen");
-  } else if(alphas[0] !== alphas[1]){
-    fail("the two --hdr declarations have drifted apart (" + alphas.join(" vs ") +
+         "and the installed app declare it three times, and another " +
+         "declaration (or a lost one) is a theme this section has never seen");
+  } else if(alphas.some(function(x){ return x !== alphas[0]; })){
+    fail("the --hdr declarations have drifted apart (" + alphas.join(" vs ") +
          ") — the parked belt ghosts through the blur in whichever theme was " +
          "left behind, which is F2 fixed in one theme and shipped broken in " +
          "the other");
+  }
+
+  var hdrCss = (HTML.match(/\nheader\{[^}]*\}/) || [""])[0];
+  /* (Q5, 6.0.8; withdrawn by 6.0.9's revert; back in 6.1.0) THE HEADER IS
+     NOT STICKY, and never usefully was. Its scroll container is #app, which
+     is overflow:hidden and never scrolls — 3.9.7 moved scroll onto #app and
+     4.0.0 made the panels the scrollports, so main and .panel are the
+     header's SIBLINGS and the only things that scroll. A sticky element there
+     is a no-op for layout and has been since 4.0.0.
+     It is not a no-op for the engine. A sticky element gets a node in
+     WebKit's scrolling tree and is positioned by the compositor rather than
+     by layout, which makes it the one thing in this frame that can move
+     while every scroll offset in the document reads zero. That is exactly
+     the owner's 15 September report: flip the installed app to landscape and
+     back and the header is off the top by 62.7pt, permanently, with doc,
+     #app and panel scrollTop all 0. It reproduced under BOTH status-bar
+     tags, so the tag is not the cause, and 6.0.9 put the sticky back only
+     because "revert to 6.0.3" included it (NightWatcherQA6.0.9 P2-1).
+     Chromium has never reproduced the skip, so a green rotation in the
+     browser check is not a close; this pin is the rule, and the installed
+     rotation is the owner's check.
+     position:relative keeps z-index:30 applicable — a static element cannot
+     take one, and the tab bar at 40 and the dropped belt at 20 are stacked
+     against it — and costs nothing else: same paint, same box, no scrolling
+     tree node. The blur stays: it composites the belt as the drop slides it
+     out from under the header, which is a layout position, not a scrolling
+     one. The two sticky rules that remain (.ghead at --ghtop, .pathseg at
+     calc(--ghtop - --beltH)) are inside panels that really do scroll and are
+     pinned by this section's own F1/F3 clauses. */
+  if(/position:sticky/.test(hdrCss)){
+    fail("the header is position:sticky again — #app never scrolls, so it " +
+         "does nothing for layout, and the scrolling-tree node it creates is " +
+         "the mechanism behind the rotation bug: an element the compositor " +
+         "can move while every scroll offset reads zero. See Q5 before " +
+         "putting it back");
+  }
+  if(!/^\nheader\{position:relative;z-index:30;/.test(hdrCss)){
+    fail("the header is not position:relative with z-index:30 — the " +
+         "z-index needs a positioned element to apply, and the tab bar (40) " +
+         "and the dropped belt (20) are stacked against it (Q5)");
+  }
+
+  /* (Q6, 6.1.0) THE INSTALLED APP'S HEADER IS THE BAR'S BLACK. Since 6.0.9
+     the iOS status bar is `black` (section 153): opaque, with the webview
+     starting below it, so the first thing under the bar is the header. In a
+     tab the header is --hdr, navy in Dark Deco; installed, that navy met the
+     bar's black in a hard step at the top of every screen (NightWatcherQA6.0.9
+     P3-2). Everything else that paints an installed app's chrome is already
+     black — section 28 pins theme-color to #000000 when standalone, which is
+     Android's status bar and the desktop window's title bar — so the header
+     joins them: under display-mode: standalone --hdr is Darker's own token in
+     both themes. A browser tab is untouched (the query does not match), and
+     Darker already read this way. Going back to `default` to paint the bar
+     instead is not an option — that is 6.0.4's 62pt band and the tab pad
+     collapse. */
+  var appHdr = (HTML.match(/\n@media \(display-mode: standalone\)\{:root\{--hdr:(rgba\([^)]*\));\}\}\n/) || [])[1];
+  var darkerHdr = (HTML.match(/:root\[data-theme="darker"\]\{[^}]*--hdr:(rgba\([^)]*\))/) || [])[1];
+  if(!appHdr){
+    fail("the installed app's header does not take the bar's black — under " +
+         "display-mode: standalone --hdr must be redeclared on :root, or Dark " +
+         "Deco's navy header meets the black status bar in a step (Q6)");
+  } else if(appHdr !== darkerHdr || !/^rgba\(0,0,0,/.test(appHdr)){
+    fail("the installed app's --hdr is " + appHdr + ", not Darker's black (" +
+         darkerHdr + ") — the status bar, theme-color and the title bar are all " +
+         "black when installed, and the header is the one surface that meets them (Q6)");
   }
 
   /* (F5, widened in 4.0.4) While parked, the strip is not a control — and
@@ -11062,6 +11147,44 @@ var ROUTE_VOCAB = [
          "flicker back. The :not([data-drop]) half is F7: a DROPPED belt is " +
          "a working belt; :not([data-ride]) lets the retraction play before " +
          "the swap");
+  }
+  /* (Q7, 6.1.0) THE PEEK HANDS FOCUS ON. The peek hides the moment the belt
+     drops (parkFocus clears data-on for a dropped strip), so the focus it
+     held had nowhere to go but <body> — and the dropped belt, when Escape
+     closes it, took its own focused control with it the same way. Tab
+     recovered only because Chromium remembers where focus was lost; a
+     screen reader's cursor does not. The ARIA corpus's first run found both
+     (6.1.0). Both peek doors call dropFocus() after beltDropOpen(), which
+     lands on the pressed path inside the dropped strip; Escape schedules
+     beltFocus() after the close animation, which acts only when focus WAS
+     lost (a reader who has already moved on is not pulled back) and hands
+     it to the peek, or to the strip's pressed path when the strip shows.
+     Both go through focusBack, so neither can move the viewport (123). */
+  var pkClick = (HTML.match(/getElementById\("beltpeek"\)\.addEventListener\("click", function\(\)\{[^}]*\}/) || [""])[0];
+  var pkKey = (HTML.match(/getElementById\("beltpeek"\)\.addEventListener\("keydown", function\(e\)\{[\s\S]*?\n\}\);/) || [""])[0];
+  [["click", pkClick], ["keydown", pkKey]].forEach(function(d){
+    if(!/beltDropOpen\(\); dropFocus\(\);/.test(d[1])){
+      fail("the peek's " + d[0] + " door drops the belt without handing focus " +
+           "on — the peek hides as the belt drops, so its focus falls to the " +
+           "page; beltDropOpen() is followed by dropFocus() (Q7)");
+    }
+  });
+  var dfn = optionalFn("dropFocus", "the peek hands focus on through it (Q7)");
+  if(!/focusBack\(scroller\(\)\.querySelector\('\.pathseg\[data-drop\] button\[aria-pressed="true"\]'\)\)/.test(dfn)){
+    fail("dropFocus() does not land on the pressed path inside the dropped " +
+         "strip through focusBack — that is where a reader who opened the " +
+         "switcher wants to be, and focusBack is what keeps the viewport still (Q7)");
+  }
+  var bfn = optionalFn("beltFocus", "Escape hands a lost focus back through it (Q7)");
+  if(!/if\(a && a !== document\.body\) return;/.test(bfn) || !/focusBack\(/.test(bfn)){
+    fail("beltFocus() does not restore only a LOST focus through focusBack — " +
+         "without the body check it pulls a reader who has already moved on " +
+         "back to the belt (Q7)");
+  }
+  if(!/closeBelt\(S\.beltDrop \? "drop" : "buckle"\);\n  setTimeout\(beltFocus, BELTCLOSE \+ 20\);/.test(HTML)){
+    fail("Escape closes the belt without handing the lost focus back — the " +
+         "closing belt takes its focused control with it; the Escape handler " +
+         "schedules beltFocus() after BELTCLOSE (Q7)");
   }
   var ph = HTML.indexOf('getElementById("beltpeek").addEventListener("click"');
   var phBlock = ph < 0 ? "" : HTML.slice(ph, ph + 500);
@@ -15305,11 +15428,50 @@ var ROUTE_VOCAB = [
   if(!stateRule([".group.here"], {outline: "2px solid Highlight"})){
     fail("the here-group's corner marks are gradients, which forced colors strip — the group takes a Highlight outline");
   }
+  /* 6.0.4, from the 11 September forced-colors sweep; withdrawn with 6.0.4 by
+     6.0.9's revert and back in 6.1.0 (NightWatcherQA6.0.9 P2-2) — as its own
+     item, not folded into a status-bar cut that the next revert takes with
+     it. TWO READINGS, ONE BLOCK.
+
+     A FILL IS NOT A SHAPE. Forced colors replace an author background with
+     Canvas, so a control drawn as a fill with `border:0` is not a flattened
+     button — it is bare text on the page ground, with nothing to say where
+     it begins or ends. Five controls were built that way (Begin the path
+     and Mark watched; Share the night, Create backup code, Search
+     everything and Add optional, all `.bkbtn.primary`; Install; Restore on
+     an incoming shared link; and every toast), and each declares a border
+     inside this block so the shape survives the repaint. The chamfer
+     clip-path on three of them cuts the frame at two corners, which reads
+     as a clipped frame rather than a lost one. Controls whose fill sits
+     inside a bordered container (`.ghead`, the belt's `.buckle`) are
+     deliberately not in the list: the container keeps the shape.
+
+     A STATE RULE IN THIS BLOCK STILL LOSES A CASCADE IT DOES NOT WIN.
+     `.includes .scope button[aria-pressed="true"]` (0,3,1) outside the
+     block beats the block's own `.scope button[aria-pressed="true"]`
+     (0,2,1) on background and color, while the block's
+     forced-color-adjust:none goes on applying — so with the belt open the
+     three pressed switches painted brand gold with forcing switched off,
+     the exact thing 5.3.1's rule forbids. Reading the block as text cannot
+     see a loss that happens outside it; the answer is a state rule at the
+     winning specificity, and the browser check observes the computed
+     result under emulation. */
+  if(!stateRule([".heroacts .go", ".bkbtn.primary", ".bkbtn.installbtn", ".viewing button"], {border: "1px solid ButtonText"})){
+    fail("a filled control loses its shape under forced colors — Begin the path, a primary backup button, Install and Restore are drawn as a fill with border:0, so forced colors leave bare text; each takes a 1px ButtonText border in this block");
+  }
+  if(!stateRule([".toast"], {border: "1px solid CanvasText"})){
+    fail("the toast loses its shape under forced colors — its fill becomes Canvas and the message floats on the page ground; it takes a 1px CanvasText border in this block");
+  }
+  if(!stateRule([".includes .scope button[aria-pressed=\"true\"]"],
+                {"forced-color-adjust": "none", background: "Highlight", color: "HighlightText", "border-color": "Highlight"})){
+    fail("the open belt's pressed switches paint brand gold under forced colors — .includes .scope button[aria-pressed=\"true\"] outside this block outranks the block's own .scope rule, so the includes state needs its own rule here at the winning specificity");
+  }
   var PAINTED = [".st", ".film.skip .tick::after", ".drule i", ".drule::before", ".drule::after", ".stars button.on .st", ".hero .dsep",
                  ".homefoot::before", ".note.foot::before", ".legend::before",
                  ".chip[aria-pressed=\"true\"]", ".scope button[aria-pressed=\"true\"]", ".pathseg button[aria-pressed=\"true\"]",
                  ".themerow button[aria-pressed=\"true\"]", ".film.done .tick", ".segs i.on", ".sky .seg.lit .cr .p", ".sky .sh i",
-                 "#beltpeek::after", ".gbar i"];
+                 "#beltpeek::after", ".gbar i",
+                 ".includes .scope button[aria-pressed=\"true\"]"];
   rules159.forEach(function(r){
     if(!("forced-color-adjust" in r.decls)) return;
     var brand = r.sels.filter(function(x){ return PAINTED.indexOf(x) < 0; });
@@ -15318,6 +15480,234 @@ var ROUTE_VOCAB = [
     }
   });
   note("drawn marks: forced-colors repaint in system ink, states in Highlight/CanvasText/GrayText, the palette the reader's; the star run labelled and unwrapped, geometry hidden under it");
+})();
+
+/* ---------- 160. The install dialog shows the app that ships ------------ */
+/* 6.1.0. docs/manifest.json declares two screenshots, which is what turns
+   Chrome's minimal install prompt into the richer one — the MINOR-maker of
+   6.1.0, and the one feature on the reference list's "left out for now"
+   shelf. They are qa/make-screenshots.mjs's output, on share.png's pattern:
+   the app draws itself, the generator quantizes, and qa/screenshots.json
+   records what was drawn. What the browser needs is checked here against
+   the rules as they are specified, not as they are remembered: PNG,
+   320–3840px a side, the long side at most 2.3× the short, a form_factor of
+   "narrow" or "wide", and every shot of one form factor the same aspect.
+   What this project needs on top: `sizes` equal to the pixels (a wrong
+   hint is a dialog that crops), a label (the dialog reads it aloud), the
+   record's hash equal to the file, the record's counts equal to the
+   catalogue (the narrow shot prints them — regenerate on a catalogue cut,
+   RELEASING step 2), a byte ceiling a skipped quantize cannot pass, and
+   both files OUT of the offline shell — browser chrome read before an
+   install, which no view renders. iOS reads none of this; it is the
+   Android and desktop install legs. */
+
+(function(){
+  var man = null;
+  try{ man = JSON.parse(fs.readFileSync(path.join(PUBLIC, "manifest.json"), "utf8")); }catch(e){}
+  if(!man){ fail("docs/manifest.json does not parse — section 160 cannot read its screenshots"); return; }
+  var shots = man.screenshots;
+  if(!Array.isArray(shots) || !shots.length){
+    fail("docs/manifest.json declares no screenshots — the richer install dialog " +
+         "is 6.1.0's feature; regenerate with node qa/make-screenshots.mjs and " +
+         "list what it records");
+    return;
+  }
+  var recPath = path.join(ROOT, "qa", "screenshots.json"), rec = null;
+  try{ rec = JSON.parse(fs.readFileSync(recPath, "utf8")); }catch(e){}
+  if(!rec || !rec.shots){
+    fail("qa/screenshots.json is missing or unreadable — the screenshots are " +
+         "unpinned. Regenerate with: node qa/make-screenshots.mjs");
+    return;
+  }
+  var ASPECT = {}, seen = {}, dirty = false;
+  var sw160 = fs.readFileSync(path.join(PUBLIC, "sw.js"), "utf8");
+  var shell160 = (sw160.match(/var SHELL\s*=\s*\[[\s\S]*?\]/) || [""])[0];
+  shots.forEach(function(sh){
+    var src = sh.src;
+    if(typeof src !== "string" || !/^shot-[a-z]+\.png$/.test(src)){
+      fail("a manifest screenshot names " + JSON.stringify(src) + " — the shots are " +
+           "docs/shot-<form factor>.png, written by qa/make-screenshots.mjs");
+      return;
+    }
+    seen[src] = true;
+    if(sh.form_factor !== "narrow" && sh.form_factor !== "wide"){
+      fail(src + " has form_factor " + JSON.stringify(sh.form_factor) + " — the " +
+           "install dialog knows \"narrow\" (mobile) and \"wide\" (desktop), and a " +
+           "shot without one is shown to neither");
+    }
+    if(sh.type !== "image/png"){
+      fail(src + " is declared as " + JSON.stringify(sh.type) + ", not image/png");
+    }
+    if(typeof sh.label !== "string" || sh.label.length < 20){
+      fail(src + " has no label — the install dialog reads it to a screen reader, " +
+           "and a screenshot without one is an unnamed image");
+    }
+    var p = path.join(PUBLIC, src);
+    if(!fs.existsSync(p)){
+      fail("docs/" + src + " is missing — the manifest promises it. Regenerate " +
+           "with: node qa/make-screenshots.mjs");
+      return;
+    }
+    var buf = fs.readFileSync(p);
+    if(!(buf.length > 24 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47)){
+      fail("docs/" + src + " is not a PNG");
+      return;
+    }
+    var w = buf.readUInt32BE(16), h = buf.readUInt32BE(20);
+    if(sh.sizes !== w + "x" + h){
+      fail(src + " is declared " + sh.sizes + " and the file is " + w + "x" + h +
+           " — the dialog lays out from the hint");
+    }
+    if(Math.min(w, h) < 320 || Math.max(w, h) > 3840){
+      fail(src + " is " + w + "×" + h + " — a screenshot side must be 320–3840px, " +
+           "or Chrome drops it from the dialog");
+    }
+    if(Math.max(w, h) > 2.3 * Math.min(w, h)){
+      fail(src + " is " + w + "×" + h + " — the long side is more than 2.3× the " +
+           "short, which Chrome refuses");
+    }
+    if((sh.form_factor === "narrow") !== (h > w)){
+      fail(src + " is " + (h > w ? "portrait" : "landscape") + " and declared " +
+           sh.form_factor + " — narrow is a phone held upright, wide is a desktop");
+    }
+    (ASPECT[sh.form_factor] = ASPECT[sh.form_factor] || []).push((w / h).toFixed(4));
+    if(buf.length > 150000){
+      fail("docs/" + src + " is " + buf.length.toLocaleString("en-US") + " bytes, " +
+           "over the 150,000-byte ceiling — the generator quantizes; a shot this " +
+           "size is what a skipped quantize looks like");
+    }
+    var r = rec.shots[src];
+    var sha = require("crypto").createHash("sha256").update(buf).digest("hex");
+    if(!r){
+      fail("qa/screenshots.json has no record for " + src + " — regenerate with: " +
+           "node qa/make-screenshots.mjs");
+    } else {
+      if(r.form_factor !== sh.form_factor || r.sizes !== sh.sizes || r.label !== sh.label){
+        fail("the manifest's entry for " + src + " and qa/screenshots.json disagree " +
+             "(form_factor, sizes or label) — the record is what the generator " +
+             "drew; copy it into the manifest");
+      }
+      if(r.sha256 !== sha || r.bytes !== buf.length){
+        if(BLESS){
+          r.sha256 = sha; r.bytes = buf.length; dirty = true;
+        } else {
+          fail("docs/" + src + " does not match qa/screenshots.json — the file " +
+               "changed outside the generator. Regenerate with: node " +
+               "qa/make-screenshots.mjs (or npm run bless, for a deliberate " +
+               "re-encode)");
+        }
+      }
+    }
+    if(shell160.indexOf(src) >= 0){
+      fail(src + " is in sw.js's SHELL precache — it is install-dialog chrome, " +
+           "read before an install and rendered by no view");
+    }
+  });
+  ["narrow", "wide"].forEach(function(ff){
+    if(!ASPECT[ff]){
+      fail("no " + ff + " screenshot — one per form factor is what turns on the " +
+           "richer dialog for it");
+    } else if(ASPECT[ff].some(function(x){ return x !== ASPECT[ff][0]; })){
+      fail("the " + ff + " screenshots do not share one aspect ratio (" +
+           ASPECT[ff].join(", ") + ") — Chrome drops the set");
+    }
+  });
+  Object.keys(rec.shots).forEach(function(src){
+    if(!seen[src]){
+      fail("qa/screenshots.json records " + src + " and the manifest does not " +
+           "declare it — a stale record, or a shot that was dropped by hand");
+    }
+  });
+  ["films", "seasons", "continuities"].forEach(function(k){
+    if(rec[k] !== actual[k]){
+      fail("the screenshots were drawn from a catalogue of " + rec[k] + " " + k +
+           " and the data has " + actual[k] + " — the narrow shot prints the " +
+           "count. Regenerate with: node qa/make-screenshots.mjs");
+    }
+  });
+  if(dirty){
+    fs.writeFileSync(recPath, JSON.stringify(rec, null, 1) + "\n");
+    note("blessed qa/screenshots.json — the screenshots' hashes re-recorded");
+  }
+  note("install screenshots: " + shots.map(function(sh){ return sh.form_factor + " " + sh.sizes; }).join(", ") +
+       ", recorded, out of the shell");
+})();
+
+/* ---------- 161. The accessibility tree is a record, and it survives the calendar -- */
+/* 6.1.0. qa/aria/ holds Playwright's ARIA snapshot of eight states — the
+   corpus the reference notes carried as "left out for now" since 2 Sept,
+   taken so the list is empty. It is written and compared by
+   qa/browser-check.mjs, because only a real browser can compute a tree;
+   this section is the cheap half that runs in FAST: every state the check
+   names has a record, no record is an orphan, each record carries the
+   three parts a screen reader hears (the header, the live panel, the tab
+   bar), and the three things that move without a real change are
+   normalised out of every file — the Batman Day line (dated copy, gone on
+   23 Oct), the BUILD string and the BUILT date (every release). A record
+   that still carried any of them would go red for the calendar instead of
+   for a regression. Blessed with `npm run browser -- --bless`. */
+
+(function(){
+  var bcPath = path.join(ROOT, "qa", "browser-check.mjs");
+  var bc = fs.existsSync(bcPath) ? fs.readFileSync(bcPath, "utf8") : "";
+  var listM = bc.match(/const ARIA_STATES = \[([^\]]*)\]/);
+  if(!listM){
+    fail("qa/browser-check.mjs no longer names its ARIA states — the corpus in " +
+         "qa/aria/ has nothing to be held against");
+    return;
+  }
+  var states = (listM[1].match(/"([a-z0-9-]+)"/g) || []).map(function(q){ return q.slice(1, -1); });
+  if(states.length < 8){
+    fail("the ARIA corpus names " + states.length + " state(s); it records eight — " +
+         "Home before and after a path, Next up, The Path, the belt dropped, a row " +
+         "open, Progress and a toast — and a state dropped from the list is a " +
+         "state nothing pins");
+  }
+  if(!/ariaSnapshot\(\)/.test(bc) || !/stale\.push\(name/.test(bc) || !/ARIA_BLESS/.test(bc)){
+    fail("qa/browser-check.mjs no longer compares the ARIA corpus — the records " +
+         "in qa/aria/ are written by the check and diffed by it; without the " +
+         "diff they certify nothing");
+  }
+  var dir = path.join(ROOT, "qa", "aria");
+  var onDisk = fs.existsSync(dir) ? fs.readdirSync(dir) : [];
+  var BUILD161 = (HTML.match(/var BUILD = "([^"]+)"/) || [])[1];
+  var BUILT161 = (HTML.match(/var BUILT = "([^"]+)"/) || [])[1];
+  states.forEach(function(st){
+    var f = path.join(dir, st + ".yml");
+    if(!fs.existsSync(f)){
+      fail("qa/aria/" + st + ".yml is missing — bless the corpus with: " +
+           "npm run browser -- --bless");
+      return;
+    }
+    var t = fs.readFileSync(f, "utf8");
+    if(!/^# header\n- banner/.test(t) || !/\n# panel\n- region "/.test(t) ||
+       !/\n# tabs\n- navigation "Views"/.test(t)){
+      fail("qa/aria/" + st + ".yml does not hold the three parts a reader hears " +
+           "— the header's banner, the live panel's region and the Views " +
+           "navigation — so it is not the record the check writes");
+    }
+    if(/Batman Day/.test(t)){
+      fail("qa/aria/" + st + ".yml carries the Batman Day line — it is dated " +
+           "copy the 23 Oct cut deletes, and a record holding it goes red that " +
+           "day for no reason; the check normalises it");
+    }
+    if((BUILD161 && t.indexOf("Build " + BUILD161) >= 0) || (BUILT161 && t.indexOf(BUILT161) >= 0)){
+      fail("qa/aria/" + st + ".yml carries this build's version or date — every " +
+           "release moves them, so the record would be stale on every cut; the " +
+           "check normalises both");
+    }
+  });
+  onDisk.forEach(function(f){
+    if(states.indexOf(f.replace(/\.yml$/, "")) < 0){
+      fail("qa/aria/" + f + " is not a state the browser check records — an " +
+           "orphan record pins nothing");
+    }
+  });
+  if(!/const toastLive|toastLive = /.test(bc) || !/focus lands on something with a name/.test(bc)){
+    fail("the browser check lost the corpus's two assertions — focus lands on " +
+         "something named, and the toast is a polite live region with words in it");
+  }
+  note("aria corpus: " + states.length + " states recorded in qa/aria/, the day line, BUILD and BUILT normalised out");
 })();
 
 /* ---------- report ---------- */

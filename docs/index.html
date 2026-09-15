@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-J9NKAoBtSRgEcoa5zFEwnsIdMx0Y6CAVe+HT2dV+5Qk='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-eVeIqwFhDfHJZA5RzGNO0qVGICbktO1ONNPNWcemMdo='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -82,6 +82,7 @@
   --hdr:rgba(0,0,0,.96);
   --tabbg:rgba(4,4,6,.95);
 }
+@media (display-mode: standalone){:root{--hdr:rgba(0,0,0,.96);}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;height:100%;overflow:hidden;}
 body{background:#000;color:var(--bone);font-family:var(--body);font-size:var(--t-body);line-height:1.5;-webkit-font-smoothing:antialiased;overscroll-behavior:none;}
@@ -91,7 +92,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 #app{background:var(--ink);display:flex;flex-direction:column;height:100%;height:100svh;height:100dvh;overflow:hidden;overscroll-behavior:none;}
 @media (display-mode: standalone){#app{height:100%;}}
 #view,.panel{overflow-anchor:none;}
-header{position:sticky;top:0;z-index:30;background:var(--hdr);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
+header{position:relative;z-index:30;background:var(--hdr);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
 .hrow{display:flex;align-items:center;gap:14px;max-width:760px;margin:0 auto;}
 #nosave{max-width:760px;margin:11px auto 0;padding:8px 12px;border:1px solid var(--signal);border-radius:0;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.06em;line-height:1.55;color:var(--signal);text-align:center;}
 #nosave[hidden]{display:none;}
@@ -509,6 +510,9 @@ main,.panel{scrollbar-gutter:stable both-edges;}
 .gbar i{forced-color-adjust:none;background:CanvasText;}
 .gbar .sk{background:GrayText;}
 .group.here{outline:2px solid Highlight;outline-offset:2px;}
+.heroacts .go,.bkbtn.primary,.bkbtn.installbtn,.viewing button{border:1px solid ButtonText;}
+.toast{border:1px solid CanvasText;}
+.includes .scope button[aria-pressed="true"]{forced-color-adjust:none;background:Highlight;color:HighlightText;border-color:Highlight;}
 }
 
 </style>
@@ -1029,7 +1033,7 @@ main,.panel{scrollbar-gutter:stable both-edges;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 159 sections, each one negative-tested, which section 138
+   qa/guards.js — 161 sections, each one negative-tested, which section 138
    checks rather than assumes.
 
    Read those before changing something that looks redundant. Most of it is
@@ -1499,7 +1503,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "6.0.9";
+var BUILD = "6.1.0";
 var BUILT = "2026-09-15";
 var KEY = "batwatch-v3";
 var SKEY = "batwatch-settings";
@@ -3431,6 +3435,16 @@ function parkFocus(){
   if(parked) peek.setAttribute("data-on", "");
   else peek.removeAttribute("data-on");
 }
+function dropFocus(){
+  focusBack(scroller().querySelector('.pathseg[data-drop] button[aria-pressed="true"]'));
+}
+function beltFocus(){
+  var a = document.activeElement;
+  if(a && a !== document.body) return;
+  var peek = document.getElementById("beltpeek");
+  focusBack(peek.hasAttribute("data-on") ? peek
+    : scroller().querySelector('.pathseg button[aria-pressed="true"]'));
+}
 function scroller(){ return document.getElementById("panel-" + S.tab) || document.getElementById("view"); }
 function scrollKeep(a){ a = a || scroller(); return a ? (a.scrollTop || 0) : 0; }
 function scrollPut(y, a){
@@ -3555,17 +3569,18 @@ document.getElementById("markBtn").addEventListener("click", function(){
 });
 
 document.getElementById("beltpeek").addEventListener("click", function(){
-  beltDropOpen();
+  beltDropOpen(); dropFocus();
 });
 document.getElementById("beltpeek").addEventListener("keydown", function(e){
   if(e.key !== "Enter" && e.key !== " ") return;
   e.preventDefault();
-  beltDropOpen();
+  beltDropOpen(); dropFocus();
 });
 document.addEventListener("keydown", function(e){
   if(e.key !== "Escape" || !(S.beltOpen || S.beltDrop)) return;
   if(scroller().querySelector(".includes.closing")) return;
   closeBelt(S.beltDrop ? "drop" : "buckle");
+  setTimeout(beltFocus, BELTCLOSE + 20);
 });
 
 document.getElementById("view").addEventListener("click", function(e){

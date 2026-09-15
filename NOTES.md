@@ -15,7 +15,7 @@ Four other places carry part of the story and are not repeated here:
   required reading before a change; everything here is written in the
   present tense.
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 159 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 161 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -35,12 +35,22 @@ backup code and the JSON export are `DATA-MODEL.md`.
 
 ## Open
 
-Nothing. The two items this section carried from 5.3.1 to 5.4.0 — the
-settings key split and the Batwoman season split, both parked as "MAJOR
-only" — shipped together in 6.0.0, the MAJOR that hosted them (`KEY`,
-`SKEY` and `mergeTab()` below say how; `qa/split-ids.json` says why the
-bundle left). The section stays, empty, so the next parked item has a
-place to be written down before someone touches the layer.
+**The installed rotation (15 September 2026).** Flip the Home Screen app to
+landscape and back and the header sat 62.7pt off the top, permanently, with
+every `scrollTop` in the document at 0. Reported on 6.0.4, it survived four
+cuts built on readings that were each falsified, and reproduced under both
+status-bar tags. 6.1.0 ships the one reading with a mechanism — the header is
+no longer sticky, so WebKit has no scrolling-tree node to move (`header`,
+below) — and **no session can close it**: Chromium has never reproduced the
+skip and WebKit's compositor is not in any sandbox this project runs. It
+closes the day a rotation on an installed iPhone survives 6.1.0. If it does
+not, the next step is a measurement on the device, not a fifth theory, and a
+probe comes back only with its own rows in the README and in guard 13
+(6.0.9 served one without them and the live SHA went red).
+
+The two items this section carried from 5.3.1 to 5.4.0 — the settings key
+split and the Batwoman season split — shipped in 6.0.0. `docs/vp-rotate.html`,
+6.0.7's probe of the sticky header, left with the sticky in 6.1.0.
 
 ---
 
@@ -167,6 +177,25 @@ that will not change, and the harness does not grow without one.
 Section 101 caps the page at 9,000 bytes, raised from 4,096 in 6.0.1 by the
 owner. What the cap protects did not move: one file, no fetches, no `url()`,
 no font, no script. The page is 8,433 bytes raw and 2,976 on the wire.
+
+### `docs/shot-narrow.png` / `docs/shot-wide.png` — the install dialog (6.1.0)
+
+`manifest.json`'s `screenshots` are what turn Chrome's minimal install prompt
+into the richer dialog, per form factor, on Android and the desktop; Safari
+reads none of it. They are generated, never drawn: `qa/make-screenshots.mjs`
+serves `docs/` on a free port, seeds `batwatch-settings` before the first
+paint, clicks nothing, waits on the DOM (splash gone, toast not shown, faces
+loaded — never a duration, which is the 5.1.0 watchdog fault rebuilt), reduces
+motion, blocks the service worker, shoots, and quantizes exactly as the card
+is. Three runs were byte-identical. The narrow one is Home on a first visit
+with Animated + Live and Movies + Series chosen, so it prints the whole
+shelf's counts — the same three `share.png` bakes in, which is why
+`qa/screenshots.json` records the catalogue and guard 160 goes red when the
+catalogue moves (RELEASING step 2). The wide one is The Path in Bruce's life
+order. Neither view carries the Batman Day line. Both stay out of the offline
+shell, like the card: the dialog reads them before an install, and no view
+renders them. The screenshots go stale with the UI in a way no guard sees —
+regenerate when Home or The Path changes shape.
 
 ## Script
 
@@ -296,6 +325,23 @@ from the park observer (whose park/unpark never re-renders). Enter and Space
 on the peek call `beltDropOpen()` exactly as a tap does, and Escape closes a
 held or dropped belt (4.9.0).
 
+**Focus is handed on, both ways (6.1.0).** The peek hides the moment the belt
+drops, so the focus it held had nowhere to go but `<body>`; and a dropped
+belt closed with Escape over a parked strip takes its focused control into
+`visibility:hidden` with it. Tab recovered in both cases only because
+Chromium keeps a sequential-focus starting point where focus was lost — a
+screen reader's cursor keeps nothing. Both peek doors now follow
+`beltDropOpen()` with `dropFocus()`, which lands on the pressed path inside
+the dropped strip (where a reader who opened the switcher wants to be), and
+Escape schedules `beltFocus()` for after `BELTCLOSE`, which acts only when
+focus WAS lost — a reader who tabbed on to the list is left there — and hands
+it to the peek, or to the strip's pressed path when the strip is showing.
+Both go through `focusBack()`, so neither moves the viewport (guard 123), and
+programmatic focus after a pointer shows no ring. The ARIA corpus found this
+on its first run; guard 128's Q7 and two browser assertions hold it, the
+Escape one driven on a cold page where the loss is deterministic (in the
+long-lived page the strip comes back parked or not on an observer's timing).
+
 ### `readFailed`
 
 Two latches, because a failed READ and a failed WRITE are opposite facts and
@@ -327,6 +373,18 @@ which short-changes the webview by one status-bar height at the bottom. The
 4.0.8 heal and the 4.0.9 `--vpdead` pad reclaim answered 301108 and left with
 the tag: under an opaque bar the screen-minus-viewport gap is the bar itself.
 6.0.4–6.0.8 are the record of trying this without retiring them.
+
+**Installed, the header is black too (6.1.0).** Under an opaque bar the first
+thing below it is the header, and Dark Deco's `--hdr` is navy — a hard step
+at the top of every installed screen. Every other surface that paints an
+installed app's chrome is already black: `applyTheme()` answers this meta with
+`#000000` when standalone (4.0.5), which is Android's bar and the desktop
+window's title bar, and `black` is the iOS one. So
+`@media (display-mode: standalone)` redeclares `--hdr` as Darker's own token,
+in both themes. A browser tab never matches the query and keeps the navy;
+Darker already looked this way. Guard 128's Q6 holds the value to Darker's,
+and Q4 counts the third declaration with the same alpha. Painting the bar
+instead would mean `default`, which is 6.0.4's 62pt band.
 
 ### `dedupeLog()`
 
@@ -1628,6 +1686,23 @@ yellow on the page. A 1px hairline was built first and rolled back the
 same day: it could not be noticed on the phone. See "The belt is yellow"
 and "The cover" below.
 
+### `header` — positioned, not sticky (6.0.8, again in 6.1.0)
+
+The header's scroll container is `#app`, which is `overflow:hidden` and never
+scrolls: 3.9.7 moved scroll onto `#app` and 4.0.0 made the panels the
+scrollports, so `main` and `.panel` are the header's siblings and the only
+things that scroll. `position:sticky` has therefore been a layout no-op since
+4.0.0. It is not a no-op for WebKit, which gives a sticky element a node in
+its scrolling tree and positions it on the compositor — the one object in the
+frame that can move while every scroll offset reads 0, which is the installed
+rotation in "Open". `position:relative` keeps `z-index:30` meaningful (the tab
+bar at 40 and the dropped belt at 20 are stacked against it) and changes no
+box and no paint. The blur stays: the drop slides the belt out from under the
+header, and that is layout, not scrolling. 6.0.9's revert to 6.0.3 put the
+sticky back without meaning to; guard 128's Q5 is what makes that a red build
+next time. The two sticky rules that remain — `.ghead` and `.pathseg` — live
+inside panels that really do scroll.
+
 ### `@media (forced-colors: active)` — ornaments and state, never the palette
 
 5.2.0 drew the stars, the skip bar and the diamonds as `currentColor`
@@ -1647,7 +1722,40 @@ reader's.** No `forced-color-adjust: none` on brand chrome — the wordmark,
 the path title, the belt, the group heads, prose all take the system
 colours the reader chose, and guard 159 refuses a rule that overrides them.
 The browser check reads the repaint under emulation; a real Windows High
-Contrast theme is still the honest check and still owed to the owner's eye.
+Contrast theme is still the honest check, and it was run on Desert and Night
+sky on 3 September 2026 — every allowlisted state repainted, the NW Deco
+wordmark took the reader's palette, and no defect came back.
+
+Two more, found by a forced-colors sweep of every state on 11 September,
+closed in 6.0.4, withdrawn with it by 6.0.9's revert, and back in 6.1.0 as
+their own item — not riding a status-bar cut the next revert takes with it.
+
+**A fill is not a shape.** Forced colors replace an author background with
+`Canvas`. A control drawn as a fill with `border:0` therefore does not
+flatten — it disappears as a control and leaves bare text sitting on the page
+ground, with nothing to say where it begins or ends. Five were built that way:
+`.heroacts .go` (Begin the path, Mark watched), `.bkbtn.primary` (Share the
+night, Create backup code, Search everything, Add optional),
+`.bkbtn.installbtn`, `.viewing button` (Restore, on an incoming shared link)
+and `.toast`. Each declares a border inside the block — `ButtonText` for the
+buttons, `CanvasText` for the toast. The chamfer `clip-path` on three of them
+cuts the frame at two corners, which reads as a clipped frame rather than as a
+missing one. Deliberately not in the list: `.ghead` and the belt's `.buckle`
+lose a fill too, but each sits inside a container whose border forced colors
+keep, so the shape survives without help.
+
+**A state rule inside the block still loses a cascade it does not win.** With
+the belt open, `.includes .scope button[aria-pressed="true"]` (specificity
+0,3,1) selects the pressed switches and outranks the block's own `.scope
+button[aria-pressed="true"]` (0,2,1) on `background` and `color` — while the
+block's `forced-color-adjust: none` goes on applying. The result was the one
+thing the rule above forbids: Animated + Live, Movies and + Optional painting
+`--signaldim` `#B8941A` on `--ink`, brand gold with forcing switched off. The
+guard reads the block as text and so cannot see a loss that happens outside
+it. The fix is a state rule at the winning specificity, and the lesson is that
+a text pin proves a rule is written, never that it wins — which is why the
+browser check observes the computed colour of a pressed switch in the open
+belt against a `Highlight` probe.
 
 ### `#splash`
 
@@ -2147,6 +2255,21 @@ would push it onto a third line of its own.
 
 
 ## Known blind spots
+
+### The ARIA corpus is Chromium's tree, not VoiceOver (6.1.0)
+
+`qa/aria/` records, in eight states, what Playwright computes a screen reader
+can reach: the header, the live panel, the tab bar, and the toast where there
+is one — not the inert panels behind the wall. It pins regressions: a renamed
+control, a lost label, a panel leaking through `inert`. It does not prove what
+VoiceOver says; the 3 September device pass is what it was blessed against,
+and that pass is the check when the tree changes on purpose. It is diffed on
+Chromium only; the WebKit job runs its two assertions and prints that it did
+not diff. Three things are normalised out because they move without a
+regression — the Batman Day line, `BUILD`, `BUILT` — and the install offer is
+held back because it arrives on Chromium's timing. Anything else a reader
+hears in those states moving is a record moving: `npm run browser -- --bless`,
+then read the diff.
 
 ### The dead-rule sweep sees selectors, not declarations
 

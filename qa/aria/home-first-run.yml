@@ -1,0 +1,41 @@
+# header
+- banner:
+  - button "Home"
+  - heading "Night Watcher" [level=1]:
+    - button "Night Watcher"
+  - paragraph: 0 of 132 logged · 11 eras
+  - button "0% — open progress": 0%
+# panel
+- region "Home":
+  - paragraph: An unofficial fan guide
+  - heading "One path through every Batman" [level=2]
+  - paragraph: Every Batman story ever filmed, sorted into watch orders, no spoilers — by universe, by the arc of one life, or by release. Films only, or every series too. Tap anything for what it is and where to watch it. Tick them off as you go; your progress stays in this browser.
+  - text: 137 films 71 seasons of TV 1943–2028
+  - paragraph: What are you watching
+  - group "Format":
+    - button "Animated"
+    - button "Live action"
+    - button "Animated + live" [pressed]
+  - group "Scope":
+    - button "Movies" [pressed]
+    - button "Movies + Series"
+  - group "Tier":
+    - button "Essentials"
+    - button "Core route"
+    - button "+ Optional" [pressed]
+  - paragraph: Choose your path
+  - paragraph: Three honest answers instead of one fake one. You can change it whenever you like.
+  - button "Start here Bruce’s life One life, in order — from before there is a Batman to after there is not. Every continuity, blended.":
+    - emphasis: Start here
+    - text: Bruce’s life One life, in order — from before there is a Batman to after there is not. Every continuity, blended.
+  - button "By universe Every universe kept whole, each in its own story order, and the universes themselves in the order their stories start. Nothing spoils anything ahead of it."
+  - button "Release order Straight release order, 1943 to 2028. The only ordering that is objectively complete — it just jumps between universes constantly."
+  - group "Theme":
+    - button "Dark deco" [pressed]
+    - button "Darker"
+# tabs
+- navigation "Views":
+  - button "Home"
+  - button "Next up"
+  - button "The path"
+  - button "Progress"

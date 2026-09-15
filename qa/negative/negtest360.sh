@@ -151,7 +151,7 @@ run_case "the peek goes mouse-only" \
   "${P}a='''document.getElementById(\"beltpeek\").addEventListener(\"keydown\", function(e){
   if(e.key !== \"Enter\" && e.key !== \" \") return;
   e.preventDefault();
-  beltDropOpen();
+  beltDropOpen(); dropFocus();
 });
 '''
 assert a in s
