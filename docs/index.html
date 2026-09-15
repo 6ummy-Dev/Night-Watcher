@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-l3G/pspgckP/kMuKa88jHkmaIxhy/3oYza2HD+TOh3I='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-sRUc1SydR0YpQYEsqBma6LJ8uiGDwpqOBsYLXlRW+m8='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -12,7 +12,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/ibm-plex-sans-latin-600-normal.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/ibm-plex-mono-latin-400-normal.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/ibm-plex-mono-latin-600-normal.woff2">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Night Watcher">
 <link rel="manifest" href="manifest.json">
 <title>Batman watch order — every movie and series, no spoilers · Night Watcher</title>
@@ -66,7 +66,7 @@
   --t-display:clamp(24px,6.5vw,36px); --t-title:24px; --t-heading:clamp(17px,5.5vw,20px);
   --t-num:38px;
   --t-body:16px; --t-desc:14px; --t-note:12px; --t-label:10px; --t-fine:9px;
-  --hdr:rgba(10,12,17,.96);
+  --hdr:#0A0C11;
   --tabbg:rgba(14,17,25,.94);
   --tab-h:58px;
   --dia:7px; --dia-s:4.5px;
@@ -79,7 +79,7 @@
   --ink:#000000; --sunk:#050506; --card:#0E0E11; --card2:#17181C;
   --line:#232429; --line2:#33353C; --staroff:#6B6F7A;
   --bone:#C9CCD3; --suit:#A6ADBA; --dust:#A0A4AD; --dim:#969AA3;
-  --hdr:rgba(0,0,0,.96);
+  --hdr:#000000;
   --tabbg:rgba(4,4,6,.95);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -91,7 +91,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 #app{background:var(--ink);display:flex;flex-direction:column;height:100%;height:100svh;height:100dvh;overflow:hidden;overscroll-behavior:none;}
 @media (display-mode: standalone){#app{height:100%;}}
 #view,.panel{overflow-anchor:none;}
-header{position:sticky;top:0;z-index:30;background:var(--hdr);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
+header{position:sticky;top:0;z-index:30;background:var(--hdr);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
 .hrow{display:flex;align-items:center;gap:14px;max-width:760px;margin:0 auto;}
 #nosave{max-width:760px;margin:11px auto 0;padding:8px 12px;border:1px solid var(--signal);border-radius:0;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.06em;line-height:1.55;color:var(--signal);text-align:center;}
 #nosave[hidden]{display:none;}
@@ -1502,7 +1502,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "6.0.4";
+var BUILD = "6.0.5";
 var BUILT = "2026-09-15";
 var KEY = "batwatch-v3";
 var SKEY = "batwatch-settings";

@@ -2405,10 +2405,19 @@ if(/payload = JSON\.stringify\(\{[^}]*mode:S\.mode/.test(HTML)){
    6.0.4: that has not been true on iOS since 26 — Safari ignores theme-color
    there and tints its own chrome by sampling the background and backdrop-filter
    of fixed and sticky elements at the viewport edges, which is what put a glass
-   band over the installed app on iOS 27 and is why the status-bar-style tag is
-   now `default`. The comment stays because THEMEBAR still has to be kept in
-   step for every other browser that does honour theme-color, Android's
-   installed shell among them; iOS simply is not one of them any more. */
+   band over the installed app on iOS 27. 6.0.4 answered it with
+   `apple-mobile-web-app-status-bar-style: default`, and that worked: the OS
+   drew an opaque bar and the glass was gone. It also took 62pt of screen back
+   from the app to draw it in, moved the stale-grant remainder from the bottom
+   of the frame to the top (where --vpdead's reclaim pays a debt the bottom no
+   longer owes, and where a rotation could leave the sticky header scrolled
+   off), and cost the edge-to-edge look the app is drawn for. 6.0.5 takes the
+   other option instead: give the inset something solid to SAMPLE — an opaque
+   --hdr with no backdrop-filter on the sticky header (section 128, Q4) — and
+   put the tag back to `black-translucent`. The comment stays because THEMEBAR
+   still has to be kept in step for every other browser that does honour
+   theme-color, Android's installed shell among them; iOS simply is not one of
+   them any more. */
 
 var barM = HTML.match(/var THEMEBAR = \{([^}]*)\}/);
 if(!barM){
@@ -11093,25 +11102,42 @@ var ROUTE_VOCAB = [
          "must name them: *,::before,::after");
   }
 
-  /* (Q4) The two --hdr declarations move together. The token LOOKS like one
-     value and is declared twice — default theme and darker. F2's ghosting fix
-     raised the default; the rule is the relationship, not the two literals:
-     if one alpha moves, the other moves with it. Same lesson as the ring and
-     the bat in 3.0.0 — pin the relationship, survive the next honest change. */
-  var alphas = [];
-  (HTML.match(/--hdr:rgba\([^)]*\)/g) || []).forEach(function(d){
-    var a = d.match(/,\s*(\.?\d+(?:\.\d+)?)\)$/);
-    if(a) alphas.push(a[1]);
-  });
-  if(alphas.length !== 2){
-    fail("--hdr is declared " + alphas.length + " time(s); the two themes " +
+  /* (Q4, rewritten in 6.0.5) The two --hdr declarations still move together,
+     and both are now OPAQUE, and the header carries no backdrop-filter.
+     From 3.x to 6.0.4 the token was rgba(...,.96) and this section pinned the
+     two alphas to each other — F2's ghosting rule, one theme fixed and the
+     other shipped broken being the failure it was written for. 6.0.5 retires
+     the alpha instead of pinning it. iOS has ignored theme-color since 26 and
+     tints its own chrome by sampling the background AND backdrop-filter of
+     fixed and sticky elements at the viewport edges; a 96%-opaque sticky bar
+     at top:0 carrying a 14px blur is the exact pair it reads as "this page
+     wants glass here", and that is the band the owner saw on iOS 27. Four per
+     cent of a backdrop showing through a blur was never a visual anyone could
+     name, so the cost of making it solid is nothing and the gain is that the
+     OS has a colour to sample. Both halves are load-bearing: a translucent
+     --hdr or a filter back on the header re-opens the band, and 6.0.4's
+     `default` status bar — which answered the same band by giving 62pt of the
+     screen to the OS — is the fallback this replaced, not a second belt. */
+  var hdrDecls = HTML.match(/--hdr:[^;]+;/g) || [];
+  if(hdrDecls.length !== 2){
+    fail("--hdr is declared " + hdrDecls.length + " time(s); the two themes " +
          "declare it twice, and a third declaration (or a lost one) is a " +
          "theme this section has never seen");
-  } else if(alphas[0] !== alphas[1]){
-    fail("the two --hdr declarations have drifted apart (" + alphas.join(" vs ") +
-         ") — the parked belt ghosts through the blur in whichever theme was " +
-         "left behind, which is F2 fixed in one theme and shipped broken in " +
-         "the other");
+  }
+  hdrDecls.forEach(function(d){
+    if(!/^--hdr:#[0-9A-Fa-f]{6};$/.test(d)){
+      fail("--hdr is not a solid hex colour (" + d + ") — a translucent " +
+           "header is what iOS 26+ samples as a request for glass in the " +
+           "status-bar inset, and re-opens the iOS 27 band 6.0.5 closed");
+    }
+  });
+  var hdrCss = (HTML.match(/\nheader\{[^}]*\}/) || [""])[0];
+  if(/backdrop-filter/.test(hdrCss)){
+    fail("the sticky header carries a backdrop-filter again — with a solid " +
+         "--hdr behind it the blur shows nothing, and it is the other half " +
+         "of the pair iOS 26+ reads as a request for glass in the top inset " +
+         "(6.0.5). If a real need for it returns, it goes on an absolute " +
+         "child, not on the element at top:0");
   }
 
   /* (F5, widened in 4.0.4) While parked, the strip is not a control — and
@@ -11613,7 +11639,7 @@ var ROUTE_VOCAB = [
      against the repaint bill it reintroduces. */
   if(/@keyframes beltglow/.test(HTML)){
     fail("the belt glow is animated again — a box-shadow keyframe over the " +
-         "header's backdrop-filter repaints the blur every frame, which is " +
+         "header's backdrop-filter repaints the blur every frame, which was " +
          "the owner-reported on-device glitch 4.0.8 removed. The glow is " +
          "static; a pulse must be argued against that repaint bill");
   }
@@ -12818,7 +12844,7 @@ var ROUTE_VOCAB = [
      its second argument is python, not an expected failure. The arguments
      are read the way bash reads them — by qa/negative/census.js since 5.3.1,
      the same reader 65, 113 and run-all.sh use. */
-  var NO_SECT_PINNED = 750;  /* 5.3.1: six retrofitted a sect when the credit rule tightened (negtest161 ×2, 162, 180, 210 ×2); four exact duplicates struck (negtest162, 186, 250, 270). 6.0.3: one more retrofitted — negtest176’s missing-height fixture, whose mutation trips §157 as well */
+  var NO_SECT_PINNED = 749;  /* 5.3.1: six retrofitted a sect when the credit rule tightened (negtest161 ×2, 162, 180, 210 ×2); four exact duplicates struck (negtest162, 186, 250, 270). 6.0.3: one more retrofitted — negtest176’s missing-height fixture, whose mutation trips §157 as well. 6.0.5: one struck — negtest360’s “one --hdr moves without the other”, whose guard (§128 Q4) stopped pinning the two alphas to each other when --hdr went solid; the three fixtures that replaced it name §128 */
   if(fixtureCensus().broken) return;
   fixtureCensus().suites.forEach(function(su){
     su.cases.forEach(function(c){
@@ -14532,7 +14558,7 @@ var ROUTE_VOCAB = [
     ["the Content-Security-Policy meta", /<meta http-equiv="Content-Security-Policy" content="/],
     ["apple-mobile-web-app-capable",     /<meta name="apple-mobile-web-app-capable" content="yes">/],
     ["mobile-web-app-capable",           /<meta name="mobile-web-app-capable" content="yes">/],
-    ["apple-mobile-web-app-status-bar-style", /<meta name="apple-mobile-web-app-status-bar-style" content="default">/],
+    ["apple-mobile-web-app-status-bar-style", /<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">/],
     ["apple-mobile-web-app-title",       /<meta name="apple-mobile-web-app-title" content="Night Watcher">/],
     ["the manifest link",                /<link rel="manifest" href="manifest.json">/],
     ["<title>",                          /<title>[^<]+<\/title>/],

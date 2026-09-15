@@ -14,6 +14,62 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.0.5] — 2026-09-15
+
+**The other option, taken.** 6.0.4 closed the iOS 27 glass band by handing the
+status bar to the OS, and the owner's installed app showed within the day what
+that cost: a 62pt black band across the top where the app used to run
+edge-to-edge, a tab bar with the home indicator sitting on its labels, and a
+header that rode off the top of the screen on the first rotation and did not
+come back. All three are the same change. This is option B, which the 14
+September reading ranked second on blast radius alone and which the screenshots
+have now re-ranked: an opaque header the OS can sample, and the tag put back.
+Fixes and one QA section rewritten — a PATCH by README's rule. No entry moves,
+no surface is added, and nothing saved changes shape or meaning.
+
+### Fixed
+
+- **The 62pt band above the header (installed app).** Under
+  `apple-mobile-web-app-status-bar-style: default` iOS grants the app a
+  viewport that begins below an opaque status bar — on the owner's phone 812pt
+  of 874 — so `env(safe-area-inset-top)` reports 0, the header is exactly its
+  own 70pt, and the 62pt above it belongs to the OS and no rule in this file
+  can paint a pixel of it. It reads black because iOS falls back to the root
+  background for that inset and `body{background:#000}` (4.0.9). The tag goes
+  `default` → `black-translucent` and the content is edge-to-edge again.
+- **The glass band it was closing stays closed — by option B this time.**
+  `--hdr` goes solid in both themes (`rgba(10,12,17,.96)` → `#0A0C11`,
+  `rgba(0,0,0,.96)` → `#000000`) and the `backdrop-filter` comes off the
+  sticky `header`. iOS 26+ tints its chrome by sampling the background *and*
+  the `backdrop-filter` of elements at the viewport edges; a 96%-opaque bar at
+  `top:0` carrying a 14px blur is the exact pair it reads as a request for
+  glass. Four per cent of a backdrop showing through a blur is not a visual
+  anyone can name, so the header looks the same and the OS now has a colour to
+  sample. Section 128's Q4 stops pinning the two alphas to each other and pins
+  the opacity and the absent filter instead.
+- **The tab bar lost its clearance under the home indicator.** `--vpdead` is
+  the measured gap between screen and granted viewport (62pt), and
+  `#tabs`'s `max(0px, calc(env(safe-area-inset-bottom) - var(--vpdead, 0px)))`
+  pays back an `env(bottom)` of 34 that 4.0.9 proved was reserving space for
+  hardware the installed webview could not reach. Under `default` that
+  remainder moved from the bottom of the frame to the top, the bottom became
+  real, and the reclaim went on collapsing a pad that was now owed — 58pt of
+  bar ending at the physical screen edge with the indicator across the labels.
+  Restoring the tag puts the remainder back at the bottom; the reclaim is
+  correct arithmetic again and is untouched.
+- **The header rode off the top after a rotation and stayed there.**
+  `@media (display-mode: standalone){#app{height:100%;}}` is the ICB, the one
+  measure of the WebView that cannot overshoot it (4.0.7, 16 Aug). Under
+  `default` a rotation left `#app` resolving against the full 874 inside a
+  granted 812, the document overflowed by 62pt for the first time since 3.9.7
+  moved scroll onto `#app`, and iOS scrolled it — taking the sticky header with
+  it, because `header`'s scrollport is `#app` and not the document, and leaving
+  no way back because `html,body` are `overflow:hidden`. The owner's
+  screenshots measure the shift at 62.7pt with a 7pt sliver of header still
+  showing, which is that arithmetic exactly. Reverting the tag removes the
+  overflow; no new listener is added, because there is now nothing for one to
+  heal.
+
 ## [6.0.4] — 2026-09-15
 
 **The reader's colours, all the way down.** A forced-colors sweep of every

@@ -73,7 +73,7 @@ run_case "the head loses preload fonts/ibm-plex-mono-latin-600-normal.woff2" \
 
 run_case "the head loses apple-mobile-web-app-status-bar-style" \
   "required tag(s): apple-mobile-web-app-status-bar-style" \
-  "${P}a='<meta name=\"apple-mobile-web-app-status-bar-style\" content=\"default\">';assert a in s;s=s.replace(a,'',1);${W}" \
+  "${P}a='<meta name=\"apple-mobile-web-app-status-bar-style\" content=\"black-translucent\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses apple-mobile-web-app-title" \

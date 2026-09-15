@@ -323,25 +323,43 @@ the `background-color` *and* the `backdrop-filter` of fixed and sticky elements
 near the viewport edges. Where it cannot find a solid colour in the top inset
 it fills that inset with Liquid Glass, and iOS/iPadOS 27 raised the contrast of
 that glass — which is how the installed app grew a blur band across its top on
-the day 27 shipped. This page lines up for it exactly: a `sticky` header at
+the day 27 shipped. This page lined up for it exactly: a `sticky` header at
 `top:0` carrying `--hdr` at 96% opacity plus a 14px blur, `viewport-fit=cover`,
-and a status bar the page had asked to render under. 6.0.4 takes the narrow
-fix — `apple-mobile-web-app-status-bar-style` `black-translucent` → `default`,
-so the status bar is opaque and the content insets below it. The tag is inert
-outside standalone mode, so no Safari visitor can be reached by it; the
-alternative fix (an opaque `header` background, the blur moved or dropped) is
-more elegant and touches the surface every visitor sees, which is why it was
-not taken in a week that had to stay low-risk. Two consequences worth knowing:
-under `default`, `env(safe-area-inset-top)` reports 0, so `--hdrh` degrades
-from `calc(inset + 71px)` to `71px` and the header's top padding from
-`calc(inset + 12px)` to `12px` — the dropped belt's
-`top:calc(var(--hdrh) + var(--beltH) - 4px)` moves with it, so the two stay in
-step. And **the tag is read at install time**: an already-installed copy keeps
-the old behaviour until it is deleted and re-added, which is a delete an
-installed app does not survive without a backup code first, its storage
-container being separate from Safari's. `THEMEBAR` itself stays and is still
-guarded, because every browser that does honour `theme-color` still needs it
-kept in step with the theme.
+and a status bar the page had asked to render under.
+
+**The fix is an opaque header, not an opaque status bar (6.0.5).** 6.0.4 took
+the narrow route first — `apple-mobile-web-app-status-bar-style`
+`black-translucent` → `default`, so the OS drew the bar itself and the band
+could not happen. It worked, and the owner's installed app showed the same day
+what it cost. Under `default` iOS grants the app a viewport that starts below
+the bar (812pt of 874 on the owner's phone), which is 62pt of screen the app
+can no longer paint; `env(safe-area-inset-top)` reports 0, so the header loses
+the padding that used to fill the inset and the band reads as dead space above
+it. Worse, the 62pt the stale standalone grant has always held back moved from
+the bottom of the frame to the top: `--vpdead`'s reclaim went on subtracting a
+debt the bottom no longer owed, leaving the tab labels under the home
+indicator, and `#app{height:100%}` resolving against the full 874 inside a
+granted 812 let the document overflow for the first time since 3.9.7 moved
+scroll onto `#app` — one rotation and iOS scrolled it, taking the sticky header
+with it, with no way back because `html,body` are `overflow:hidden`.
+
+So 6.0.5 gives the inset something to SAMPLE instead. `--hdr` is a solid hex in
+both themes and the `backdrop-filter` comes off the `header`; a 14px blur
+behind a 96%-opaque surface was showing 4% of a backdrop and nothing anyone
+could name, so the header looks the same and the pair iOS reads as a request
+for glass is gone. The tag goes back to `black-translucent`, the app is
+edge-to-edge again, and the three consequences above revert with it. Section
+128's Q4 pins both halves: a translucent `--hdr` or a filter back on the
+element at `top:0` re-opens the band. If a real need for a backdrop filter ever
+returns, it goes on an absolute child, not on the sticky element itself.
+
+**The tag is read at install time**: an already-installed copy keeps the
+behaviour it was installed with until it is deleted and re-added, which is a
+delete an installed app does not survive without a backup code first, its
+storage container being separate from Safari's. That applies to going back as
+much as it applied to going. `THEMEBAR` itself stays and is still guarded,
+because every browser that does honour `theme-color` still needs it kept in
+step with the theme.
 
 ### `dedupeLog()`
 
