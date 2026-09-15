@@ -14,6 +14,76 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.0.6] — 2026-09-15
+
+**The tag is the switch.** 6.0.5 tried to close the iOS 27 glass band the
+elegant way — a solid header with nothing left for the OS to read as a request
+for glass — and the owner's screenshot of the installed build says it did not
+work. So `apple-mobile-web-app-status-bar-style` goes back to `default`, which
+demonstrably does close it, and the three things that cost in 6.0.4 are fixed
+where each of them lives instead of being traded away again. Fixes and the
+harness around them — a PATCH by README's rule. No entry moves, no surface is
+added, and nothing saved changes shape or meaning.
+
+### Fixed
+
+- **The glass band, for good, by the one lever that reaches it.** Measured off
+  the installed 6.0.5 against the installed 6.0.4, same screen regions: the
+  NIGHT WATCHER wordmark kept **0.50** of its edge energy and the bat mark
+  **0.60**, while the TITANS title (1.01) and the card's body copy (1.00) were
+  pixel-identical. Only the top band was softened, over a `header` that was
+  already fully opaque with no `backdrop-filter` on it. The published sampling
+  behaviour is real but it is not what decides this inset:
+  `black-translucent` is, exactly as subflux PR #960 said, and nothing in this
+  file reaches it. The tag is `default`.
+- **The band is painted now, instead of being a black gap.** Under `default`
+  the OS draws an opaque bar in 62pt the page cannot reach, and fills it from
+  the page's own colours. 6.0.4 gave it pure black twice over — `body` was
+  `#000` since 4.0.9, so the phantom band *below* the tab bar would read as
+  bezel, and `applyTheme()` answered the meta with `#000000` when installed for
+  the same era's reasons. `default` produces no band below the bar, so both now
+  say the header's colour: `body{background:var(--hdr)}` and a new `APPBAR`
+  map (`#0A0C11` / `#000000`) beside `THEMEBAR`. Section 28 pins `APPBAR`'s
+  values to `--hdr`'s, so the two darks cannot drift back into a tonal step.
+- **The tab bar's clearance under the home indicator.** `--vpdead` measured the
+  gap between screen and granted viewport and subtracted it from `#tabs`'s
+  bottom pad — correct while that gap sat *below* the bar as space the webview
+  could not reach (4.0.9), and wrong the moment `default` moved it above the
+  header. 6.0.4 shipped `max(0px, 34 − 62)` = 0: a 58pt bar ending at the
+  physical screen edge with the indicator across its labels. The pad is the
+  plain `env(safe-area-inset-bottom)` again, the toast's offset with it, and
+  `vpSync()`/`--vpdead` are **retired** rather than left unused, so nothing can
+  wire a second consumer to a subtraction that is only ever right under one
+  tag. `vpHeal()` stays — the keyboard bug it also cures is not a
+  standalone-chrome question.
+- **The rotation that took the header off the top of the screen.** Under
+  `default`, a rotation left `#app{height:100%}` resolving against the full
+  874pt inside an 812pt grant, so the document overflowed for the first time
+  since 3.9.7 moved scroll onto `#app`, iOS scrolled it, and the sticky header
+  went with it — `header`'s scrollport is `#app`, not the document, and
+  `html,body` are `overflow:hidden`, so there was no way back. `#app` gains
+  `max-height:100dvh` beside `height:100%`. The ICB stays authoritative, both
+  16 August reports stand, and the clamp only ever shrinks: if `dvh` overshoots
+  it does nothing, and if the ICB goes stale-tall it catches it. The failure
+  direction is a gap at the bottom, never a lost header.
+
+### QA
+
+- Section 28 gains `APPBAR`, its agreement with `--hdr`, and the `body`
+  background; its standalone-branch pin now names `APPBAR` instead of a
+  literal `#000000`. Section 64's tab-pad clause is inverted to the plain
+  inset, the `--vpdead` clause is inverted to refuse the var entirely, and the
+  standalone height override pins the clamp.
+- Section 128's Q4 keeps its pins and loses its argument. A solid `--hdr` with
+  no filter on the header is no longer *the* fix for the band; it stays because
+  the blur was compositing 4% of a backdrop, which is nothing anyone can name,
+  and putting it back re-arms 4.0.4's full-width seam and 4.0.7's repaint
+  glitch. A filter that buys no pixels and costs two known failures does not
+  come back by accident.
+- negtest470 +2, negtest475 +4, negtest478 +2; five rewritten where their
+  guards inverted. Census **1378 → 1386** (1280 guards / 106 smoke) in
+  `README.md` and `qa.yml`; `NO_SECT_PINNED` 749 → 747.
+
 ## [6.0.5] — 2026-09-15
 
 **The other option, taken.** 6.0.4 closed the iOS 27 glass band by handing the

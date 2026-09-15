@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-sRUc1SydR0YpQYEsqBma6LJ8uiGDwpqOBsYLXlRW+m8='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-WtttEp4Cih+bU9Wb6nQqn0vc0Gy2cwnphgk3OIvOuow='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -12,7 +12,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/ibm-plex-sans-latin-600-normal.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/ibm-plex-mono-latin-400-normal.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/ibm-plex-mono-latin-600-normal.woff2">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Night Watcher">
 <link rel="manifest" href="manifest.json">
 <title>Batman watch order — every movie and series, no spoilers · Night Watcher</title>
@@ -84,12 +84,12 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;height:100%;overflow:hidden;}
-body{background:#000;color:var(--bone);font-family:var(--body);font-size:var(--t-body);line-height:1.5;-webkit-font-smoothing:antialiased;overscroll-behavior:none;}
+body{background:var(--hdr);color:var(--bone);font-family:var(--body);font-size:var(--t-body);line-height:1.5;-webkit-font-smoothing:antialiased;overscroll-behavior:none;}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;touch-action:manipulation;}
 :focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px;}
 
 #app{background:var(--ink);display:flex;flex-direction:column;height:100%;height:100svh;height:100dvh;overflow:hidden;overscroll-behavior:none;}
-@media (display-mode: standalone){#app{height:100%;}}
+@media (display-mode: standalone){#app{height:100%;max-height:100dvh;}}
 #view,.panel{overflow-anchor:none;}
 header{position:sticky;top:0;z-index:30;background:var(--hdr);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
 .hrow{display:flex;align-items:center;gap:14px;max-width:760px;margin:0 auto;}
@@ -127,7 +127,7 @@ main.sw{display:flex;overflow-y:hidden;overflow-x:auto;padding:0;max-width:none;
 main.sw::-webkit-scrollbar{display:none;}
 .panel{flex:0 0 100%;min-width:100%;overflow-y:auto;overscroll-behavior:none;scroll-snap-align:start;scroll-snap-stop:always;}
 .pcol{padding:18px 18px 28px;max-width:760px;margin:0 auto;width:100%;}
-#tabs{flex:none;z-index:40;display:flex;background:var(--tabbg);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding-bottom:max(0px, calc(env(safe-area-inset-bottom) - var(--vpdead, 0px)));}
+#tabs{flex:none;z-index:40;display:flex;background:var(--tabbg);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);}
 #tabs button{flex:1;height:var(--tab-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);transition:color .15s;}
 #tabs button svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;}
 #tabs button[aria-current]{color:var(--signal);}
@@ -469,7 +469,7 @@ html[data-beltpark] .pathseg:not([data-held]):not([data-drop]):not([data-ride]){
 .segs{display:flex;gap:3px;flex:1;}
 .segs i{flex:1;height:8px;border-radius:0;background:var(--line2);}
 .segs i.on{background:var(--signal);}
-.toast{position:fixed;left:50%;transform:translate(-50%,80px);bottom:calc(var(--tab-h) + max(0px, env(safe-area-inset-bottom) - var(--vpdead, 0px)) + 16px);background:var(--suit);color:var(--ink);border-radius:0;padding:11px 20px;font-family:var(--mono);font-size:var(--t-label);letter-spacing:.08em;text-transform:uppercase;font-weight:600;z-index:35;visibility:hidden;transition:transform .25s,visibility 0s .25s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;}
+.toast{position:fixed;left:50%;transform:translate(-50%,80px);bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 16px);background:var(--suit);color:var(--ink);border-radius:0;padding:11px 20px;font-family:var(--mono);font-size:var(--t-label);letter-spacing:.08em;text-transform:uppercase;font-weight:600;z-index:35;visibility:hidden;transition:transform .25s,visibility 0s .25s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;}
 .toast.show{visibility:visible;transition-delay:0s;transform:translate(-50%,0);}
 #splash{position:fixed;top:0;left:0;right:0;bottom:0;z-index:70;background:var(--ink);color:var(--signal);display:flex;align-items:center;justify-content:center;transition:opacity .32s ease;animation:splashfail .3s ease 5s forwards;}
 #splash svg{display:block;width:min(64vw,320px);height:auto;transition:transform .32s ease;}
@@ -1502,7 +1502,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "6.0.5";
+var BUILD = "6.0.6";
 var BUILT = "2026-09-15";
 var KEY = "batwatch-v3";
 var SKEY = "batwatch-settings";
@@ -1537,11 +1537,12 @@ function flagSave(){
   else document.documentElement.style.removeProperty("--hdrh");
 }
 var THEMEBAR = {dark:"#0C111C", darker:"#000000"};
+var APPBAR = {dark:"#0A0C11", darker:"#000000"};
 function applyTheme(){
   document.documentElement.setAttribute("data-theme", S.theme);
   var m = document.querySelector('meta[name="theme-color"]');
-  if(m) m.setAttribute("content", isStandalone() ? "#000000"
-    : (THEMEBAR[S.theme] || THEMEBAR.dark));
+  var T = isStandalone() ? APPBAR : THEMEBAR;
+  if(m) m.setAttribute("content", T[S.theme] || T.dark);
 }
 function validTs(v){
   return (typeof v === "number" || (typeof v === "string" && v !== "")) && isFinite(v) && Number(v) > 0;
@@ -3782,11 +3783,6 @@ function vpGap(){
 function vpShrunk(){
   return vpGap() > 24;
 }
-function vpSync(){
-  var g = vpGap();
-  if(g > 24) document.documentElement.style.setProperty("--vpdead", g + "px");
-  else document.documentElement.style.removeProperty("--vpdead");
-}
 function vpHeal(){
   if(!isStandalone() || vpTries >= 6 || !vpShrunk()) return;
   var ae = document.activeElement;
@@ -3804,7 +3800,6 @@ function vpHeal(){
 }
 function vpTick(){
   vpHeal();
-  vpSync();
 }
 if(isStandalone()){
   setTimeout(vpTick, 300);

@@ -2405,19 +2405,23 @@ if(/payload = JSON\.stringify\(\{[^}]*mode:S\.mode/.test(HTML)){
    6.0.4: that has not been true on iOS since 26 — Safari ignores theme-color
    there and tints its own chrome by sampling the background and backdrop-filter
    of fixed and sticky elements at the viewport edges, which is what put a glass
-   band over the installed app on iOS 27. 6.0.4 answered it with
-   `apple-mobile-web-app-status-bar-style: default`, and that worked: the OS
-   drew an opaque bar and the glass was gone. It also took 62pt of screen back
-   from the app to draw it in, moved the stale-grant remainder from the bottom
-   of the frame to the top (where --vpdead's reclaim pays a debt the bottom no
-   longer owes, and where a rotation could leave the sticky header scrolled
-   off), and cost the edge-to-edge look the app is drawn for. 6.0.5 takes the
-   other option instead: give the inset something solid to SAMPLE — an opaque
-   --hdr with no backdrop-filter on the sticky header (section 128, Q4) — and
-   put the tag back to `black-translucent`. The comment stays because THEMEBAR
-   still has to be kept in step for every other browser that does honour
-   theme-color, Android's installed shell among them; iOS simply is not one of
-   them any more. */
+   band over the installed app on iOS 27.
+   6.0.6, after two cuts and two reinstalls, settles which lever actually
+   moves it. 6.0.4 set `apple-mobile-web-app-status-bar-style: default` and the
+   glass was gone. 6.0.5 tried the elegant fix instead — a solid --hdr, no
+   backdrop-filter on the sticky header, tag back to `black-translucent` — and
+   the glass came straight back over a header with nothing left to sample:
+   measured off the owner's screenshot, the wordmark kept half its edge energy
+   and the bat 60%, while the card title and body copy below were
+   pixel-identical between the two builds. So the tag IS the switch, exactly as
+   subflux PR #960 said, and no rule in this file reaches it. `default` is the
+   shipping answer and the three things it cost in 6.0.4 are each fixed where
+   they live: the band is painted (APPBAR + body{background:var(--hdr)}), the
+   bottom pad is the plain inset again (the --vpdead retirement, section 78),
+   and the rotation overflow is clamped (#app's max-height). The comment stays
+   because THEMEBAR still has to be kept in step for every other browser that
+   does honour theme-color, Android's installed shell among them; iOS simply is
+   not one of them any more. */
 
 var barM = HTML.match(/var THEMEBAR = \{([^}]*)\}/);
 if(!barM){
@@ -2428,6 +2432,45 @@ if(!barM){
       fail('theme "' + t[0] + '" has no THEMEBAR colour — the status bar would not follow it');
     }
   });
+}
+/* 6.0.6. The installed app answers the meta with its own map. Under `default`
+   iOS draws an opaque status bar in 62pt the page cannot reach, and fills it
+   from the page's own colours — which is why 6.0.4's band read pure black:
+   body was #000 (4.0.9, so the phantom band BELOW the bar would read as bezel)
+   and the standalone answer was #000000 too. Under `default` there is no band
+   below the bar to disguise, so both now say the header's colour and the band
+   reads as the header running to the top of the screen rather than a black gap
+   above it. The two must agree with --hdr or the seam comes back as a tonal
+   step, which is the thing the owner reported in the first place. */
+var appM = HTML.match(/var APPBAR = \{([^}]*)\}/);
+if(!appM){
+  fail("APPBAR is missing — the installed app's status-bar band would fall " +
+       "back to a colour nothing keeps in step with the header (6.0.6)");
+} else {
+  themes.forEach(function(t){
+    if(appM[1].indexOf(t[0] + ":") < 0){
+      fail('theme "' + t[0] + '" has no APPBAR colour — the installed ' +
+           'app\'s status-bar band would not follow it');
+    }
+  });
+  var hdrVals = (HTML.match(/--hdr:(#[0-9A-Fa-f]{6});/g) || [])
+                  .map(function(d){ return d.slice(6, -1).toUpperCase(); });
+  var appVals = (appM[1].match(/#[0-9A-Fa-f]{6}/g) || [])
+                  .map(function(d){ return d.toUpperCase(); });
+  hdrVals.forEach(function(v){
+    if(appVals.indexOf(v) < 0){
+      fail("APPBAR does not carry the header colour " + v + " — the status-" +
+           "bar band and the header beneath it would paint two different " +
+           "darks, which is the seam 6.0.6 closed. APPBAR's values are --hdr's");
+    }
+  });
+}
+if(!/background:var\(--hdr\);color:var\(--bone\)/.test(HTML)){
+  fail("body no longer paints var(--hdr) — it is the other half of the band: " +
+       "where iOS fills the status-bar inset from the root background rather " +
+       "than the meta, #000 puts a black gap above the header (6.0.6). The " +
+       "4.0.9 reason for body{background:#000} was the phantom band BELOW " +
+       "the bar, which `default` does not produce");
 }
 /* The definition line contains the string "applyTheme()" too, so asking whether
    the file mentions it was answered by the function existing. Delete every call
@@ -2440,19 +2483,26 @@ if(HTML.split("applyTheme()").length - 1 < 2){
 if(!/background:var\(--hdr\)/.test(HTML) || !/background:var\(--tabbg\)/.test(HTML)){
   fail("the header or tab bar is back on a hardcoded rgba — a theme cannot reach it");
 }
-/* iOS 26 standalone grants the installed app a viewport short of the screen
-   and paints the dead band below the webview from this same meta — frosted,
-   so the dark theme's navy came out as a grey stripe under the tab bar. Black
-   is the one colour the frosting returns unchanged (owner-verified on device,
-   2026-08-17: the darker theme's band blended, the dark theme's showed). The
-   band is outside the webview — no layout reclaims it — so the standalone
-   branch in applyTheme() is the only thing standing between the tab bar and
-   that stripe, and it is exactly the kind of special case a tidy refactor
-   collapses back into the table lookup. */
-if(!/isStandalone\(\)\s*\?\s*"#000000"/.test(HTML)){
-  fail("applyTheme() no longer announces #000000 when installed — iOS paints " +
-       "the phantom band below the webview from this meta, and the dark " +
-       "theme's navy frosts to a visible grey stripe (see CHANGELOG 4.0.5)");
+/* 4.0.5 → 6.0.6. The standalone branch is still the point; its ANSWER moved.
+   Under `black-translucent`, iOS 26 granted the installed app a viewport short
+   of the screen and painted the dead band BELOW the webview from this meta,
+   frosted — so the dark theme's navy came out as a grey stripe under the tab
+   bar, and #000000 was the one colour the frosting returned unchanged
+   (owner-verified on device, 2026-08-17: the darker theme's band blended, the
+   dark theme's showed). 6.0.6 ships `default`: the 62pt is spent on an opaque
+   status bar ABOVE the header, there is no band below the tab bar to disguise,
+   and the bar is drawn chrome rather than frosting — in 6.0.4's screenshot the
+   OS clock over it is SHARPER than the same clock over 6.0.5's glass. So the
+   standalone answer is the header's colour now, from APPBAR, and the band
+   reads as the header reaching the top of the screen. The branch itself is
+   still exactly the kind of special case a tidy refactor collapses back into
+   the table lookup, which is what this pins. */
+if(!/isStandalone\(\)\s*\?\s*APPBAR\s*:\s*THEMEBAR/.test(HTML)){
+  fail("applyTheme() no longer picks APPBAR when installed — the installed " +
+       "app's status-bar band is filled from this meta, and the browser " +
+       "table's value is not the header's colour, so collapsing the branch " +
+       "puts a tonal step back across the top of the app (6.0.6; 4.0.5 for " +
+       "why the branch exists at all)");
 }
 
 /* ---------- 29. Weight budget ----------------------------------------- */
@@ -4990,25 +5040,47 @@ if(!/function legendBlock/.test(HTML) ||
          "standalone anchor bug that had it floating above the home " +
          "indicator in the owner's 16 Aug screenshot");
   }
-  if(!/padding-bottom:max\(0px, calc\(env\(safe-area-inset-bottom\) - var\(--vpdead, 0px\)\)\)/.test(tabsCss)){
-    fail("#tabs's bottom pad is not the reclaim form — it must be " +
-         "max(0px, calc(env(safe-area-inset-bottom) - var(--vpdead, 0px))): " +
-         "in a browser --vpdead is unset and the pad is the full inset " +
-         "(Progress stays above the home indicator), but the owner's probe " +
-         "measured the installed webview ending 62pt ABOVE the screen " +
-         "bottom while env(bottom) still said 34 — an inset for an " +
-         "indicator that is not over the page. vpSync() writes the " +
-         "measured gap and the pad collapses to what is actually owed " +
-         "(4.0.9, vp.html numbers in the release prep)");
+  /* 6.0.6: the pad is the PLAIN inset again. 4.0.9 measured the installed
+     webview ending 62pt ABOVE the screen bottom while env(bottom) still said
+     34 — an inset reserved for an indicator that was not over the page — and
+     built the reclaim (--vpdead) to pay it back. That was true only while
+     `apple-mobile-web-app-status-bar-style` was `black-translucent`: the 62pt
+     iOS holds back is the same 62pt either way, and under `default` it is
+     spent on the status bar at the TOP, which leaves the bottom edge real and
+     env(bottom) honest. 6.0.4 shipped `default` with the reclaim still in
+     place and the arithmetic inverted — max(0px, 34 − 62) = 0, a 58pt bar
+     ending at the physical screen edge with the home indicator across its
+     labels, in the owner's screenshot. The reclaim is retired, not disabled:
+     a pad that subtracts a measured gap is only correct in a configuration
+     this file no longer ships. */
+  if(!/padding-bottom:env\(safe-area-inset-bottom\)/.test(tabsCss)){
+    fail("#tabs's bottom pad is not the plain env(safe-area-inset-bottom) — " +
+         "under `default` the app reaches the true screen bottom and the " +
+         "full inset is owed. The 4.0.9 reclaim form " +
+         "(max(0px, calc(env(...) - var(--vpdead, 0px)))) belongs to " +
+         "`black-translucent`, where the 62pt sat below the bar instead of " +
+         "above the header; with `default` it collapses the pad to 0 and " +
+         "puts the home indicator on Progress (6.0.6)");
   }
-  if(HTML.indexOf("@media (display-mode: standalone){#app{height:100%;}}") < 0){
-    fail("the standalone height override is gone or is a viewport unit " +
-         "again — installed, #app must be height:100%: the ICB is the one " +
-         "measure of the WebView that cannot overshoot it. svh/dvh were " +
-         "seen resolving against Safari's browser metrics in standalone " +
-         "(the floating footer), and 100vh overshot a short-viewport grant " +
-         "and cut the bar's labels off the screen (the no-text footer). " +
-         "Both reports are the owner's, both 16 Aug");
+  if(HTML.indexOf("@media (display-mode: standalone){#app{height:100%;max-height:100dvh;}}") < 0){
+    fail("the standalone height override is gone, or is a viewport unit " +
+         "again, or lost its clamp — installed, #app must be " +
+         "height:100%;max-height:100dvh. height:100% stays authoritative: " +
+         "the ICB is the one measure of the WebView that cannot overshoot " +
+         "it, svh/dvh were seen resolving against Safari's browser metrics " +
+         "in standalone (the floating footer), and 100vh overshot a " +
+         "short-viewport grant and cut the bar's labels off the screen (the " +
+         "no-text footer) — both the owner's, both 16 Aug, and neither is " +
+         "reopened here. max-height only ever SHRINKS, and it is there for " +
+         "one failure: 6.0.4 shipped `default` and a rotation left the ICB " +
+         "resolving against the full screen inside a shorter grant, so the " +
+         "document overflowed for the first time since 3.9.7 moved scroll " +
+         "onto #app, iOS scrolled it, and the sticky header went with it — " +
+         "header's scrollport is #app, not the document, and html,body are " +
+         "overflow:hidden, so there was no way back. If dvh overshoots the " +
+         "clamp does nothing; if the ICB goes stale-tall the clamp catches " +
+         "it. The failure direction is a gap at the bottom, never a lost " +
+         "header (6.0.6)");
   }
   /* 4.0.8: the heal. The band under the installed bar outlived three fixes
      because the document never scrolls (3.9.7 moved scroll onto #app), so
@@ -5049,16 +5121,29 @@ if(!/function legendBlock/.test(HTML) ||
          "when #app leaves the tree");
   }
   if(!/document\.addEventListener\("focusout"/.test(HTML) || HTML.indexOf("setTimeout(vpTick, 300)") < 0){
-    fail("the viewport triggers are gone — vpTick (heal, then sync) must " +
-         "run at standalone boot and after every input blur, or the band " +
-         "returns on the exact paths that made it and the pad reclaim " +
-         "never learns the gap");
+    fail("the viewport triggers are gone — vpTick (the heal) must run at " +
+         "standalone boot and after every input blur, or the stale grant " +
+         "returns on the exact paths that made it");
   }
-  if(!/setProperty\("--vpdead"/.test(HTML) || !/removeProperty\("--vpdead"\)/.test(HTML)){
-    fail("vpSync()/--vpdead is gone — the pad reclaim's one source of " +
-         "truth: the measured gap between screen and granted viewport, " +
-         "written as a CSS var in standalone and absent everywhere else " +
-         "(4.0.9)");
+  /* 6.0.6: the reverse of the 4.0.9 pin. --vpdead answered a question that
+     only `black-translucent` asks — how much of the bottom inset is reserved
+     for hardware the webview cannot reach — and under `default` the answer is
+     none of it. A var that measures a gap and subtracts it from a pad is one
+     tag change away from being wrong in the other direction, which is exactly
+     what 6.0.4 shipped. It is retired rather than left unused, so nothing can
+     wire a second consumer to it. vpHeal() stays: the keyboard bug it also
+     cures is not a standalone-chrome question. */
+  if(/--vpdead/.test(HTML)){
+    fail("--vpdead is back — the 4.0.9 pad reclaim was retired in 6.0.6 " +
+         "because `default` makes the bottom edge real and env(bottom) " +
+         "honest. A measured-gap subtraction on the bottom pad is correct " +
+         "only under `black-translucent`; wired up under `default` it " +
+         "collapses the pad to zero and puts the home indicator on the tab " +
+         "labels");
+  }
+  if(/function vpSync\(\)/.test(HTML)){
+    fail("vpSync() is back — it exists only to write --vpdead, which 6.0.6 " +
+         "retired; see the block above before reintroducing either");
   }
   if(!/if\(vpGap\(\) === before\) vpTries = 6;/.test(HTML)){
     fail("vpHeal() no longer gives up when a toggle changes nothing — the " +
@@ -11107,17 +11192,24 @@ var ROUTE_VOCAB = [
      From 3.x to 6.0.4 the token was rgba(...,.96) and this section pinned the
      two alphas to each other — F2's ghosting rule, one theme fixed and the
      other shipped broken being the failure it was written for. 6.0.5 retires
-     the alpha instead of pinning it. iOS has ignored theme-color since 26 and
-     tints its own chrome by sampling the background AND backdrop-filter of
-     fixed and sticky elements at the viewport edges; a 96%-opaque sticky bar
-     at top:0 carrying a 14px blur is the exact pair it reads as "this page
-     wants glass here", and that is the band the owner saw on iOS 27. Four per
-     cent of a backdrop showing through a blur was never a visual anyone could
-     name, so the cost of making it solid is nothing and the gain is that the
-     OS has a colour to sample. Both halves are load-bearing: a translucent
-     --hdr or a filter back on the header re-opens the band, and 6.0.4's
-     `default` status bar — which answered the same band by giving 62pt of the
-     screen to the OS — is the fallback this replaced, not a second belt. */
+     the alpha instead of pinning it. 6.0.5 made both solid and took the
+     backdrop-filter off the header as the fix for the iOS 27 glass band, on
+     the published reading that the OS samples the background AND the
+     backdrop-filter of sticky elements at the viewport edges. **It did not
+     work.** Measured off the owner's screenshot of the installed 6.0.5, the
+     top band still carried the glass: the wordmark kept half its edge energy
+     against 6.0.4 and the bat 60%, while the card title and body copy below
+     were pixel-identical between the two builds. The tag is the switch, not
+     the sampling, and 6.0.6 ships `default`.
+
+     The pins stay anyway, for a smaller and better-evidenced reason: with a
+     solid --hdr the 14px blur was compositing 4% of a backdrop, which is
+     nothing anyone could name, and putting it back re-arms two failures this
+     tree has already paid for — 4.0.4's all-round halo bleeding through the
+     filter into a full-width seam, and 4.0.7's animated box-shadow repainting
+     the blur every frame. A filter that buys no pixels and costs two known
+     glitches does not come back by accident. If a real need for one returns,
+     it goes on an absolute child, not on the element at top:0. */
   var hdrDecls = HTML.match(/--hdr:[^;]+;/g) || [];
   if(hdrDecls.length !== 2){
     fail("--hdr is declared " + hdrDecls.length + " time(s); the two themes " +
@@ -12844,7 +12936,7 @@ var ROUTE_VOCAB = [
      its second argument is python, not an expected failure. The arguments
      are read the way bash reads them — by qa/negative/census.js since 5.3.1,
      the same reader 65, 113 and run-all.sh use. */
-  var NO_SECT_PINNED = 749;  /* 5.3.1: six retrofitted a sect when the credit rule tightened (negtest161 ×2, 162, 180, 210 ×2); four exact duplicates struck (negtest162, 186, 250, 270). 6.0.3: one more retrofitted — negtest176’s missing-height fixture, whose mutation trips §157 as well. 6.0.5: one struck — negtest360’s “one --hdr moves without the other”, whose guard (§128 Q4) stopped pinning the two alphas to each other when --hdr went solid; the three fixtures that replaced it name §128 */
+  var NO_SECT_PINNED = 747;  /* 5.3.1: six retrofitted a sect when the credit rule tightened (negtest161 ×2, 162, 180, 210 ×2); four exact duplicates struck (negtest162, 186, 250, 270). 6.0.3: one more retrofitted — negtest176’s missing-height fixture, whose mutation trips §157 as well. 6.0.5: one struck — negtest360’s “one --hdr moves without the other”, whose guard (§128 Q4) stopped pinning the two alphas to each other when --hdr went solid; the three fixtures that replaced it name §128. 6.0.6: two more retrofitted — negtest475’s standalone-branch fixture and negtest478’s vpSync fixture, both rewritten when their guards inverted, and a rewritten fixture names its section */
   if(fixtureCensus().broken) return;
   fixtureCensus().suites.forEach(function(su){
     su.cases.forEach(function(c){
@@ -14558,7 +14650,7 @@ var ROUTE_VOCAB = [
     ["the Content-Security-Policy meta", /<meta http-equiv="Content-Security-Policy" content="/],
     ["apple-mobile-web-app-capable",     /<meta name="apple-mobile-web-app-capable" content="yes">/],
     ["mobile-web-app-capable",           /<meta name="mobile-web-app-capable" content="yes">/],
-    ["apple-mobile-web-app-status-bar-style", /<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">/],
+    ["apple-mobile-web-app-status-bar-style", /<meta name="apple-mobile-web-app-status-bar-style" content="default">/],
     ["apple-mobile-web-app-title",       /<meta name="apple-mobile-web-app-title" content="Night Watcher">/],
     ["the manifest link",                /<link rel="manifest" href="manifest.json">/],
     ["<title>",                          /<title>[^<]+<\/title>/],

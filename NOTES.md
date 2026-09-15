@@ -327,39 +327,54 @@ the day 27 shipped. This page lined up for it exactly: a `sticky` header at
 `top:0` carrying `--hdr` at 96% opacity plus a 14px blur, `viewport-fit=cover`,
 and a status bar the page had asked to render under.
 
-**The fix is an opaque header, not an opaque status bar (6.0.5).** 6.0.4 took
-the narrow route first — `apple-mobile-web-app-status-bar-style`
-`black-translucent` → `default`, so the OS drew the bar itself and the band
-could not happen. It worked, and the owner's installed app showed the same day
-what it cost. Under `default` iOS grants the app a viewport that starts below
-the bar (812pt of 874 on the owner's phone), which is 62pt of screen the app
-can no longer paint; `env(safe-area-inset-top)` reports 0, so the header loses
-the padding that used to fill the inset and the band reads as dead space above
-it. Worse, the 62pt the stale standalone grant has always held back moved from
-the bottom of the frame to the top: `--vpdead`'s reclaim went on subtracting a
-debt the bottom no longer owed, leaving the tab labels under the home
-indicator, and `#app{height:100%}` resolving against the full 874 inside a
-granted 812 let the document overflow for the first time since 3.9.7 moved
-scroll onto `#app` — one rotation and iOS scrolled it, taking the sticky header
-with it, with no way back because `html,body` are `overflow:hidden`.
+**The tag is the only lever, and it is `default` (6.0.6).** Two cuts settled
+this. 6.0.4 set `apple-mobile-web-app-status-bar-style` to `default`: the OS
+drew an opaque bar, the glass was gone, and three things broke, all of them
+consequences of iOS spending the 62pt it withholds from a standalone app on a
+status bar at the TOP instead of a dead band at the bottom. 6.0.5 tried the
+elegant fix instead — a solid `--hdr`, no `backdrop-filter` on the sticky
+header, tag back to `black-translucent` — and the glass came straight back over
+a header with nothing left to sample. Measured off the owner's screenshots of
+the two installed builds, same screen regions: the wordmark kept 0.50 of its
+edge energy and the bat 0.60, while the card title (1.01) and the body copy
+(1.00) below were pixel-identical. The published sampling behaviour is real,
+but it is not what decides this inset. `black-translucent` is.
 
-So 6.0.5 gives the inset something to SAMPLE instead. `--hdr` is a solid hex in
-both themes and the `backdrop-filter` comes off the `header`; a 14px blur
-behind a 96%-opaque surface was showing 4% of a backdrop and nothing anyone
-could name, so the header looks the same and the pair iOS reads as a request
-for glass is gone. The tag goes back to `black-translucent`, the app is
-edge-to-edge again, and the three consequences above revert with it. Section
-128's Q4 pins both halves: a translucent `--hdr` or a filter back on the
-element at `top:0` re-opens the band. If a real need for a backdrop filter ever
-returns, it goes on an absolute child, not on the sticky element itself.
+So `default` ships, and its three costs are each paid where they live rather
+than traded away:
 
-**The tag is read at install time**: an already-installed copy keeps the
-behaviour it was installed with until it is deleted and re-added, which is a
-delete an installed app does not survive without a backup code first, its
-storage container being separate from Safari's. That applies to going back as
-much as it applied to going. `THEMEBAR` itself stays and is still guarded,
-because every browser that does honour `theme-color` still needs it kept in
-step with the theme.
+- **The band is painted.** Under `default` the OS fills its bar from the page's
+  own colours. 6.0.4 gave it black twice — `body{background:#000}` (4.0.9, so
+  the phantom band *below* the tab bar would read as bezel) and a standalone
+  `theme-color` of `#000000` (4.0.5, because black was the one colour the
+  frosting returned unchanged). Neither reason survives `default`: there is no
+  band below the bar, and the bar is drawn chrome, not frosting — in 6.0.4's
+  screenshot the OS clock over it is *sharper* than the same clock over 6.0.5's
+  glass. Both now answer the header's colour, `body{background:var(--hdr)}` and
+  the `APPBAR` map beside `THEMEBAR`, so the band reads as the header reaching
+  the top of the screen. Section 28 pins `APPBAR`'s values to `--hdr`'s.
+- **The bottom pad is the plain inset.** `--vpdead` and `vpSync()` are retired.
+  They measured the gap between screen and granted viewport and subtracted it
+  from `#tabs`'s bottom pad, which is right only while that gap sits below the
+  bar. Under `default` the bottom edge is real, `env(safe-area-inset-bottom)`
+  is honest, and the subtraction collapsed the pad to zero and put the home
+  indicator on the tab labels. Retired rather than left unused, so nothing can
+  wire a second consumer to it. `vpHeal()` stays for the keyboard bug.
+- **`#app` is clamped.** `height:100%` is still the ICB and still
+  authoritative — both 16 August reports stand — but a rotation under `default`
+  left it resolving against the full screen inside a shorter grant, the
+  document overflowed for the first time since 3.9.7 moved scroll onto `#app`,
+  and iOS scrolled the sticky header off the top with no way back.
+  `max-height:100dvh` only ever shrinks: if `dvh` overshoots it does nothing,
+  and if the ICB goes stale-tall it catches it. The failure direction is a gap
+  at the bottom, never a lost header.
+
+**The tag is read at install time**, in both directions: an already-installed
+copy keeps the behaviour it was installed with until it is deleted and re-added,
+which is a delete an installed app does not survive without a backup code
+first, its storage container being separate from Safari's. `THEMEBAR` itself
+stays and is still guarded, because every browser that does honour
+`theme-color` still needs it kept in step with the theme.
 
 ### `dedupeLog()`
 

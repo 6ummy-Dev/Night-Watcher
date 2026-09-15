@@ -49,17 +49,32 @@ s=s.replace(a,'',1);${W}"
 
 echo "--- 4.0.9: the measured gap, and the pad it pays back"
 
-run_case "the pad reverts to the raw inset (the pre-probe shape)" \
-  "not the reclaim form" \
-  "${P}a='padding-bottom:max(0px, calc(env(safe-area-inset-bottom) - var(--vpdead, 0px)));}'
+run_case "the 4.0.9 reclaim is wired back onto the pad" \
+  "not the plain env(safe-area-inset-bottom)" \
+  "${P}a='padding-bottom:env(safe-area-inset-bottom);}'
 assert a in s
-s=s.replace(a,'padding-bottom:env(safe-area-inset-bottom);}',1);${W}"
+s=s.replace(a,'padding-bottom:max(0px, calc(env(safe-area-inset-bottom) - var(--vpdead, 0px)));}',1);${W}"
 
-run_case "vpSync is tidied away and the var never gets written" \
-  "vpSync()/--vpdead is gone" \
-  "${P}a='function vpSync(){\n  var g = vpGap();\n  if(g > 24) document.documentElement.style.setProperty(\"--vpdead\", g + \"px\");\n  else document.documentElement.style.removeProperty(\"--vpdead\");\n}\n'
+run_case "the pad loses its inset altogether" \
+  "not the plain env(safe-area-inset-bottom)" \
+  "${P}a='padding-bottom:env(safe-area-inset-bottom);}'
 assert a in s
-s=s.replace(a,'function vpSync(){}\n',1);${W}"
+s=s.replace(a,'padding-bottom:0;}',1);${W}" \
+  guards "" 64
+
+run_case "--vpdead comes back on the toast" \
+  "is back" \
+  "${P}a='bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 16px);'
+assert a in s
+s=s.replace(a,'bottom:calc(var(--tab-h) + max(0px, env(safe-area-inset-bottom) - var(--vpdead, 0px)) + 16px);',1);${W}" \
+  guards "" 64
+
+run_case "vpSync is reintroduced" \
+  "vpSync() is back" \
+  "${P}a='function vpTick(){'
+assert a in s
+s=s.replace(a,'function vpSync(){}\nfunction vpTick(){',1);${W}" \
+  guards "" 64
 
 run_case "the heal forgets to give up" \
   "no longer gives up when a toggle changes nothing" \
