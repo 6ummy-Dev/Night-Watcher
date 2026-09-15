@@ -360,48 +360,49 @@ than traded away:
   is honest, and the subtraction collapsed the pad to zero and put the home
   indicator on the tab labels. Retired rather than left unused, so nothing can
   wire a second consumer to it. `vpHeal()` stays for the keyboard bug.
-- **`#app` is clamped.** `height:100%` is still the ICB and still
-  authoritative — both 16 August reports stand — and `max-height:100dvh` only
-  ever shrinks beside it: if `dvh` overshoots the clamp does nothing, and if
-  the ICB goes stale-tall it catches it. The failure direction is a gap at the
-  bottom, never a lost header. **It was added for the rotation bug and did not
-  fix it** (see below); it stays because the property it guarantees is worth
-  having regardless.
+- **`#app` is `height:100%`, alone.** The ICB is the one measure of the
+  WebView that cannot overshoot it, and both 16 August reports stand — svh/dvh
+  were seen resolving against Safari's browser metrics in standalone (the
+  floating footer) and 100vh overshot a short grant and cut the bar's labels
+  off (the no-text footer). 6.0.6 added a `max-height:100dvh` clamp for the
+  rotation bug and 6.0.8 took it back out; see below.
 
-### The rotation: what is known, and what is not (6.0.7)
+### The rotation, and the four readings it took (6.0.8)
 
-Flip the installed app to landscape and back and the sticky header is off the
-top of the screen, permanently. It survived 6.0.6 and it is **not diagnosed**.
+Flip the installed app to landscape and back and the sticky header was off the
+top of the screen, permanently — 62.7pt, with about 7pt of header still
+showing, and the document, `#app` and the active panel all at `scrollTop` 0.
 
-What is measured: the shift is **62.7pt**, with about 7pt of header still
-showing. That is the status-bar height — the same 62pt iOS withholds from a
-standalone grant — and it is not a number any scroll position, snap offset or
-header height in this tree produces.
+**The fix is that the header was `position:sticky` and should never have been.**
+Its scroll container is `#app`, which is `overflow:hidden` and never scrolls:
+3.9.7 moved scroll onto `#app` and 4.0.0 made the panels the scrollports, so
+`main` and `.panel` are the header's siblings and the only things that scroll.
+The sticky has been a no-op for layout since 4.0.0. It is not a no-op for the
+engine — a sticky element gets a node in WebKit's scrolling tree and is
+positioned by the compositor rather than by layout, which makes it the one
+thing in this frame that can move while every scroll offset reads zero.
+`position:relative` keeps `z-index:30` applicable and removes the node.
 
-What was wrong: 6.0.6 read that as a document overflow — `#app{height:100%}`
-resolving against the full screen inside a shorter grant, the document
-scrolling for the first time since 3.9.7 moved scroll onto `#app`, and the
-sticky header going with it because its scrollport is `#app` and not the
-document. If that were the mechanism, `max-height:100dvh` would have caught it.
-It did not. The likelier reading now is that the rotation hands the frame a
-stale geometry — the webview back at full-screen origin while
-`env(safe-area-inset-top)` still reports 0 under `default`, so the header
-renders in the top 70pt of the *screen* with 62 of them behind the opaque
-status bar. That is not a scroll, and no height rule reaches it.
+**Three readings were asserted before that one and all three were wrong**, and
+they are recorded because each was plausible and each cost a release:
 
-What cannot be done here: reproduce it. A scripted rotation (390×844 → 844×390
-→ back, from two tabs) is clean in Chromium — header top 0, every scroll offset
-zero, the deck re-snapped — and WebKit cannot be installed in a sandbox whose
-proxy refuses `cdn.playwright.dev`. Two fixes have now been reasoned rather
-than measured and both were wrong.
+1. *6.0.5:* reverting the status-bar tag removes it. It did not.
+2. *6.0.6:* a document overflow — `#app{height:100%}` resolving against the
+   full screen inside a shorter grant. If that were the mechanism the
+   `max-height:100dvh` clamp would have caught it. It did not.
+3. *6.0.7:* a stale standalone grant that a re-armed `vpHeal()` could
+   re-measure on `orientationchange`. It did not move.
 
-So 6.0.7 does two things. `vpRotate()` re-arms `vpHeal()` on
-`orientationchange` — the tree's own re-measure, on a trigger 4.0.8 never gave
-it, past the shrink gate because after a stale rotation the gate's own window
-reads may be the stale ones. And `docs/vp-rotate.html` is the probe that will
-say whether that is the mechanism at all, the way `vp.html` answered the
-4.0.7–4.0.9 question. **Neither is a conclusion.** When the probe answers, this
-section gets rewritten as one and the probe leaves with it.
+**And the trap underneath all three.** `apple-mobile-web-app-status-bar-style`
+is read at INSTALL time. The owner's 6.0.7 screenshot showed a 132pt header
+(`62 + 12 + 46 + 12`) with the clock on the header's navy — that is
+`black-translucent`, not the `default` 6.0.6 and 6.0.7 had shipped. Those two
+cuts' tag change had never run on the device, and the bug reproduces under both
+tags. **Before reasoning about an installed web app, read which build is
+actually installed: the header's height is the tell — 132pt is
+`black-translucent`, 70pt is `default`.**
+
+`docs/vp-rotate.html` stays until a rotation on a real device survives this.
 
 **The tag is read at install time**, in both directions: an already-installed
 copy keeps the behaviour it was installed with until it is deleted and re-added,

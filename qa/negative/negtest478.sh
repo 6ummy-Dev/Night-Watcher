@@ -76,27 +76,6 @@ assert a in s
 s=s.replace(a,'function vpSync(){}\nfunction vpTick(){',1);${W}" \
   guards "" 64
 
-run_case "the force flag is tidied away" \
-  "force flag is gone" \
-  "${P}a='var vpForce = false;\n'
-assert a in s
-s=s.replace(a,'',1);${W}" \
-  guards "" 64
-
-run_case "vpRotate leaves the force flag set" \
-  "is not the re-arm" \
-  "${P}a='  try{ vpHeal(); } finally { vpForce = false; }'
-assert a in s
-s=s.replace(a,'  vpHeal();',1);${W}" \
-  guards "" 64
-
-run_case "the rotation trigger loses its second delay" \
-  "orientationchange trigger is gone" \
-  "${P}a='    setTimeout(vpRotate, 900);\n'
-assert a in s
-s=s.replace(a,'',1);${W}" \
-  guards "" 64
-
 run_case "the heal forgets to give up" \
   "no longer gives up when a toggle changes nothing" \
   "${P}a='  if(vpGap() === before) vpTries = 6;\n'

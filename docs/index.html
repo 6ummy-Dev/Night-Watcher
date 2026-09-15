@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-QXXJAArbl5Die+OeG4GyWtDjl9cRrhiBF+U0tL9lnJo='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-VdLyASfzbLuEErklkUkFr1O5Tx7BGzwBD3c1Vgx7QKo='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -89,9 +89,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 :focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px;}
 
 #app{background:var(--ink);display:flex;flex-direction:column;height:100%;height:100svh;height:100dvh;overflow:hidden;overscroll-behavior:none;}
-@media (display-mode: standalone){#app{height:100%;max-height:100dvh;}}
+@media (display-mode: standalone){#app{height:100%;}}
 #view,.panel{overflow-anchor:none;}
-header{position:sticky;top:0;z-index:30;background:var(--hdr);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
+header{position:relative;z-index:30;background:var(--hdr);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
 .hrow{display:flex;align-items:center;gap:14px;max-width:760px;margin:0 auto;}
 #nosave{max-width:760px;margin:11px auto 0;padding:8px 12px;border:1px solid var(--signal);border-radius:0;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.06em;line-height:1.55;color:var(--signal);text-align:center;}
 #nosave[hidden]{display:none;}
@@ -1502,7 +1502,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "6.0.7";
+var BUILD = "6.0.8";
 var BUILT = "2026-09-15";
 var KEY = "batwatch-v3";
 var SKEY = "batwatch-settings";
@@ -3776,13 +3776,12 @@ function isStandalone(){
 }
 
 var vpTries = 0;
-var vpForce = false;
 function vpGap(){
   if(window.innerWidth >= window.innerHeight) return 0;
   return Math.max(0, window.screen.height - window.innerHeight);
 }
 function vpShrunk(){
-  return vpForce || vpGap() > 24;
+  return vpGap() > 24;
 }
 function vpHeal(){
   if(!isStandalone() || vpTries >= 6 || !vpShrunk()) return;
@@ -3802,11 +3801,6 @@ function vpHeal(){
 function vpTick(){
   vpHeal();
 }
-function vpRotate(){
-  vpTries = 0;
-  vpForce = true;
-  try{ vpHeal(); } finally { vpForce = false; }
-}
 if(isStandalone()){
   setTimeout(vpTick, 300);
   window.addEventListener("pageshow", function(){ setTimeout(vpTick, 60); });
@@ -3816,10 +3810,6 @@ if(isStandalone()){
   document.addEventListener("focusout", function(e){
     var t = e.target && e.target.tagName;
     if(t === "INPUT" || t === "TEXTAREA") setTimeout(vpTick, 140);
-  });
-  window.addEventListener("orientationchange", function(){
-    setTimeout(vpRotate, 260);
-    setTimeout(vpRotate, 900);
   });
   if(window.visualViewport){
     window.visualViewport.addEventListener("resize", function(){ setTimeout(vpTick, 120); });

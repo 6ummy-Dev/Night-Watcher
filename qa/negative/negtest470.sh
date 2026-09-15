@@ -197,18 +197,12 @@ s=s.replace(a,'#tabs{position:fixed;left:0;right:0;bottom:0;',1);${W}"
 
 run_case "the standalone height override is dropped" \
   "the standalone height override is gone" \
-  "${P}a='@media (display-mode: standalone){#app{height:100%;max-height:100dvh;}}\n';assert a in s
+  "${P}a='@media (display-mode: standalone){#app{height:100%;}}\n';assert a in s
 s=s.replace(a,'',1);${W}"
 
-run_case "the override loses its dvh clamp" \
+run_case "the override becomes a viewport unit again" \
   "the standalone height override is gone" \
-  "${P}a='@media (display-mode: standalone){#app{height:100%;max-height:100dvh;}}';assert a in s
-s=s.replace(a,'@media (display-mode: standalone){#app{height:100%;}}',1);${W}" \
-  guards "" 64
-
-run_case "the clamp becomes the height" \
-  "the standalone height override is gone" \
-  "${P}a='@media (display-mode: standalone){#app{height:100%;max-height:100dvh;}}';assert a in s
+  "${P}a='@media (display-mode: standalone){#app{height:100%;}}';assert a in s
 s=s.replace(a,'@media (display-mode: standalone){#app{height:100dvh;}}',1);${W}" \
   guards "" 64
 

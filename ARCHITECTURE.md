@@ -34,7 +34,7 @@ any name below with a search for `function name(`.
 | Navigation | `goTab`, the scroll helpers (`scroller`, `scrollKeep`, `scrollPut`, `calmScroll`), `goToGroup`. |
 | The cross-tab merge | The `storage` listener, one `try` (5.3.0) around two bodies keyed on the event: the progress key's is `mergeTab(o)` — `splitPayload(o)` first, then adopt a newer `resetAt`, merge by clock, write back — and the settings key's is `adoptSettings(o)`, every settings row through its own reader, last write wins (the `path` row's `put` carries `S.mode`), no write back (the disk already holds it). |
 | Delegated events | `#tabs` click; `#topBtn`, `#ringBtn`, `#markBtn`; `#beltpeek` click/keydown and the Escape handler; the one `#view` click handler (every `data-*` action); `#view` change (file import) and input (search, 180 ms). |
-| The iOS viewport heal | `IOSDEVICE`, `isStandalone`, `vpGap`/`vpShrunk`/`vpHeal`/`vpTick`/`vpRotate`. |
+| The iOS viewport heal | `IOSDEVICE`, `isStandalone`, `vpGap`/`vpShrunk`/`vpHeal`/`vpTick`. |
 | Boot | `restore()` (both keys read, `splitPayload()` on the progress blob, the schema pass — a settings row off the settings key when it exists and off the progress blob when it does not, which is how a pre-6.0.0 save migrates on its first boot — then the three parked sweeps); `routeHash()` in a try; `buildDeck()`, `render()` and `snapTo()` in a try whose `finally` is `splashOff()` — the deck first, so the first render lays out four empty panels and not the crawler seed (5.3.1). |
 | Hash routing | `clearHash`, `clearPendingHash`, `routeHash`, the `hashchange` listener. |
 | Service worker, install, file handle | `sw.js` registration over HTTPS/localhost; `beforeinstallprompt`/`appinstalled`; `fhLoad()`. |

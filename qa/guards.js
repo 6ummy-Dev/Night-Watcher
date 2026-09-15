@@ -5077,27 +5077,19 @@ if(!/function legendBlock/.test(HTML) ||
          "above the header; with `default` it collapses the pad to 0 and " +
          "puts the home indicator on Progress (6.0.6)");
   }
-  if(HTML.indexOf("@media (display-mode: standalone){#app{height:100%;max-height:100dvh;}}") < 0){
-    fail("the standalone height override is gone, or is a viewport unit " +
-         "again, or lost its clamp — installed, #app must be " +
-         "height:100%;max-height:100dvh. height:100% stays authoritative: " +
-         "the ICB is the one measure of the WebView that cannot overshoot " +
-         "it, svh/dvh were seen resolving against Safari's browser metrics " +
-         "in standalone (the floating footer), and 100vh overshot a " +
-         "short-viewport grant and cut the bar's labels off the screen (the " +
-         "no-text footer) — both the owner's, both 16 Aug, and neither is " +
-         "reopened here. max-height only ever SHRINKS, and it is there for " +
-         "one failure: 6.0.4 shipped `default` and a rotation left the ICB " +
-         "resolving against the full screen inside a shorter grant, so the " +
-         "document overflowed for the first time since 3.9.7 moved scroll " +
-         "onto #app, iOS scrolled it, and the sticky header went with it — " +
-         "header's scrollport is #app, not the document, and html,body are " +
-         "overflow:hidden, so there was no way back. If dvh overshoots the " +
-         "clamp does nothing; if the ICB goes stale-tall the clamp catches " +
-         "it. The failure direction is a gap at the bottom, never a lost " +
-         "header (6.0.6)");
-  }
-  /* 4.0.8: the heal. The band under the installed bar outlived three fixes
+  if(HTML.indexOf("@media (display-mode: standalone){#app{height:100%;}}") < 0){
+    fail("the standalone height override is gone or is a viewport unit " +
+         "again — installed, #app must be height:100%: the ICB is the one " +
+         "measure of the WebView that cannot overshoot it. svh/dvh were " +
+         "seen resolving against Safari's browser metrics in standalone " +
+         "(the floating footer), and 100vh overshot a short-viewport grant " +
+         "and cut the bar's labels off the screen (the no-text footer). " +
+         "Both reports are the owner's, both 16 Aug. 6.0.6 added a " +
+         "max-height:100dvh clamp for the rotation bug and 6.0.8 took it " +
+         "back out: the bug happens under both status-bar tags, so the " +
+         "stale-grant reading the clamp was built on was wrong, and an " +
+         "unmotivated clamp on the frame is one more thing to explain");
+  }  /* 4.0.8: the heal. The band under the installed bar outlived three fixes
      because the document never scrolls (3.9.7 moved scroll onto #app), so
      WebKit never re-resolves a viewport it granted stale — the collapsed
      browser-chrome number sticks forever, 100% honestly fills the short
@@ -5166,40 +5158,6 @@ if(!/function legendBlock/.test(HTML) ||
          "(vh/lvh stripes below the render edge), so a heal that cannot " +
          "move innerHeight must stop at one attempt, not burn its cap " +
          "toggling #app");
-  }
-  /* 6.0.7: the give-up above is per-SESSION, and a rotation is a new question.
-     The owner's report is a flip to landscape and back leaving the sticky
-     header off the top of the screen for good, and the measured shift is
-     62.7pt — the status-bar height, the same 62pt iOS withholds from a
-     standalone grant, which is not a number any scroll or snap produces. The
-     working reading is that the rotation hands the frame a stale geometry and
-     nothing asks WebKit to re-resolve it, exactly the 4.0.8 mechanism on a
-     trigger 4.0.8 did not have. So vpRotate() re-arms the heal: vpTries back
-     to 0 and vpForce past the shrink gate, because after a stale rotation the
-     gate's own reads may be the stale ones — a heal that cannot run when the
-     grant is wrong is a heal that cannot fix the case it was written for. Two
-     delays, because iOS settles the frame after the event. The force flag is
-     cleared in a finally: left true, every later vpTick would toggle #app on a
-     legitimately short window (iPad, desktop installs) and the 4.0.8 gates
-     would mean nothing. NOT VERIFIED ON DEVICE — docs/vp-rotate.html is the
-     probe that will say whether this is the mechanism. */
-  if(!/var vpForce = false;/.test(HTML) || !/return vpForce \|\| vpGap\(\) > 24;/.test(HTML)){
-    fail("vpShrunk()'s force flag is gone — after a stale rotation the gate's " +
-         "own window reads can be the stale ones, so the rotation path has to " +
-         "be able to run the heal past the shrink test (6.0.7)");
-  }
-  var rotBody = optionalFn("vpRotate", "the rotation re-arm cannot be checked");
-  if(!/vpTries = 0/.test(rotBody) || !/vpForce = true/.test(rotBody) ||
-     !/vpHeal\(\)/.test(rotBody) || !/finally/.test(rotBody)){
-    fail("vpRotate() is not the re-arm — it must reset vpTries, set vpForce, " +
-         "call vpHeal() and clear the flag in a finally. Left set, every " +
-         "later vpTick toggles #app on a legitimately short window and the " +
-         "4.0.8 gates stop meaning anything (6.0.7)");
-  }
-  if(!/window\.addEventListener\("orientationchange", function\(\)\{\n    setTimeout\(vpRotate, 260\);\n    setTimeout\(vpRotate, 900\);/.test(HTML)){
-    fail("the orientationchange trigger is gone or lost one of its two " +
-         "delays — iOS settles the frame after the event, so one shot can " +
-         "land before the geometry it is meant to re-measure (6.0.7)");
   }
   /* The window is not the scroller any more, so a window scroll call is a
      call to the element that no longer moves — a silent no-op in every
@@ -11273,12 +11231,45 @@ var ROUTE_VOCAB = [
     }
   });
   var hdrCss = (HTML.match(/\nheader\{[^}]*\}/) || [""])[0];
+  /* (Q5, 6.0.8) THE HEADER IS NOT STICKY, and never usefully was. Its scroll
+     container is #app, which is overflow:hidden and never scrolls — 3.9.7 moved
+     scroll onto #app and 4.0.0 made the panels the scrollports, so main and
+     .panel are the header's SIBLINGS and the only things that scroll. A sticky
+     element there is a no-op for layout and has been since 4.0.0.
+     It is not a no-op for the engine. A sticky element gets a node in WebKit's
+     scrolling tree and is positioned by the compositor rather than by layout,
+     which makes it the one thing in this frame that can move while every
+     scroll offset in the document reads zero. That is exactly the owner's
+     report: flip the installed app to landscape and back and the header is off
+     the top of the screen by 62.7pt, permanently, with doc, #app and panel
+     scrollTop all 0. Four cuts of viewport-unit and scroll-offset work did not
+     touch it, and the bug reproduces under BOTH status-bar tags, so it is not
+     the tag either (release-prep-6.0.8.md).
+     position:relative keeps z-index:30 applicable — a static element cannot
+     take one, and the tab bar at 40 and the dropped belt at 20 are stacked
+     against it — and costs nothing else: same paint, same box, no scrolling
+     tree node. The two sticky rules that remain (.ghead at --ghtop, .pathseg
+     at calc(--ghtop - --beltH)) are inside panels that really do scroll and
+     are pinned by section 128's own F1/F3 clauses. */
+  if(/position:sticky/.test(hdrCss)){
+    fail("the header is position:sticky again — #app never scrolls, so it " +
+         "does nothing for layout, and the scrolling-tree node it creates is " +
+         "the mechanism 6.0.8 removed for the rotation bug: an element the " +
+         "compositor can move while every scroll offset reads zero. See the " +
+         "block above before putting it back");
+  }
+  if(!/position:relative/.test(hdrCss)){
+    fail("the header is not position:relative — z-index:30 needs a " +
+         "positioned element to apply, and the tab bar (40) and the dropped " +
+         "belt (20) are stacked against it (6.0.8)");
+  }
   if(/backdrop-filter/.test(hdrCss)){
-    fail("the sticky header carries a backdrop-filter again — with a solid " +
+    fail("the header carries a backdrop-filter again — with a solid " +
          "--hdr behind it the blur shows nothing, and it is the other half " +
          "of the pair iOS 26+ reads as a request for glass in the top inset " +
          "(6.0.5). If a real need for it returns, it goes on an absolute " +
-         "child, not on the element at top:0");
+         "child, not on the header itself — which since 6.0.8 is not even " +
+         "sticky, so nothing is composited here at all");
   }
 
   /* (F5, widened in 4.0.4) While parked, the strip is not a control — and

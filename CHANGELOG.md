@@ -14,6 +14,59 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.0.8] — 2026-09-15
+
+**The header was never sticky in any way that mattered, and that is the bug.**
+The rotation defect has survived four cuts of viewport-unit and scroll-offset
+work, and the reason is that none of it was looking at the right object. This
+one has a mechanism rather than a theory. Fixes — a PATCH by README's rule.
+No entry moves, no surface is added, and nothing saved changes shape or
+meaning. **No reinstall:** the status-bar tag is untouched.
+
+### Fixed
+
+- **`header` goes `position:sticky` → `position:relative`.** The header's
+  scroll container is `#app`, which is `overflow:hidden` and never scrolls —
+  3.9.7 moved scroll onto `#app` and 4.0.0 made the panels the scrollports, so
+  `main` and `.panel` are the header's *siblings* and the only things that
+  scroll. The sticky has therefore been a no-op for layout since 4.0.0, and it
+  has never done anything a reader could see. It is not a no-op for the engine:
+  a sticky element gets a node in WebKit's scrolling tree and is positioned by
+  the compositor rather than by layout, which makes it the one thing in this
+  frame that can move while every scroll offset in the document reads zero.
+  That is precisely the report — flip the installed app to landscape and back
+  and the header is off the top by 62.7pt, permanently, with the document,
+  `#app` and the active panel all at `scrollTop` 0. `position:relative` keeps
+  `z-index:30` applicable (a static element cannot take one, and the tab bar at
+  40 and the dropped belt at 20 are stacked against it) and costs nothing else:
+  same box, same paint, no scrolling-tree node. Section 128 gains Q5 and two
+  fixtures.
+- **`max-height:100dvh` comes off `#app`, and `vpRotate()` comes out.** Both
+  were built for the rotation on readings that are now falsified. 6.0.6 read it
+  as a document overflow; if that were the mechanism the clamp would have
+  caught it. 6.0.7 read it as a stale standalone grant that a re-armed
+  `vpHeal()` could re-measure; it did not move. And the owner's 6.0.7
+  screenshot showed the installed app still running `black-translucent` —
+  the tag is read at install time, so 6.0.6's and 6.0.7's tag change had never
+  run on the device at all, and the bug reproduces under **both** tags. The
+  frame goes back to `#app{height:100%}` alone, and `vpHeal()` keeps exactly
+  the triggers 4.0.8 and 4.0.9 gave it. Unmotivated machinery on the frame is
+  one more thing the next reader has to explain.
+
+### QA
+
+- Section 128 gains **Q5** — the header is not sticky, and is positioned —
+  with the whole argument above it, including why the two remaining
+  `position:sticky` rules (`.ghead`, `.pathseg`) are correct: they sit inside
+  panels that really do scroll.
+- Section 64's standalone-height clause pins `height:100%` alone again and
+  records why the clamp came out; its three 6.0.7 rotation clauses are gone
+  with the code.
+- negtest360 +2, negtest470 −1, negtest478 −3.
+- **`docs/vp-rotate.html` stays.** Its guard comment says it leaves when the
+  question closes. The question is not closed until a rotation on a real device
+  survives this.
+
 ## [6.0.7] — 2026-09-15
 
 **The rotation, and an honest admission that it is not yet diagnosed.** 6.0.6

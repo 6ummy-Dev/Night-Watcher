@@ -118,7 +118,23 @@ run_case "reduced motion loses the pseudo-elements" \
 assert a in s
 s=s.replace(a,'@media (prefers-reduced-motion:reduce){*{transition:none!important;}}',1);${W}"
 
-echo "--- 128: --hdr is solid, twice, and nothing filters the sticky header (Q4, 6.0.5)"
+echo "--- 128: the header is not sticky (Q5, 6.0.8)"
+
+run_case "the header goes back to position:sticky" \
+  "header is position:sticky again" \
+  "${P}a='header{position:relative;z-index:30;'
+assert a in s
+s=s.replace(a,'header{position:sticky;top:0;z-index:30;',1);${W}" \
+  guards "" 128
+
+run_case "the header loses its positioning altogether" \
+  "header is not position:relative" \
+  "${P}a='header{position:relative;z-index:30;'
+assert a in s
+s=s.replace(a,'header{z-index:30;',1);${W}" \
+  guards "" 128
+
+echo "--- 128: --hdr is solid, twice, and nothing filters the header (Q4, 6.0.5)"
 
 run_case "a --hdr goes translucent again" \
   "not a solid hex colour" \
@@ -134,11 +150,11 @@ assert a in s
 s=s.replace(a,'',1);${W}" \
   guards "" 128
 
-run_case "the backdrop-filter comes back onto the sticky header" \
-  "sticky header carries a backdrop-filter again" \
-  "${P}a='header{position:sticky;top:0;z-index:30;background:var(--hdr);'
+run_case "the backdrop-filter comes back onto the header" \
+  "header carries a backdrop-filter again" \
+  "${P}a='header{position:relative;z-index:30;background:var(--hdr);'
 assert a in s
-s=s.replace(a,'header{position:sticky;top:0;z-index:30;background:var(--hdr);backdrop-filter:saturate(180%) blur(14px);',1);${W}" \
+s=s.replace(a,'header{position:relative;z-index:30;background:var(--hdr);backdrop-filter:saturate(180%) blur(14px);',1);${W}" \
   guards "" 128
 
 echo "--- 128: the parked strip is not a control, not even a paint (F5, 4.0.4)"
