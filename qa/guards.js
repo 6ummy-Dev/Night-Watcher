@@ -1515,22 +1515,7 @@ if(PUBLIC !== ROOT){
                         name and bytes are Brave's contract, not this repo's.
                         Written for a machine that never runs the app, same
                         reasoning as the IndexNow key. */
-                     ".well-known/brave-rewards-verification.txt",
-                     /* 6.0.7. The rotation probe, and the second of its kind:
-                        vp.html measured the standalone grant in 4.0.7-4.0.9,
-                        this one measures what a ROTATION does to it. Three
-                        cuts in one day could not reproduce the owner's
-                        "flip to landscape and back and the header is gone" in
-                        any engine this project can run — Chromium is clean
-                        through a scripted rotation and no WebKit build is
-                        reachable from a sandbox — so the numbers have to come
-                        off the device, the same way 4.0.9's did. It is not
-                        cached for the same reason nothing diagnostic is: an
-                        offline copy of a measurement is a measurement of the
-                        wrong moment. LIKE vp.html, IT LEAVES WHEN THE QUESTION
-                        CLOSES; if this comment outlives the answer, delete the
-                        file and this entry with it. */
-                     "vp-rotate.html"];
+                     ".well-known/brave-rewards-verification.txt"];
   /* vp.html, the iOS viewport probe, sat here from 4.0.7 to 4.9.0; the
      question it measured closed in 4.0.9 and the file left with the 4.8.0
      report (NOTES.md, "vp.html"). */
@@ -2416,27 +2401,7 @@ if(/payload = JSON\.stringify\(\{[^}]*mode:S\.mode/.test(HTML)){
 /* ---------- 28. Theme reaches the chrome, not just the CSS ------------ */
 /* The status bar is painted from <meta name="theme-color">, which CSS cannot
    touch. Switch theme without updating it and an installed app shows a header
-   in one colour under a system bar in the other.
-   6.0.4: that has not been true on iOS since 26 — Safari ignores theme-color
-   there and tints its own chrome by sampling the background and backdrop-filter
-   of fixed and sticky elements at the viewport edges, which is what put a glass
-   band over the installed app on iOS 27.
-   6.0.6, after two cuts and two reinstalls, settles which lever actually
-   moves it. 6.0.4 set `apple-mobile-web-app-status-bar-style: default` and the
-   glass was gone. 6.0.5 tried the elegant fix instead — a solid --hdr, no
-   backdrop-filter on the sticky header, tag back to `black-translucent` — and
-   the glass came straight back over a header with nothing left to sample:
-   measured off the owner's screenshot, the wordmark kept half its edge energy
-   and the bat 60%, while the card title and body copy below were
-   pixel-identical between the two builds. So the tag IS the switch, exactly as
-   subflux PR #960 said, and no rule in this file reaches it. `default` is the
-   shipping answer and the three things it cost in 6.0.4 are each fixed where
-   they live: the band is painted (APPBAR + body{background:var(--hdr)}), the
-   bottom pad is the plain inset again (the --vpdead retirement, section 78),
-   and the rotation overflow is clamped (#app's max-height). The comment stays
-   because THEMEBAR still has to be kept in step for every other browser that
-   does honour theme-color, Android's installed shell among them; iOS simply is
-   not one of them any more. */
+   in one colour under a system bar in the other. */
 
 var barM = HTML.match(/var THEMEBAR = \{([^}]*)\}/);
 if(!barM){
@@ -2447,45 +2412,6 @@ if(!barM){
       fail('theme "' + t[0] + '" has no THEMEBAR colour — the status bar would not follow it');
     }
   });
-}
-/* 6.0.6. The installed app answers the meta with its own map. Under `default`
-   iOS draws an opaque status bar in 62pt the page cannot reach, and fills it
-   from the page's own colours — which is why 6.0.4's band read pure black:
-   body was #000 (4.0.9, so the phantom band BELOW the bar would read as bezel)
-   and the standalone answer was #000000 too. Under `default` there is no band
-   below the bar to disguise, so both now say the header's colour and the band
-   reads as the header running to the top of the screen rather than a black gap
-   above it. The two must agree with --hdr or the seam comes back as a tonal
-   step, which is the thing the owner reported in the first place. */
-var appM = HTML.match(/var APPBAR = \{([^}]*)\}/);
-if(!appM){
-  fail("APPBAR is missing — the installed app's status-bar band would fall " +
-       "back to a colour nothing keeps in step with the header (6.0.6)");
-} else {
-  themes.forEach(function(t){
-    if(appM[1].indexOf(t[0] + ":") < 0){
-      fail('theme "' + t[0] + '" has no APPBAR colour — the installed ' +
-           'app\'s status-bar band would not follow it');
-    }
-  });
-  var hdrVals = (HTML.match(/--hdr:(#[0-9A-Fa-f]{6});/g) || [])
-                  .map(function(d){ return d.slice(6, -1).toUpperCase(); });
-  var appVals = (appM[1].match(/#[0-9A-Fa-f]{6}/g) || [])
-                  .map(function(d){ return d.toUpperCase(); });
-  hdrVals.forEach(function(v){
-    if(appVals.indexOf(v) < 0){
-      fail("APPBAR does not carry the header colour " + v + " — the status-" +
-           "bar band and the header beneath it would paint two different " +
-           "darks, which is the seam 6.0.6 closed. APPBAR's values are --hdr's");
-    }
-  });
-}
-if(!/background:var\(--hdr\);color:var\(--bone\)/.test(HTML)){
-  fail("body no longer paints var(--hdr) — it is the other half of the band: " +
-       "where iOS fills the status-bar inset from the root background rather " +
-       "than the meta, #000 puts a black gap above the header (6.0.6). The " +
-       "4.0.9 reason for body{background:#000} was the phantom band BELOW " +
-       "the bar, which `default` does not produce");
 }
 /* The definition line contains the string "applyTheme()" too, so asking whether
    the file mentions it was answered by the function existing. Delete every call
@@ -2498,26 +2424,19 @@ if(HTML.split("applyTheme()").length - 1 < 2){
 if(!/background:var\(--hdr\)/.test(HTML) || !/background:var\(--tabbg\)/.test(HTML)){
   fail("the header or tab bar is back on a hardcoded rgba — a theme cannot reach it");
 }
-/* 4.0.5 → 6.0.6. The standalone branch is still the point; its ANSWER moved.
-   Under `black-translucent`, iOS 26 granted the installed app a viewport short
-   of the screen and painted the dead band BELOW the webview from this meta,
-   frosted — so the dark theme's navy came out as a grey stripe under the tab
-   bar, and #000000 was the one colour the frosting returned unchanged
-   (owner-verified on device, 2026-08-17: the darker theme's band blended, the
-   dark theme's showed). 6.0.6 ships `default`: the 62pt is spent on an opaque
-   status bar ABOVE the header, there is no band below the tab bar to disguise,
-   and the bar is drawn chrome rather than frosting — in 6.0.4's screenshot the
-   OS clock over it is SHARPER than the same clock over 6.0.5's glass. So the
-   standalone answer is the header's colour now, from APPBAR, and the band
-   reads as the header reaching the top of the screen. The branch itself is
-   still exactly the kind of special case a tidy refactor collapses back into
-   the table lookup, which is what this pins. */
-if(!/isStandalone\(\)\s*\?\s*APPBAR\s*:\s*THEMEBAR/.test(HTML)){
-  fail("applyTheme() no longer picks APPBAR when installed — the installed " +
-       "app's status-bar band is filled from this meta, and the browser " +
-       "table's value is not the header's colour, so collapsing the branch " +
-       "puts a tonal step back across the top of the app (6.0.6; 4.0.5 for " +
-       "why the branch exists at all)");
+/* iOS 26 standalone grants the installed app a viewport short of the screen
+   and paints the dead band below the webview from this same meta — frosted,
+   so the dark theme's navy came out as a grey stripe under the tab bar. Black
+   is the one colour the frosting returns unchanged (owner-verified on device,
+   2026-08-17: the darker theme's band blended, the dark theme's showed). The
+   band is outside the webview — no layout reclaims it — so the standalone
+   branch in applyTheme() is the only thing standing between the tab bar and
+   that stripe, and it is exactly the kind of special case a tidy refactor
+   collapses back into the table lookup. */
+if(!/isStandalone\(\)\s*\?\s*"#000000"/.test(HTML)){
+  fail("applyTheme() no longer announces #000000 when installed — iOS paints " +
+       "the phantom band below the webview from this meta, and the dark " +
+       "theme's navy frosts to a visible grey stripe (see CHANGELOG 4.0.5)");
 }
 
 /* ---------- 29. Weight budget ----------------------------------------- */
@@ -5055,27 +4974,21 @@ if(!/function legendBlock/.test(HTML) ||
          "standalone anchor bug that had it floating above the home " +
          "indicator in the owner's 16 Aug screenshot");
   }
-  /* 6.0.6: the pad is the PLAIN inset again. 4.0.9 measured the installed
-     webview ending 62pt ABOVE the screen bottom while env(bottom) still said
-     34 — an inset reserved for an indicator that was not over the page — and
-     built the reclaim (--vpdead) to pay it back. That was true only while
-     `apple-mobile-web-app-status-bar-style` was `black-translucent`: the 62pt
-     iOS holds back is the same 62pt either way, and under `default` it is
-     spent on the status bar at the TOP, which leaves the bottom edge real and
-     env(bottom) honest. 6.0.4 shipped `default` with the reclaim still in
-     place and the arithmetic inverted — max(0px, 34 − 62) = 0, a 58pt bar
-     ending at the physical screen edge with the home indicator across its
-     labels, in the owner's screenshot. The reclaim is retired, not disabled:
-     a pad that subtracts a measured gap is only correct in a configuration
-     this file no longer ships. */
-  if(!/padding-bottom:env\(safe-area-inset-bottom\)/.test(tabsCss)){
+  /* 6.0.9: the pad is the PLAIN inset. 4.0.9 measured the installed webview
+     ending 62pt above the screen bottom under `black-translucent` while
+     env(bottom) still said 34 — WebKit bug 301108 — and built a reclaim
+     (--vpdead) to pay it back. 6.0.9 drops `black-translucent` for `black`
+     (the iOS 27 glass band, section 153): the bar is opaque, the 62pt is
+     spent above the page, the bottom edge is real and env(bottom) is honest.
+     A reclaim left in place would read the status bar as dead space and
+     collapse the pad to max(0, 34 − 62) = 0, the home indicator across the
+     tab labels — what 6.0.4 shipped. */
+  if(!/padding-bottom:env\(safe-area-inset-bottom\);/.test(tabsCss)){
     fail("#tabs's bottom pad is not the plain env(safe-area-inset-bottom) — " +
-         "under `default` the app reaches the true screen bottom and the " +
-         "full inset is owed. The 4.0.9 reclaim form " +
-         "(max(0px, calc(env(...) - var(--vpdead, 0px)))) belongs to " +
-         "`black-translucent`, where the 62pt sat below the bar instead of " +
-         "above the header; with `default` it collapses the pad to 0 and " +
-         "puts the home indicator on Progress (6.0.6)");
+         "with the opaque `black` status bar the app ends at the true screen " +
+         "bottom and the full inset is owed; a measured-gap subtraction " +
+         "belongs to `black-translucent` and puts the home indicator on the " +
+         "tab labels (6.0.9)");
   }
   if(HTML.indexOf("@media (display-mode: standalone){#app{height:100%;}}") < 0){
     fail("the standalone height override is gone or is a viewport unit " +
@@ -5084,80 +4997,18 @@ if(!/function legendBlock/.test(HTML) ||
          "seen resolving against Safari's browser metrics in standalone " +
          "(the floating footer), and 100vh overshot a short-viewport grant " +
          "and cut the bar's labels off the screen (the no-text footer). " +
-         "Both reports are the owner's, both 16 Aug. 6.0.6 added a " +
-         "max-height:100dvh clamp for the rotation bug and 6.0.8 took it " +
-         "back out: the bug happens under both status-bar tags, so the " +
-         "stale-grant reading the clamp was built on was wrong, and an " +
-         "unmotivated clamp on the frame is one more thing to explain");
-  }  /* 4.0.8: the heal. The band under the installed bar outlived three fixes
-     because the document never scrolls (3.9.7 moved scroll onto #app), so
-     WebKit never re-resolves a viewport it granted stale — the collapsed
-     browser-chrome number sticks forever, 100% honestly fills the short
-     grant, and the remainder shows as a dead band the owner can see and
-     nothing here could reach. vpHeal() is the community re-measure: hide
-     #app, force one layout, show it — WebKit re-resolves the viewport in
-     the same task (no paint in between, so no flash), and the same move
-     heals the documented keyboard bug where the viewport shrinks for good
-     after typing (this app has a search box). Gates, each load-bearing:
-     standalone only (a browser's short viewport is the browser's own
-     chrome, correct and none of ours); portrait shrink over 24px (iPad
-     windows and desktop installs are legitimately short); never while an
-     INPUT/TEXTAREA holds focus (display:none blurs it and eats the
-     keyboard mid-word); capped tries (if the short render is REAL, the
-     heal is a no-op and must not spin); and the scroll survives through
-     the seam — scrollKeep before, scrollPut after, snapTo(S.tab) because
-     display:none zeroed the deck's own scroll. */
-  if(!/function vpHeal\(\)\{/.test(HTML)){
-    fail("vpHeal() is gone — the installed app's stale-viewport band has no " +
-         "cure again: the document never scrolls, so nothing else ever asks " +
-         "WebKit to re-resolve a stale standalone grant (4.0.8)");
+         "Both reports are the owner's, both 16 Aug");
   }
-  var healBody = optionalFn("vpHeal", "the stale-viewport cure cannot be checked");
-  if(!/isStandalone\(\)/.test(healBody) || !/vpShrunk\(\)/.test(healBody)){
-    fail("vpHeal() lost its standalone or shrink gate — it would toggle " +
-         "#app in plain browsers or on legitimately-short windows (iPad, " +
-         "desktop installs), where the short viewport is not a defect");
-  }
-  if(!/INPUT/.test(healBody) || !/TEXTAREA/.test(healBody)){
-    fail("vpHeal() no longer checks the focused element — display:none on " +
-         "#app blurs a focused input and eats the keyboard mid-word");
-  }
-  if(!/scrollKeep\(\)/.test(healBody) || !/scrollPut\(keep\)/.test(healBody) || !/snapTo\(S\.tab\)/.test(healBody)){
-    fail("vpHeal() no longer restores what the display toggle destroys — " +
-         "scroll position through the seam and the deck's snap both zero " +
-         "when #app leaves the tree");
-  }
-  if(!/document\.addEventListener\("focusout"/.test(HTML) || HTML.indexOf("setTimeout(vpTick, 300)") < 0){
-    fail("the viewport triggers are gone — vpTick (the heal) must run at " +
-         "standalone boot and after every input blur, or the stale grant " +
-         "returns on the exact paths that made it");
-  }
-  /* 6.0.6: the reverse of the 4.0.9 pin. --vpdead answered a question that
-     only `black-translucent` asks — how much of the bottom inset is reserved
-     for hardware the webview cannot reach — and under `default` the answer is
-     none of it. A var that measures a gap and subtracts it from a pad is one
-     tag change away from being wrong in the other direction, which is exactly
-     what 6.0.4 shipped. It is retired rather than left unused, so nothing can
-     wire a second consumer to it. vpHeal() stays: the keyboard bug it also
-     cures is not a standalone-chrome question. */
-  if(/--vpdead/.test(HTML)){
-    fail("--vpdead is back — the 4.0.9 pad reclaim was retired in 6.0.6 " +
-         "because `default` makes the bottom edge real and env(bottom) " +
-         "honest. A measured-gap subtraction on the bottom pad is correct " +
-         "only under `black-translucent`; wired up under `default` it " +
-         "collapses the pad to zero and puts the home indicator on the tab " +
-         "labels");
-  }
-  if(/function vpSync\(\)/.test(HTML)){
-    fail("vpSync() is back — it exists only to write --vpdead, which 6.0.6 " +
-         "retired; see the block above before reintroducing either");
-  }
-  if(!/if\(vpGap\(\) === before\) vpTries = 6;/.test(HTML)){
-    fail("vpHeal() no longer gives up when a toggle changes nothing — the " +
-         "owner's probe proved the short render is REAL on iOS 26 " +
-         "(vh/lvh stripes below the render edge), so a heal that cannot " +
-         "move innerHeight must stop at one attempt, not burn its cap " +
-         "toggling #app");
+  /* 6.0.9: the 301108 workaround is retired whole. vpHeal() (4.0.8) and
+     vpSync()/--vpdead (4.0.9) measured screen.height − innerHeight to find
+     the dead band `black-translucent` leaves under the installed app. Under
+     `black` that gap is the status bar — always 62pt in portrait, never a
+     defect — so the heal would toggle #app for nothing and the sync would
+     subtract the bar from the bottom pad. */
+  if(/--vpdead/.test(HTML) || /function vp(Heal|Sync|Gap|Shrunk|Tick)\(/.test(HTML)){
+    fail("the 301108 viewport workaround is back (vpHeal/vpSync/--vpdead) — " +
+         "it only answers `black-translucent`; under the opaque `black` bar " +
+         "the gap it measures is the status bar itself (6.0.9)");
   }
   /* The window is not the scroller any more, so a window scroll call is a
      call to the element that no longer moves — a silent no-op in every
@@ -10283,26 +10134,12 @@ var ROUTE_VOCAB = [
   /* Never read here. Any appearance is a new forced-layout site. */
   var REFUSED = ["scrollHeight", "scrollY", "pageYOffset", "offsetTop",
                  "offsetWidth", "clientHeight", "clientWidth",
-                 "getComputedStyle"];
+                 "getComputedStyle", "innerWidth", "innerHeight"];
 
   /* Read here, exactly this many times, for exactly this reason. The count is
      the assertion: one more is a new site, one fewer means the fix landed and
      this entry moves to REFUSED. */
   var PINNED = [
-    ["innerWidth", 1,
-     "vpShrunk()'s orientation gate, argued in 4.0.8. WINDOW metrics, not " +
-     "element layout — reading them forces nothing — but they sat in " +
-     "REFUSED because sizing layout from them is how viewport bugs get " +
-     "hand-rolled. The heal is the one caller: it compares the window to " +
-     "the screen to DETECT a stale standalone grant, off the render path, " +
-     "behind the standalone gate. A second appearance has to be argued for"],
-    ["innerHeight", 2,
-     "both in vpShrunk(), argued in 4.0.8: once against innerWidth (the " +
-     "portrait gate) and once against screen.height (the shrink test) — " +
-     "the two comparisons that decide the heal may run at all. Window " +
-     "metrics, no reflow; the danger they were refused for is sizing " +
-     "layout from them, and nothing here sizes anything. A third " +
-     "appearance has to be argued for"],
     ["scrollTop", 3,
      "the whole of the app's scroll seam, and the only three places the name " +
      "may appear: scrollKeep() reads #app's position — render()'s keep, " +
@@ -10323,16 +10160,12 @@ var ROUTE_VOCAB = [
      "same task, and the seam still owns every restore. A fourth " +
      "appearance is a scroll site outside the seam and has to be argued " +
      "for here"],
-    ["offsetHeight", 2,
-     "ONE: the header's own height, measured once to set --hdrh when the " +
+    ["offsetHeight", 1,
+     "the header's own height, measured once to set --hdrh when the " +
      "store is blocked (it wrote --ghtop until 3.5.0 derived --ghtop from " +
      "--hdrh — one source, section 128). Read THEN write, correct order, " +
-     "not a forced reflow. TWO, argued in 4.0.8: vpHeal()'s read of " +
-     "documentElement.offsetHeight after writing display:none — a forced " +
-     "reflow ON PURPOSE, because the reflow IS the mechanism: it is the " +
-     "one thing that makes WebKit re-resolve a stale standalone viewport " +
-     "grant, runs at most a handful of times per session behind four " +
-     "gates, and never on the render path. A third appearance has to be " +
+     "not a forced reflow. 6.0.9 retired the second read, vpHeal()'s " +
+     "forced reflow, with the heal itself. A second appearance has to be " +
      "argued for"],
     ["getBoundingClientRect", 4,
      "3.8.3's search-box anchor, the soak fix for the box that jumped while " +
@@ -11194,82 +11027,25 @@ var ROUTE_VOCAB = [
          "must name them: *,::before,::after");
   }
 
-  /* (Q4, rewritten in 6.0.5) The two --hdr declarations still move together,
-     and both are now OPAQUE, and the header carries no backdrop-filter.
-     From 3.x to 6.0.4 the token was rgba(...,.96) and this section pinned the
-     two alphas to each other — F2's ghosting rule, one theme fixed and the
-     other shipped broken being the failure it was written for. 6.0.5 retires
-     the alpha instead of pinning it. 6.0.5 made both solid and took the
-     backdrop-filter off the header as the fix for the iOS 27 glass band, on
-     the published reading that the OS samples the background AND the
-     backdrop-filter of sticky elements at the viewport edges. **It did not
-     work.** Measured off the owner's screenshot of the installed 6.0.5, the
-     top band still carried the glass: the wordmark kept half its edge energy
-     against 6.0.4 and the bat 60%, while the card title and body copy below
-     were pixel-identical between the two builds. The tag is the switch, not
-     the sampling, and 6.0.6 ships `default`.
-
-     The pins stay anyway, for a smaller and better-evidenced reason: with a
-     solid --hdr the 14px blur was compositing 4% of a backdrop, which is
-     nothing anyone could name, and putting it back re-arms two failures this
-     tree has already paid for — 4.0.4's all-round halo bleeding through the
-     filter into a full-width seam, and 4.0.7's animated box-shadow repainting
-     the blur every frame. A filter that buys no pixels and costs two known
-     glitches does not come back by accident. If a real need for one returns,
-     it goes on an absolute child, not on the element at top:0. */
-  var hdrDecls = HTML.match(/--hdr:[^;]+;/g) || [];
-  if(hdrDecls.length !== 2){
-    fail("--hdr is declared " + hdrDecls.length + " time(s); the two themes " +
+  /* (Q4) The two --hdr declarations move together. The token LOOKS like one
+     value and is declared twice — default theme and darker. F2's ghosting fix
+     raised the default; the rule is the relationship, not the two literals:
+     if one alpha moves, the other moves with it. Same lesson as the ring and
+     the bat in 3.0.0 — pin the relationship, survive the next honest change. */
+  var alphas = [];
+  (HTML.match(/--hdr:rgba\([^)]*\)/g) || []).forEach(function(d){
+    var a = d.match(/,\s*(\.?\d+(?:\.\d+)?)\)$/);
+    if(a) alphas.push(a[1]);
+  });
+  if(alphas.length !== 2){
+    fail("--hdr is declared " + alphas.length + " time(s); the two themes " +
          "declare it twice, and a third declaration (or a lost one) is a " +
          "theme this section has never seen");
-  }
-  hdrDecls.forEach(function(d){
-    if(!/^--hdr:#[0-9A-Fa-f]{6};$/.test(d)){
-      fail("--hdr is not a solid hex colour (" + d + ") — a translucent " +
-           "header is what iOS 26+ samples as a request for glass in the " +
-           "status-bar inset, and re-opens the iOS 27 band 6.0.5 closed");
-    }
-  });
-  var hdrCss = (HTML.match(/\nheader\{[^}]*\}/) || [""])[0];
-  /* (Q5, 6.0.8) THE HEADER IS NOT STICKY, and never usefully was. Its scroll
-     container is #app, which is overflow:hidden and never scrolls — 3.9.7 moved
-     scroll onto #app and 4.0.0 made the panels the scrollports, so main and
-     .panel are the header's SIBLINGS and the only things that scroll. A sticky
-     element there is a no-op for layout and has been since 4.0.0.
-     It is not a no-op for the engine. A sticky element gets a node in WebKit's
-     scrolling tree and is positioned by the compositor rather than by layout,
-     which makes it the one thing in this frame that can move while every
-     scroll offset in the document reads zero. That is exactly the owner's
-     report: flip the installed app to landscape and back and the header is off
-     the top of the screen by 62.7pt, permanently, with doc, #app and panel
-     scrollTop all 0. Four cuts of viewport-unit and scroll-offset work did not
-     touch it, and the bug reproduces under BOTH status-bar tags, so it is not
-     the tag either (release-prep-6.0.8.md).
-     position:relative keeps z-index:30 applicable — a static element cannot
-     take one, and the tab bar at 40 and the dropped belt at 20 are stacked
-     against it — and costs nothing else: same paint, same box, no scrolling
-     tree node. The two sticky rules that remain (.ghead at --ghtop, .pathseg
-     at calc(--ghtop - --beltH)) are inside panels that really do scroll and
-     are pinned by section 128's own F1/F3 clauses. */
-  if(/position:sticky/.test(hdrCss)){
-    fail("the header is position:sticky again — #app never scrolls, so it " +
-         "does nothing for layout, and the scrolling-tree node it creates is " +
-         "the mechanism 6.0.8 removed for the rotation bug: an element the " +
-         "compositor can move while every scroll offset reads zero. See the " +
-         "block above before putting it back");
-  }
-  if(!/position:relative/.test(hdrCss)){
-    fail("the header is not position:relative — z-index:30 needs a " +
-         "positioned element to apply, and the tab bar (40) and the dropped " +
-         "belt (20) are stacked against it (6.0.8)");
-  }
-  if(/backdrop-filter/.test(hdrCss)){
-    fail("the header carries a backdrop-filter again — with a solid " +
-         "--hdr behind it the blur shows nothing, and it is the other half " +
-         "of the pair iOS 26+ reads as a request for glass in the top inset " +
-         "(6.0.5). If a real need for it returns, it goes on an absolute " +
-         "child, not on the header itself — which since 6.0.8 is not even " +
-         "sticky, so nothing is composited here at all");
+  } else if(alphas[0] !== alphas[1]){
+    fail("the two --hdr declarations have drifted apart (" + alphas.join(" vs ") +
+         ") — the parked belt ghosts through the blur in whichever theme was " +
+         "left behind, which is F2 fixed in one theme and shipped broken in " +
+         "the other");
   }
 
   /* (F5, widened in 4.0.4) While parked, the strip is not a control — and
@@ -11771,7 +11547,7 @@ var ROUTE_VOCAB = [
      against the repaint bill it reintroduces. */
   if(/@keyframes beltglow/.test(HTML)){
     fail("the belt glow is animated again — a box-shadow keyframe over the " +
-         "header's backdrop-filter repaints the blur every frame, which was " +
+         "header's backdrop-filter repaints the blur every frame, which is " +
          "the owner-reported on-device glitch 4.0.8 removed. The glow is " +
          "static; a pulse must be argued against that repaint bill");
   }
@@ -12976,7 +12752,7 @@ var ROUTE_VOCAB = [
      its second argument is python, not an expected failure. The arguments
      are read the way bash reads them — by qa/negative/census.js since 5.3.1,
      the same reader 65, 113 and run-all.sh use. */
-  var NO_SECT_PINNED = 747;  /* 5.3.1: six retrofitted a sect when the credit rule tightened (negtest161 ×2, 162, 180, 210 ×2); four exact duplicates struck (negtest162, 186, 250, 270). 6.0.3: one more retrofitted — negtest176’s missing-height fixture, whose mutation trips §157 as well. 6.0.5: one struck — negtest360’s “one --hdr moves without the other”, whose guard (§128 Q4) stopped pinning the two alphas to each other when --hdr went solid; the three fixtures that replaced it name §128. 6.0.6: two more retrofitted — negtest475’s standalone-branch fixture and negtest478’s vpSync fixture, both rewritten when their guards inverted, and a rewritten fixture names its section */
+  var NO_SECT_PINNED = 742;  /* 5.3.1: six retrofitted a sect when the credit rule tightened (negtest161 ×2, 162, 180, 210 ×2); four exact duplicates struck (negtest162, 186, 250, 270). 6.0.3: one more retrofitted — negtest176’s missing-height fixture, whose mutation trips §157 as well. 6.0.9: eight struck — negtest478’s heal and reclaim fixtures, retired with the 301108 workaround; its three replacements name §64 */
   if(fixtureCensus().broken) return;
   fixtureCensus().suites.forEach(function(su){
     su.cases.forEach(function(c){
@@ -14690,7 +14466,7 @@ var ROUTE_VOCAB = [
     ["the Content-Security-Policy meta", /<meta http-equiv="Content-Security-Policy" content="/],
     ["apple-mobile-web-app-capable",     /<meta name="apple-mobile-web-app-capable" content="yes">/],
     ["mobile-web-app-capable",           /<meta name="mobile-web-app-capable" content="yes">/],
-    ["apple-mobile-web-app-status-bar-style", /<meta name="apple-mobile-web-app-status-bar-style" content="default">/],
+    ["apple-mobile-web-app-status-bar-style", /<meta name="apple-mobile-web-app-status-bar-style" content="black">/],
     ["apple-mobile-web-app-title",       /<meta name="apple-mobile-web-app-title" content="Night Watcher">/],
     ["the manifest link",                /<link rel="manifest" href="manifest.json">/],
     ["<title>",                          /<title>[^<]+<\/title>/],
@@ -15529,48 +15305,11 @@ var ROUTE_VOCAB = [
   if(!stateRule([".group.here"], {outline: "2px solid Highlight"})){
     fail("the here-group's corner marks are gradients, which forced colors strip — the group takes a Highlight outline");
   }
-  /* 6.0.4, from the 11 September forced-colors sweep. TWO READINGS, ONE
-     BLOCK.
-
-     A FILL IS NOT A SHAPE. Forced colors replace an author background with
-     Canvas, so a control drawn as a fill with `border:0` is not a flattened
-     button — it is bare text on the page ground, with nothing to say where
-     it begins or ends. Five controls were built that way (Begin the path
-     and Mark watched; Share the night, Create backup code, Search
-     everything and Add optional, all `.bkbtn.primary`; Install; Restore on
-     an incoming shared link; and every toast), and each now declares a
-     border inside this block so the shape survives the repaint. The
-     chamfer clip-path on three of them cuts the frame at two corners,
-     which reads as a clipped frame rather than a lost one. Controls whose
-     fill sits inside a bordered container (`.ghead`, the belt's `.buckle`)
-     are deliberately not in the list: the container keeps the shape.
-
-     A STATE RULE IN THIS BLOCK STILL LOSES A CASCADE IT DOES NOT WIN.
-     `.includes .scope button[aria-pressed="true"]` (0,3,1) outside the
-     block beats the block's own `.scope button[aria-pressed="true"]`
-     (0,2,1) on background and color, while the block's
-     forced-color-adjust:none goes on applying — so with the belt open the
-     three pressed switches painted brand gold with forcing switched off,
-     the exact thing 5.3.1's rule forbids. Reading the block as text cannot
-     see a loss that happens outside it; the answer is a state rule at the
-     winning specificity, and the browser check now observes the computed
-     result under emulation. */
-  if(!stateRule([".heroacts .go", ".bkbtn.primary", ".bkbtn.installbtn", ".viewing button"], {border: "1px solid ButtonText"})){
-    fail("a filled control loses its shape under forced colors — Begin the path, a primary backup button, Install and Restore are drawn as a fill with border:0, so forced colors leave bare text; each takes a 1px ButtonText border in this block");
-  }
-  if(!stateRule([".toast"], {border: "1px solid CanvasText"})){
-    fail("the toast loses its shape under forced colors — its fill becomes Canvas and the message floats on the page ground; it takes a 1px CanvasText border in this block");
-  }
-  if(!stateRule([".includes .scope button[aria-pressed=\"true\"]"],
-                {"forced-color-adjust": "none", background: "Highlight", color: "HighlightText", "border-color": "Highlight"})){
-    fail("the open belt's pressed switches paint brand gold under forced colors — .includes .scope button[aria-pressed=\"true\"] outside this block outranks the block's own .scope rule, so the includes state needs its own rule here at the winning specificity");
-  }
   var PAINTED = [".st", ".film.skip .tick::after", ".drule i", ".drule::before", ".drule::after", ".stars button.on .st", ".hero .dsep",
                  ".homefoot::before", ".note.foot::before", ".legend::before",
                  ".chip[aria-pressed=\"true\"]", ".scope button[aria-pressed=\"true\"]", ".pathseg button[aria-pressed=\"true\"]",
                  ".themerow button[aria-pressed=\"true\"]", ".film.done .tick", ".segs i.on", ".sky .seg.lit .cr .p", ".sky .sh i",
-                 "#beltpeek::after", ".gbar i",
-                 ".includes .scope button[aria-pressed=\"true\"]"];
+                 "#beltpeek::after", ".gbar i"];
   rules159.forEach(function(r){
     if(!("forced-color-adjust" in r.decls)) return;
     var brand = r.sels.filter(function(x){ return PAINTED.indexOf(x) < 0; });

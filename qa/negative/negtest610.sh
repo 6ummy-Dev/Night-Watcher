@@ -73,7 +73,7 @@ run_case "the head loses preload fonts/ibm-plex-mono-latin-600-normal.woff2" \
 
 run_case "the head loses apple-mobile-web-app-status-bar-style" \
   "required tag(s): apple-mobile-web-app-status-bar-style" \
-  "${P}a='<meta name=\"apple-mobile-web-app-status-bar-style\" content=\"default\">';assert a in s;s=s.replace(a,'',1);${W}" \
+  "${P}a='<meta name=\"apple-mobile-web-app-status-bar-style\" content=\"black\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses apple-mobile-web-app-title" \
@@ -361,11 +361,6 @@ run_case "the README drops its row for docs/_headers" \
 run_case "the README drops its row for docs/404.html" \
   "README's file table does not list: docs/404.html" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('docs/404.html')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
-  guards "" 45
-
-run_case "the README drops its row for docs/vp-rotate.html" \
-  "README's file table does not list: docs/vp-rotate.html" \
-  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('docs/vp-rotate.html')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
   guards "" 45
 
 run_case "the README drops its row for docs/.well-known/security.txt" \

@@ -14,6 +14,42 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.0.9] — 2026-09-15
+
+**Back to 6.0.3, with the one fix the glass needed.** 6.0.4 through 6.0.8 are
+withdrawn: every change they made to the served files, the harness and the
+documents is reverted to 6.0.3, and their entries below stay as the record of
+what shipped and why it was taken back. What goes on top is the fix every
+public report of this bug converges on. A PATCH by README's rule — no entry
+moves, no surface is added, and nothing saved changes shape or meaning.
+**Reinstall once:** the status-bar tag is read when the app is added to the
+Home Screen.
+
+### Fixed
+
+- **`apple-mobile-web-app-status-bar-style`: `black-translucent` → `black`.**
+  On iOS 26 and later a translucent status bar over an edge-to-edge installed
+  app has two known faults: iPadOS/iOS 27 fills the top inset with
+  higher-contrast Liquid Glass (the blur band the owner reported — the same
+  fix as subflux PR #960), and WebKit bug 301108 miscomputes the webview's
+  height by one status-bar height. `black` is an opaque bar with a white
+  clock that does not follow light or dark mode, so it sits on the app's own
+  black. `default` was what 6.0.4 tried; `black` is the dark-theme choice.
+- **The 301108 workaround is retired with the tag.** `vpGap`, `vpShrunk`,
+  `vpSync`, `vpHeal`, `vpTick` and `--vpdead` (4.0.8, 4.0.9) existed to find
+  and pay back the dead band `black-translucent` leaves under the app. Under
+  an opaque bar the gap they measure is the status bar itself, so the reclaim
+  would strip the tab bar's clearance above the home indicator — the 6.0.4
+  regression — and the heal would toggle `#app` for nothing. The tab bar and
+  the toast go back to the plain `env(safe-area-inset-bottom)`.
+
+### QA
+
+- Section 64 pins the plain inset and refuses the workaround's return;
+  section 120 moves `innerWidth` and `innerHeight` to refused and
+  `offsetHeight` to one read; section 153 requires `black`. `negtest478` and
+  `negtest610` follow.
+
 ## [6.0.8] — 2026-09-15
 
 **The header was never sticky in any way that mattered, and that is the bug.**

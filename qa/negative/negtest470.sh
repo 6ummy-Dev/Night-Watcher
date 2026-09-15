@@ -200,12 +200,6 @@ run_case "the standalone height override is dropped" \
   "${P}a='@media (display-mode: standalone){#app{height:100%;}}\n';assert a in s
 s=s.replace(a,'',1);${W}"
 
-run_case "the override becomes a viewport unit again" \
-  "the standalone height override is gone" \
-  "${P}a='@media (display-mode: standalone){#app{height:100%;}}';assert a in s
-s=s.replace(a,'@media (display-mode: standalone){#app{height:100dvh;}}',1);${W}" \
-  guards "" 64
-
 run_case "somebody reaches for scrollend" \
   "something listens for scrollend" \
   "${P}a='vp.addEventListener(\"scroll\", swipeTick, {passive:true});';assert a in s

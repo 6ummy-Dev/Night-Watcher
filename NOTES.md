@@ -317,99 +317,16 @@ appears when a write fails and goes when one succeeds. Nothing else clears it.
 
 CSS cannot reach the system status bar; the meta tag has to follow.
 
-**iOS is no longer one of the browsers that reads it (6.0.4).** Safari stopped
-honouring `theme-color` in iOS 26 and instead tints its own chrome by sampling
-the `background-color` *and* the `backdrop-filter` of fixed and sticky elements
-near the viewport edges. Where it cannot find a solid colour in the top inset
-it fills that inset with Liquid Glass, and iOS/iPadOS 27 raised the contrast of
-that glass — which is how the installed app grew a blur band across its top on
-the day 27 shipped. This page lined up for it exactly: a `sticky` header at
-`top:0` carrying `--hdr` at 96% opacity plus a 14px blur, `viewport-fit=cover`,
-and a status bar the page had asked to render under.
-
-**The tag is the only lever, and it is `default` (6.0.6).** Two cuts settled
-this. 6.0.4 set `apple-mobile-web-app-status-bar-style` to `default`: the OS
-drew an opaque bar, the glass was gone, and three things broke, all of them
-consequences of iOS spending the 62pt it withholds from a standalone app on a
-status bar at the TOP instead of a dead band at the bottom. 6.0.5 tried the
-elegant fix instead — a solid `--hdr`, no `backdrop-filter` on the sticky
-header, tag back to `black-translucent` — and the glass came straight back over
-a header with nothing left to sample. Measured off the owner's screenshots of
-the two installed builds, same screen regions: the wordmark kept 0.50 of its
-edge energy and the bat 0.60, while the card title (1.01) and the body copy
-(1.00) below were pixel-identical. The published sampling behaviour is real,
-but it is not what decides this inset. `black-translucent` is.
-
-So `default` ships, and its three costs are each paid where they live rather
-than traded away:
-
-- **The band is painted.** Under `default` the OS fills its bar from the page's
-  own colours. 6.0.4 gave it black twice — `body{background:#000}` (4.0.9, so
-  the phantom band *below* the tab bar would read as bezel) and a standalone
-  `theme-color` of `#000000` (4.0.5, because black was the one colour the
-  frosting returned unchanged). Neither reason survives `default`: there is no
-  band below the bar, and the bar is drawn chrome, not frosting — in 6.0.4's
-  screenshot the OS clock over it is *sharper* than the same clock over 6.0.5's
-  glass. Both now answer the header's colour, `body{background:var(--hdr)}` and
-  the `APPBAR` map beside `THEMEBAR`, so the band reads as the header reaching
-  the top of the screen. Section 28 pins `APPBAR`'s values to `--hdr`'s.
-- **The bottom pad is the plain inset.** `--vpdead` and `vpSync()` are retired.
-  They measured the gap between screen and granted viewport and subtracted it
-  from `#tabs`'s bottom pad, which is right only while that gap sits below the
-  bar. Under `default` the bottom edge is real, `env(safe-area-inset-bottom)`
-  is honest, and the subtraction collapsed the pad to zero and put the home
-  indicator on the tab labels. Retired rather than left unused, so nothing can
-  wire a second consumer to it. `vpHeal()` stays for the keyboard bug.
-- **`#app` is `height:100%`, alone.** The ICB is the one measure of the
-  WebView that cannot overshoot it, and both 16 August reports stand — svh/dvh
-  were seen resolving against Safari's browser metrics in standalone (the
-  floating footer) and 100vh overshot a short grant and cut the bar's labels
-  off (the no-text footer). 6.0.6 added a `max-height:100dvh` clamp for the
-  rotation bug and 6.0.8 took it back out; see below.
-
-### The rotation, and the four readings it took (6.0.8)
-
-Flip the installed app to landscape and back and the sticky header was off the
-top of the screen, permanently — 62.7pt, with about 7pt of header still
-showing, and the document, `#app` and the active panel all at `scrollTop` 0.
-
-**The fix is that the header was `position:sticky` and should never have been.**
-Its scroll container is `#app`, which is `overflow:hidden` and never scrolls:
-3.9.7 moved scroll onto `#app` and 4.0.0 made the panels the scrollports, so
-`main` and `.panel` are the header's siblings and the only things that scroll.
-The sticky has been a no-op for layout since 4.0.0. It is not a no-op for the
-engine — a sticky element gets a node in WebKit's scrolling tree and is
-positioned by the compositor rather than by layout, which makes it the one
-thing in this frame that can move while every scroll offset reads zero.
-`position:relative` keeps `z-index:30` applicable and removes the node.
-
-**Three readings were asserted before that one and all three were wrong**, and
-they are recorded because each was plausible and each cost a release:
-
-1. *6.0.5:* reverting the status-bar tag removes it. It did not.
-2. *6.0.6:* a document overflow — `#app{height:100%}` resolving against the
-   full screen inside a shorter grant. If that were the mechanism the
-   `max-height:100dvh` clamp would have caught it. It did not.
-3. *6.0.7:* a stale standalone grant that a re-armed `vpHeal()` could
-   re-measure on `orientationchange`. It did not move.
-
-**And the trap underneath all three.** `apple-mobile-web-app-status-bar-style`
-is read at INSTALL time. The owner's 6.0.7 screenshot showed a 132pt header
-(`62 + 12 + 46 + 12`) with the clock on the header's navy — that is
-`black-translucent`, not the `default` 6.0.6 and 6.0.7 had shipped. Those two
-cuts' tag change had never run on the device, and the bug reproduces under both
-tags. **Before reasoning about an installed web app, read which build is
-actually installed: the header's height is the tell — 132pt is
-`black-translucent`, 70pt is `default`.**
-
-`docs/vp-rotate.html` stays until a rotation on a real device survives this.
-
-**The tag is read at install time**, in both directions: an already-installed
-copy keeps the behaviour it was installed with until it is deleted and re-added,
-which is a delete an installed app does not survive without a backup code
-first, its storage container being separate from Safari's. `THEMEBAR` itself
-stays and is still guarded, because every browser that does honour
-`theme-color` still needs it kept in step with the theme.
+On iOS the installed app's bar is not this meta at all but
+`apple-mobile-web-app-status-bar-style`, read once, when the app is added to the
+Home Screen — a deploy changes nothing on a device until it is reinstalled.
+6.0.9 sets it to `black`. `black-translucent` puts an edge-to-edge app under a
+see-through bar, and on iOS 26+ that has two known faults: the iOS/iPadOS 27
+Liquid Glass fill across the top inset (subflux PR #960), and WebKit bug 301108,
+which short-changes the webview by one status-bar height at the bottom. The
+4.0.8 heal and the 4.0.9 `--vpdead` pad reclaim answered 301108 and left with
+the tag: under an opaque bar the screen-minus-viewport gap is the bar itself.
+6.0.4–6.0.8 are the record of trying this without retiring them.
 
 ### `dedupeLog()`
 
@@ -1730,39 +1647,7 @@ reader's.** No `forced-color-adjust: none` on brand chrome — the wordmark,
 the path title, the belt, the group heads, prose all take the system
 colours the reader chose, and guard 159 refuses a rule that overrides them.
 The browser check reads the repaint under emulation; a real Windows High
-Contrast theme is still the honest check, and it was run on Desert and Night
-sky on 3 September 2026 — every allowlisted state repainted, the NW Deco
-wordmark took the reader's palette, and no defect came back.
-
-6.0.4 closed the two things that pass did not reach, both found by a
-forced-colors sweep of every state on 11 September.
-
-**A fill is not a shape.** Forced colors replace an author background with
-`Canvas`. A control drawn as a fill with `border:0` therefore does not
-flatten — it disappears as a control and leaves bare text sitting on the page
-ground, with nothing to say where it begins or ends. Five were built that way:
-`.heroacts .go` (Begin the path, Mark watched), `.bkbtn.primary` (Share the
-night, Create backup code, Search everything, Add optional),
-`.bkbtn.installbtn`, `.viewing button` (Restore, on an incoming shared link)
-and `.toast`. Each now declares a border inside the block — `ButtonText` for
-the buttons, `CanvasText` for the toast. The chamfer `clip-path` on three of
-them cuts the frame at two corners, which reads as a clipped frame rather than
-as a missing one. Deliberately not in the list: `.ghead` and the belt's
-`.buckle` lose a fill too, but each sits inside a container whose border
-forced colors keep, so the shape survives without help.
-
-**A state rule inside the block still loses a cascade it does not win.** With
-the belt open, `.includes .scope button[aria-pressed="true"]` (specificity
-0,3,1) selects the pressed switches and outranks the block's own `.scope
-button[aria-pressed="true"]` (0,2,1) on `background` and `color` — while the
-block's `forced-color-adjust: none` goes on applying. The result was the one
-thing the rule above forbids: Animated + Live, Movies and + Optional painting
-`--signaldim` `#B8941A` on `--ink`, brand gold with forcing switched off. The
-guard reads the block as text and so cannot see a loss that happens outside
-it. The fix is a state rule at the winning specificity, and the lesson is that
-a text pin proves a rule is written, never that it wins — which is why the
-browser check now observes the computed colour of a pressed switch in the open
-belt against a `Highlight` probe.
+Contrast theme is still the honest check and still owed to the owner's eye.
 
 ### `#splash`
 
