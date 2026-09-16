@@ -71,7 +71,7 @@ jobs:
   # PR-gated job never runs (it did not, for a long time — NOTES-history.md
   # ("Where the served and config files' histories went")).
   #
-  # Cost: 1421 fixtures, of which 1315 run guards.js and 106 run smoke.js — most
+  # Cost: 1431 fixtures, of which 1325 run guards.js and 106 run smoke.js — most
   # of those scoped to one phase by SMOKE_ONLY. The split is guarded in this
   # file the same as the README's counts, so the next drift fails the build.
   # run-all.sh dispatches longest-first; this job shards 4-way on top, packed
@@ -97,7 +97,7 @@ jobs:
           - shard: "1"
             pick: 'negtest(162|165|186|190|260|300|310|340|360|370|440|540|560|570|590|610|660|680|681)\.sh|negtest\.sh'
           - shard: "2"
-            pick: 'negtest(163|166|172|177|180|183|185|187|200|210|271|330|420|475|478|500|510|520|690|700)\.sh'
+            pick: 'negtest(163|166|172|177|180|183|185|187|200|210|271|330|420|475|478|500|510|520|690|700|730)\.sh'
           - shard: "3"
             pick: 'negtest(131|161|164|171|175|176|220|251|270|350|390|410|460|490|530|550|620|630|640|710)\.sh'
           - shard: "4"
