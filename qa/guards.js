@@ -167,7 +167,7 @@ function blessHtml(next){
      112  The Restore box survives a render nobody asked for
      118  The 404 still reads over its own alley
      161  The accessibility tree is a record, and it survives the calendar
-     162  After a rotation, the installed header is put back
+     162  The installed frame has no script
 
    DEPLOY
      10   No vendored third-party code
@@ -4997,15 +4997,34 @@ if(!/function legendBlock/.test(HTML) ||
      `default`) and moved to `default` (section 153): the bar is opaque, the
      62pt is spent above the page, the bottom edge is real and env(bottom)
      is honest. A reclaim left in place would read the status bar as dead
-     space and collapse the pad to max(0, 34 − 62) = 0, the home indicator
-     across the tab labels — what 6.0.4 shipped (its 09:15 screenshot: a
-     59pt tab bar). */
+     space and collapse the pad to max(0, 34 − 62) = 0 — a measurement
+     doing a design's job.
+
+     6.1.3: that 0 is the design now, in the installed app, portrait. The
+     owner measured 6.0.4's 59pt bar (09:15, labels ending 1pt above the
+     home indicator) as the right footer and 6.1.2's 93pt one as "a lot of
+     margin", and the rule is that the frame is CSS, not a script per
+     symptom (section 162). So the browser pad stays the plain inset, and
+     one media rule, after the two rules it overrides (same specificity —
+     the later rule wins), takes the inset off the bar and the toast when
+     the app is installed and upright. Landscape and every browser tab keep
+     the inset. iPads included: the owner's call. */
   if(!/padding-bottom:env\(safe-area-inset-bottom\);/.test(tabsCss)){
     fail("#tabs's bottom pad is not the plain env(safe-area-inset-bottom) — " +
-         "with the opaque `default` status bar the app ends at the true screen " +
-         "bottom and the full inset is owed; a measured-gap subtraction " +
-         "belongs to `black-translucent` and puts the home indicator on the " +
-         "tab labels (6.0.9)");
+         "in a browser tab and in landscape the full inset is owed; a " +
+         "measured-gap subtraction belongs to `black-translucent` (6.0.9), " +
+         "and the installed footer is the media rule below (6.1.3)");
+  }
+  var instFoot = "@media (display-mode: standalone) and (orientation: portrait)" +
+                 "{#tabs{padding-bottom:0;}.toast{bottom:calc(var(--tab-h) + 16px);}}";
+  if(HTML.indexOf(instFoot) < 0){
+    fail("the installed portrait footer rule is gone or changed — installed " +
+         "and upright, the bar and the toast drop the bottom inset (6.0.4's " +
+         "59pt bar, the owner's call, 6.1.3): " + instFoot);
+  } else if(HTML.indexOf(instFoot) < HTML.indexOf("\n.toast{position:fixed;")){
+    fail("the installed portrait footer rule sits above the rules it " +
+         "overrides — same specificity, so the later #tabs and .toast rules " +
+         "win and the installed bar keeps the inset");
   }
   if(HTML.indexOf("@media (display-mode: standalone){#app{height:100%;}}") < 0){
     fail("the standalone height override is gone or is a viewport unit " +
@@ -11086,7 +11105,7 @@ var ROUTE_VOCAB = [
        6.0.4 (sticky)    flat (0,0,0) bar, wordmark edge sharpness 0.89
        6.1.1 (relative)  glass-grained bar, wordmark 0.37
      So the sticky stays, at top:0, for the one thing it does: be the
-     element iOS samples. Guard 162's reseat covers the rotation. */
+     element iOS samples. The rotation is iOS 27's (section 162). */
   if(!/^\nheader\{position:sticky;top:0;z-index:30;/.test(hdrCss)){
     fail("the header is not position:sticky at top:0 — installed on iOS 26+, " +
          "the status bar is painted from a sticky or fixed element at the top " +
@@ -15687,83 +15706,52 @@ var ROUTE_VOCAB = [
   note("aria corpus: " + states.length + " states recorded in qa/aria/, the day line, BUILD and BUILT normalised out");
 })();
 
-/* ---------- 162. After a rotation, the installed header is put back ---------- */
-/* 6.1.2. Flip the installed app to landscape and back and iOS 27 leaves the
-   page 62pt too high on screen. 6.1.1's frame readout measured what the
-   page itself can see of it (owner, 16 Sept): before and after, the layout
-   viewport stayed 812, 100dvh 812, the insets 0/34 — and the header's top,
-   delivered by an IntersectionObserver, went from 0 to -71. Nothing about
-   the viewport changed; the page's own header sat one header-height above
-   its viewport. That is the one signal the page has, so the reseat keys on
-   it and on nothing else:
+/* ---------- 162. The installed frame has no script ---------- */
+/* 6.1.3. The installed app's frame is CSS: the tag (section 153), the sticky
+   header (128 Q5), the standalone #app height and the installed portrait
+   footer (64). No script measures or moves it.
 
-   - installed only (isStandalone), observers only — section 120's refused
-     reads stay refused;
-   - the header's top is DELIVERED (twenty-one thresholds, so any move from
-     fully in to fully out reports);
-   - when it is above the top, the header is scrolled back with
-     scrollIntoView({block:"start"}) — the browser's own arithmetic over
-     whichever ancestor moved, the same door snapTo() uses, and
-     inline:"nearest" so the deck's horizontal snap is never touched;
-   - never while a text field has focus (the keyboard legitimately scrolls
-     the page to reveal it), and re-checked on focusout, which is the other
-     way the page is left displaced (the 4.0.8 keyboard report);
-   - at most three tries per displacement, reset when the header is back,
-     so a move the page cannot undo does not become a loop.
+   How it got here. 15-16 Sept shipped a cut per symptom, each one a script
+   or a calculation: 6.1.1 a frame readout (a hidden fixed probe and a line
+   on Progress), 6.1.2 a rotation reseat (an IntersectionObserver on the
+   header and scrollIntoView). The readout measured what it was for, and the
+   reseat did not move the flip on the owner's phone (16 Sept, 09:07). The
+   owner's rule, restated that morning: the app is built by its rules, and
+   one issue does not get its own script.
 
-   Chromium does not reproduce the iOS flip, so the browser check stages
-   the displacement (a scrolled root) and proves the reseat undoes it, and
-   leaves a focused field alone. Whether iOS's flip is a displacement
-   scrollIntoView can undo is the owner's rotation on a real phone. */
+   The flip itself. Turn the installed app to landscape and back and the
+   whole page sits 62pt high, black below. It arrived with the blur fix:
+   6.0.4 is 6.0.3's code with only the tag changed (plus three High
+   Contrast lines and one line of copy), and it was reported under
+   `black-translucent` too (6.0.5-6.0.7). No CSS value moves across it
+   (6.1.1's readout), iOS ignores a manifest orientation lock, and it
+   matches WebKit bug 301994: the Home Screen web app's status-bar space,
+   fixed in iOS 26.2 and reopened for 26.5.2 and iOS 27 (4 Aug 2026).
+   Recorded as iOS's, in NOTES.md; closing and reopening the app resets
+   it. This section keeps the scripts that tried to answer it out. */
 
 (function(){
-  var sw = optionalFn("seatWatch", "the installed app's rotation reseat starts there");
-  if(!/if\(!h \|\| !isStandalone\(\)/.test(sw)){
-    fail("seatWatch() attaches without checking isStandalone() — the reseat " +
-         "answers an installed-app defect, and a browser tab never has it");
-  }
-  if(!/new IntersectionObserver\(/.test(sw) || !/boundingClientRect\.top/.test(sw) ||
-     !/i <= 20; i\+\+\) th\.push\(i \/ 20\)/.test(sw)){
-    fail("seatWatch() no longer takes the header's top from an " +
-         "IntersectionObserver with twenty-one thresholds — section 120 " +
-         "refuses the read, and fewer thresholds miss a partial move");
-  }
-  if(!/addEventListener\("focusout", function\(\)\{ setTimeout\(reseat, \d+\); \}\)/.test(sw)){
-    fail("seatWatch() no longer re-checks on focusout — a field that " +
-         "blurred with the page still displaced is the other way it is left " +
-         "there, and the observer does not report a position that did not move");
-  }
-  var rs = optionalFn("reseat", "the header is put back there");
-  if(!/if\(seatTop >= -1 \|\| seatTries >= 3\) return;/.test(rs)){
-    fail("reseat() lost its guard — it acts only while the header is above " +
-         "the top, and at most three times per displacement");
-  }
-  if(!/if\(t === "INPUT" \|\| t === "TEXTAREA"\) return;/.test(rs)){
-    fail("reseat() acts while a text field has focus — the keyboard " +
-         "legitimately scrolls the page to reveal the field, and pulling the " +
-         "header back would fight it");
-  }
-  if(!/scrollIntoView\(\{block: "start", inline: "nearest"\}\)/.test(rs)){
-    fail("reseat() no longer puts the header back with " +
-         "scrollIntoView({block:\"start\", inline:\"nearest\"}) — the browser's " +
-         "own arithmetic over whichever ancestor moved, and never the deck's " +
-         "horizontal snap");
-  }
-  if(!/\nseatWatch\(\);\n/.test(HTML)){
-    fail("seatWatch() is never started at boot");
-  }
-  if(!/var seatTop = 0, seatTries = 0;/.test(HTML) ||
-     HTML.indexOf("var seatTop = 0, seatTries = 0;") > HTML.indexOf("\nseatWatch();\n")){
-    fail("seatTop/seatTries are not declared above the boot — 6.1.1's readout " +
-         "state was declared below the render that read it and an installed " +
-         "boot threw");
+  if(/function (seatWatch|reseat|gapWatch)\(/.test(HTML) || /\bseat(Top|Tries)\b/.test(HTML)){
+    fail("6.1.2's rotation script is back (seatWatch/reseat) — the flip is " +
+         "iOS 27's (WebKit bug 301994) and the installed frame has no script " +
+         "(6.1.3)");
   }
   if(/id="fprobe"|frameWatch|frameline/.test(HTML)){
     fail("6.1.1's frame readout is back — it measured what it was for, and a " +
          "fixed element at the top edge is exactly what iOS samples for the " +
          "status bar (Q5)");
   }
-  note("rotation reseat: installed only, header top delivered, scrollIntoView back, never over a focused field, three tries");
+  if(/matchMedia\("\(orientation/.test(HTML) || /"orientationchange"/.test(HTML) ||
+     /screen\.orientation/.test(HTML)){
+    fail("a script listens for the phone turning — the flip is iOS 27's " +
+         "(WebKit bug 301994) and nothing in the frame answers it by script " +
+         "(6.1.3)");
+  }
+  if(/visualViewport/.test(HTML)){
+    fail("a script watches the visual viewport — the 4.0.8 heal listened " +
+         "there and 6.0.9 retired it; the installed frame is CSS (6.1.3)");
+  }
+  note("installed frame: no rotation script, no readout, no turn or viewport listener; the flip is recorded as iOS 27's");
 })();
 
 /* ---------- report ---------- */

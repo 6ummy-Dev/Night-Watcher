@@ -14,6 +14,86 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.1.3] — 2026-09-16
+
+**Clean frame.** 6.1.2 took the blur off the top: the owner's phone showed a
+flat black bar and a sharp header at 09:07, matching 6.0.4's 09:15 shot
+pixel row for pixel row. This cut does two things. It takes out the scripts
+that 15–16 September added for the rotation, and it makes the installed
+footer a design rule. A PATCH by README's rule: no entry moves, and nothing
+saved changes shape or meaning. **No reinstall is needed**, since the tag
+and the header are unchanged. Close the app and reopen it so the new shell
+takes.
+
+### What the 6.1.2 screenshots measured (16 Sept, 09:07)
+
+| | 6.1.2 | 6.0.4 (09:15) |
+|---|---|---|
+| status bar | flat black, 0–62pt | the same |
+| header | 62–132pt | the same |
+| tab bar | starts at 781pt, **93pt** tall (59 + 34 inset) | starts at 815pt, **59pt** |
+
+After one turn to landscape and back, 6.1.2 still sat 62pt high with black
+below it. The rotation script moved nothing.
+
+### Changed
+
+- **The installed footer is one CSS rule.**
+  `@media (display-mode: standalone) and (orientation: portrait)` takes the
+  bottom inset off the tab bar and the toast. It is placed after the two
+  rules it overrides. On an iPhone this is 6.0.4's 59pt bar, which is the
+  owner's call. 6.0.3/6.0.4 reached it through the 4.0.9 script, which
+  subtracted the status bar from the pad; now it is a rule with no
+  measuring. Browser tabs and landscape keep the inset. It applies to iPads
+  too.
+
+### Removed
+
+- **6.1.2's rotation reseat** (`seatWatch()`, `reseat()` and their state).
+  The installed frame has no script.
+
+### The flip, recorded
+
+It is iOS 27's, not the app's:
+
+- it arrived with the blur fix (6.0.4 is 6.0.3 with only the tag changed);
+- it was reported under `black-translucent` too;
+- no CSS value moves across it;
+- iOS ignores a manifest orientation lock;
+- it matches WebKit bug 301994, the Home Screen web app's status-bar space,
+  which was fixed in iOS 26.2 and reopened for 26.5.2 and iOS 27.
+
+Reopening the app resets it. NOTES has the record.
+
+### QA
+
+- **Section 64** keeps the browser pad as the plain inset and requires the
+  installed portrait rule, word for word, after the rules it overrides.
+- **Section 162** is now "The installed frame has no script". It refuses
+  the rotation script and its state, the 6.1.1 readout, any listener for
+  the phone turning, and anything watching the visual viewport. The section
+  count stays at 162.
+- **The browser check** drops the four reseat checks and adds two. With a
+  34px bottom inset set through CDP, a browser tab keeps it. With the rule's
+  display-mode condition lifted through CSSOM, the bar's pad is 0 and the
+  toast sits 34px lower upright, and landscape gets both back. Five mutants
+  (no rule, the rule above the base rules, the tab's pad zeroed, no toast
+  half, the rule matching every orientation) each turned a check red. WebKit prints a skip line: it has no
+  CDP door. Checks: 129 → 127.
+- **Fixtures**: negtest478 grows from 3 to 7 (the rule, its portrait
+  condition, its toast half, its place). negtest730 goes from 11 to 9 (the
+  script and the readout staying out, and four kinds of turn and viewport
+  listener). The census moves from 1,430 to 1,432.
+
+### Documentation
+
+- **NOTES**: "Open" is empty. `THEMEBAR`, `#tabs` (new), "The installed
+  flip" (new, replacing the reseat entry) and the header entry are updated.
+- **ARCHITECTURE**, **README** (weight 246 KiB, counts) and **`qa.yml`**
+  are updated.
+- **6.1.2's entry** dated its readout "16 Sept, 22:45". It was 15 Sept,
+  22:45 in Montevideo, and the heading is corrected.
+
 ## [6.1.2] — 2026-09-16
 
 **Put it back.** 6.1.1's readout did its one job on the owner's phone, and
@@ -21,7 +101,7 @@ two of its numbers decide this cut. A PATCH by README's rule — fixes and QA.
 No entry moves and nothing saved changes shape or meaning. **No reinstall:**
 the tag stays `default`; close the app and reopen it so the new shell takes.
 
-### What the readout and the screenshots measured (16 Sept, 22:45–22:46)
+### What the readout and the screenshots measured (15 Sept, 22:45–22:46 Montevideo)
 
 - **Across a flip, the page's viewport does not change** — view 812, dvh 812,
   insets 0/34, before and after. **The header's top does: 0 → −71**, one

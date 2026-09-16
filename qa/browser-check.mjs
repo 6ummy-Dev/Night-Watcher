@@ -1325,8 +1325,8 @@ ok("keyboard: after Escape, focus is on the path switcher, not the page",
    Guard 128's Q5 pins the rule — sticky at top:0, because iOS paints the
    installed status bar from it; this reads what the engine computed and
    turns the phone round twice. Chromium has never reproduced the iOS flip,
-   so a green line here is layout evidence, not a close; the reseat below
-   is what answers the flip. */
+   so a green line here is layout evidence, not a close; the flip itself is
+   recorded as iOS 27's (guard 162). */
 {
   const readHead = () => page.evaluate(() => {
     const h = document.querySelector("header");
@@ -1345,67 +1345,59 @@ ok("keyboard: after Escape, focus is on the path switcher, not the page",
      [r0, r1, r2].map(r => r.pos + "@" + r.top).join(" → "));
 }
 
-/* ---- the rotation reseat (6.1.2) -----------------------------------------
-   Section 162 pins the shape; this drives it. iOS 27's flip cannot be
-   reproduced here, so the displacement 6.1.1's readout measured on the
-   owner's phone — the header one header-height above its viewport — is
-   staged: the root is made scrollable and scrolled by 71. navigator.standalone
-   is the isStandalone() door a browser can open. The reseat must put the
-   header back; must leave it alone while a text field has focus and put it
-   back on blur; and must never run in a browser tab. */
-{
-  const stage = async (pg) => pg.evaluate(() => {
-    document.body.style.height = "calc(100% + 300px)";
-    document.documentElement.style.overflow = "visible";
-    document.body.style.overflow = "visible";
-    (document.scrollingElement || document.documentElement).scrollTop = 71;
-    return Math.round(document.querySelector("header").getBoundingClientRect().top);
+/* ---- the installed footer (6.1.3) ----------------------------------------
+   Installed and upright, the tab bar and the toast drop the bottom inset —
+   one CSS rule, the owner's call (6.0.4's 59pt bar); guard 64 pins its text
+   and its place after the rules it overrides. Chromium cannot emulate
+   display-mode, so this proves the rest in a real engine: with a 34px
+   bottom inset (the iPhone's, set through CDP), a browser tab keeps the
+   whole inset; with the rule's display-mode condition lifted through CSSOM,
+   the bar's pad is 0 and the toast sits 34px lower in portrait, and both
+   get the inset back in landscape. The flip has no check here: it is
+   iOS 27's (section 162). */
+if(WK){
+  out.push("  skip installed footer — the safe-area inset is set through CDP, " +
+           "which Playwright's WebKit has no door to; Chromium drives it every run");
+} else {
+  const fctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: "block" });
+  const fp = await fctx.newPage();
+  const fcdp = await fctx.newCDPSession(fp);
+  await fcdp.send("Emulation.setSafeAreaInsetsOverride", { insets: { top: 0, bottom: 34, left: 0, right: 0 } });
+  await fp.goto(SITE_URL + "#progress", { waitUntil: "load" });
+  await fp.waitForFunction(() => typeof window.render === "function");
+  const foot = () => fp.evaluate(() => ({
+    pad: getComputedStyle(document.getElementById("tabs")).paddingBottom,
+    toast: parseFloat(getComputedStyle(document.getElementById("toast")).bottom)
+  }));
+  const inTab = await fp.evaluate(() => matchMedia("(display-mode: standalone)").matches);
+  const tab = await foot();
+  const lifted = await fp.evaluate(() => {
+    for(const sh of document.styleSheets){
+      for(const r of sh.cssRules){
+        if(r.media && /display-mode: standalone/.test(r.media.mediaText) && /orientation: portrait/.test(r.media.mediaText)){
+          r.media.mediaText = "(orientation: portrait)";
+          return true;
+        }
+      }
+    }
+    return false;
   });
-  const headTop = (pg) => pg.evaluate(() => Math.round(document.querySelector("header").getBoundingClientRect().top));
-  const settle = (pg) => pg.evaluate(() => new Promise(r => setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(r)), 400)));
-
-  const sctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: "block" });
-  const sp = await sctx.newPage();
-  const sErrs = [];
-  sp.on("pageerror", e => sErrs.push(String(e)));
-  await sp.addInitScript(() => {
-    try{ Object.defineProperty(Navigator.prototype, "standalone", { get: () => true, configurable: true }); }catch(e){}
-    try{ localStorage.clear(); localStorage.setItem("batwatch-settings", JSON.stringify({ path: "continuity" })); }catch(e){}
-  });
-  await sp.goto(SITE_URL + "#progress", { waitUntil: "load" });
-  await sp.waitForFunction(() => typeof window.render === "function" && !document.getElementById("splash"));
-  await settle(sp);
-  const staged = await stage(sp);
-  await sp.waitForFunction(() => Math.round(document.querySelector("header").getBoundingClientRect().top) === 0,
-                           null, { timeout: 3000 }).catch(() => {});
-  const back = await headTop(sp);
-  ok("rotation reseat: installed, a header pushed above the top is put back",
-     staged === -71 && back === 0, "staged " + staged + ", after " + back);
-
-  await sp.focus("#restorebox");
-  await sp.evaluate(() => { (document.scrollingElement || document.documentElement).scrollTop = 71; });
-  await settle(sp);
-  const whileTyping = await headTop(sp);
-  await sp.evaluate(() => document.activeElement.blur());
-  await sp.waitForFunction(() => Math.round(document.querySelector("header").getBoundingClientRect().top) === 0,
-                           null, { timeout: 3000 }).catch(() => {});
-  const afterBlur = await headTop(sp);
-  ok("rotation reseat: a focused field is left alone, and the header comes back when it blurs",
-     whileTyping === -71 && afterBlur === 0, "typing " + whileTyping + ", after blur " + afterBlur);
-  ok("rotation reseat: an installed boot throws nothing", sErrs.length === 0,
-     sErrs.length ? sErrs.join("; ").slice(0, 160) : "clean");
-  await sctx.close();
-
-  const tab = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await tab.goto(SITE_URL + "#progress", { waitUntil: "load" });
-  await tab.waitForFunction(() => typeof window.render === "function");
-  await settle(tab);
-  const tabStaged = await stage(tab);
-  await settle(tab);
-  const tabAfter = await headTop(tab);
-  ok("rotation reseat: a browser tab is never touched", tabStaged === -71 && tabAfter === -71,
-     "staged " + tabStaged + ", after " + tabAfter);
-  await tab.close();
+  await frames(2);
+  const up = await foot();
+  await fp.setViewportSize({ width: 844, height: 390 });
+  await frames(3);
+  const side = await foot();
+  await fp.setViewportSize({ width: 390, height: 844 });
+  await frames(3);
+  const upAgain = await foot();
+  ok("installed footer: a browser tab keeps the whole 34px inset",
+     !inTab && tab.pad === "34px", (inTab ? "matched standalone; " : "") + "pad " + tab.pad);
+  ok("installed footer: installed and upright, the bar drops the inset and the toast sits 34px lower; landscape gets both back",
+     lifted && up.pad === "0px" && Math.round(tab.toast - up.toast) === 34 &&
+     side.pad === "34px" && Math.round(side.toast - up.toast) === 34 && upAgain.pad === "0px",
+     (lifted ? "" : "rule not found; ") + "pad " + [up.pad, side.pad, upAgain.pad].join(" → ") +
+     ", toast " + [tab.toast, up.toast, side.toast].map(Math.round).join("/"));
+  await fctx.close();
 }
 
 /* ---- the accessibility tree, recorded (6.1.0) --------------------------

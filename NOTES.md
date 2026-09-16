@@ -35,16 +35,8 @@ backup code and the JSON export are `DATA-MODEL.md`.
 
 ## Open
 
-**The installed rotation (15–16 September 2026).** Flip the Home Screen app to
-landscape and back and the frame sits 62pt too high on screen, black below.
-It survived every tag (`default`, `black-translucent`, `black`) and every
-page-side reading until 6.1.1's readout measured what the page can see: the
-viewport, `100dvh` and the insets are unchanged across the flip, and the
-header's own top goes from 0 to −71. 6.1.2 answers exactly that
-(`seatWatch()` / `reseat()` below, guard 162) and nothing else. It closes the
-day a rotation survives on the phone; if it does not survive 6.1.2, the
-displacement is outside anything the page can scroll, and it is recorded as an
-iOS 27 limit rather than cut for again.
+Nothing. The installed flip is recorded as iOS 27's (below, "The installed
+flip").
 
 ---
 
@@ -373,31 +365,54 @@ installed, the page is drawn behind the clock after a rotation, and before one
 the wordmark's edges measure 0.38 (edge step ÷ contrast) against 0.80 for the
 same face lower down — the glass reaches over the header. `default` is the one
 value measured opaque on the owner's phone (6.0.4, 09:15: a flat black bar
-0–62pt, the header 62–132, the wordmark at 0.89). Under it the bottom inset is
-honest, so the tab bar keeps the plain 34pt. The installed header keeps its
+0–62pt, the header 62–132, the wordmark at 0.89). In a browser tab and in
+landscape the tab bar keeps the plain bottom inset; installed and upright it
+drops it (`#tabs`, below). The installed header keeps its
 theme — navy in Dark Deco, black in Darker — by the owner's call on 16 Sept;
 6.1.0's black override is gone and guard 128 Q6 refuses it.
 
-### `seatWatch()` / `reseat()` — the rotation reseat (6.1.2)
+### `#tabs` — the installed portrait footer (6.1.3)
 
-Installed only. 6.1.1 printed a frame readout under Progress's Build line for
-one evening, and on the owner's phone it measured the flip as the page sees
-it: view 812, `100dvh` 812 and insets 0/34 unchanged, the header's top 0 →
-−71. So the reseat keys on the header's top and nothing else. An
-`IntersectionObserver` with twenty-one thresholds delivers it (section 120
-refuses the read); when it is above the viewport, `reseat()` calls
-`scrollIntoView({block:"start", inline:"nearest"})` on the header — the
-browser's arithmetic over whichever ancestor moved, and `inline:"nearest"` so
-the deck's horizontal snap is left alone. It never acts while an input or
-textarea has focus, because the keyboard scrolls the page to reveal the field
-on purpose; a `focusout` listener re-checks after the field lets go, since the
-observer does not report a position that did not move. Three tries per
-displacement, reset when the header is back. `seatTop`/`seatTries` are
-declared with `KEY`/`SKEY`, above the boot — 6.1.1's readout state was
-declared below the render that read it, and an installed boot threw before the
-browser check caught it. The readout itself is gone: it measured what it was
-for, and its hidden probe was a fixed element at the top edge, which is what
-iOS reads for the status bar (`header`, below).
+In a browser tab the bar pads the whole `env(safe-area-inset-bottom)`.
+Installed and upright, one rule placed after the `#tabs` and `.toast` rules
+(same specificity, so it has to come later) takes the inset off the bar and
+the toast. On an iPhone that is 6.0.4's 59pt bar: the labels end 1pt above the
+home indicator, which is the footer the owner measured good (09:15, 15 Sept)
+against 6.1.2's 93pt. 6.0.3/6.0.4 reached the same 59pt by accident: the
+4.0.9 script subtracted the status bar from the bottom pad. 6.1.3 makes it a
+design rule with no measuring. It applies to iPads too, by the owner's call.
+Landscape keeps the inset. Guard 64 holds the rule and its place.
+
+### The installed flip — iOS 27's, recorded (6.1.3)
+
+Turn the Home Screen app to landscape and back, and the whole page sits 62pt
+high with black below it. The header is under the clock, with an 8pt sliver
+showing.
+
+- **It arrived with the blur fix.** 6.0.4 is 6.0.3's code with only the
+  status-bar tag changed (plus three High Contrast lines and one line of
+  copy).
+- **It is not the tag.** It was reported under `black-translucent` too
+  (6.0.5–6.0.7).
+- **No CSS value moves across it.** 6.1.1's readout showed view 812,
+  `100dvh` 812 and insets 0/34 on both sides. Only the header's delivered
+  top changed (0 → −71).
+- **iOS ignores a manifest orientation lock.**
+- **It matches WebKit bug 301994.** That bug is the Home Screen web app's
+  status-bar space (screen 874, `innerHeight`/`100dvh` 812). It was fixed in
+  iOS 26.2 and reopened on 4 Aug 2026 for 26.5.2 and the iOS 27 beta.
+
+Two cuts tried to answer it by script, and both are gone:
+
+- **6.1.1's readout** measured what it was for.
+- **6.1.2's reseat** (an IntersectionObserver on the header, then
+  `scrollIntoView`) did not move the flip on the phone.
+
+The owner's rule, restated on 16 Sept: the app is built by its rules, and
+one issue does not get its own script. So the flip is iOS's. Closing and
+reopening the app resets the layout. Guard 162 keeps the scripts out: no
+rotation script or its state, no readout, no listener for the phone turning,
+nothing watching the visual viewport.
 
 ### `dedupeLog()`
 
@@ -1711,7 +1726,7 @@ edge, falling back to Liquid Glass without one — installed, under `default`,
 6.0.4's sticky header gave a flat black bar and a wordmark at 0.89 edge
 sharpness, 6.1.1's relative header gave a grained bar and 0.37. So the sticky
 stays at `top:0` for the one thing it does, and guard 128's Q5 holds it
-there. Keep anything else fixed away from the top edge: 6.1.1's hidden probe
+there. The flip is iOS 27's (above, "The installed flip"). Keep anything else fixed away from the top edge: 6.1.1's hidden probe
 was one. The blur on the header stays; the belt's drop slides out from under
 it. The two other sticky rules — `.ghead` and `.pathseg` — live inside panels
 that really do scroll.

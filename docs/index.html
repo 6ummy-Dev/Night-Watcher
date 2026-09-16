@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-r2UUKKGk4On0nKcQSU3SWgqm3/hb/YUkSnymI3cLSnY='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Xh4+tvbxZqCcsSs4xaVEoWnMkyXY/qNEFT7VnOScbF8='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -470,6 +470,7 @@ html[data-beltpark] .pathseg:not([data-held]):not([data-drop]):not([data-ride]){
 .segs i{flex:1;height:8px;border-radius:0;background:var(--line2);}
 .segs i.on{background:var(--signal);}
 .toast{position:fixed;left:50%;transform:translate(-50%,80px);bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 16px);background:var(--suit);color:var(--ink);border-radius:0;padding:11px 20px;font-family:var(--mono);font-size:var(--t-label);letter-spacing:.08em;text-transform:uppercase;font-weight:600;z-index:35;visibility:hidden;transition:transform .25s,visibility 0s .25s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;}
+@media (display-mode: standalone) and (orientation: portrait){#tabs{padding-bottom:0;}.toast{bottom:calc(var(--tab-h) + 16px);}}
 .toast.show{visibility:visible;transition-delay:0s;transform:translate(-50%,0);}
 #splash{position:fixed;top:0;left:0;right:0;bottom:0;z-index:70;background:var(--ink);color:var(--signal);display:flex;align-items:center;justify-content:center;transition:opacity .32s ease;animation:splashfail .3s ease 5s forwards;}
 #splash svg{display:block;width:min(64vw,320px);height:auto;transition:transform .32s ease;}
@@ -1502,11 +1503,10 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "6.1.2";
+var BUILD = "6.1.3";
 var BUILT = "2026-09-16";
 var KEY = "batwatch-v3";
 var SKEY = "batwatch-settings";
-var seatTop = 0, seatTries = 0;
 var SPLIT = {"batwoman-complete-series-2019":["batwoman-season-1-2019","batwoman-season-2-2021","batwoman-season-3-2021"]};
 var SITE = "https://nightwatcher.life/";
 var canSave = true;
@@ -3794,27 +3794,6 @@ try{
   snapTo(S.tab);
 } finally {
   splashOff();
-}
-seatWatch();
-
-function seatWatch(){
-  var h = document.querySelector("header");
-  if(!h || !isStandalone() || !window.IntersectionObserver) return;
-  var th = [], i;
-  for(i = 0; i <= 20; i++) th.push(i / 20);
-  new IntersectionObserver(function(entries){
-    seatTop = Math.round(entries[entries.length - 1].boundingClientRect.top);
-    if(seatTop >= -1) seatTries = 0;
-    else reseat();
-  }, {threshold: th}).observe(h);
-  document.addEventListener("focusout", function(){ setTimeout(reseat, 150); });
-}
-function reseat(){
-  if(seatTop >= -1 || seatTries >= 3) return;
-  var a = document.activeElement, t = a && a.tagName;
-  if(t === "INPUT" || t === "TEXTAREA") return;
-  seatTries++;
-  document.querySelector("header").scrollIntoView({block: "start", inline: "nearest"});
 }
 
 function splashOff(){
