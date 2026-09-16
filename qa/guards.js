@@ -167,7 +167,7 @@ function blessHtml(next){
      112  The Restore box survives a render nobody asked for
      118  The 404 still reads over its own alley
      161  The accessibility tree is a record, and it survives the calendar
-     162  The installed frame reports itself, and is told rather than read
+     162  After a rotation, the installed header is put back
 
    DEPLOY
      10   No vendored third-party code
@@ -11074,46 +11074,25 @@ var ROUTE_VOCAB = [
   }
 
   var hdrCss = (HTML.match(/\nheader\{[^}]*\}/) || [""])[0];
-  /* (Q5, 6.0.8; withdrawn by 6.0.9's revert; back in 6.1.0) THE HEADER IS
-     NOT STICKY, and never usefully was. Its scroll container is #app, which
-     is overflow:hidden and never scrolls — 3.9.7 moved scroll onto #app and
-     4.0.0 made the panels the scrollports, so main and .panel are the
-     header's SIBLINGS and the only things that scroll. A sticky element there
-     is a no-op for layout and has been since 4.0.0.
-     It is not a no-op for the engine. A sticky element gets a node in
-     WebKit's scrolling tree and is positioned by the compositor rather than
-     by layout, which makes it the one thing in this frame that can move
-     while every scroll offset in the document reads zero. That is exactly
-     the owner's 15 September report: flip the installed app to landscape and
-     back and the header is off the top by 62.7pt, permanently, with doc,
-     #app and panel scrollTop all 0. It reproduced under BOTH status-bar
-     tags, so the tag is not the cause, and 6.0.9 put the sticky back only
-     because "revert to 6.0.3" included it (NightWatcherQA6.0.9 P2-1).
-     FALSIFIED AS THE ROTATION'S CAUSE, 16 Sept (6.1.1): the owner's 6.1.0
-     screenshots, with this rule live, show the flip moving the WHOLE frame
-     up 62.0pt — the in-flow tab bar with it — and a 62pt black band below
-     the page. A compositor node cannot do that. The pin stays for the
-     reason that was always true on its own: sticky does nothing for layout
-     here, and a scrolling-tree node that does nothing is not kept. The
-     rotation itself is measured by the frame readout (section 162) before
-     anything else is changed for it.
-     position:relative keeps z-index:30 applicable — a static element cannot
-     take one, and the tab bar at 40 and the dropped belt at 20 are stacked
-     against it — and costs nothing else: same paint, same box, no scrolling
-     tree node. The blur stays: it composites the belt as the drop slides it
-     out from under the header, which is a layout position, not a scrolling
-     one. The two sticky rules that remain (.ghead at --ghtop, .pathseg at
-     calc(--ghtop - --beltH)) are inside panels that really do scroll and are
-     pinned by this section's own F1/F3 clauses. */
-  if(/position:sticky/.test(hdrCss)){
-    fail("the header is position:sticky again — #app never scrolls, so it " +
-         "does nothing for layout, and all it adds is a scrolling-tree node " +
-         "the compositor positions. See Q5 before putting it back");
-  }
-  if(!/^\nheader\{position:relative;z-index:30;/.test(hdrCss)){
-    fail("the header is not position:relative with z-index:30 — the " +
-         "z-index needs a positioned element to apply, and the tab bar (40) " +
-         "and the dropped belt (20) are stacked against it (Q5)");
+  /* (Q5) THE HEADER IS STICKY AT TOP:0, AND ITS JOB IS THE STATUS BAR.
+     Its scroll container is #app, which never scrolls, so for layout the
+     sticky does nothing — 6.0.8 read that as a reason to remove it and
+     named it the rotation's cause (a compositor-positioned node); 6.1.0
+     shipped that. Both readings were wrong, and 16 September measured it:
+     the flip moves the in-flow tab bar too, so it is not this node; and
+     Safari 26+ paints the status bar from fixed and sticky elements at the
+     top edge, falling back to Liquid Glass when it finds none. The owner's
+     screenshots, installed, `default` tag in both:
+       6.0.4 (sticky)    flat (0,0,0) bar, wordmark edge sharpness 0.89
+       6.1.1 (relative)  glass-grained bar, wordmark 0.37
+     So the sticky stays, at top:0, for the one thing it does: be the
+     element iOS samples. Guard 162's reseat covers the rotation. */
+  if(!/^\nheader\{position:sticky;top:0;z-index:30;/.test(hdrCss)){
+    fail("the header is not position:sticky at top:0 — installed on iOS 26+, " +
+         "the status bar is painted from a sticky or fixed element at the top " +
+         "edge and falls back to glass without one: 6.1.1's relative header " +
+         "measured a blurred wordmark (0.37) where 6.0.4's sticky one read " +
+         "0.89 (Q5)");
   }
 
   /* (Q6, 6.1.0; reversed in 6.1.1) THE INSTALLED HEADER KEEPS ITS THEME.
@@ -15708,71 +15687,83 @@ var ROUTE_VOCAB = [
   note("aria corpus: " + states.length + " states recorded in qa/aria/, the day line, BUILD and BUILT normalised out");
 })();
 
-/* ---------- 162. The installed frame reports itself, and is told rather than read -- */
-/* 6.1.1. The installed-app rotation (NOTES "Open") has cost seven cuts of
-   reasoning from pixels. The owner's 16 Sept screenshots measured the flip
-   exactly — the whole frame up 62.0pt, a 62pt black band below — and two
-   different mechanisms draw those same pixels: the document scrolled by
-   62, or a viewport shrunk to 812 that also lost its top inset. The page's
-   own numbers tell them apart, so the installed app prints them: one line
-   under the Build line on Progress, only when standalone, reading
-   "Frame at launch … — now …" with screen size, orientation, the layout
-   viewport's height, 100dvh, the two insets and the header's top.
+/* ---------- 162. After a rotation, the installed header is put back ---------- */
+/* 6.1.2. Flip the installed app to landscape and back and iOS 27 leaves the
+   page 62pt too high on screen. 6.1.1's frame readout measured what the
+   page itself can see of it (owner, 16 Sept): before and after, the layout
+   viewport stayed 812, 100dvh 812, the insets 0/34 — and the header's top,
+   delivered by an IntersectionObserver, went from 0 to -71. Nothing about
+   the viewport changed; the page's own header sat one header-height above
+   its viewport. That is the one signal the page has, so the reseat keys on
+   it and on nothing else:
 
-   TOLD, NEVER READ. Section 120 refuses the layout reads that would give
-   those numbers directly (innerHeight, clientHeight, getComputedStyle...),
-   and this does not argue for an exception: #fprobe is a fixed, hidden,
-   full-height box with three children sized env(safe-area-inset-top),
-   env(safe-area-inset-bottom) and 100dvh, and a ResizeObserver DELIVERS
-   their heights; an IntersectionObserver delivers the header's top. The
-   same shape as buildDeck()'s width. Observers attach only when installed,
-   so a browser tab pays nothing but three hidden elements. */
+   - installed only (isStandalone), observers only — section 120's refused
+     reads stay refused;
+   - the header's top is DELIVERED (twenty-one thresholds, so any move from
+     fully in to fully out reports);
+   - when it is above the top, the header is scrolled back with
+     scrollIntoView({block:"start"}) — the browser's own arithmetic over
+     whichever ancestor moved, the same door snapTo() uses, and
+     inline:"nearest" so the deck's horizontal snap is never touched;
+   - never while a text field has focus (the keyboard legitimately scrolls
+     the page to reveal it), and re-checked on focusout, which is the other
+     way the page is left displaced (the 4.0.8 keyboard report);
+   - at most three tries per displacement, reset when the header is back,
+     so a move the page cannot undo does not become a loop.
+
+   Chromium does not reproduce the iOS flip, so the browser check stages
+   the displacement (a scrolled root) and proves the reseat undoes it, and
+   leaves a focused field alone. Whether iOS's flip is a displacement
+   scrollIntoView can undo is the owner's rotation on a real phone. */
 
 (function(){
-  if(HTML.indexOf('<div id="fprobe" aria-hidden="true"><i class="fpt"></i><i class="fpb"></i><i class="fpd"></i></div>') < 0){
-    fail("#fprobe is gone or reshaped — the frame readout measures the viewport " +
-         "and the insets through its three children, one each for the top " +
-         "inset, the bottom inset and 100dvh, and it is hidden from AT");
+  var sw = optionalFn("seatWatch", "the installed app's rotation reseat starts there");
+  if(!/if\(!h \|\| !isStandalone\(\)/.test(sw)){
+    fail("seatWatch() attaches without checking isStandalone() — the reseat " +
+         "answers an installed-app defect, and a browser tab never has it");
   }
-  [[/#fprobe\{position:fixed;top:0;bottom:0;[^}]*visibility:hidden;pointer-events:none;\}/, "a fixed, full-height, hidden, untouchable box"],
-   [/\.fpt\{height:env\(safe-area-inset-top\);\}/, "the top-inset child"],
-   [/\.fpb\{height:env\(safe-area-inset-bottom\);\}/, "the bottom-inset child"],
-   [/\.fpd\{height:100dvh;\}/, "the 100dvh child"]].forEach(function(c){
-    if(!c[0].test(HTML)){
-      fail("the frame probe's CSS lost " + c[1] + " — without it the readout " +
-           "reports a number that is not the one it names");
-    }
-  });
-  var fw = optionalFn("frameWatch", "the installed app's frame readout starts there");
-  if(!/if\(!box \|\| !isStandalone\(\)/.test(fw)){
-    fail("frameWatch() attaches without checking isStandalone() — the readout " +
-         "is for the installed app, and a browser tab has no reason to run " +
-         "two observers for it");
+  if(!/new IntersectionObserver\(/.test(sw) || !/boundingClientRect\.top/.test(sw) ||
+     !/i <= 20; i\+\+\) th\.push\(i \/ 20\)/.test(sw)){
+    fail("seatWatch() no longer takes the header's top from an " +
+         "IntersectionObserver with twenty-one thresholds — section 120 " +
+         "refuses the read, and fewer thresholds miss a partial move");
   }
-  if(!/new ResizeObserver\(/.test(fw) || !/contentRect\.height/.test(fw) ||
-     !/new IntersectionObserver\(/.test(fw) || !/boundingClientRect\.top/.test(fw)){
-    fail("frameWatch() no longer takes its numbers from observers — the " +
-         "heights come from a ResizeObserver and the header's top from an " +
-         "IntersectionObserver, because section 120 refuses the reads that " +
-         "would give them directly");
+  if(!/addEventListener\("focusout", function\(\)\{ setTimeout\(reseat, \d+\); \}\)/.test(sw)){
+    fail("seatWatch() no longer re-checks on focusout — a field that " +
+         "blurred with the page still displaced is the other way it is left " +
+         "there, and the observer does not report a position that did not move");
   }
-  var fl = HTML.indexOf('id="frameline"');
-  var flAt = HTML.lastIndexOf("isStandalone() ?", fl);
-  if(fl < 0 || flAt < 0 || fl - flAt > 80){
-    fail("the frame line is not on Progress, or not only when installed — it " +
-         "sits under the Build line, rendered only when isStandalone()");
+  var rs = optionalFn("reseat", "the header is put back there");
+  if(!/if\(seatTop >= -1 \|\| seatTries >= 3\) return;/.test(rs)){
+    fail("reseat() lost its guard — it acts only while the header is above " +
+         "the top, and at most three times per displacement");
   }
-  if(!/\nframeWatch\(\);\n/.test(HTML)){
-    fail("frameWatch() is never started at boot — the \"at launch\" half of the " +
-         "readout is the one a flip cannot recreate");
+  if(!/if\(t === "INPUT" \|\| t === "TEXTAREA"\) return;/.test(rs)){
+    fail("reseat() acts while a text field has focus — the keyboard " +
+         "legitimately scrolls the page to reveal the field, and pulling the " +
+         "header back would fight it");
   }
-  var fn162 = optionalFn("frameNote", "the readout's text is written there");
-  if(!/FRAME\.at = t/.test(fn162) || !/FRAME\.now = t/.test(fn162)){
-    fail("frameNote() no longer keeps both readings — \"at launch\" is taken " +
-         "once, when both observers have spoken, and \"now\" on every delivery; " +
-         "one without the other cannot show what a rotation changed");
+  if(!/scrollIntoView\(\{block: "start", inline: "nearest"\}\)/.test(rs)){
+    fail("reseat() no longer puts the header back with " +
+         "scrollIntoView({block:\"start\", inline:\"nearest\"}) — the browser's " +
+         "own arithmetic over whichever ancestor moved, and never the deck's " +
+         "horizontal snap");
   }
-  note("frame readout: installed only, #fprobe measured by a ResizeObserver, the header by an IntersectionObserver, at launch and now");
+  if(!/\nseatWatch\(\);\n/.test(HTML)){
+    fail("seatWatch() is never started at boot");
+  }
+  if(!/var seatTop = 0, seatTries = 0;/.test(HTML) ||
+     HTML.indexOf("var seatTop = 0, seatTries = 0;") > HTML.indexOf("\nseatWatch();\n")){
+    fail("seatTop/seatTries are not declared above the boot — 6.1.1's readout " +
+         "state was declared below the render that read it and an installed " +
+         "boot threw");
+  }
+  if(/id="fprobe"|frameWatch|frameline/.test(HTML)){
+    fail("6.1.1's frame readout is back — it measured what it was for, and a " +
+         "fixed element at the top edge is exactly what iOS samples for the " +
+         "status bar (Q5)");
+  }
+  note("rotation reseat: installed only, header top delivered, scrollIntoView back, never over a focused field, three tries");
 })();
 
 /* ---------- report ---------- */

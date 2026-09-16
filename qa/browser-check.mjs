@@ -1321,12 +1321,12 @@ ok("keyboard: after Escape, focus is on the path switcher, not the page",
   await lctx.close();
 }
 
-/* ---- the header survives a rotation, and is not sticky (6.1.0) ----------
-   NightWatcherQA6.0.9 P2-1. Guard 128's Q5 pins the rule; this reads what
-   the engine computed and turns the phone round twice. Chromium has never
-   reproduced the iOS compositor skip — a green line here is evidence the
-   relative header lays out where the sticky one did, not a close of the
-   installed-app report, which stays the owner's check on a real device. */
+/* ---- the header survives a rotation (6.1.0; sticky again in 6.1.2) -------
+   Guard 128's Q5 pins the rule — sticky at top:0, because iOS paints the
+   installed status bar from it; this reads what the engine computed and
+   turns the phone round twice. Chromium has never reproduced the iOS flip,
+   so a green line here is layout evidence, not a close; the reseat below
+   is what answers the flip. */
 {
   const readHead = () => page.evaluate(() => {
     const h = document.querySelector("header");
@@ -1340,59 +1340,72 @@ ok("keyboard: after Escape, focus is on the path switcher, not the page",
   await page.setViewportSize({ width: 390, height: 844 });
   await frames(3);
   const r2 = await readHead();
-  ok("rotation: the header is position:relative at z-index 30, and sits at the top through a turn and back",
-     [r0, r1, r2].every(r => r.pos === "relative" && r.z === "30" && r.top === 0),
+  ok("rotation: the header is sticky at z-index 30, and sits at the top through a turn and back",
+     [r0, r1, r2].every(r => r.pos === "sticky" && r.z === "30" && r.top === 0),
      [r0, r1, r2].map(r => r.pos + "@" + r.top).join(" → "));
 }
 
-/* ---- the installed frame readout (6.1.1) ---------------------------------
-   Section 162 pins the shape; this drives it. navigator.standalone is the
-   one isStandalone() door a browser can open (display-mode cannot be
-   emulated on the Chromium this runs on), so the page boots believing it is
-   installed: the line must appear on Progress, both readings must fill from
-   the observers, and they must be the numbers this viewport really has —
-   then a turn to landscape must reach "now" and leave "at launch" alone.
-   The iPhone's numbers are the owner's screenshot; these prove the
-   instrument reads true. */
+/* ---- the rotation reseat (6.1.2) -----------------------------------------
+   Section 162 pins the shape; this drives it. iOS 27's flip cannot be
+   reproduced here, so the displacement 6.1.1's readout measured on the
+   owner's phone — the header one header-height above its viewport — is
+   staged: the root is made scrollable and scrolled by 71. navigator.standalone
+   is the isStandalone() door a browser can open. The reseat must put the
+   header back; must leave it alone while a text field has focus and put it
+   back on blur; and must never run in a browser tab. */
 {
-  const fctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: "block" });
-  const fp = await fctx.newPage();
-  const fErrs = [];
-  fp.on("pageerror", e => fErrs.push(String(e)));
-  await fp.addInitScript(() => {
+  const stage = async (pg) => pg.evaluate(() => {
+    document.body.style.height = "calc(100% + 300px)";
+    document.documentElement.style.overflow = "visible";
+    document.body.style.overflow = "visible";
+    (document.scrollingElement || document.documentElement).scrollTop = 71;
+    return Math.round(document.querySelector("header").getBoundingClientRect().top);
+  });
+  const headTop = (pg) => pg.evaluate(() => Math.round(document.querySelector("header").getBoundingClientRect().top));
+  const settle = (pg) => pg.evaluate(() => new Promise(r => setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(r)), 400)));
+
+  const sctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: "block" });
+  const sp = await sctx.newPage();
+  const sErrs = [];
+  sp.on("pageerror", e => sErrs.push(String(e)));
+  await sp.addInitScript(() => {
     try{ Object.defineProperty(Navigator.prototype, "standalone", { get: () => true, configurable: true }); }catch(e){}
     try{ localStorage.clear(); localStorage.setItem("batwatch-settings", JSON.stringify({ path: "continuity" })); }catch(e){}
   });
-  await fp.goto(SITE_URL + "#progress", { waitUntil: "load" });
-  await fp.waitForFunction(() => typeof window.render === "function" && !document.getElementById("splash"));
-  const line = () => fp.evaluate(() => { const e = document.getElementById("frameline"); return e ? e.textContent : null; });
-  const filled = await fp.waitForFunction(() => {
-    const e = document.getElementById("frameline");
-    return e && !/\u2026/.test(e.textContent) ? e.textContent : false;
-  }, null, { timeout: 5000 }).then(h => h.jsonValue(), () => "");
-  const want = await fp.evaluate(() => ({ h: innerHeight, sw: screen.width, sh: screen.height }));
-  const launch = (filled.match(/at launch (.*?) \u2014 now/) || [])[1] || "";
-  ok("frame readout: installed, the line is on Progress and both readings fill from the observers",
-     !!filled && launch.length > 0, filled || String(await line()));
-  ok("frame readout: at launch it reads this viewport — portrait, view and dvh the window height, insets 0/0, head 0",
-     launch === want.sw + "\u00d7" + want.sh + " portrait \u00b7 view " + want.h + " \u00b7 dvh " + want.h +
-                 " \u00b7 insets 0/0 \u00b7 head 0", launch);
-  await fp.setViewportSize({ width: 844, height: 390 });
-  const turned = await fp.waitForFunction(() => {
-    const e = document.getElementById("frameline");
-    return e && /now .*landscape .*view 390 /.test(e.textContent) ? e.textContent : false;
-  }, null, { timeout: 5000 }).then(h => h.jsonValue(), () => String(""));
-  ok("frame readout: a turn to landscape reaches \"now\" and leaves \"at launch\" as it was",
-     !!turned && turned.indexOf("Frame at launch " + launch + " \u2014") === 0, turned || String(await line()));
-  ok("frame readout: an installed boot throws nothing", fErrs.length === 0,
-     fErrs.length ? fErrs.join("; ").slice(0, 160) : "clean");
+  await sp.goto(SITE_URL + "#progress", { waitUntil: "load" });
+  await sp.waitForFunction(() => typeof window.render === "function" && !document.getElementById("splash"));
+  await settle(sp);
+  const staged = await stage(sp);
+  await sp.waitForFunction(() => Math.round(document.querySelector("header").getBoundingClientRect().top) === 0,
+                           null, { timeout: 3000 }).catch(() => {});
+  const back = await headTop(sp);
+  ok("rotation reseat: installed, a header pushed above the top is put back",
+     staged === -71 && back === 0, "staged " + staged + ", after " + back);
+
+  await sp.focus("#restorebox");
+  await sp.evaluate(() => { (document.scrollingElement || document.documentElement).scrollTop = 71; });
+  await settle(sp);
+  const whileTyping = await headTop(sp);
+  await sp.evaluate(() => document.activeElement.blur());
+  await sp.waitForFunction(() => Math.round(document.querySelector("header").getBoundingClientRect().top) === 0,
+                           null, { timeout: 3000 }).catch(() => {});
+  const afterBlur = await headTop(sp);
+  ok("rotation reseat: a focused field is left alone, and the header comes back when it blurs",
+     whileTyping === -71 && afterBlur === 0, "typing " + whileTyping + ", after blur " + afterBlur);
+  ok("rotation reseat: an installed boot throws nothing", sErrs.length === 0,
+     sErrs.length ? sErrs.join("; ").slice(0, 160) : "clean");
+  await sctx.close();
+
   const tab = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await tab.goto(SITE_URL + "#progress", { waitUntil: "load" });
   await tab.waitForFunction(() => typeof window.render === "function");
-  const inTab = await tab.evaluate(() => !!document.getElementById("frameline"));
-  ok("frame readout: a browser tab never shows the line", !inTab, inTab ? "the line rendered in a tab" : "absent");
+  await settle(tab);
+  const tabStaged = await stage(tab);
+  await settle(tab);
+  const tabAfter = await headTop(tab);
+  ok("rotation reseat: a browser tab is never touched", tabStaged === -71 && tabAfter === -71,
+     "staged " + tabStaged + ", after " + tabAfter);
   await tab.close();
-  await fctx.close();
 }
 
 /* ---- the accessibility tree, recorded (6.1.0) --------------------------

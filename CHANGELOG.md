@@ -14,6 +14,69 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.1.2] — 2026-09-16
+
+**Put it back.** 6.1.1's readout did its one job on the owner's phone, and
+two of its numbers decide this cut. A PATCH by README's rule — fixes and QA.
+No entry moves and nothing saved changes shape or meaning. **No reinstall:**
+the tag stays `default`; close the app and reopen it so the new shell takes.
+
+### What the readout and the screenshots measured (16 Sept, 22:45–22:46)
+
+- **Across a flip, the page's viewport does not change** — view 812, dvh 812,
+  insets 0/34, before and after. **The header's top does: 0 → −71**, one
+  header-height above the page's own viewport. On screen the whole frame
+  still sits 62pt high with black below.
+- **`default` alone does not stop the glass.** Before any flip the wordmark's
+  edge sharpness is **0.37** and the status band is grained, where 6.0.4 —
+  `default` too — read **0.89** under a flat black bar. The difference that
+  matters is the header: 6.0.4's was sticky at `top:0`, and Safari 26+ paints
+  the status bar from sticky or fixed elements at the top edge, falling back
+  to Liquid Glass without one. 6.1.0 removed the sticky on a reading 6.1.1
+  already showed was wrong; that is what brought the glass back. 6.1.1's own
+  hidden probe was a fixed element at the top edge as well.
+
+### Fixed
+
+- **The header is sticky at `top:0` again** — 6.0.4's top, the one the owner
+  measured good: a flat bar and a sharp wordmark. With the plain 34pt inset
+  kept, the tab labels stay clear of the home indicator, which 6.0.4 did not.
+- **After a rotation, the installed header is put back.** The page can see the
+  flip only as its header's top going negative, so that is the trigger: an
+  `IntersectionObserver` delivers the header's top (installed only), and when
+  it is above the viewport, `reseat()` scrolls the header back with
+  `scrollIntoView({block:"start", inline:"nearest"})` — the browser's own
+  arithmetic over whichever ancestor moved, never the deck's horizontal snap.
+  Never while a text field has focus (the keyboard scrolls the page on
+  purpose); re-checked on `focusout`; three tries per displacement, so a move
+  the page cannot undo does not loop. **Unproven on a phone** — Chromium does
+  not reproduce the flip. If it survives this, it is out of the page's reach.
+- **The frame readout is gone** — the line under Progress's Build line and its
+  hidden `#fprobe`. It measured what it was for.
+
+### QA
+
+- **Section 128 Q5** now requires the sticky header at `top:0`, with the
+  measurement above it. **Section 162** is now the reseat: the standalone
+  gate, the delivered top and its twenty-one thresholds, the focusout
+  re-check, the guard and its three tries, the text-field skip,
+  `scrollIntoView` back, the boot start, the state declared above the boot,
+  and the readout staying gone.
+- **The browser check** stages the displacement the readout measured (the
+  root scrolled 71) in an installed boot: the header comes back; a focused
+  field is left alone and the header comes back on blur; a browser tab is
+  never touched; the installed boot throws nothing. Each shown to bite with
+  its half of the fix removed. The rotation line expects sticky. 130 → 129
+  checks (the readout's five out, the reseat's four in).
+- negtest730 reshaped for the reseat (12 → 11); negtest720's Q5 pair re-aimed
+  at sticky. Census **1431 → 1430**.
+
+### Documentation
+
+- NOTES — "Open", the header entry and the readout entry (now the reseat)
+  say what 16 September measured. README (weight 247 KiB, 252 in decimal kB;
+  counts), ARCHITECTURE, `qa.yml`.
+
 ## [6.1.1] — 2026-09-16
 
 **Measure the flip, and the tag that is really opaque.** The owner's

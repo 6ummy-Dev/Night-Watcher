@@ -36,19 +36,15 @@ backup code and the JSON export are `DATA-MODEL.md`.
 ## Open
 
 **The installed rotation (15–16 September 2026).** Flip the Home Screen app to
-landscape and back and the frame sits 62pt too high. Measured on 6.1.0 off the
-owner's screenshots: everything — header, card, tab bar and labels — 62.0pt
-higher, the page ending at 811.7pt, flat black below. It has survived every
-page-side reading so far (a document overflow, a stale grant, a sticky
-compositor node) and every tag (`default` on 6.0.4, `black-translucent` on
-6.0.5–6.0.8, `black` on 6.0.9–6.1.0), and public reports put the iOS 26+
-short grant (WebKit 301108, 812 of 874) outside the web view where CSS cannot
-reach. **Two mechanisms draw those pixels identically** — a document scrolled
-by 62 (a page can reset that), or a viewport shrunk to 812 that also lost its
-top inset (a page can only pad around that) — so 6.1.1 ships the frame
-readout (`frameWatch()` below, guard 162) and changes nothing else about the
-frame. It closes the day a rotation survives on a device, and the next frame
-change is chosen by the readout's numbers, not by an eighth theory.
+landscape and back and the frame sits 62pt too high on screen, black below.
+It survived every tag (`default`, `black-translucent`, `black`) and every
+page-side reading until 6.1.1's readout measured what the page can see: the
+viewport, `100dvh` and the insets are unchanged across the flip, and the
+header's own top goes from 0 to −71. 6.1.2 answers exactly that
+(`seatWatch()` / `reseat()` below, guard 162) and nothing else. It closes the
+day a rotation survives on the phone; if it does not survive 6.1.2, the
+displacement is outside anything the page can scroll, and it is recorded as an
+iOS 27 limit rather than cut for again.
 
 ---
 
@@ -382,22 +378,26 @@ honest, so the tab bar keeps the plain 34pt. The installed header keeps its
 theme — navy in Dark Deco, black in Darker — by the owner's call on 16 Sept;
 6.1.0's black override is gone and guard 128 Q6 refuses it.
 
-### `frameWatch()` / `frameNote()` / `frameText()` — the frame readout (6.1.1)
+### `seatWatch()` / `reseat()` — the rotation reseat (6.1.2)
 
-Installed only, one line under Progress's Build line: `Frame at launch … —
-now …`, each with the screen size, orientation, the layout viewport's height
-(`view`), `100dvh`, the two safe-area insets and the header's top. It exists
-to measure the rotation (see "Open"). The numbers are delivered, not read:
-`#fprobe` is a fixed, hidden, full-height box — its own height is the layout
-viewport — with three children sized `env(safe-area-inset-top)`,
-`env(safe-area-inset-bottom)` and `100dvh`, and a `ResizeObserver` reports all
-four; an `IntersectionObserver` with twenty-one thresholds reports the
-header's top. Section 120 refuses `innerHeight`, `clientHeight` and
-`getComputedStyle` by name, and this needs none of them. "At launch" is taken
-once, when both observers have spoken; "now" on every delivery. `FRAME` is
-declared with `KEY`/`SKEY`, above the boot render, because Progress's render
-reads it — declared lower, an installed boot threw, which the browser check
-caught before it shipped.
+Installed only. 6.1.1 printed a frame readout under Progress's Build line for
+one evening, and on the owner's phone it measured the flip as the page sees
+it: view 812, `100dvh` 812 and insets 0/34 unchanged, the header's top 0 →
+−71. So the reseat keys on the header's top and nothing else. An
+`IntersectionObserver` with twenty-one thresholds delivers it (section 120
+refuses the read); when it is above the viewport, `reseat()` calls
+`scrollIntoView({block:"start", inline:"nearest"})` on the header — the
+browser's arithmetic over whichever ancestor moved, and `inline:"nearest"` so
+the deck's horizontal snap is left alone. It never acts while an input or
+textarea has focus, because the keyboard scrolls the page to reveal the field
+on purpose; a `focusout` listener re-checks after the field lets go, since the
+observer does not report a position that did not move. Three tries per
+displacement, reset when the header is back. `seatTop`/`seatTries` are
+declared with `KEY`/`SKEY`, above the boot — 6.1.1's readout state was
+declared below the render that read it, and an installed boot threw before the
+browser check caught it. The readout itself is gone: it measured what it was
+for, and its hidden probe was a fixed element at the top edge, which is what
+iOS reads for the status bar (`header`, below).
 
 ### `dedupeLog()`
 
@@ -1699,24 +1699,22 @@ yellow on the page. A 1px hairline was built first and rolled back the
 same day: it could not be noticed on the phone. See "The belt is yellow"
 and "The cover" below.
 
-### `header` — positioned, not sticky (6.0.8, again in 6.1.0; not the rotation's cause)
+### `header` — sticky at `top:0`, for the status bar (6.1.2)
 
-The header's scroll container is `#app`, which is `overflow:hidden` and never
-scrolls: 3.9.7 moved scroll onto `#app` and 4.0.0 made the panels the
-scrollports, so `main` and `.panel` are the header's siblings and the only
-things that scroll. `position:sticky` has therefore been a layout no-op since
-4.0.0. It is not a no-op for WebKit, which gives a sticky element a node in
-its scrolling tree and positions it on the compositor — the one object in the
-frame that can move while every scroll offset reads 0 — which 6.0.8 took for
-the installed rotation in "Open". 16 September falsified that: the flip moves
-the in-flow tab bar too, and 6.1.0 had no sticky node to move. The rule stays
-for the half that was always true: sticky does nothing for layout here. `position:relative` keeps `z-index:30` meaningful (the tab
-bar at 40 and the dropped belt at 20 are stacked against it) and changes no
-box and no paint. The blur stays: the drop slides the belt out from under the
-header, and that is layout, not scrolling. 6.0.9's revert to 6.0.3 put the
-sticky back without meaning to; guard 128's Q5 is what makes that a red build
-next time. The two sticky rules that remain — `.ghead` and `.pathseg` — live
-inside panels that really do scroll.
+The header's scroll container is `#app`, which never scrolls, so for layout
+`position:sticky` does nothing. That was read twice as a reason to remove it:
+6.0.8 named it the rotation's cause (a compositor-positioned node) and 6.1.0
+shipped `position:relative`. 16 September measured both readings wrong. The
+flip moves the in-flow tab bar too, so it is not this node; and Safari 26+
+paints an installed app's status bar from sticky or fixed elements at the top
+edge, falling back to Liquid Glass without one — installed, under `default`,
+6.0.4's sticky header gave a flat black bar and a wordmark at 0.89 edge
+sharpness, 6.1.1's relative header gave a grained bar and 0.37. So the sticky
+stays at `top:0` for the one thing it does, and guard 128's Q5 holds it
+there. Keep anything else fixed away from the top edge: 6.1.1's hidden probe
+was one. The blur on the header stays; the belt's drop slides out from under
+it. The two other sticky rules — `.ghead` and `.pathseg` — live inside panels
+that really do scroll.
 
 ### `@media (forced-colors: active)` — ornaments and state, never the palette
 

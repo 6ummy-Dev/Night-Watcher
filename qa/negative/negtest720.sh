@@ -2,7 +2,7 @@
 # negtest720 — 6.1.0, "The front door". Fixtures for every clause
 # this cut added or reshaped: §128's Q4 and Q6 (as 6.1.1 left them: two
 # --hdr declarations, and no installed override — the owner kept the navy
-# header), Q5 (the header is not sticky — back from 6.0.8) and Q7 (the
+# header), Q5 (as 6.1.2 left it: sticky at top:0, for the status bar) and Q7 (the
 # peek hands focus on, and Escape hands a lost focus back); §13's two new exclusions and the orphaned-probe
 # shape that made 6.0.9 red; §104's rules for the screenshots (their §45
 # README rows are in negtest610's sweep, where every row lives);
@@ -24,16 +24,16 @@ run_case "a third --hdr declaration arrives" \
   "${P}a='  --tabbg:rgba(4,4,6,.95);\n}\n';assert s.count(a)==1;s=s.replace(a,a+'@media print{:root{--hdr:rgba(0,0,0,.96);}}\n',1);${W}" \
   guards "" 128
 
-echo "--- 128: the header is not sticky (Q5)"
+echo "--- 128: the header is sticky at top:0 (Q5, as 6.1.2 left it)"
 
-run_case "the header goes back to position:sticky" \
-  "the header is position:sticky again" \
-  "${P}a='header{position:relative;z-index:30;';assert a in s;s=s.replace(a,'header{position:sticky;top:0;z-index:30;',1);${W}" \
+run_case "the header stops being sticky" \
+  "the header is not position:sticky at top:0" \
+  "${P}a='header{position:sticky;top:0;z-index:30;';assert a in s;s=s.replace(a,'header{position:relative;z-index:30;',1);${W}" \
   guards "" 128
 
-run_case "the header loses its positioning, so z-index:30 stops applying" \
-  "the header is not position:relative with z-index:30" \
-  "${P}a='header{position:relative;z-index:30;';assert a in s;s=s.replace(a,'header{z-index:30;',1);${W}" \
+run_case "the header sticks somewhere other than the top edge" \
+  "the header is not position:sticky at top:0" \
+  "${P}a='header{position:sticky;top:0;z-index:30;';assert a in s;s=s.replace(a,'header{position:sticky;top:1px;z-index:30;',1);${W}" \
   guards "" 128
 
 echo "--- 128: the installed header keeps its theme (Q6, reversed in 6.1.1)"

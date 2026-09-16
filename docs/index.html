@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-5FdVbiwNgbVxjmLwcnTnjaL76TEkZuVigEDrhEFL/C4='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-r2UUKKGk4On0nKcQSU3SWgqm3/hb/YUkSnymI3cLSnY='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -91,7 +91,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 #app{background:var(--ink);display:flex;flex-direction:column;height:100%;height:100svh;height:100dvh;overflow:hidden;overscroll-behavior:none;}
 @media (display-mode: standalone){#app{height:100%;}}
 #view,.panel{overflow-anchor:none;}
-header{position:relative;z-index:30;background:var(--hdr);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
+header{position:sticky;top:0;z-index:30;background:var(--hdr);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
 .hrow{display:flex;align-items:center;gap:14px;max-width:760px;margin:0 auto;}
 #nosave{max-width:760px;margin:11px auto 0;padding:8px 12px;border:1px solid var(--signal);border-radius:0;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.06em;line-height:1.55;color:var(--signal);text-align:center;}
 #nosave[hidden]{display:none;}
@@ -489,11 +489,6 @@ main,.panel{scrollbar-gutter:stable both-edges;}
 .istats b{color:var(--bone);font-weight:600;margin-right:4px;}
 .homefoot{color:var(--dim);margin-bottom:4px;}
 .buildline{display:block;margin-top:1em;}
-#fprobe{position:fixed;top:0;bottom:0;left:0;width:1px;visibility:hidden;pointer-events:none;}
-#fprobe i{position:absolute;top:0;left:0;width:1px;}
-.fpt{height:env(safe-area-inset-top);}
-.fpb{height:env(safe-area-inset-bottom);}
-.fpd{height:100dvh;}
 .homefoot,.note.foot,.legend{position:relative;margin-top:30px;
   background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}
 .homefoot::before,.note.foot::before,.legend::before{content:"";position:absolute;top:0;left:50%;width:var(--dia-s);height:var(--dia-s);transform:translate(-50%,-50%) rotate(45deg);background:var(--signal);box-shadow:0 0 0 6px var(--ink);}
@@ -1030,7 +1025,6 @@ main,.panel{scrollbar-gutter:stable both-edges;}
   </nav>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div id="fprobe" aria-hidden="true"><i class="fpt"></i><i class="fpb"></i><i class="fpd"></i></div>
 
 <script>
 /* Night Watcher — one file: markup, styles, catalogue and logic.
@@ -1508,11 +1502,11 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "6.1.1";
+var BUILD = "6.1.2";
 var BUILT = "2026-09-16";
 var KEY = "batwatch-v3";
 var SKEY = "batwatch-settings";
-var FRAME = {at: "", now: "", ro: 0, io: 0};
+var seatTop = 0, seatTries = 0;
 var SPLIT = {"batwoman-complete-series-2019":["batwoman-season-1-2019","batwoman-season-2-2021","batwoman-season-3-2021"]};
 var SITE = "https://nightwatcher.life/";
 var canSave = true;
@@ -3128,8 +3122,7 @@ function viewStats(c){
     : '<button class="danger" data-act="reset">Clear all progress</button>';
   html += installBlock()+
     '<p class="note foot"><span class="buildline">Build '+BUILD+' \u00b7 updated '+BUILT+' \u00b7 <a href="https://github.com/6ummy-Dev/Night-Watcher" target="_blank" rel="noopener noreferrer">read the source</a></span>'+
-    '<span class="buildline">Keep the path lit. <a href="https://publishers.basicattentiontoken.org/en/c/nightwatcher" target="_blank" rel="noopener noreferrer">Support</a></span>'+
-    (isStandalone() ? '<span class="buildline" id="frameline">'+esc(frameText())+'</span>' : '')+'</p>';
+    '<span class="buildline">Keep the path lit. <a href="https://publishers.basicattentiontoken.org/en/c/nightwatcher" target="_blank" rel="noopener noreferrer">Support</a></span></p>';
   return html;
 }
 
@@ -3802,44 +3795,26 @@ try{
 } finally {
   splashOff();
 }
-frameWatch();
+seatWatch();
 
-function frameWatch(){
-  var box = document.getElementById("fprobe");
-  if(!box || !isStandalone() || !window.ResizeObserver || !window.IntersectionObserver) return;
-  var cur = {view: 0, top: 0, bot: 0, dvh: 0, head: 0}, th = [], i;
-  var ro = new ResizeObserver(function(entries){
-    entries.forEach(function(e){
-      var v = Math.round(e.contentRect.height), c = e.target.className;
-      if(e.target === box) cur.view = v;
-      else if(c === "fpt") cur.top = v;
-      else if(c === "fpb") cur.bot = v;
-      else cur.dvh = v;
-    });
-    FRAME.ro = 1;
-    frameNote(cur);
-  });
-  ro.observe(box);
-  for(i = 0; i < box.children.length; i++) ro.observe(box.children[i]);
+function seatWatch(){
+  var h = document.querySelector("header");
+  if(!h || !isStandalone() || !window.IntersectionObserver) return;
+  var th = [], i;
   for(i = 0; i <= 20; i++) th.push(i / 20);
   new IntersectionObserver(function(entries){
-    cur.head = Math.round(entries[entries.length - 1].boundingClientRect.top);
-    FRAME.io = 1;
-    frameNote(cur);
-  }, {threshold: th}).observe(document.querySelector("header"));
+    seatTop = Math.round(entries[entries.length - 1].boundingClientRect.top);
+    if(seatTop >= -1) seatTries = 0;
+    else reseat();
+  }, {threshold: th}).observe(h);
+  document.addEventListener("focusout", function(){ setTimeout(reseat, 150); });
 }
-function frameNote(cur){
-  var t = screen.width + "\u00d7" + screen.height + " " +
-          (matchMedia("(orientation: portrait)").matches ? "portrait" : "landscape") +
-          " \u00b7 view " + cur.view + " \u00b7 dvh " + cur.dvh +
-          " \u00b7 insets " + cur.top + "/" + cur.bot + " \u00b7 head " + cur.head;
-  if(FRAME.ro && FRAME.io && !FRAME.at) FRAME.at = t;
-  FRAME.now = t;
-  var el = document.getElementById("frameline");
-  if(el) el.textContent = frameText();
-}
-function frameText(){
-  return "Frame at launch " + (FRAME.at || "\u2026") + " \u2014 now " + (FRAME.now || "\u2026");
+function reseat(){
+  if(seatTop >= -1 || seatTries >= 3) return;
+  var a = document.activeElement, t = a && a.tagName;
+  if(t === "INPUT" || t === "TEXTAREA") return;
+  seatTries++;
+  document.querySelector("header").scrollIntoView({block: "start", inline: "nearest"});
 }
 
 function splashOff(){
