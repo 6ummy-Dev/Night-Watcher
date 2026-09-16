@@ -1,9 +1,9 @@
 #!/bin/bash
 # negtest720 — 6.1.0, "The front door". Fixtures for every clause
-# this cut added or reshaped: §128's Q4 (three --hdr declarations now), Q5
-# (the header is not sticky — back from 6.0.8), Q6 (the installed app's
-# header is the bar's black) and Q7 (the peek hands focus on, and Escape
-# hands a lost focus back); §13's two new exclusions and the orphaned-probe
+# this cut added or reshaped: §128's Q4 and Q6 (as 6.1.1 left them: two
+# --hdr declarations, and no installed override — the owner kept the navy
+# header), Q5 (the header is not sticky — back from 6.0.8) and Q7 (the
+# peek hands focus on, and Escape hands a lost focus back); §13's two new exclusions and the orphaned-probe
 # shape that made 6.0.9 red; §104's rules for the screenshots (their §45
 # README rows are in negtest610's sweep, where every row lives);
 # §160, the install screenshots, clause by clause; and §161, the ARIA
@@ -17,16 +17,11 @@ MANW="io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2,ensure_ascii=F
 REC="import io,json;p='qa/screenshots.json';d=json.load(io.open(p,encoding='utf-8'));"
 RECW="io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=1,ensure_ascii=False)+'\n')"
 
-echo "--- 128: three --hdr declarations, one alpha (Q4)"
+echo "--- 128: two --hdr declarations again (Q4, reshaped in 6.1.1)"
 
-run_case "a fourth --hdr declaration arrives" \
-  "and the installed app declare it three times" \
-  "${P}a='@media (display-mode: standalone){:root{--hdr:rgba(0,0,0,.96);}}\n';assert a in s;s=s.replace(a,a+'@media print{:root{--hdr:rgba(0,0,0,.96);}}\n',1);${W}" \
-  guards "" 128
-
-run_case "the installed app's alpha drifts from the themes'" \
-  "the --hdr declarations have drifted apart" \
-  "${P}a='@media (display-mode: standalone){:root{--hdr:rgba(0,0,0,.96);}}';assert a in s;s=s.replace(a,'@media (display-mode: standalone){:root{--hdr:rgba(0,0,0,.9);}}',1);${W}" \
+run_case "a third --hdr declaration arrives" \
+  "the two themes declare it twice" \
+  "${P}a='  --tabbg:rgba(4,4,6,.95);\n}\n';assert s.count(a)==1;s=s.replace(a,a+'@media print{:root{--hdr:rgba(0,0,0,.96);}}\n',1);${W}" \
   guards "" 128
 
 echo "--- 128: the header is not sticky (Q5)"
@@ -41,16 +36,11 @@ run_case "the header loses its positioning, so z-index:30 stops applying" \
   "${P}a='header{position:relative;z-index:30;';assert a in s;s=s.replace(a,'header{z-index:30;',1);${W}" \
   guards "" 128
 
-echo "--- 128: the installed app's header is the bar's black (Q6)"
+echo "--- 128: the installed header keeps its theme (Q6, reversed in 6.1.1)"
 
-run_case "the standalone --hdr goes away" \
-  "the installed app's header does not take the bar's black" \
-  "${P}a='@media (display-mode: standalone){:root{--hdr:rgba(0,0,0,.96);}}\n';assert a in s;s=s.replace(a,'',1);${W}" \
-  guards "" 128
-
-run_case "the installed app's header goes back to Dark Deco's navy" \
-  "not Darker's black" \
-  "${P}a='@media (display-mode: standalone){:root{--hdr:rgba(0,0,0,.96);}}';assert a in s;s=s.replace(a,'@media (display-mode: standalone){:root{--hdr:rgba(10,12,17,.96);}}',1);${W}" \
+run_case "a standalone --hdr override comes back" \
+  "the installed app overrides --hdr" \
+  "${P}a='  --tabbg:rgba(4,4,6,.95);\n}\n';assert s.count(a)==1;s=s.replace(a,a+'@media (display-mode: standalone){:root{--hdr:rgba(0,0,0,.96);}}\n',1);${W}" \
   guards "" 128
 
 echo "--- 128: the peek hands focus on (Q7)"

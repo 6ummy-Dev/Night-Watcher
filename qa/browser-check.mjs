@@ -1345,6 +1345,56 @@ ok("keyboard: after Escape, focus is on the path switcher, not the page",
      [r0, r1, r2].map(r => r.pos + "@" + r.top).join(" → "));
 }
 
+/* ---- the installed frame readout (6.1.1) ---------------------------------
+   Section 162 pins the shape; this drives it. navigator.standalone is the
+   one isStandalone() door a browser can open (display-mode cannot be
+   emulated on the Chromium this runs on), so the page boots believing it is
+   installed: the line must appear on Progress, both readings must fill from
+   the observers, and they must be the numbers this viewport really has —
+   then a turn to landscape must reach "now" and leave "at launch" alone.
+   The iPhone's numbers are the owner's screenshot; these prove the
+   instrument reads true. */
+{
+  const fctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: "block" });
+  const fp = await fctx.newPage();
+  const fErrs = [];
+  fp.on("pageerror", e => fErrs.push(String(e)));
+  await fp.addInitScript(() => {
+    try{ Object.defineProperty(Navigator.prototype, "standalone", { get: () => true, configurable: true }); }catch(e){}
+    try{ localStorage.clear(); localStorage.setItem("batwatch-settings", JSON.stringify({ path: "continuity" })); }catch(e){}
+  });
+  await fp.goto(SITE_URL + "#progress", { waitUntil: "load" });
+  await fp.waitForFunction(() => typeof window.render === "function" && !document.getElementById("splash"));
+  const line = () => fp.evaluate(() => { const e = document.getElementById("frameline"); return e ? e.textContent : null; });
+  const filled = await fp.waitForFunction(() => {
+    const e = document.getElementById("frameline");
+    return e && !/\u2026/.test(e.textContent) ? e.textContent : false;
+  }, null, { timeout: 5000 }).then(h => h.jsonValue(), () => "");
+  const want = await fp.evaluate(() => ({ h: innerHeight, sw: screen.width, sh: screen.height }));
+  const launch = (filled.match(/at launch (.*?) \u2014 now/) || [])[1] || "";
+  ok("frame readout: installed, the line is on Progress and both readings fill from the observers",
+     !!filled && launch.length > 0, filled || String(await line()));
+  ok("frame readout: at launch it reads this viewport — portrait, view and dvh the window height, insets 0/0, head 0",
+     launch === want.sw + "\u00d7" + want.sh + " portrait \u00b7 view " + want.h + " \u00b7 dvh " + want.h +
+                 " \u00b7 insets 0/0 \u00b7 head 0", launch);
+  await fp.setViewportSize({ width: 844, height: 390 });
+  const turned = await fp.waitForFunction(() => {
+    const e = document.getElementById("frameline");
+    return e && /now .*landscape .*view 390 /.test(e.textContent) ? e.textContent : false;
+  }, null, { timeout: 5000 }).then(h => h.jsonValue(), () => String(""));
+  ok("frame readout: a turn to landscape reaches \"now\" and leaves \"at launch\" as it was",
+     !!turned && turned.indexOf("Frame at launch " + launch + " \u2014") === 0, turned || String(await line()));
+  ok("frame readout: an installed boot throws nothing", fErrs.length === 0,
+     fErrs.length ? fErrs.join("; ").slice(0, 160) : "clean");
+  const tab = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await tab.goto(SITE_URL + "#progress", { waitUntil: "load" });
+  await tab.waitForFunction(() => typeof window.render === "function");
+  const inTab = await tab.evaluate(() => !!document.getElementById("frameline"));
+  ok("frame readout: a browser tab never shows the line", !inTab, inTab ? "the line rendered in a tab" : "absent");
+  await tab.close();
+  await fctx.close();
+}
+
 /* ---- the accessibility tree, recorded (6.1.0) --------------------------
    The ARIA-snapshot corpus, left out on 2 Sept and again on 14 Sept, taken
    in 6.1.0 so nothing on the reference list is waiting. axe proves no rule

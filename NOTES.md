@@ -15,7 +15,7 @@ Four other places carry part of the story and are not repeated here:
   required reading before a change; everything here is written in the
   present tense.
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 161 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 162 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -35,22 +35,20 @@ backup code and the JSON export are `DATA-MODEL.md`.
 
 ## Open
 
-**The installed rotation (15 September 2026).** Flip the Home Screen app to
-landscape and back and the header sat 62.7pt off the top, permanently, with
-every `scrollTop` in the document at 0. Reported on 6.0.4, it survived four
-cuts built on readings that were each falsified, and reproduced under both
-status-bar tags. 6.1.0 ships the one reading with a mechanism — the header is
-no longer sticky, so WebKit has no scrolling-tree node to move (`header`,
-below) — and **no session can close it**: Chromium has never reproduced the
-skip and WebKit's compositor is not in any sandbox this project runs. It
-closes the day a rotation on an installed iPhone survives 6.1.0. If it does
-not, the next step is a measurement on the device, not a fifth theory, and a
-probe comes back only with its own rows in the README and in guard 13
-(6.0.9 served one without them and the live SHA went red).
-
-The two items this section carried from 5.3.1 to 5.4.0 — the settings key
-split and the Batwoman season split — shipped in 6.0.0. `docs/vp-rotate.html`,
-6.0.7's probe of the sticky header, left with the sticky in 6.1.0.
+**The installed rotation (15–16 September 2026).** Flip the Home Screen app to
+landscape and back and the frame sits 62pt too high. Measured on 6.1.0 off the
+owner's screenshots: everything — header, card, tab bar and labels — 62.0pt
+higher, the page ending at 811.7pt, flat black below. It has survived every
+page-side reading so far (a document overflow, a stale grant, a sticky
+compositor node) and every tag (`default` on 6.0.4, `black-translucent` on
+6.0.5–6.0.8, `black` on 6.0.9–6.1.0), and public reports put the iOS 26+
+short grant (WebKit 301108, 812 of 874) outside the web view where CSS cannot
+reach. **Two mechanisms draw those pixels identically** — a document scrolled
+by 62 (a page can reset that), or a viewport shrunk to 812 that also lost its
+top inset (a page can only pad around that) — so 6.1.1 ships the frame
+readout (`frameWatch()` below, guard 162) and changes nothing else about the
+frame. It closes the day a rotation survives on a device, and the next frame
+change is chosen by the readout's numbers, not by an eighth theory.
 
 ---
 
@@ -366,7 +364,7 @@ CSS cannot reach the system status bar; the meta tag has to follow.
 On iOS the installed app's bar is not this meta at all but
 `apple-mobile-web-app-status-bar-style`, read once, when the app is added to the
 Home Screen — a deploy changes nothing on a device until it is reinstalled.
-6.0.9 sets it to `black`. `black-translucent` puts an edge-to-edge app under a
+6.0.9 set it to `black`, and 6.1.1 to `default` (below). `black-translucent` puts an edge-to-edge app under a
 see-through bar, and on iOS 26+ that has two known faults: the iOS/iPadOS 27
 Liquid Glass fill across the top inset (subflux PR #960), and WebKit bug 301108,
 which short-changes the webview by one status-bar height at the bottom. The
@@ -374,17 +372,32 @@ which short-changes the webview by one status-bar height at the bottom. The
 the tag: under an opaque bar the screen-minus-viewport gap is the bar itself.
 6.0.4–6.0.8 are the record of trying this without retiring them.
 
-**Installed, the header is black too (6.1.0).** Under an opaque bar the first
-thing below it is the header, and Dark Deco's `--hdr` is navy — a hard step
-at the top of every installed screen. Every other surface that paints an
-installed app's chrome is already black: `applyTheme()` answers this meta with
-`#000000` when standalone (4.0.5), which is Android's bar and the desktop
-window's title bar, and `black` is the iOS one. So
-`@media (display-mode: standalone)` redeclares `--hdr` as Darker's own token,
-in both themes. A browser tab never matches the query and keeps the navy;
-Darker already looked this way. Guard 128's Q6 holds the value to Darker's,
-and Q4 counts the third declaration with the same alpha. Painting the bar
-instead would mean `default`, which is 6.0.4's 62pt band.
+**`default`, measured (6.1.1).** `black` is not opaque on iOS 27: with it
+installed, the page is drawn behind the clock after a rotation, and before one
+the wordmark's edges measure 0.38 (edge step ÷ contrast) against 0.80 for the
+same face lower down — the glass reaches over the header. `default` is the one
+value measured opaque on the owner's phone (6.0.4, 09:15: a flat black bar
+0–62pt, the header 62–132, the wordmark at 0.89). Under it the bottom inset is
+honest, so the tab bar keeps the plain 34pt. The installed header keeps its
+theme — navy in Dark Deco, black in Darker — by the owner's call on 16 Sept;
+6.1.0's black override is gone and guard 128 Q6 refuses it.
+
+### `frameWatch()` / `frameNote()` / `frameText()` — the frame readout (6.1.1)
+
+Installed only, one line under Progress's Build line: `Frame at launch … —
+now …`, each with the screen size, orientation, the layout viewport's height
+(`view`), `100dvh`, the two safe-area insets and the header's top. It exists
+to measure the rotation (see "Open"). The numbers are delivered, not read:
+`#fprobe` is a fixed, hidden, full-height box — its own height is the layout
+viewport — with three children sized `env(safe-area-inset-top)`,
+`env(safe-area-inset-bottom)` and `100dvh`, and a `ResizeObserver` reports all
+four; an `IntersectionObserver` with twenty-one thresholds reports the
+header's top. Section 120 refuses `innerHeight`, `clientHeight` and
+`getComputedStyle` by name, and this needs none of them. "At launch" is taken
+once, when both observers have spoken; "now" on every delivery. `FRAME` is
+declared with `KEY`/`SKEY`, above the boot render, because Progress's render
+reads it — declared lower, an installed boot threw, which the browser check
+caught before it shipped.
 
 ### `dedupeLog()`
 
@@ -1686,7 +1699,7 @@ yellow on the page. A 1px hairline was built first and rolled back the
 same day: it could not be noticed on the phone. See "The belt is yellow"
 and "The cover" below.
 
-### `header` — positioned, not sticky (6.0.8, again in 6.1.0)
+### `header` — positioned, not sticky (6.0.8, again in 6.1.0; not the rotation's cause)
 
 The header's scroll container is `#app`, which is `overflow:hidden` and never
 scrolls: 3.9.7 moved scroll onto `#app` and 4.0.0 made the panels the
@@ -1694,8 +1707,10 @@ scrollports, so `main` and `.panel` are the header's siblings and the only
 things that scroll. `position:sticky` has therefore been a layout no-op since
 4.0.0. It is not a no-op for WebKit, which gives a sticky element a node in
 its scrolling tree and positions it on the compositor — the one object in the
-frame that can move while every scroll offset reads 0, which is the installed
-rotation in "Open". `position:relative` keeps `z-index:30` meaningful (the tab
+frame that can move while every scroll offset reads 0 — which 6.0.8 took for
+the installed rotation in "Open". 16 September falsified that: the flip moves
+the in-flow tab bar too, and 6.1.0 had no sticky node to move. The rule stays
+for the half that was always true: sticky does nothing for layout here. `position:relative` keeps `z-index:30` meaningful (the tab
 bar at 40 and the dropped belt at 20 are stacked against it) and changes no
 box and no paint. The blur stays: the drop slides the belt out from under the
 header, and that is layout, not scrolling. 6.0.9's revert to 6.0.3 put the

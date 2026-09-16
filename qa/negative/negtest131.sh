@@ -68,7 +68,7 @@ run_case "the saves-line comes back to Progress" \
 # guard rightly stayed quiet. The mutation now renames every buildline span.
 run_case "the build line leaves Progress" \
   "the build line left Progress" \
-  "${P}a='<span class=\"buildline\">';assert a in s;s=s.replace(a,'<span class=\"buildref\">');${W}"
+  "${P}a='<span class=\"buildline\"';assert a in s;s=s.replace(a,'<span class=\"buildref\"');${W}"
 
 rm -rf "$NEG"
 finish "131 negative tests"

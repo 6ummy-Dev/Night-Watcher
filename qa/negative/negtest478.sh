@@ -1,7 +1,8 @@
 #!/bin/bash
 # negtest478 — 4.0.8 built the viewport heal and 4.0.9 the pad reclaim, both
 # answers to WebKit bug 301108 under `black-translucent`. 6.0.9 drops that tag
-# for the opaque `black` bar and retires both: under an opaque bar the gap they
+# for `black` (6.1.1: `default`, the one tag measured opaque on iOS 27) and
+# retires both: under an opaque bar the gap they
 # measure is the status bar itself. Section 64 must go red if either returns,
 # or if the tab bar's pad stops being the plain inset.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"

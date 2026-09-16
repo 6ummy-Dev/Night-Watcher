@@ -167,6 +167,7 @@ function blessHtml(next){
      112  The Restore box survives a render nobody asked for
      118  The 404 still reads over its own alley
      161  The accessibility tree is a record, and it survives the calendar
+     162  The installed frame reports itself, and is told rather than read
 
    DEPLOY
      10   No vendored third-party code
@@ -4990,15 +4991,18 @@ if(!/function legendBlock/.test(HTML) ||
   /* 6.0.9: the pad is the PLAIN inset. 4.0.9 measured the installed webview
      ending 62pt above the screen bottom under `black-translucent` while
      env(bottom) still said 34 — WebKit bug 301108 — and built a reclaim
-     (--vpdead) to pay it back. 6.0.9 drops `black-translucent` for `black`
-     (the iOS 27 glass band, section 153): the bar is opaque, the 62pt is
-     spent above the page, the bottom edge is real and env(bottom) is honest.
-     A reclaim left in place would read the status bar as dead space and
-     collapse the pad to max(0, 34 − 62) = 0, the home indicator across the
-     tab labels — what 6.0.4 shipped. */
+     (--vpdead) to pay it back. 6.0.9 dropped `black-translucent` for
+     `black`; 6.1.1 measured `black` see-through on iOS 27 (page content
+     under the clock, the wordmark at 0.38 edge sharpness against 0.89 under
+     `default`) and moved to `default` (section 153): the bar is opaque, the
+     62pt is spent above the page, the bottom edge is real and env(bottom)
+     is honest. A reclaim left in place would read the status bar as dead
+     space and collapse the pad to max(0, 34 − 62) = 0, the home indicator
+     across the tab labels — what 6.0.4 shipped (its 09:15 screenshot: a
+     59pt tab bar). */
   if(!/padding-bottom:env\(safe-area-inset-bottom\);/.test(tabsCss)){
     fail("#tabs's bottom pad is not the plain env(safe-area-inset-bottom) — " +
-         "with the opaque `black` status bar the app ends at the true screen " +
+         "with the opaque `default` status bar the app ends at the true screen " +
          "bottom and the full inset is owed; a measured-gap subtraction " +
          "belongs to `black-translucent` and puts the home indicator on the " +
          "tab labels (6.0.9)");
@@ -5015,12 +5019,12 @@ if(!/function legendBlock/.test(HTML) ||
   /* 6.0.9: the 301108 workaround is retired whole. vpHeal() (4.0.8) and
      vpSync()/--vpdead (4.0.9) measured screen.height − innerHeight to find
      the dead band `black-translucent` leaves under the installed app. Under
-     `black` that gap is the status bar — always 62pt in portrait, never a
-     defect — so the heal would toggle #app for nothing and the sync would
-     subtract the bar from the bottom pad. */
+     an opaque bar (`default` since 6.1.1) that gap is the status bar —
+     always 62pt in portrait, never a defect — so the heal would toggle #app
+     for nothing and the sync would subtract the bar from the bottom pad. */
   if(/--vpdead/.test(HTML) || /function vp(Heal|Sync|Gap|Shrunk|Tick)\(/.test(HTML)){
     fail("the 301108 viewport workaround is back (vpHeal/vpSync/--vpdead) — " +
-         "it only answers `black-translucent`; under the opaque `black` bar " +
+         "it only answers `black-translucent`; under the opaque `default` bar " +
          "the gap it measures is the status bar itself (6.0.9)");
   }
   /* The window is not the scroller any more, so a window scroll call is a
@@ -11046,21 +11050,22 @@ var ROUTE_VOCAB = [
          "must name them: *,::before,::after");
   }
 
-  /* (Q4) The --hdr declarations move together. The token LOOKS like one
-     value and is declared more than once — default theme and darker, and
-     since 6.1.0 the installed app (Q6 below). F2's ghosting fix raised the
-     default; the rule is the relationship, not the literals: if one alpha
-     moves, the others move with it. Same lesson as the ring and the bat in
-     3.0.0 — pin the relationship, survive the next honest change. */
+  /* (Q4) The two --hdr declarations move together. The token LOOKS like one
+     value and is declared twice — default theme and darker (6.1.0 added a
+     third for the installed app; 6.1.1 took it out again, Q6 below). F2's
+     ghosting fix raised the default; the rule is the relationship, not the
+     literals: if one alpha moves, the other moves with it. Same lesson as
+     the ring and the bat in 3.0.0 — pin the relationship, survive the next
+     honest change. */
   var alphas = [];
   (HTML.match(/--hdr:rgba\([^)]*\)/g) || []).forEach(function(d){
     var a = d.match(/,\s*(\.?\d+(?:\.\d+)?)\)$/);
     if(a) alphas.push(a[1]);
   });
-  if(alphas.length !== 3){
+  if(alphas.length !== 2){
     fail("--hdr is declared " + alphas.length + " time(s); the two themes " +
-         "and the installed app declare it three times, and another " +
-         "declaration (or a lost one) is a theme this section has never seen");
+         "declare it twice, and a third declaration (or a lost one) is a " +
+         "theme this section has never seen");
   } else if(alphas.some(function(x){ return x !== alphas[0]; })){
     fail("the --hdr declarations have drifted apart (" + alphas.join(" vs ") +
          ") — the parked belt ghosts through the blur in whichever theme was " +
@@ -11084,9 +11089,14 @@ var ROUTE_VOCAB = [
      #app and panel scrollTop all 0. It reproduced under BOTH status-bar
      tags, so the tag is not the cause, and 6.0.9 put the sticky back only
      because "revert to 6.0.3" included it (NightWatcherQA6.0.9 P2-1).
-     Chromium has never reproduced the skip, so a green rotation in the
-     browser check is not a close; this pin is the rule, and the installed
-     rotation is the owner's check.
+     FALSIFIED AS THE ROTATION'S CAUSE, 16 Sept (6.1.1): the owner's 6.1.0
+     screenshots, with this rule live, show the flip moving the WHOLE frame
+     up 62.0pt — the in-flow tab bar with it — and a 62pt black band below
+     the page. A compositor node cannot do that. The pin stays for the
+     reason that was always true on its own: sticky does nothing for layout
+     here, and a scrolling-tree node that does nothing is not kept. The
+     rotation itself is measured by the frame readout (section 162) before
+     anything else is changed for it.
      position:relative keeps z-index:30 applicable — a static element cannot
      take one, and the tab bar at 40 and the dropped belt at 20 are stacked
      against it — and costs nothing else: same paint, same box, no scrolling
@@ -11097,10 +11107,8 @@ var ROUTE_VOCAB = [
      pinned by this section's own F1/F3 clauses. */
   if(/position:sticky/.test(hdrCss)){
     fail("the header is position:sticky again — #app never scrolls, so it " +
-         "does nothing for layout, and the scrolling-tree node it creates is " +
-         "the mechanism behind the rotation bug: an element the compositor " +
-         "can move while every scroll offset reads zero. See Q5 before " +
-         "putting it back");
+         "does nothing for layout, and all it adds is a scrolling-tree node " +
+         "the compositor positions. See Q5 before putting it back");
   }
   if(!/^\nheader\{position:relative;z-index:30;/.test(hdrCss)){
     fail("the header is not position:relative with z-index:30 — the " +
@@ -11108,29 +11116,19 @@ var ROUTE_VOCAB = [
          "and the dropped belt (20) are stacked against it (Q5)");
   }
 
-  /* (Q6, 6.1.0) THE INSTALLED APP'S HEADER IS THE BAR'S BLACK. Since 6.0.9
-     the iOS status bar is `black` (section 153): opaque, with the webview
-     starting below it, so the first thing under the bar is the header. In a
-     tab the header is --hdr, navy in Dark Deco; installed, that navy met the
-     bar's black in a hard step at the top of every screen (NightWatcherQA6.0.9
-     P3-2). Everything else that paints an installed app's chrome is already
-     black — section 28 pins theme-color to #000000 when standalone, which is
-     Android's status bar and the desktop window's title bar — so the header
-     joins them: under display-mode: standalone --hdr is Darker's own token in
-     both themes. A browser tab is untouched (the query does not match), and
-     Darker already read this way. Going back to `default` to paint the bar
-     instead is not an option — that is 6.0.4's 62pt band and the tab pad
-     collapse. */
-  var appHdr = (HTML.match(/\n@media \(display-mode: standalone\)\{:root\{--hdr:(rgba\([^)]*\));\}\}\n/) || [])[1];
-  var darkerHdr = (HTML.match(/:root\[data-theme="darker"\]\{[^}]*--hdr:(rgba\([^)]*\))/) || [])[1];
-  if(!appHdr){
-    fail("the installed app's header does not take the bar's black — under " +
-         "display-mode: standalone --hdr must be redeclared on :root, or Dark " +
-         "Deco's navy header meets the black status bar in a step (Q6)");
-  } else if(appHdr !== darkerHdr || !/^rgba\(0,0,0,/.test(appHdr)){
-    fail("the installed app's --hdr is " + appHdr + ", not Darker's black (" +
-         darkerHdr + ") — the status bar, theme-color and the title bar are all " +
-         "black when installed, and the header is the one surface that meets them (Q6)");
+  /* (Q6, 6.1.0; reversed in 6.1.1) THE INSTALLED HEADER KEEPS ITS THEME.
+     6.1.0 redeclared --hdr as Darker's black under display-mode: standalone,
+     so Dark Deco's navy header would not meet the black status bar in a step
+     (NightWatcherQA6.0.9 P3-2). The owner's call on 16 Sept, looking at the
+     6.0.4 `default` screenshot he calls good: keep the navy shade on the
+     header in Dark Deco; Darker is black. The step under the opaque bar is
+     the design, on the record — so a standalone --hdr override is refused
+     here rather than rediscovered by the next audit. */
+  if(/@media \(display-mode: standalone\)\{[^}]*--hdr/.test(HTML)){
+    fail("the installed app overrides --hdr — the owner's call (16 Sept 2026) " +
+         "is that the header keeps its theme when installed: navy in Dark " +
+         "Deco, black in Darker, the step under the opaque status bar " +
+         "accepted (Q6)");
   }
 
   /* (F5, widened in 4.0.4) While parked, the strip is not a control — and
@@ -14589,7 +14587,7 @@ var ROUTE_VOCAB = [
     ["the Content-Security-Policy meta", /<meta http-equiv="Content-Security-Policy" content="/],
     ["apple-mobile-web-app-capable",     /<meta name="apple-mobile-web-app-capable" content="yes">/],
     ["mobile-web-app-capable",           /<meta name="mobile-web-app-capable" content="yes">/],
-    ["apple-mobile-web-app-status-bar-style", /<meta name="apple-mobile-web-app-status-bar-style" content="black">/],
+    ["apple-mobile-web-app-status-bar-style", /<meta name="apple-mobile-web-app-status-bar-style" content="default">/],
     ["apple-mobile-web-app-title",       /<meta name="apple-mobile-web-app-title" content="Night Watcher">/],
     ["the manifest link",                /<link rel="manifest" href="manifest.json">/],
     ["<title>",                          /<title>[^<]+<\/title>/],
@@ -15708,6 +15706,73 @@ var ROUTE_VOCAB = [
          "something named, and the toast is a polite live region with words in it");
   }
   note("aria corpus: " + states.length + " states recorded in qa/aria/, the day line, BUILD and BUILT normalised out");
+})();
+
+/* ---------- 162. The installed frame reports itself, and is told rather than read -- */
+/* 6.1.1. The installed-app rotation (NOTES "Open") has cost seven cuts of
+   reasoning from pixels. The owner's 16 Sept screenshots measured the flip
+   exactly — the whole frame up 62.0pt, a 62pt black band below — and two
+   different mechanisms draw those same pixels: the document scrolled by
+   62, or a viewport shrunk to 812 that also lost its top inset. The page's
+   own numbers tell them apart, so the installed app prints them: one line
+   under the Build line on Progress, only when standalone, reading
+   "Frame at launch … — now …" with screen size, orientation, the layout
+   viewport's height, 100dvh, the two insets and the header's top.
+
+   TOLD, NEVER READ. Section 120 refuses the layout reads that would give
+   those numbers directly (innerHeight, clientHeight, getComputedStyle...),
+   and this does not argue for an exception: #fprobe is a fixed, hidden,
+   full-height box with three children sized env(safe-area-inset-top),
+   env(safe-area-inset-bottom) and 100dvh, and a ResizeObserver DELIVERS
+   their heights; an IntersectionObserver delivers the header's top. The
+   same shape as buildDeck()'s width. Observers attach only when installed,
+   so a browser tab pays nothing but three hidden elements. */
+
+(function(){
+  if(HTML.indexOf('<div id="fprobe" aria-hidden="true"><i class="fpt"></i><i class="fpb"></i><i class="fpd"></i></div>') < 0){
+    fail("#fprobe is gone or reshaped — the frame readout measures the viewport " +
+         "and the insets through its three children, one each for the top " +
+         "inset, the bottom inset and 100dvh, and it is hidden from AT");
+  }
+  [[/#fprobe\{position:fixed;top:0;bottom:0;[^}]*visibility:hidden;pointer-events:none;\}/, "a fixed, full-height, hidden, untouchable box"],
+   [/\.fpt\{height:env\(safe-area-inset-top\);\}/, "the top-inset child"],
+   [/\.fpb\{height:env\(safe-area-inset-bottom\);\}/, "the bottom-inset child"],
+   [/\.fpd\{height:100dvh;\}/, "the 100dvh child"]].forEach(function(c){
+    if(!c[0].test(HTML)){
+      fail("the frame probe's CSS lost " + c[1] + " — without it the readout " +
+           "reports a number that is not the one it names");
+    }
+  });
+  var fw = optionalFn("frameWatch", "the installed app's frame readout starts there");
+  if(!/if\(!box \|\| !isStandalone\(\)/.test(fw)){
+    fail("frameWatch() attaches without checking isStandalone() — the readout " +
+         "is for the installed app, and a browser tab has no reason to run " +
+         "two observers for it");
+  }
+  if(!/new ResizeObserver\(/.test(fw) || !/contentRect\.height/.test(fw) ||
+     !/new IntersectionObserver\(/.test(fw) || !/boundingClientRect\.top/.test(fw)){
+    fail("frameWatch() no longer takes its numbers from observers — the " +
+         "heights come from a ResizeObserver and the header's top from an " +
+         "IntersectionObserver, because section 120 refuses the reads that " +
+         "would give them directly");
+  }
+  var fl = HTML.indexOf('id="frameline"');
+  var flAt = HTML.lastIndexOf("isStandalone() ?", fl);
+  if(fl < 0 || flAt < 0 || fl - flAt > 80){
+    fail("the frame line is not on Progress, or not only when installed — it " +
+         "sits under the Build line, rendered only when isStandalone()");
+  }
+  if(!/\nframeWatch\(\);\n/.test(HTML)){
+    fail("frameWatch() is never started at boot — the \"at launch\" half of the " +
+         "readout is the one a flip cannot recreate");
+  }
+  var fn162 = optionalFn("frameNote", "the readout's text is written there");
+  if(!/FRAME\.at = t/.test(fn162) || !/FRAME\.now = t/.test(fn162)){
+    fail("frameNote() no longer keeps both readings — \"at launch\" is taken " +
+         "once, when both observers have spoken, and \"now\" on every delivery; " +
+         "one without the other cannot show what a rotation changed");
+  }
+  note("frame readout: installed only, #fprobe measured by a ResizeObserver, the header by an IntersectionObserver, at launch and now");
 })();
 
 /* ---------- report ---------- */

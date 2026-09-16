@@ -14,6 +14,93 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.1.1] — 2026-09-16
+
+**Measure the flip, and the tag that is really opaque.** The owner's
+screenshots of the installed 6.1.0 took two of that release's claims apart,
+and this cut says so before it changes anything. A PATCH by README's rule —
+a fix, a diagnostic line, QA. No entry moves and nothing saved changes shape
+or meaning. **Reinstall once:** the status-bar tag is read when the app is
+added to the Home Screen.
+
+### What the screenshots measured (1206×2622, pt = px ÷ 3)
+
+- **After a flip to landscape and back, the whole frame sits 62.0pt higher**
+  — the belt peek, the card, the tab bar and its labels all moved by the same
+  62.0pt — and the page ends at 811.7pt with flat black to the screen bottom.
+  "Blur on top", "margin below" and "the flip" are that one displacement.
+- **6.0.8's and 6.1.0's reading of the flip is wrong.** A sticky header as a
+  compositor node cannot move an in-flow tab bar, and 6.1.0 had no sticky
+  header. The release notes for 6.1.0 said the header no longer drifts; it
+  does.
+- **`black` is not opaque on iOS 27.** The owner reinstalled after 6.0.9 and
+  after 6.1.0; with `black` installed, page content is drawn behind the
+  clock after the flip, and before any flip the wordmark's edges measure
+  0.38 (edge step ÷ contrast) against 0.80 for the same face in the card
+  below — the glass reaches over the header. The owner's 6.0.4 screenshot
+  under `default` measures a flat `(0,0,0)` bar from 0 to 62pt, the header
+  from 62 to 132 and the wordmark at 0.89.
+
+### Fixed
+
+- **`apple-mobile-web-app-status-bar-style`: `black` → `default`.** The one
+  value measured opaque on the owner's phone. 6.0.4's two costs under it do
+  not come back: the tab bar keeps the plain 34pt inset (6.0.4's 59pt bar was
+  `--vpdead`, retired in 6.0.9), and the top reads as the owner's 09:15
+  reference — a black bar over the header.
+- **The installed header keeps its theme.** 6.1.0 painted `--hdr` black under
+  `display-mode: standalone` (NightWatcherQA6.0.9 P3-2). The owner's call:
+  navy in Dark Deco, black in Darker, the step under the bar accepted. The
+  override is gone and guard 128 now refuses it.
+
+### Added
+
+- **A frame readout in the installed app.** One line under the Build line on
+  Progress, only when installed: `Frame at launch … — now …`, each reading
+  the screen size, the orientation, the layout viewport's height, `100dvh`,
+  the two safe-area insets and the header's top. Two mechanisms draw the
+  flip's pixels exactly — a document scrolled by 62, or a viewport shrunk to
+  812 that also lost its top inset — and these numbers tell them apart, so
+  the next change to the frame is chosen by them. The page is **told** the
+  numbers rather than reading them: `#fprobe`, a fixed hidden full-height box
+  with children sized to each inset and to `100dvh`, reports through a
+  `ResizeObserver`, and the header's top comes from an
+  `IntersectionObserver` — nothing section 120 refuses, no forced layout.
+  Observers attach only when installed.
+
+### QA
+
+- **Section 162, new** — the probe's markup and CSS, the standalone gate,
+  observers instead of reads, the line on Progress only when installed, the
+  boot start, both readings kept.
+- Section 153 requires `default`. Section 128: Q4 back to two declarations;
+  Q5's comment records the falsification and keeps the pin for the reason
+  that was always true on its own; Q6 reversed — no installed `--hdr`
+  override. Section 64's comments follow the tag.
+- **The browser check** boots the page as an installed app
+  (`navigator.standalone`) and reads the line: both readings fill, at launch
+  they equal this viewport (390×844 portrait, view and dvh 844, insets 0/0,
+  head 0), a turn to landscape reaches "now" and leaves "at launch", the
+  installed boot throws nothing, and a tab never shows the line. **The boot
+  check caught a real defect before it shipped:** `FRAME` was declared below
+  the boot render, so an installed boot threw on Progress — red, fixed,
+  re-run green, and shown to bite again with the declaration moved back.
+  125 → 130 checks.
+- **negtest730**, new: 12 fixtures (§162 ×11, §153 ×1). negtest720 reshaped
+  for Q4/Q6 (−2). negtest610's tag anchor follows. **The wall caught one:**
+  negtest131's "the build line leaves Progress" renamed every
+  `<span class="buildline">` and missed the new
+  `<span class="buildline" id="frameline">`, so the guard still found the
+  word and stayed quiet — re-aimed on the class attribute's prefix. Census **1421 → 1431**
+  (1325 guards / 106 smoke), 81 → 82 suites; 161 → 162 sections.
+
+### Documentation
+
+- NOTES — "Open" carries the measurement and what the readout is for; the
+  header entry and `THEMEBAR` say what 16 September measured. README (the
+  weight — 248 KiB, 254 in decimal kB — and the counts), ARCHITECTURE (the
+  three functions), `qa.yml` (counts; negtest730 in shard 2).
+
 ## [6.1.0] — 2026-09-15
 
 **The front door, and the six things 6.0.9 left open.** The install dialog
