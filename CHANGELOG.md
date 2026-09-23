@@ -14,6 +14,35 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.1.4] — 2026-09-23
+
+**Knightquest.** Batman Day brought the Part Two trailer, and a pre-order
+went up with it. Warner's digital listing gives the title, the date and the
+rating, so the parked row takes the first two. A PATCH by README's rule: a
+copy fix on a parked row. No entry moves, and nothing saved changes shape or
+meaning. The counts stay at 137 films, 71 seasons and 44 continuities, because
+a parked row is already on the shelf. **No reinstall is needed.**
+
+### Changed
+
+- **Batman: Knightfall — Part Two: Knightquest.** The title follows Part
+  One's house styling. Warner's listing styles it *Batman: Knightfall Part
+  2: Knightquest*. `when:` moves from "Late 2026" to **"8 December 2026"**,
+  the digital date on the Movies Anywhere pre-order page (© Warner Bros.).
+  The blurb stays undated (section 154, 2.8). The row stays parked, and its
+  R goes in when it unparks. The seed seats, the ItemList row and three
+  lines of the catalogue export follow the title.
+
+### QA
+
+- **Re-blessed**: the CSP hash and `qa/script-bytes.json`.
+- **The ARIA corpus** re-recorded for the one line a reader hears change: the
+  parked row on The Path, now with its title and date.
+- **negtest650** retargeted. Its "a parked entry loses its date" fixture
+  pinned `when:"Late 2026"`, which no row carries now, so it stripped the
+  date from Dynamic Duo (30 June 2028) instead: the parked row furthest from
+  its own date. The census is unchanged.
+
 ## [6.1.3] — 2026-09-16
 
 **Clean frame.** 6.1.2 took the blur off the top: the owner's phone showed a

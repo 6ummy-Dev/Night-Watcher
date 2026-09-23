@@ -9,7 +9,7 @@ echo "--- 154: a parked title is on the shelf and off the count"
 
 run_case "a parked entry loses its date" \
   "is not out yet and carries no when:" \
-  "${P}a=',b:[\"u\"],when:\"Late 2026\"}';assert s.count(a)==1;s=s.replace(a,',b:[\"u\"]}',1);${W}" \
+  "${P}a=',b:[\"u\"],when:\"30 June 2028\"}';assert s.count(a)==1;s=s.replace(a,',b:[\"u\"]}',1);${W}" \
   guards "" 154
 
 run_case "a released entry is handed a date" \

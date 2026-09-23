@@ -226,7 +226,7 @@ ORDERING 1 OF 3 — BY UNIVERSE
 26. Knightfall Trilogy
 ----------------------
   1. Batman: Knightfall — Part One: Knightfall (2026) · animated · core · R
-  2. Batman: Knightfall — Part Two (2026) · animated · core · NOT OUT YET
+  2. Batman: Knightfall — Part Two: Knightquest (2026) · animated · core · NOT OUT YET
   3. Batman: Knightfall — Part Three (2027) · animated · core · NOT OUT YET
 
 27. Standalone Justice League Films
@@ -462,7 +462,7 @@ ORDERING 2 OF 3 — BRUCE'S LIFE
 5. Broken and rebuilt
 ---------------------
   1. Batman: Knightfall — Part One: Knightfall (2026) · animated · core · R
-  2. Batman: Knightfall — Part Two (2026) · animated · core · NOT OUT YET
+  2. Batman: Knightfall — Part Two: Knightquest (2026) · animated · core · NOT OUT YET
   3. Batman: Knightfall — Part Three (2027) · animated · core · NOT OUT YET
   4. The Dark Knight Rises (2012) · live action · core · PG-13
 
@@ -849,7 +849,7 @@ ORDERING 3 OF 3 — RELEASE ORDER
   50. Bat-Fam — Season 1 (2025) · animated · series · optional · TV-Y7
   51. Batman: Caped Crusader — Season 2 (2026) · animated · series · optional · TV-14
   52. Batman: Knightfall — Part One: Knightfall (2026) · animated · core · R
-  53. Batman: Knightfall — Part Two (2026) · animated · core · NOT OUT YET
+  53. Batman: Knightfall — Part Two: Knightquest (2026) · animated · core · NOT OUT YET
   54. Clayface (2026) · live action · optional · NOT OUT YET
   55. Batman: Knightfall — Part Three (2027) · animated · core · NOT OUT YET
   56. Dynamic Duo (2028) · animated · core · NOT OUT YET
