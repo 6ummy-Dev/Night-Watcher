@@ -71,7 +71,7 @@ jobs:
   # PR-gated job never runs (it did not, for a long time — NOTES-history.md
   # ("Where the served and config files' histories went")).
   #
-  # Cost: 1444 fixtures, of which 1329 run guards.js and 115 run smoke.js — most
+  # Cost: 1490 fixtures, of which 1375 run guards.js and 115 run smoke.js — most
   # of those scoped to one phase by SMOKE_ONLY. The split is guarded in this
   # file the same as the README's counts, so the next drift fails the build.
   # run-all.sh dispatches longest-first; this job shards 4-way on top, packed
@@ -101,7 +101,7 @@ jobs:
           - shard: "3"
             pick: 'negtest(131|161|164|171|175|176|220|251|270|350|390|410|460|490|530|620|630|710|740)\.sh'
           - shard: "4"
-            pick: 'negtest(170|181|182|195|250|252|272|273|320|380|400|430|450|470|476|480|580|600|650|670|720)\.sh'
+            pick: 'negtest(170|181|182|195|250|252|272|273|320|380|400|430|450|470|476|480|580|600|650|670|720|750)\.sh'
     steps:
       - uses: actions/checkout@v5
 
@@ -145,6 +145,35 @@ jobs:
           exit $MISSED
 
       - run: bash qa/negative/run-all.sh '${{ matrix.pick }}'
+
+  # 6.2.0. The fence around the drafting agent. Nocturne's issues arrive as
+  # pull requests from nocturne/ branches, written by an AI agent under a
+  # bot account; the owner reviews and merges every one. The agent may write
+  # the issue's markdown and images, the paper the build makes from them and
+  # the sitemap block the build rewrites, and nothing else: not the rules it
+  # works under (nocturne/BRIEF.md, nocturne/VOICE.md), not the checks that
+  # judge it (qa/), not the app. The brief says so; this job makes it true.
+  # Guard 163 fails the build if the job or its allowed list changes shape.
+  nocturne-paths:
+    if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'nocturne/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: the agent writes only the paper
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          CHANGED=$(git diff --name-only "$BASE" HEAD)
+          BAD=$(printf '%s\n' "$CHANGED" | grep -Ev '^(nocturne/issues/|docs/nocturne/|docs/sitemap\.xml$)' | grep . || true)
+          if [ -n "$BAD" ]; then
+            echo "a nocturne/ pull request may change nocturne/issues/, docs/nocturne/ and docs/sitemap.xml only:"
+            printf '%s\n' "$BAD"
+            exit 1
+          fi
+          echo "$(printf '%s\n' "$CHANGED" | grep -c .) files, all inside the paper"
 
   # The behavioral instrument. browser-check.mjs is the only tool that can
   # observe scroll restore, focus restore, belt park/drop rendering, sticky
