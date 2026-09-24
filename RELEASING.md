@@ -236,8 +236,18 @@ curl -s  https://nightwatcher.life/sitemap.xml | grep -c '/nocturne/'
 Expected: `200` and the one `Content-Security-Policy` line from
 `_headers`, exactly; the feed's item count equal to the issues merged (up
 to 20); the sitemap listing the archive and every issue. Before the first
-issue is merged, `/nocturne/` answers `404` and only
-`/nocturne/nocturne.css` exists: that is the 6.2.0 state, not a fault.
+issue is merged, `/nocturne/` answers `200` with the holding page (On the
+press, `noindex`), the feed answers with `0` items and the sitemap lists no
+`/nocturne/` URL: that is the 6.2.1 state, not a fault.
+
+**The door on Home (6.2.1), a device check.** Home's *Read the paper* is
+built like *Where to watch*, but *Where to watch* leaves the site and the
+paper does not: it sits inside the installed app's scope (`/`). After any
+release that touches the door, tap it on iPhone, iPad and PC, in a browser
+tab and in the installed app. In a tab it must open a new tab. In the
+installed app, a new tab or the system browser is right; the paper opening
+inside the app's own window, with no way back to the map, is a fault to fix
+in a patch.
 
 A bad issue already live is fixed by another pull request: a dated
 correction at the top of the story (`nocturne/VOICE.md` §5), or, for an

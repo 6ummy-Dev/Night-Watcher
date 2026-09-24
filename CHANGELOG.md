@@ -14,6 +14,62 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.2.1] — 2026-09-24
+
+**A door and a front page.** Until the first issue merged, `/nocturne/`
+answered the site's 404, and the app had no way to reach the paper. This cut
+gives the paper a holding page and gives Home one button to it. A PATCH by the
+owner's call: README's rule would make a new link a MINOR, and 6.3.0 stays
+booked for the beats and analytics cut on Tue 29 Sept. No entry moves, and
+nothing saved changes shape or meaning. The counts stay at 137 films, 71
+seasons and 44 continuities. **No reinstall is needed.**
+
+### Added
+
+- **Home's door to the paper.** A card at the foot of Home, in both the
+  first-visit chooser and the Home you get once a path is picked, set as a
+  small front page: *A paper of Night Watcher*, the Night Final seal, the
+  NOCTURNE nameplate, the dateline, one headline, and a **Read the paper**
+  button. The button is built like *Where to watch*: the same `.lnk` style
+  and arrow, `target="_blank"`, `rel="noopener noreferrer"`, so in a
+  browser it opens the paper in a tab of its own. The nameplate uses
+  `--t-num`; the scale stays at nine roles.
+- **A holding page at `/nocturne/`.** With no issue on disk the build now
+  writes `docs/nocturne/index.html` as a front page: the masthead, **On the
+  press**, three columns (the beat, on the map, the hour) and a line saying
+  the feed is open. It promises no date, because a founding issue that isn't
+  good is never published and the first run moves a week. It is `noindex`
+  and stays out of the sitemap. The first merged issue replaces it with the
+  archive on its own; nothing has to change on Sunday.
+- **The feed opens empty.** `/nocturne/feed.xml` ships now with no items,
+  so a reader can subscribe before No. 0 lands.
+
+### Changed
+
+- **Guard 165** held that the app never links to the paper (6.2.0). It now
+  holds exactly one link, Home's, built like *Where to watch*, and that the
+  app names `/nocturne` nowhere else. The manifest and the 404 still never
+  mention the paper. The door's class is `lnk paperlnk`, so guard 32's
+  single-watch-link count is untouched.
+- **Guard 167** also builds the paper from an empty folder on every run and
+  holds the holding page: On the press, `noindex`, no date, an empty feed,
+  an empty sitemap block, and no `noindex` on the archive that replaces it.
+- README (Nocturne, weight), ARCHITECTURE (`paperRow`), RELEASING (the wire
+  check for `/nocturne/` is now a 200 holding page, and the device check
+  for the door), and BRIEF §1 (the app's one door) follow.
+
+### Under the hood
+
+- Guards stay at 168 sections. Negative fixtures 1,490 → 1,497 (negtest750
+  42 → 49: one 165 fixture rewritten for the door, three more for 165 and
+  four for the holding page under 167). The browser check 140 → 144: the
+  holding page loads with no errors, the deco face, no overflow at 390, no
+  script, axe clean. The ARIA corpus moved for Home's two states, by the
+  card and nothing else.
+- `docs/index.html` is 247 KiB raw / 68 KiB gzip (was 245 / 68): the card
+  costs 1.6 KiB. Room under guard 29's 250 KiB ceiling drops from 4.6 to
+  3.1 KiB, which matters for the Clayface cut on 23 October.
+
 ## [6.2.0] — 2026-09-24
 
 **The paper.** Night Watcher gets a weekly paper, **Nocturne**, at
