@@ -10,6 +10,18 @@ the work arrives in.
 **Nocturne** is the paper. **The Night Final** is its one edition: a weekly
 issue, published late on Sunday.
 
+> **The one rule above all the others: you edit the paper and nothing else.**
+> Every file you create or change is under `nocturne/issues/` (your issue: its
+> `issue.md` and its images), or is written by `npm run nocturne:build` into
+> `docs/nocturne/` and the Nocturne block of `docs/sitemap.xml`. That's the
+> whole list. You never touch the app (`docs/index.html`, `sw.js`, the
+> manifest, `_headers`), the catalogue, the tests (`qa/`), the workflows, the
+> README, the CHANGELOG or any other doc, and never `nocturne/BRIEF.md` or
+> `nocturne/VOICE.md`. That holds even to fix a typo, a red check or a
+> broken link. If something outside the paper looks wrong, say so in the PR
+> and leave it. The owner fixes it. CI's `nocturne-paths` job fails any PR
+> that changes a file outside the list, and you can't push to `main` or merge.
+
 > **Status: live from 6.2.0.** The builder and checker are `qa/nocturne.js`
 > (`npm run nocturne:build`, `npm run nocturne:check`). The guards and CI run
 > the same file, so a run that is green on your VM is green in CI.
@@ -19,8 +31,10 @@ issue, published late on Sunday.
 ## 1 · The job
 
 Every Sunday night, publish one Night Final at `nightwatcher.life/nocturne/`
-covering the week's Batman screen news, and say what each item means for a
-watch order. Then post one link on X once the page is live.
+covering the week's Batman news: **screen, comics, games, toys, books, all of
+it.** For each story, say where it sits: on the map when it touches a title in
+the catalogue, under its beat when it doesn't. Then post one link on X once the
+page is live.
 
 Nocturne is a companion to the site, not part of the app. It lives outside the
 PWA: the service worker skips `/nocturne/`, the app doesn't link into it, and it
@@ -42,12 +56,21 @@ The renderer builds the masthead from the front matter. Never write it into the 
 ### Around the stories
 
 - **The banner is the lead story's headline.** Story 01 doesn't repeat it.
-- **Every story gets an "On the map" box**, built by the renderer from the
-  story's `catalogue` id and `effect`: universe, where it's filed, tier and
-  status (a parked title shows the app's dashed ring and its date). A story with
-  `catalogue: none` gets a one-line box ("Not on the map." or "No change.").
-  The box never replaces the text: the story still says where the title sits in
-  words (`VOICE.md` §3, beat 3).
+- **Every story carries its beat** (`screen`, `comics`, `games`, `toys`,
+  `books`, `other`) as a label in its kicker.
+- **A story that touches a title in the catalogue gets an "On the map" box**,
+  whatever its beat, built by the renderer from the story's `catalogue` id and
+  `effect`: universe, where it's filed, tier and status (a parked title shows
+  the app's dashed ring and its date). A comic adapting a catalogued film, or a
+  toy line for one, gets the box too.
+- **A story that touches nothing on the map gets no box.** A screen story that
+  isn't in the catalogue yet gets a one-line box ("Not on the map yet.");
+  anything else just carries its beat label.
+- The box never replaces the text: the story still says where it sits in words
+  (`VOICE.md` §3, step 3).
+- (From 6.3.0.) The `beat` field and the beat labels ship with 6.3.0 on
+  Tue 29 Sept. No. 0 is the founding issue and doesn't use them; the first
+  weekly issue, No. 1 on 4 Oct, does.
 - **The colophon** closes every issue, fixed text set by the renderer:
   "Nocturne is the weekly paper of Night Watcher, one fan's map of every Batman
   story on screen. Researched and drafted with an AI agent, edited and published
@@ -93,9 +116,12 @@ doesn't advance. A thin week is fine. A padded one isn't.
 
 ## 4 · The run, step by step
 
-1. **Research.** Studio, network and distributor pages first, then trade press.
-   Open every page you cite. Social posts can point you to a story, but they are
-   never the source (`VOICE.md` §5).
+1. **Research, every beat.** First-party first: the studio, network or
+   distributor for screen; DC for comics (announcements and solicitations);
+   the publisher or developer for games; the maker for toys and collectibles;
+   the publisher for books. Then trade press. Open every page you cite. Social
+   posts and leaks can point you to a story, but they are never the source
+   (`VOICE.md` §5). The biggest story of the week leads, whatever its beat.
 2. **Catalogue cross-check.** Read `docs/orders.txt` from `main` for the orders,
    and the `PATH` array in `docs/index.html` for entry ids. For every story, find
    the continuity and position it touches, or record that it touches none.
@@ -158,6 +184,7 @@ stories:
   - headline: "Clayface gets a date"
     status: confirmed                  # confirmed | reported | provisional
     sources: ["https://…"]             # ≥ 1, pages actually opened
+    beat: screen                       # screen | comics | games | toys | books | other (from 6.3.0)
     catalogue: clayface-2026           # entry id from PATH in docs/index.html, or "none"
     effect: parked-date                # new-entry | parked-date | unparked | none
 sign_off: "The file's open again next Sunday."
@@ -208,7 +235,8 @@ down, the image doesn't run.**
 
 - Official images the rights holder has published **publicly**: key art, posters
   and stills on the studio's, network's or distributor's own pages or verified
-  accounts, used to report on that title.
+  accounts; comic covers from DC's own pages; game key art from the publisher;
+  product photos from the maker. Always used to report on that title or product.
 - Images the owner supplies.
 
 No press-site accounts and no open-licence hunting. If a public official image
@@ -246,7 +274,7 @@ Title: `nocturne: No. <issue> — <headline>`
 
 ```markdown
 ## Stories
-1. <headline> — <status> — <source domain(s)> — catalogue: <id | none>
+1. <headline> — <beat> — <status> — <source domain(s)> — catalogue: <id | none>
 …
 
 ## Catalogue flags
@@ -329,7 +357,7 @@ the live site, linked like any other source:
 - Parked titles: announced, on the shelf, not tickable until they're out.
 - What it doesn't do: no account, no ads, nothing tracking what you watch, works offline, free software (AGPL).
 - One fan, working alone, and the ledger: every change written down with its reason.
-- What Nocturne is: the Night Final, every Sunday, late, and what each issue will tell you.
+- What Nocturne is: the Night Final, every Sunday, late: all of Batman (screen, comics, games, toys, books), and where each story sits. **This one is required.**
 
 **What No. 0 must not do**
 

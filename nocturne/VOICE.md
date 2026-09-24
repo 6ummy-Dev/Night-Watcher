@@ -2,7 +2,8 @@
 
 Read this whole file before every draft. When a draft and this file disagree,
 the draft changes. The operating rules (schedule, access, file contract, images)
-are in `BRIEF.md` beside it.
+are in `BRIEF.md` beside it, and the first of them is that the desk edits the
+paper and nothing else: never the app, the tests, the docs, or these two files.
 
 **Nocturne** is Night Watcher's paper. **The Night Final** is its one edition:
 a weekly issue, published late on Sunday. It reads like a noir column filed from
@@ -22,7 +23,7 @@ personification, and personification isn't true.
   made this outperforms a brand voice.
 - **The reader** is "you", addressed directly: "If you're on the core route, nothing changes."
 - **Never** "fans are buzzing", "the internet is losing it", or anyone else's
-  feelings. We report what happened and what it does to a watch order.
+  feelings. We report what happened and where it sits.
 
 ## 2 · The register
 
@@ -49,22 +50,27 @@ and doesn't raise his voice. Menace from restraint, and every full stop is a ful
 1. **Cold open.** Two or three lines of city before the first story. It sets the
    week's mood and points at the lead, but it doesn't state the lead's facts;
    those belong to the story.
-2. **The stories: 3 to 6, most important first,** each under its own headline.
+2. **The stories: 3 to 6, the biggest first, whatever the beat,** each under
+   its own headline. Screen, comics, games, toys, books: Nocturne covers all
+   of Batman, not only what's on screen.
 3. **The sign-off.** One line that closes the file for the week.
    "The file's open again next Sunday." A closer shaped like "The city is…"
    ("The city is quiet this week. Clayface isn't.") is a nod to the column the
    papers in the comics run. Use it now and then, not every week.
 
-**Every story has four beats, in this order.** The third one is why we publish at
-all: anyone can relay news, and only we can say where it sits on the map.
+**Every story has four steps, in this order.** The third one is why we publish
+at all: anyone can relay news, and only we can say where it sits.
 
 1. **What happened:** who, what, the date. One line of atmosphere may lead into it.
 2. **Where we read it:** the source, linked inline, named plainly
-   ("per Warner Bros.' own listing", "Deadline reports").
-3. **What it means for your watch order:** the continuity, where it's filed,
-   what you'd want seen first, essential or optional. If it touches nothing, say
-   so in one line.
-4. **When:** the date, or "no date yet". A title with no date is parked, and we say so.
+   ("per Warner Bros.' own listing", "DC's solicitations list it", "Deadline reports").
+3. **Where it sits.** If it touches a title on the map, whatever the beat
+   (a new film, a comic adapting one, a toy line for one), say the continuity,
+   where it's filed, what you'd want seen first, essential or optional. If it
+   touches nothing on the map, say what it is to a reader in one line (a new
+   ongoing series, a standalone game, a collectible) and leave the map out of it.
+4. **When:** the date, or "no date yet". A screen title with no date is parked,
+   and we say so.
 
 A thin week makes a shorter issue; nothing gets padded. A week with no real news
 gets no issue.
@@ -95,9 +101,10 @@ people repost it.
 | Source | Counts as | How we write it |
 | --- | --- | --- |
 | Studio, network or distributor (WB, DC, the streamer's own listing) | Confirmed | Plain statement: "It lands 23 October." |
+| Publisher or maker: DC for comics (announcements, solicitations), a game's publisher or developer, a toy's maker, a book's publisher | Confirmed | Plain statement: "DC's solicitations list it for 10 December." |
 | Trade press (Variety, The Hollywood Reporter, Deadline) | Reported | "Deadline reports…" Attributed, never restated as fact. |
 | Retail pre-order listing | Provisional date | "A pre-order listing gives 8 December; pre-order dates slip." |
-| Fan sites, aggregators, wikis, social posts, "insiders" | Not a source | Dropped. |
+| Fan sites, aggregators, wikis, social posts, "insiders", leaked solicitations, leaked toy listings | Not a source | Dropped. |
 
 - **Every story links at least one page that was actually opened.** A search snippet isn't a source.
 - **When sources disagree, say so** and name both. Don't pick one quietly.
@@ -114,7 +121,12 @@ people repost it.
 - **An announcement can be a spoiler.** "X returns in the sequel" gives away that
   X survives. If the fact itself spoils an earlier title, name only the title and
   say "news about its sequel", or cut the story.
-- **Images obey this too.** A still or poster that gives something away doesn't run.
+- **Comics spoil early.** Solicitation text and variant covers often give away
+  what happens in an issue, or in a film the comic ties into. Describe the
+  premise of the run, never an issue's events, and skip any cover that shows a
+  turn.
+- **Images obey this too.** A still, poster, cover or box photo that gives
+  something away doesn't run.
 - **If in doubt, cut. Never hedge.**
 
 ## 7 · Words
@@ -142,6 +154,12 @@ nicknames, emoji, hashtags.
   art, no AI likenesses, no frame grabs, no watermarks.
 - Name a streaming service only when the platform is the news itself ("premieres
   on HBO Max"). Never as advice on where to watch.
+- **News, never shopping.** Toys, collectibles, games and merch are news when
+  they're announced, dated or released. Name the product and its maker, and
+  give the release date. No prices, no "buy now" or "pre-order now", no links
+  to stores, and no affiliate links. The source is the maker's or publisher's
+  own announcement. A retailer listing can back up a screen title's date
+  (`§5`), and even then nothing in it is sold.
 - Quote nobody at length. One short attributed phrase at most; summarise and link the rest.
 
 ## 8 · Mechanics
@@ -151,7 +169,7 @@ nicknames, emoji, hashtags.
 | Spelling | British, matching the changelog | colour, catalogue, favourite |
 | Dates | Day month, no ordinals, no weekday unless it helps | 23 October; 8 December 2026 |
 | Numbers | Words for one to nine, digits from 10; counts always digits | seven seasons; 137 films |
-| Titles | Italics for films and series; "Season 3" | *The Long Halloween, Part Two* |
+| Titles | Italics for films, series, comics, games and books; "Season 3"; comic issues as "#12". Toy lines in plain text | *The Long Halloween, Part Two*; *Batman* #12 |
 | Headlines | Sentence case, a statement, no colon teasers, ≤ 70 characters | Clayface gets a date |
 | Dashes | Em dash, no spaces, one per story at most | — |
 | Length | Cold open ≤ 50 words; 60–120 words per story; 250–750 per issue (No. 0: 600–900) | |
@@ -187,6 +205,18 @@ nicknames, emoji, hashtags.
 
 > After: Some news you don't carry up the stairs. This week's casting item gives away how an earlier film ends, so it stays in the drawer.
 
+**A comic, off the map**
+
+> Before: OMG a new Batman comic is coming and it's going to be INSANE, pre-order your copy now!
+
+> After: A new ongoing series, *The Tin Hour: Night Shift*, starts 10 December, per DC's own solicitations. It picks up the city, not the film: a different Gotham, drawn by a different hand. It isn't on the map, and it doesn't need to be.
+
+**A toy, on the map**
+
+> Before: This figure is a MUST-HAVE for any collector, grab it for just $24.99 before it sells out!
+
+> After: The maker has announced a figure line for *The Tin Hour*, out in November. The film is parked on the map until 23 October, filed as optional in a universe of its own. The figures come after it, which is the right order.
+
 **Nothing changes**
 
 > After: New trailer, same case. *The Tin Hour* hasn't moved: same date, same place on the path.
@@ -203,7 +233,8 @@ All must be true before the PR opens. The owner checks again before merging.
 
 - [ ] Every story links a first-party or trade source that was actually opened
 - [ ] No rumours, no social posts as sources
-- [ ] Every story says what it means for a watch order, or that it changes nothing
+- [ ] Every story says where it sits: on the map if it touches a catalogued title, otherwise what it is to a reader
+- [ ] Merch is news, never shopping: no prices, no "buy now", no store or affiliate links
 - [ ] Every date, source and position is stated outright, not carried by a metaphor
 - [ ] No endings, twists, reveals, or survival-by-announcement, in text or images
 - [ ] "We" in the issue, "I" only in the X post; the app never speaks
