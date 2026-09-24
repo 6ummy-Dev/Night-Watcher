@@ -14,6 +14,108 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.2.0] — 2026-09-24
+
+**The paper.** Night Watcher gets a weekly paper, **Nocturne**, at
+`/nocturne/`. Its one edition, **the Night Final**, runs every Sunday, late:
+the week's Batman screen news, and what each story does to a watch order. A
+MINOR by README's rule: a new served path is a feature, the same as
+`orders.txt` in 2.6.0. No catalogue entry moves and nothing saved changes
+shape or meaning. **This release publishes nothing on its own.** Until the
+first issue is merged, `/nocturne/` answers 404, and the only new file on the
+wire is the paper's stylesheet.
+
+### Added
+
+- **Nocturne, built from markdown.** An AI drafting agent writes each issue
+  as `nocturne/issues/<week>-<slug>/issue.md`, with its images beside it,
+  and opens a pull request. The owner reviews and merges every one. Its rules
+  are `nocturne/BRIEF.md` (the job, the contract, the images) and
+  `nocturne/VOICE.md` (a noir register, low and dry, with the facts always
+  literal). Both are the owner's alone; the agent never edits them.
+- **`qa/nocturne.js`, one module with two doors.** `npm run nocturne:build`
+  writes `docs/nocturne/` (each issue, its images, the archive, an RSS feed
+  and `nocturne.css`) and the sitemap's Nocturne block. `npm run
+  nocturne:check` holds every issue to the contract: the fields, a Sunday
+  that closes its ISO week, issue numbers with no gap starting at No. 0,
+  every source linked from its story and every link listed as a source,
+  the voice's mechanical rules, and a licence record for every image. The
+  output is committed, like `orders.txt`, and nothing in the build reads the
+  clock, so the same issues write the same bytes anywhere.
+- **"On the map", read out of the app.** Each weekly story ends in a box
+  with its universe, where it is filed, its tier and whether it is parked.
+  The builder slices `PATH` and `tierOf()` out of `docs/index.html` and
+  evaluates them, so the box says what the app says.
+- **No. 0 is the founding issue**: about the map itself, first-party sources
+  only, no On-the-map boxes, 600 to 900 words.
+- **The page** is the mocked one: the NOCTURNE nameplate, a signal-yellow
+  NIGHT FINAL seal, the dateline with *Price: nothing. No account.*, the
+  lead's headline as the banner, a cold open with a drop cap, status
+  kickers, the sign-off and a fixed colophon that says the paper is drafted
+  with an AI agent and edited and published by hand. Canonical, Open Graph
+  and `NewsArticle` JSON-LD on every issue.
+
+### Changed
+
+- **`sw.js` steps aside for `/nocturne/`**, ahead of `respondWith`. The paper
+  is never cached by the app and never falls back to its shell: an issue
+  read offline is an honest network error, not the map in the paper's place.
+- **`docs/_headers` gains a `/nocturne/*` rule**: one line, a default-deny
+  Content-Security-Policy (styles, images and fonts from this origin, no
+  script). Section 104's "no CSP header" rule now names the one path it
+  exempts.
+- **`docs/sitemap.xml` carries the Nocturne block's markers** after its two
+  URLs. The build owns what sits between them. It is empty until an issue
+  runs.
+- **Section 13's shell census excludes `docs/nocturne/` as a directory.**
+  Issues arrive weekly without a release, so a file-by-file exclusion would
+  go stale every Sunday.
+- **The app is untouched.** No link from `index.html`, the manifest or the
+  404 to the paper, by the owner's call: inside the installed app a link
+  would open the paper in the app's own window.
+- `nocturne/BRIEF.md` and `nocturne/VOICE.md`, uploaded on their own earlier
+  today, turned section 45 red: README's file table did not list them. The
+  table lists `nocturne/`, `docs/nocturne/`, `qa/nocturne.js` and
+  `qa/nocturne-fixture/` now.
+- **VOICE.md's weekly floor is 250 words, not 400.** Three stories at the
+  120-word ceiling could not reach 400, and "a thin week makes a shorter
+  issue" said so.
+
+### QA
+
+- **Guards 162 → 168**, in a new NOCTURNE group. 163: `docs/nocturne/` and
+  the sitemap block are byte for byte what the build writes. 164: the
+  paper runs no script, and the `/nocturne/*` policy is pinned whole. 165:
+  the paper is outside the app (the service worker's early return ahead of
+  `respondWith`, nothing in the shell, no mention in the app, the manifest
+  or the 404). 166: every issue on disk and the fixture keep the contract.
+  167: the sitemap block and the feed list exactly the issues, after the
+  site's own two URLs. 168: the paper's weight, 40 KB a page, 250 KB an
+  image, three images an issue, pinned here as well as in the module.
+- **`qa/nocturne-fixture/`**: a founding No. 0 and a weekly No. 1 about an
+  invented title, *The Tin Hour*, whose third story reads *Knightquest*'s
+  parked date out of the app. Sections 163–168 build and check them on every
+  run, so the checker is exercised before a real issue exists.
+- **negtest750**: 42 fixtures, every one naming its section. Section 132
+  now also drives a `/nocturne/` navigation through the real `sw.js` and
+  fails if the worker answers it. negtest610's row sweep grows by four, one
+  per new file-table row.
+- **The browser check reads the paper.** The fixture's No. 0, No. 1 and
+  archive are built in memory and served through a route, so nothing is
+  written into `docs/`: no errors, every image decoded, the deco face
+  loaded, nothing wider than the phone, no script, and axe clean. Real
+  issues are read the same way once they exist.
+- **A CI job for the agent's pull requests.** A pull request from a
+  `nocturne/` branch may change `nocturne/issues/`, `docs/nocturne/` and
+  `docs/sitemap.xml`, and nothing else. `nocturne/BRIEF.md` and `VOICE.md`
+  are outside it on purpose.
+- **A WebP must be whole.** The checker holds each image's RIFF size field
+  to the file's length. Found in this build: the fixture's first image was
+  staged before `.gitattributes` named `*.webp` binary, lost one byte to a
+  line-ending conversion, and still parsed. It names `*.webp` now.
+- `yaml` joins the dev dependencies, for the front matter. It has no
+  dependencies of its own and never ships.
+
 ## [6.1.5] — 2026-09-24
 
 **Nothing on the shelf.** An independent audit of 6.1.4 read every function

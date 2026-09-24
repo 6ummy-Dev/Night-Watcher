@@ -15,7 +15,7 @@ Four other places carry part of the story and are not repeated here:
   required reading before a change; everything here is written in the
   present tense.
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 162 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 168 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -2820,6 +2820,40 @@ only in the branch that would have failed — so at file scope it would throw on
 `undefined` and turn a clean red build into a stack trace, on the release meant
 to be the calm one. One nested section, named in the guard with its reason. A
 second one fails the build until somebody makes the same argument for it.
+
+## Nocturne
+
+The paper at `/nocturne/` (6.2.0). Why it is shaped this way:
+
+- **It is not the app.** The owner's call was a path, not a feature inside
+  the PWA. So the service worker returns before `respondWith` for
+  `/nocturne/` (an issue is never cached, and never answered by the app's
+  shell offline), nothing in the shell names it, and the app never links to
+  it: inside the installed app, a same-scope link opens in the app's own
+  window. Sections 132 (executed) and 165 (by text and position) hold it.
+- **The output is committed, and the build reads no clock.** Workers
+  Assets serves `docs/` as it stands; there is no build step on the
+  platform. Committing the paper, like `orders.txt`, means the thing served
+  is the thing reviewed, and a deterministic build is what lets section 163
+  compare bytes. Dates come from the issue (`published`, corrections).
+- **The tools live in `qa/`, not `nocturne/`.** The agent writes in
+  `nocturne/issues/` and `docs/nocturne/`. A checker it could edit would be
+  a checker it could weaken; the CI fence in `qa.yml` makes that true
+  rather than promised.
+- **The catalogue is read out of the app.** `qa/nocturne.js` slices `PATH`
+  and `tierOf()` from `docs/index.html` and evaluates them, the same way the
+  guards do, so an On-the-map box cannot disagree with the app.
+- **The CSP is a header here, and only here.** The app's policy is a
+  `<meta>` with a blessed script hash; the paper has no script, so one
+  default-deny header on `/nocturne/*` covers every page the build will
+  ever write. Section 104's "no CSP header" rule names this one exemption.
+- **YAML, a markdown subset, no markdown library.** The front matter is
+  normal YAML, so a real parser reads it (`yaml`, dev-only). The body is
+  paragraphs, `##` headlines, italic, bold and links, and the checker
+  refuses anything else, so the renderer is thirty lines and the page can
+  never carry markup the agent reached for.
+- **The weekly floor is 250 words.** VOICE.md first said 400, which three
+  stories at the 120-word ceiling cannot reach.
 
 ## The floor
 

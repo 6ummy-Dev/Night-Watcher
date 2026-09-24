@@ -218,6 +218,33 @@ the scanner probing Cloudflare's own platform endpoint, but if this URL ever
 answers 200 from the outside, something is answering in front of the Worker
 and that is a finding, not a curiosity.
 
+## Nocturne (6.2.0 onward)
+
+**An issue is not a release.** It lands as a pull request from the drafting
+agent's `nocturne/` branch and goes live when the owner merges it (the
+Worker builds on every push to `main`). No version moves. Before merging:
+CI green on every job, `nocturne-paths` included; the two screenshots the
+agent attached (390 and 1280 wide) read through; every source link opened
+on at least the lead story. Then, after the deploy:
+
+```
+curl -sI https://nightwatcher.life/nocturne/ | grep -iE '^HTTP|content-security-policy'
+curl -s  https://nightwatcher.life/nocturne/feed.xml | grep -c '<item>'
+curl -s  https://nightwatcher.life/sitemap.xml | grep -c '/nocturne/'
+```
+
+Expected: `200` and the one `Content-Security-Policy` line from
+`_headers`, exactly; the feed's item count equal to the issues merged (up
+to 20); the sitemap listing the archive and every issue. Before the first
+issue is merged, `/nocturne/` answers `404` and only
+`/nocturne/nocturne.css` exists: that is the 6.2.0 state, not a fault.
+
+A bad issue already live is fixed by another pull request: a dated
+correction at the top of the story (`nocturne/VOICE.md` §5), or, for an
+image a rights holder objects to, the image out the same day. An issue is
+never deleted. If one ever has to go, it is taken out in a release whose
+CHANGELOG entry says why.
+
 ## Rollback
 
 The recovery story `sw.js` promises, written down:

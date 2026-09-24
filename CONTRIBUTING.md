@@ -22,7 +22,16 @@ carried in writing: adding a guard section, and adding a negative suite.
 
 Releases ship as zips the owner uploads to `main` — never pushes, never
 pull requests — so "one change, one commit, one CHANGELOG entry" is the
-whole workflow. The version rule is in `README.md` ("Releasing"); the
+whole workflow.
+
+**The one exception is Nocturne (6.2.0).** Each weekly issue arrives as a
+pull request from a `nocturne/` branch, opened by the drafting agent under
+a bot account. It may change `nocturne/issues/`, `docs/nocturne/` and
+`docs/sitemap.xml` only (the `nocturne-paths` job in `qa.yml` fails
+anything wider), and the owner reviews and merges every one. An issue is
+content, not a release: no version, no tag, no CHANGELOG entry. The
+agent's rules are `nocturne/BRIEF.md` and `nocturne/VOICE.md`, and only the
+owner edits them. The version rule is in `README.md` ("Releasing"); the
 checklist is `RELEASING.md`. Before a cut, the full negative wall runs, not
 a selection.
 
