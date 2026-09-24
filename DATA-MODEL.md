@@ -55,7 +55,7 @@ does not parse is a failed read like a progress key that does not parse:
 | `watched`, `skipped` | `{slug: 1}` | `marksOf()`: own truthy keys only, each becomes `1`; anything not an object → `{}`. A skip on a **parked** entry (one wearing `u`) is dropped after the schema pass by `dropParkedSkips()` — 5.0.0 made parked titles unskippable, so a skip placed on one under an older build is "not now" said twice, and keeping it would resurface it the day the title lands. `applyMarks()` and the cross-tab merge refuse the same skip at their own doors (guard 154). A **watched** mark on a parked entry is swept the same way by `dropParkedWatched()` (5.3.0), which also drops the entry's log nights; both sweeps stamp the clock and persist, so an older tab or code cannot re-add the mark (guard 158). |
 | `rated` | `{slug: 1..5}` | `ratingsOf()`: each value through `clampRating()` (integer 1–5, else dropped). **A rating is a mark** (5.3.1): a rating on a parked entry is swept by `dropParkedRated()` after the schema pass, refused by `rate()`, by `applyMarks()` and by the cross-tab merge, and `favList()` never lists a parked title — a star is a verdict on something watched, and a parked title cannot have been (guard 158). |
 | `clk` | `{w:{}, s:{}, r:{}}` — per-mark clocks, `Date.now()` of the last change in either direction | `clocksOf()`: finite positive numbers only, prototype-free maps |
-| `log` | `[{id, ts}]`, the activity list in time order | `dedupeLog()`: known slugs with a valid timestamp (`validTs()`: a finite number or numeric string **greater than zero** — the epoch is not a night, 5.3.1), one per slug (earliest kept). `mergeLog()`, which every merge door uses, refuses an entry for a parked title (guard 158). |
+| `log` | `[{id, ts}]`, the activity list in time order | `dedupeLog()`: known slugs with a valid timestamp (`validTs()`: a finite number or numeric string **greater than zero** — the epoch is not a night, 5.3.1), one per slug (earliest kept). `mergeLog()`, which every merge door uses, refuses an entry for a parked title (guard 158). The log only ever holds watched titles: both merge doors filter their entries to the watched set, and `restore()` ends with `dropUnwatchedLog()`, which drops any row whose title is not watched (6.1.5). |
 | `path` | `"life"`, `"continuity"` or `"release"`, or `""` | `isPath()` (own property of `PATHCODE`); falls back to the legacy `mode` key of saves written before `path` existed; never to the live `S.mode` |
 | `theme` | `"dark"` or `"darker"` | `oneOf`, else keep the default |
 | `scope` | `S.scopePref` — the preference, never a view's scope | `oneOf(["movies","all"])` → sets both `S.scope` and `S.scopePref` |
@@ -162,8 +162,8 @@ code). The one exception is the cross-tab merge's clocked loops (§1), which
 carry a clocked id from a newer build's tab on purpose — `NOTES.md` records
 it as accepted under the storage listener's own entry
 (`window.addEventListener("storage", …)`, in the Script section). The log
-is merged when present (`mergeLog()`: catalogue ids, released, a timestamp
-after the epoch, one entry per id), and any watched entry the merge did not
+is merged when present, for watched entries only (`mergeLog()`: catalogue ids, released, a timestamp
+after the epoch, one entry per id; the watched filter is 6.1.5, the same as the tab door), and any watched entry the merge did not
 leave a night for — a file with no log, or a file whose entries for that
 title were all refused — gets a fresh timestamp (5.4.0; until then the
 fallback ran only when the log was absent). Like the code, it carries no

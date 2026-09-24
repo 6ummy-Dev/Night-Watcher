@@ -109,14 +109,14 @@ NEG_ARGS=
 
 echo "--- 131: the day has a name"
 
-run_case "the closing note loses the Batman Day line" \
-  "the Batman Day line is gone from the closing note" \
-  "${P}a=\"'<p class=\\\"note foot\\\">'+dayLine()+'Availability\";assert a in s;s=s.replace(a,\"'<p class=\\\"note foot\\\">Availability\",1);${W}" \
+run_case "the Batman Day line comes back to the closing note (6.1.5 retired it)" \
+  "the Batman Day line is back on Next up" \
+  "${P}a=\"'<p class=\\\"note foot\\\">Availability\";assert s.count(a)==1;s=s.replace(a,\"'<p class=\\\"note foot\\\">Batman Day, 19 September. Availability\",1);${W}" \
   guards "" 131
 
-run_case "the day line types its counts" \
-  "the Batman Day line types a count" \
-  "${P}a=\"'Batman Day, 19 September. Eighty-seven years, '+films+' films, '+tv+' seasons, '+PATH.length+\";assert a in s;s=s.replace(a,\"'Batman Day, 19 September. Eighty-seven years, 137 films, '+tv+' seasons, '+PATH.length+\",1);${W}" \
+run_case "the day line's function comes back (6.1.5 retired it)" \
+  "the Batman Day line is back on Next up" \
+  "${P}a='\nfunction watchNotes(){';assert s.count(a)==1;s=s.replace(a,'\nfunction dayLine(){ return \"\"; }'+a,1);${W}" \
   guards "" 131
 
 echo "--- 103 / 143: the re-insert carries hidden; the deck contract is read off the tree"
@@ -197,12 +197,12 @@ run_case "the disarm timer puts a hidden row back (smoke)" \
 
 run_case "a refused log leaves a watched title with no night (smoke)" \
   "a watched title whose log entries were all refused still gets a night" \
-  "${P}a='    if(Array.isArray(o.log)) mergeLog(o.log);\n    var have3 = {};';assert a in s;s=s.replace(a,'    if(Array.isArray(o.log)){ mergeLog(o.log); persist(); render(); return res; }\n    var have3 = {};',1);${W}" \
+  "${P}a='    if(Array.isArray(o.log)) mergeLog(o.log.filter(function(en){ return en && S.watched[en.id]; }));\n    var have3 = {};';assert a in s;s=s.replace(a,'    if(Array.isArray(o.log)){ mergeLog(o.log.filter(function(en){ return en && S.watched[en.id]; })); persist(); render(); return res; }\n    var have3 = {};',1);${W}" \
   "smoke" "main"
 
-run_case "the closing note opens without the day line (smoke)" \
-  "Next up's closing note opens with the Batman Day line" \
-  "${P}a=\"'<p class=\\\"note foot\\\">'+dayLine()+'Availability\";assert a in s;s=s.replace(a,\"'<p class=\\\"note foot\\\">Availability\",1);${W}" \
+run_case "the closing note opens on a day line again (smoke)" \
+  "Next up's closing note opens on the watching truths, no dated day line" \
+  "${P}a=\"'<p class=\\\"note foot\\\">Availability\";assert s.count(a)==1;s=s.replace(a,\"'<p class=\\\"note foot\\\">Batman Day, 19 September. Availability\",1);${W}" \
   "smoke" "main"
 
 run_case "the merge stops calling clocksOf() (smoke reads the poisoned stub's count)" \

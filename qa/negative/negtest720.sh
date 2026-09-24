@@ -50,9 +50,9 @@ run_case "the peek's click door drops without handing focus on" \
   "${P}a='addEventListener(\"click\", function(){\n  beltDropOpen(); dropFocus();\n});';assert a in s;s=s.replace(a,'addEventListener(\"click\", function(){\n  beltDropOpen();\n});',1);${W}" \
   guards "" 128
 
-run_case "the peek's keyboard door drops without handing focus on" \
-  "the peek's keydown door drops the belt without handing focus" \
-  "${P}a='  e.preventDefault();\n  beltDropOpen(); dropFocus();\n});';assert a in s;s=s.replace(a,'  e.preventDefault();\n  beltDropOpen();\n});',1);${W}" \
+run_case "a hand-written keydown door comes back on the native peek" \
+  "the peek is not a native button" \
+  "${P}a='addEventListener(\"click\", function(){\n  beltDropOpen(); dropFocus();\n});';assert s.count(a)==1;s=s.replace(a,a+'\ndocument.getElementById(\"beltpeek\").addEventListener(\"keydown\", function(e){\n  if(e.key !== \"Enter\") return;\n  beltDropOpen();\n});',1);${W}" \
   guards "" 128
 
 run_case "dropFocus lands on the first control instead of the pressed path" \

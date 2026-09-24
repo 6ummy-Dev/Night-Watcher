@@ -726,22 +726,17 @@ win.addEventListener("load", function(){
     S.tab = "next"; win.render();
     check("no Activity block before anything is watched", !doc.querySelector(".activity"));
 
-    /* --- the day has a name (5.4.0) ---------------------------------------
-       Batman Day's one dated sentence opens Next up's closing note — the
-       same paragraph as the two watching truths, one block, one diamond —
-       and its counts are the shelf's, read independently here. It leaves
-       with the Clayface trigger patch (23 October 2026), and so does this. */
+    /* --- the day line is retired (6.1.5) --------------------------------
+       5.4.0 opened Next up's closing note with one dated Batman Day
+       sentence. 6.1.5 took it out after the day (QA C-2): the note opens on
+       the first watching truth again, and no panel names the day. */
     (function(){
       var feet = doc.querySelectorAll("#view .panel:not([inert]) .note.foot");
-      var films = 0, tv = 0;
-      win.FILMS.forEach(function(f){ if(f.tv) tv++; else films++; });
-      var want = "Batman Day, 19 September. Eighty-seven years, " + films + " films, " + tv + " seasons, " +
-                 win.PATH.length + " continuities \u2014 and one map through all of it. Start anywhere. Availability changes";
-      check("Next up's closing note opens with the Batman Day line, counts off the shelf",
-            feet.length === 1 && feet[0].textContent.indexOf(want) === 0,
+      check("Next up's closing note opens on the watching truths, no dated day line",
+            feet.length === 1 && feet[0].textContent.indexOf("Availability changes constantly") === 0,
             feet.length + " notes; " + (feet[0] ? feet[0].textContent.slice(0, 120) : ""));
-      check("the line does not repeat on Home or Progress",
-            (function(){ var hit = 0; ["home", "stats"].forEach(function(t){ S.tab = t; win.render();
+      check("no panel names Batman Day",
+            (function(){ var hit = 0; ["home", "next", "stats"].forEach(function(t){ S.tab = t; win.render();
               if(/Batman Day/.test(doc.querySelector("#view .panel:not([inert])").textContent)) hit++; }); S.tab = "next"; win.render(); return hit === 0; })());
     })();
 
@@ -2181,12 +2176,62 @@ win.addEventListener("load", function(){
     win.render();
     check("Case closed marks no group", win.document.querySelectorAll("#view .group.here").length === 0);
     S.watched = savedW44; win.render();
+
+    /* --- a group with nothing on the shelf is not finished (6.1.5) --------
+       QA F-1: a universe whose every visible row is parked has size 0, and
+       0 + 0 === 0 drew its Home card full and counted it complete on
+       Progress on a fresh device (The DCU, Movies scope, until Clayface).
+       Built synthetically so the check outlives any one parked title. */
+    (function(){
+      var sv = {w:S.watched, k:S.skipped, t:S.tab};
+      S.watched = {}; S.skipped = {};
+      var realBG = win.buildGroups;
+      var empty = null;
+      win.buildGroups = function(){
+        var gs = realBG.apply(this, arguments);
+        empty = Object.assign({}, gs[0], {key:gs[0].key, name:"Parked only", size:0, films:[]});
+        return gs.concat([empty]);
+      };
+      S.tab = "home"; win.nwDirty.home = true; win.render();
+      var full = doc.querySelectorAll("#view .ucard.full").length;
+      win.buildGroups = realBG; win.nwDirty.home = true;
+      check("a parked-only group is not drawn full on Home", !!empty && full === 0,
+            full + " full cards with nothing logged");
+      var pr = win.progRows([{key:"x", name:"Parked only", size:0, films:[]}]);
+      check("a parked-only group is not counted complete on Progress",
+            pr.n === 1 && pr.done === 0, pr.done + " of " + pr.n + " complete");
+
+      /* QA F-5: the share card's "closed" is the skyline's topped out and
+         Progress's complete — watched + skipped covers the group. Every
+         title skipped, so every group with a shelf is closed on all three. */
+      var said = [];
+      var ctx = new Proxy({}, {get:function(o, k){
+        if(k in o) return o[k];
+        if(k === "fillText") return function(t){ said.push(String(t)); };
+        if(k === "measureText") return function(){ return {width:10}; };
+        return function(){ return {addColorStop:function(){}}; };
+      }, set:function(o, k, v){ o[k] = v; return true; }});
+      var hadP2D = win.Path2D; win.Path2D = function(){};
+      var pm0 = [S.path, S.mode];
+      S.path = S.mode = "continuity";
+      win.FILMS.forEach(function(f){ if(!win.isParked(f)) S.skipped[f.id] = 1; });
+      win.drawShareCard({getContext:function(){ return ctx; }});
+      win.Path2D = hadP2D;
+      var shelf = win.modeGroups("continuity").filter(function(g){ return g.size; }).length;
+      var line = said.filter(function(t){ return / closed$/.test(t); })[0] || "";
+      var m = line.match(/(\d+) of (\d+) \S+ closed$/);
+      check("the share card's closed count agrees with Progress on skips",
+            !!m && +m[1] === shelf && shelf > 0, line + " (shelf " + shelf + ")");
+      S.path = pm0[0]; S.mode = pm0[1];
+      S.watched = sv.w; S.skipped = sv.k; S.tab = sv.t; win.render();
+    })();
     S.tab = "home"; win.render();
     var tfills = win.document.querySelectorAll("#view .tbar i");
     check("tier fills carry a colour token and no inline fill",
           tfills.length === 2 && Array.prototype.every.call(tfills, function(i){
             var st = i.getAttribute("style") || "";
-            return st.indexOf("color:var(--") >= 0 && st.indexOf("background") < 0;
+            var row = i.closest(".trow");
+            return /^width:\d+%$/.test(st) && !!row && /\btrow (k|o)\b/.test(row.className);
           }), tfills.length + " tier fills");
     S.tab = "watch"; win.render();
 
@@ -3040,7 +3085,62 @@ win.addEventListener("load", function(){
           check("a rating on a parked title is refused at every door",
                 !w8.S.rated[PK] && !w8.S.watched[PK],
                 "rated=" + w8.S.rated[PK] + " watched=" + w8.S.watched[PK]);
-          tailPhases();
+
+          /* --- the log holds watched titles only (6.1.5, QA F-2) ----------
+             A JSON whose log names a title its watched map does not — hand-
+             edited, an older build's, two exports spliced — put a phantom
+             row in Recent activity whose tick did the opposite of its label.
+             The JSON door filters to watched the way the tab door does. */
+          var RT = "batman-returns-1992";
+          w8.doRestore(JSON.stringify({app:"night-watcher", v:2, path:"",
+            watched:(function(o){ o["batman-1989"] = 1; return o; })({}), skipped:{}, rated:{},
+            log:[{id:"batman-1989", ts:1700000000000}, {id:RT, ts:1700000100000}]}));
+          w8.S.tab = "next"; w8.render();
+          var act = w8.document.querySelector("#view .panel:not([inert]) .activity");
+          check("a JSON restore merges no log row for a title it did not mark watched",
+                !w8.S.watched[RT] && !w8.S.log.some(function(en){ return en.id === RT; }) &&
+                !(act && /Batman Returns/.test(act.textContent)),
+                "log: " + w8.S.log.map(function(en){ return en.id; }).join(","));
+
+          /* --- a code on screen is not a backup (6.1.5, QA C-4) ----------
+             Create backup code stamps nothing; Copy code stamps only once
+             the clipboard says yes, and a refused copy stamps nothing. */
+          var clipOk = true;
+          Object.defineProperty(w8.navigator, "clipboard", {configurable:true, value:{
+            writeText:function(){ return clipOk ? Promise.resolve() : Promise.reject(new Error("no")); }}});
+          w8.S.lastExportAt = 0; w8.S.tab = "stats"; w8.render();
+          var clickAct = function(a){
+            var b = w8.document.querySelector('#view .panel:not([inert]) [data-act="' + a + '"]');
+            if(b) b.dispatchEvent(new w8.MouseEvent("click", {bubbles:true}));
+            return !!b;
+          };
+          var made = clickAct("mkcode");
+          check("Create backup code does not stamp a backup", made && !!w8.S.code && !w8.S.lastExportAt,
+                "button " + made + ", lastExportAt=" + w8.S.lastExportAt);
+          clipOk = false; clickAct("copy");
+          setTimeout(function(){
+            check("a refused copy stamps nothing", !w8.S.lastExportAt, "lastExportAt=" + w8.S.lastExportAt);
+            clipOk = true; var copied = clickAct("copy");
+            setTimeout(function(){
+              check("a landed copy stamps the backup", copied && w8.S.lastExportAt > 0,
+                    "lastExportAt=" + w8.S.lastExportAt);
+
+              /* --- and the boot sweep repairs a store that already has one */
+              var seed3 = JSON.stringify({watched:(function(o){ o[A] = 1; return o; })({}),
+                skipped:{}, rated:{}, log:[{id:A, ts:100}, {id:RT, ts:200}]});
+              reboot({m:seed3, s:SETTLED}, "unwatched-log sweep", function(w9){
+                check("a log row for an unwatched title is swept at boot",
+                      w9.S.log.length === 1 && w9.S.log[0].id === A,
+                      "log: " + w9.S.log.map(function(en){ return en.id; }).join(","));
+                w9.flushPersist();
+                var raw3 = JSON.parse(w9.localStorage.getItem("batwatch-v3") || "{}");
+                check("the log sweep reaches the disk",
+                      Array.isArray(raw3.log) && raw3.log.length === 1 && raw3.log[0].id === A,
+                      "on disk: " + JSON.stringify(raw3.log));
+                tailPhases();
+              });
+            }, 20);
+          }, 20);
         });
       });
     })();
@@ -3130,6 +3230,13 @@ win.addEventListener("load", function(){
         S.tab = "watch"; S.filter = f; win.render(); sweep();
       });
       S.filter = "all"; S.q = "zzzznomatch"; win.render(); sweep();
+      /* 6.1.5: the solo empty-state buttons and the armed reset moved out of
+         inline styles into classes (QA F-8), so their states are visited. */
+      var tier0 = S.tier;
+      S.q = ""; S.filter = "opt"; S.tier = "core"; win.render(); sweep();
+      S.tier = tier0; S.filter = "all";
+      S.tab = "stats"; S.confirmReset = true; win.render(); sweep(); S.confirmReset = false;
+      S.tab = "watch"; win.render();
       S.q = ""; S.tab = "stats"; S.code = win.exportCode();
       S.progOpen = {uni:true, era:true}; win.render(); sweep();
       S.tab = "watch"; S.beltOpen = true; win.render(); sweep();

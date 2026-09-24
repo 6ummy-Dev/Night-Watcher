@@ -92,8 +92,8 @@ s=s.replace(a,'.gbar{height:5px;border-radius:0;background:var(--line2);',1);${W
 
 run_case "a tier fill re-implements the formula inline" \
   "tier fills stopped carrying colour tokens" \
-  "${P}a=r\"'%;color:var(--dust)\";assert a in s
-s=s.replace(a,r\"'%;background:var(--dust)\",1);${W}" \
+  "${P}a=\"pct(coreDone, coreN)+'%\\\"></i>\";assert a in s
+s=s.replace(a,\"pct(coreDone, coreN)+'%;background:var(--dust)\\\"></i>\",1);${W}" \
   guards "" 148
 
 echo "--- 148: the chevrons, the underline"

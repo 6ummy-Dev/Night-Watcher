@@ -14,6 +14,81 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.1.5] — 2026-09-24
+
+**Nothing on the shelf.** An independent audit of 6.1.4 read every function
+in the script and came back with two defects in what the screen says and
+nine smaller things. This cut takes all of them, plus the four calls the
+audit left to the owner. A PATCH by README's rule: no entry moves, and
+nothing saved changes shape or meaning. The counts stay at 137 films, 71
+seasons and 44 continuities. **No reinstall is needed.**
+
+### Fixed
+
+- **A universe with nothing on the shelf no longer reads as finished.** In
+  Movies scope, The DCU holds only Clayface, which is parked until 23
+  October. So its size was 0, and 0 + 0 = 0 drew the Home card full and
+  counted it complete on Progress on a fresh device ("1 of 33 complete",
+  beside a skyline saying nothing was topped out). A group now needs a shelf
+  before it can be finished. It still counts in the denominators. (Audit
+  F-1.)
+- **A JSON restore no longer brings in activity for titles it did not mark
+  watched.** The tab door already filtered the log to watched titles, and
+  the JSON door did not. A hand-edited or spliced file could put a phantom
+  row in Recent activity, where its tick did the opposite of its label, and
+  the row fed the nights and the pace. The JSON door filters now. The boot
+  also sweeps any such row out of a store that already carries one, so the
+  log only ever holds watched titles. (Audit F-2.)
+
+### Changed
+
+- **The Batman Day line is retired.** It was dated, and five days after
+  the day it read as a date gone by. It was due out with the Clayface cut;
+  this is the first cut, so it goes now.
+- **The share card closes a universe the way Progress does.** Watched plus
+  skipped covers it: the same rule as Progress's "complete" and the
+  skyline's "topped out". The card used to count watches only, so one state
+  could print two numbers. (Audit F-5.)
+- **A code on screen is not a backup.** *Create backup code* no longer
+  quiets the backup reminder. *Copy code* and *Copy link* do, once the
+  clipboard confirms the copy, as the code file and the JSON file already
+  did. (Audit C-4.)
+- **Batman Beyond's blurbs.** Inque, Curaré and the Royal Flush Gang all
+  debut in Season 1, so they move to Season 1's row, and Season 2's blurb
+  describes Season 2. *Return of the Joker* no longer calls itself the end
+  of Bruce's story (JLU's "Epilogue" is). The uncut disc came in 2002, not
+  "two years later". (Audit F-3, F-4.)
+
+### Under the hood
+
+- *Copy code* goes through `putClipboard()`, like every other copy.
+  `document.execCommand("copy")` is gone. (F-6.)
+- The bare block in `emptyBlock()` is gone. (F-7.)
+- The last presentational inline styles moved into classes:
+  `.bkbtn.solo`, the tier rows' `.trow.e/.k/.o`, and `.danger.armed`. The
+  dead-rule sweep and the contrast table can see them now. (F-8.)
+- The catalogue's one trailing comma and its 28 explicit `b:[]` (the
+  default) are gone. (F-9.)
+- The header peek is a native `<button>`. The hand-written Enter/Space
+  handler is gone. (F-10.)
+
+### QA
+
+- **Smoke 511 → 520.** A synthetic parked-only group on Home and Progress,
+  the share card's closed count against the shelf, the JSON door's log, the
+  boot sweep and its write, and the three backup stamps. The two day-line
+  checks now hold its retirement. The dead-rule sweep visits the empty
+  states and the armed reset. (F-11.)
+- **negtest740**: 12 fixtures, one behind each new check. Seven older
+  fixtures were retargeted where the code they anchored on changed
+  (negtest360, 530, 700, 720). Census 1,432 → 1,444 across 83 suites. The CI
+  shards were repacked.
+- **Guards** retargeted: 128 (a native peek, one door), 131 (the day line
+  stays out), 142 (stamps only on a landed copy), 143, 148 (tier colours in
+  the row classes) and 152.
+- **Re-blessed**: the CSP hash and `qa/script-bytes.json`. README's weight
+  line is now 245 KiB.
+
 ## [6.1.4] — 2026-09-23
 
 **Knightquest.** Batman Day brought the Part Two trailer, and a pre-order

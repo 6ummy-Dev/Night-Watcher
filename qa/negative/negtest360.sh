@@ -146,16 +146,11 @@ run_case "the peek shows over the pouches" \
 assert a in s
 s=s.replace(a,'true;',1);${W}"
 
-run_case "the peek goes mouse-only" \
-  "not a keyboard door" \
-  "${P}a='''document.getElementById(\"beltpeek\").addEventListener(\"keydown\", function(e){
-  if(e.key !== \"Enter\" && e.key !== \" \") return;
-  e.preventDefault();
-  beltDropOpen(); dropFocus();
-});
-'''
+run_case "the peek goes back to a div with a button's role" \
+  "not a native button" \
+  "${P}a='<button id=\"beltpeek\" data-lit=\"life\" aria-label=\"Path switcher — open\"></button>'
 assert a in s
-s=s.replace(a,'',1);${W}"
+s=s.replace(a,'<div id=\"beltpeek\" data-lit=\"life\" role=\"button\" tabindex=\"0\" aria-label=\"Path switcher — open\"></div>',1);${W}"
 
 echo "--- 128: an observer on the sentinel, never a listener, never a read"
 

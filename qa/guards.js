@@ -11155,10 +11155,11 @@ var ROUTE_VOCAB = [
      beltFocus() after the close animation, which acts only when focus WAS
      lost (a reader who has already moved on is not pulled back) and hands
      it to the peek, or to the strip's pressed path when the strip shows.
-     Both go through focusBack, so neither can move the viewport (123). */
+     Both go through focusBack, so neither can move the viewport (123).
+     6.1.5: the peek is a native <button>, so Enter and Space arrive as the
+     click door; one door, one dropFocus(). */
   var pkClick = (HTML.match(/getElementById\("beltpeek"\)\.addEventListener\("click", function\(\)\{[^}]*\}/) || [""])[0];
-  var pkKey = (HTML.match(/getElementById\("beltpeek"\)\.addEventListener\("keydown", function\(e\)\{[\s\S]*?\n\}\);/) || [""])[0];
-  [["click", pkClick], ["keydown", pkKey]].forEach(function(d){
+  [["click", pkClick]].forEach(function(d){
     if(!/beltDropOpen\(\); dropFocus\(\);/.test(d[1])){
       fail("the peek's " + d[0] + " door drops the belt without handing focus " +
            "on — the peek hides as the belt drops, so its focus falls to the " +
@@ -11192,12 +11193,16 @@ var ROUTE_VOCAB = [
          "shows it when the belt is closed and parked, so the handler " +
          "carries no second copy of that condition to drift");
   }
-  if(!/addEventListener\("keydown"/.test(phBlock) ||
-     !/preventDefault/.test(phBlock)){
-    fail("the peek is not a keyboard door — role=button and tabindex " +
-         "promise Enter and Space, and a handle that only answers a " +
-         "pointer is a silent dead end for exactly the reader the role " +
-         "was declared for");
+  /* 6.1.5: the peek is a native <button> (QA F-10). Enter and Space come
+     with the element, so no hand-written keydown door and no role or
+     tabindex to keep honest. */
+  if(!/<button id="beltpeek"[^>]*><\/button>/.test(HTML) ||
+     /id="beltpeek"[^>]*(role=|tabindex=)/.test(HTML) ||
+     /getElementById\("beltpeek"\)\.addEventListener\("keydown"/.test(HTML)){
+    fail("the peek is not a native button — a div with role=button and " +
+         "tabindex needs a hand-written Enter/Space door to keep its " +
+         "promise; a <button> keeps it for free, so the peek is one and " +
+         "carries no role, tabindex or keydown listener of its own");
   }
   if(/supportsAnchor/.test(HTML)){
     fail("the JS anchor probe is back — 3.6.4 moved the gate into the " +
@@ -11920,21 +11925,14 @@ var ROUTE_VOCAB = [
          "sentence will drift; that is guard 121's lesson, applied here " +
          "before the drift instead of after");
   }
-  /* 5.4.0: THE DAY HAS A NAME. Batman Day (19 September 2026) gets one
-     dated sentence on the page, and its seat is this note — first in the
-     same paragraph, one flow, no banner, no new surface (the plan's call:
-     a season-shaped line that reads fine either side of the day). Its
-     counts are read off the shelf (FILMS, PATH) the way introStats() reads
-     its own, never typed, so the line cannot say 137 while the head says
-     138. The line is dated and leaves with the Clayface trigger patch
-     (23 October 2026); this clause leaves with it. */
-  var dl = fn("dayLine");
-  if(!/Batman Day, 19 September\./.test(dl) || wn.indexOf("'+dayLine()+'Availability") < 0){
-    fail("the Batman Day line is gone from the closing note, or no longer opens it — one dated sentence, first in the same paragraph as the two watching truths, one flow (5.4.0)");
-  }
-  if(!/FILMS\.forEach/.test(dl) || !/PATH\.length/.test(dl) ||
-     /\d{2,}/.test(dl.replace(/\\u[0-9a-f]{4}/g, "").replace(/19 September/, "").replace(/^function dayLine[^{]*\{/, ""))){
-    fail("the Batman Day line types a count — its films, seasons and continuities are read off FILMS and PATH at render time, like introStats(), so the line and the head cannot disagree");
+  /* 5.4.0 put one dated Batman Day sentence at the head of this note; 6.1.5
+     retired it (QA C-2 — five days past the day, it read as a date gone by).
+     A dated sentence that outlives its day is the thing this clause keeps
+     out. */
+  if(/Batman Day, 19 September|dayLine\(/.test(HTML)){
+    fail("the Batman Day line is back on Next up — it was a dated sentence " +
+         "and 6.1.5 retired it after the day; a line that reads as a date " +
+         "gone by is exactly what the note must not carry");
   }
   if(/Progress saves automatically in this browser/.test(HTML)){
     fail("the saves-line is back in Progress — 4.2.2 removed it as a second " +
@@ -13299,6 +13297,7 @@ var ROUTE_VOCAB = [
   }
   stamps.forEach(function(l){
     if(l.indexOf("exportCode()") >= 0) return;
+    if(/^function stampExport\(\)\{/.test(l)) return;
     if(!/if\s*\(/.test(l)){
       fail("a lastExportAt stamp is not gated on the write succeeding: " +
            l.trim().slice(0, 60) + " — a cancelled save picker rejects, and an " +
@@ -13306,6 +13305,25 @@ var ROUTE_VOCAB = [
     }
   });
 
+  /* 6.1.5 (QA C-4): a code on screen is not a backup. Creating it stamps
+     nothing; Copy code and Copy link stamp through stampExport(), and only
+     as putClipboard()'s success callback — the clipboard's own promise is
+     the gate. */
+  if(/act === "mkcode"[^\n]*lastExportAt/.test(HTML)){
+    fail("Create backup code stamps lastExportAt — a code on screen has not " +
+         "left the device; the stamp waits for Copy, Copy link or the file");
+  }
+  var seUses = HTML.split("\n").filter(function(l){
+    return /stampExport/.test(l) && !/^function stampExport\(\)\{/.test(l);
+  });
+  if(seUses.length !== 2 || seUses.some(function(l){ return !/putClipboard\([^\n]*, stampExport\);/.test(l); }) ||
+     !/if\(then\) then\(\);/.test(fn("putClipboard")) ||
+     /function\(\)\{ toast\(fail\);[^}]*then\(/.test(fn("putClipboard"))){
+    fail("stampExport() runs outside the clipboard's success path — it is " +
+         "handed to putClipboard() by Copy code and Copy link and runs only " +
+         "once writeText resolves; a stamp on a rejected copy is a backup " +
+         "that never left");
+  }
   if(!/canSaveFile\(\)\s*\?[^:]*data-act="savefile"/.test(HTML)){
     fail("the save-to-a-file control is no longer behind canSaveFile() — the " +
          "button would render in browsers that cannot honour it, which is a " +
@@ -13564,7 +13582,7 @@ var ROUTE_VOCAB = [
      hide whenever they are parked. Unparked strips are content and ride
      their panels, which is what content should do. Nothing swaps
      mid-gesture, so nothing is left to flicker. */
-  if(HTML.indexOf('<div id="beltpeek"') < 0 ||
+  if(HTML.indexOf('<button id="beltpeek"') < 0 ||
      !/#beltpeek\[data-on\]\{display:block;/.test(HTML)){
     fail("the header peek is gone or never shows \u2014 the parked belt IS the " +
          "header's #beltpeek since 4.0.4; without it the parked strips " +
@@ -13930,10 +13948,16 @@ var ROUTE_VOCAB = [
            "against the sunken track or it reads as dirt on the old --line2");
     }
   });
-  if((HTML.match(/tbar"><i style="width:'\+pct\([^)]+\)\+'%;color:var\(/g) || []).length !== 2){
-    fail("the tier fills stopped carrying colour tokens — the inline style " +
-         "says only color:var(--…) and the one CSS formula draws it; an " +
-         "inline background is a second implementation of the ribbing");
+  /* 6.1.5 (QA F-8): the tier colours moved out of the inline styles into
+     the row classes; the inline style carries only the width. */
+  if((HTML.match(/tbar"><i style="width:'\+pct\([^)]+\)\+'%"><\/i>/g) || []).length !== 2 ||
+     css.indexOf(".trow.k .tlab,.trow.k .tbar i{color:var(--dust);}") < 0 ||
+     css.indexOf(".trow.o .tlab,.trow.o .tbar i{color:var(--dim);}") < 0 ||
+     css.indexOf(".trow.e .tlab{color:var(--signal);}") < 0){
+    fail("the tier fills stopped carrying colour tokens — the row class says " +
+         "only color:var(--…) and the one CSS formula draws it; the inline " +
+         "style carries the width alone, and an inline background is a " +
+         "second implementation of the ribbing");
   }
 
   /* -- the chevron family: the triangle is retired, the pair points, the
@@ -14539,8 +14563,8 @@ var ROUTE_VOCAB = [
     fail("\"every Batman there is\" appears " + claims + " time(s) in index.html — " +
          "it lives once, inside allLoggedWord(), gated on everyBatman()");
   }
-  if(!/S\.tier === "ess" \? "" :\s*'<button class="trow" data-act="tier" data-tf="core"/.test(vh) ||
-     !/S\.tier !== "all" \? "" :\s*'<button class="trow" data-act="tier" data-tf="opt"/.test(vh)){
+  if(!/S\.tier === "ess" \? "" :\s*'<button class="trow k" data-act="tier" data-tf="core"/.test(vh) ||
+     !/S\.tier !== "all" \? "" :\s*'<button class="trow o" data-act="tier" data-tf="opt"/.test(vh)){
     fail("Home's tier tiles ignore the belt — an Optional tile reading 0/0 under " +
          "the Core route is the denominator lying in a second place");
   }
