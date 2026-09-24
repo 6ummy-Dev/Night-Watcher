@@ -3,7 +3,8 @@
 # runs no script (164), stays outside the app (165), every issue and the
 # fixture keep the contract (166), the sitemap block and the feed list
 # exactly the issues (167), and the paper keeps its weight (168). Every
-# fixture names its section.
+# fixture names its section. 6.2.1: one door from Home (165) and the holding
+# page with its open, empty feed (167).
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="$(pro qa/nocturne.js)"
@@ -97,9 +98,24 @@ run_case "the shell caches the paper's stylesheet" \
   "${SW}a='\"./icon.svg\",';assert a in s;s=s.replace(a,'\"./icon.svg\", \"./nocturne/nocturne.css\",',1);${W}" \
   guards "" 165
 
-run_case "the app mentions the paper" \
-  "docs/index.html mentions the paper" \
-  "${P}a='<title>';assert a in s;s=s.replace(a,'<title>Nocturne \u00b7 ',1);${W}" \
+run_case "the app names another path into the paper" \
+  "docs/index.html names /nocturne 2 times" \
+  "${P}a='<title>';assert a in s;s=s.replace(a,'<link rel=\"alternate\" href=\"/nocturne/feed.xml\"><title>',1);${W}" \
+  guards "" 165
+
+run_case "Home's door to the paper loses its new tab" \
+  "has 0 links to the paper built like Where to watch" \
+  "${P}a='href=\"/nocturne/\" target=\"_blank\" rel=';assert a in s;s=s.replace(a,'href=\"/nocturne/\" rel=',1);${W}" \
+  guards "" 165
+
+run_case "a second door to the paper" \
+  "has 2 links to the paper built like Where to watch" \
+  "${P}a='<p class=\"homefoot\">Night Watcher';assert a in s;s=s.replace(a,'<a class=\"lnk paperlnk\" href=\"/nocturne/\" target=\"_blank\" rel=\"noopener noreferrer\">Paper</a>'+a,1);${W}" \
+  guards "" 165
+
+run_case "the 404 mentions the paper" \
+  "docs/404.html mentions the paper" \
+  "$(pro docs/404.html)a='<title>';assert a in s;s=s.replace(a,'<title>Nocturne \u00b7 ',1);${W}" \
   guards "" 165
 
 run_case "the manifest mentions the paper" \
@@ -219,6 +235,26 @@ run_case "the feed drops the newest issue" \
 run_case "the sitemap block drops the archive" \
   "does not list the archive and exactly the issues" \
   "${N}a='return BEGIN + \"\\\\n\" + rows.join(\"\\\\n\")';assert a in s;s=s.replace(a,'return BEGIN + \"\\\\n\" + rows.slice(1).join(\"\\\\n\")',1);${W}" \
+  guards "" 167
+
+run_case "the holding page promises a date" \
+  "the holding page carries a date" \
+  "${N}a='The first Night Final is being set.';assert a in s;s=s.replace(a,'The first Night Final is being set for 27 September.',1);${W}" \
+  guards "" 167
+
+run_case "the holding page loses its noindex" \
+  "is not the holding page" \
+  "${N}a='extra: \\'<meta name=\"robots\" content=\"noindex\">\\\\n\\'';assert a in s,a;s=s.replace(a,'extra: \\'\\'',1);${W}" \
+  guards "" 167
+
+run_case "the feed stays closed until the first issue" \
+  "the feed is missing or not empty" \
+  "${N}a='    files[\"feed.xml\"]   = Buffer.from(renderFeed([]), \"utf8\");\n';assert a in s;s=s.replace(a,'',1);${W}" \
+  guards "" 167
+
+run_case "the archive keeps the holding page's noindex" \
+  "the archive carries noindex" \
+  "${N}a='url: url, ogType: \"website\", img: SHARE});';assert s.count(a)==1;s=s.replace(a,'url: url, ogType: \"website\", img: SHARE, extra: \\'<meta name=\"robots\" content=\"noindex\">\\\\n\\'});',1);${W}" \
   guards "" 167
 
 echo "--- 168: the paper's weight"

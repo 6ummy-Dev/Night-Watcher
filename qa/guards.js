@@ -15906,7 +15906,14 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    without its early return an issue would be cached by the app and an
    offline tap on one would open the map instead. The shell could list it.
    And the app could link to it, which inside the installed app opens the
-   paper in the app's own window, because the manifest scope is "/". */
+   paper in the app's own window, because the manifest scope is "/".
+
+   6.2.1, owner's call: that last door opens once, on purpose. Home carries
+   exactly one link to the paper, built like Where to watch (the .lnk button,
+   target="_blank", rel="noopener noreferrer"), so in a browser it opens its
+   own tab. The manifest and the 404 still never mention the paper, and the
+   app names no other path under /nocturne/. How the installed app treats a
+   same-site new-tab link is a device check (RELEASING), not a guard. */
 
 (function(){
   var skip = 'if(url.pathname.indexOf("/nocturne/") === 0) return;';
@@ -15919,16 +15926,25 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   }
   var shell165 = (SW.match(/var SHELL\s*=\s*\[([\s\S]*?)\]/) || [0, ""])[1];
   if(/nocturne/i.test(shell165)) fail("sw.js's SHELL lists part of the paper — the paper is not the app");
-  [["docs/index.html", HTML],
-   ["docs/manifest.json", fs.readFileSync(path.join(PUBLIC, "manifest.json"), "utf8")],
+  var door = '<a class="lnk paperlnk" href="/nocturne/" target="_blank" rel="noopener noreferrer">';
+  var doors = HTML.split(door).length - 1, paths = (HTML.match(/\/nocturne/gi) || []).length;
+  if(doors !== 1){
+    fail("docs/index.html has " + doors + " links to the paper built like Where to watch — Home carries exactly one " +
+         "(6.2.1): the .lnk button, target=\"_blank\", rel=\"noopener noreferrer\"");
+  }
+  if(paths !== 1){
+    fail("docs/index.html names /nocturne " + paths + " times — the app's one door to the paper is Home's " +
+         "button, and nothing else in the app points into the paper");
+  }
+  [["docs/manifest.json", fs.readFileSync(path.join(PUBLIC, "manifest.json"), "utf8")],
    ["docs/404.html", fs.existsSync(path.join(PUBLIC, "404.html")) ? fs.readFileSync(path.join(PUBLIC, "404.html"), "utf8") : ""]
   ].forEach(function(p){
     if(/nocturne/i.test(p[1])){
-      fail(p[0] + " mentions the paper — the app never links to it (owner's call, 6.2.0); inside the " +
-           "installed app a link would open the paper in the app's own window");
+      fail(p[0] + " mentions the paper — only Home's one button links to it (owner's call, 6.2.1); the " +
+           "manifest and the 404 stay out of it");
     }
   });
-  note("nocturne: sw.js steps aside before respondWith, not in the shell, not linked from the app");
+  note("nocturne: sw.js steps aside before respondWith, not in the shell, one door from Home that opens like Where to watch");
 })();
 
 /* ---------- 166. Every issue keeps the contract ---------- */
@@ -16001,7 +16017,31 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   if(blockLocs.join("|") !== wantLocs.join("|")){
     fail("the sitemap block does not list the archive and exactly the issues, newest first");
   }
-  note("nocturne: the sitemap block sits after the site's two URLs; the fixture's feed and block list its " + ids.length + " issues");
+  /* The holding page (6.2.1). With no issue on disk /nocturne/ is a page of
+     its own, not the site's 404: noindex, out of the sitemap, promising no
+     date, with the feed already open and empty. Built here from a folder
+     that does not exist, so it is held on every run, issue or none; and the
+     archive that replaces it must drop the noindex. */
+  var HOLD = null;
+  try { HOLD = NOC.build(ROOT, {src: "qa/nocturne-fixture/no-issues"}); }
+  catch(err){ fail("the Nocturne build throws with no issues: " + err.message); return; }
+  var hold = (HOLD.files["index.html"] || Buffer.from("")).toString("utf8");
+  var hfeed = (HOLD.files["feed.xml"] || Buffer.from("")).toString("utf8");
+  var NOINDEX = '<meta name="robots" content="noindex">';
+  if(HOLD.errors.length || HOLD.list.length) fail("the build with no issues reports issues or errors");
+  if(hold.indexOf('<h1 class="banner">On the press</h1>') < 0 || hold.indexOf(NOINDEX) < 0){
+    fail("with no issue on disk /nocturne/ is not the holding page — On the press, noindex (6.2.1)");
+  }
+  if(/\b(19|20)\d\d\b|\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/.test(hold.replace(/<head>[\s\S]*?<\/head>/, ""))){
+    fail("the holding page carries a date — it promises none, because a founding issue that isn't good moves a week");
+  }
+  if(!hfeed || /<item>/.test(hfeed)) fail("with no issue on disk the feed is missing or not empty — it ships open and empty (6.2.1)");
+  if(/<loc>/.test(HOLD.sitemap)) fail("the holding page is in the sitemap — it is noindex, so the block stays empty");
+  if(NOC_FIX.files["index.html"].toString("utf8").indexOf(NOINDEX) >= 0){
+    fail("the archive carries noindex — only the holding page does");
+  }
+  note("nocturne: the sitemap block sits after the site's two URLs; the fixture's feed and block list its " + ids.length +
+       " issues; with none, the holding page is noindex and the feed is open and empty");
 })();
 
 /* ---------- 168. The paper's weight ---------- */

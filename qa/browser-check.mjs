@@ -1699,6 +1699,7 @@ await swCtx.close();
   if(fix.list.length) targets.push(["fixture archive", "nocturne-fixture/"]);
   real.list.forEach(is => targets.push(["No. " + is.fm.issue, "nocturne/" + is.id + "/"]));
   if(real.list.length) targets.push(["archive", "nocturne/"]);
+  else targets.push(["holding page", "nocturne/"]);   /* 6.2.1: no issue yet, /nocturne/ is On the press */
   ok("nocturne: the fixture builds into pages to read", fix.errors.length === 0 && fix.list.length === 2,
      fix.errors.length ? fix.errors[0] : fix.list.length + " issues");
   for(const [label, rel] of targets){

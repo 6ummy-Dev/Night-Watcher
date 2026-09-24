@@ -37,9 +37,11 @@ the catalogue, under its beat when it doesn't. Then post one link on X once the
 page is live.
 
 Nocturne is a companion to the site, not part of the app. It lives outside the
-PWA: the service worker skips `/nocturne/`, the app doesn't link into it, and it
-carries no script. **It is reached through the sitemap, the RSS feed at
-`/nocturne/feed.xml` and the weekly X post. Nothing else links to it.**
+PWA: the service worker skips `/nocturne/`, and it carries no script. **It is
+reached through Home's one *Read the paper* button (from 6.2.1), the sitemap,
+the RSS feed at `/nocturne/feed.xml` and the weekly X post.** Until the first
+issue merges, `/nocturne/` is a holding page the build writes on its own; your
+first issue replaces it with the archive. Never write or edit it.
 
 ### The masthead
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Nocturne · Night Watcher</title>
+  <link>https://nightwatcher.life/nocturne/</link>
+  <atom:link href="https://nightwatcher.life/nocturne/feed.xml" rel="self" type="application/rss+xml"/>
+  <description>The Night Final: the week’s Batman screen news, and what it does to your watch order.</description>
+  <language>en</language>
+</channel>
+</rss>

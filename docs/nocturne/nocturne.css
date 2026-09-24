@@ -76,4 +76,10 @@ figcaption{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-trans
 .issues .when{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}
 .issues li:first-child .when{color:var(--signal);}
 .issues a{text-decoration:none;font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:21px;line-height:1.05;}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);max-width:760px;margin:0 auto 28px;border-top:3px double var(--bone);border-bottom:1px solid var(--line2);}
+.cols section{padding:16px 18px 18px;}
+.cols section+section{border-left:1px solid var(--line2);}
+.cols h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:21px;line-height:1.05;margin:0 0 8px;}
+.cols p{font-size:14px;line-height:1.55;color:var(--dust);margin:0;}
+@media (max-width:560px){.cols{grid-template-columns:1fr;}.cols section{padding:16px 0 18px;}.cols section+section{border-left:0;border-top:1px solid var(--line2);}}
 @media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}}

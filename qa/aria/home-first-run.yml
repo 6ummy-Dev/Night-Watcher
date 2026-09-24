@@ -30,6 +30,12 @@
     - text: Bruce’s life One life, in order — from before there is a Batman to after there is not. Every continuity, blended.
   - button "By universe Every universe kept whole, each in its own story order, and the universes themselves in the order their stories start. Nothing spoils anything ahead of it."
   - button "Release order Straight release order, 1943 to 2028. The only ordering that is objectively complete — it just jumps between universes constantly."
+  - paragraph: A paper of Night Watcher Night Final
+  - paragraph: Nocturne
+  - paragraph: The Night Final · Every Sunday, late
+  - paragraph: The week’s Batman news, and where it sits on the map
+  - link "Read the paper":
+    - /url: /nocturne/
   - group "Theme":
     - button "Dark deco" [pressed]
     - button "Darker"

@@ -51,6 +51,12 @@
   - button "Ninjaverse Batman and his rogues thrown into feudal Japan, animated by Kamikaze… 0 of 2"
   - button "Harley Quinn’s Gotham An adult, profane satire of the whole mythos 0 of 1"
   - button "Merry Little Universe A gentler Damian Wayne, and the start of its own small continuity… 0 of 1"
+  - paragraph: A paper of Night Watcher Night Final
+  - paragraph: Nocturne
+  - paragraph: The Night Final · Every Sunday, late
+  - paragraph: The week’s Batman news, and where it sits on the map
+  - link "Read the paper":
+    - /url: /nocturne/
   - group "Theme":
     - button "Dark deco" [pressed]
     - button "Darker"

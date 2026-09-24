@@ -457,6 +457,12 @@ var CSS = [
 ".issues .when{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}",
 ".issues li:first-child .when{color:var(--signal);}",
 ".issues a{text-decoration:none;font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:21px;line-height:1.05;}",
+".cols{display:grid;grid-template-columns:repeat(3,1fr);max-width:760px;margin:0 auto 28px;border-top:3px double var(--bone);border-bottom:1px solid var(--line2);}",
+".cols section{padding:16px 18px 18px;}",
+".cols section+section{border-left:1px solid var(--line2);}",
+".cols h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:21px;line-height:1.05;margin:0 0 8px;}",
+".cols p{font-size:14px;line-height:1.55;color:var(--dust);margin:0;}",
+"@media (max-width:560px){.cols{grid-template-columns:1fr;}.cols section{padding:16px 0 18px;}.cols section+section{border-left:0;border-top:1px solid var(--line2);}}",
 "@media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}}",
 ""].join("\n");
 
@@ -602,6 +608,31 @@ function renderArchive(list){
   return out + '</ol>\n' + footer("") + '</main>\n</body>\n</html>\n';
 }
 
+/* The holding page (6.2.1): what /nocturne/ serves while no issue is on disk.
+   It promises no date, because a founding issue that isn't good is never
+   published and the first run moves a week. noindex and out of the sitemap:
+   there is nothing to find yet. The feed ships empty beside it, so a reader
+   can subscribe before the first Night Final lands. */
+function renderHolding(){
+  var url = SITE + "/nocturne/";
+  var desc = "Nocturne, the weekly paper of Night Watcher. The first Night Final is on the press.";
+  var h = head({title: "Nocturne \u00b7 Night Watcher", ogTitle: "Nocturne \u00b7 Night Watcher", desc: desc,
+                url: url, ogType: "website", img: SHARE,
+                extra: '<meta name="robots" content="noindex">\n'});
+  function col(h, t){ return '<section><h2>' + h + '</h2><p>' + t + '</p></section>'; }
+  return h + '<body>\n<main class="paper">\n' +
+    masthead(dateline("The Night Final", "Every Sunday, late", "Price: nothing. No account.")) +
+    '<h1 class="banner">On the press</h1>\n' +
+    '<p class="sub">The first Night Final is being set. Nocturne is the weekly paper of Night Watcher.</p>\n' +
+    '<div class="cols">' +
+    col("The beat", "Batman on screen, in comics, games, toys and books. The week\u2019s news, gathered once.") +
+    col("On the map", "Every story says where it sits in the watch orders: a new entry, a parked date that moves, a title unparked.") +
+    col("The hour", "Sunday, late. One issue a week, none in a week without news. No account, no spoilers, every source linked.") +
+    '</div>\n' +
+    '<p class="sub">The feed is already open. Add it to your reader and the first issue arrives there.</p>\n' +
+    footer("") + '</main>\n</body>\n</html>\n';
+}
+
 function renderFeed(list){
   var items = list.slice(0, LIMITS.feed).map(function(is){
     var u = issueUrl(is);
@@ -660,6 +691,10 @@ function build(root, opts){
     });
     files["index.html"] = Buffer.from(renderArchive(list), "utf8");
     files["feed.xml"]   = Buffer.from(renderFeed(list), "utf8");
+  }
+  else if(!errs.length){
+    files["index.html"] = Buffer.from(renderHolding(), "utf8");
+    files["feed.xml"]   = Buffer.from(renderFeed([]), "utf8");
   }
   Object.keys(files).forEach(function(f){
     if(/\.html$/.test(f) && files[f].length > LIMITS.page){

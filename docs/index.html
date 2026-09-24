@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-1+7wz3GHwGUT/835iA628L+ZywW0Go3BJBKRIt3UkC8='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-9ThcVub01RJRdI7xxu4N4uxchGGltsWWGvs695LEhL8='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -143,6 +143,12 @@ main.sw::-webkit-scrollbar{display:none;}
 .pathtitle{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:var(--t-display);line-height:.94;margin:0 0 10px;}
 .pathtitle::after{content:"";display:block;height:7px;margin-top:9px;background:linear-gradient(var(--signal),var(--signal)) 0 0/34px 3px no-repeat,linear-gradient(var(--line2),var(--line2)) 0 6px/100% 1px no-repeat;}
 .themerow{display:flex;gap:0;border:1px solid var(--line2);border-radius:0;overflow:hidden;margin:28px 0 0;}
+.front{margin:28px 0 0;border:1px solid var(--line2);background:var(--sunk);padding:14px 16px 18px;text-align:center;}
+.ftop{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.17em;text-transform:uppercase;color:var(--dust);text-align:left;}
+.fseal{background:var(--signal);color:var(--ink);font-weight:600;line-height:1.15;padding:5px 7px 4px;text-align:center;}
+.fname{font-family:var(--deco);text-transform:uppercase;letter-spacing:.06em;font-size:var(--t-num);line-height:.9;margin:12px 0 14px;}
+.fdate{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.16em;text-transform:uppercase;color:var(--dust);margin:0;padding:8px 0;border-top:3px double var(--bone);border-bottom:1px solid var(--line2);}
+.fhead{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);line-height:1.1;margin:14px 0 16px;text-wrap:balance;}
 .themerow button{flex:1;min-height:34px;padding:8px 6px;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.09em;text-transform:uppercase;color:var(--dust);border-right:1px solid var(--line2);}
 .themerow button:last-child{border-right:0;}
 .themerow button[aria-pressed="true"]{background:var(--suit);color:var(--ink);font-weight:600;}
@@ -1508,7 +1514,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "6.2.0";
+var BUILD = "6.2.1";
 var BUILT = "2026-09-24";
 var KEY = "batwatch-v3";
 var SKEY = "batwatch-settings";
@@ -2451,6 +2457,12 @@ function formatSwitch(){ return segmented("scope fmt", "Format", "format", FORMA
 function tierSwitch(){ return segmented("scope tier", "Tier", "tier", TIERS, S.tier); }
 function scopeSwitch(){ return segmented("scope", "Scope", "scope", SCOPES, S.scope); }
 function themeRow(){ return segmented("themerow", "Theme", "theme", THEMES, S.theme); }
+function paperRow(){
+  return '<div class="front"><p class="ftop"><span>A paper of<br>Night Watcher</span><span class="fseal">Night<br>Final</span></p>'+
+    '<p class="fname">Nocturne</p><p class="fdate">The Night Final \u00b7 Every Sunday, late</p>'+
+    '<p class="fhead">The week\u2019s Batman news, and where it sits on the map</p>'+
+    '<a class="lnk paperlnk" href="/nocturne/" target="_blank" rel="noopener noreferrer">Read the paper <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 9.5 9.2 2.8M4.2 2.5h5.3v5.3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></a></div>';
+}
 function includeBlock(){
   return '<div class="includes'+(S.beltOpening ? " opening" : "")+'"'+(S.beltDrop ? ' data-drop=""' : '')+'>'+formatSwitch()+scopeSwitch()+tierSwitch()+'</div>';
 }
@@ -2534,7 +2546,7 @@ function viewHome(c){
              (i === 0 ? '<em class="leadkick">Start here</em>' : '')+
              '<b>'+m[1]+'</b><span>'+esc(pathBlurb(m[0]))+'</span></button>';
       }).join("")+'</div>' + '</div>';
-    html += themeRow();
+    html += paperRow() + themeRow();
     return html;
   }
 
@@ -2589,7 +2601,7 @@ function viewHome(c){
   });
   html += '</div>';
 
-  html += themeRow();
+  html += paperRow() + themeRow();
   html += '<p class="homefoot">Night Watcher \u00b7 an unofficial fan guide \u00b7 ' +
     'progress saves in this browser only \u00b7 the host counts visits, never what ' +
     'you watch \u00b7 free software under the AGPL \u00b7 kept by 6ummy, with Claude on the night shift</p>';
