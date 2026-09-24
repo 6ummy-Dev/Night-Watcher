@@ -10,9 +10,9 @@ the work arrives in.
 **Nocturne** is the paper. **The Night Final** is its one edition: a weekly
 issue, published late on Sunday.
 
-> **Status: prep.** The renderer, the checks and the `/nocturne/` path ship with
-> the 6.2.0 scaffold. Until that release is live, runs stop at step 5 and hand
-> the markdown over for review.
+> **Status: live from 6.2.0.** The builder and checker are `qa/nocturne.js`
+> (`npm run nocturne:build`, `npm run nocturne:check`). The guards and CI run
+> the same file, so a run that is green on your VM is green in CI.
 
 ---
 
@@ -61,7 +61,7 @@ The renderer builds the masthead from the front matter. Never write it into the 
 | Clone `6ummy-Dev/Night-Watcher` and work on a branch `nocturne/<yyyy>-w<ww>` | Push to `main`, force-push, or merge anything |
 | Open one PR per week against `main` | Approve your own PR or change branch protection. The owner reviews and merges every PR |
 | Add or change files under `nocturne/issues/` and `docs/nocturne/` | Touch anything else, **including `nocturne/BRIEF.md` and `nocturne/VOICE.md`** (only the owner edits the rules), `docs/index.html`, `sw.js`, `_headers`, `qa/`, workflows, README, CHANGELOG |
-| Run `npm run nocturne:build` and `npm run nocturne:check` | Edit or bless guard output to make a check pass |
+| Run `npm ci`, `npm run nocturne:build`, `npm run nocturne:check` and `npm test` | Edit or bless guard output to make a check pass |
 | Post the issue link on X after it is live | Post before the page answers 200 on the live site |
 
 The files the build regenerates (`docs/nocturne/index.html`,
@@ -102,20 +102,36 @@ doesn't advance. A thin week is fine. A padded one isn't.
    **Any parked title whose date moved, or any new title that should be added to
    the catalogue, goes in the PR's "Catalogue flags" section.** Flag it there and
    never edit the catalogue yourself.
-3. **Write** `nocturne/issues/<yyyy>-w<ww>-<slug>.md` to the contract in §5.
-4. **Images** per §6. Processed files go in
-   `docs/nocturne/<yyyy>-w<ww>-<slug>/`. Originals are not committed.
+3. **Write** `nocturne/issues/<yyyy>-w<ww>-<slug>/issue.md` to the contract in
+   §5. One folder per issue. The folder's name is the week in lower case and
+   the slug: `2026-w41-clayface-gets-a-date`.
+4. **Images** per §6: the finished WebP files go **in the issue's folder**,
+   beside `issue.md`. The build copies them into `docs/nocturne/`. Originals
+   are not committed, and nothing else sits in the folder.
 5. **Pre-flight** against `VOICE.md` §10, item by item.
-6. **Build and check:** `npm ci && npm run nocturne:build && npm run nocturne:check`.
-   Both green, or stop.
-7. **Open the PR** using the template in §7.
-8. **After merge**, Sunday 22:00: from the VM, `curl -sI` the issue URL. Post
-   only on a 200, and only if the page's `<h1>` matches the merged headline (§8).
+6. **Build and check:** `npm ci && npm run nocturne:build && npm run nocturne:check && npm test`.
+   All green, or stop. The build rewrites `docs/nocturne/` and the Nocturne
+   block in `docs/sitemap.xml`; commit both with the issue. Never edit either
+   by hand: guard 163 compares them byte for byte with what the build writes.
+7. **Screenshots.** Serve the tree (`python3 -m http.server 8099 --directory docs`),
+   open `http://127.0.0.1:8099/nocturne/<folder>/` and take two full-page
+   screenshots, 390 and 1280 wide. They go in the PR: they are the owner's
+   preview, because the site has no preview deploys.
+8. **Open the PR** using the template in §7, from a branch named
+   `nocturne/<yyyy>-w<ww>`. CI's `nocturne-paths` job fails the PR if it
+   changes anything outside `nocturne/issues/`, `docs/nocturne/` and
+   `docs/sitemap.xml`.
+9. **After merge**, Sunday 22:00: the site deploys on the merge. From the VM,
+   `curl -sI` the issue URL. Post only on a 200, and only if the page's `<h1>`
+   matches the merged headline (§8).
 
 ## 5 · File contract
 
-One file per issue. YAML front matter, then the cold open, the stories under
-`##` headings, and the sign-off.
+One `issue.md` per issue folder: YAML front matter, then the stories as
+markdown under `##` headlines. The cold open and the sign-off are front-matter
+fields; nothing comes before the first `##`. The first `##` headline is the
+banner, so it must equal `title`, and the headlines must match `stories` one
+for one, in order.
 
 ```yaml
 ---
@@ -128,7 +144,7 @@ published: 2026-10-11                  # the Sunday it runs
 cold_open: "Two or three lines of city before the first story."
 hero: key-art.webp                     # optional; must also appear under images
 images:
-  - file: key-art.webp                 # in docs/nocturne/<yyyy>-w<ww>-<slug>/
+  - file: key-art.webp                 # kebab-case .webp, in the issue's own folder
     alt: "Key art: a figure on a rooftop in rain"
     credit: "Image: Warner Bros. Discovery"
     rights_holder: "Warner Bros. Discovery"
@@ -142,18 +158,46 @@ stories:
   - headline: "Clayface gets a date"
     status: confirmed                  # confirmed | reported | provisional
     sources: ["https://…"]             # ≥ 1, pages actually opened
-    catalogue: clayface-2026           # example; entry id from PATH in docs/index.html, or "none"
+    catalogue: clayface-2026           # entry id from PATH in docs/index.html, or "none"
     effect: parked-date                # new-entry | parked-date | unparked | none
 sign_off: "The file's open again next Sunday."
-corrections: []                        # {date, story, text}
+corrections: []                        # {date: YYYY-MM-DD, story: 1-based number, text}
 ---
 ```
 
-`nocturne:check` will enforce this: every field present, `issue` exactly one
-past the last merged issue (the first is 0), `published` a Sunday, `sources` non-empty,
-`catalogue` a real id from `PATH` or `none`, no banned words, no `!` in the
-body, word counts in range, every image file present with a full licence record,
-`alt` ≤ 125 characters, and no image over the weight limit.
+**A worked example of both kinds** is in `qa/nocturne-fixture/issues/`: a
+founding No. 0 and a weekly No. 1 about an invented title. The guards build
+and check them on every run, so they always pass the current contract. Copy
+their shape, never their content.
+
+`nocturne:check` enforces this. What it refuses:
+
+- **Fields:** a missing field, or one the contract doesn't list.
+- **Numbers and dates:** issue numbers that don't run 0, 1, 2 … with no gap;
+  a `published` that isn't the Sunday that closes `week`; a folder name that
+  isn't `<week, lower case>-<slug>`.
+- **Stories:** a count outside 3–6 (No. 0: 4–6); a story outside 60–120 words
+  (No. 0: 60–260); an issue outside 250–750 words (No. 0: 600–900); a cold
+  open over 50 words.
+- **Links:** a source its story never links, or a link the story doesn't list
+  as a source; anything but https.
+- **The catalogue:** a `catalogue` id that isn't in `PATH`; `new-entry` with
+  an id (a new title isn't in the catalogue yet: `none`); `parked-date` on a
+  title that isn't parked.
+- **The body:** anything beyond paragraphs, `##` headlines, `*italic*`,
+  `**bold**` and `[links](https://…)`. No lists, quotes, tables, raw HTML,
+  code or inline images.
+- **Voice:** VOICE.md §7's never-use words, `!`, emoji, hashtags, "the Bat",
+  and "watch it on …".
+- **Images:** a missing licence field, a file that isn't a whole WebP (its
+  header's length must match the file: upload images as binary), a size in the
+  front matter the file doesn't have, over 1600 px or 250 KB, alt over 125
+  characters, a credit that doesn't read "Image: …", or a file in the folder
+  that isn't listed.
+
+The check can't read meaning. "Drops" as a verb, a service named as advice in
+other words, a spoiler, and a rumour dressed as news are yours to catch
+before the PR, and the owner's after.
 
 ## 6 · Images
 
@@ -182,10 +226,12 @@ doesn't exist for a story, the story runs without one.
 **Technical**
 
 - At most three images per issue, one of them the hero.
-- WebP, quality ~80, longest side 1600 px, plus an 800 px variant for `srcset`.
-  Strip EXIF. ≤ 250 KB per file.
-- Always self-hosted in `docs/nocturne/<…>/`. Never hotlinked: the `/nocturne/`
-  CSP allows images from this origin only.
+- One WebP file per image, quality ~80, longest side at most 1600 px. Strip EXIF.
+  At most 250 KB. `width` and `height` in the front matter are the file's own.
+- It sits in the issue's folder; the build copies it into `docs/nocturne/`.
+  Never hotlinked: the `/nocturne/` CSP allows images from this origin only.
+- The hero goes under the banner. Any other image follows a story, in list
+  order: the first after story 1, the second after story 2.
 - `width`, `height`, `alt` and a visible credit line under every image.
 - Don't crop out credits, and don't recolour or alter the image.
 - **Takedown:** if a rights holder objects, the image comes out the same day in a
@@ -213,7 +259,10 @@ Title: `nocturne: No. <issue> — <headline>`
 <VOICE.md §10, ticked>
 
 ## Checks
-nocturne:build ✅  nocturne:check ✅
+nocturne:build ✅  nocturne:check ✅  npm test ✅
+
+## Screenshots
+<390 wide, full page> <1280 wide, full page>
 
 ## X post (draft)
 <text, ≤ 280 weighted characters>
@@ -255,7 +304,7 @@ the first news issue is No. 1.
 | `kind` | `weekly` (default) | `founding` |
 | Subject | the week's news | Night Watcher and Nocturne |
 | Sections | 3–6 stories, four beats each | 4–6 sections, no four-beat rule |
-| Length | 400–750 words | 600–900 words |
+| Length | 250–750 words | 600–900 words |
 | "On the map" box | on every story | none (the renderer omits it for `founding`) |
 | `catalogue` / `effect` | per story | `none` / `none` |
 | `status` | confirmed / reported / provisional | `confirmed` |

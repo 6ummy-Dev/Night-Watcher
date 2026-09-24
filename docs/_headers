@@ -37,6 +37,13 @@
 # a hint to preload fonts makes no sense on a markdown body. Permissions-Policy denies what the app never
 # uses; interest-cohort is not listed and section 104 refuses it by name.
 #
+# /nocturne/* is the paper (6.2.0), and it is the one path whose CSP is a
+# header: the app's CSP is a <meta> with a blessed script hash, and the
+# paper has no script at all, so its policy is the strict default-deny
+# written once here for every page the build writes. Styles, images and
+# fonts come from this origin and nothing else. Guard 164 holds the line
+# exactly. The paper takes the assets plane's default cache (revalidate).
+#
 # The history of every decision above is in NOTES-history.md
 # ("Where the served and config files' histories went").
 
@@ -59,6 +66,9 @@
   Link: </fonts/ibm-plex-mono-latin-600-normal.woff2>; rel=preload; as=font; crossorigin
   Cache-Control: no-cache
   Vary: Accept
+
+/nocturne/*
+  Content-Security-Policy: default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
 
 /sw.js
   Cache-Control: no-cache

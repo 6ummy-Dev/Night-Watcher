@@ -222,6 +222,14 @@ function blessHtml(next){
      107  Every section can fail, and every section runs
      108  The 2.7.1 soak notes stay fixed
 
+   NOCTURNE
+     163  The paper is what its build writes
+     164  The paper runs no script
+     165  The paper is outside the app
+     166  Every issue keeps the contract
+     167  The sitemap and the feed list exactly the issues
+     168  The paper's weight
+
    META
      65   The file points at where its reasoning went
      66   The guards are navigable
@@ -1555,8 +1563,17 @@ if(PUBLIC !== ROOT){
            "install swallows the 404 and offline is quietly missing a file");
     }
   });
+  /* 6.2.0. One directory, not a file: docs/nocturne/ is the paper, which is
+     not the app. Its issues arrive weekly without a release, so a per-file
+     entry here would go stale every Sunday; the whole tree is out of the
+     shell by rule, and section 165 fails the build if sw.js ever caches or
+     answers for anything under /nocturne/. */
+  var NOT_SHELLED_DIRS = ["nocturne/"];
+  function outOfShellDir(f){
+    return NOT_SHELLED_DIRS.some(function(d){ return f.indexOf(d) === 0; });
+  }
   var unshelled = served.filter(function(f){
-    return shell.indexOf(f) < 0 && NOT_SHELLED.indexOf(f) < 0;
+    return shell.indexOf(f) < 0 && NOT_SHELLED.indexOf(f) < 0 && !outOfShellDir(f);
   });
   if(unshelled.length){
     fail("docs/ serves " + unshelled.join(", ") + " and sw.js does not cache " +
@@ -8276,7 +8293,12 @@ var ROUTE_VOCAB = [
            "one header, one place");
     }
   });
-  if(/Content-Security-Policy/i.test(D)){
+  /* 6.2.0: one exception, by rule name. The paper under /nocturne/* runs no
+     script, so its policy is a header, not a <meta>; section 164 holds that
+     block exactly. Anywhere else a CSP header would sit on the app's
+     document beside the blessed <meta>, and the two would disagree. */
+  var others104 = Object.keys(BLOCKS104).filter(function(k){ return k !== "/nocturne/*"; });
+  if(others104.some(function(k){ return /Content-Security-Policy/i.test(block104(k)); })){
     fail("docs/_headers sets a CSP \u2014 the CSP lives in the <meta> tag whose " +
          "hash section 43 blesses, and two of them will disagree");
   }
@@ -12101,6 +12123,17 @@ var ROUTE_VOCAB = [
     fail("a 200 response was not written to the runtime cache — offline never " +
          "learns about anything fetched after install");
   }
+  /* 6.2.0: the paper steps aside, executed rather than grepped. A /nocturne/
+     navigation must not be answered by this worker at all: answered, an
+     issue lands in the app's cache and an offline tap opens the map in the
+     paper's place (section 165 holds the line's text and position). */
+  var putsNoc = puts.length;
+  var rNoc = drive({ url: "https://nightwatcher.life/nocturne/2026-w39-an-issue/", method: "GET", mode: "navigate" },
+                   function(){ return SyncP.wrap(okRes); });
+  if(rNoc.responded || puts.length !== putsNoc){
+    fail("the service worker answers a /nocturne/ navigation \u2014 the paper would be cached by the " +
+         "app, and offline it would fall back to the map");
+  }
   if(!r1.waited){
     fail("the runtime cache write does not ride event.waitUntil — the browser " +
          "may kill the worker between the reply and the put, so a downloaded " +
@@ -15776,6 +15809,226 @@ var ROUTE_VOCAB = [
          "there and 6.0.9 retired it; the installed frame is CSS (6.1.3)");
   }
   note("installed frame: no rotation script, no readout, no turn or viewport listener; the flip is recorded as iOS 27's");
+})();
+
+/* ---------- 163. The paper is what its build writes ---------- */
+/* 6.2.0. Nocturne, the weekly paper at /nocturne/, is written by a drafting
+   agent as markdown in nocturne/issues/ and turned into docs/nocturne/ by
+   qa/nocturne.js. The output is committed, like orders.txt, and the agent
+   can write in docs/nocturne/ as well as in the issues, so a hand edit to a
+   served page is one keystroke away and would pass every check that reads
+   the markdown. This section builds the paper from the issues on disk and
+   compares every byte: a served file the build would not write, a file it
+   would write that is missing, or a byte that differs, fails. Sections
+   164-168 require the same module, so the rule the agent runs with
+   `npm run nocturne:check` is the rule this file runs. */
+
+var NOC = null, NOC_REAL = null, NOC_FIX = null;
+(function(){
+  try { NOC = require("./nocturne.js"); }
+  catch(e){ fail("qa/nocturne.js does not load: " + e.message); return; }
+  try { NOC_REAL = NOC.build(ROOT); }
+  catch(e){ fail("the Nocturne build throws on the issues on disk: " + e.message); }
+  try { NOC_FIX = NOC.build(ROOT, {src: "qa/nocturne-fixture/issues"}); }
+  catch(e){ fail("the Nocturne build throws on its own fixture: " + e.message); }
+  if(!NOC_REAL) return;
+  if(!fs.existsSync(path.join(PUBLIC, "nocturne", "nocturne.css"))){
+    fail("docs/nocturne/ has no nocturne.css — the build always writes the stylesheet, " +
+         "and README's docs/nocturne/ row names a directory that must exist");
+  }
+  NOC.drift(ROOT, NOC_REAL).forEach(function(m){
+    fail("the served paper drifted from its build: " + m + " — run npm run nocturne:build, never edit docs/nocturne/ by hand");
+  });
+  /* The agent can open a pull request that edits this file's inputs as
+     easily as its issue. The fence is a CI job; this holds its shape: it
+     runs on nocturne/ branches, and its allowed list is the paper's three
+     paths and nothing wider. */
+  var qa163 = fs.readFileSync(path.join(ROOT, ".github", "workflows", "qa.yml"), "utf8");
+  if(qa163.indexOf("startsWith(github.head_ref, 'nocturne/')") < 0 ||
+     qa163.indexOf("grep -Ev '^(nocturne/issues/|docs/nocturne/|docs/sitemap\\.xml$)'") < 0){
+    fail("qa.yml's fence around the drafting agent is gone or widened \u2014 a nocturne/ pull request " +
+         "may change nocturne/issues/, docs/nocturne/ and docs/sitemap.xml only");
+  }
+  note("nocturne: " + NOC_REAL.list.length + " issue" + (NOC_REAL.list.length === 1 ? "" : "s") +
+       " on disk, docs/nocturne/ is byte-for-byte the build (" + Object.keys(NOC_REAL.files).length + " files)");
+})();
+
+/* ---------- 164. The paper runs no script ---------- */
+/* The app's CSP is a <meta> with one blessed hash; the paper has no script to
+   hash, so its policy is a default-deny header on /nocturne/* and every page
+   the build writes is held to it here, the real issues and the fixture
+   alike. A data block of JSON-LD is the one <script> element allowed, and it
+   never executes. The header is pinned whole: a policy that grows a
+   script-src, or loosens a default, is a policy nobody reviewed. */
+
+(function(){
+  var CSP164 = "default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; " +
+               "base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
+  var hdr = fs.existsSync(path.join(PUBLIC, "_headers")) ? fs.readFileSync(path.join(PUBLIC, "_headers"), "utf8") : "";
+  var m = hdr.match(/^\/nocturne\/\*\n((?:[ \t]+\S.*\n?)+)/m);
+  if(!m){
+    fail("docs/_headers has no /nocturne/* rule — the paper would be served under no " +
+         "Content-Security-Policy at all");
+  } else {
+    var lines = m[1].split("\n").map(function(l){ return l.trim(); }).filter(Boolean);
+    if(lines.length !== 1 || lines[0] !== "Content-Security-Policy: " + CSP164){
+      fail("the paper's CSP header is not the reviewed default-deny policy — /nocturne/* " +
+           "carries exactly one line: Content-Security-Policy: " + CSP164);
+    }
+  }
+  var pages = 0;
+  [[NOC_REAL, "docs/nocturne/"], [NOC_FIX, "the fixture's "]].forEach(function(pair){
+    if(!pair[0]) return;
+    Object.keys(pair[0].files).filter(function(f){ return /\.html$/.test(f); }).forEach(function(f){
+      var h = pair[0].files[f].toString("utf8"), where = pair[1] + f;
+      pages++;
+      var scripts = h.match(/<script\b[^>]*>/gi) || [];
+      if(scripts.some(function(t){ return t !== '<script type="application/ld+json">'; })){
+        fail(where + " carries a script that is not a JSON-LD data block — the paper runs no script");
+      }
+      if(/\son[a-z]+\s*=/i.test(h)) fail(where + " carries an inline event handler — the paper runs no script");
+      if(/javascript:/i.test(h)) fail(where + " carries a javascript: URL — the paper runs no script");
+      if(/<(iframe|form|object|embed|base)\b/i.test(h)) fail(where + " embeds a frame, form, object or base — none belong on a static page");
+      var srcs = h.match(/\ssrc="[^"]*"/g) || [];
+      if(srcs.some(function(a){ return /\ssrc="(https?:)?\/\//.test(a); })){
+        fail(where + " loads an image from another origin — every image is self-hosted (BRIEF.md §6)");
+      }
+      if(h.indexOf(NOC.COLOPHON) < 0) fail(where + " has lost the colophon — the renderer sets it on every page, word for word");
+    });
+  });
+  note("nocturne: " + pages + " pages built with no script, the /nocturne/* policy is default-deny");
+})();
+
+/* ---------- 165. The paper is outside the app ---------- */
+/* Owner's call, 24 Sept 2026: the paper lives at a path, not inside the PWA.
+   Three doors could put it back in. The service worker caches every
+   same-origin GET and falls back to the app's shell for any navigation, so
+   without its early return an issue would be cached by the app and an
+   offline tap on one would open the map instead. The shell could list it.
+   And the app could link to it, which inside the installed app opens the
+   paper in the app's own window, because the manifest scope is "/". */
+
+(function(){
+  var skip = 'if(url.pathname.indexOf("/nocturne/") === 0) return;';
+  var at = SW.indexOf(skip), respond = SW.indexOf("e.respondWith(");
+  if(at < 0){
+    fail("sw.js no longer steps aside for /nocturne/ — the paper would be cached by the app " +
+         "and an offline issue would open the map");
+  } else if(respond >= 0 && at > respond){
+    fail("sw.js steps aside for /nocturne/ only after respondWith — by then the app has answered");
+  }
+  var shell165 = (SW.match(/var SHELL\s*=\s*\[([\s\S]*?)\]/) || [0, ""])[1];
+  if(/nocturne/i.test(shell165)) fail("sw.js's SHELL lists part of the paper — the paper is not the app");
+  [["docs/index.html", HTML],
+   ["docs/manifest.json", fs.readFileSync(path.join(PUBLIC, "manifest.json"), "utf8")],
+   ["docs/404.html", fs.existsSync(path.join(PUBLIC, "404.html")) ? fs.readFileSync(path.join(PUBLIC, "404.html"), "utf8") : ""]
+  ].forEach(function(p){
+    if(/nocturne/i.test(p[1])){
+      fail(p[0] + " mentions the paper — the app never links to it (owner's call, 6.2.0); inside the " +
+           "installed app a link would open the paper in the app's own window");
+    }
+  });
+  note("nocturne: sw.js steps aside before respondWith, not in the shell, not linked from the app");
+})();
+
+/* ---------- 166. Every issue keeps the contract ---------- */
+/* nocturne/BRIEF.md section 5 and the mechanical half of nocturne/VOICE.md,
+   applied by qa/nocturne.js to every issue on disk. The fixture runs through
+   the same check on every build, so the checker is exercised before a real
+   issue exists and a change that breaks it fails here rather than on a
+   Sunday. The fixture is also held to its shape: a founding No. 0 and a
+   weekly No. 1 whose On-the-map box reads a parked title out of the app. */
+
+(function(){
+  if(NOC_REAL){
+    NOC_REAL.errors.forEach(function(m){ fail("an issue breaks the contract: " + m); });
+  }
+  if(!NOC_FIX) return;
+  NOC_FIX.errors.forEach(function(m){ fail("the Nocturne fixture breaks the contract: " + m); });
+  var kinds = NOC_FIX.list.map(function(i){ return i.fm.issue + ":" + (i.fm.kind || "weekly"); }).sort();
+  if(kinds.join(",") !== "0:founding,1:weekly"){
+    fail("the Nocturne fixture is not a founding No. 0 and a weekly No. 1 (" + kinds.join(", ") +
+         ") — both kinds must go through the check on every run");
+  }
+  NOC_FIX.list.forEach(function(is){
+    var h = (NOC_FIX.files[is.id + "/index.html"] || Buffer.from("")).toString("utf8");
+    var boxes = (h.match(/<div class="map/g) || []).length;
+    if(is.fm.kind === "founding" && boxes){
+      fail("the founding fixture renders an On-the-map box — No. 0 is about the app, not the catalogue");
+    }
+    if(is.fm.kind !== "founding"){
+      if(boxes !== is.fm.stories.length) fail("the weekly fixture renders " + boxes + " On-the-map boxes for " + is.fm.stories.length + " stories");
+      if(!/<dt>Status<\/dt><dd class="parked"><i class="ring"><\/i>Parked until /.test(h)){
+        fail("the weekly fixture's On-the-map box no longer reads a parked title out of the app");
+      }
+    }
+  });
+  note("nocturne: the fixture's No. 0 and No. 1 pass the contract; " +
+       (NOC_REAL ? NOC_REAL.list.length : 0) + " real issue(s) checked");
+})();
+
+/* ---------- 167. The sitemap and the feed list exactly the issues ---------- */
+/* The sitemap's Nocturne block and feed.xml are generated, so they can only
+   be wrong by being edited or by the builder breaking. Section 163 catches
+   the edit; this one holds the builder's output against the issues it was
+   given, on the fixture, and holds the block's place in the sitemap: the
+   markers once each, after the two URLs section 67 reads by position. */
+
+(function(){
+  var sm = fs.readFileSync(path.join(PUBLIC, "sitemap.xml"), "utf8");
+  if(!NOC) return;
+  var b = sm.indexOf(NOC.BEGIN), e = sm.indexOf(NOC.END);
+  if(b < 0 || e < b || sm.indexOf(NOC.BEGIN, b + 1) >= 0 || sm.indexOf(NOC.END, e + 1) >= 0){
+    fail("docs/sitemap.xml does not carry the Nocturne block's two markers exactly once, in order");
+    return;
+  }
+  var locs = sm.slice(0, b).match(/<loc>[^<]*<\/loc>/g) || [];
+  if(locs.length !== 2 || locs[0] !== "<loc>https://nightwatcher.life/</loc>"){
+    fail("the Nocturne block does not sit after the site's own two URLs — section 67 reads the " +
+         "home page's lastmod as the first in the file");
+  }
+  if(!NOC_FIX || NOC_FIX.errors.length) return;
+  var ids = NOC_FIX.list.map(function(i){ return i.id; });
+  var feed = NOC_FIX.files["feed.xml"].toString("utf8");
+  var items = feed.match(/<link>https:\/\/nightwatcher\.life\/nocturne\/[^<]+<\/link>/g) || [];
+  var want = ids.map(function(id){ return "<link>https://nightwatcher.life/nocturne/" + id + "/</link>"; });
+  if(items.join("|") !== want.join("|")){
+    fail("the feed does not list exactly the issues, newest first — got " + items.length + " item links for " + ids.length + " issues");
+  }
+  var blockLocs = (NOC_FIX.sitemap.match(/<loc>[^<]*<\/loc>/g) || []);
+  var wantLocs = ["<loc>https://nightwatcher.life/nocturne/</loc>"].concat(ids.map(function(id){
+    return "<loc>https://nightwatcher.life/nocturne/" + id + "/</loc>"; }));
+  if(blockLocs.join("|") !== wantLocs.join("|")){
+    fail("the sitemap block does not list the archive and exactly the issues, newest first");
+  }
+  note("nocturne: the sitemap block sits after the site's two URLs; the fixture's feed and block list its " + ids.length + " issues");
+})();
+
+/* ---------- 168. The paper's weight ---------- */
+/* The app's budget (section 29) is one file; the paper's is per page, per
+   image and per issue, and it is set in qa/nocturne.js where the check reads
+   it. The numbers are pinned here too, so loosening a limit in the module
+   is a change this file sees: 40 KB a page, 250 KB an image, three images
+   an issue, 1600 px on the long side (BRIEF.md section 6). */
+
+(function(){
+  if(!NOC) return;
+  var L = NOC.LIMITS;
+  if(L.page !== 40 * 1024 || L.image !== 250 * 1024 || L.images !== 3 || L.side !== 1600){
+    fail("qa/nocturne.js's weight limits moved (page " + L.page + ", image " + L.image + ", images " +
+         L.images + ", side " + L.side + ") — a raise is an owner's call recorded in the CHANGELOG");
+  }
+  var n = 0;
+  [NOC_REAL, NOC_FIX].forEach(function(bld){
+    if(!bld) return;
+    Object.keys(bld.files).forEach(function(f){
+      var sz = bld.files[f].length; n++;
+      if(/\.html$/.test(f) && sz > L.page) fail("the paper's " + f + " weighs " + sz + " bytes — a page is at most " + L.page);
+      if(/\.webp$/.test(f) && sz > L.image) fail("the paper's " + f + " weighs " + sz + " bytes — an image is at most " + L.image);
+      if(f === "nocturne.css" && sz > 12 * 1024) fail("nocturne.css weighs " + sz + " bytes — the paper's stylesheet is at most 12 KB");
+    });
+  });
+  note("nocturne: " + n + " built files inside the paper's weight limits");
 })();
 
 /* ---------- report ---------- */

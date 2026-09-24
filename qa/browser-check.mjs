@@ -1669,6 +1669,76 @@ if(swReady.supported && swReady.active && swReady.controlled){
 }
 await swCtx.close();
 
+/* ---- Nocturne, the paper (6.2.0) ---------------------------------------
+   The paper is static HTML the guards read as text; this is where it is
+   read as a page. The fixture's No. 0, No. 1 and archive are built in
+   memory by the same qa/nocturne.js and served through a route under
+   /nocturne-fixture/, so nothing is written into docs/ and the pages are
+   exercised before a real issue exists. Real issues, once there are any,
+   load from the served docs/nocturne/ as themselves. Each page: no console
+   or page errors, every image decoded, the deco face loaded, nothing wider
+   than the phone, and axe with no serious violation. */
+{
+  const noc = createRequire(import.meta.url)("./nocturne.js");
+  const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+  const fix = noc.build(ROOT, { src: "qa/nocturne-fixture/issues" });
+  const real = noc.build(ROOT);
+  const TYPES = { html: "text/html; charset=utf-8", css: "text/css", webp: "image/webp",
+                  xml: "application/xml" };
+  const nctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await nctx.addInitScript({ content: axeSrc });
+  await nctx.route(u => u.pathname.indexOf("/nocturne-fixture/") === 0, route => {
+    let rel = new URL(route.request().url()).pathname.slice("/nocturne-fixture/".length);
+    if(rel === "" || rel.slice(-1) === "/") rel += "index.html";
+    const body = fix.files[rel];
+    if(!body) return route.fulfill({ status: 404, body: "not in the fixture build" });
+    return route.fulfill({ status: 200, body, contentType: TYPES[rel.split(".").pop()] || "application/octet-stream" });
+  });
+  const targets = [];
+  fix.list.forEach(is => targets.push(["fixture No. " + is.fm.issue, "nocturne-fixture/" + is.id + "/"]));
+  if(fix.list.length) targets.push(["fixture archive", "nocturne-fixture/"]);
+  real.list.forEach(is => targets.push(["No. " + is.fm.issue, "nocturne/" + is.id + "/"]));
+  if(real.list.length) targets.push(["archive", "nocturne/"]);
+  ok("nocturne: the fixture builds into pages to read", fix.errors.length === 0 && fix.list.length === 2,
+     fix.errors.length ? fix.errors[0] : fix.list.length + " issues");
+  for(const [label, rel] of targets){
+    const np = await nctx.newPage();
+    const errs = [];
+    np.on("console", m => { if(m.type() === "error") errs.push(m.text().slice(0, 100)); });
+    np.on("pageerror", e => errs.push(String(e).slice(0, 100)));
+    let st = { status: 0 };
+    try{
+      const resp = await np.goto(SITE_URL + rel, { waitUntil: "load" });
+      await np.evaluate(() => document.fonts.ready);
+      st = await np.evaluate(() => ({
+        wide: document.documentElement.scrollWidth > innerWidth,
+        imgs: [...document.images].filter(i => !(i.complete && i.naturalWidth > 0)).map(i => i.getAttribute("src")),
+        deco: document.fonts.check('40px "NW Deco"'),
+        scripts: [...document.scripts].filter(x => x.type !== "application/ld+json").length
+      }));
+      st.status = resp ? resp.status() : 0;
+      const r = await np.evaluate(async () => await window.axe.run(document, {
+        resultTypes: ["violations"],
+        runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] }
+      }));
+      st.axe = r.violations.filter(x => x.impact !== "minor").map(x => x.id + " \u00d7" + x.nodes.length);
+    }catch(e){ errs.push(String(e).slice(0, 100)); }
+    ok("nocturne (" + label + "): loads with no errors", st.status === 200 && !errs.length,
+       errs[0] || ("HTTP " + st.status));
+    ok("nocturne (" + label + "): every image decodes, the deco face loads",
+       st.imgs && !st.imgs.length && st.deco, st.imgs && st.imgs.length ? "broken: " + st.imgs.join(", ") : "NW Deco " + st.deco);
+    ok("nocturne (" + label + "): nothing wider than the phone, no script", st.wide === false && st.scripts === 0,
+       "wide " + st.wide + ", scripts " + st.scripts);
+    ok("nocturne (" + label + "): axe, no serious violations", st.axe && !st.axe.length,
+       st.axe && st.axe.length ? st.axe.join(", ") : "");
+    if(errs.length || (st.axe && st.axe.length)){
+      await np.screenshot({ path: shot("shot-nocturne-" + label.replace(/\W+/g, "-") + ".png"), fullPage: true });
+    }
+    await np.close();
+  }
+  await nctx.close();
+}
+
 await browser.close();
 console.log("\nNight Watcher browser check — 390×844, " + (WK ? "WebKit" : "Chromium") + "\n");
 out.forEach(l => console.log(l));

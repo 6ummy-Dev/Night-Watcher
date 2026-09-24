@@ -154,7 +154,7 @@ nicknames, emoji, hashtags.
 | Titles | Italics for films and series; "Season 3" | *The Long Halloween, Part Two* |
 | Headlines | Sentence case, a statement, no colon teasers, ≤ 70 characters | Clayface gets a date |
 | Dashes | Em dash, no spaces, one per story at most | — |
-| Length | Cold open ≤ 50 words; 60–120 words per story; 400–750 per issue | |
+| Length | Cold open ≤ 50 words; 60–120 words per story; 250–750 per issue (No. 0: 600–900) | |
 | Links | Inline on the source name, never "click here" | per Warner Bros.' own listing |
 | Site counts | Only current ones from `docs/orders.txt`; omit if unsure | 137 films, 71 seasons, 44 continuities |
 | Alt text | What the image shows, no spoilers, ≤ 125 characters | Key art: a figure on a rooftop in rain |
@@ -213,4 +213,4 @@ All must be true before the PR opens. The owner checks again before merging.
 - [ ] No service named as a place to watch
 - [ ] Dates, numbers and spelling follow §8
 - [ ] Any site count matches `docs/orders.txt`, or is left out
-- [ ] 400–750 words, nothing padded
+- [ ] 250–750 words (No. 0: 600–900), nothing padded

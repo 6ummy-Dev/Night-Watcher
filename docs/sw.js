@@ -9,7 +9,7 @@
  * the app is one index.html, so a sticky cache is a sticky catalogue and
  * sticky code with no way to push a fix. History: NOTES-history.md ("Where the served and config files' histories went").
  */
-var VERSION = "6.1.5";
+var VERSION = "6.2.0";
 var CACHE   = "night-watcher-" + VERSION;
 /* The shell: everything the page needs to open offline. Guard 13 diffs this
    list against what docs/ serves, crawler-facing files excluded; ./index.html
@@ -61,6 +61,12 @@ self.addEventListener("fetch", function(e){
   try { url = new URL(req.url); } catch(err){ return; }
 
   if(url.origin !== location.origin) return;
+
+  /* 6.2.0. Nocturne, the weekly paper at /nocturne/, is not part of the app.
+     It is never cached here and never falls back to the app's shell: an
+     issue read offline is an honest network error, not the map pretending
+     to be the paper. Guard 165 holds this line ahead of respondWith. */
+  if(url.pathname.indexOf("/nocturne/") === 0) return;
 
   e.respondWith(
     fetch(req).then(function(res){

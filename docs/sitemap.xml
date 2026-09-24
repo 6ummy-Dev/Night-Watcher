@@ -12,6 +12,11 @@
   a search engine to choose between two near-identical bodies. This comment
   names no filename for that file on purpose, since guard 105 substring-matches
   the whole document. History: NOTES-history.md.
+
+  The block between the two nocturne markers at the end belongs to the
+  paper's build (6.2.0): npm run nocturne:build rewrites it from the issues
+  on disk, and guard 167 fails the build if it is edited by hand. It is empty
+  until the first issue runs, and it always sits after the two URLs above.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -26,4 +31,6 @@
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
+  <!-- nocturne:begin — written by npm run nocturne:build, never by hand -->
+  <!-- nocturne:end -->
 </urlset>
