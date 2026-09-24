@@ -4,7 +4,8 @@
 # fixture keep the contract (166), the sitemap block and the feed list
 # exactly the issues (167), and the paper keeps its weight (168). Every
 # fixture names its section. 6.2.1: one door from Home (165) and the holding
-# page with its open, empty feed (167).
+# page with its open, empty feed (167). 6.2.2: the feed links its own
+# stylesheet and says all of Batman (167), self-hosted (164), weighed (168).
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="$(pro qa/nocturne.js)"
@@ -257,6 +258,26 @@ run_case "the archive keeps the holding page's noindex" \
   "${N}a='url: url, ogType: \"website\", img: SHARE});';assert s.count(a)==1;s=s.replace(a,'url: url, ogType: \"website\", img: SHARE, extra: \\'<meta name=\"robots\" content=\"noindex\">\\\\n\\'});',1);${W}" \
   guards "" 167
 
+run_case "the feed stops linking its stylesheet" \
+  "does not link feed.css on its second line" \
+  "${N}a=\"'<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?>\\\\n' + FEED_PI + '\\\\n' +\";assert a in s,a;s=s.replace(a,\"'<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?>\\\\n' +\",1);${W}" \
+  guards "" 167
+
+run_case "the build stops writing feed.css" \
+  "writes no feed.css" \
+  "${N}a=', \"feed.css\": Buffer.from(FEED_CSS, \"utf8\")';assert a in s;s=s.replace(a,'',1);${W}" \
+  guards "" 167
+
+run_case "the paper is screen news again" \
+  "still calls the paper \"screen news\"" \
+  "${N}a='Back issues</h1>\\\\n<p class=\"sub\">The week\\\\u2019s Batman news';assert a in s,a;s=s.replace(a,'Back issues</h1>\\\\n<p class=\"sub\">The week\\\\u2019s Batman screen news',1);${W}" \
+  guards "" 167
+
+run_case "the feed's stylesheet loads a font from another origin" \
+  "feed.css reaches outside the origin" \
+  "${N}a='src:url(\\\\\"/fonts/limelight';assert s.count(a)==2,a;k=s.rindex(a);s=s[:k]+'src:url(\\\\\"https://fonts.example.com/limelight'+s[k+len(a):];${W}" \
+  guards "" 164
+
 echo "--- 168: the paper's weight"
 
 run_case "a page limit raised in the module" \
@@ -267,6 +288,11 @@ run_case "a page limit raised in the module" \
 run_case "a page over its weight slips past the build" \
   "a page is at most 40960" \
   "${N}a='files[is.id + \"/index.html\"] = Buffer.from(renderIssue(is, cat), \"utf8\");';assert a in s;s=s.replace(a,'files[is.id + \"/index.html\"] = Buffer.from(renderIssue(is, cat) + \" \".repeat(42000), \"utf8\");',1);b='if(/\\\\.html\$/.test(f) && files[f].length > LIMITS.page)';assert b in s;s=s.replace(b,'if(false)',1);${W}" \
+  guards "" 168
+
+run_case "the feed's stylesheet outgrows its budget" \
+  "the feed's stylesheet is at most 4 KB" \
+  "${N}a='\"rss{display:block;';assert a in s,a;s=s.replace(a,'\"/*'+'x'*5000+'*/\",'+a,1);${W}" \
   guards "" 168
 
 run_case "the stylesheet outgrows its budget" \

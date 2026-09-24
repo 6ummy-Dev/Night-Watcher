@@ -595,12 +595,12 @@ function renderIssue(is, cat){
 
 function renderArchive(list){
   var url = SITE + "/nocturne/";
-  var desc = "The Night Final: the week\u2019s Batman screen news, and what it does to your watch order. Every Sunday, late. No spoilers, every source linked.";
+  var desc = "The Night Final: the week\u2019s Batman news. Every Sunday, late. No spoilers, every source linked.";
   var h = head({title: "Nocturne \u00b7 Night Watcher", ogTitle: "Nocturne \u00b7 Night Watcher", desc: desc,
                 url: url, ogType: "website", img: SHARE});
   var out = h + '<body>\n<main class="paper">\n' +
     masthead(dateline("The Night Final", "Every Sunday, late", "Price: nothing. No account.")) +
-    '<h1 class="banner">Back issues</h1>\n<p class="sub">The week\u2019s Batman screen news, and what it does to your watch order. No spoilers, every source linked.</p>\n<ol class="issues" reversed>\n';
+    '<h1 class="banner">Back issues</h1>\n<p class="sub">The week\u2019s Batman news, and where each story sits on the map. No spoilers, every source linked.</p>\n<ol class="issues" reversed>\n';
   list.forEach(function(is, n){
     out += '<li><span class="no">' + is.fm.issue + '</span><span class="when">' + (n ? "" : "Latest \u00b7 ") +
            esc(longDate(is.fm.published)) + '</span><a href="/nocturne/' + is.id + '/">' + inline(is.fm.title) + '</a></li>\n';
@@ -633,6 +633,34 @@ function renderHolding(){
     footer("") + '</main>\n</body>\n</html>\n';
 }
 
+/* The feed, read in a browser (6.2.2). A browser shows RSS as a raw XML tree
+   that never wraps, so on a phone the feed ran wider than the screen. One
+   same-origin stylesheet, linked by an xml-stylesheet instruction, sets it as
+   a page of the paper. CSS, not XSLT: no script, nothing the /nocturne/*
+   policy has to open, and Chrome is removing XSLT. Feed readers ignore it. */
+var FEED_DESC = "The Night Final: the week\u2019s Batman news. Every Sunday, late.";
+var FEED_PI = '<?xml-stylesheet type="text/css" href="/nocturne/feed.css"?>';
+var FEED_CSS = [
+"/* Nocturne \u2014 how a browser shows the feed. Written by qa/nocturne.js; never edited by hand. */",
+"@namespace atom url(\"http://www.w3.org/2005/Atom\");",
+"@font-face{font-family:\"NW Deco\";src:url(\"/fonts/limelight-latin-400-normal.woff2\") format(\"woff2\");font-display:swap;}",
+"@font-face{font-family:\"Big Shoulders Display\";src:url(\"/fonts/big-shoulders-display-latin-700-normal.woff2\") format(\"woff2\");font-weight:700;font-display:swap;}",
+"@font-face{font-family:\"NW Sans\";src:url(\"/fonts/ibm-plex-sans-latin-400-normal.woff2\") format(\"woff2\");font-display:swap;}",
+"@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-400-normal.woff2\") format(\"woff2\");font-display:swap;}",
+"rss{display:block;background:#08090F;color:#E7E9F0;font:16px/1.6 \"NW Sans\",-apple-system,\"Segoe UI\",sans-serif;padding:22px 18px 48px;min-height:100vh;box-sizing:border-box;}",
+"channel{display:block;max-width:620px;margin:0 auto;}",
+"channel>title{display:block;font-family:\"NW Deco\",serif;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(26px,7vw,40px);line-height:1.05;text-align:center;padding-bottom:14px;border-bottom:4px double #E7E9F0;}",
+"channel>link,item>link{display:block;font-family:\"NW Mono\",ui-monospace,monospace;font-size:10px;letter-spacing:.12em;color:#7295CC;overflow-wrap:anywhere;}",
+"channel>link{text-align:center;padding:9px 0;border-bottom:1px solid #33405C;}",
+"channel>description{display:block;text-align:center;color:#93A0B8;font-size:15px;margin:18px 0 24px;}",
+"channel>description::after{content:\"This is the feed. Copy this page\\2019s address into your reader.\";display:block;margin-top:10px;font-family:\"NW Mono\",ui-monospace,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#FFCF1F;}",
+"language,lastBuildDate,guid,pubDate,channel>atom|link{display:none;}",
+"item{display:block;border-top:1px solid #252E42;padding:16px 0;}",
+"item>title{display:block;font-family:\"Big Shoulders Display\",\"Arial Narrow\",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:21px;line-height:1.1;margin-bottom:6px;}",
+"item>description{display:block;color:#93A0B8;font-size:14px;margin-top:6px;}",
+"channel:not(:has(item))::after{content:\"No issue yet. The first Night Final lands here.\";display:block;text-align:center;border-top:1px solid #252E42;padding-top:18px;color:#8B97B1;font-size:14px;}",
+""].join("\n");
+
 function renderFeed(list){
   var items = list.slice(0, LIMITS.feed).map(function(is){
     var u = issueUrl(is);
@@ -641,11 +669,11 @@ function renderFeed(list){
            '    <pubDate>' + rfc822(is.fm.published) + '</pubDate>\n' +
            '    <description>' + esc(plain(is.fm.cold_open)) + '</description>\n  </item>\n';
   }).join("");
-  return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+  return '<?xml version="1.0" encoding="UTF-8"?>\n' + FEED_PI + '\n' +
     '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n<channel>\n' +
     '  <title>Nocturne \u00b7 Night Watcher</title>\n  <link>' + SITE + '/nocturne/</link>\n' +
     '  <atom:link href="' + SITE + '/nocturne/feed.xml" rel="self" type="application/rss+xml"/>\n' +
-    '  <description>The Night Final: the week\u2019s Batman screen news, and what it does to your watch order.</description>\n' +
+    '  <description>' + FEED_DESC + '</description>\n' +
     '  <language>en</language>\n' +
     (list.length ? '  <lastBuildDate>' + rfc822(list.map(lastmod).sort().pop()) + '</lastBuildDate>\n' : "") +
     items + '</channel>\n</rss>\n';
@@ -679,7 +707,7 @@ function build(root, opts){
   var cat = opts.catalogue || loadCatalogue(root);
   var issues = listIssues(srcDir);
   var errs = checkAll(issues, cat);
-  var files = {"nocturne.css": Buffer.from(CSS, "utf8")};
+  var files = {"nocturne.css": Buffer.from(CSS, "utf8"), "feed.css": Buffer.from(FEED_CSS, "utf8")};
   var list = issues.filter(function(i){ return i.fm && Number.isInteger(i.fm.issue); })
                    .sort(function(a, b){ return b.fm.issue - a.fm.issue; });
   if(!errs.length && list.length){
@@ -759,7 +787,7 @@ function write(root, b){
 
 module.exports = {build: build, drift: drift, write: write, checkAll: checkAll, listIssues: listIssues,
                   loadCatalogue: loadCatalogue, sundayOfWeek: sundayOfWeek, webpSize: webpSize,
-                  LIMITS: LIMITS, BEGIN: BEGIN, END: END, OUT_REL: OUT_REL, SRC_REL: SRC_REL,
+                  LIMITS: LIMITS, BEGIN: BEGIN, END: END, FEED_PI: FEED_PI, FEED_DESC: FEED_DESC, OUT_REL: OUT_REL, SRC_REL: SRC_REL,
                   COLOPHON: COLOPHON};
 
 if(require.main === module){

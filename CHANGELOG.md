@@ -14,6 +14,42 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.2.2] — 2026-09-24
+
+**The feed, readable.** Opened in a browser, `/nocturne/feed.xml` showed as a
+raw XML tree that never wraps, wider than a phone, and its description still
+called the paper "screen news". A PATCH by README's rule: a fix to the paper,
+no entry moves, nothing saved changes shape or meaning. The counts stay at
+137 films, 71 seasons and 44 continuities. **No reinstall is needed.**
+
+### Fixed
+
+- **The feed reads as a page of the paper in a browser.** The build now
+  writes `docs/nocturne/feed.css` and links it from the feed with an
+  `xml-stylesheet` instruction: the channel title in the deco face over a
+  double rule, the description, a line saying this is the feed and to copy
+  its address into a reader, then each issue as a headline, its address and
+  its cold open. With no issue yet it says the first Night Final lands there.
+  Everything wraps at 390. CSS, not XSLT: no script, nothing the `/nocturne/*`
+  policy has to open (`style-src 'self'` and `font-src 'self'` already cover
+  it), and Chrome is removing XSLT. Feed readers ignore the stylesheet.
+- **All of Batman, not "screen news".** The feed's description is now "The
+  Night Final: the week's Batman news. Every Sunday, late." The archive's
+  line and meta description drop "screen" the same way ("and where each
+  story sits on the map"). This was booked for 6.3.0 with the beats; the
+  words ship now, the beats still ship then.
+
+### Under the hood
+
+- **Guard 167** holds that every feed build (the fixture's and the empty
+  one) links `feed.css` on its second line, writes it, carries the paper's
+  description, and that nothing the paper writes says "screen news". **Guard
+  164** holds `feed.css` to this origin and the feed to no script. **Guard
+  168** caps `feed.css` at 4 KB.
+- Negative fixtures 1,497 → 1,502 (negtest750 49 → 54). The browser check
+  144 → 146: the empty feed and the fixture's feed, each styled, no wider
+  than the phone, no errors.
+
 ## [6.2.1] — 2026-09-24
 
 **A door and a front page.** Until the first issue merged, `/nocturne/`

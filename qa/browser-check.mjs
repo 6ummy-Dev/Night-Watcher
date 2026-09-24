@@ -1737,6 +1737,29 @@ await swCtx.close();
     }
     await np.close();
   }
+  /* The feed in a browser (6.2.2): styled by feed.css, not a raw XML tree,
+     and no wider than the phone. The empty feed from docs/ and the fixture's
+     two-item feed through the route. */
+  for(const [label, rel] of [["feed", "nocturne/feed.xml"], ["fixture feed", "nocturne-fixture/feed.xml"]]){
+    const fp = await nctx.newPage();
+    const errs = [];
+    fp.on("console", m => { if(m.type() === "error") errs.push(m.text().slice(0, 100)); });
+    fp.on("pageerror", e => errs.push(String(e).slice(0, 100)));
+    let st = { status: 0 };
+    try{
+      const resp = await fp.goto(SITE_URL + rel, { waitUntil: "load" });
+      st = await fp.evaluate(() => ({
+        styled: getComputedStyle(document.documentElement).display === "block" &&
+                getComputedStyle(document.documentElement).backgroundColor === "rgb(8, 9, 15)",
+        wide: document.documentElement.scrollWidth > innerWidth
+      }));
+      st.status = resp ? resp.status() : 0;
+    }catch(e){ errs.push(String(e).slice(0, 100)); }
+    ok("nocturne (" + label + "): styled by feed.css, no wider than the phone, no errors",
+       st.status === 200 && st.styled && st.wide === false && !errs.length,
+       errs[0] || ("HTTP " + st.status + ", styled " + st.styled + ", wide " + st.wide));
+    await fp.close();
+  }
   await nctx.close();
 }
 

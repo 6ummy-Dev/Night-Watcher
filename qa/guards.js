@@ -15896,6 +15896,17 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       if(h.indexOf(NOC.COLOPHON) < 0) fail(where + " has lost the colophon — the renderer sets it on every page, word for word");
     });
   });
+  [[NOC_REAL, "docs/nocturne/"], [NOC_FIX, "the fixture's "]].forEach(function(pair){
+    if(!pair[0] || !pair[0].files["feed.css"]) return;
+    var css = pair[0].files["feed.css"].toString("utf8");
+    (css.match(/url\(\s*"?([^")]*)/g) || []).forEach(function(u){
+      var v = u.replace(/url\(\s*"?/, "");
+      if(v.indexOf("/") !== 0 && v.indexOf("http://www.w3.org/2005/Atom") !== 0 || v.indexOf("//") === 0){
+        fail(pair[1] + "feed.css reaches outside the origin (" + v + ") — the feed's stylesheet is self-hosted");
+      }
+    });
+    if(/<script|javascript:/i.test((pair[0].files["feed.xml"] || "").toString())) fail(pair[1] + "feed.xml carries script");
+  });
   note("nocturne: " + pages + " pages built with no script, the /nocturne/* policy is default-deny");
 })();
 
@@ -16040,6 +16051,22 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   if(NOC_FIX.files["index.html"].toString("utf8").indexOf(NOINDEX) >= 0){
     fail("the archive carries noindex — only the holding page does");
   }
+  /* The feed in a browser (6.2.2): every build links feed.css by an
+     xml-stylesheet instruction, right after the XML declaration, and writes
+     the stylesheet; its description is the paper's one line, all of Batman. */
+  [["the fixture's", NOC_FIX], ["the empty", HOLD]].forEach(function(pair){
+    var fx = (pair[1].files["feed.xml"] || Buffer.from("")).toString("utf8");
+    if(fx.split("\n")[1] !== NOC.FEED_PI){
+      fail(pair[0] + " feed does not link feed.css on its second line — a browser shows it as a raw XML tree wider than a phone (6.2.2)");
+    }
+    if(!pair[1].files["feed.css"]) fail(pair[0] + " build writes no feed.css — the feed links a stylesheet that is not there");
+    if(fx.indexOf("<description>" + NOC.FEED_DESC + "</description>") < 0){
+      fail(pair[0] + " feed's channel description is not the paper's line: " + NOC.FEED_DESC);
+    }
+  });
+  [["feed.xml", hfeed], ["the archive", NOC_FIX.files["index.html"].toString("utf8")], ["the holding page", hold]].forEach(function(p2){
+    if(/screen news/i.test(p2[1])) fail(p2[0] + " still calls the paper \"screen news\" — it covers all of Batman");
+  });
   note("nocturne: the sitemap block sits after the site's two URLs; the fixture's feed and block list its " + ids.length +
        " issues; with none, the holding page is noindex and the feed is open and empty");
 })();
@@ -16066,6 +16093,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       if(/\.html$/.test(f) && sz > L.page) fail("the paper's " + f + " weighs " + sz + " bytes — a page is at most " + L.page);
       if(/\.webp$/.test(f) && sz > L.image) fail("the paper's " + f + " weighs " + sz + " bytes — an image is at most " + L.image);
       if(f === "nocturne.css" && sz > 12 * 1024) fail("nocturne.css weighs " + sz + " bytes — the paper's stylesheet is at most 12 KB");
+      if(f === "feed.css" && sz > 4 * 1024) fail("feed.css weighs " + sz + " bytes — the feed's stylesheet is at most 4 KB");
     });
   });
   note("nocturne: " + n + " built files inside the paper's weight limits");
