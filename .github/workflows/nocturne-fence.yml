@@ -1,0 +1,59 @@
+name: Nocturne fence
+
+# 6.2.0, rebuilt 6.2.3. The fence around the drafting agent. Nocturne's
+# issues arrive as pull requests from the agent's own account, nocturne-desk;
+# the owner reviews and merges every one. The agent may write the issue's
+# markdown and images, the paper the build makes from them and the sitemap
+# block the build rewrites, and nothing else: not the rules it works under
+# (nocturne/BRIEF.md, nocturne/VOICE.md), not the checks that judge it
+# (qa/, .github/), not the app. The brief says so; this job makes it true.
+#
+# Three things the 6.2.2 audit found, and how each is closed:
+#   - The trigger is the pull request's AUTHOR, not its branch name. The
+#     agent chooses the branch; it cannot choose who it is. Any branch, one
+#     rule.
+#   - pull_request_target, not pull_request: GitHub runs THIS file as it
+#     stands on main, so a pull request that edits the fence cannot change
+#     the check judging it. That event is safe here only because the job
+#     executes nothing from the pull request: it fetches the head as a git
+#     object and runs `git diff` on it. Never add a step that runs code,
+#     installs packages or checks the head out as a working tree.
+#   - --no-renames: a rename is its delete plus its add, so moving a
+#     protected file into an allowed folder is a change to the protected path.
+#
+# Guard 163 fails the build if this file changes shape.
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+
+# Read-only. pull_request_target defaults to a write token; this job needs none.
+permissions:
+  contents: read
+
+jobs:
+  nocturne-paths:
+    if: github.event.pull_request.user.login == 'nocturne-desk'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: the agent writes only the paper
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          git fetch --no-tags --quiet origin "+refs/pull/${PR}/head:refs/nocturne/head"
+          CHANGED=$(git diff --no-renames --name-only "$BASE...refs/nocturne/head")
+          BAD=$(printf '%s\n' "$CHANGED" | grep -Ev '^(nocturne/issues/|docs/nocturne/|docs/sitemap\.xml$)' | grep . || true)
+          if [ -n "$BAD" ]; then
+            echo "a pull request by nocturne-desk may change nocturne/issues/, docs/nocturne/ and docs/sitemap.xml only:"
+            printf '%s\n' "$BAD"
+            exit 1
+          fi
+          echo "$(printf '%s\n' "$CHANGED" | grep -c .) files, all inside the paper"
