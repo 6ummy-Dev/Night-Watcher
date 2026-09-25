@@ -1,0 +1,2 @@
+# Nocturne issues land here, one folder per issue (<week>-<slug>/issue.md).
+# This file only keeps the folder in git until No. 0 merges; the build skips dot-files.
