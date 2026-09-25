@@ -368,15 +368,39 @@ the live site, linked like any other source:
 - *Thirty-One Nights*, the owner's essay on the app's history, if the owner
   hands it over. Paraphrase it; don't lift it.
 
-**What No. 0 should cover** (pick 4–6, in any order):
+**What No. 0 should cover** (pick 4–6; two are required, and the order is
+set under "Section order" below):
 
 - One path through every Batman: films and series, animated and live action, in one map.
-- The three watch orders: by universe, Bruce's life (an interpretation, not canon, and the app says so), release order.
+- The three watch orders: by universe, Bruce's life (an interpretation, not canon, and the app says so), release order. **Required: section 2.**
 - No spoilers: universes stay whole, and nothing renders ahead of what it would give away.
 - Parked titles: announced, on the shelf, not tickable until they're out.
 - What it doesn't do: no account, no ads, nothing tracking what you watch, works offline, free software (AGPL).
 - One fan, working alone, and the ledger: every change written down with its reason.
-- What Nocturne is: the Night Final, every Sunday, late: all of Batman (screen, comics, games, toys, books), and where each story sits. **This one is required.**
+- What Nocturne is, **as the founding editorial** (below). **This one is required, and it leads.**
+
+**The founding editorial**
+
+A new paper opens with an editorial: what it is and what it promises. In No. 0
+that editorial is the section on Nocturne. There isn't a second one beside it.
+
+- **It leads.** Its headline is the banner and `title`, so it's the page's
+  `<h1>` and the headline Google and X show. A statement in sentence case, per
+  `VOICE.md` §8, never "Editorial:" or a colon teaser.
+- **What it says:** what the Night Final is (every Sunday, late, all of Batman:
+  screen, comics, games, toys, books, and where each story sits), then the
+  paper's promises, as `VOICE.md` already states them: confirmed facts only and
+  how confirmed they are, no rumours, no spoilers, news and never shopping,
+  corrections dated at the top of the story, one fan keeping the map.
+- **What it doesn't say:** nothing beyond the paper as this brief describes it
+  today, so no features, no schedule changes, no plans.
+- **Voice:** "we", the night desk (`VOICE.md` §1). Stated, not sold. Of all the
+  sections, this is the one the owner is most likely to rewrite at review.
+- **Length:** about 150–250 words, inside the section limit (260) and the
+  issue's 600–900.
+- **Sources:** `nocturne/BRIEF.md` and `nocturne/VOICE.md` on GitHub, linked
+  inline, so readers can see the paper's rules are public. `status: confirmed`,
+  `catalogue: none`, `effect: none`, like every No. 0 section.
 
 **What No. 0 must not do**
 
@@ -388,9 +412,25 @@ the live site, linked like any other source:
   counts and the rules speak for the app.
 - The app still never speaks. It's "we" built it, never "Night Watcher says".
 
-**Images:** the project's own images only, which the owner supplies by being in
-the repo: `docs/share.png`, `docs/shot-narrow.png`, `docs/shot-wide.png`.
-Credit line: `Image: Night Watcher`. Converted to WebP per §6.
+**Section order.** The editorial is section 1 and the three watch orders are
+section 2, because the images below are placed by position (§6). The other
+sections come after them, in any order.
+
+**Images:** the project's own images only. The owner hands over three WebP
+files for No. 0. They aren't in the repo, and they replace the PNGs this
+section used to name. List them under `images` in this order:
+
+| File | Size | Where it runs | Alt text |
+| --- | --- | --- | --- |
+| `night-watcher-no0.webp` | 1600×900 | `hero`, under the banner | the owner's, or describe what it shows |
+| `night-final.webp` | 1600×900 | after section 1, the editorial | "The Night Final: the Nocturne nameplate and its five beats" |
+| `three-orders.webp` | as supplied | after section 2, the watch orders | the owner's, or describe what it shows |
+
+Each record: `credit: "Image: Night Watcher"`, `rights_holder: "Night
+Watcher"`, `licence: "The project's own image"`, `source_url` and `terms_url`
+`https://nightwatcher.life/`, and `width` and `height` read from the file. They
+are already WebP, sized and stripped per §6: copy them into the issue's folder
+as binary, and never convert, resize or re-encode them.
 
 **When:** No. 0 is the Sunday 27 September test run. If it isn't good, nothing
 is public, and No. 0 runs on 4 October instead. No. 1 follows the Sunday after
