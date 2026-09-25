@@ -63,7 +63,7 @@ the paper reports the news, the map keeps the order. The paper is not the app's
 changelog.
 
 - **The map shows itself, and only itself.** The renderer draws the On-the-map
-  box, and from 6.3.0 the Board, from each story's front matter. Dates, tiers
+  box and the Board (what moved on the map this week) from each story's front matter. Dates, tiers
   and where a title is filed live there. The story never repeats them and
   never gives watch-planning advice ("keep 23 October", "move the pencil"):
   that's the box's job, and in a story it reads like the app talking.
@@ -245,6 +245,8 @@ with anything else.
 | Links | Inline on the source's name, never "click here" | per Warner Bros.' own listing |
 | Site counts | Only current ones from `docs/orders.txt`; omit if unsure | 137 films, 71 seasons, 44 continuities |
 | Alt text | What the image shows, no spoilers, ≤ 125 characters | Key art: a figure on a rooftop in rain |
+| Beat | Every weekly story carries one: screen, comics, games, toys, books, other. It prints in the kicker | `beat: comics` |
+| Names | A catalogue name prints exactly as the app spells it. A title off the map that trips the word list goes in `names:` (BRIEF §5) | *Teen Titans Go!* |
 
 ## 10 · Before and after
 

@@ -224,7 +224,7 @@ function blessHtml(next){
 
    NOCTURNE
      163  The paper is what its build writes
-     164  The paper runs no script
+     164  The paper runs two scripts: ours and the beacon's
      165  The paper is outside the app
      166  Every issue keeps the contract
      167  The sitemap and the feed list exactly the issues
@@ -2489,10 +2489,13 @@ note("index.html " + rawKB.toFixed(1) + " KiB raw, " + gzipKB.toFixed(1) + " KiB
    number" the sealed backlog said was theirs to give before a feature
    started: the splash cover, the seed samples and the FAQ edits landed
    the tree at 219 of 220, and the next catalogue entry would have needed
-   the raise anyway. The ceilings moved; the discipline did not:
-   arithmetic still fails the build, and every raise is still a recorded
-   owner decision, never a drift. */
-if(rawKB > 250) fail("index.html is " + rawKB.toFixed(1) + " KiB raw, over the 250 KiB budget");
+   the raise anyway. Raised 250 -> 275 in 6.3.0 — the owner's number, on
+   the record 25 Sept 2026, with gzip held at 80: the tree sat at 247 of
+   250 with the Clayface cut and its catalogue rows still to come. The
+   ceilings moved; the discipline did not: arithmetic still fails the
+   build, and every raise is still a recorded owner decision, never a
+   drift. */
+if(rawKB > 275) fail("index.html is " + rawKB.toFixed(1) + " KiB raw, over the 275 KiB budget");
 if(gzipKB > 80) fail("index.html is " + gzipKB.toFixed(1) + " KiB gzipped, over the 80 KiB budget");
 
 /* Zero runtime dependencies is a promise in the README. There is no
@@ -3169,7 +3172,9 @@ if(!/<label class="bklab" for="restorebox">/.test(HTML)){
    party the page had loaded — on an app whose own structured data says nothing
    tracks you. Cloudflare's beacon was the one deliberate, disclosed exception
    until 3.2.0 removed it; since then NOTHING is fetched from anyone, and the
-   allowlist below is origins the page may NAME, not reach. (This header said
+   allowlist below is origins the page may NAME, not reach. 6.3.0: the beacon
+   is back on the paper alone, disclosed in its colophon; the app still
+   fetches nothing from anyone. (This header said
    "is the one deliberate exception" for four releases after the beacon left —
    stale prose in the very section that polices staleness. Fixed 3.7.2.) */
 
@@ -3200,6 +3205,12 @@ if(!/<label class="bklab" for="restorebox">/.test(HTML)){
                  "www.sitemaps.org", "github.com", "x.com",
                  "publishers.basicattentiontoken.org"];
   var ALLOWED = FETCHED.concat(NAMED);
+  /* 6.3.0, owner's call: the paper, and only the paper, counts visits with
+     Cloudflare Web Analytics. Its two origins may appear in exactly one
+     place this sweep reads, the /nocturne/* rule in _headers; anywhere else
+     (the app, its worker, its manifest, the header rules for every other
+     path) they fail as before. Section 165 holds the app side. */
+  var PAPER42 = ["static.cloudflareinsights.com", "cloudflareinsights.com"];
   /* Every file that ships, not just index.html. sw.js kept Google's font
      origins in a dead cache branch from 1.4.2 to 1.5.0 because this scan only
      ever read the page. A service worker reaches the network too. */
@@ -3214,6 +3225,14 @@ if(!/<label class="bklab" for="restorebox">/.test(HTML)){
     var fp = path.join(PUBLIC, f);
     if(!fs.existsSync(fp)) return;
     var txt = fs.readFileSync(fp, "utf8");
+    if(f === "_headers"){
+      var rule42 = (txt.match(/^\/nocturne\/\*\n(?:[ \t]+\S.*\n?)+/m) || [""])[0];
+      var inRule = (rule42.match(/https?:\/\/[a-z0-9.-]+/gi) || []).map(function(u){ return u.replace(/^https?:\/\//, "").toLowerCase(); });
+      inRule.forEach(function(h){
+        if(PAPER42.indexOf(h) < 0 && ALLOWED.indexOf(h) < 0) fail("_headers' /nocturne/* rule reaches out to " + h + " \u2014 the paper's only third party is Cloudflare Web Analytics");
+      });
+      txt = txt.replace(rule42, "");
+    }
     (txt.match(/https?:\/\/[a-z0-9.-]+/gi) || []).forEach(function(u){
       var host = u.replace(/^https?:\/\//, "").toLowerCase();
       origins[host] = origins[host] || f;
@@ -15871,6 +15890,28 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       fail("the fence around the drafting agent runs code — on pull_request_target it may only read the pull request with git, never execute or check it out");
     }
   }
+  /* 6.3.0. An issue pull request runs the paper's checks, not the app's:
+     qa.yml's scope job reads what the pull request changed and, when every
+     path is inside the fence, the heavy app work reports skipped. This holds
+     its shape: only a pull_request can be scoped (every push and the nightly
+     run everything), the paths are the fence's own, renames count, the
+     guards still run whole, and the skip is a step condition, never a paths
+     filter that would leave a required check hanging. */
+  var need163b = [
+    ["  scope:\n    runs-on: ubuntu-latest", "has its scope job"],
+    ['if [ "${{ github.event_name }}" = "pull_request" ]; then', "scopes pull requests only — every push and the nightly run everything"],
+    ["CHANGED=$(git diff --no-renames --name-only HEAD^1 HEAD)", "reads the pull request's changes with --no-renames"],
+    ["grep -Ev '^(nocturne/issues/|docs/nocturne/|docs/sitemap\\.xml$)'", "scopes to the fence's three paths exactly"],
+    ["      - if: needs.scope.outputs.paper != 'true'\n        run: npm test", "runs npm test on everything but an issue pull request"],
+    ["run: node qa/guards.js && npm run nocturne:check", "still runs every guard and the paper's check on an issue pull request"],
+    ["      - if: needs.scope.outputs.paper != 'true'\n        run: bash qa/negative/run-all.sh", "runs the negative shards on everything but an issue pull request"],
+    ["NW_ONLY=${{ needs.scope.outputs.paper == 'true' && 'paper' || 'all' }} npm run browser", "runs the paper half of the browser check on an issue pull request and all of it otherwise"]
+  ];
+  need163b.forEach(function(n){
+    if(qa163.indexOf(n[0]) < 0) fail("qa.yml's scope for issue pull requests is gone or widened: it no longer " + n[1] + " (6.3.0)");
+  });
+  if((qa163.match(/^\s+needs: scope$/gm) || []).length !== 3) fail("qa.yml's test, negative and browser jobs do not all wait on the scope job (6.3.0)");
+  if(/^\s+paths(-ignore)?:/m.test(qa163)) fail("qa.yml filters on paths — a required check filtered out never reports; scope with a step condition (6.3.0)");
   if(/nocturne-paths:|head_ref/.test(qa163)){
     fail("qa.yml still carries a copy of the fence around the drafting agent — on pull_request a pull request can rewrite it; the fence lives in nocturne-fence.yml");
   }
@@ -15878,16 +15919,20 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
        " on disk, docs/nocturne/ is byte-for-byte the build (" + Object.keys(NOC_REAL.files).length + " files)");
 })();
 
-/* ---------- 164. The paper runs no script ---------- */
-/* The app's CSP is a <meta> with one blessed hash; the paper has no script to
-   hash, so its policy is a default-deny header on /nocturne/* and every page
-   the build writes is held to it here, the real issues and the fixture
-   alike. A data block of JSON-LD is the one <script> element allowed, and it
-   never executes. The header is pinned whole: a policy that grows a
-   script-src, or loosens a default, is a policy nobody reviewed. */
+/* ---------- 164. The paper runs two scripts: ours and the beacon's ---------- */
+/* The app's CSP is a <meta> with one blessed hash; the paper's policy is a
+   default-deny header on /nocturne/* and every page the build writes is held
+   to it here, the real issues and the fixture alike. Until 6.3.0 the paper
+   ran no script. Now it runs two, both owner's calls: theme.js, its own,
+   which follows the app's theme before first paint, and Cloudflare Web
+   Analytics' beacon, which counts visits without cookies. Each page carries
+   exactly those two tags, word for word, and a JSON-LD data block, which
+   never executes. The header is pinned whole: a policy that grows another
+   source, or loosens a default, is a policy nobody reviewed. */
 
 (function(){
-  var CSP164 = "default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; " +
+  var CSP164 = "default-src 'none'; script-src 'self' https://static.cloudflareinsights.com; " +
+               "connect-src https://cloudflareinsights.com; style-src 'self'; img-src 'self'; font-src 'self'; " +
                "base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
   var hdr = fs.existsSync(path.join(PUBLIC, "_headers")) ? fs.readFileSync(path.join(PUBLIC, "_headers"), "utf8") : "";
   var m = hdr.match(/^\/nocturne\/\*\n((?:[ \t]+\S.*\n?)+)/m);
@@ -15908,13 +15953,20 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       var h = pair[0].files[f].toString("utf8"), where = pair[1] + f;
       pages++;
       var scripts = h.match(/<script\b[^>]*>/gi) || [];
-      if(scripts.some(function(t){ return t !== '<script type="application/ld+json">'; })){
-        fail(where + " carries a script that is not a JSON-LD data block — the paper runs no script");
+      var ours = NOC.THEME_TAG.replace("</script>", ""), beacon = NOC.BEACON.replace("</script>", "");
+      if(scripts.some(function(t){ return t !== '<script type="application/ld+json">' && t !== ours && t !== beacon; })){
+        fail(where + " carries a script that is not a JSON-LD data block, theme.js or the analytics beacon — the paper runs those two scripts and no other");
       }
-      if(/\son[a-z]+\s*=/i.test(h)) fail(where + " carries an inline event handler — the paper runs no script");
-      if(/javascript:/i.test(h)) fail(where + " carries a javascript: URL — the paper runs no script");
+      if(h.split(NOC.THEME_TAG).length !== 2 || h.indexOf(NOC.THEME_TAG) > h.indexOf("<meta name=\"viewport\"")){
+        fail(where + " does not load theme.js exactly once at the top of <head> — the theme would flash");
+      }
+      if(h.split(NOC.BEACON).length !== 2 || h.indexOf(NOC.BEACON) < h.indexOf("</main>")){
+        fail(where + " does not carry the analytics beacon exactly once, after the page — the paper counts its visits (6.3.0)");
+      }
+      if(/\son[a-z]+\s*=/i.test(h)) fail(where + " carries an inline event handler — the paper runs no inline script");
+      if(/javascript:/i.test(h)) fail(where + " carries a javascript: URL — the paper runs no inline script");
       if(/<(iframe|form|object|embed|base)\b/i.test(h)) fail(where + " embeds a frame, form, object or base — none belong on a static page");
-      var srcs = h.match(/\ssrc="[^"]*"/g) || [];
+      var srcs = h.replace(NOC.BEACON, "").match(/\ssrc="[^"]*"/g) || [];
       if(srcs.some(function(a){ return /\ssrc="(https?:)?\/\//.test(a); })){
         fail(where + " loads an image from another origin — every image is self-hosted (BRIEF.md §6)");
       }
@@ -15932,7 +15984,13 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     });
     if(/<script|javascript:/i.test((pair[0].files["feed.xml"] || "").toString())) fail(pair[1] + "feed.xml carries script");
   });
-  note("nocturne: " + pages + " pages built with no script, the /nocturne/* policy is default-deny");
+  if(NOC_REAL && NOC_REAL.files["theme.js"] && NOC_REAL.files["theme.js"].toString("utf8") !== NOC.THEME_JS){
+    fail("docs/nocturne/theme.js is not the build's theme script");
+  }
+  if(/fetch|XMLHttpRequest|sendBeacon|setItem|removeItem|cookie|import\(/.test(NOC.THEME_JS)){
+    fail("theme.js does more than read the reader's theme — it may only read the app's settings and set one attribute");
+  }
+  note("nocturne: " + pages + " pages carry theme.js and the beacon and nothing else, the /nocturne/* policy is default-deny plus those two");
 })();
 
 /* ---------- 165. The paper is outside the app ---------- */
@@ -15980,7 +16038,18 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
            "manifest and the 404 stay out of it");
     }
   });
-  note("nocturne: sw.js steps aside before respondWith, not in the shell, one door from Home that opens like Where to watch");
+  /* 6.3.0: the analytics beacon is the paper's, disclosed in its colophon.
+     The app carries neither the beacon, nor its token, nor its origins: not
+     in the page, the worker, the manifest or the 404. */
+  [["docs/index.html", HTML], ["docs/sw.js", SW],
+   ["docs/manifest.json", fs.readFileSync(path.join(PUBLIC, "manifest.json"), "utf8")],
+   ["docs/404.html", fs.existsSync(path.join(PUBLIC, "404.html")) ? fs.readFileSync(path.join(PUBLIC, "404.html"), "utf8") : ""]
+  ].forEach(function(p){
+    if(/cloudflareinsights|data-cf-beacon|beacon\.min\.js/i.test(p[1]) || (NOC && p[1].indexOf(NOC.BEACON_TOKEN) >= 0)){
+      fail(p[0] + " carries the analytics beacon or its token — the paper counts its visits, the app counts nothing (6.3.0)");
+    }
+  });
+  note("nocturne: sw.js steps aside before respondWith, not in the shell, one door from Home that opens like Where to watch; no beacon in the app");
 })();
 
 /* ---------- 166. Every issue keeps the contract ---------- */
@@ -16009,14 +16078,27 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     if(ids166.join(",") !== is.fm.stories.map(function(_, i){ return i + 1; }).join(",")){
       fail("the fixture's " + is.id + " does not give every story its own address, #s1 to #s" + is.fm.stories.length + " in order (6.2.3)");
     }
-    if(is.fm.kind === "founding" && boxes){
-      fail("the founding fixture renders an On-the-map box — No. 0 is about the app, not the catalogue");
+    if(is.fm.kind === "founding" && (boxes || /class="board"|class="beat"|class="off"/.test(h))){
+      fail("the founding fixture renders an On-the-map box, a Board or a beat — No. 0 is about the paper, not the catalogue");
     }
     if(is.fm.kind !== "founding"){
-      if(boxes !== is.fm.stories.length) fail("the weekly fixture renders " + boxes + " On-the-map boxes for " + is.fm.stories.length + " stories");
+      /* 6.3.0: a box only where a story touches the catalogue or flags a new
+         title; an "Off the map" chip on every other story but Late wires; a
+         beat on every story; the Board under the banner. */
+      var sts = is.fm.stories;
+      var wantBoxes = sts.filter(function(st){ return st.catalogue !== "none" || st.effect === "new-entry"; }).length;
+      var wantOff = sts.filter(function(st){ return st.catalogue === "none" && st.effect !== "new-entry" && st.headline !== "Late wires"; }).length;
+      if(boxes !== wantBoxes) fail("the weekly fixture renders " + boxes + " On-the-map boxes where " + wantBoxes + " stories touch the catalogue (6.3.0)");
+      if((h.match(/<span class="off">Off the map<\/span>/g) || []).length !== wantOff) fail("the weekly fixture's off-map stories do not each carry the Off the map chip (6.3.0)");
+      if((h.match(/<span class="beat">[a-z]+<\/span>/g) || []).length !== sts.length) fail("the weekly fixture's stories do not each carry their beat in the kicker (6.3.0)");
       if(!/<dt>Status<\/dt><dd class="parked"><i class="ring"><\/i>Parked until /.test(h)){
         fail("the weekly fixture's On-the-map box no longer reads a parked title out of the app");
       }
+      if(!/<p class="place">Sits after <em>[^<]+<\/em>, before <em>[^<]+<\/em>\.<\/p>/.test(h)) fail("the weekly fixture's map box has no placement line read out of PATH (6.3.0)");
+      var bd = (h.match(/<aside class="board"[\s\S]*?<\/aside>/) || [""])[0];
+      if(!bd || h.indexOf(bd) > h.indexOf('<p class="cold">')) fail("the weekly fixture has no Board under the banner (6.3.0)");
+      if(!/<span class="v entered">Entered<\/span>/.test(bd) || !/<span class="v dated">Dated<\/span>/.test(bd)) fail("the weekly fixture's Board does not show its new entry and its dated title (6.3.0)");
+      if(!/figure-line\.webp[\s\S]*id="s7"/.test(h) || h.indexOf("figure-line.webp") < h.indexOf('id="s6"')) fail("the weekly fixture's after: 6 image does not run under story 6 (6.3.0)");
     }
   });
   note("nocturne: the fixture's No. 0 and No. 1 pass the contract; " +
@@ -16178,6 +16260,20 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       if(!pr || !/--ink:#FFFFFF/i.test(pr) || !/--bone:#08090F/i.test(pr) || !/\.acts\{display:none;\}/.test(pr)){
         fail("the paper has lost its print sheet — ink on white, the buttons hidden (6.2.3)");
       }
+      /* 6.3.0: the paper follows the app's theme. Its darker block is the
+         app's, value for value, for every colour the paper paints with, and
+         print overrides darker too, or a darker reader prints black pages. */
+      if(pr.indexOf(':root,:root[data-theme="darker"]{') !== 0 && pr.indexOf('{:root,:root[data-theme="darker"]{') < 0){
+        fail("the paper's print sheet does not override the darker theme — a reader on Darker prints black pages (6.3.0)");
+      }
+      var appDark = (HTML.match(/:root\[data-theme="darker"\]\{([^}]*)\}/) || [0, ""])[1], dk = {};
+      (appDark.match(/--[a-z0-9]+\s*:[^;}]+/g) || []).forEach(function(d){ var i = d.indexOf(":"); dk[d.slice(0, i).trim()] = d.slice(i + 1).trim(); });
+      var paperDark = (body.match(/:root\[data-theme="darker"\]\{([^}]*)\}/) || [0, null])[1];
+      if(paperDark === null) fail("the paper has no darker theme block — it no longer follows the app's theme (6.3.0)");
+      else (paperDark.match(/--[a-z0-9]+\s*:[^;}]+/g) || []).forEach(function(d){
+        var i = d.indexOf(":"), k = d.slice(0, i).trim(), v = d.slice(i + 1).trim();
+        if(dk[k] !== v) fail("the paper's darker theme sets " + k + " to " + v + " and the app's sets " + dk[k] + " — the paper follows the app (6.3.0)");
+      });
     }
   });
   var rec169 = null;

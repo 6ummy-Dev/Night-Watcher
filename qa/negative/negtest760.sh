@@ -95,7 +95,7 @@ run_case "an arrow typed into a story" \
 
 run_case "a star in an image's alt text" \
   "image 1's alt: U+2605" \
-  "${F40}a='one yellow line\"';assert s.count(a)==1;s=s.replace(a,'one yellow line ★\"',1);${W}" \
+  "${F40}a='rooftop in rain, one yellow line\"';assert s.count(a)==1;s=s.replace(a,'rooftop in rain, one yellow line ★\"',1);${W}" \
   guards "" 166
 
 run_case "a price in a story" \
@@ -105,7 +105,7 @@ run_case "a price in a story" \
 
 run_case "a call to buy" \
   "a call to buy" \
-  "${F40}a='It has not moved anything';assert s.count(a)==1;s=s.replace(a,'Pre-order now. It has not moved anything',1);${W}" \
+  "${F40}a='Studios used to cut three trailers';assert s.count(a)==1;s=s.replace(a,'Pre-order now. Studios used to cut three trailers',1);${W}" \
   guards "" 166
 
 run_case "a source with a campaign tag" \

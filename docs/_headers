@@ -38,11 +38,13 @@
 # uses; interest-cohort is not listed and section 104 refuses it by name.
 #
 # /nocturne/* is the paper (6.2.0), and it is the one path whose CSP is a
-# header: the app's CSP is a <meta> with a blessed script hash, and the
-# paper has no script at all, so its policy is the strict default-deny
-# written once here for every page the build writes. Styles, images and
-# fonts come from this origin and nothing else. Guard 164 holds the line
-# exactly. The paper takes the assets plane's default cache (revalidate).
+# header: the app's CSP is a <meta> with a blessed script hash; the paper's
+# policy is default-deny, written once here for every page the build writes.
+# Styles, images and fonts come from this origin and nothing else. Two
+# scripts run (6.3.0): the paper's own theme.js, and Cloudflare Web
+# Analytics' beacon, which reports to cloudflareinsights.com. The app has
+# neither. Guard 164 holds the line exactly. The paper takes the assets
+# plane's default cache (revalidate).
 #
 # The history of every decision above is in NOTES-history.md
 # ("Where the served and config files' histories went").
@@ -68,7 +70,7 @@
   Vary: Accept
 
 /nocturne/*
-  Content-Security-Policy: default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'self' https://static.cloudflareinsights.com; connect-src https://cloudflareinsights.com; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
 
 /sw.js
   Cache-Control: no-cache

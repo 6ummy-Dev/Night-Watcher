@@ -26,7 +26,9 @@ it's fixed.
 - Cloudflare's server-side request counting. It is what any host sees by
   answering a request at all: it sets no cookies, adds nothing to the page and
   never sees which entries you watch. The client-side Web Analytics beacon that
-  used to sit here was removed in 3.2.0, and the page now fetches nothing.
+  used to sit here was removed from the app in 3.2.0, and the app fetches
+  nothing. Since 6.3.0 the paper at `/nocturne/`, and only the paper, carries
+  it: no cookies, disclosed in the paper's colophon.
 - Missing HTTP security headers on any address other than `nightwatcher.life`.
   The canonical site — now the only one — sets `Referrer-Policy`,
   `X-Frame-Options`, `Permissions-Policy`, `Cross-Origin-Opener-Policy` and

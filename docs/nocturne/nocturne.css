@@ -13,6 +13,7 @@
   --body:"NW Sans",-apple-system,"Segoe UI",sans-serif;--mono:"NW Mono",ui-monospace,Menlo,monospace;
   --t-display:clamp(24px,6.5vw,36px);--t-title:24px;--t-heading:clamp(17px,5.5vw,20px);--t-num:38px;--t-body:16px;--t-desc:14px;--t-note:12px;--t-label:10px;--t-fine:9px;
   --t-plate:clamp(46px,14vw,104px);--t-banner:clamp(30px,8.4vw,58px);--t-drop:62px;}
+:root[data-theme="darker"]{--ink:#000000;--sunk:#050506;--card:#0E0E11;--card2:#17181C;--line:#232429;--line2:#33353C;--bone:#C9CCD3;--suit:#A6ADBA;--dust:#A0A4AD;--dim:#969AA3;}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{background:var(--ink);color:var(--bone);font-family:var(--body);font-size:var(--t-body);line-height:1.6;-webkit-font-smoothing:antialiased;}
@@ -51,6 +52,19 @@ figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;
 .kick .st.reported{color:var(--steel);}
 .kick .st.provisional{color:var(--dust);}
 .kick .num{color:var(--dim);}
+.kick .beat{color:var(--dust);}
+.kick .off{color:var(--dust);border:1px solid var(--line2);padding:2px 6px 1px;}
+.board{max-width:620px;margin:0 auto 24px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);padding:10px 0;}
+.board .bh{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0 0 6px;}
+.board ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 22px;}
+.board li{display:flex;gap:10px;align-items:baseline;}
+.board .v{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.1em;text-transform:uppercase;}
+.board .v.entered{color:var(--signal);}
+.board .v.dated{color:var(--steel);}
+.board .v.unparked{color:var(--bone);border-bottom:1px solid var(--signal);}
+.board a{font-size:var(--t-desc);color:var(--bone);text-decoration:none;}
+.board .bnone{font-size:var(--t-desc);color:var(--dust);margin:0;}
+.map .place{font-size:var(--t-desc);color:var(--bone);margin:0 0 8px;}
 .story h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-display);line-height:1.02;margin:0 0 12px;}
 .story p{margin:0 0 14px;max-width:62ch;}
 .story p a{text-decoration:none;border-bottom:1px solid var(--signal);}
@@ -88,6 +102,6 @@ figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;
 @media (max-width:560px){.cols{grid-template-columns:1fr;}.cols section{padding:16px 0 18px;}.cols section+section{border-left:0;border-top:1px solid var(--line2);}}
 @media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}}
 /* Print (6.2.3): ink on white, the rules kept, no buttons. Same scale; only colour changes. */
-@media print{:root{--ink:#FFFFFF;--sunk:#FFFFFF;--card:#FFFFFF;--card2:#FFFFFF;--line:#BBBBBB;--line2:#888888;--bone:#08090F;--dust:#333333;--dim:#444444;--suit:#08090F;--signal:#08090F;--steel:#333333;--signalline:rgba(8,9,15,.35);}
+@media print{:root,:root[data-theme="darker"]{--ink:#FFFFFF;--sunk:#FFFFFF;--card:#FFFFFF;--card2:#FFFFFF;--line:#BBBBBB;--line2:#888888;--bone:#08090F;--dust:#333333;--dim:#444444;--suit:#08090F;--signal:#08090F;--steel:#333333;--signalline:rgba(8,9,15,.35);}
   .acts{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}
-  figure,.map,.corr{break-inside:avoid;}.story h2{break-after:avoid;}@page{margin:16mm 14mm;}}
+  figure,.map,.corr,.board{break-inside:avoid;}.story h2{break-after:avoid;}@page{margin:16mm 14mm;}}

@@ -48,9 +48,9 @@ run_case "the fence around the agent's pull requests widens" \
 
 echo "--- 164: the paper runs no script"
 
-run_case "the paper's policy grows a script-src" \
+run_case "the paper's policy loosens its script-src" \
   "not the reviewed default-deny policy" \
-  "${HD}a=\"default-src 'none'; style-src 'self';\";assert a in s;s=s.replace(a,\"default-src 'none'; script-src 'self'; style-src 'self';\",1);${W}" \
+  "${HD}a=\"script-src 'self' https\";assert a in s;s=s.replace(a,\"script-src 'self' 'unsafe-inline' https\",1);${W}" \
   guards "" 164
 
 run_case "the /nocturne/* rule removed" \
@@ -75,7 +75,7 @@ run_case "the colophon drops out of the footer" \
 
 run_case "the hero is hotlinked from another origin" \
   "loads an image from another origin" \
-  "${N}a='<figure><img src=\"\\' + esc(hero.file)';assert a in s;s=s.replace(a,'<figure><img src=\"https://example.com/\\' + esc(hero.file)',1);${W}" \
+  "${N}a='<figure><img src=\"\\' + esc(im.file)';assert a in s;s=s.replace(a,'<figure><img src=\"https://example.com/\\' + esc(im.file)',1);${W}" \
   guards "" 164
 
 echo "--- 165: the paper is outside the app"
@@ -138,7 +138,7 @@ run_case "an exclamation mark in the cold open" \
   guards "" 166
 
 run_case "a never-use word in a story" \
-  "on VOICE.md §7's never-use list" \
+  "on VOICE.md §8's never-use list" \
   "${F40}a='It is ninety seconds long';assert a in s;s=s.replace(a,'It is an iconic ninety seconds long',1);${W}" \
   guards "" 166
 
@@ -149,7 +149,7 @@ run_case "a source the story never links" \
 
 run_case "a link the story does not list as a source" \
   "without listing it in sources" \
-  "${F40}a='It has not moved anything';assert a in s;s=s.replace(a,'It has not moved [anything](https://example.com/aside)',1);${W}" \
+  "${F40}a='Studios used to cut three trailers';assert a in s;s=s.replace(a,'Studios used to cut three [trailers](https://example.com/aside)',1);${W}" \
   guards "" 166
 
 run_case "an issue published on a Saturday" \
@@ -194,12 +194,12 @@ run_case "a gap in the issue numbers" \
 
 run_case "a list in the body" \
   "lists are not part of the body" \
-  "${F40}a='It has not moved anything';assert a in s;s=s.replace(a,'- It has not moved anything',1);${W}" \
+  "${F40}a='Studios used to cut three trailers';assert a in s;s=s.replace(a,'- Studios used to cut three trailers',1);${W}" \
   guards "" 166
 
 run_case "raw HTML in the body" \
   "raw HTML is refused" \
-  "${F40}a='It has not moved anything';assert a in s;s=s.replace(a,'It has not <b>moved</b> anything',1);${W}" \
+  "${F40}a='Studios used to cut three trailers';assert a in s;s=s.replace(a,'Studios used to cut <b>three</b> trailers',1);${W}" \
   guards "" 166
 
 run_case "the weekly fixture stops reading a parked title" \
@@ -208,13 +208,13 @@ run_case "the weekly fixture stops reading a parked title" \
   guards "" 166
 
 run_case "the renderer skips the lead story's box" \
-  "On-the-map boxes for 4 stories" \
+  "On-the-map boxes where 2 stories touch the catalogue" \
   "${N}a='if(!founding) out += mapBox(st, cat);';assert a in s;s=s.replace(a,'if(!founding && i) out += mapBox(st, cat);',1);${W}" \
   guards "" 166
 
-run_case "the renderer boxes the founding issue" \
-  "the founding fixture renders an On-the-map box" \
-  "${N}a='if(!founding) out += mapBox(st, cat);';assert a in s;s=s.replace(a,'out += mapBox(st, cat);',1);${W}" \
+run_case "the renderer puts a Board on the founding issue" \
+  "the founding fixture renders an On-the-map box, a Board or a beat" \
+  "${N}a='(founding ? \"\" : board(fm, cat))';assert a in s;s=s.replace(a,'board(fm, cat)',1);${W}" \
   guards "" 166
 
 echo "--- 167: the sitemap and the feed list exactly the issues"

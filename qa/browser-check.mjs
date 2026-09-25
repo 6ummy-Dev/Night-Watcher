@@ -71,6 +71,11 @@ const browser = WK ? await webkit.launch()
   EXE ? { executablePath: EXE, args: ["--no-sandbox"] } : { args: ["--no-sandbox"] });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 },
                                      deviceScaleFactor: 3 });
+/* 6.3.0. NW_ONLY=paper runs the paper's pages and nothing else: the CI run
+   for an issue pull request, which can change only the paper (the fence
+   holds that). Every push to main and the nightly run the whole file. */
+const PAPER_ONLY = process.env.NW_ONLY === "paper";
+if(PAPER_ONLY){ await paperChecks(); await finish(); }
 /* THE PAGE'S OWN CSP REFUSES addScriptTag, AND THAT IS THE POLICY WORKING.
    script-src is one sha256 hash and, since 3.2.0, nothing else at all — so
    injecting a <script> element the ordinary way is blocked exactly as an
@@ -1678,7 +1683,7 @@ await swCtx.close();
    load from the served docs/nocturne/ as themselves. Each page: no console
    or page errors, every image decoded, the deco face loaded, nothing wider
    than the phone, and axe with no serious violation. */
-{
+async function paperChecks(){
   const noc = createRequire(import.meta.url)("./nocturne.js");
   const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
   const fix = noc.build(ROOT, { src: "qa/nocturne-fixture/issues" });
@@ -1687,6 +1692,16 @@ await swCtx.close();
                   xml: "application/xml" };
   const nctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   await nctx.addInitScript({ content: axeSrc });
+  /* 6.3.0. The analytics beacon is Cloudflare's, and a check that phones
+     Cloudflare on every run would count its own visits. It is answered here
+     with an empty module, so the page loads it the way a reader's does and
+     nothing leaves the runner. */
+  let beaconAsked = 0;
+  await nctx.route(u => u.hostname === "static.cloudflareinsights.com" || u.hostname === "cloudflareinsights.com", route => {
+    beaconAsked++;
+    return route.fulfill({ status: 200, body: "", contentType: "text/javascript",
+                           headers: { "access-control-allow-origin": "*" } });
+  });
   await nctx.route(u => u.pathname.indexOf("/nocturne-fixture/") === 0, route => {
     let rel = new URL(route.request().url()).pathname.slice("/nocturne-fixture/".length);
     if(rel === "" || rel.slice(-1) === "/") rel += "index.html";
@@ -1711,11 +1726,17 @@ await swCtx.close();
     try{
       const resp = await np.goto(SITE_URL + rel, { waitUntil: "load" });
       await np.evaluate(() => document.fonts.ready);
+      /* 6.3.0: an image under a later story is lazy; ask for it eagerly and
+         wait for it to decode, so "every image decodes" reads every image. */
+      await np.evaluate(async () => {
+        [...document.images].forEach(i => { i.loading = "eager"; });
+        await Promise.all([...document.images].map(i => i.decode().catch(() => {})));
+      });
       st = await np.evaluate(() => ({
         wide: document.documentElement.scrollWidth > innerWidth,
         imgs: [...document.images].filter(i => !(i.complete && i.naturalWidth > 0)).map(i => i.getAttribute("src")),
         deco: document.fonts.check('40px "NW Deco"'),
-        scripts: [...document.scripts].filter(x => x.type !== "application/ld+json").length
+        scripts: [...document.scripts].filter(x => x.type !== "application/ld+json").map(x => x.getAttribute("src")).join(" ")
       }));
       st.status = resp ? resp.status() : 0;
       const r = await np.evaluate(async () => await window.axe.run(document, {
@@ -1728,7 +1749,8 @@ await swCtx.close();
        errs[0] || ("HTTP " + st.status));
     ok("nocturne (" + label + "): every image decodes, the deco face loads",
        st.imgs && !st.imgs.length && st.deco, st.imgs && st.imgs.length ? "broken: " + st.imgs.join(", ") : "NW Deco " + st.deco);
-    ok("nocturne (" + label + "): nothing wider than the phone, no script", st.wide === false && st.scripts === 0,
+    ok("nocturne (" + label + "): nothing wider than the phone; theme.js and the beacon, no other script",
+       st.wide === false && st.scripts === "/nocturne/theme.js https://static.cloudflareinsights.com/beacon.min.js",
        "wide " + st.wide + ", scripts " + st.scripts);
     ok("nocturne (" + label + "): axe, no serious violations", st.axe && !st.axe.length,
        st.axe && st.axe.length ? st.axe.join(", ") : "");
@@ -1737,6 +1759,24 @@ await swCtx.close();
     }
     await np.close();
   }
+  /* 6.3.0. The paper follows the app's theme: a reader on Darker in the app
+     opens the paper in Darker, before first paint; one on Dark stays blue-black. */
+  for(const [theme, want] of [["darker", "darker"], ["dark", null]]){
+    const tp = await nctx.newPage();
+    let got = "unread";
+    try{
+      await tp.goto(SITE_URL + "nocturne/", { waitUntil: "load" });
+      await tp.evaluate(t => localStorage.setItem("batwatch-settings", JSON.stringify({ theme: t })), theme);
+      await tp.reload({ waitUntil: "load" });
+      got = await tp.evaluate(() => ({ attr: document.documentElement.getAttribute("data-theme"),
+                                       ink: getComputedStyle(document.body).backgroundColor }));
+      await tp.evaluate(() => localStorage.removeItem("batwatch-settings"));
+    }catch(e){ got = String(e).slice(0, 100); }
+    ok("nocturne: a reader on " + theme + " in the app reads the paper in " + (want || "dark"),
+       got && got.attr === want && got.ink === (want ? "rgb(0, 0, 0)" : "rgb(8, 9, 15)"), JSON.stringify(got));
+    await tp.close();
+  }
+  ok("nocturne: the beacon was answered locally, never fetched from Cloudflare", beaconAsked > 0, beaconAsked + " requests");
   /* The feed in a browser (6.2.2): styled by feed.css, not a raw XML tree,
      and no wider than the phone. The empty feed from docs/ and the fixture's
      two-item feed through the route. */
@@ -1762,10 +1802,15 @@ await swCtx.close();
   }
   await nctx.close();
 }
+await paperChecks();
 
-await browser.close();
-console.log("\nNight Watcher browser check — 390×844, " + (WK ? "WebKit" : "Chromium") + "\n");
-out.forEach(l => console.log(l));
-console.log(bad ? "\n  ✗ " + bad + " browser check(s) failed\n"
-                : "\n  ✓ browser checks passed\n");
-process.exit(bad ? 1 : 0);
+await finish();
+async function finish(){
+  await browser.close();
+  console.log("\nNight Watcher browser check — 390×844, " + (WK ? "WebKit" : "Chromium") +
+              (PAPER_ONLY ? ", the paper only" : "") + "\n");
+  out.forEach(l => console.log(l));
+  console.log(bad ? "\n  ✗ " + bad + " browser check(s) failed\n"
+                  : "\n  ✓ browser checks passed\n");
+  process.exit(bad ? 1 : 0);
+}

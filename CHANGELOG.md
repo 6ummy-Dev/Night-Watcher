@@ -14,6 +14,87 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.3.0] — 2026-09-25
+
+**The paper, ready for Sunday.** Everything planned for Nocturne before its
+first Night Final lands in one cut, so nothing follows the No. 0 merge: the
+paper covers every beat and says so on each story, shows what moved on the
+map, follows the reader's theme, counts its own visits, and prints the
+catalogue's names as the app spells them. Issue pull requests stop paying for
+the app's test wall. A MINOR by README's rule, tagged. The app itself changes
+only in its version and its weight ceiling; no entry moves and nothing saved
+changes shape or meaning. The counts stay at 137 films, 71 seasons and 44
+continuities. **No reinstall is needed.**
+
+### Added
+
+- **Beats.** Every weekly story carries its beat (screen, comics, games,
+  toys, books or other) in the front matter and in its kicker. The founding
+  issue has none.
+- **The Board.** A strip under the banner lists what moved on the map that
+  week, from each story's `effect`: *Entered*, *Dated* (a first date or a
+  slip) and *Unparked*, each linking to its story. A weekly issue with
+  nothing moved says so in one line; No. 0 has no Board.
+- **Where a title sits, in a line.** The On-the-map box opens with its
+  neighbours read out of the catalogue: "Sits after *X*, before *Y*."
+- **Images under their own story.** An image can take `after: <story>`;
+  without it, the old slot order holds. Never after Late wires, never two
+  under one story.
+- **Names are names.** The voice check no longer refuses the catalogue's own
+  names for carrying a listed word or a `!`: *The Batman Epic Crime Saga*,
+  *The Legendary Super Powers Show*, *Teen Titans Go!* and six more print as
+  the app spells them. The exemption is exact and case-sensitive, so "an epic
+  saga" beside the name still fails. A title the catalogue does not hold goes
+  in an optional `names:` list, which the pull request shows the owner.
+- **The paper follows the app's theme.** A reader on Darker in the app reads
+  the paper in Darker, set before first paint by `theme.js`, the paper's one
+  script of its own. The colours are the app's, read out of `index.html`;
+  printing stays ink on white in either theme.
+- **The paper counts its visits.** Cloudflare Web Analytics, on the paper
+  only: no cookies, nothing that follows a reader, disclosed in the colophon.
+  The app carries no beacon and fetches nothing from anyone, as since 3.2.0.
+
+### Changed
+
+- **The map box draws only where the map is news:** a story that touches a
+  catalogued title, whatever its beat, or flags a new one. Every other story
+  carries an "Off the map" chip in its kicker instead of a box that said so.
+- **Late wires** is a section of small items: `catalogue: none`,
+  `effect: none`, `beat: other`, no box and no image after it. A catalogued
+  title that moves is promoted to a story of its own.
+- **The paper's policy** (`/nocturne/*`) allows the two scripts and the
+  beacon's reports, and nothing else.
+- **Issue pull requests run the paper's checks.** When every changed path is
+  inside the drafting agent's fence, CI runs every guard, the paper's check
+  and the paper's half of the browser check, and skips smoke, the four
+  negative shards and the app's half of the browser check. Every push to
+  `main` and the nightly run still run everything.
+- **The weight ceiling is 275 KiB raw** (was 250), the owner's call; gzip
+  stays at 80 KiB.
+- **BRIEF and VOICE** say the paper is a newspaper about Batman, with the
+  map as its neighbour; they carry the owner's rulings from the three test
+  runs, the image-licence ruling, and every rule above as live.
+- The holding page and the archive describe the paper as a paper, not a map
+  report. README says who builds the map: one person.
+
+### Under the hood
+
+- **Guard 164** holds the two scripts word for word and at their places, and
+  `theme.js` to reading one setting. **Guard 165** keeps the beacon, its
+  token and its origins out of the app. **Guard 42** allows the beacon's
+  origins in one place, the paper's header rule. **Guard 163** holds the CI
+  scope. **Guard 166** holds beats, the Board, the chip, the placement line
+  and `after:` on the fixture. **Guard 169** holds the paper's Darker equal to
+  the app's and the print sheet over it. **Guard 29** reads 275.
+- The browser check gains `NW_ONLY=paper`, answers the beacon locally so no
+  run counts itself, and reads the paper in both themes.
+- The weekly fixture grows to seven stories: a comic, a toy line, Late wires,
+  an image under its own story and a name off the map.
+- Guard sections stay at 169. Negative suites 85 → 86 (negtest770, 29
+  fixtures); ten negtest750/760 fixtures re-anchored to the new layout and
+  VOICE's section numbers; negtest195's ceiling fixture reads 275. Fixtures
+  1,540 → 1,569.
+
 ## [6.2.3] — 2026-09-25
 
 **Before the first Night Final.** The two 6.2.2 audits found a link that

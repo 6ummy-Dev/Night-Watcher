@@ -39,8 +39,11 @@ var LIMITS = {
 var STATUS  = {confirmed: "Confirmed", reported: "Reported", provisional: "Provisional"};
 var EFFECTS = ["new-entry", "parked-date", "unparked", "none"];
 var KINDS   = ["weekly", "founding"];
-/* VOICE.md §7's list, the part a machine can hold. "drops" as a verb and a
-   service named as advice need a reader; the editor checks those (§10). */
+/* 6.3.0. Every weekly story carries its beat; Nocturne covers all of Batman. */
+var BEATS   = ["screen", "comics", "games", "toys", "books", "other"];
+var LATE    = "Late wires";
+/* VOICE.md §8's list, the part a machine can hold. "drops" as a verb and a
+   service named as advice need a reader; the editor checks those (§11). */
 var BANNED  = ["epic", "iconic", "legendary", "must-watch", "must watch", "game-changer",
                "game changer", "fans rejoice", "buzz", "buzzing", "MCU", "click here"];
 var MONTHS  = ["January", "February", "March", "April", "May", "June", "July",
@@ -72,7 +75,7 @@ function glyphErrors(text, where){
   return k.length ? [where + ": " + k.join(", ") + " — outside the paper's fonts (qa/font-subset.json); it would render in a system font"] : [];
 }
 
-/* 6.2.3. Merch is news, never shopping (VOICE.md §10): no tracking or
+/* 6.2.3. Merch is news, never shopping (VOICE.md §8): no tracking or
    affiliate parameters in a link, no affiliate or shortener hosts. The
    source is the page as a reader would open it, not as a campaign tagged it. */
 var TRACKING  = /^(utm_.+|fbclid|gclid|gbraid|wbraid|dclid|msclkid|yclid|mc_cid|mc_eid|igshid|igsh|si|_hsenc|_hsmi|mkt_tok|tag|ascsubtag|aff|affid|aff_id|affiliate|affiliate_id|clickid|irclickid)$/i;
@@ -106,12 +109,23 @@ function loadCatalogue(root){
   box.PATH.forEach(function(g){
     g.films.forEach(function(f, ix){
       var e = {id: f.i, t: f.t, sub: f.sub || "", b: f.b || [], o: !!f.o, when: f.when || "",
-               gn: g.n, gname: g.name, prev: ix ? g.films[ix - 1] : null};
+               gn: g.n, gname: g.name, prev: ix ? g.films[ix - 1] : null,
+               next: ix < g.films.length - 1 ? g.films[ix + 1] : null};
       e.tier = box.tierOf(e);
       e.parked = e.b.indexOf("u") >= 0;
       byId[f.i] = e;
     });
   });
+  /* 6.3.0. Names are names. The voice rules are for our words, and the
+     catalogue's own names print exactly as the app spells them, a listed
+     word or a ! included (The Batman Epic Crime Saga, Teen Titans Go!). The
+     names are kept here, from PATH itself, so no list is restated. */
+  var names = {};
+  box.PATH.forEach(function(g){
+    names[g.name] = 1;
+    g.films.forEach(function(f){ names[f.t] = 1; if(f.sub) names[f.sub] = 1; });
+  });
+  Object.defineProperty(byId, "__names", {value: Object.keys(names), enumerable: false});
   return byId;
 }
 
@@ -221,22 +235,35 @@ function subsetErrors(text, where){
   if(bad.length) e.push(where + ": every link is https — " + bad.join(", "));
   return e;
 }
-function voiceErrors(text, where){
-  var e = [], t = plain(text);
-  if(/!/.test(t)) e.push(where + ": an exclamation mark — VOICE.md §2 has none");
-  BANNED.forEach(function(w){
-    var re = new RegExp("(^|[^\\w-])" + w.replace(/[-]/g, "[- ]?") + "(?![\\w-])", "i");
-    if(re.test(t)) e.push(where + ": \"" + w + "\" is on VOICE.md §7's never-use list");
+/* 6.3.0. A name is removed before the voice rules read the text: exact and
+   case-sensitive, longest first, so "The Batman Epic Crime Saga" passes and
+   "an epic saga" beside it still fails, and a re-cased name is not a name. */
+function stripNames(t, names){
+  (names || []).slice().sort(function(a, b){ return b.length - a.length; }).forEach(function(n){
+    if(n) t = t.split(n).join(" ");
   });
-  if(/\bthe Bat\b(?!man|mobile|cave|signal|wing|girl|woman)/.test(t)) e.push(where + ": \"the Bat\" — no nicknames (VOICE.md §7)");
+  return t;
+}
+function bannedIn(t){
+  return BANNED.filter(function(w){
+    return new RegExp("(^|[^\\w-])" + w.replace(/[-]/g, "[- ]?") + "(?![\\w-])", "i").test(t);
+  });
+}
+function voiceErrors(text, where, names){
+  var e = [], t = stripNames(plain(text), names);
+  if(/!/.test(t)) e.push(where + ": an exclamation mark — VOICE.md §8 has none");
+  bannedIn(t).forEach(function(w){
+    e.push(where + ": \"" + w + "\" is on VOICE.md §8's never-use list");
+  });
+  if(/\bthe Bat\b(?!man|mobile|cave|signal|wing|girl|woman)/.test(t)) e.push(where + ": \"the Bat\" — no nicknames (VOICE.md §8)");
   if(/\p{Extended_Pictographic}/u.test(t)) e.push(where + ": an emoji");
   if(/(^|\s)#[A-Za-z]/.test(t)) e.push(where + ": a hashtag");
-  /* 6.2.3. Merch is news, never shopping (VOICE.md §10). */
+  /* 6.2.3. Merch is news, never shopping (VOICE.md §8). */
   if(/(^|[^\w])(US\$|[$£€¥])\s?\d/.test(t) || /\b\d+(?:[.,]\d+)?\s?(USD|EUR|GBP|dollars|euros)\b/i.test(t)){
-    e.push(where + ": a price — merch is news, never shopping (VOICE.md §10)");
+    e.push(where + ": a price — merch is news, never shopping (VOICE.md §8)");
   }
   if(/\b(buy|order|shop|pre-?order) (it |them |yours )?now\b/i.test(t)){
-    e.push(where + ": a call to buy — merch is news, never shopping (VOICE.md §10)");
+    e.push(where + ": a call to buy — merch is news, never shopping (VOICE.md §8)");
   }
   if(/\b(watch|stream) (it|them|this|these) (on|at)\b/i.test(t)) {
     e.push(where + ": a service named as advice — the site's where-to-watch search does that job");
@@ -314,6 +341,17 @@ function webpSize(buf){
   return null;
 }
 
+/* 6.3.0. Where each non-hero image runs: its own after:, or its slot. */
+function placeImages(fm){
+  var imgs = Array.isArray(fm.images) ? fm.images : [], k = 0, out = [];
+  imgs.forEach(function(im, i){
+    if(!im || typeof im !== "object" || im.file === fm.hero) return;
+    k++;
+    out.push({im: im, index: i, after: im.after !== undefined ? im.after : k});
+  });
+  return out;
+}
+
 /* ---------- the check ---------- */
 
 function checkAll(issues, cat){
@@ -329,7 +367,7 @@ function checkAll(issues, cat){
     if(KINDS.indexOf(kind) < 0){ E(is, "kind is " + kind + " — weekly or founding"); return; }
     var L = LIMITS[kind];
     var allowed = ["issue", "kind", "title", "slug", "week", "published", "cold_open", "hero",
-                   "images", "stories", "sign_off", "corrections"];
+                   "images", "stories", "sign_off", "corrections", "names"];
     Object.keys(fm).forEach(function(k){ if(allowed.indexOf(k) < 0) E(is, "unknown field \"" + k + "\""); });
     ["issue", "title", "slug", "week", "published", "cold_open", "stories", "sign_off"].forEach(function(k){
       if(fm[k] === undefined || fm[k] === null || fm[k] === "") E(is, "missing field \"" + k + "\"");
@@ -354,14 +392,34 @@ function checkAll(issues, cat){
     ["title", "cold_open", "sign_off"].forEach(function(k){
       if(typeof fm[k] === "string") errs.push.apply(errs, glyphErrors(fm[k], is.id + ": " + k.replace("_", " ")));
     });
+    /* 6.3.0. Names off the map: a title the catalogue does not hold (a comic,
+       a game, a toy line) that carries a listed word or a ! is listed here and
+       exempted exactly as written. Each must be printed in the issue, and none
+       may be a bare listed word: the list is for names, not for our words. */
+    var EX = (cat.__names || []).filter(function(n){ return voiceErrors(n, "", []).length; });
+    if(fm.names !== undefined){
+      if(!Array.isArray(fm.names)) E(is, "names is not a list");
+      else fm.names.forEach(function(n, i){
+        var where = "name " + (i + 1);
+        if(typeof n !== "string" || !n.trim()){ E(is, where + " is not a string"); return; }
+        var bare = n.replace(/[^A-Za-z -]/g, "").trim().toLowerCase();
+        if(BANNED.some(function(w){ return w.toLowerCase() === bare; }) || !/\s/.test(n.trim())){
+          E(is, where + " (" + n + ") is a bare word, not a name — names exempts titles, never our own words"); return;
+        }
+        var whole = [fm.title, fm.cold_open, fm.sign_off, is.body].concat((fm.stories || []).map(function(st){ return st && st.headline; })).join("\n");
+        if(plain(whole).indexOf(n) < 0){ E(is, where + " (" + n + ") is not printed in the issue — list only names the issue carries"); return; }
+        errs.push.apply(errs, glyphErrors(n, is.id + ": " + where));
+        EX.push(n);
+      });
+    }
     errs.push.apply(errs, glyphErrors(is.body, is.id + ": body"));
     if(typeof fm.cold_open === "string"){
       if(words(fm.cold_open) > LIMITS.coldOpen) E(is, "the cold open is over " + LIMITS.coldOpen + " words");
-      errs.push.apply(errs, voiceErrors(fm.cold_open, is.id + ": cold open"));
+      errs.push.apply(errs, voiceErrors(fm.cold_open, is.id + ": cold open", EX));
       errs.push.apply(errs, subsetErrors(fm.cold_open, is.id + ": cold open"));
     }
     if(typeof fm.sign_off === "string"){
-      errs.push.apply(errs, voiceErrors(fm.sign_off, is.id + ": sign-off"));
+      errs.push.apply(errs, voiceErrors(fm.sign_off, is.id + ": sign-off", EX));
       errs.push.apply(errs, subsetErrors(fm.sign_off, is.id + ": sign-off"));
     }
 
@@ -382,12 +440,19 @@ function checkAll(issues, cat){
       var where = "story " + (i + 1);
       var sec = body.sections[i];
       if(!st || typeof st !== "object"){ E(is, where + " is not a map"); return; }
-      ["headline", "status", "sources", "catalogue", "effect"].forEach(function(k){
+      ["headline", "status", "sources", "catalogue", "effect"].concat(kind === "weekly" ? ["beat"] : []).forEach(function(k){
         if(st[k] === undefined || st[k] === null || st[k] === "") E(is, where + " is missing \"" + k + "\"");
       });
       Object.keys(st).forEach(function(k){
-        if(["headline", "status", "sources", "catalogue", "effect"].indexOf(k) < 0) E(is, where + " has an unknown field \"" + k + "\"");
+        if(["headline", "status", "sources", "catalogue", "effect", "beat"].indexOf(k) < 0) E(is, where + " has an unknown field \"" + k + "\"");
       });
+      if(st.beat !== undefined && BEATS.indexOf(st.beat) < 0) E(is, where + "'s beat is " + st.beat + " — " + BEATS.join(", "));
+      if(kind === "founding" && st.beat !== undefined) E(is, where + " carries a beat — the founding issue is about the paper, not a beat");
+      /* 6.3.0. Late wires holds several small items under one headline: no box,
+         beat other. A catalogued title that moves is a story, not a wire. */
+      if(st.headline === LATE && (st.catalogue !== "none" || st.effect !== "none" || (kind === "weekly" && st.beat !== "other"))){
+        E(is, where + " is Late wires — catalogue: none, effect: none, beat: other; a catalogued title that moves is promoted to a story");
+      }
       if(typeof st.headline === "string" && st.headline.length > LIMITS.title) E(is, where + "'s headline is longer than " + LIMITS.title + " characters");
       if(sec && sec.headline !== st.headline) E(is, where + "'s ## headline does not match its front-matter headline");
       if(!STATUS[st.status]) E(is, where + "'s status is " + st.status + " — confirmed, reported or provisional");
@@ -411,7 +476,7 @@ function checkAll(issues, cat){
         var n = words(sec.text);
         total += n;
         if(n < L.story[0] || n > L.story[1]) E(is, where + " is " + n + " words — " + L.story[0] + " to " + L.story[1]);
-        errs.push.apply(errs, voiceErrors(sec.text + "\n" + sec.headline, is.id + ": " + where));
+        errs.push.apply(errs, voiceErrors(sec.text + "\n" + sec.headline, is.id + ": " + where, EX));
       }
     });
     if(total < L.words[0] || total > L.words[1]) E(is, "the issue is " + total + " words — a " + kind + " issue runs " + L.words[0] + " to " + L.words[1]);
@@ -444,6 +509,23 @@ function checkAll(issues, cat){
       if(sz.meta && sz.meta.length) E(is, where + " carries " + sz.meta.join(" and ") + " metadata — strip it (BRIEF.md §6)");
     });
     if(fm.hero !== undefined && !names[fm.hero]) E(is, "the hero " + fm.hero + " is not one of the listed images");
+    /* 6.3.0. An image follows its own story: after: <story number>. Without
+       it, the old slot order (the first after story 1, the second after story
+       2). Never after Late wires, never two after one story, never on the
+       hero, which sits under the banner. */
+    var slots = {};
+    placeImages(fm).forEach(function(p){
+      var where = "image " + (p.index + 1);
+      if(p.im.after !== undefined){
+        if(p.im.file === fm.hero){ E(is, where + " is the hero and carries after: — the hero sits under the banner"); return; }
+        if(!Number.isInteger(p.im.after) || p.im.after < 1 || p.im.after > stories.length){ E(is, where + "'s after: " + p.im.after + " is not a story number, 1 to " + stories.length); return; }
+      }
+      var st = stories[p.after - 1];
+      if(!st) { E(is, where + " would follow story " + p.after + ", and there is none"); return; }
+      if(st.headline === LATE) E(is, where + " would follow Late wires — no image follows it; put it after its own story");
+      if(slots[p.after]) E(is, where + " and image " + (slots[p.after] ) + " both follow story " + p.after + " — one image a story");
+      slots[p.after] = p.index + 1;
+    });
     fs.readdirSync(is.dir).forEach(function(n){
       if(n !== "issue.md" && !names[n]) E(is, n + " sits in the issue's folder and is not a listed image");
     });
@@ -459,7 +541,7 @@ function checkAll(issues, cat){
            story's rules: the voice, the subset, the fonts, and no link the
            story does not list as a source. */
         var cw = is.id + ": correction " + (i + 1);
-        errs.push.apply(errs, voiceErrors(c.text, cw));
+        errs.push.apply(errs, voiceErrors(c.text, cw, EX));
         errs.push.apply(errs, subsetErrors(c.text, cw));
         errs.push.apply(errs, glyphErrors(c.text, cw));
         var cs = stories[c.story - 1], csrc = cs && Array.isArray(cs.sources) ? cs.sources : [];
@@ -495,6 +577,33 @@ var TYPE_APP = (function(){
 })();
 var TYPE_PAPER = "--t-plate:clamp(46px,14vw,104px);--t-banner:clamp(30px,8.4vw,58px);--t-drop:62px;";
 
+/* 6.3.0. The paper follows the app's theme. Darker is the app's own
+   :root[data-theme="darker"] block, read out of index.html like the type
+   scale, keeping the colours the paper paints with; guard 169 holds the two
+   equal. theme.js, the paper's one script of its own, reads the reader's
+   choice from the app's settings and sets the attribute before first paint.
+   There is no switch on the paper. */
+var DARKER_KEYS = ["--ink", "--sunk", "--card", "--card2", "--line", "--line2", "--bone", "--suit", "--dust", "--dim"];
+var DARKER = (function(){
+  var html = fs.readFileSync(path.join(ROOT, "docs", "index.html"), "utf8");
+  var m = /:root\[data-theme="darker"\]\{([^}]*)\}/.exec(html);
+  if(!m) throw new Error("cannot find the app's darker theme block in docs/index.html");
+  var have = {};
+  (m[1].match(/--[a-z0-9]+\s*:[^;}]+/g) || []).forEach(function(d){ var i = d.indexOf(":"); have[d.slice(0, i).trim()] = d.slice(i + 1).trim(); });
+  return DARKER_KEYS.filter(function(k){ return have[k]; }).map(function(k){ return k + ":" + have[k] + ";"; }).join("");
+})();
+var THEME_JS = [
+"/* Nocturne \u2014 follows the app's theme. Written by qa/nocturne.js; never edited by hand. */",
+"try{var n=JSON.parse(localStorage.getItem(\"batwatch-settings\")||\"null\")||JSON.parse(localStorage.getItem(\"batwatch-v3\")||\"null\");" +
+"if(n&&n.theme===\"darker\")document.documentElement.setAttribute(\"data-theme\",\"darker\");}catch(e){}",
+""].join("\n");
+var THEME_TAG = '<script src="/nocturne/theme.js"></script>';
+/* 6.3.0. Cloudflare Web Analytics, on the paper only: no cookies, nothing
+   that follows a reader. The token is public by design; the app carries
+   neither the beacon nor the token (guard 165). */
+var BEACON_TOKEN = "708efa05f59d443484a7cab2a37410a6";
+var BEACON = '<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon="{&quot;token&quot;: &quot;' + BEACON_TOKEN + '&quot;}"></script>';
+
 /* 6.2.3. A real italic for the paper. Titles are set in italic (VOICE.md
    §8), and NW Sans had no italic face, so every browser faked a slant. The
    face is IBM Plex Sans 400 italic, subset and renamed by
@@ -525,6 +634,7 @@ var CSS = [
 "  --body:\"NW Sans\",-apple-system,\"Segoe UI\",sans-serif;--mono:\"NW Mono\",ui-monospace,Menlo,monospace;",
 "  " + TYPE_APP,
 "  " + TYPE_PAPER + "}",
+":root[data-theme=\"darker\"]{" + DARKER + "}",
 "*{box-sizing:border-box;}",
 "html,body{margin:0;padding:0;}",
 "body{background:var(--ink);color:var(--bone);font-family:var(--body);font-size:var(--t-body);line-height:1.6;-webkit-font-smoothing:antialiased;}",
@@ -563,6 +673,19 @@ var CSS = [
 ".kick .st.reported{color:var(--steel);}",
 ".kick .st.provisional{color:var(--dust);}",
 ".kick .num{color:var(--dim);}",
+".kick .beat{color:var(--dust);}",
+".kick .off{color:var(--dust);border:1px solid var(--line2);padding:2px 6px 1px;}",
+".board{max-width:620px;margin:0 auto 24px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);padding:10px 0;}",
+".board .bh{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0 0 6px;}",
+".board ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 22px;}",
+".board li{display:flex;gap:10px;align-items:baseline;}",
+".board .v{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.1em;text-transform:uppercase;}",
+".board .v.entered{color:var(--signal);}",
+".board .v.dated{color:var(--steel);}",
+".board .v.unparked{color:var(--bone);border-bottom:1px solid var(--signal);}",
+".board a{font-size:var(--t-desc);color:var(--bone);text-decoration:none;}",
+".board .bnone{font-size:var(--t-desc);color:var(--dust);margin:0;}",
+".map .place{font-size:var(--t-desc);color:var(--bone);margin:0 0 8px;}",
 ".story h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-display);line-height:1.02;margin:0 0 12px;}",
 ".story p{margin:0 0 14px;max-width:62ch;}",
 ".story p a{text-decoration:none;border-bottom:1px solid var(--signal);}",
@@ -600,14 +723,15 @@ var CSS = [
 "@media (max-width:560px){.cols{grid-template-columns:1fr;}.cols section{padding:16px 0 18px;}.cols section+section{border-left:0;border-top:1px solid var(--line2);}}",
 "@media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}}",
 "/* Print (6.2.3): ink on white, the rules kept, no buttons. Same scale; only colour changes. */",
-"@media print{:root{--ink:#FFFFFF;--sunk:#FFFFFF;--card:#FFFFFF;--card2:#FFFFFF;--line:#BBBBBB;--line2:#888888;--bone:#08090F;--dust:#333333;--dim:#444444;--suit:#08090F;--signal:#08090F;--steel:#333333;--signalline:rgba(8,9,15,.35);}",
+"@media print{:root,:root[data-theme=\"darker\"]{--ink:#FFFFFF;--sunk:#FFFFFF;--card:#FFFFFF;--card2:#FFFFFF;--line:#BBBBBB;--line2:#888888;--bone:#08090F;--dust:#333333;--dim:#444444;--suit:#08090F;--signal:#08090F;--steel:#333333;--signalline:rgba(8,9,15,.35);}",
 "  .acts{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}",
-"  figure,.map,.corr{break-inside:avoid;}.story h2{break-after:avoid;}@page{margin:16mm 14mm;}}",
+"  figure,.map,.corr,.board{break-inside:avoid;}.story h2{break-after:avoid;}@page{margin:16mm 14mm;}}",
 ""].join("\n");
 
 var COLOPHON = "Nocturne is the weekly paper of Night Watcher, one fan\u2019s map of every Batman " +
   "story on screen. Researched and drafted with an AI agent, edited and published by hand. " +
-  "Every story links its source. Images credited to their rights holders.";
+  "Every story links its source. Images credited to their rights holders. The paper counts " +
+  "visits anonymously, with Cloudflare Web Analytics: no cookies, nothing that follows you.";
 
 function masthead(dateline){
   return '<header class="mast">\n' +
@@ -627,7 +751,7 @@ function footer(extra){
     '<p class="colophon">' + COLOPHON + '</p>\n</div></footer>\n';
 }
 function head(o){
-  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' +
+  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' + THEME_TAG + '\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
     '<title>' + esc(o.title) + '</title>\n' +
     '<meta name="description" content="' + esc(o.desc) + '">\n' +
@@ -661,21 +785,55 @@ function lastmod(is){
   return d;
 }
 
+function fullTitle(f){ return f.t + (f.sub ? " \u2014 " + f.sub : ""); }
+/* 6.3.0. Where a title sits, in a line: its neighbours in PATH. */
+function placeLine(e){
+  var prev = e.prev ? "<em>" + esc(fullTitle(e.prev)) + "</em>" : "", next = e.next ? "<em>" + esc(fullTitle(e.next)) + "</em>" : "";
+  if(prev && next) return "Sits after " + prev + ", before " + next + ".";
+  if(prev) return "Sits after " + prev + ", the last so far.";
+  if(next) return "First in its universe, before " + next + ".";
+  return "The only title in its universe.";
+}
+/* 6.3.0. The box draws only when a story touches the catalogue, whatever its
+   beat, or when a new title is flagged for it. A story that touches nothing
+   on the map gets no box; its kicker says "Off the map". */
 function mapBox(st, cat){
   var e = st.catalogue !== "none" ? cat[st.catalogue] : null;
   if(!e){
-    var line = st.effect === "new-entry" ? "Not on the map yet. Flagged for the catalogue."
-             : st.status === "confirmed" ? "Not on the map." : "Not on the map. Reported, not confirmed.";
-    return '<div class="map none"><p class="lbl">On the map</p><p>' + line + '</p></div>\n';
+    if(st.effect !== "new-entry") return "";
+    return '<div class="map none"><p class="lbl">On the map</p><p>Not on the map yet. Flagged for the catalogue.</p></div>\n';
   }
   var tier = {e: "Essential", k: "Core route", o: "Optional"}[e.tier];
-  var prev = e.prev ? "After " + esc(e.prev.t + (e.prev.sub ? " \u2014 " + e.prev.sub : "")) : "First in its universe";
   var status = e.parked ? '<dd class="parked"><i class="ring"></i>Parked until ' + esc(e.when) + '</dd>' : '<dd>Out</dd>';
-  return '<div class="map"><p class="lbl">On the map</p><dl>' +
+  return '<div class="map"><p class="lbl">On the map</p><p class="place">' + placeLine(e) + '</p><dl>' +
     '<dt>Universe</dt><dd>' + esc(e.gn + " \u00b7 " + e.gname) + '</dd>' +
-    '<dt>Filed</dt><dd>' + prev + '</dd>' +
     '<dt>Tier</dt><dd>' + tier + '</dd>' +
     '<dt>Status</dt>' + status + '</dl></div>\n';
+}
+function offMap(st){ return st.catalogue === "none" && st.effect !== "new-entry" && st.headline !== LATE; }
+
+/* 6.3.0. The Board: what moved on the map this week, from each story's
+   effect, so no new field. Entered (new-entry), Dated (parked-date: a first
+   date or a slip), Unparked. A weekly issue with none says so in one line;
+   the founding issue has no Board. */
+var VERBS = {"new-entry": ["Entered", "entered"], "parked-date": ["Dated", "dated"], "unparked": ["Unparked", "unparked"]};
+function board(fm, cat){
+  var rows = [];
+  fm.stories.forEach(function(st, i){
+    var v = VERBS[st.effect];
+    if(!v) return;
+    var e = st.catalogue !== "none" ? cat[st.catalogue] : null;
+    var title = e ? "<em>" + esc(fullTitle(e)) + "</em>" : inline(st.headline);
+    rows.push('<li><span class="v ' + v[1] + '">' + v[0] + '</span><a href="#s' + (i + 1) + '">' + title + '</a></li>');
+  });
+  return '<aside class="board" aria-label="The Board"><p class="bh">The Board</p>' +
+    (rows.length ? '<ul>' + rows.join("") + '</ul>' : '<p class="bnone">Nothing moved on the map.</p>') + '</aside>\n';
+}
+
+function figure(im, lazy){
+  return '<figure><img src="' + esc(im.file) + '" width="' + im.width + '" height="' + im.height +
+         '" alt="' + esc(im.alt) + '"' + (lazy ? ' loading="lazy"' : "") + '><figcaption><span>' + esc(im.alt) + '</span><span>' +
+         esc(im.credit) + '</span></figcaption></figure>\n';
 }
 
 function renderIssue(is, cat){
@@ -683,9 +841,10 @@ function renderIssue(is, cat){
   var body = splitBody(is.body);
   var imgs = fm.images || [];
   var hero = fm.hero ? imgs.filter(function(im){ return im.file === fm.hero; })[0] : null;
-  /* The hero sits under the banner; any other image follows a story, in
-     list order: the first after story 1, the second after story 2. */
-  var rest = imgs.filter(function(im){ return im !== hero; });
+  /* The hero sits under the banner; any other image follows its own story
+     (after:), or, without one, its slot: the first after story 1 (6.3.0). */
+  var after = {};
+  placeImages(fm).forEach(function(p){ after[p.after] = p.im; });
   var url = issueUrl(is);
   var ogImg = hero ? {url: url + hero.file, w: hero.width, h: hero.height, alt: hero.alt} : SHARE;
   var desc = plain(fm.cold_open);
@@ -701,12 +860,8 @@ function renderIssue(is, cat){
                 extra: '<meta property="article:published_time" content="' + fm.published + '">\n' + ldjson(ld)});
   var out = h + '<body>\n<main class="paper">\n' +
     masthead(dateline("No. " + fm.issue, esc(longDate(fm.published)), "Price: nothing. No account.")) +
-    '<article>\n<h1 class="banner">' + inline(fm.title) + '</h1>\n';
-  if(hero){
-    out += '<figure><img src="' + esc(hero.file) + '" width="' + hero.width + '" height="' + hero.height +
-           '" alt="' + esc(hero.alt) + '">' + '<figcaption><span>' + esc(hero.alt) + '</span><span>' +
-           esc(hero.credit) + '</span></figcaption></figure>\n';
-  }
+    '<article>\n<h1 class="banner">' + inline(fm.title) + '</h1>\n' + (founding ? "" : board(fm, cat));
+  if(hero) out += figure(hero, false);
   out += '<p class="cold">' + inline(fm.cold_open) + '</p>\n<div class="drule" aria-hidden="true"><i></i></div>\n';
   fm.stories.forEach(function(st, i){
     var sec = body.sections[i];
@@ -714,23 +869,19 @@ function renderIssue(is, cat){
     /* 6.2.3: every story has its own address, #s1, #s2 …, so a post or the
        feed can point at one. */
     out += '<section class="story" id="s' + (i + 1) + '">\n<p class="kick"><span class="num">' + n + '</span>' +
-           (founding ? "" : '<span class="st ' + st.status + '">' + STATUS[st.status] + '</span>') + '</p>\n';
+           (founding ? "" : '<span class="beat">' + st.beat + '</span><span class="st ' + st.status + '">' + STATUS[st.status] + '</span>' +
+                            (offMap(st) ? '<span class="off">Off the map</span>' : "")) + '</p>\n';
     if(i) out += '<h2>' + inline(st.headline) + '</h2>\n';
     (fm.corrections || []).forEach(function(c){
       if(c.story === i + 1) out += '<p class="corr">Corrected ' + shortDate(c.date) + ': ' + inline(c.text) + '</p>\n';
     });
     sec.paras.forEach(function(p){ out += '<p>' + inline(p) + '</p>\n'; });
-    var im = rest[i];
-    if(im){
-      out += '<figure><img src="' + esc(im.file) + '" width="' + im.width + '" height="' + im.height +
-             '" alt="' + esc(im.alt) + '" loading="lazy"><figcaption><span>' + esc(im.alt) + '</span><span>' +
-             esc(im.credit) + '</span></figcaption></figure>\n';
-    }
+    if(after[i + 1]) out += figure(after[i + 1], true);
     if(!founding) out += mapBox(st, cat);
     out += '</section>\n';
   });
   out += '<div class="drule" aria-hidden="true"><i></i></div>\n<p class="signoff">' + inline(fm.sign_off) + '</p>\n</article>\n' +
-         footer('<a class="btn ghost" href="/nocturne/">The morgue</a>') + '</main>\n</body>\n</html>\n';
+         footer('<a class="btn ghost" href="/nocturne/">The morgue</a>') + '</main>\n' + BEACON + '\n</body>\n</html>\n';
   return out;
 }
 
@@ -741,12 +892,12 @@ function renderArchive(list){
                 url: url, ogType: "website", img: SHARE});
   var out = h + '<body>\n<main class="paper">\n' +
     masthead(dateline("The Night Final", "Every Sunday, late", "Price: nothing. No account.")) +
-    '<h1 class="banner">The morgue</h1>\n<p class="sub">The week\u2019s Batman news, and where each story sits on the map. No spoilers, every source linked.</p>\n<ol class="issues" reversed>\n';
+    '<h1 class="banner">The morgue</h1>\n<p class="sub">The week\u2019s Batman news, told late. No spoilers, every source linked.</p>\n<ol class="issues" reversed>\n';
   list.forEach(function(is, n){
     out += '<li><span class="no">' + is.fm.issue + '</span><span class="when">' + (n ? "" : "Latest \u00b7 ") +
            esc(longDate(is.fm.published)) + '</span><a href="/nocturne/' + is.id + '/">' + inline(is.fm.title) + '</a></li>\n';
   });
-  return out + '</ol>\n' + footer("") + '</main>\n</body>\n</html>\n';
+  return out + '</ol>\n' + footer("") + '</main>\n' + BEACON + '\n</body>\n</html>\n';
 }
 
 /* The holding page (6.2.1): what /nocturne/ serves while no issue is on disk.
@@ -767,11 +918,11 @@ function renderHolding(){
     '<p class="sub">The first Night Final is being set. Nocturne is the weekly paper of Night Watcher.</p>\n' +
     '<div class="cols">' +
     col("The beat", "Batman on screen, in comics, games, toys and books. The week\u2019s news, gathered once.") +
-    col("On the map", "Every story says where it sits in the watch orders: a new entry, a parked date that moves, a title unparked.") +
+    col("The map next door", "When a story touches the watch orders, a box says where it sits. The news comes first.") +
     col("The hour", "Sunday, late. One issue a week, none in a week without news. No account, no spoilers, every source linked.") +
     '</div>\n' +
     '<p class="sub">The feed is already open. Add it to your reader and the first issue arrives there.</p>\n' +
-    footer("") + '</main>\n</body>\n</html>\n';
+    footer("") + '</main>\n' + BEACON + '\n</body>\n</html>\n';
 }
 
 /* The feed, read in a browser (6.2.2). A browser shows RSS as a raw XML tree
@@ -869,7 +1020,8 @@ function build(root, opts){
   var cat = opts.catalogue || loadCatalogue(root);
   var issues = listIssues(srcDir);
   var errs = checkAll(issues, cat);
-  var files = {"nocturne.css": Buffer.from(CSS, "utf8"), "feed.css": Buffer.from(FEED_CSS, "utf8")};
+  var files = {"nocturne.css": Buffer.from(CSS, "utf8"), "feed.css": Buffer.from(FEED_CSS, "utf8"),
+               "theme.js": Buffer.from(THEME_JS, "utf8")};
   /* The paper's italic and the licence that travels with it (6.2.3). The
      bytes must be the ones qa/subset-fonts.py --paper blessed. */
   var ital = fs.readFileSync(path.join(ITALIC.dir, ITALIC.file));
@@ -960,7 +1112,8 @@ function write(root, b){
 module.exports = {build: build, drift: drift, write: write, checkAll: checkAll, listIssues: listIssues,
                   loadCatalogue: loadCatalogue, sundayOfWeek: sundayOfWeek, webpSize: webpSize,
                   LIMITS: LIMITS, BEGIN: BEGIN, END: END, FEED_PI: FEED_PI, FEED_DESC: FEED_DESC, OUT_REL: OUT_REL, SRC_REL: SRC_REL,
-                  COLOPHON: COLOPHON};
+                  COLOPHON: COLOPHON, BEACON: BEACON, BEACON_TOKEN: BEACON_TOKEN, THEME_TAG: THEME_TAG,
+                  THEME_JS: THEME_JS, DARKER: DARKER, BEATS: BEATS};
 
 if(require.main === module){
   var cmd = process.argv[2];

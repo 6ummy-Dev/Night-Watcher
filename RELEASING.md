@@ -223,7 +223,11 @@ and that is a finding, not a curiosity.
 **An issue is not a release.** It lands as a pull request from the drafting
 agent's `nocturne/` branch and goes live when the owner merges it (the
 Worker builds on every push to `main`). No version moves. Before merging:
-CI green on every job, `nocturne-paths` included; the two screenshots the
+CI green on every job, the fence (`nocturne-fence.yml`) included. On an
+issue pull request CI runs every guard, the paper's check and the paper's
+half of the browser check, and reports smoke and the negative shards as
+skipped (6.3.0); the push to `main` after the merge runs everything, so read
+that run too. The two screenshots the
 agent attached (390 and 1280 wide) read through; every source link opened
 on at least the lead story. Then, after the deploy:
 
@@ -231,10 +235,14 @@ on at least the lead story. Then, after the deploy:
 curl -sI https://nightwatcher.life/nocturne/ | grep -iE '^HTTP|content-security-policy'
 curl -s  https://nightwatcher.life/nocturne/feed.xml | grep -c '<item>'
 curl -s  https://nightwatcher.life/sitemap.xml | grep -c '/nocturne/'
+curl -s  https://nightwatcher.life/nocturne/theme.js | head -c 60
 ```
 
 Expected: `200` and the one `Content-Security-Policy` line from
-`_headers`, exactly; the feed's item count equal to the issues merged (up
+`_headers`, exactly (from 6.3.0 it allows `script-src 'self'
+https://static.cloudflareinsights.com` and `connect-src
+https://cloudflareinsights.com`); `theme.js` answering with its header
+comment; the feed's item count equal to the issues merged (up
 to 20); the sitemap listing the archive and every issue. Before the first
 issue is merged, `/nocturne/` answers `200` with the holding page (On the
 press, `noindex`), the feed answers with `0` items and the sitemap lists no
@@ -250,7 +258,7 @@ inside the app's own window, with no way back to the map, is a fault to fix
 in a patch.
 
 A bad issue already live is fixed by another pull request: a dated
-correction at the top of the story (`nocturne/VOICE.md` §5), or, for an
+correction at the top of the story (`nocturne/VOICE.md` §6), or, for an
 image a rights holder objects to, the image out the same day. An issue is
 never deleted. If one ever has to go, it is taken out in a release whose
 CHANGELOG entry says why.

@@ -39,7 +39,10 @@ page is live.
 are neighbours in the same universe: the paper reports the news, the map keeps
 the order, and the renderer shows where a story sits whenever it touches the
 catalogue. It lives outside the
-PWA: the service worker skips `/nocturne/`, and it carries no script. **It is
+PWA: the service worker skips `/nocturne/`. Its pages run two scripts, both
+the renderer's: `theme.js`, which follows the reader's Dark or Darker theme
+from the app, and Cloudflare Web Analytics' beacon, which counts visits
+without cookies (6.3.0). You never add a script. **It is
 reached through Home's one *Read the paper* button (from 6.2.1), the sitemap,
 the RSS feed at `/nocturne/feed.xml` and the weekly X post.** Until the first
 issue merges, `/nocturne/` is a holding page the build writes on its own; your
@@ -68,19 +71,22 @@ The renderer builds the masthead from the front matter. Never write it into the 
   `effect`: universe, where it's filed, tier and status (a parked title shows
   the app's dashed ring and its date). A comic adapting a catalogued film, or a
   toy line for one, gets the box too.
-- **A story that touches nothing on the map gets no box.** A screen story that
-  isn't in the catalogue yet gets a one-line box ("Not on the map yet.");
-  anything else just carries its beat label.
+- **A story that touches nothing on the map gets no box.** A new title flagged
+  for the catalogue (`effect: new-entry`) gets a one-line box ("Not on the map
+  yet."); every other story gets an "Off the map" chip in its kicker. Late
+  wires gets neither.
+- **The Board**, a strip under the banner, lists what moved on the map that
+  week, built from each story's `effect`: *Entered* (`new-entry`), *Dated*
+  (`parked-date`, a first date or a slip) and *Unparked*. A week with none
+  says "Nothing moved on the map." No. 0 has no Board. You don't write it:
+  set `effect` right and it follows.
 - The box speaks for itself. The story mentions the map only when the map is
   the news, and then says what it changes for the reader (`VOICE.md` §3).
-- (From 6.3.0.) The `beat` field and the beat labels ship with 6.3.0,
-  before No. 0. No. 0 is the founding issue and doesn't use them; the first
-  weekly issue, No. 1 on 4 Oct, does.
+- **Beats are live (6.3.0).** Every weekly story carries one; No. 0, the
+  founding issue, carries none. No. 1 on 4 Oct is the first issue that uses
+  them.
 - **The colophon** closes every issue, fixed text set by the renderer:
-  "Nocturne is the weekly paper of Night Watcher, one fan's map of every Batman
-  story on screen. Researched and drafted with an AI agent, edited and published
-  by hand. Every story links its source. Images credited to their rights
-  holders." Never edit or drop it.
+  "Nocturne is the weekly paper of Night Watcher, one fan's map of every Batman story on screen. Researched and drafted with an AI agent, edited and published by hand. Every story links its source. Images credited to their rights holders. The paper counts visits anonymously, with Cloudflare Web Analytics: no cookies, nothing that follows you." Never edit or drop it.
 
 ## 2 · Access and boundaries
 
@@ -91,6 +97,10 @@ The renderer builds the masthead from the front matter. Never write it into the 
 | Add or change files under `nocturne/issues/` and `docs/nocturne/` | Touch anything else, **including `nocturne/BRIEF.md` and `nocturne/VOICE.md`** (only the owner edits the rules), `docs/index.html`, `sw.js`, `_headers`, `qa/`, workflows, README, CHANGELOG |
 | Run `npm ci`, `npm run nocturne:build`, `npm run nocturne:check` and `npm test` | Edit or bless guard output to make a check pass |
 | Post the issue link on X after it is live | Post before the page answers 200 on the live site |
+
+CI on your pull request runs every guard, the paper's check and the paper's
+half of the browser check; the app's heavy suites run on `main` after the
+merge (6.3.0). A red check is still a stop.
 
 The files the build regenerates (`docs/nocturne/index.html`,
 `docs/nocturne/feed.xml`, the `/nocturne/` sitemap entries) count as
@@ -195,11 +205,13 @@ images:
     retrieved: 2026-10-10
     width: 1600
     height: 900
+  # any other image may take  after: <story number>  to run under its own story
+names: ["The Tin Hour: Legendary Nights"]  # optional: titles off the map that trip the word list (§5, below)
 stories:
   - headline: "Clayface gets a date"
     status: confirmed                  # confirmed | reported | provisional
     sources: ["https://…"]             # ≥ 1, pages actually opened
-    beat: screen                       # screen | comics | games | toys | books | other (from 6.3.0)
+    beat: screen                       # screen | comics | games | toys | books | other; weekly only, required
     catalogue: clayface-2026           # entry id from PATH in docs/index.html, or "none"
     effect: parked-date                # new-entry | parked-date | unparked | none
 sign_off: "The file's open again next Sunday."
@@ -232,6 +244,17 @@ their shape, never their content.
 - **The catalogue:** a `catalogue` id that isn't in `PATH`; `new-entry` with
   an id (a new title isn't in the catalogue yet: `none`); `parked-date` on a
   title that isn't parked.
+- **Beats:** a weekly story without a `beat`, or one that isn't on the list;
+  a beat on the founding issue.
+- **Late wires:** a section headlined "Late wires" with a catalogue id, an
+  effect or a beat other than `other`. A catalogued title that moves is a
+  story of its own.
+- **Names:** the catalogue's own names are exempt from the voice rules,
+  exactly as the app spells them (*The Batman Epic Crime Saga*, *Teen Titans
+  Go!*). A title the catalogue doesn't hold that carries a listed word or a
+  `!` goes in `names:`; the check refuses an entry the issue doesn't print,
+  and one that is a bare word rather than a name. Never write around a name,
+  never alter one, and never use `names:` for your own words.
 - **The body:** anything beyond paragraphs, `##` headlines, `*italic*`,
   `**bold**` and `[links](https://…)`. No lists, quotes, tables, raw HTML,
   code or inline images.
@@ -245,7 +268,9 @@ their shape, never their content.
   front-matter string, alt text, credits and corrections.
 - **Corrections:** held to the story's rules: the voice, the markdown subset,
   the characters, and no link the story doesn't list as a source.
-- **Images:** a missing licence field, a file that isn't a whole WebP (its
+- **Images:** an `after:` that isn't a story number, that points at Late
+  wires, that sits on the hero, or that puts two images under one story; a
+  missing licence field, a file that isn't a whole WebP (its
   header's length must match the file: upload images as binary), a size in the
   front matter the file doesn't have, over 1600 px or 250 KB, EXIF or XMP
   metadata still in the file, alt over 125 characters, a credit that doesn't
@@ -260,20 +285,28 @@ before the PR, and the owner's after.
 **Only high-quality, properly licensed images. When the licence can't be written
 down, the image doesn't run.**
 
-**Allowed**
+**Allowed** (the owner's ruling, 25 Sept 2026)
 
-- Official images the rights holder has published **publicly**: key art, posters
-  and stills on the studio's, network's or distributor's own pages or verified
-  accounts; comic covers from DC's own pages; game key art from the publisher;
-  product photos from the maker. Always used to report on that title or product.
+- **Official promo images the rights holder has published publicly:** key art,
+  posters and stills on the studio's, network's or distributor's own pages or
+  verified accounts; covers from DC's or the publisher's own pages (a
+  distributor's page counts for DC's books); game key art from the publisher;
+  product photos from the maker. Used only to report on that title or product,
+  credited to the rights holder, never altered, and taken down the same day if
+  asked. Record the page it came from as `source_url` and that page's terms as
+  `terms_url`; a site's personal-use terms don't keep an official promo image
+  out.
+- **An artist's own art, with the artist's written permission:** a public post
+  or a message kept on record, linked as `terms_url`. Credit it "Image:
+  <artist>" and link the source. Without permission it doesn't run.
 - Images the owner supplies.
 
-No press-site accounts and no open-licence hunting. If a public official image
-doesn't exist for a story, the story runs without one.
+No press-site accounts and no open-licence hunting. If no such image exists
+for a story, the story runs without one.
 
 **Not allowed**
 
-- Fan art, edits or composites, even when credited.
+- Fan art, edits or composites without the artist's written permission.
 - AI-generated images of any character, logo or likeness.
 - Frame grabs or screenshots from films, trailers or episodes.
 - Images lifted from news sites, stock agencies or aggregators.
@@ -289,15 +322,17 @@ doesn't exist for a story, the story runs without one.
   At most 250 KB. `width` and `height` in the front matter are the file's own.
 - It sits in the issue's folder; the build copies it into `docs/nocturne/`.
   Never hotlinked: the `/nocturne/` CSP allows images from this origin only.
-- The hero goes under the banner. Any other image follows a story, in list
-  order: the first after story 1, the second after story 2.
+- The hero goes under the banner. Any other image follows its own story when
+  it carries `after: <story number>`; without it, list order: the first after
+  story 1, the second after story 2. Never after Late wires, and one image a
+  story.
 - `width`, `height`, `alt` and a visible credit line under every image.
 - Don't crop out credits, and don't recolour or alter the image.
 - **Takedown:** if a rights holder objects, the image comes out the same day in a
   PR titled `nocturne: remove image at rights holder's request`.
 
-Licence terms vary by studio and by title. When the terms aren't clear, leave the
-image out and ask in the PR.
+When you can't tell whether an image is an official promo image or has the
+artist's permission, leave it out and ask in the PR.
 
 ## 7 · The PR
 
@@ -310,6 +345,9 @@ Title: `nocturne: No. <issue> — <headline>`
 
 ## Catalogue flags
 - <title>: <what moved, with source> — or "none"
+
+## Names
+- <each entry in names:, with where the title comes from> — or "none"
 
 ## Still open
 - <title>: <flag raised on date> — or "none"
@@ -471,7 +509,7 @@ who it's for, one on the map next door, then the link.
 
 ## 11 · Rulings from the test runs
 
-The owner's answers to what tests -1 and -2 asked. They hold until this file
+The owner's answers to what tests -1, -2 and -3 asked. They hold until this file
 says otherwise.
 
 - **The angle is the Night Editor's.** A card may suggest one; the editor
@@ -487,15 +525,30 @@ says otherwise.
   own page.
 - **A retail listing's date** can come from a wire outlet that reports it,
   attributed. The retailer is never linked.
-- **Images, until the owner rules on licences:** a studio or maker page whose
-  terms say personal, non-commercial or no reproduction counts as unclear, and
-  unclear stays out (§6). DC character art is out for now. No image follows Late
-  wires. The owner is taking the licence question; ask in the PR, don't guess.
+- **Images:** the owner's licence ruling is in §6. Official promo images run,
+  credited; an artist's art runs with written permission. No image follows
+  Late wires.
 - **The desks' own files follow this brief.** Where a desk profile or
   `NOCTURNE-BOTS.md` still says otherwise (the street as noise only, "confirmed
   or reported only"), this file wins, and the profile gets updated.
 - **Test runs** use negative issue numbers and are never built or checked;
   the checker refusing them is expected, not a gap.
-- **6.3.0 lands before No. 0** (Saturday 26 September): the names exemption,
-  `beat` and `names` fields, and the checker's new section numbers. If `main`
-  isn't on 6.3.0 when the run starts, stop and say so in the PR.
+- **The outlets (test -3).** A big entertainment or games outlet is the wire
+  when the piece is its own reporting (an interview, a panel, a first-party
+  page it read) and a relay when it rewrites someone else's story: then cite
+  the original. Bleeding Cool is the street until a corrections policy turns
+  up.
+- **A routine on-sale date** is a Late wire unless there's a hook.
+- **Repeats and flags count by opened pull requests,** not by test runs. A
+  story that ran in a published issue isn't filed again unless something new
+  was opened.
+- **"The date in paragraph two"** means release and on-sale dates, not history
+  years.
+- **The morgue's sources:** DC's character and issue pages, publisher and
+  distributor pages, the trades' archives and named reference books. A history
+  line with no source goes.
+- **The browser pass** for maker sites that need one runs every week.
+- **Headlines attribute only when the fact is disputed.** "The press says" is
+  not a sign-off.
+- **6.3.0 is on `main` before No. 0.** If it isn't when the run starts, stop
+  and say so in the PR.

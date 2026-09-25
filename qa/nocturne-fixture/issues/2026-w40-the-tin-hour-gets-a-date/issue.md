@@ -19,25 +19,59 @@ images:
     retrieved: 2026-10-03
     width: 1600
     height: 900
+  - file: figure-line.webp
+    alt: "Product photo: a row of boxed figures under one yellow line"
+    credit: "Image: Example Toys"
+    rights_holder: "Example Toys"
+    source_url: "https://example.com/toys/tin-hour"
+    licence: "Official public product photo"
+    terms_url: "https://example.com/toys/terms"
+    retrieved: 2026-10-03
+    width: 800
+    height: 450
+    after: 6
+names: ["The Tin Hour: Legendary Nights"]
 stories:
   - headline: "The Tin Hour gets a date"
     status: confirmed
     sources: ["https://example.com/the-tin-hour"]
+    beat: screen
     catalogue: none
     effect: new-entry
   - headline: "A sequel, on the wire"
     status: reported
     sources: ["https://example.com/trade/tin-hour-sequel"]
+    beat: screen
     catalogue: none
     effect: none
-  - headline: "Knightquest holds its date"
+  - headline: "Knightquest gets its night"
     status: provisional
     sources: ["https://example.com/pre-order/knightquest"]
+    beat: screen
     catalogue: knightfall-part-2-knightquest-2026
-    effect: none
+    effect: parked-date
   - headline: "New trailer, same case"
     status: confirmed
     sources: ["https://example.com/the-tin-hour/trailer-2?cut=final&lang=en"]
+    beat: screen
+    catalogue: none
+    effect: none
+  - headline: "The comic takes the city, not the film"
+    status: confirmed
+    sources: ["https://example.com/comics/legendary-nights"]
+    beat: comics
+    catalogue: none
+    effect: none
+  - headline: "The toys have the decency to come second"
+    status: confirmed
+    sources: ["https://example.com/toys/tin-hour"]
+    beat: toys
+    catalogue: none
+    effect: none
+  - headline: "Late wires"
+    status: reported
+    sources: ["https://example.com/games/tin-hour-patch", "https://example.com/books/tin-hour-novel"]
+    beat: other
     catalogue: none
     effect: none
 sign_off: "The file's open again next Sunday."
@@ -58,14 +92,32 @@ Word of a sequel came in off the wire. [A trade report](https://example.com/trad
 
 No date, no director and no studio statement. We will park it the night the studio confirms it, and not an hour before. Until then it is a rumour with a good lawyer.
 
-## Knightquest holds its date
+## Knightquest gets its night
 
-Nothing moved this week for *Knightquest*. [Its pre-order listing](https://example.com/pre-order/knightquest) still gives 8 December, and that is the date on the map. Pre-order dates slip, so we will read it again the week before it lands.
+*Knightquest* has a night of its own at last. [Its pre-order listing](https://example.com/pre-order/knightquest) gives 8 December. Pre-order dates slip, so we will read it again the week before it lands.
 
-It stays parked until then, second in its universe, right after *Part One*. If you are on the core route, there is nothing to do but wait.
+The second part of the Knightfall story was always the harder sell: the man in the suit is not the man you know. The listing is the first thing with a date on it, and that is enough for one week.
 
 ## New trailer, same case
 
 A second trailer for *The Tin Hour* is out, per [the studio's channel](https://example.com/the-tin-hour/trailer-2?cut=final&lang=en). It is ninety seconds long and it is built to sell the mood, not the plot, which is the right way round.
 
-It has not moved anything: same date, same place on the path. If you want to go in cold, you lose nothing by skipping it. The map does not need it and neither do you.
+Studios used to cut three trailers and show you the whole film by the third. This one keeps its cards close. We will let the trailer speak for itself and keep the rest for the night it opens.
+
+## The comic takes the city, not the film
+
+*The Tin Hour: Legendary Nights* starts 10 December, per [the publisher's own page](https://example.com/comics/legendary-nights): a new ongoing series that picks up the city, not the film. Different Gotham, different hand, same rain.
+
+A spin-off that outruns its film is an old trick in this business. *Teen Titans Go!* did it on television for a decade. Whether this one does is a question for the second arc, not the first issue.
+
+## The toys have the decency to come second
+
+The maker has a figure line for *The Tin Hour* out in November, per [its own page](https://example.com/toys/tin-hour), a month after the film. Six figures, one of them a man with no face on the box.
+
+For once the toys wait for the film. Most weeks it runs the other way round, and a figure tells you the ending before the trailer does. Not this time.
+
+## Late wires
+
+A patch for the *Tin Hour* game fixes the rain, [its developer says](https://example.com/games/tin-hour-patch). Players had noticed it fell upwards on one bridge.
+
+A novel set before the film is due in the spring, per [its publisher](https://example.com/books/tin-hour-novel). It fills in the year the city went quiet, and it is written by the film's own screenwriter, which is rarer than it should be.
