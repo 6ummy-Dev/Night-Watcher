@@ -32,11 +32,13 @@ issue, published late on Sunday.
 
 Every Sunday night, publish one Night Final at `nightwatcher.life/nocturne/`
 covering the week's Batman news: **screen, comics, games, toys, books, all of
-it.** For each story, say where it sits: on the map when it touches a title in
-the catalogue, under its beat when it doesn't. Then post one link on X once the
+it**, told by the night desk (`VOICE.md` §1). Then post one link on X once the
 page is live.
 
-Nocturne is a companion to the site, not part of the app. It lives outside the
+**Nocturne is a newspaper, not the app's changelog.** The paper and the map
+are neighbours in the same universe: the paper reports the news, the map keeps
+the order, and the renderer shows where a story sits whenever it touches the
+catalogue. It lives outside the
 PWA: the service worker skips `/nocturne/`, and it carries no script. **It is
 reached through Home's one *Read the paper* button (from 6.2.1), the sitemap,
 the RSS feed at `/nocturne/feed.xml` and the weekly X post.** Until the first
@@ -69,10 +71,10 @@ The renderer builds the masthead from the front matter. Never write it into the 
 - **A story that touches nothing on the map gets no box.** A screen story that
   isn't in the catalogue yet gets a one-line box ("Not on the map yet.");
   anything else just carries its beat label.
-- The box never replaces the text: the story still says where it sits in words
-  (`VOICE.md` §3, step 3).
-- (From 6.3.0.) The `beat` field and the beat labels ship with 6.3.0 on
-  Tue 29 Sept. No. 0 is the founding issue and doesn't use them; the first
+- The box speaks for itself. The story mentions the map only when the map is
+  the news, and then says what it changes for the reader (`VOICE.md` §3).
+- (From 6.3.0.) The `beat` field and the beat labels ship with 6.3.0,
+  before No. 0. No. 0 is the founding issue and doesn't use them; the first
   weekly issue, No. 1 on 4 Oct, does.
 - **The colophon** closes every issue, fixed text set by the renderer:
   "Nocturne is the weekly paper of Night Watcher, one fan's map of every Batman
@@ -119,15 +121,21 @@ doesn't advance. A thin week is fine. A padded one isn't.
 
 ## 4 · The run, step by step
 
-1. **Research, every beat.** First-party first: the studio, network or
-   distributor for screen; DC for comics (announcements and solicitations);
-   the publisher or developer for games; the maker for toys and collectibles;
-   the publisher for books. Then trade press. Open every page you cite. Social
-   posts and leaks can point you to a story, but they are never the source
-   (`VOICE.md` §5). The biggest story of the week leads, whatever its beat.
+1. **Research, every beat, on both sources** (`VOICE.md` §6). **The wire:**
+   first-party first (the studio, network or distributor for screen; DC for
+   comics, announcements and solicitations; the publisher or developer for
+   games; the maker for toys and collectibles; the publisher for books), then
+   the mainstream press and trades. **The street:** fan sites, forums,
+   newsletters, insiders. The street is cited as the street and never as fact,
+   and a street tip is a reason to look for the wire. Leaks never run. Open
+   every page you cite. **Then find the angle:** for every story, one sentence
+   on why it's interesting (`VOICE.md` §4). The biggest story leads, whatever
+   its beat; what has no angle goes in Late wires (`VOICE.md` §5).
 2. **Catalogue cross-check.** Read `docs/orders.txt` from `main` for the orders,
    and the `PATH` array in `docs/index.html` for entry ids. For every story, find
-   the continuity and position it touches, or record that it touches none.
+   the continuity and position it touches, or record that it touches none. This
+   feeds the front matter (`catalogue`, `effect`), which draws the box; it is
+   not a paragraph every story has to write.
    **Any parked title whose date moved, or any new title that should be added to
    the catalogue, goes in the PR's "Catalogue flags" section.** Flag it there and
    never edit the catalogue yourself.
@@ -137,7 +145,7 @@ doesn't advance. A thin week is fine. A padded one isn't.
 4. **Images** per §6: the finished WebP files go **in the issue's folder**,
    beside `issue.md`. The build copies them into `docs/nocturne/`. Originals
    are not committed, and nothing else sits in the folder.
-5. **Pre-flight** against `VOICE.md` §10, item by item.
+5. **Pre-flight** against `VOICE.md` §11, item by item.
 6. **Build and check:** `npm ci && npm run nocturne:build && npm run nocturne:check && npm test`.
    All green, or stop. The build rewrites `docs/nocturne/` and the Nocturne
    block in `docs/sitemap.xml`; commit both with the issue. Never edit either
@@ -223,7 +231,7 @@ their shape, never their content.
 - **The body:** anything beyond paragraphs, `##` headlines, `*italic*`,
   `**bold**` and `[links](https://…)`. No lists, quotes, tables, raw HTML,
   code or inline images.
-- **Voice:** VOICE.md §7's never-use words, `!`, emoji, hashtags, "the Bat",
+- **Voice:** VOICE.md §8's never-use words, `!`, emoji, hashtags, "the Bat",
   and "watch it on …"; a price (`$19.99`, `€25`, `30 USD`) or a call to buy
   (`buy now`, `pre-order now`). Merch is news, never shopping.
 - **Characters:** anything outside the paper's fonts, the ranges in
@@ -240,7 +248,7 @@ their shape, never their content.
   read "Image: …", or a file in the folder that isn't listed.
 
 The check can't read meaning. "Drops" as a verb, a service named as advice in
-other words, a spoiler, and a rumour dressed as news are yours to catch
+other words, a spoiler, and a street tip dressed as fact are yours to catch
 before the PR, and the owner's after.
 
 ## 6 · Images
@@ -266,7 +274,7 @@ doesn't exist for a story, the story runs without one.
 - Frame grabs or screenshots from films, trailers or episodes.
 - Images lifted from news sites, stock agencies or aggregators.
 - Anything watermarked, cropped from a larger watermarked image, or low resolution.
-- Anything that spoils (`VOICE.md` §6).
+- Anything that spoils (`VOICE.md` §7).
 
 **Technical**
 
@@ -303,7 +311,7 @@ Title: `nocturne: No. <issue> — <headline>`
 - <file> — <rights holder> — <licence> — <terms_url>
 
 ## Pre-flight
-<VOICE.md §10, ticked>
+<VOICE.md §11, ticked>
 
 ## Checks
 nocturne:build ✅  nocturne:check ✅  npm test ✅
@@ -323,7 +331,7 @@ nocturne:build ✅  nocturne:check ✅  npm test ✅
   replies". The link goes in the post.
 - An optional closing question, answerable in three words.
 - The card comes from the issue's `og:image` (the hero) or the site default.
-- Reply to replies in the same voice. No arguing, no rumours, no spoilers.
+- Reply to replies in the same voice. No arguing, no leaks, no spoilers.
 - Never a second post about the same issue.
 
 ## 9 · When something goes wrong
@@ -333,15 +341,17 @@ nocturne:build ✅  nocturne:check ✅  npm test ✅
 | A check fails in `nocturne/issues/` or `docs/nocturne/` | Fix it on the branch, re-run, then open the PR |
 | A check fails elsewhere | Stop. Open the PR as a draft and describe the failure |
 | A source can't be verified | Drop the story |
-| A published fact turns out wrong | New PR with a dated correction at the top of that story (`VOICE.md` §5) |
+| A published fact turns out wrong | New PR with a dated correction at the top of that story (`VOICE.md` §6) |
 | Not merged by 23:00 Sunday | Don't post. Carry what's still news to next Sunday; drop the rest |
 | Rights holder objects to an image | Same-day removal PR (§6) |
 
 ## 10 · No. 0 — the founding issue
 
-The first issue isn't news. It's about Night Watcher itself: what the map is,
-how it's built, and what Nocturne will do every Sunday. It runs as **No. 0**, so
-the first news issue is No. 1.
+The first issue isn't news. It's the paper introducing itself: who's at the
+desk, what the Night Final is and who it's for, and its neighbour, the map. It
+runs as **No. 0**, so the first news issue is No. 1. The night desk's voice
+(`VOICE.md` §1) is the point of it: a reader should finish No. 0 knowing the
+person who writes the paper.
 
 **What's different from a weekly issue**
 
@@ -349,10 +359,10 @@ the first news issue is No. 1.
 | --- | --- | --- |
 | `issue` | previous + 1 | `0` |
 | `kind` | `weekly` (default) | `founding` |
-| Subject | the week's news | Night Watcher and Nocturne |
-| Sections | 3–8 stories, four beats each | 4–6 sections, no four-beat rule |
+| Subject | the week's news | Nocturne, and its neighbour the map |
+| Sections | 3–8 stories and sections (`VOICE.md` §5) | 4–6 sections |
 | Length | 250–3000 words, a ceiling | 600–900 words |
-| "On the map" box | on every story | none (the renderer omits it for `founding`) |
+| "On the map" box | when a story touches the catalogue | none (the renderer omits it for `founding`) |
 | `catalogue` / `effect` | per story | `none` / `none` |
 | `status` | confirmed / reported / provisional | `confirmed` |
 
@@ -369,7 +379,8 @@ the live site, linked like any other source:
   hands it over. Paraphrase it; don't lift it.
 
 **What No. 0 should cover** (pick 4–6; two are required, and the order is
-set under "Section order" below):
+set under "Section order" below). The map sections are the neighbour
+introduced by the paper, in the desk's voice, not the app describing itself:
 
 - One path through every Batman: films and series, animated and live action, in one map.
 - The three watch orders: by universe, Bruce's life (an interpretation, not canon, and the app says so), release order. **Required: section 2.**
@@ -386,16 +397,17 @@ that editorial is the section on Nocturne. There isn't a second one beside it.
 
 - **It leads.** Its headline is the banner and `title`, so it's the page's
   `<h1>` and the headline Google and X show. A statement in sentence case, per
-  `VOICE.md` §8, never "Editorial:" or a colon teaser.
-- **What it says:** what the Night Final is (every Sunday, late, all of Batman:
-  screen, comics, games, toys, books, and where each story sits), then the
-  paper's promises, as `VOICE.md` already states them: confirmed facts only and
-  how confirmed they are, no rumours, no spoilers, news and never shopping,
-  corrections dated at the top of the story, one fan keeping the map.
+  `VOICE.md` §9, never "Editorial:" or a colon teaser.
+- **What it says:** who's at the desk, what the Night Final is (every Sunday,
+  late, all of Batman: screen, comics, games, toys, books) and who it's for,
+  the Night Watchers. Then the paper's promises, as `VOICE.md` states them: the
+  wire and the street, each named for what it is; no leaks, no spoilers; news,
+  never shopping; corrections dated at the top of the story.
 - **What it doesn't say:** nothing beyond the paper as this brief describes it
   today, so no features, no schedule changes, no plans.
-- **Voice:** "we", the night desk (`VOICE.md` §1). Stated, not sold. Of all the
-  sections, this is the one the owner is most likely to rewrite at review.
+- **Voice:** the night desk at its most itself (`VOICE.md` §1): a person, not a
+  mission statement. Of all the sections, this is the one the owner is most
+  likely to rewrite at review.
 - **Length:** about 150–250 words, inside the section limit (260) and the
   issue's 600–900.
 - **Sources:** `nocturne/BRIEF.md` and `nocturne/VOICE.md` on GitHub, linked
@@ -408,7 +420,7 @@ that editorial is the section on Nocturne. There isn't a second one beside it.
   only", "the most complete". The site tracks no one, so we don't know how many
   readers it has, and we don't guess.
 - No testimonials or quotes from anyone, invented or real.
-- No selling. The register still states rather than sells (`VOICE.md` §2): the
+- No selling. The register still states rather than sells (`VOICE.md` §8): the
   counts and the rules speak for the app.
 - The app still never speaks. It's "we" built it, never "Night Watcher says".
 
@@ -436,5 +448,5 @@ as binary, and never convert, resize or re-encode them.
 is public, and No. 0 runs on 4 October instead. No. 1 follows the Sunday after
 No. 0 goes live.
 
-**The X post for No. 0:** "I" voice, one sentence on what the map is, one on
-what the paper will do each Sunday, then the link.
+**The X post for No. 0:** "I" voice, one sentence on what the paper is and
+who it's for, one on the map next door, then the link.
