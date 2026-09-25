@@ -37,7 +37,7 @@ stories:
     effect: none
   - headline: "New trailer, same case"
     status: confirmed
-    sources: ["https://example.com/the-tin-hour/trailer-2"]
+    sources: ["https://example.com/the-tin-hour/trailer-2?cut=final&lang=en"]
     catalogue: none
     effect: none
 sign_off: "The file's open again next Sunday."
@@ -66,6 +66,6 @@ It stays parked until then, second in its universe, right after *Part One*. If y
 
 ## New trailer, same case
 
-A second trailer for *The Tin Hour* is out, per [the studio's channel](https://example.com/the-tin-hour/trailer-2). It is ninety seconds long and it is built to sell the mood, not the plot, which is the right way round.
+A second trailer for *The Tin Hour* is out, per [the studio's channel](https://example.com/the-tin-hour/trailer-2?cut=final&lang=en). It is ninety seconds long and it is built to sell the mood, not the plot, which is the right way round.
 
 It has not moved anything: same date, same place on the path. If you want to go in cold, you lose nothing by skipping it. The map does not need it and neither do you.

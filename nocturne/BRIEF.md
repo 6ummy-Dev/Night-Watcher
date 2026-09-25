@@ -41,7 +41,8 @@ PWA: the service worker skips `/nocturne/`, and it carries no script. **It is
 reached through Home's one *Read the paper* button (from 6.2.1), the sitemap,
 the RSS feed at `/nocturne/feed.xml` and the weekly X post.** Until the first
 issue merges, `/nocturne/` is a holding page the build writes on its own; your
-first issue replaces it with the archive. Never write or edit it.
+first issue replaces it with the archive, *The morgue*. Never write or edit it.
+The footer's buttons read *Open the map*, *The wire* (the feed) and *The morgue*.
 
 ### The masthead
 
@@ -203,13 +204,19 @@ their shape, never their content.
 
 - **Fields:** a missing field, or one the contract doesn't list.
 - **Numbers and dates:** issue numbers that don't run 0, 1, 2 … with no gap;
-  a `published` that isn't the Sunday that closes `week`; a folder name that
+  a `week` that doesn't exist (W01 to W52, W53 only in a 53-week year); a
+  `published` that isn't the Sunday that closes `week`; a folder name that
   isn't `<week, lower case>-<slug>`.
-- **Stories:** a count outside 3–6 (No. 0: 4–6); a story outside 60–120 words
-  (No. 0: 60–260); an issue outside 250–750 words (No. 0: 600–900); a cold
-  open over 50 words.
+- **Stories:** a count outside 3–8 (No. 0: 4–6); a story outside 60–500 words
+  (No. 0: 60–260); an issue outside 250–3000 words (No. 0: 600–900); a cold
+  open over 50 words. These are ceilings, not targets: a big week may run
+  long, a thin week runs short, and nothing is padded to reach a number.
 - **Links:** a source its story never links, or a link the story doesn't list
-  as a source; anything but https.
+  as a source; anything but https; a tracking or affiliate parameter
+  (`utm_…`, `fbclid`, `gclid`, `si`, `tag`, `aff…` and the like); a shortener
+  or affiliate host (`amzn.to`, `bit.ly`, `t.co`, `geni.us` …). Link the page
+  as a reader would open it. The check also reads the built page back: every
+  link it prints must be one of the story's sources.
 - **The catalogue:** a `catalogue` id that isn't in `PATH`; `new-entry` with
   an id (a new title isn't in the catalogue yet: `none`); `parked-date` on a
   title that isn't parked.
@@ -217,12 +224,20 @@ their shape, never their content.
   `**bold**` and `[links](https://…)`. No lists, quotes, tables, raw HTML,
   code or inline images.
 - **Voice:** VOICE.md §7's never-use words, `!`, emoji, hashtags, "the Bat",
-  and "watch it on …".
+  and "watch it on …"; a price (`$19.99`, `€25`, `30 USD`) or a call to buy
+  (`buy now`, `pre-order now`). Merch is news, never shopping.
+- **Characters:** anything outside the paper's fonts, the ranges in
+  `qa/font-subset.json` (Latin, Latin-1, the dashes, quotes, ellipsis, primes,
+  € and ™). Arrows, emoji, symbols and other scripts render in a system font,
+  so the check names the character and refuses it: in the body, every
+  front-matter string, alt text, credits and corrections.
+- **Corrections:** held to the story's rules: the voice, the markdown subset,
+  the characters, and no link the story doesn't list as a source.
 - **Images:** a missing licence field, a file that isn't a whole WebP (its
   header's length must match the file: upload images as binary), a size in the
-  front matter the file doesn't have, over 1600 px or 250 KB, alt over 125
-  characters, a credit that doesn't read "Image: …", or a file in the folder
-  that isn't listed.
+  front matter the file doesn't have, over 1600 px or 250 KB, EXIF or XMP
+  metadata still in the file, alt over 125 characters, a credit that doesn't
+  read "Image: …", or a file in the folder that isn't listed.
 
 The check can't read meaning. "Drops" as a verb, a service named as advice in
 other words, a spoiler, and a rumour dressed as news are yours to catch
@@ -256,7 +271,9 @@ doesn't exist for a story, the story runs without one.
 **Technical**
 
 - At most three images per issue, one of them the hero.
-- One WebP file per image, quality ~80, longest side at most 1600 px. Strip EXIF.
+- One WebP file per image, quality ~80, longest side at most 1600 px. Strip EXIF
+  and XMP (`cwebp -metadata none`, or `webpmux -strip exif` then `-strip xmp`);
+  the check refuses a file that still carries either.
   At most 250 KB. `width` and `height` in the front matter are the file's own.
 - It sits in the issue's folder; the build copies it into `docs/nocturne/`.
   Never hotlinked: the `/nocturne/` CSP allows images from this origin only.
@@ -333,8 +350,8 @@ the first news issue is No. 1.
 | `issue` | previous + 1 | `0` |
 | `kind` | `weekly` (default) | `founding` |
 | Subject | the week's news | Night Watcher and Nocturne |
-| Sections | 3–6 stories, four beats each | 4–6 sections, no four-beat rule |
-| Length | 250–750 words | 600–900 words |
+| Sections | 3–8 stories, four beats each | 4–6 sections, no four-beat rule |
+| Length | 250–3000 words, a ceiling | 600–900 words |
 | "On the map" box | on every story | none (the renderer omits it for `founding`) |
 | `catalogue` / `effect` | per story | `none` / `none` |
 | `status` | confirmed / reported / provisional | `confirmed` |

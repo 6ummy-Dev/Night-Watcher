@@ -6,6 +6,7 @@
 # fixture names its section. 6.2.1: one door from Home (165) and the holding
 # page with its open, empty feed (167). 6.2.2: the feed links its own
 # stylesheet and says all of Batman (167), self-hosted (164), weighed (168).
+# 6.2.3: the fence fixture reads nocturne-fence.yml, where the fence moved.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="$(pro qa/nocturne.js)"
@@ -42,7 +43,7 @@ run_case "a URL typed into the sitemap's Nocturne block" \
 
 run_case "the fence around the agent's pull requests widens" \
   "fence around the drafting agent is gone or widened" \
-  "$(pro .github/workflows/qa.yml)a='|docs/sitemap\\\\.xml\$)';assert a in s;s=s.replace(a,'|docs/sitemap\\\\.xml\$|qa/)',1);${W}" \
+  "$(pro .github/workflows/nocturne-fence.yml)a='|docs/sitemap\\\\.xml\$)';assert a in s;s=s.replace(a,'|docs/sitemap\\\\.xml\$|qa/)',1);${W}" \
   guards "" 163
 
 echo "--- 164: the paper runs no script"
@@ -270,7 +271,7 @@ run_case "the build stops writing feed.css" \
 
 run_case "the paper is screen news again" \
   "still calls the paper \"screen news\"" \
-  "${N}a='Back issues</h1>\\\\n<p class=\"sub\">The week\\\\u2019s Batman news';assert a in s,a;s=s.replace(a,'Back issues</h1>\\\\n<p class=\"sub\">The week\\\\u2019s Batman screen news',1);${W}" \
+  "${N}a='The morgue</h1>\\\\n<p class=\"sub\">The week\\\\u2019s Batman news';assert a in s,a;s=s.replace(a,'The morgue</h1>\\\\n<p class=\"sub\">The week\\\\u2019s Batman screen news',1);${W}" \
   guards "" 167
 
 run_case "the feed's stylesheet loads a font from another origin" \
@@ -287,7 +288,7 @@ run_case "a page limit raised in the module" \
 
 run_case "a page over its weight slips past the build" \
   "a page is at most 40960" \
-  "${N}a='files[is.id + \"/index.html\"] = Buffer.from(renderIssue(is, cat), \"utf8\");';assert a in s;s=s.replace(a,'files[is.id + \"/index.html\"] = Buffer.from(renderIssue(is, cat) + \" \".repeat(42000), \"utf8\");',1);b='if(/\\\\.html\$/.test(f) && files[f].length > LIMITS.page)';assert b in s;s=s.replace(b,'if(false)',1);${W}" \
+  "${N}a='files[is.id + \"/index.html\"] = Buffer.from(page, \"utf8\");';assert a in s;s=s.replace(a,'files[is.id + \"/index.html\"] = Buffer.from(page + \" \".repeat(42000), \"utf8\");',1);b='if(/\\\\.html\$/.test(f) && files[f].length > LIMITS.page)';assert b in s;s=s.replace(b,'if(false)',1);${W}" \
   guards "" 168
 
 run_case "the feed's stylesheet outgrows its budget" \

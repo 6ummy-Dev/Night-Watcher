@@ -91,6 +91,6 @@ That also means we do not know how many of you there are. We never will, and tha
 
 The map changes when the studios announce, date or delay something. Until now those changes arrived quietly, one line at a time in the [changelog](https://github.com/6ummy-Dev/Night-Watcher/blob/main/CHANGELOG.md). Nocturne says them out loud, once a week, with the source beside every line.
 
-Every Sunday, late, the Night Final covers the week's Batman screen news. Each story says where we read it and what it does to your watch order, and none of them spoil anything. Rumours do not run. A title with no date stays parked, and we say so. When a date moves, the map moves with it, and the paper tells you which way.
+Every Sunday, late, the Night Final covers the week's Batman news. Each story says where we read it and what it does to your watch order, and none of them spoil anything. Rumours do not run. A title with no date stays parked, and we say so. When a date moves, the map moves with it, and the paper tells you which way.
 
 No. 0 is this one. No. 1 is next Sunday.

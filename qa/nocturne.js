@@ -30,7 +30,10 @@ var SRC_REL = "nocturne/issues";
 var LIMITS = {
   title: 70, alt: 125, coldOpen: 50, image: 250 * 1024, side: 1600,
   images: 3, page: 40 * 1024, feed: 20,
-  weekly:   {min: 3, max: 6, words: [250, 750], story: [60, 120]},
+  /* 6.2.3: a weekly issue's lengths are a ceiling, not a target. A big week
+     may run long; a thin week runs short, and the floor stays so nothing is
+     padded to reach a number. No. 0's limits do not move. */
+  weekly:   {min: 3, max: 8, words: [250, 3000], story: [60, 500]},
   founding: {min: 4, max: 6, words: [600, 900], story: [60, 260]}
 };
 var STATUS  = {confirmed: "Confirmed", reported: "Reported", provisional: "Provisional"};
@@ -43,6 +46,46 @@ var BANNED  = ["epic", "iconic", "legendary", "must-watch", "must watch", "game-
 var MONTHS  = ["January", "February", "March", "April", "May", "June", "July",
                "August", "September", "October", "November", "December"];
 var DAYS    = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+/* 6.2.3. The characters an issue may carry are the ones the paper's fonts
+   carry: the ranges in qa/font-subset.json, the file the subset faces are
+   blessed against. Anything else renders in a system font (the paper's old
+   U+2197 arrow did), so the check refuses it and names it. */
+var GLYPHS = (function(){
+  var rec = JSON.parse(fs.readFileSync(path.join(__dirname, "font-subset.json"), "utf8"));
+  return rec.ranges.map(function(r){
+    var m = /^U\+([0-9A-F]+)(?:-([0-9A-F]+))?$/i.exec(r);
+    if(!m) throw new Error("qa/font-subset.json has a range this check cannot read: " + r);
+    return [parseInt(m[1], 16), parseInt(m[2] || m[1], 16)];
+  });
+})();
+function glyphErrors(text, where){
+  var bad = {};
+  Array.from(String(text)).forEach(function(ch){
+    var cp = ch.codePointAt(0);
+    if(cp === 10 || cp === 13 || cp === 9) return;
+    if(!GLYPHS.some(function(r){ return cp >= r[0] && cp <= r[1]; })){
+      bad["U+" + ("000" + cp.toString(16).toUpperCase()).slice(-4) + " (" + ch + ")"] = 1;
+    }
+  });
+  var k = Object.keys(bad);
+  return k.length ? [where + ": " + k.join(", ") + " — outside the paper's fonts (qa/font-subset.json); it would render in a system font"] : [];
+}
+
+/* 6.2.3. Merch is news, never shopping (VOICE.md §10): no tracking or
+   affiliate parameters in a link, no affiliate or shortener hosts. The
+   source is the page as a reader would open it, not as a campaign tagged it. */
+var TRACKING  = /^(utm_.+|fbclid|gclid|gbraid|wbraid|dclid|msclkid|yclid|mc_cid|mc_eid|igshid|igsh|si|_hsenc|_hsmi|mkt_tok|tag|ascsubtag|aff|affid|aff_id|affiliate|affiliate_id|clickid|irclickid)$/i;
+var AFFHOSTS  = /(^|\.)(amzn\.to|a\.co|bit\.ly|tinyurl\.com|t\.co|ow\.ly|go\.skimresources\.com|click\.linksynergy\.com|shareasale\.com|awin1\.com|anrdoezrs\.net|jdoqocy\.com|tkqlhce\.com|dpbolvw\.net|kqzyfj\.com|howl\.me|shop-links\.co|geni\.us)$/i;
+function linkErrors(u, where){
+  var e = [], url;
+  try { url = new URL(u); } catch(err){ return [where + ": " + u + " is not a URL"]; }
+  if(AFFHOSTS.test(url.hostname)) e.push(where + ": " + url.hostname + " is a shortener or an affiliate host — link the page itself");
+  var keys = [];
+  url.searchParams.forEach(function(v, k){ if(TRACKING.test(k) && keys.indexOf(k) < 0) keys.push(k); });
+  if(keys.length) e.push(where + ": " + u + " carries a tracking or affiliate parameter (" + keys.join(", ") + ") — link the page without it");
+  return e;
+}
 
 /* ---------- the catalogue, from the app ---------- */
 
@@ -116,6 +159,10 @@ function esc(s){
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
                   .replace(/"/g, "&quot;");
 }
+var ARROW = '<svg class="arr" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 9.5 9.2 2.8M4.2 2.5h5.3v5.3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+function unesc(s){
+  return String(s).replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+}
 function inline(text){
   var links = [];
   var t = esc(text).replace(/\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/g, function(_, label, url){
@@ -126,7 +173,12 @@ function inline(text){
        .replace(/\*([^*]+)\*/g, "<em>$1</em>")
        .replace(/(^|[^\w])_([^_]+)_(?!\w)/g, "$1<em>$2</em>");
   return t.replace(/\u0000(\d+)\u0001([^\u0002]*)\u0002/g, function(_, n, label){
-    return '<a href="' + esc(links[+n]) + '">' + label + "</a>";
+    /* The URL was captured out of text esc() had already escaped, so it is
+       escaped exactly once here; escaping it again turned & into &amp;amp;
+       and sent the reader to another address (6.2.3). A " cannot survive
+       inside it: esc() made it &quot; before the capture. The arrow is the
+       app's inline SVG; U+2197 is outside the fonts. */
+    return '<a href="' + links[+n] + '">' + label + ARROW + "</a>";
   });
 }
 function plain(text){
@@ -179,6 +231,13 @@ function voiceErrors(text, where){
   if(/\bthe Bat\b(?!man|mobile|cave|signal|wing|girl|woman)/.test(t)) e.push(where + ": \"the Bat\" — no nicknames (VOICE.md §7)");
   if(/\p{Extended_Pictographic}/u.test(t)) e.push(where + ": an emoji");
   if(/(^|\s)#[A-Za-z]/.test(t)) e.push(where + ": a hashtag");
+  /* 6.2.3. Merch is news, never shopping (VOICE.md §10). */
+  if(/(^|[^\w])(US\$|[$£€¥])\s?\d/.test(t) || /\b\d+(?:[.,]\d+)?\s?(USD|EUR|GBP|dollars|euros)\b/i.test(t)){
+    e.push(where + ": a price — merch is news, never shopping (VOICE.md §10)");
+  }
+  if(/\b(buy|order|shop|pre-?order) (it |them |yours )?now\b/i.test(t)){
+    e.push(where + ": a call to buy — merch is news, never shopping (VOICE.md §10)");
+  }
   if(/\b(watch|stream) (it|them|this|these) (on|at)\b/i.test(t)) {
     e.push(where + ": a service named as advice — the site's where-to-watch search does that job");
   }
@@ -202,11 +261,19 @@ function rfc822(s){
   return DAYS[d.getUTCDay()].slice(0, 3) + ", " + ("0" + d.getUTCDate()).slice(-2) + " " +
          MONTHS[d.getUTCMonth()].slice(0, 3) + " " + d.getUTCFullYear() + " 22:00:00 -0300";
 }
+/* How many ISO weeks a year has: 53 when 1 January is a Thursday, or a
+   Wednesday in a leap year; 52 otherwise (6.2.3: W00 and W54-W99 rolled
+   into another year and made a folder like 2026-w60-...). */
+function isoWeeks(y){
+  var d = new Date(Date.UTC(y, 0, 1)).getUTCDay(), leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+  return d === 4 || (leap && d === 3) ? 53 : 52;
+}
 /* The Sunday that closes an ISO week, "2026-W39" -> "2026-09-27". */
 function sundayOfWeek(week){
   var m = /^(\d{4})-W(\d{2})$/.exec(week || "");
   if(!m) return null;
   var y = +m[1], w = +m[2];
+  if(w < 1 || w > isoWeeks(y)) return null;
   var jan4 = new Date(Date.UTC(y, 0, 4));
   var mon1 = new Date(jan4.getTime() - ((jan4.getUTCDay() + 6) % 7) * 864e5);
   var sun = new Date(mon1.getTime() + ((w - 1) * 7 + 6) * 864e5);
@@ -224,7 +291,21 @@ function webpSize(buf){
      named WebP binary, and its header still parsed). */
   if(buf.readUInt32LE(4) + 8 !== buf.length) return {broken: true};
   var kind = buf.toString("ascii", 12, 16);
-  if(kind === "VP8X") return {w: 1 + buf.readUIntLE(24, 3), h: 1 + buf.readUIntLE(27, 3)};
+  if(kind === "VP8X"){
+    /* 6.2.3: BRIEF §6 says strip EXIF. The flags byte says whether EXIF
+       (0x08) or XMP (0x04) is present, and the chunk list is read too,
+       because a flag can say nothing while the chunk is there. */
+    var meta = [], flags = buf[20], at = 12;
+    if(flags & 0x08) meta.push("EXIF");
+    if(flags & 0x04) meta.push("XMP");
+    while(at + 8 <= buf.length){
+      var id = buf.toString("ascii", at, at + 4), sz = buf.readUInt32LE(at + 4);
+      if(id === "EXIF" && meta.indexOf("EXIF") < 0) meta.push("EXIF");
+      if(id === "XMP " && meta.indexOf("XMP") < 0) meta.push("XMP");
+      at += 8 + sz + (sz & 1);
+    }
+    return {w: 1 + buf.readUIntLE(24, 3), h: 1 + buf.readUIntLE(27, 3), meta: meta};
+  }
   if(kind === "VP8 ") return {w: buf.readUInt16LE(26) & 0x3fff, h: buf.readUInt16LE(28) & 0x3fff};
   if(kind === "VP8L"){
     var b = buf.readUInt32LE(21);
@@ -260,7 +341,7 @@ function checkAll(issues, cat){
     seenIssue[fm.issue] = 1;
     if(typeof fm.slug !== "string" || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(fm.slug)) E(is, "slug is not kebab-case ascii");
     var sunday = sundayOfWeek(fm.week);
-    if(!sunday) E(is, "week is not an ISO week like 2026-W39");
+    if(!sunday) E(is, "week is not an ISO week like 2026-W39, numbered 1 to 52 (53 in a long year)");
     if(seenWeek[fm.week]) E(is, "week " + fm.week + " has two issues");
     seenWeek[fm.week] = 1;
     if(sunday && typeof fm.slug === "string" && is.id !== fm.week.toLowerCase() + "-" + fm.slug){
@@ -270,6 +351,10 @@ function checkAll(issues, cat){
     else if(dayOf(fm.published) !== 0) E(is, "published is not a Sunday — the Night Final is Sunday's paper");
     else if(sunday && fm.published !== sunday) E(is, "published is " + fm.published + " but the Sunday of " + fm.week + " is " + sunday);
     if(typeof fm.title !== "string" || fm.title.length > LIMITS.title) E(is, "title is longer than " + LIMITS.title + " characters");
+    ["title", "cold_open", "sign_off"].forEach(function(k){
+      if(typeof fm[k] === "string") errs.push.apply(errs, glyphErrors(fm[k], is.id + ": " + k.replace("_", " ")));
+    });
+    errs.push.apply(errs, glyphErrors(is.body, is.id + ": body"));
     if(typeof fm.cold_open === "string"){
       if(words(fm.cold_open) > LIMITS.coldOpen) E(is, "the cold open is over " + LIMITS.coldOpen + " words");
       errs.push.apply(errs, voiceErrors(fm.cold_open, is.id + ": cold open"));
@@ -315,7 +400,10 @@ function checkAll(issues, cat){
       }
       var src = Array.isArray(st.sources) ? st.sources : [];
       if(!src.length) E(is, where + " has no source");
-      src.forEach(function(u){ if(!/^https:\/\/\S+$/.test(u)) E(is, where + "'s source is not an https URL: " + u); });
+      src.forEach(function(u){
+        if(!/^https:\/\/\S+$/.test(u)) E(is, where + "'s source is not an https URL: " + u);
+        else linkErrors(u, where + "'s source").forEach(function(m){ E(is, m); });
+      });
       if(sec){
         var ln = linksIn(sec.text);
         src.forEach(function(u){ if(ln.indexOf(u) < 0) E(is, where + " lists a source its text never links: " + u); });
@@ -342,6 +430,7 @@ function checkAll(issues, cat){
       names[im.file] = 1;
       if(typeof im.alt === "string" && im.alt.length > LIMITS.alt) E(is, where + "'s alt text is over " + LIMITS.alt + " characters");
       if(typeof im.credit === "string" && !/^Image: \S/.test(im.credit)) E(is, where + "'s credit line does not read \"Image: <rights holder>\"");
+      ["alt", "credit"].forEach(function(k){ if(typeof im[k] === "string") errs.push.apply(errs, glyphErrors(im[k], is.id + ": " + where + "'s " + k)); });
       ["source_url", "terms_url"].forEach(function(k){ if(im[k] && !/^https:\/\/\S+$/.test(im[k])) E(is, where + "'s " + k + " is not an https URL"); });
       if(im.retrieved && !isoDate(im.retrieved)) E(is, where + "'s retrieved is not a date");
       var f = path.join(is.dir, im.file);
@@ -352,6 +441,7 @@ function checkAll(issues, cat){
       if(sz.broken){ E(is, where + " is not a whole WebP file \u2014 its length disagrees with its own header (cut, or converted as text)"); return; }
       if(Math.max(sz.w, sz.h) > LIMITS.side) E(is, where + " is " + sz.w + "x" + sz.h + " — the longest side is at most " + LIMITS.side);
       if(sz.w !== im.width || sz.h !== im.height) E(is, where + " says " + im.width + "x" + im.height + " and the file is " + sz.w + "x" + sz.h);
+      if(sz.meta && sz.meta.length) E(is, where + " carries " + sz.meta.join(" and ") + " metadata — strip it (BRIEF.md §6)");
     });
     if(fm.hero !== undefined && !names[fm.hero]) E(is, "the hero " + fm.hero + " is not one of the listed images");
     fs.readdirSync(is.dir).forEach(function(n){
@@ -363,7 +453,18 @@ function checkAll(issues, cat){
     corr.forEach(function(c, i){
       if(!c || !isoDate(c.date) || !Number.isInteger(c.story) || c.story < 1 || c.story > stories.length || typeof c.text !== "string" || !c.text){
         E(is, "correction " + (i + 1) + " needs date, story (1-based) and text");
-      } else if(c.date < fm.published) E(is, "correction " + (i + 1) + " is dated before the issue ran");
+      } else {
+        if(c.date < fm.published) E(is, "correction " + (i + 1) + " is dated before the issue ran");
+        /* 6.2.3: a correction is printed in the story, so it keeps the
+           story's rules: the voice, the subset, the fonts, and no link the
+           story does not list as a source. */
+        var cw = is.id + ": correction " + (i + 1);
+        errs.push.apply(errs, voiceErrors(c.text, cw));
+        errs.push.apply(errs, subsetErrors(c.text, cw));
+        errs.push.apply(errs, glyphErrors(c.text, cw));
+        var cs = stories[c.story - 1], csrc = cs && Array.isArray(cs.sources) ? cs.sources : [];
+        linksIn(c.text).forEach(function(u){ if(csrc.indexOf(u) < 0) E(is, "correction " + (i + 1) + " links " + u + " without listing it in story " + c.story + "'s sources"); });
+      }
     });
   });
 
@@ -378,11 +479,42 @@ function checkAll(issues, cat){
 
 /* ---------- rendering ---------- */
 
+/* 6.2.3. One type scale with the app. The nine --t-* sizes are read out of
+   the app's :root, the way the catalogue is, so the paper cannot set type
+   the app does not; guard 169 holds every font-size in both stylesheets to
+   a var(--t-*). Three display sizes exist only on the paper: the nameplate,
+   the banner and the drop cap. */
+var TYPE_APP = (function(){
+  var html = fs.readFileSync(path.join(ROOT, "docs", "index.html"), "utf8");
+  var names = ["display", "title", "heading", "num", "body", "desc", "note", "label", "fine"];
+  return names.map(function(n){
+    var m = new RegExp("--t-" + n + ":([^;}]+)[;}]").exec(html);
+    if(!m) throw new Error("cannot find --t-" + n + " in docs/index.html");
+    return "--t-" + n + ":" + m[1].trim() + ";";
+  }).join("");
+})();
+var TYPE_PAPER = "--t-plate:clamp(46px,14vw,104px);--t-banner:clamp(30px,8.4vw,58px);--t-drop:62px;";
+
+/* 6.2.3. A real italic for the paper. Titles are set in italic (VOICE.md
+   §8), and NW Sans had no italic face, so every browser faked a slant. The
+   face is IBM Plex Sans 400 italic, subset and renamed by
+   qa/subset-fonts.py --paper exactly as the app's Plex faces are, and kept in
+   qa/nocturne-fonts/ with its record. It is the paper's alone: it is not in
+   docs/fonts/, so the app neither preloads nor precaches it, and the build
+   writes it into docs/nocturne/ beside OFL.txt, which travels with it. */
+var ITALIC = (function(){
+  var dir = path.join(__dirname, "nocturne-fonts");
+  var rec = JSON.parse(fs.readFileSync(path.join(dir, "record.json"), "utf8"));
+  var file = Object.keys(rec.files)[0];
+  return {file: file, dir: dir, rec: rec.files[file]};
+})();
+
 var CSS = [
 "/* Nocturne \u2014 the paper's one stylesheet. Written by qa/nocturne.js; never edited by hand. */",
 "@font-face{font-family:\"NW Deco\";src:url(\"/fonts/limelight-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-display:swap;}",
 "@font-face{font-family:\"Big Shoulders Display\";src:url(\"/fonts/big-shoulders-display-latin-700-normal.woff2\") format(\"woff2\");font-weight:700;font-display:swap;}",
 "@font-face{font-family:\"NW Sans\";src:url(\"/fonts/ibm-plex-sans-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-display:swap;}",
+"@font-face{font-family:\"NW Sans\";src:url(\"/nocturne/" + ITALIC.file + "\") format(\"woff2\");font-weight:400;font-style:italic;font-display:swap;}",
 "@font-face{font-family:\"NW Sans\";src:url(\"/fonts/ibm-plex-sans-latin-600-normal.woff2\") format(\"woff2\");font-weight:600;font-display:swap;}",
 "@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-display:swap;}",
 "@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-600-normal.woff2\") format(\"woff2\");font-weight:600;font-display:swap;}",
@@ -390,80 +522,87 @@ var CSS = [
 "  --bone:#E7E9F0;--dust:#93A0B8;--dim:#8B97B1;--suit:#A6ADBA;--signal:#FFCF1F;--steel:#7295CC;",
 "  --signalline:rgba(255,207,31,.4);",
 "  --deco:\"NW Deco\",\"Big Shoulders Display\",serif;--disp:\"Big Shoulders Display\",\"Arial Narrow\",Impact,sans-serif;",
-"  --body:\"NW Sans\",-apple-system,\"Segoe UI\",sans-serif;--mono:\"NW Mono\",ui-monospace,Menlo,monospace;}",
+"  --body:\"NW Sans\",-apple-system,\"Segoe UI\",sans-serif;--mono:\"NW Mono\",ui-monospace,Menlo,monospace;",
+"  " + TYPE_APP,
+"  " + TYPE_PAPER + "}",
 "*{box-sizing:border-box;}",
 "html,body{margin:0;padding:0;}",
-"body{background:var(--ink);color:var(--bone);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}",
+"body{background:var(--ink);color:var(--bone);font-family:var(--body);font-size:var(--t-body);line-height:1.6;-webkit-font-smoothing:antialiased;}",
 "a{color:inherit;}",
 "a:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}",
 ".paper{max-width:760px;margin:0 auto;padding:22px 18px 48px;}",
 ".mast{text-align:center;padding-top:8px;}",
 ".mast-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}",
-".presents{font-family:var(--mono);font-size:9px;letter-spacing:.19em;text-transform:uppercase;color:var(--dust);margin:4px 0 0;text-align:left;}",
+".presents{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.17em;text-transform:uppercase;color:var(--dust);margin:4px 0 0;text-align:left;}",
 ".presents a{text-decoration:none;border-bottom:1px solid var(--line2);}",
-".seal{flex:none;font-family:var(--mono);font-weight:600;font-size:9px;letter-spacing:.17em;text-transform:uppercase;line-height:1.15;text-align:center;background:var(--signal);color:var(--ink);padding:6px 8px 5px;}",
-".seal small{display:block;font-weight:400;font-size:8px;letter-spacing:.14em;margin-top:2px;}",
-".nameplate{font-family:var(--deco);font-weight:400;text-transform:uppercase;letter-spacing:.06em;font-size:clamp(46px,14vw,104px);line-height:.9;margin:14px 0;}",
+".seal{flex:none;font-family:var(--mono);font-weight:600;font-size:var(--t-fine);letter-spacing:.17em;text-transform:uppercase;line-height:1.15;text-align:center;background:var(--signal);color:var(--ink);padding:6px 8px 5px;}",
+".seal small{display:block;font-weight:400;font-size:var(--t-fine);letter-spacing:.14em;margin-top:2px;}",
+".nameplate{font-family:var(--deco);font-weight:400;text-transform:uppercase;letter-spacing:.06em;font-size:var(--t-plate);line-height:.9;margin:14px 0;}",
 ".nameplate a{text-decoration:none;}",
 ".rule2{border:0;height:5px;margin:0;border-top:3px solid var(--bone);border-bottom:1px solid var(--bone);}",
 ".rule1{border:0;border-top:1px solid var(--line2);margin:0;}",
-".dateline{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dust);display:flex;justify-content:center;flex-wrap:wrap;gap:4px 12px;padding:9px 0;margin:0;}",
+".dateline{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.16em;text-transform:uppercase;color:var(--dust);display:flex;justify-content:center;flex-wrap:wrap;gap:4px 12px;padding:9px 0;margin:0;}",
 ".dl1,.dl2{display:inline-flex;gap:12px;align-items:center;}",
 "@media (max-width:560px){.dateline{flex-direction:column;align-items:center;gap:5px;}.dl2 .dsep{display:none;}}",
 ".dsep{display:inline-block;width:4.5px;height:4.5px;background:var(--signal);transform:rotate(45deg);}",
-".banner{font-family:var(--deco);font-weight:400;text-transform:uppercase;letter-spacing:.02em;font-size:clamp(30px,8.4vw,58px);line-height:.98;text-align:center;margin:26px 0 20px;text-wrap:balance;}",
+".banner{font-family:var(--deco);font-weight:400;text-transform:uppercase;letter-spacing:.02em;font-size:var(--t-banner);line-height:.98;text-align:center;margin:26px 0 20px;text-wrap:balance;}",
 "figure{margin:0 0 26px;}",
 "figure img{display:block;width:100%;height:auto;border:1px solid var(--line2);background:var(--sunk);}",
-"figcaption{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:7px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;}",
-".cold{font-size:19px;line-height:1.6;margin:0 auto 6px;max-width:620px;}",
-".cold::first-letter{font-family:var(--deco);float:left;font-size:62px;line-height:.82;margin:6px 10px 0 0;}",
+"figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:7px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;}",
+".cold{font-size:var(--t-heading);line-height:1.6;margin:0 auto 6px;max-width:620px;}",
+".cold::first-letter{font-family:var(--deco);float:left;font-size:var(--t-drop);line-height:.82;margin:6px 10px 0 0;}",
 ".drule{display:flex;align-items:center;gap:9px;margin:28px auto;max-width:620px;color:var(--signal);}",
 ".drule i{width:7px;height:7px;background:currentColor;transform:rotate(45deg);flex:none;}",
 ".drule::before,.drule::after{content:\"\";flex:1;height:1px;}",
 ".drule::before{background:linear-gradient(90deg,transparent,var(--signalline));}",
 ".drule::after{background:linear-gradient(90deg,var(--signalline),transparent);}",
-".story{max-width:620px;margin:0 auto;}",
+".story{max-width:620px;margin:0 auto;scroll-margin-top:16px;}",
 ".story+.story{margin-top:38px;padding-top:30px;border-top:1px solid var(--line);}",
-".kick{font-family:var(--mono);font-size:10px;letter-spacing:.19em;text-transform:uppercase;margin:0 0 8px;display:flex;gap:10px;align-items:center;}",
+".kick{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.19em;text-transform:uppercase;margin:0 0 8px;display:flex;gap:10px;align-items:center;}",
 ".kick .st{color:var(--signal);}",
 ".kick .st.reported{color:var(--steel);}",
 ".kick .st.provisional{color:var(--dust);}",
 ".kick .num{color:var(--dim);}",
-".story h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:clamp(24px,6.4vw,30px);line-height:1.02;margin:0 0 12px;}",
-".story p{margin:0 0 14px;}",
+".story h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-display);line-height:1.02;margin:0 0 12px;}",
+".story p{margin:0 0 14px;max-width:62ch;}",
 ".story p a{text-decoration:none;border-bottom:1px solid var(--signal);}",
-".story p a::after{content:\" \\2197\";font-size:.8em;color:var(--signal);}",
-".corr{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--dust);border-left:2px solid var(--signal);padding:2px 0 2px 10px;}",
+".arr{display:inline-block;width:.7em;height:.7em;margin-left:.25em;color:var(--signal);vertical-align:baseline;}",
+".btn .arr{width:11px;height:11px;margin-left:6px;color:inherit;vertical-align:middle;}",
+".corr{font-family:var(--mono);font-size:var(--t-note);letter-spacing:.06em;color:var(--dust);border-left:2px solid var(--signal);padding:2px 0 2px 10px;}",
 ".map{border:1px solid var(--line2);background:linear-gradient(175deg,var(--card2),var(--card) 70%);padding:12px 14px;margin:4px 0 0;}",
 ".map dl{display:grid;grid-template-columns:auto 1fr;gap:5px 16px;align-items:baseline;margin:0;}",
-".map .lbl{font-family:var(--mono);font-size:9px;letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0 0 8px;}",
-".map dt{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);}",
-".map dd{margin:0;font-size:14px;}",
+".map .lbl{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0 0 8px;}",
+".map dt{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);}",
+".map dd{margin:0;font-size:var(--t-desc);}",
 ".map dd.parked{display:inline-flex;align-items:center;gap:8px;}",
 ".ring{width:12px;height:12px;border-radius:50%;border:1.5px dashed var(--dust);flex:none;}",
-".map.none p:last-child{margin:0;font-size:14px;color:var(--dust);}",
-".signoff{text-align:center;font-family:var(--deco);text-transform:uppercase;letter-spacing:.04em;font-size:18px;margin:0;}",
+".map.none p:last-child{margin:0;font-size:var(--t-desc);color:var(--dust);}",
+".signoff{text-align:center;font-family:var(--deco);text-transform:uppercase;letter-spacing:.04em;font-size:var(--t-heading);margin:0;}",
 ".foot{max-width:620px;margin:40px auto 0;border-top:3px solid var(--bone);padding-top:4px;}",
 ".foot .inner{border-top:1px solid var(--bone);padding-top:18px;}",
 ".acts{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 20px;}",
-".btn{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;padding:12px 14px;min-height:44px;display:inline-flex;align-items:center;}",
+".btn{font-family:var(--mono);font-size:var(--t-label);font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;padding:12px 14px;min-height:44px;display:inline-flex;align-items:center;}",
 ".btn.suit{background:var(--suit);color:var(--ink);}",
 ".btn.ghost{border:1px solid var(--line2);color:var(--steel);font-weight:400;}",
-".colophon{font-size:12px;line-height:1.6;color:var(--dim);margin:0;}",
-".sub{text-align:center;color:var(--dust);font-size:14px;margin:0 auto 26px;max-width:460px;}",
+".colophon{font-size:var(--t-note);line-height:1.6;color:var(--dim);margin:0;}",
+".sub{text-align:center;color:var(--dust);font-size:var(--t-desc);margin:0 auto 26px;max-width:460px;}",
 ".issues{list-style:none;margin:0 auto;padding:0;max-width:620px;}",
 ".issues li{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:16px 0;border-bottom:1px solid var(--line);}",
-".issues .no{font-family:var(--deco);font-size:34px;line-height:1;grid-row:1/3;min-width:52px;}",
-".issues .when{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}",
+".issues .no{font-family:var(--deco);font-size:var(--t-num);line-height:1;grid-row:1/3;min-width:52px;}",
+".issues .when{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}",
 ".issues li:first-child .when{color:var(--signal);}",
-".issues a{text-decoration:none;font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:21px;line-height:1.05;}",
+".issues a{text-decoration:none;font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);line-height:1.05;}",
 ".cols{display:grid;grid-template-columns:repeat(3,1fr);max-width:760px;margin:0 auto 28px;border-top:3px double var(--bone);border-bottom:1px solid var(--line2);}",
 ".cols section{padding:16px 18px 18px;}",
 ".cols section+section{border-left:1px solid var(--line2);}",
-".cols h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:21px;line-height:1.05;margin:0 0 8px;}",
-".cols p{font-size:14px;line-height:1.55;color:var(--dust);margin:0;}",
+".cols h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);line-height:1.05;margin:0 0 8px;}",
+".cols p{font-size:var(--t-desc);line-height:1.55;color:var(--dust);margin:0;}",
 "@media (max-width:560px){.cols{grid-template-columns:1fr;}.cols section{padding:16px 0 18px;}.cols section+section{border-left:0;border-top:1px solid var(--line2);}}",
 "@media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}}",
+"/* Print (6.2.3): ink on white, the rules kept, no buttons. Same scale; only colour changes. */",
+"@media print{:root{--ink:#FFFFFF;--sunk:#FFFFFF;--card:#FFFFFF;--card2:#FFFFFF;--line:#BBBBBB;--line2:#888888;--bone:#08090F;--dust:#333333;--dim:#444444;--suit:#08090F;--signal:#08090F;--steel:#333333;--signalline:rgba(8,9,15,.35);}",
+"  .acts{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}",
+"  figure,.map,.corr{break-inside:avoid;}.story h2{break-after:avoid;}@page{margin:16mm 14mm;}}",
 ""].join("\n");
 
 var COLOPHON = "Nocturne is the weekly paper of Night Watcher, one fan\u2019s map of every Batman " +
@@ -483,8 +622,8 @@ function dateline(a, b, c){
 }
 function footer(extra){
   return '<footer class="foot"><div class="inner">\n<div class="acts">' +
-    '<a class="btn suit" href="/">Open the map \u2197</a>' +
-    '<a class="btn ghost" href="/nocturne/feed.xml">RSS</a>' + (extra || "") + '</div>\n' +
+    '<a class="btn suit" href="/">Open the map' + ARROW + '</a>' +
+    '<a class="btn ghost" href="/nocturne/feed.xml">The wire</a>' + (extra || "") + '</div>\n' +
     '<p class="colophon">' + COLOPHON + '</p>\n</div></footer>\n';
 }
 function head(o){
@@ -572,7 +711,9 @@ function renderIssue(is, cat){
   fm.stories.forEach(function(st, i){
     var sec = body.sections[i];
     var n = ("0" + (i + 1)).slice(-2);
-    out += '<section class="story">\n<p class="kick"><span class="num">' + n + '</span>' +
+    /* 6.2.3: every story has its own address, #s1, #s2 …, so a post or the
+       feed can point at one. */
+    out += '<section class="story" id="s' + (i + 1) + '">\n<p class="kick"><span class="num">' + n + '</span>' +
            (founding ? "" : '<span class="st ' + st.status + '">' + STATUS[st.status] + '</span>') + '</p>\n';
     if(i) out += '<h2>' + inline(st.headline) + '</h2>\n';
     (fm.corrections || []).forEach(function(c){
@@ -589,7 +730,7 @@ function renderIssue(is, cat){
     out += '</section>\n';
   });
   out += '<div class="drule" aria-hidden="true"><i></i></div>\n<p class="signoff">' + inline(fm.sign_off) + '</p>\n</article>\n' +
-         footer('<a class="btn ghost" href="/nocturne/">All issues</a>') + '</main>\n</body>\n</html>\n';
+         footer('<a class="btn ghost" href="/nocturne/">The morgue</a>') + '</main>\n</body>\n</html>\n';
   return out;
 }
 
@@ -600,7 +741,7 @@ function renderArchive(list){
                 url: url, ogType: "website", img: SHARE});
   var out = h + '<body>\n<main class="paper">\n' +
     masthead(dateline("The Night Final", "Every Sunday, late", "Price: nothing. No account.")) +
-    '<h1 class="banner">Back issues</h1>\n<p class="sub">The week\u2019s Batman news, and where each story sits on the map. No spoilers, every source linked.</p>\n<ol class="issues" reversed>\n';
+    '<h1 class="banner">The morgue</h1>\n<p class="sub">The week\u2019s Batman news, and where each story sits on the map. No spoilers, every source linked.</p>\n<ol class="issues" reversed>\n';
   list.forEach(function(is, n){
     out += '<li><span class="no">' + is.fm.issue + '</span><span class="when">' + (n ? "" : "Latest \u00b7 ") +
            esc(longDate(is.fm.published)) + '</span><a href="/nocturne/' + is.id + '/">' + inline(is.fm.title) + '</a></li>\n';
@@ -647,18 +788,21 @@ var FEED_CSS = [
 "@font-face{font-family:\"Big Shoulders Display\";src:url(\"/fonts/big-shoulders-display-latin-700-normal.woff2\") format(\"woff2\");font-weight:700;font-display:swap;}",
 "@font-face{font-family:\"NW Sans\";src:url(\"/fonts/ibm-plex-sans-latin-400-normal.woff2\") format(\"woff2\");font-display:swap;}",
 "@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-400-normal.woff2\") format(\"woff2\");font-display:swap;}",
-"rss{display:block;background:#08090F;color:#E7E9F0;font:16px/1.6 \"NW Sans\",-apple-system,\"Segoe UI\",sans-serif;padding:22px 18px 48px;min-height:100vh;box-sizing:border-box;}",
+":root{--ink:#08090F;--line:#252E42;--line2:#33405C;--bone:#E7E9F0;--dust:#93A0B8;--dim:#8B97B1;--signal:#FFCF1F;--steel:#7295CC;",
+"  --mono:\"NW Mono\",ui-monospace,monospace;" + TYPE_APP + "--t-banner:clamp(30px,8.4vw,58px);}",
+"rss{display:block;background:var(--ink);color:var(--bone);font-family:\"NW Sans\",-apple-system,\"Segoe UI\",sans-serif;font-size:var(--t-body);line-height:1.6;padding:22px 18px 48px;min-height:100vh;box-sizing:border-box;}",
 "channel{display:block;max-width:620px;margin:0 auto;}",
-"channel>title{display:block;font-family:\"NW Deco\",serif;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(26px,7vw,40px);line-height:1.05;text-align:center;padding-bottom:14px;border-bottom:4px double #E7E9F0;}",
-"channel>link,item>link{display:block;font-family:\"NW Mono\",ui-monospace,monospace;font-size:10px;letter-spacing:.12em;color:#7295CC;overflow-wrap:anywhere;}",
-"channel>link{text-align:center;padding:9px 0;border-bottom:1px solid #33405C;}",
-"channel>description{display:block;text-align:center;color:#93A0B8;font-size:15px;margin:18px 0 24px;}",
-"channel>description::after{content:\"This is the feed. Copy this page\\2019s address into your reader.\";display:block;margin-top:10px;font-family:\"NW Mono\",ui-monospace,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#FFCF1F;}",
+"channel>title{display:block;font-family:\"NW Deco\",serif;text-transform:uppercase;letter-spacing:.04em;font-size:var(--t-banner);line-height:1.05;text-align:center;}",
+"channel>title::after{content:\"\";display:block;height:5px;margin-top:14px;border-top:3px solid var(--bone);border-bottom:1px solid var(--bone);box-sizing:border-box;}",
+"channel>link,item>link{display:block;font-family:var(--mono);font-size:var(--t-label);letter-spacing:.1em;color:var(--steel);overflow-wrap:anywhere;}",
+"channel>link{text-align:center;padding:9px 0;border-bottom:1px solid var(--line2);}",
+"channel>description{display:block;text-align:center;color:var(--dust);font-size:var(--t-desc);margin:18px 0 24px;}",
+"channel>description::after{content:\"This is the feed. Copy this page\\2019s address into your reader.\";display:block;margin-top:10px;font-family:var(--mono);font-size:var(--t-label);letter-spacing:.1em;text-transform:uppercase;color:var(--signal);}",
 "language,lastBuildDate,guid,pubDate,channel>atom|link{display:none;}",
-"item{display:block;border-top:1px solid #252E42;padding:16px 0;}",
-"item>title{display:block;font-family:\"Big Shoulders Display\",\"Arial Narrow\",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:21px;line-height:1.1;margin-bottom:6px;}",
-"item>description{display:block;color:#93A0B8;font-size:14px;margin-top:6px;}",
-"channel:not(:has(item))::after{content:\"No issue yet. The first Night Final lands here.\";display:block;text-align:center;border-top:1px solid #252E42;padding-top:18px;color:#8B97B1;font-size:14px;}",
+"item{display:block;border-top:1px solid var(--line);padding:16px 0;}",
+"item>title{display:block;font-family:\"Big Shoulders Display\",\"Arial Narrow\",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);line-height:1.1;margin-bottom:6px;}",
+"item>description{display:block;color:var(--dust);font-size:var(--t-desc);margin-top:6px;}",
+"channel:not(:has(item))::after{content:\"No issue yet. The first Night Final lands here.\";display:block;text-align:center;border-top:1px solid var(--line);padding-top:18px;color:var(--dim);font-size:var(--t-desc);}",
 ""].join("\n");
 
 function renderFeed(list){
@@ -698,6 +842,24 @@ function withBlock(sitemap, block){
   return sitemap.slice(0, i) + block + sitemap.slice(j + END.length);
 }
 
+/* 6.2.3. The check compared the markdown with sources: and both were right
+   while the page linked somewhere else (the double escape). This reads the
+   rendered page back: every link a story prints, decoded as a browser
+   decodes it, is one of that story's sources, and every source is printed. */
+function renderedLinkErrors(is, page){
+  var e = [];
+  var secs = page.split('<section class="story" id="s').slice(1);
+  (is.fm.stories || []).forEach(function(st, i){
+    var sec = (secs[i] || "").split("</section>")[0];
+    var hrefs = [], re = /<a href="([^"]*)">/g, m;
+    while((m = re.exec(sec))) hrefs.push(unesc(m[1]));
+    var src = Array.isArray(st.sources) ? st.sources : [];
+    hrefs.forEach(function(h){ if(src.indexOf(h) < 0) e.push(is.id + ": story " + (i + 1) + " renders a link to " + h + ", which is not one of its sources — the page would send the reader elsewhere"); });
+    src.forEach(function(u){ if(hrefs.indexOf(u) < 0) e.push(is.id + ": story " + (i + 1) + "'s rendered page never links its source " + u); });
+  });
+  return e;
+}
+
 /* ---------- build ---------- */
 /* Returns every file docs/nocturne/ should hold, as relative path -> Buffer,
    plus the sitemap block. Pure: no writes, no clock. */
@@ -708,11 +870,21 @@ function build(root, opts){
   var issues = listIssues(srcDir);
   var errs = checkAll(issues, cat);
   var files = {"nocturne.css": Buffer.from(CSS, "utf8"), "feed.css": Buffer.from(FEED_CSS, "utf8")};
+  /* The paper's italic and the licence that travels with it (6.2.3). The
+     bytes must be the ones qa/subset-fonts.py --paper blessed. */
+  var ital = fs.readFileSync(path.join(ITALIC.dir, ITALIC.file));
+  if(ital.length !== ITALIC.rec.bytes || require("crypto").createHash("sha256").update(ital).digest("hex") !== ITALIC.rec.sha256){
+    errs.push("qa/nocturne-fonts/" + ITALIC.file + " is not the face qa/nocturne-fonts/record.json blessed — run python3 qa/subset-fonts.py --paper");
+  }
+  files[ITALIC.file] = ital;
+  files["OFL.txt"] = fs.readFileSync(path.join(root, "docs", "fonts", "OFL.txt"));
   var list = issues.filter(function(i){ return i.fm && Number.isInteger(i.fm.issue); })
                    .sort(function(a, b){ return b.fm.issue - a.fm.issue; });
   if(!errs.length && list.length){
     list.forEach(function(is){
-      files[is.id + "/index.html"] = Buffer.from(renderIssue(is, cat), "utf8");
+      var page = renderIssue(is, cat);
+      renderedLinkErrors(is, page).forEach(function(m){ errs.push(m); });
+      files[is.id + "/index.html"] = Buffer.from(page, "utf8");
       (is.fm.images || []).forEach(function(im){
         files[is.id + "/" + im.file] = fs.readFileSync(path.join(is.dir, im.file));
       });

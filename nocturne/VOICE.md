@@ -50,7 +50,7 @@ and doesn't raise his voice. Menace from restraint, and every full stop is a ful
 1. **Cold open.** Two or three lines of city before the first story. It sets the
    week's mood and points at the lead, but it doesn't state the lead's facts;
    those belong to the story.
-2. **The stories: 3 to 6, the biggest first, whatever the beat,** each under
+2. **The stories: 3 to 8, the biggest first, whatever the beat,** each under
    its own headline. Screen, comics, games, toys, books: Nocturne covers all
    of Batman, not only what's on screen.
 3. **The sign-off.** One line that closes the file for the week.
@@ -172,7 +172,7 @@ nicknames, emoji, hashtags.
 | Titles | Italics for films, series, comics, games and books; "Season 3"; comic issues as "#12". Toy lines in plain text | *The Long Halloween, Part Two*; *Batman* #12 |
 | Headlines | Sentence case, a statement, no colon teasers, ≤ 70 characters | Clayface gets a date |
 | Dashes | Em dash, no spaces, one per story at most | — |
-| Length | Cold open ≤ 50 words; 60–120 words per story; 250–750 per issue (No. 0: 600–900) | |
+| Length | Cold open ≤ 50 words; 60–500 words per story; 250–3000 per issue (No. 0: 600–900). A ceiling, not a target: a big week may run long, a thin week runs short | |
 | Links | Inline on the source name, never "click here" | per Warner Bros.' own listing |
 | Site counts | Only current ones from `docs/orders.txt`; omit if unsure | 137 films, 71 seasons, 44 continuities |
 | Alt text | What the image shows, no spoilers, ≤ 125 characters | Key art: a figure on a rooftop in rain |
@@ -238,10 +238,10 @@ All must be true before the PR opens. The owner checks again before merging.
 - [ ] Every date, source and position is stated outright, not carried by a metaphor
 - [ ] No endings, twists, reveals, or survival-by-announcement, in text or images
 - [ ] "We" in the issue, "I" only in the X post; the app never speaks
-- [ ] Cold open, 3–6 stories, sign-off; nothing else
+- [ ] Cold open, 3–8 stories, sign-off; nothing else
 - [ ] No banned words, exclamation marks, emoji or hashtags
 - [ ] Every image has a licence record, a credit line and alt text
 - [ ] No service named as a place to watch
 - [ ] Dates, numbers and spelling follow §8
 - [ ] Any site count matches `docs/orders.txt`, or is left out
-- [ ] 250–750 words (No. 0: 600–900), nothing padded
+- [ ] 250–3000 words (No. 0: 600–900), nothing padded to reach a number

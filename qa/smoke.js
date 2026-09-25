@@ -3108,7 +3108,9 @@ win.addEventListener("load", function(){
           var clipOk = true;
           Object.defineProperty(w8.navigator, "clipboard", {configurable:true, value:{
             writeText:function(){ return clipOk ? Promise.resolve() : Promise.reject(new Error("no")); }}});
-          w8.S.lastExportAt = 0; w8.S.tab = "stats"; w8.render();
+          w8.S.lastExportAt = 0; w8.S.bkDismissAt = 0; w8.S.tab = "stats";
+          for(var bk = 0; bk < 12; bk++) w8.S.clk.w["smoke-bk-" + bk] = Date.now();
+          w8.render();
           var clickAct = function(a){
             var b = w8.document.querySelector('#view .panel:not([inert]) [data-act="' + a + '"]');
             if(b) b.dispatchEvent(new w8.MouseEvent("click", {bubbles:true}));
@@ -3117,6 +3119,11 @@ win.addEventListener("load", function(){
           var made = clickAct("mkcode");
           check("Create backup code does not stamp a backup", made && !!w8.S.code && !w8.S.lastExportAt,
                 "button " + made + ", lastExportAt=" + w8.S.lastExportAt);
+          var viewTxt = function(){ var v = w8.document.getElementById("view"); return v ? v.textContent : ""; };
+          var warnBefore = /no backup yet/.test(viewTxt());
+          check("the backup reminder names the step that is the backup", warnBefore &&
+                /no backup yet \u2014 make a code and copy it, or save a file\./.test(viewTxt()),
+                "reminder shown " + warnBefore);
           clipOk = false; clickAct("copy");
           setTimeout(function(){
             check("a refused copy stamps nothing", !w8.S.lastExportAt, "lastExportAt=" + w8.S.lastExportAt);
@@ -3124,6 +3131,11 @@ win.addEventListener("load", function(){
             setTimeout(function(){
               check("a landed copy stamps the backup", copied && w8.S.lastExportAt > 0,
                     "lastExportAt=" + w8.S.lastExportAt);
+              /* 6.2.3 (QA N-3): the stamp re-renders, so the reminder goes on
+                 the same frame the backup lands, not on the next render. */
+              check("the backup reminder clears on the copy that stamps it",
+                    warnBefore && w8.S.lastExportAt > 0 && !/no backup yet/.test(viewTxt()),
+                    "reminder still up: " + /no backup yet/.test(viewTxt()));
 
               /* --- and the boot sweep repairs a store that already has one */
               var seed3 = JSON.stringify({watched:(function(o){ o[A] = 1; return o; })({}),

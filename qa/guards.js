@@ -229,6 +229,7 @@ function blessHtml(next){
      166  Every issue keeps the contract
      167  The sitemap and the feed list exactly the issues
      168  The paper's weight
+     169  The paper sets type on the app's scale
 
    META
      65   The file points at where its reasoning went
@@ -15840,14 +15841,38 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     fail("the served paper drifted from its build: " + m + " — run npm run nocturne:build, never edit docs/nocturne/ by hand");
   });
   /* The agent can open a pull request that edits this file's inputs as
-     easily as its issue. The fence is a CI job; this holds its shape: it
-     runs on nocturne/ branches, and its allowed list is the paper's three
-     paths and nothing wider. */
+     easily as its issue. The fence is a CI job; this holds its shape. 6.2.3
+     (QA N-2) closed three ways round it, and each is pinned: the job keys on
+     the pull request's author, not the branch name the agent chooses; it runs
+     on pull_request_target from its own file, so a pull request that edits
+     the fence is judged by the fence on main; and it diffs with --no-renames,
+     so a rename out of a protected path is a change to that path. It must
+     never execute the pull request: no npm, no node, no checkout of the head
+     as a working tree, no token left in git's config. */
+  var fencePath = path.join(ROOT, ".github", "workflows", "nocturne-fence.yml");
+  var fence = fs.existsSync(fencePath) ? fs.readFileSync(fencePath, "utf8") : "";
   var qa163 = fs.readFileSync(path.join(ROOT, ".github", "workflows", "qa.yml"), "utf8");
-  if(qa163.indexOf("startsWith(github.head_ref, 'nocturne/')") < 0 ||
-     qa163.indexOf("grep -Ev '^(nocturne/issues/|docs/nocturne/|docs/sitemap\\.xml$)'") < 0){
-    fail("qa.yml's fence around the drafting agent is gone or widened \u2014 a nocturne/ pull request " +
-         "may change nocturne/issues/, docs/nocturne/ and docs/sitemap.xml only");
+  var need163 = [
+    ["on:\n  pull_request_target:", "runs on pull_request_target, so the fence on main judges every pull request"],
+    ["if: github.event.pull_request.user.login == 'nocturne-desk'", "keys on the author, nocturne-desk, not on a branch name the agent picks"],
+    ["git diff --no-renames --name-only", "diffs with --no-renames, so a rename out of a protected path counts"],
+    ["grep -Ev '^(nocturne/issues/|docs/nocturne/|docs/sitemap\\.xml$)'", "allows nocturne/issues/, docs/nocturne/ and docs/sitemap.xml only"],
+    ["persist-credentials: false", "leaves no token in git's config"],
+    ["permissions:\n  contents: read", "runs read-only"]
+  ];
+  if(!fence){
+    fail("the fence around the drafting agent is gone — .github/workflows/nocturne-fence.yml holds a pull request by nocturne-desk to the paper's three paths");
+  } else {
+    need163.forEach(function(n){
+      if(fence.indexOf(n[0]) < 0) fail("the fence around the drafting agent is gone or widened: nocturne-fence.yml no longer " + n[1]);
+    });
+    if(/head_ref/.test(fence)) fail("the fence around the drafting agent keys on a branch name again — the agent chooses its branch, not its author");
+    if(/\b(npm|npx|node|yarn|pnpm|bash qa\/|python3? )/.test(fence) || /ref:\s*\$\{\{\s*github\.event\.pull_request\.head/.test(fence)){
+      fail("the fence around the drafting agent runs code — on pull_request_target it may only read the pull request with git, never execute or check it out");
+    }
+  }
+  if(/nocturne-paths:|head_ref/.test(qa163)){
+    fail("qa.yml still carries a copy of the fence around the drafting agent — on pull_request a pull request can rewrite it; the fence lives in nocturne-fence.yml");
   }
   note("nocturne: " + NOC_REAL.list.length + " issue" + (NOC_REAL.list.length === 1 ? "" : "s") +
        " on disk, docs/nocturne/ is byte-for-byte the build (" + Object.keys(NOC_REAL.files).length + " files)");
@@ -15980,6 +16005,10 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   NOC_FIX.list.forEach(function(is){
     var h = (NOC_FIX.files[is.id + "/index.html"] || Buffer.from("")).toString("utf8");
     var boxes = (h.match(/<div class="map/g) || []).length;
+    var ids166 = (h.match(/<section class="story" id="s(\d+)">/g) || []).map(function(t){ return +t.match(/\d+/)[0]; });
+    if(ids166.join(",") !== is.fm.stories.map(function(_, i){ return i + 1; }).join(",")){
+      fail("the fixture's " + is.id + " does not give every story its own address, #s1 to #s" + is.fm.stories.length + " in order (6.2.3)");
+    }
     if(is.fm.kind === "founding" && boxes){
       fail("the founding fixture renders an On-the-map box — No. 0 is about the app, not the catalogue");
     }
@@ -16064,7 +16093,14 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       fail(pair[0] + " feed's channel description is not the paper's line: " + NOC.FEED_DESC);
     }
   });
-  [["feed.xml", hfeed], ["the archive", NOC_FIX.files["index.html"].toString("utf8")], ["the holding page", hold]].forEach(function(p2){
+  var swept167 = [["feed.xml", hfeed], ["the archive", NOC_FIX.files["index.html"].toString("utf8")], ["the holding page", hold]];
+  /* 6.2.3 (house QA P3-1): the issue pages too, not only the feed, the
+     archive and the holding page — the fixture's No. 0 said it and nothing
+     read issue HTML. */
+  NOC_FIX.list.forEach(function(is){
+    swept167.push(["the fixture's " + is.id, (NOC_FIX.files[is.id + "/index.html"] || "").toString("utf8")]);
+  });
+  swept167.forEach(function(p2){
     if(/screen news/i.test(p2[1])) fail(p2[0] + " still calls the paper \"screen news\" — it covers all of Batman");
   });
   note("nocturne: the sitemap block sits after the site's two URLs; the fixture's feed and block list its " + ids.length +
@@ -16097,6 +16133,82 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     });
   });
   note("nocturne: " + n + " built files inside the paper's weight limits");
+})();
+
+/* ---------- 169. The paper sets type on the app's scale ---------- */
+/* 6.2.3. The paper had its own sizes (9.5 px datelines, an 11 px correction,
+   a 34 px issue number), an arrow its fonts do not carry, and a faked italic.
+   This holds the one scale: every font-size in nocturne.css and feed.css is
+   a var(--t-*); every shared --t-* equals the app's :root value; the only
+   paper-only sizes are the nameplate, the banner and the drop cap. It holds
+   the print sheet (ink on white, no buttons), the paper's own italic (its
+   bytes are the blessed ones, it is served from the paper and never from
+   docs/fonts/, and OFL.txt travels with it), and that no page the build
+   writes carries a character outside the fonts. */
+
+(function(){
+  if(!NOC) return;
+  var root169 = (HTML.match(/:root\{[^}]*--t-display[^}]*\}/) || [""])[0];
+  var app = {};
+  (root169.match(/--t-[a-z]+:[^;}]+/g) || []).forEach(function(d){ var i = d.indexOf(":"); app[d.slice(0, i)] = d.slice(i + 1).trim(); });
+  if(Object.keys(app).length !== 9) fail("guard 169 cannot read the app's nine --t-* sizes out of its :root — the paper's scale has nothing to agree with");
+  var PAPER_ONLY = ["--t-plate", "--t-banner", "--t-drop"];
+  var bld = NOC_FIX || NOC_REAL;
+  if(!bld) return;
+  [["nocturne.css", true], ["feed.css", false]].forEach(function(pair){
+    var css = (bld.files[pair[0]] || Buffer.from("")).toString("utf8");
+    if(!css){ fail("the paper's build writes no " + pair[0]); return; }
+    var body = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    (body.match(/font-size\s*:\s*[^;}]+/g) || []).forEach(function(d){
+      if(!/^font-size\s*:\s*var\(--t-[a-z]+\)$/.test(d.trim())) fail("the paper's " + pair[0] + " sets a size off the scale: " + d.trim() + " — every font-size is a var(--t-*) (6.2.3)");
+    });
+    if(/(^|[;{\s])font\s*:/.test(body)) fail("the paper's " + pair[0] + " uses the font shorthand — it carries a size the scale cannot see");
+    (body.match(/--t-[a-z]+\s*:[^;}]+/g) || []).forEach(function(d){
+      var i = d.indexOf(":"), k = d.slice(0, i).trim(), v = d.slice(i + 1).trim();
+      if(PAPER_ONLY.indexOf(k) >= 0) return;
+      if(!app[k]) fail("the paper's " + pair[0] + " declares " + k + ", which is not one of the app's sizes or the paper's three (" + PAPER_ONLY.join(", ") + ")");
+      else if(app[k] !== v) fail("the paper's " + pair[0] + " sets " + k + " to " + v + " and the app sets " + app[k] + " — one scale with the app");
+    });
+    (body.match(/var\(--t-[a-z]+\)/g) || []).forEach(function(u){
+      var k = u.slice(4, -1);
+      if(body.indexOf(k + ":") < 0) fail("the paper's " + pair[0] + " uses " + k + " without declaring it");
+    });
+    if(pair[1]){
+      var pr = (body.match(/@media print\{[\s\S]*$/) || [""])[0];
+      if(!pr || !/--ink:#FFFFFF/i.test(pr) || !/--bone:#08090F/i.test(pr) || !/\.acts\{display:none;\}/.test(pr)){
+        fail("the paper has lost its print sheet — ink on white, the buttons hidden (6.2.3)");
+      }
+    }
+  });
+  var rec169 = null;
+  try { rec169 = JSON.parse(fs.readFileSync(path.join(ROOT, "qa", "nocturne-fonts", "record.json"), "utf8")); }
+  catch(e){ fail("qa/nocturne-fonts/record.json is missing or unreadable — the paper's italic has no record"); }
+  if(rec169){
+    Object.keys(rec169.files).forEach(function(f){
+      var served = bld.files[f];
+      if(!served) fail("the paper's build does not serve its italic " + f);
+      else if(require("crypto").createHash("sha256").update(served).digest("hex") !== rec169.files[f].sha256){
+        fail("the paper's italic " + f + " is not the face qa/nocturne-fonts/record.json blessed");
+      }
+      if(fs.existsSync(path.join(PUBLIC, "fonts", f))) fail(f + " is in docs/fonts/ — the paper's italic is the paper's alone; the app would have to preload it");
+      if(bld.files["nocturne.css"].toString("utf8").indexOf('src:url("/nocturne/' + f + '") format("woff2");font-weight:400;font-style:italic;') < 0){
+        fail("nocturne.css no longer declares the paper's italic face — titles fall back to a faked slant");
+      }
+    });
+    if(JSON.stringify(rec169.ranges) !== JSON.stringify(JSON.parse(fs.readFileSync(path.join(ROOT, "qa", "font-subset.json"), "utf8")).ranges)){
+      fail("the paper's italic is subset to different ranges than the app's faces — the glyph check reads qa/font-subset.json");
+    }
+    if(!bld.files["OFL.txt"]) fail("the paper serves a font without OFL.txt beside it — the licence travels with the font");
+  }
+  var pages169 = 0;
+  [NOC_REAL, NOC_FIX].forEach(function(b){
+    if(!b) return;
+    Object.keys(b.files).filter(function(f){ return /\.(html|css|xml)$/.test(f); }).forEach(function(f){
+      pages169++;
+      if(/\u2197/.test(b.files[f].toString("utf8"))) fail("the paper's " + f + " carries U+2197 — outside the fonts; the arrow is the app's inline SVG");
+    });
+  });
+  note("nocturne: both stylesheets on the app's --t-* scale, print sheet set, italic blessed and served from the paper; " + pages169 + " files free of glyphs the fonts lack");
 })();
 
 /* ---------- report ---------- */

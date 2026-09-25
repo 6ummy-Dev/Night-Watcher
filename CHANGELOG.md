@@ -14,6 +14,94 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.2.3] — 2026-09-25
+
+**Before the first Night Final.** The two 6.2.2 audits found a link that
+went to the wrong address, a fence the agent could walk round, and five
+smaller things; this cut takes every one, and brings forward from 6.3.0
+everything that makes No. 0 publish right without adding a front-matter
+field or a script. A PATCH by README's rule for the fixes, the copy and the
+QA tooling; the story anchors and the print sheet are new features and ride
+it by the owner's call, as 6.2.1's door did. No entry moves, and nothing
+saved changes shape or meaning. The counts stay at 137 films, 71 seasons and
+44 continuities. **No reinstall is needed.**
+
+### Fixed
+
+- **A source with two parameters links to the right page (QA N-1).** The
+  renderer escaped a link's address twice, so `?a=1&b=2` reached the browser
+  as `a=1&amp;b=2`: a different address, on every YouTube link and most trade
+  press. It is escaped once now, and the check reads each built page back:
+  every link a story prints, decoded the way a browser decodes it, must be one
+  of that story's sources. That is the check that would have caught it.
+- **The fence around the drafting agent holds (QA N-2).** It moved out of
+  `qa.yml` into `.github/workflows/nocturne-fence.yml`, on
+  `pull_request_target`, so the copy on `main` judges every pull request and
+  a pull request cannot rewrite its own check. It keys on the author,
+  `nocturne-desk`, not on a branch name the agent chooses. It diffs with
+  `--no-renames`, so moving `VOICE.md` into `nocturne/issues/` is a change to
+  `VOICE.md`. It runs read-only and executes nothing from the pull request.
+  `.github/CODEOWNERS` puts the workflows, `qa/` and the agent's two rules
+  files behind the owner's review.
+- **The backup reminder names the backup and clears when it lands (QA N-3).**
+  It reads "…no backup yet — make a code and copy it, or save a file." (and
+  "refresh the code and copy it, or save a file" when a backup is behind),
+  and a confirmed copy, a code file or a JSON file re-render on the spot
+  instead of leaving the warning up until something else redrew the page.
+- **Images keep no metadata (QA N-4).** A WebP with EXIF or XMP is refused,
+  by its flags and by its chunk list, since a flag can say nothing while the
+  chunk is there. BRIEF §6's "strip EXIF" is a checked rule now.
+- **Corrections keep the story's rules (QA N-5):** the voice, the markdown
+  subset, the characters, and no link the story does not list as a source.
+- **A week the calendar does not have is refused (QA N-6):** W01 to W52, W53
+  only in a 53-week year.
+- **`nocturne/issues/` exists in a fresh clone (QA N-7)**, kept by a
+  `.gitkeep` the build skips.
+- **No page says "screen news" (house P3-1).** The fixture's No. 0 said it,
+  and nothing read the issue pages; guard 167 does now.
+
+### Changed
+
+- **One type scale with the app.** Both stylesheets set every size from the
+  app's nine `--t-*` values, read out of its `:root` at build time, plus the
+  paper's three display sizes (nameplate, banner, drop cap). The 9.5 px
+  datelines, the 11 px correction and the 34 px issue number are gone;
+  tracking moves onto the app's steps; the feed's colours are tokens and its
+  double rule is the paper's rule. Story paragraphs hold to 62 characters.
+- **A real italic.** Titles are set in italic and NW Sans had none, so every
+  browser faked a slant. NW Sans Italic (IBM Plex Sans 400 italic, subset and
+  renamed like the app's Plex faces, 24,356 → 9,156 bytes) is the paper's
+  alone: served from `/nocturne/` beside `OFL.txt`, never preloaded or cached
+  by the app.
+- **The arrows are the app's inline SVG.** `↗` is outside the fonts.
+- **The morgue and the wire.** The archive is *The morgue*; the feed button
+  reads *The wire*.
+- **The check refuses characters the fonts lack**, naming each one, in every
+  field that reaches a page; **prices and calls to buy**; and **tracking or
+  affiliate parameters and shortener hosts** in any link.
+- **A weekly issue's lengths are a ceiling, not a target:** 3–8 stories,
+  60–500 words a story, 250–3000 an issue. No. 0's limits do not move.
+  BRIEF and VOICE say so.
+
+### Added
+
+- **Every story has its own address**, `#s1`, `#s2` …, so a post can point
+  at one.
+- **A print sheet.** Ink on white, the rules kept, no buttons.
+
+### Under the hood
+
+- **Guard 169** (new) holds both stylesheets to the `--t-*` scale and the
+  app's values, the print sheet, the italic's blessed bytes and its place
+  outside `docs/fonts/`, `OFL.txt` beside it, and no `U+2197` in any built
+  file. **Guard 163** holds the new fence's shape and that `qa.yml` carries
+  no copy. **Guard 166** holds the stories' addresses; **167** sweeps issue
+  pages.
+- Guard sections 168 → 169. Smoke 520 → 522. Negative suites 84 → 85
+  (negtest760, 35 fixtures); negtest610 sweeps the three new README rows
+  (125 → 128); two negtest750 fixtures re-anchored to the morgue and the
+  rendered page. Fixtures 1,502 → 1,540.
+
 ## [6.2.2] — 2026-09-24
 
 **The feed, readable.** Opened in a browser, `/nocturne/feed.xml` showed as a

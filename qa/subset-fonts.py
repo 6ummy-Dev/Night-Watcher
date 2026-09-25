@@ -51,6 +51,17 @@ SOURCES. The originals are the @fontsource packages, unmodified:
                                 big-shoulders-display-latin-700-normal.woff2
 They are not kept in the repo; re-fetch from npm to regenerate.
 
+THE PAPER'S ITALIC (6.2.3). Nocturne sets titles in italic and NW Sans had no
+italic face, so browsers faked a slant. `--paper` subsets and renames
+    @fontsource/ibm-plex-sans   ibm-plex-sans-latin-400-italic.woff2
+with the same RANGES and the same RENAME, into qa/nocturne-fonts/, and blesses
+qa/nocturne-fonts/record.json. It is the paper's alone: not in docs/fonts/, so
+the app neither preloads nor precaches it (guard 104 holds docs/fonts/ to the
+app's preloads); qa/nocturne.js copies it into docs/nocturne/ and refuses to
+build if its bytes disagree with the record. Put the upstream file in
+qa/nocturne-fonts/ and run
+    python3 qa/subset-fonts.py --paper
+
 Guard 106 does not run this. It checks the blessed manifest against the files on
 disk and against the catalogue's own characters, so the fonts and the record can
 only move together.
@@ -60,6 +71,10 @@ import hashlib, io, json, os, subprocess, sys
 ROOT   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FONTS  = os.path.join(ROOT, "docs", "fonts")
 OUT    = os.path.join(ROOT, "qa", "font-subset.json")
+PAPER  = "--paper" in sys.argv
+if PAPER:
+    FONTS = os.path.join(ROOT, "qa", "nocturne-fonts")
+    OUT   = os.path.join(FONTS, "record.json")
 
 # Basic Latin + Latin-1 Supplement + the punctuation the catalogue reaches for.
 RANGES = ["U+0020-007E", "U+00A0-00FF", "U+2010-2015", "U+2018-201F",
@@ -142,9 +157,13 @@ def main():
         print("subset      %-42s %6d -> %6d" % (f, before, os.path.getsize(p)))
 
     manifest = {
-        "note": "Blessed by qa/subset-fonts.py. Guard 106 holds it against the "
-                "files on disk and against the catalogue's own characters. "
-                "Fonts and this record can only move together.",
+        "note": ("Blessed by qa/subset-fonts.py --paper. The paper's own face: "
+                 "qa/nocturne.js refuses to build if the file disagrees with "
+                 "this record, and guard 169 holds it. Not in docs/fonts/.")
+                if PAPER else
+                ("Blessed by qa/subset-fonts.py. Guard 106 holds it against the "
+                 "files on disk and against the catalogue's own characters. "
+                 "Fonts and this record can only move together."),
         "ranges": RANGES,
         "files": {f: {"bytes": os.path.getsize(os.path.join(FONTS, f)),
                       "sha256": sha(os.path.join(FONTS, f)),
