@@ -423,7 +423,7 @@ section used to name. List them under `images` in this order:
 | File | Size | Where it runs | Alt text |
 | --- | --- | --- | --- |
 | `night-watcher-no0.webp` | 1600×900 | `hero`, under the banner | the owner's, or describe what it shows |
-| `night-final.webp` | 1600×900 | after section 1, the editorial | "The Night Final: the Nocturne nameplate and its five beats" |
+| `night-final.webp` | 1600×900 | after section 1, the editorial | "The city at night, one floor lit near the top of the tallest tower" |
 | `three-orders.webp` | as supplied | after section 2, the watch orders | the owner's, or describe what it shows |
 
 Each record: `credit: "Image: Night Watcher"`, `rights_holder: "Night
