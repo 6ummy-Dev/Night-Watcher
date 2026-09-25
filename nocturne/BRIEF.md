@@ -129,36 +129,40 @@ doesn't advance. A thin week is fine. A padded one isn't.
    newsletters, insiders. The street is cited as the street and never as fact,
    and a street tip is a reason to look for the wire. Leaks never run. Open
    every page you cite. **Then find the angle:** for every story, one sentence
-   on why it's interesting (`VOICE.md` §4). The biggest story leads, whatever
-   its beat; what has no angle goes in Late wires (`VOICE.md` §5).
-2. **Catalogue cross-check.** Read `docs/orders.txt` from `main` for the orders,
-   and the `PATH` array in `docs/index.html` for entry ids. For every story, find
-   the continuity and position it touches, or record that it touches none. This
-   feeds the front matter (`catalogue`, `effect`), which draws the box; it is
-   not a paragraph every story has to write.
-   **Any parked title whose date moved, or any new title that should be added to
-   the catalogue, goes in the PR's "Catalogue flags" section.** Flag it there and
-   never edit the catalogue yourself.
+   on why it's interesting (`VOICE.md` §4). What has no angle goes in Late
+   wires (`VOICE.md` §5).
+2. **Choose the stories, Batman first.** The lead is the story a Batman reader
+   will talk about this week, whatever the beat; the catalogue has no say in
+   what runs or what leads. For each story, find the Batman in it: the
+   character, the creators, the history (`VOICE.md` §4). The history comes
+   from the morgue, which is 87 years of Batman, not the catalogue.
 3. **Write** `nocturne/issues/<yyyy>-w<ww>-<slug>/issue.md` to the contract in
    §5. One folder per issue. The folder's name is the week in lower case and
    the slug: `2026-w41-clayface-gets-a-date`.
 4. **Images** per §6: the finished WebP files go **in the issue's folder**,
    beside `issue.md`. The build copies them into `docs/nocturne/`. Originals
    are not committed, and nothing else sits in the folder.
-5. **Pre-flight** against `VOICE.md` §11, item by item.
-6. **Build and check:** `npm ci && npm run nocturne:build && npm run nocturne:check && npm test`.
+5. **Catalogue stamp, last.** Only now read `docs/orders.txt` and the `PATH`
+   array in `docs/index.html`, to fill each story's `catalogue` and `effect`,
+   which draw the box. It's clerical: it never changes what a story says. **A
+   parked title whose date moved, or a new title the catalogue should add, goes
+   in the PR's "Catalogue flags"** the first week it's news; after that, one
+   line under "Still open" until the owner acts. Never edit the catalogue
+   yourself.
+6. **Pre-flight** against `VOICE.md` §11, item by item.
+7. **Build and check:** `npm ci && npm run nocturne:build && npm run nocturne:check && npm test`.
    All green, or stop. The build rewrites `docs/nocturne/` and the Nocturne
    block in `docs/sitemap.xml`; commit both with the issue. Never edit either
    by hand: guard 163 compares them byte for byte with what the build writes.
-7. **Screenshots.** Serve the tree (`python3 -m http.server 8099 --directory docs`),
+8. **Screenshots.** Serve the tree (`python3 -m http.server 8099 --directory docs`),
    open `http://127.0.0.1:8099/nocturne/<folder>/` and take two full-page
    screenshots, 390 and 1280 wide. They go in the PR: they are the owner's
    preview, because the site has no preview deploys.
-8. **Open the PR** using the template in §7, from a branch named
+9. **Open the PR** using the template in §7, from a branch named
    `nocturne/<yyyy>-w<ww>`. CI's `nocturne-paths` job fails the PR if it
    changes anything outside `nocturne/issues/`, `docs/nocturne/` and
    `docs/sitemap.xml`.
-9. **After merge**, Sunday 22:00: the site deploys on the merge. From the VM,
+10. **After merge**, Sunday 22:00: the site deploys on the merge. From the VM,
    `curl -sI` the issue URL. Post only on a 200, and only if the page's `<h1>`
    matches the merged headline (§8).
 
@@ -307,6 +311,9 @@ Title: `nocturne: No. <issue> — <headline>`
 ## Catalogue flags
 - <title>: <what moved, with source> — or "none"
 
+## Still open
+- <title>: <flag raised on date> — or "none"
+
 ## Images
 - <file> — <rights holder> — <licence> — <terms_url>
 
@@ -366,8 +373,9 @@ person who writes the paper.
 | `catalogue` / `effect` | per story | `none` / `none` |
 | `status` | confirmed / reported / provisional | `confirmed` |
 
-**Sources: first-party only.** Every fact about the app comes from the repo or
-the live site, linked like any other source:
+**Sources.** Every fact about the app and the paper comes from the repo or the
+live site; Batman history comes from the morgue's sources (`VOICE.md` §4). All
+linked like any other source:
 
 - `README.md`: what the app does, what it refuses to do, what belongs in the catalogue.
 - `CHANGELOG.md` and `CHANGELOG-archive.md`: dates, versions, why things changed.
@@ -378,17 +386,27 @@ the live site, linked like any other source:
 - *Thirty-One Nights*, the owner's essay on the app's history, if the owner
   hands it over. Paraphrase it; don't lift it.
 
-**What No. 0 should cover** (pick 4–6; two are required, and the order is
-set under "Section order" below). The map sections are the neighbour
-introduced by the paper, in the desk's voice, not the app describing itself:
+**What No. 0 should cover** (4–6 sections; the first two are required and in
+this order, the rest in any order). It's a Batman paper's first night: most of
+it is about Batman and the paper, and the map gets one section as the
+neighbour, not four:
 
-- One path through every Batman: films and series, animated and live action, in one map.
-- The three watch orders: by universe, Bruce's life (an interpretation, not canon, and the app says so), release order. **Required: section 2.**
-- No spoilers: universes stay whole, and nothing renders ahead of what it would give away.
-- Parked titles: announced, on the shelf, not tickable until they're out.
-- What it doesn't do: no account, no ads, nothing tracking what you watch, works offline, free software (AGPL).
-- One fan, working alone, and the ledger: every change written down with its reason.
-- What Nocturne is, **as the founding editorial** (below). **This one is required, and it leads.**
+1. **The founding editorial** (below): who's at the desk and who it's for.
+   **Required, section 1.**
+2. **The map next door**, in one section and in the desk's voice: one path
+   through every Batman on screen, the three watch orders (by universe, Bruce's
+   life, release order), no spoilers, parked titles, no account and nothing
+   tracking you. The paper describes its neighbour; the app doesn't describe
+   itself. **Required, section 2.**
+3. **From the morgue:** one piece of Batman history that explains why a paper
+   about him still has something to say every week. Sourced (DC's own pages,
+   the publishers, published books; never a wiki).
+4. **The beats:** what the Night Final covers, screen, comics, games, toys,
+   books, and how it reads the wire and the street (`VOICE.md` §6).
+5. **The Night Desk:** the paper's first column, the desk's view of what a
+   Batman paper owes its readers. It says "we think".
+6. **One fan and the ledger:** who builds the map, alone, with every change
+   written down.
 
 **The founding editorial**
 
@@ -424,7 +442,7 @@ that editorial is the section on Nocturne. There isn't a second one beside it.
   counts and the rules speak for the app.
 - The app still never speaks. It's "we" built it, never "Night Watcher says".
 
-**Section order.** The editorial is section 1 and the three watch orders are
+**Section order.** The editorial is section 1 and the map next door is
 section 2, because the images below are placed by position (§6). The other
 sections come after them, in any order.
 
@@ -436,7 +454,7 @@ section used to name. List them under `images` in this order:
 | --- | --- | --- | --- |
 | `night-watcher-no0.webp` | 1600×900 | `hero`, under the banner | the owner's, or describe what it shows |
 | `night-final.webp` | 1600×900 | after section 1, the editorial | "The city at night, one floor lit near the top of the tallest tower" |
-| `three-orders.webp` | as supplied | after section 2, the watch orders | the owner's, or describe what it shows |
+| `three-orders.webp` | as supplied | after section 2, the map next door | the owner's, or describe what it shows |
 
 Each record: `credit: "Image: Night Watcher"`, `rights_holder: "Night
 Watcher"`, `licence: "The project's own image"`, `source_url` and `terms_url`
@@ -450,3 +468,34 @@ No. 0 goes live.
 
 **The X post for No. 0:** "I" voice, one sentence on what the paper is and
 who it's for, one on the map next door, then the link.
+
+## 11 · Rulings from the test runs
+
+The owner's answers to what tests -1 and -2 asked. They hold until this file
+says otherwise.
+
+- **The angle is the Night Editor's.** A card may suggest one; the editor
+  decides.
+- **Status is the least certain fact the headline states.** A confirmed
+  product with a provisional date is `confirmed` if the headline is the
+  product, `provisional` if it's the date; the text says which is which.
+- **Shared source material earns no box.** A toy or comic from a story that a
+  catalogued film also adapts is `catalogue: none`. The text may name the film
+  as history.
+- **The slug may carry the title** for search, even when the headline doesn't.
+- **Maker sites that need a browser:** use the browser. It's still the maker's
+  own page.
+- **A retail listing's date** can come from a wire outlet that reports it,
+  attributed. The retailer is never linked.
+- **Images, until the owner rules on licences:** a studio or maker page whose
+  terms say personal, non-commercial or no reproduction counts as unclear, and
+  unclear stays out (§6). DC character art is out for now. No image follows Late
+  wires. The owner is taking the licence question; ask in the PR, don't guess.
+- **The desks' own files follow this brief.** Where a desk profile or
+  `NOCTURNE-BOTS.md` still says otherwise (the street as noise only, "confirmed
+  or reported only"), this file wins, and the profile gets updated.
+- **Test runs** use negative issue numbers and are never built or checked;
+  the checker refusing them is expected, not a gap.
+- **6.3.0 lands before No. 0** (Saturday 26 September): the names exemption,
+  `beat` and `names` fields, and the checker's new section numbers. If `main`
+  isn't on 6.3.0 when the run starts, stop and say so in the PR.

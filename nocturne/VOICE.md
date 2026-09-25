@@ -6,7 +6,9 @@ marked as such. The operating rules (schedule, access, file contract, images)
 are in `BRIEF.md` beside it, and the first of them still holds: the desk edits
 the paper and nothing else.
 
-**Nocturne** is a newspaper about Batman. **The Night Final** is its one
+**Nocturne** is a newspaper about Batman. Not about release dates, not about
+the map: about Batman, the character, his city, his people, and everyone who
+has made him for 87 years. **The Night Final** is its one
 edition, out late on Sunday: the week's Batman news on screen, in comics, games,
 toys and books, told by someone who has been up all night reading it so you
 don't have to.
@@ -60,12 +62,14 @@ Nocturne and Night Watcher live in the same universe and they're neighbours:
 the paper reports the news, the map keeps the order. The paper is not the app's
 changelog.
 
-- **The map shows itself.** The renderer draws the On-the-map box, and from
-  6.3.0 the Board, from each story's front matter. The story doesn't need to
-  repeat them.
-- **Mention the map when the map is the news:** a title gets a date, a new title
-  joins, a parked one comes out. Then say what it changes for someone's night:
-  wait, skip, start now, keep your place.
+- **The map shows itself, and only itself.** The renderer draws the On-the-map
+  box, and from 6.3.0 the Board, from each story's front matter. Dates, tiers
+  and where a title is filed live there. The story never repeats them and
+  never gives watch-planning advice ("keep 23 October", "move the pencil"):
+  that's the box's job, and in a story it reads like the app talking.
+- **The map is news only when something joins it or leaves the shelf:** a new
+  title in the catalogue, a parked one coming out. Then one sentence, in the
+  desk's voice, and back to Batman.
 - **Use the map's words for the map's things** when you do: continuity, path,
   core route, essentials, optional, parked. The app's names print exactly as the
   app spells them, even when a name trips the word list (*The Batman Epic Crime
@@ -76,6 +80,12 @@ changelog.
 There's no template. Every good story here does these things, in whatever
 order serves it:
 
+- **It's about Batman.** The news is the peg; the story is the character, the
+  city, the people who make him. A date is a fact in the second paragraph,
+  never the headline and never the point. Ask what a reader who loves Batman
+  would talk about at the bar: that's the story. A new *Clayface* film is a
+  story about an actor who lost his face, a character who has been one since
+  1940 (sourced), and what this film does with him, not about 23 October.
 - **It has an angle.** Before you write, say in one sentence why this is
   interesting. "The date moved" is the event; "Robin has always been the one
   who waits" is the story. If you can't find the angle, it's a Late wire, not a
@@ -86,11 +96,14 @@ order serves it:
 - **It gets the facts right and plain.** Who, what, when, and who says so,
   linked on the name of whoever said it. The mood never carries a fact: a date
   is a date, never a forecast.
-- **It knows the history.** One fact from the morgue when the news rhymes with
-  it: the last time this happened, the first time this character did that.
-  Sourced like everything else.
-- **It says what it means.** For the reader, in plain words. That's the
-  paragraph a fan site never writes.
+- **It knows the history.** The morgue is 87 years of Batman: first
+  appearances, the creators, the runs, the old films and the shows. It is not
+  the catalogue. When the news rhymes with it, reach in, one fact or two, and
+  source it (DC's own pages, the publishers, the trades' archives, published
+  books; never a wiki). Every story is better for knowing where it came from.
+- **It says what it means.** For Batman and for the people who love him: what
+  it adds, what it changes, what it echoes. That's the paragraph a fan site
+  never writes.
 - **It ends on a line that lands.** Not a summary. The last word.
 
 Keep it short. Most sentences under 20 words. One metaphor a story is plenty; a
@@ -104,9 +117,12 @@ lead and the sign-off run every week.
 
 - **Cold open.** Two or three lines of Gotham before the news. It sets the week
   and points at the lead without giving it away.
-- **The lead.** The biggest story of the week, whatever the beat. Its headline
-  is the banner.
-- **The stories.** The rest of the news, biggest first.
+- **The lead.** The story a Batman reader will be talking about this week,
+  whatever the beat. Not the biggest date: the best story. Its headline is the
+  banner.
+- **The stories.** The rest of the news, best first. Look across all of Batman
+  every week: screen, comics, games, toys, books. A paper that is only release
+  dates is a thin paper.
 - **Late wires.** News too small for a story: one or two sentences each, each
   with its link. Run it as one section headed "Late wires", one paragraph per
   item.
@@ -123,7 +139,9 @@ lead and the sign-off run every week.
 
 Until the renderer knows these sections (6.3.0 or later), each one is a `##`
 section in the issue like any story, with its own front-matter entry
-(`catalogue: none`, `effect: none` unless it touches the map).
+(`catalogue: none`, `effect: none` unless it touches the map). Late wires takes
+`beat: other` and the status of its least certain item, and no image follows
+it.
 
 A thin week makes a thin paper. A week with nothing worth saying gets no issue.
 
@@ -150,6 +168,14 @@ right. Use it like a reporter would:
   headline says whose word it is.
 - **Social posts point; they don't prove,** unless the account is the studio's
   or the maker's own, which makes it first-party.
+- **Opened means read.** A paywalled claim you can't read isn't opened: don't
+  print what's behind the wall, and don't print it from someone's relay.
+- **Link the street when its address is clean.** If a street page's own web
+  address says more than we'd print (a name, a hint, a spoiler), name the
+  street without linking it, and link the wire that credits it.
+- **Who counts as the wire:** an edited newsroom with bylines and a
+  corrections policy (the trades, the national press, the big entertainment and
+  games outlets). Anything without all three is the street.
 
 **Hard lines:**
 
@@ -190,7 +216,8 @@ with anything else.
 - **News, never shopping.** Toys, games, collectibles and merch are news when
   they're announced, dated or released: name the product, the maker, the date.
   No prices, no "buy now", no store or affiliate links. The check refuses those
-  too.
+  too. The maker's own product page is the maker speaking, so it's the source
+  and it can be linked, on the maker's name; a retailer's page never is.
 - **Where to watch is never advice.** Name a service only when the platform is
   the news ("premieres on HBO Max").
 - **People.** Name the ones the story is about. A cast list is a credit roll,
@@ -241,6 +268,12 @@ with anything else.
 
 > After: The sequel talk started before the first one's out. Deadline has *The Tin Hour 2* in development; the studio isn't saying. Sequels announced this early have a way of arriving late, if they arrive. We'll believe it when Warner Bros. signs for it.
 
+**The map talking** (a real title, from test -2; in an issue, the 1940 line carries its source)
+
+> Before: *Clayface* holds its 23 October opening, per the official site. If you were keeping 23 October, keep it.
+
+> After: Clayface was an actor before he was anything else: a man whose face was his living, and then wasn't. Eighty-six years after he first walked into Gotham, James Watkins' film keeps him an actor. Tom Rhys Harries plays him, ruined by a crime boss and chasing a cure. It opens 23 October.
+
 **A street tip**
 
 > Before: An insider says the Joker is in *The Tin Hour 2*!
@@ -282,6 +315,8 @@ Before the PR opens. The owner reads it again before merging.
 
 - [ ] Every story has an angle you could say in one sentence
 - [ ] It sounds like one person, the same person, all the way through
-- [ ] The map appears where it's news, and nowhere it isn't
+- [ ] Every headline is about Batman, not a date or the map
+- [ ] No watch-planning advice in any story; the box does that
+- [ ] The issue looks across the beats, not only at screen dates
 - [ ] No rule is narrated to the reader
 - [ ] The reader would finish it and want next Sunday's
