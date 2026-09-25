@@ -36,7 +36,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # 6.3.0. An issue pull request runs the paper's checks, not the app's. The
+  # drafting agent can only change the paper (nocturne-fence.yml holds that),
+  # so a pull request whose every changed path is inside the fence cannot
+  # touch the app: it runs every guard (a second's work) and the paper half
+  # of the browser check, and skips smoke, the negative shards and the app
+  # half of the browser check. Anything outside the fence gets everything.
+  # Skipped as steps, never as a paths filter, so a required check still
+  # reports. Every push to main and the nightly run everything, so a merge
+  # that slipped past goes red on main. Guard 163 holds this job's shape.
+  scope:
+    runs-on: ubuntu-latest
+    outputs:
+      paper: ${{ steps.scope.outputs.paper }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - id: scope
+        name: an issue pull request runs the paper's checks
+        run: |
+          PAPER=false
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CHANGED=$(git diff --no-renames --name-only HEAD^1 HEAD)
+            if [ -n "$CHANGED" ] && ! printf '%s\n' "$CHANGED" | grep -Ev '^(nocturne/issues/|docs/nocturne/|docs/sitemap\.xml$)' >/dev/null; then
+              PAPER=true
+            fi
+          fi
+          echo "paper=$PAPER" >> "$GITHUB_OUTPUT"
+          echo "paper only: $PAPER"
+
   test:
+    needs: scope
     runs-on: ubuntu-latest
     strategy:
       # engines advertises ^22 || ^24 || >=26 and until 5.3.0 CI only ever
@@ -62,7 +94,12 @@ jobs:
       # what was reviewed, not whatever the version ranges resolve to today.
       - run: npm ci
 
-      - run: npm test
+      - if: needs.scope.outputs.paper != 'true'
+        run: npm test
+
+      - if: needs.scope.outputs.paper == 'true'
+        name: the paper's checks (an issue pull request)
+        run: node qa/guards.js && npm run nocturne:check
 
   # The negative suites. Each fixture breaks one thing on purpose in a throwaway
   # copy of the tree and asserts the guards go red for the right reason — the
@@ -71,7 +108,7 @@ jobs:
   # PR-gated job never runs (it did not, for a long time — NOTES-history.md
   # ("Where the served and config files' histories went")).
   #
-  # Cost: 1540 fixtures, of which 1423 run guards.js and 117 run smoke.js — most
+  # Cost: 1569 fixtures, of which 1452 run guards.js and 117 run smoke.js — most
   # of those scoped to one phase by SMOKE_ONLY. The split is guarded in this
   # file the same as the README's counts, so the next drift fails the build.
   # run-all.sh dispatches longest-first; this job shards 4-way on top, packed
@@ -84,6 +121,7 @@ jobs:
   # over the others); repack when a suite lands. Guard 113 measures the
   # balance on every run, so the weights live nowhere in prose.
   negative:
+    needs: scope
     runs-on: ubuntu-latest
     # Room for a shard's serial worst case, short enough that a fixture wedged
     # in an infinite loop fails instead of burning the six-hour default.
@@ -99,7 +137,7 @@ jobs:
           - shard: "2"
             pick: 'negtest(163|166|172|177|180|183|185|187|200|210|271|330|420|475|478|500|510|520|640|690|700|730)\.sh'
           - shard: "3"
-            pick: 'negtest(131|161|164|171|175|176|220|251|270|350|390|410|460|490|530|620|630|710|740)\.sh'
+            pick: 'negtest(131|161|164|171|175|176|220|251|270|350|390|410|460|490|530|620|630|710|740|770)\.sh'
           - shard: "4"
             pick: 'negtest(170|181|182|195|250|252|272|273|320|380|400|430|450|470|476|480|580|600|650|670|720|750|760)\.sh'
     steps:
@@ -114,7 +152,8 @@ jobs:
           check-latest: true
           cache: npm
 
-      - run: npm ci
+      - if: needs.scope.outputs.paper != 'true'
+        run: npm ci
 
       # The union check. The shard lists above are prose, and prose drifts —
       # a suite added to qa/negative/ but not to a pick pattern would silently
@@ -126,6 +165,7 @@ jobs:
       # because a check that reads zero calls every suite uncovered and one
       # that reads three waves a whole missing shard through.
       - name: every suite lands in some shard
+        if: needs.scope.outputs.paper != 'true'
         run: |
           PATTERNS=$(sed -n "s/^ *pick: '\(.*\)'$/\1/p" .github/workflows/qa.yml)
           COUNT=$(printf '%s\n' "$PATTERNS" | grep -c .)
@@ -144,7 +184,8 @@ jobs:
           done
           exit $MISSED
 
-      - run: bash qa/negative/run-all.sh '${{ matrix.pick }}'
+      - if: needs.scope.outputs.paper != 'true'
+        run: bash qa/negative/run-all.sh '${{ matrix.pick }}'
 
   # 6.2.3: the fence around the drafting agent moved to its own workflow,
   # nocturne-fence.yml, on pull_request_target, so a pull request cannot
@@ -161,6 +202,7 @@ jobs:
   # ornaments actually ship, and a WebKit-only red is exactly the finding the
   # second engine exists to produce. The two are independent (fail-fast off).
   browser:
+    needs: scope
     # Pinned, not latest: `playwright install --with-deps` runs apt with a
     # package list the pinned Playwright must know, and every time GitHub
     # advances ubuntu-latest this job dies at ~40s until the pin catches up.
@@ -211,7 +253,7 @@ jobs:
             curl -sf -o /dev/null http://127.0.0.1:8099/index.html && break
             sleep 0.5
           done
-          NW_ENGINE=${{ matrix.engine }} npm run browser
+          NW_ENGINE=${{ matrix.engine }} NW_ONLY=${{ needs.scope.outputs.paper == 'true' && 'paper' || 'all' }} npm run browser
 
       # The screenshots browser-check writes are the evidence a red run
       # leaves behind; a green run's are noise. Kept for a week.
