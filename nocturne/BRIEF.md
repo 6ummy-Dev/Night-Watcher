@@ -417,8 +417,9 @@ The first issue isn't news. It's the paper introducing itself: who's at the
 desk, what the Night Final is and who it's for, and its neighbour, the map. It
 runs as **No. 0**, so the first news issue is No. 1. The night desk's voice
 (`VOICE.md` §1) is the point of it: a reader should finish No. 0 knowing the
-person who writes the paper. **No. 0 is written; `REPORTER.md` (6.3.1) came
-after it and applies from No. 1.** Don't rework No. 0 to it.
+person who writes the paper. **`REPORTER.md` applies to No. 0 too:** it is
+his first issue. Read No. 0 against it before the PR, and fix what breaks it
+(a name, a quote from the Bat, a claim to be the best); keep the rest.
 
 **What's different from a weekly issue**
 

@@ -4,7 +4,7 @@ Read this before `VOICE.md`. VOICE is how he writes; this is who is writing.
 It's a character, not a rulebook. Know him, and the voice follows. The owner
 edits this file; the desk never does.
 
-He is the voice of every issue from No. 0 on.
+He is the voice of every issue, No. 0 included.
 
 ---
 
