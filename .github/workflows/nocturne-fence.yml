@@ -50,9 +50,9 @@ jobs:
         run: |
           git fetch --no-tags --quiet origin "+refs/pull/${PR}/head:refs/nocturne/head"
           CHANGED=$(git diff --no-renames --name-only "$BASE...refs/nocturne/head")
-          BAD=$(printf '%s\n' "$CHANGED" | grep -Ev '^(nocturne/issues/|docs/nocturne/|docs/sitemap\.xml$)' | grep . || true)
+          BAD=$(printf '%s\n' "$CHANGED" | grep -Ev '^(nocturne/issues/|nocturne/NOTEBOOK\.md$|docs/nocturne/|docs/sitemap\.xml$)' | grep . || true)
           if [ -n "$BAD" ]; then
-            echo "a pull request by nocturne-desk may change nocturne/issues/, docs/nocturne/ and docs/sitemap.xml only:"
+            echo "a pull request by nocturne-desk may change nocturne/issues/, nocturne/NOTEBOOK.md, docs/nocturne/ and docs/sitemap.xml only:"
             printf '%s\n' "$BAD"
             exit 1
           fi
