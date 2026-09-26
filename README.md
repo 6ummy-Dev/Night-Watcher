@@ -93,7 +93,9 @@ context. The desk also keeps
 `nocturne/NOTEBOOK.md`, its dated, sourced reading record, filed in its own
 pull requests and never published. `npm run nocturne:build`
 turns the issues into `docs/nocturne/` and the sitemap's Nocturne block,
-and `npm run nocturne:check` holds each issue to the contract. The output is
+and `npm run nocturne:check` holds each issue to the contract; it also
+warns, without failing, on the sentence counts in `VOICE.md` §4 (-ings,
+-ly adverbs, even sentence lengths, more than one simile). The output is
 committed, and guards 163–169 hold it byte for byte to what the build
 writes. An issue is content, not a release: no version, no tag, no
 CHANGELOG entry.
@@ -218,7 +220,7 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 87 negative suites, 1600
+trusted. That evidence lives in `qa/negative/` — 87 negative suites, 1608
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps

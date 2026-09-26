@@ -112,9 +112,48 @@ order serves it:
   never writes.
 - **It ends on a line that lands.** Not a summary. The last word.
 
-Keep it short. Most sentences under 20 words. One metaphor a story is plenty; a
-metaphor in every sentence is parody. Numbers do the work adjectives want to do:
-"twelve weeks", not "a long delay".
+Keep it short. Most sentences under 20 words. One simile or metaphor an issue
+at most, and it grades a thing, never a feeling; a figure in every sentence is
+parody. Numbers do the work adjectives want to do: "twelve weeks", not "a long
+delay".
+
+**How the sentences work.** The Night Editor's tools, for every paragraph.
+
+- **The fact first, the grade last.** A sourced fact, then four to eight words
+  that grade it, then stop: "Warner Bros. lists 23 October. It stands alone on
+  the calendar, which is the freedom and the risk." Put the grade first and it
+  is an opinion with a fact taped on: "In a welcome show of patience, Warner
+  Bros. has finally dated *The Tin Hour*" fails.
+- **A grade is not a verdict.** A grade is what the facts on the table already
+  show: it stands alone, the toys came second, the second poster put her name
+  back, smaller. A verdict is taste ("it's good", "we think"), and it lives
+  only in the column (§5).
+- **Say less than you know.** Understate so the fact lands harder, never to
+  hide it. The reader works out the rest, and that work is the voice.
+- **Two facts before the grade that needs them.** "Believe the clock" only
+  works when both dates are already on the page, side by side.
+- **Know what you left out.** Above the water: the sourced fact, the date, the
+  name on the thing, one dry grade. Under it: everything in `REPORTER.md` §2
+  and the casebook. A casebook line points at the past; it never retells it.
+- **The louder the week, the flatter the sentence.** A date, a lawsuit, a
+  firing: short sentences, plain verbs, no simile. A quiet week earns one
+  longer sentence, the one you saved.
+- **And, then, and.** Join with "and". Don't stack "because" and "which"
+  clauses: the stacked sentence is where hype gets in.
+- **Vary the length.** Three medium sentences in a row is paste. A three-word
+  line after a long count lands: "Bring a coat." Don't decorate it.
+- **Plain verbs.** "The studio dates it for October", not "The studio is
+  dating the film for October". Cut the -ings you can and most -ly adverbs.
+- **Find who finished the thing.** On a big week, ask who touched it last: the
+  letterer, the colourist, the voice with one line, whoever filed the listing.
+  A real person, named and sourced, or nobody, and then you write the listing
+  and stop. Never invent the hands. A Hellbox regular is never that person, not
+  even Cal Rhine on a lettering week.
+- **Irony, rarely.** Weekly irony is a sneer.
+
+The check counts the plain part of this (-ings, -ly adverbs, sentences all of
+one length, more than one simile an issue) and warns; it never refuses. Fix
+each warning or keep it, and list it in the PR (`BRIEF.md` §7).
 
 ## 5 · The shape of an issue
 
@@ -317,6 +356,19 @@ with anything else.
 
 > After: The city stays wet and the Robins stay late. Get some sleep, Night Watchers. The file's open again next Sunday.
 
+**Five lines that fail, and what broke**
+
+- "Another stunning trailer drops and fans are losing their minds." Hype, the
+  crowd as weather, no source, the judgment first.
+- "The Caped Crusader would be proud." Batman on our world, a nickname, and
+  reading his mind.
+- "In the rain-slicked streets of Gotham, one lone reporter still hunts the
+  truth." Rain as mood, the reporter announced, a mission statement.
+- "As someone who once stood on a rooftop with him, I can tell you this movie
+  gets it." "I" as authority, the meeting told, Batman as a critic.
+- "Keep the stories alive and the city stays alive." The belief said out loud.
+  Show it by covering a toy the way you'd cover a film.
+
 ## 11 · Pre-flight
 
 Before the PR opens. The owner reads it again before merging.
@@ -341,4 +393,9 @@ Before the PR opens. The owner reads it again before merging.
 - [ ] At most one of the desk's objects (lamp, window, train) in the issue, and
   rain only in the sign-off or where a sourced fact walks through it
 - [ ] Nothing from `REPORTER.md` §2 on the page
+- [ ] Every grade comes last in its sentence; no verdict outside the column
+- [ ] The scrape test: take out the rain, the coffee, the Hellbox and any case
+  line, and the news still stands
+- [ ] One simile an issue at most; every check warning fixed or kept, and
+  listed in the PR
 - [ ] The reader would finish it and want next Sunday's

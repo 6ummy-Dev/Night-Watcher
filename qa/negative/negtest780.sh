@@ -10,6 +10,9 @@
 # 6.3.3: CODEOWNERS gives the casebook to the owner (163); the check holds
 # the reporter's plain rules: one "I" an issue, one Hellbox regular, the
 # names that never go in the paper, and Batman never on our world (166).
+# 6.3.4: the sentence counts (-ings, -ly adverbs, even sentence lengths,
+# similes) still fire, warn without refusing, print, and the fixture trips
+# none (166).
 # Every fixture names its section.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
@@ -180,6 +183,48 @@ run_case "Batman told the desk" \
 run_case "a banned name listed in names to slip past" \
   "is a bare word, not a name" \
   "${F40}a='names: [';assert s.count(a)==1;s=s.replace(a,'names: [\"Father Lusk\", ',1);${W}" \
+  guards "" 166
+
+echo "--- 166: the sentence counts warn, and still fire (6.3.4)"
+
+run_case "the -ing warning is switched off" \
+  "the -ing warning no longer fires" \
+  "${N}a='var STYLE = {ing: 4,';assert s.count(a)==1;s=s.replace(a,'var STYLE = {ing: 999,',1);${W}" \
+  guards "" 166
+
+run_case "the -ly warning is switched off" \
+  "the -ly warning no longer fires" \
+  "${N}a=' ly: 2,';assert s.count(a)==1;s=s.replace(a,' ly: 999,',1);${W}" \
+  guards "" 166
+
+run_case "the evenness warning is switched off" \
+  "the evenness warning no longer fires" \
+  "${N}a=' even: 0.2,';assert s.count(a)==1;s=s.replace(a,' even: 0,',1);${W}" \
+  guards "" 166
+
+run_case "the simile cap drifts to two" \
+  "the simile cap is not one an issue" \
+  "${N}a=' similes: 1};';assert s.count(a)==1;s=s.replace(a,' similes: 2};',1);${W}" \
+  guards "" 166
+
+run_case "an idiom counts as a simile" \
+  "no longer tells a simile from an idiom" \
+  "${N}a='(?!(?:long|soon|well|far|';assert s.count(a)==1;s=s.replace(a,'(?!(?:',1);${W}" \
+  guards "" 166
+
+run_case "the warnings refuse the run" \
+  "they warn and never fail" \
+  "${N}a='\n  if(b.errors.length){';assert s.count(a)==1;s=s.replace(a,'\n  if(b.errors.length || b.warnings.length){',1);${W}" \
+  guards "" 166
+
+run_case "the warnings are never printed" \
+  "the sentence warnings are never printed" \
+  "${N}a='\n  printWarnings(b.warnings);\n';assert s.count(a)==1;s=s.replace(a,'\n',1);${W}" \
+  guards "" 166
+
+run_case "the house sample goes soft on -ings" \
+  "the Nocturne fixture trips a sentence warning" \
+  "${F40}a='${T}';assert s.count(a)==1;s=s.replace(a,'Waiting, hoping, wishing, dreaming, trusting, fearing. '+a,1);${W}" \
   guards "" 166
 
 finish "negtest780"

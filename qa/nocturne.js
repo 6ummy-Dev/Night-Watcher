@@ -312,6 +312,64 @@ function reporterCounts(text, names){
   return e;
 }
 
+/* 6.3.4. The sentence counts (VOICE.md §4, "How the sentences work"). These
+   WARN; they never refuse. A good line can trip any of them, so the Night
+   Editor reads each one, fixes it or keeps it, and lists them in the PR.
+   Per story of five sentences or more: -ing words, -ly adverbs, and how even
+   the sentence lengths run (standard deviation over the mean). Per issue:
+   similes, one at most. The floors come from VOICE §10's After samples and
+   the fixture issues: good copy there runs 0.3 to 0.65 on evenness, under
+   3 -ings and 1 -ly in a hundred words. Lowercase words only, so names
+   and titles (italics are dropped first) never count. */
+var STYLE = {ing: 4, ly: 2, even: 0.2, sentences: 5, similes: 1};
+var ING_NOUNS = /^(thing|nothing|something|anything|everything|king|ring|spring|string|sing|wing|bring|sling|sting|swing|morning|evening|during|ceiling|building|wedding|darling|sibling|viking|meaning|being|ending|opening|beginning|painting|drawing|writing|reading|feeling|setting|lighting|timing|casting|listing|listings|ongoing|printing|recording|screening|funding|hearing|filing|filings|ruling|clipping|lettering|inking|pencilling|colouring|shipping|pairing|king)$/i;
+var LY_WORDS = /^(only|early|family|reply|supply|apply|fly|rely|holy|ugly|lonely|daily|weekly|monthly|yearly|likely|unlikely|friendly|lovely|elderly|silly|belly|rally|ally|bully|assembly|anomaly|curly|jolly|folly|hourly|nightly|costly|deadly|orderly|timely|ghostly|worldly|sly|chilly|melancholy|butterfly|monopoly|imply|comply|multiply)$/i;
+var SIMILE = /\blike (?:a|an|the|some)\b|\bas if\b|\bas though\b|\bas (?!(?:long|soon|well|far|much|many|good|of|for|to|in|a|an|the|it|he|she|they|we|you|i)\b)[a-z]+ as\b/gi;
+function styleText(text, names){
+  return plain(stripNames(String(text).replace(/\*[^*\n]+\*/g, " "), names))
+    .replace(/“[^”]*”/g, " ").replace(/"[^"\n]*"/g, " ");
+}
+function styleWarnings(text, where, names){
+  var w = [], t = styleText(text, names);
+  var all = t.split(/\s+/).filter(function(x){ return /[A-Za-z]/.test(x); });
+  var low = all.map(function(x){ return x.replace(/[^A-Za-z]/g, ""); })
+               .filter(function(x){ return x && x[0] === x[0].toLowerCase(); });
+  var n = all.length || 1;
+  var ing = low.filter(function(x){ return x.length >= 5 && /ing$/.test(x) && !ING_NOUNS.test(x); });
+  if(ing.length * 100 / n > STYLE.ing){
+    w.push(where + ": " + ing.length + " -ing words in " + all.length + " (" + ing.join(", ") + ") — turn the ones you can into plain verbs (VOICE.md §4)");
+  }
+  var ly = low.filter(function(x){ return x.length >= 4 && /ly$/.test(x) && !LY_WORDS.test(x); });
+  if(ly.length * 100 / n > STYLE.ly){
+    w.push(where + ": " + ly.length + " -ly adverbs (" + ly.join(", ") + ") — let the verb or the number do it (VOICE.md §4)");
+  }
+  var lens = t.split(/(?<=[.?])\s+(?=[A-Z“"])/).map(function(x){
+    return x.split(/\s+/).filter(function(y){ return /[A-Za-z0-9]/.test(y); }).length;
+  }).filter(function(k){ return k > 0; });
+  if(lens.length >= STYLE.sentences){
+    var m = lens.reduce(function(a, b){ return a + b; }, 0) / lens.length;
+    var sd = Math.sqrt(lens.reduce(function(a, b){ return a + (b - m) * (b - m); }, 0) / lens.length);
+    if(sd / m < STYLE.even){
+      w.push(where + ": " + lens.length + " sentences, all about " + Math.round(m) + " words — vary the length; a short verdict after a long count (VOICE.md §4)");
+    }
+  }
+  return w;
+}
+function simileCount(text, names){
+  return (styleText(text, names).match(SIMILE) || []).length;
+}
+function issueWarnings(is, names){
+  var w = [], fm = is.fm;
+  if(!fm || typeof fm !== "object" || !Array.isArray(fm.stories)) return w;
+  var parts = splitBody(is.body || "");
+  parts.sections.forEach(function(sec){
+    w.push.apply(w, styleWarnings(sec.text, is.id + ": \"" + sec.headline + "\"", names));
+  });
+  var sim = simileCount([fm.cold_open, fm.sign_off, is.body].join("\n"), names);
+  if(sim > STYLE.similes) w.push(is.id + ": " + sim + " similes — one an issue at most, and it grades a thing, not a feeling (VOICE.md §4)");
+  return w;
+}
+
 /* ---------- dates ---------- */
 
 function isoDate(s){ return /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s + "T00:00:00Z")); }
@@ -1070,6 +1128,12 @@ function build(root, opts){
   var cat = opts.catalogue || loadCatalogue(root);
   var issues = listIssues(srcDir);
   var errs = checkAll(issues, cat);
+  var EXN = (cat.__names || []).filter(function(n){ return voiceErrors(n, "", []).length; });
+  var warns = [];
+  issues.forEach(function(is){
+    var nm = EXN.concat(is.fm && Array.isArray(is.fm.names) ? is.fm.names : []);
+    warns.push.apply(warns, issueWarnings(is, nm));
+  });
   var files = {"nocturne.css": Buffer.from(CSS, "utf8"), "feed.css": Buffer.from(FEED_CSS, "utf8"),
                "theme.js": Buffer.from(THEME_JS, "utf8")};
   /* The paper's italic and the licence that travels with it (6.2.3). The
@@ -1103,7 +1167,7 @@ function build(root, opts){
       errs.push(OUT_REL + "/" + f + " is " + Math.round(files[f].length / 1024) + " KB — a page is at most " + LIMITS.page / 1024 + " KB");
     }
   });
-  return {issues: issues, list: list, files: files, errors: errs, sitemap: sitemapBlock(errs.length ? [] : list)};
+  return {issues: issues, list: list, files: files, errors: errs, warnings: warns, sitemap: sitemapBlock(errs.length ? [] : list)};
 }
 
 function onDisk(dir){
@@ -1212,7 +1276,17 @@ module.exports = {build: build, notebookErrors: notebookErrors, NOTEBOOK_REL: NO
                   loadCatalogue: loadCatalogue, sundayOfWeek: sundayOfWeek, webpSize: webpSize,
                   LIMITS: LIMITS, BEGIN: BEGIN, END: END, FEED_PI: FEED_PI, FEED_DESC: FEED_DESC, OUT_REL: OUT_REL, SRC_REL: SRC_REL,
                   COLOPHON: COLOPHON, BEACON: BEACON, BEACON_TOKEN: BEACON_TOKEN, THEME_TAG: THEME_TAG,
-                  THEME_JS: THEME_JS, DARKER: DARKER, BEATS: BEATS};
+                  THEME_JS: THEME_JS, DARKER: DARKER, BEATS: BEATS,
+                  styleWarnings: styleWarnings, simileCount: simileCount, issueWarnings: issueWarnings, STYLE: STYLE};
+
+/* Warnings print after a clean run and never change the exit code: the
+   Night Editor reads them and answers each in the PR (BRIEF.md §7). */
+function printWarnings(ws){
+  if(!ws || !ws.length) return;
+  console.log("\nNocturne: " + ws.length + " warning" + (ws.length > 1 ? "s" : "") + " (they do not fail the check; fix each or keep it, and list them in the PR):");
+  ws.forEach(function(m){ console.log("  \u26a0 " + m); });
+  console.log("");
+}
 
 if(require.main === module){
   var cmd = process.argv[2];
@@ -1225,6 +1299,7 @@ if(require.main === module){
     console.log("");
     process.exit(1);
   }
+  printWarnings(b.warnings);
   if(cmd === "build"){
     write(ROOT, b);
     console.log("Nocturne: " + b.list.length + " issue" + (b.list.length === 1 ? "" : "s") + " built into " +

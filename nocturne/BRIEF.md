@@ -199,8 +199,12 @@ doesn't advance. A thin week is fine. A padded one isn't.
    yourself.
 6. **Pre-flight** against `VOICE.md` §11, item by item.
 7. **Build and check:** `npm ci && npm run nocturne:build && npm run nocturne:check && npm test`.
-   All green, or stop. The build rewrites `docs/nocturne/` and the Nocturne
-   block in `docs/sitemap.xml`; commit both with the issue. Never edit either
+   All green, or stop. **When the check refuses, fix the break it names, and
+   only that:** don't redraft the story around it (6.3.4). The check may also
+   print warnings (the sentence counts in `VOICE.md` §4); they don't stop the
+   run. Fix each one or keep it, and list them in the PR. The build rewrites
+   `docs/nocturne/` and the Nocturne block in `docs/sitemap.xml`; commit both
+   with the issue. Never edit either
    by hand: guard 163 compares them byte for byte with what the build writes.
 8. **Screenshots.** Serve the tree (`python3 -m http.server 8099 --directory docs`),
    open `http://127.0.0.1:8099/nocturne/<folder>/` and take two full-page
@@ -401,6 +405,7 @@ Title: `nocturne: No. <issue> — <headline>`
 
 ## Checks
 nocturne:build ✅  nocturne:check ✅  npm test ✅
+- <each warning the check printed: fixed, or kept and why> — or "no warnings"
 
 ## Screenshots
 <390 wide, full page> <1280 wide, full page>

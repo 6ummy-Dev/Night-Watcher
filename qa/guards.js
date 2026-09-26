@@ -16129,6 +16129,35 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       });
     });
   }
+  /* 6.3.4. The sentence counts warn and never refuse (VOICE.md §4). Each
+     one must still fire on copy that breaks it, the fixture (the house
+     sample) must trip none, and the command line must print them without
+     failing on them. */
+  var W = NOC.styleWarnings;
+  if(typeof W !== "function" || typeof NOC.simileCount !== "function" || !NOC.STYLE){
+    fail("qa/nocturne.js has lost its sentence counts (6.3.4)");
+  } else {
+    var ingT = "The studio is dating it and fans are waiting, hoping and wishing for it now.";
+    if(!W(ingT, "t", []).some(function(m){ return /-ing words/.test(m); })) fail("the -ing warning no longer fires on a sentence of -ings (6.3.4)");
+    var lyT = "It is really and truly and remarkably and quietly dark tonight in the city.";
+    if(!W(lyT, "t", []).some(function(m){ return /-ly adverbs/.test(m); })) fail("the -ly warning no longer fires on a row of adverbs (6.3.4)");
+    var evT = "The studio set the date for October today. The maker set the figures for November too. " +
+              "The publisher set the comic for December then. The network set the show for January next. " +
+              "The street set its own date for February again.";
+    if(!W(evT, "t", []).some(function(m){ return /vary the length/.test(m); })) fail("the evenness warning no longer fires on five sentences of one length (6.3.4)");
+    if(NOC.simileCount("It sat like a stone. It moved as if it knew.", []) !== 2 ||
+       NOC.simileCount("It ran as long as it could, as well as it could.", []) !== 0){
+      fail("the simile count no longer tells a simile from an idiom (6.3.4)");
+    }
+    if(!(NOC.STYLE.similes === 1)) fail("the simile cap is not one an issue (6.3.4, owner)");
+    var fw = NOC_FIX.warnings || [];
+    if(!Array.isArray(NOC_FIX.warnings)) fail("the build no longer returns its warnings (6.3.4)");
+    fw.forEach(function(m){ fail("the Nocturne fixture trips a sentence warning — it is the house sample: " + m + " (6.3.4)"); });
+    var cli = fs.readFileSync(path.join(__dirname, "nocturne.js"), "utf8");
+    var errLine = (cli.match(/\n  if\(b\.errors\.length[^\n]*\n/) || [""])[0];
+    if(/warnings/.test(errLine)) fail("the sentence warnings refuse the run — they warn and never fail (6.3.4, owner)");
+    if(cli.indexOf("\n  printWarnings(b.warnings);\n") < 0) fail("the sentence warnings are never printed (6.3.4)");
+  }
   note("nocturne: the fixture's No. 0 and No. 1 pass the contract; " +
        (NOC_REAL ? NOC_REAL.list.length : 0) + " real issue(s) checked; the notebook holds its shape (" + nbEntries + " entries) and stays out of docs/");
 })();

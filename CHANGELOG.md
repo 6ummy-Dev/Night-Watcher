@@ -14,6 +14,42 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.3.4] — 2026-09-26
+
+**How the sentences work.** A patch on the paper's rules, from the owner's
+craft toolkit and its ground check. The app changes only its version: no
+entry moves, nothing saved changes shape or meaning, and the counts stay at
+137 films, 71 seasons and 44 continuities. **No reinstall is needed.**
+
+### Changed
+
+- **VOICE §4 gains the Night Editor's sentence tools.** The fact first and
+  the grade last; a grade (what the facts on the table show) is not a
+  verdict (taste, the column's alone); the louder the week, the flatter the
+  sentence; "and" over stacked clauses; varied lengths; plain verbs. On a
+  big week, find who finished the thing: a real person, named and sourced,
+  or nobody, and never a Hellbox regular.
+- **One simile or metaphor an issue**, where VOICE allowed one a story. It
+  grades a thing, never a feeling.
+- **VOICE §10 shows five lines that fail and what broke; §11 gains three
+  boxes:** the grade comes last, the scrape test, one simile and every
+  warning answered.
+- **BRIEF.** When the check refuses, fix the break it names and only that.
+  The pull request lists every warning, fixed or kept.
+
+### Added
+
+- **The check warns on the sentence counts.** `npm run nocturne:check`
+  prints a warning, and never fails, on a story heavy with -ing words or -ly
+  adverbs, a story of five sentences or more whose lengths barely vary, and
+  an issue with more than one simile. The floors come from VOICE's samples
+  and the fixture issues, which trip none. Guard 166 holds each warning to
+  firing, to warning without refusing, and to being printed.
+
+### Under the hood
+
+- Negative fixtures 1,600 → 1,608 (1,491 guards / 117 smoke); suites stay 87.
+
 ## [6.3.3] — 2026-09-26
 
 **The reporter, finished.** A patch on the paper's rules, built from a ground
