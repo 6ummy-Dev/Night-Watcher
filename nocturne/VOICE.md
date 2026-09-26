@@ -186,7 +186,9 @@ right. Use it like a reporter would:
   solicitations or listings. It's not ours to publish, and it's usually a
   spoiler.
 - **No invented quotes, scenes, witnesses or sources.** The mood is ours; the
-  facts are never made up.
+  facts are never made up. The one exception is the reporter's own past with
+  the Bat, which is fiction and says so by never touching the real world
+  (`REPORTER.md` §3).
 - **When sources disagree, say so** and name both.
 - **Corrections go at the top of the story**, dated, in one line: "Corrected 18
   October: the date is the 23rd, not the 21st." Never silently.
@@ -224,7 +226,9 @@ with anything else.
   the news ("premieres on HBO Max").
 - **People.** Name the ones the story is about. A cast list is a credit roll,
   not news, unless the casting is the story.
-- **Quotes.** One short phrase, attributed; summarise and link the rest.
+- **Quotes.** One short phrase, attributed; summarise and link the rest. A
+  line of Batman's from the page or the screen: exact, one line, and the work
+  named, *Batman: Year One* #1 (1987), with the writer when it helps.
 - **Don't narrate the rules.** "We carry it as reported" and "we say what it's
   for, not what it shows" are the brief talking. The status chip and "Deadline
   reports" already say it.

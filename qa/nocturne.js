@@ -1130,9 +1130,11 @@ function write(root, b){
    the owner wrote, then week headings (## 2026-W40) holding entries, one fact
    each, dated the day it was read and linked to where it was read:
      - 2026-09-28 — The fact, in one sentence. [Where](https://…)
-   Nothing else: no quotes lifted into it, no drafts, no loose notes. */
+   Nothing else: no drafts, no loose notes. A quoted line (6.3.2) is one per
+   entry, 25 words at most, its work named in italics. */
 var NOTEBOOK_REL = "nocturne/NOTEBOOK.md";
 var NOTEBOOK_HEAD = "# The notebook";
+var QUOTE_WORDS = 25;
 var NOTE_LINE = /^- (\d{4}-\d{2}-\d{2}) \u2014 (.+) \[[^\]\n]+\]\((https:\/\/[^\s)]+)\)$/;
 function notebookErrors(text){
   var errs = [], week = null, seen = {};
@@ -1155,7 +1157,17 @@ function notebookErrors(text){
     if(!m){ errs.push(at + "not an entry — \"- YYYY-MM-DD \u2014 one fact. [where](https://…)\""); return; }
     if(!isoDate(m[1])) errs.push(at + m[1] + " is not a date");
     else if(sundayOfWeek(week) && (m[1] > sundayOfWeek(week) || dayDiff(m[1], sundayOfWeek(week)) > 6)) errs.push(at + m[1] + " is not inside " + week);
-    if(/[\u201c\u201d"]/.test(m[2])) errs.push(at + "carries a quotation — the notebook files facts, never quotes");
+    /* 6.3.2: a line from the page or the screen is welcome, one per entry,
+       25 words at most, with its work named in italics. */
+    var marks = (m[2].match(/[\u201c\u201d"]/g) || []).length;
+    var quotes = m[2].match(/\u201c[^\u201c\u201d"]*\u201d|"[^\u201c\u201d"]*"/g) || [];
+    if(marks !== quotes.length * 2) errs.push(at + "a quotation mark without its pair");
+    else if(quotes.length > 1) errs.push(at + "carries " + quotes.length + " quotations — one per entry");
+    else if(quotes.length === 1){
+      var words = quotes[0].slice(1, -1).trim().split(/\s+/).filter(Boolean).length;
+      if(words > QUOTE_WORDS) errs.push(at + "quotes " + words + " words — one line, " + QUOTE_WORDS + " at most");
+      if(!/\*[^*\n]+\*/.test(m[2])) errs.push(at + "quotes a line without naming its work in italics (*Batman: Year One* #1)");
+    }
   });
   return errs;
 }

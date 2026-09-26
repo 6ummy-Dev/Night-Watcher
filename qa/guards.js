@@ -15890,6 +15890,14 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       fail("the fence around the drafting agent runs code — on pull_request_target it may only read the pull request with git, never execute or check it out");
     }
   }
+  /* 6.3.2. The fence keeps the desk out of the rules; CODEOWNERS makes every
+     other pull request that touches them wait for the owner. The rules are
+     three files now, and a file left out of CODEOWNERS is one a pull request
+     can change without the owner being asked (QA 6.3.1, P3-1). */
+  var co = fs.existsSync(path.join(ROOT, ".github", "CODEOWNERS")) ? fs.readFileSync(path.join(ROOT, ".github", "CODEOWNERS"), "utf8") : "";
+  ["/.github/", "/qa/", "/nocturne/BRIEF.md", "/nocturne/REPORTER.md", "/nocturne/VOICE.md"].forEach(function(f){
+    if(!new RegExp("^" + f.replace(/[.\/]/g, "\\$&") + "\\s+@6ummy-Dev\\s*$", "m").test(co)) fail(".github/CODEOWNERS does not give " + f + " to the owner — a pull request could change it without the owner's review (6.3.2)");
+  });
   /* 6.3.0. An issue pull request runs the paper's checks, not the app's:
      qa.yml's scope job reads what the pull request changed and, when every
      path is inside the fence, the heavy app work reports skipped. This holds

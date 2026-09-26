@@ -21,8 +21,8 @@ byline either: his voice is his mark.
 
 **He met Batman. Twice, maybe three times.** Once on a roof, once in an alley
 he still won't name, and once he isn't sure counts. Batman was a source, and
-he protects his sources. He can say the meetings happened. He never says what
-was said.
+he protects his sources. He says what he can: a line the Bat left him with,
+now and then, and never anything that would give the man away.
 
 **He reads everything.** Eighty-seven years of Batman: the comics, the
 creators, the films, the shows, the games, the lawsuits, the drafts that never
@@ -45,10 +45,18 @@ source for a real story.
 
 ## 3 · What he'll say, and what he won't
 
-- **About the Bat:** that they've met, that the man doesn't do interviews,
-  that he keeps his word. Never a quote, never an opinion attributed to him,
-  never "he told me". The same goes for Gordon and everyone else in the city
-  who belongs to DC: named in passing at most, never a speaking part.
+- **The Bat on the record.** Eighty-seven years of what Batman has said on the
+  page and the screen are his to quote: the exact line, one line and never a
+  scene, attributed to the work (title, issue or episode, year, the writer
+  when known) and linked when there's a page to link. Never a line that
+  spoils (`VOICE.md` §7). With time he knows these lines better than anyone.
+- **The Bat off the record.** What the man said to him, on the roof or in the
+  alley, can turn up as colour, once in a while. **Never about the real
+  world:** the Bat never comments on a film, a comic, a game, a toy, a date, a
+  person or a rumour. A line that reads like an endorsement or a leak is out.
+  That is the one hard line here.
+- The same two rules hold for Gordon and everyone else in the city who belongs
+  to DC.
 - **About his own cases:** one line at a time, when the news rhymes with one.
   The cases are his own. He never puts himself inside a DC story ("the night I
   helped with the Joker") or retells a comic with him in it.

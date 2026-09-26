@@ -14,6 +14,39 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.3.2] — 2026-09-26
+
+**The reporter can quote Batman.** A patch on the paper's rules, from the
+owner and the 6.3.1 audit. The app changes only its version: no entry moves,
+nothing saved changes shape or meaning, and the counts stay at 137 films, 71
+seasons and 44 continuities. **No reinstall is needed.**
+
+### Changed
+
+- **Batman on the record.** The reporter quotes what Batman has said on the
+  page and the screen: the exact line, one line and never a scene, attributed
+  to its work and linked when it can be, never a spoiler. With time the
+  notebook makes him the best-read man on Batman there is. What the Bat said
+  to him off the record can turn up as colour, and never about the real
+  world: no film, comic, game, toy, date, person or rumour. `REPORTER.md` §3,
+  BRIEF §2 and §10, VOICE §6 and §8.
+- **The notebook takes a quoted line.** One quotation per entry, 25 words at
+  most, its work named in italics; `npm run nocturne:check` and guard 166
+  refuse a second quotation, a longer one, an unnamed one and an unpaired
+  mark.
+- **No. 0 is the reporter's too.** 6.3.1's entry above says the reporter
+  "applies from No. 1, and No. 0 stays as written". The owner changed that on
+  26 September, before No. 0 was drafted: he is the voice of every issue,
+  No. 0 included, and BRIEF §10 has said so since. The entry above stays as
+  what 6.3.1 shipped.
+
+### Fixed
+
+- **CODEOWNERS names the reporter's file.** `nocturne/REPORTER.md` joins
+  BRIEF and VOICE, so any pull request that touches it waits for the owner
+  (the fence already kept the desk out). Guard 163 now holds all five owner
+  paths (QA 6.3.1, P3-1).
+
 ## [6.3.1] — 2026-09-25
 
 **The paper's foot, its reporter and his notebook.** Three things for

@@ -121,8 +121,12 @@ creators, the history, the week's news as it breaks. File what you learn:
 - Under a week heading (`## 2026-W40`), oldest week first; one fact per line,
   dated the day you read it, linked to where you read it:
   `- 2026-09-28 — The fact, in one sentence. [Where](https://…)`
-- A fact needs a source the way a story does (`VOICE.md` §6). No quotes, no
-  drafts, no loose notes, nothing from a leak. The header stays as it is.
+- A fact needs a source the way a story does (`VOICE.md` §6). No drafts, no
+  loose notes, nothing from a leak. The header stays as it is.
+- **A line from the page or the screen is welcome** (6.3.2): one quotation per
+  entry, 25 words at most inside the marks, exact, with the work it comes from
+  in italics: `- 2026-09-28 — Batman, in *Batman: Year One* #1 (1987): “…”
+  [Where](https://…)`. Never a line that spoils.
 - Read it before every run; it's where the stories and "From the morgue" come
   from. It's never published and the build never reads it.
 - File the week's entries in your own PR: normally Sunday's issue PR; in a
@@ -419,7 +423,8 @@ runs as **No. 0**, so the first news issue is No. 1. The night desk's voice
 (`VOICE.md` §1) is the point of it: a reader should finish No. 0 knowing the
 person who writes the paper. **`REPORTER.md` applies to No. 0 too:** it is
 his first issue. Read No. 0 against it before the PR, and fix what breaks it
-(a name, a quote from the Bat, a claim to be the best); keep the rest.
+(a name, a claim to be the best, the Bat saying anything about the real
+world); keep the rest. Quoting Batman is his to do (`REPORTER.md` §3).
 
 **What's different from a weekly issue**
 
@@ -498,7 +503,9 @@ that editorial is the section on Nocturne. There isn't a second one beside it.
 - **No claims we can't source:** no user numbers, rankings, "the best", "the
   only", "the most complete". The app tracks no one and the paper only counts
   visits, which aren't readers, so we have no reader numbers, and we don't guess.
-- No testimonials or quotes from anyone, invented or real.
+- No testimonials, and no quotes from real people, invented or real. A line
+  Batman said on the page or the screen, attributed to its work, is fine
+  (`REPORTER.md` §3).
 - No selling. The register still states rather than sells (`VOICE.md` §8): the
   counts and the rules speak for the app.
 - The app still never speaks. It's "we" built it, never "Night Watcher says".

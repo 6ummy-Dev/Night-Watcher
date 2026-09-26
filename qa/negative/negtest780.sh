@@ -5,6 +5,8 @@
 # and name, the feed labelled RSS with its glyph (169). The notebook keeps its
 # shape, never quotes and never reaches docs/ (166). The fence and the pull
 # request scope take the notebook as a fourth path and nothing more (163).
+# 6.3.2: a quoted line in the notebook names its work, stays one line and
+# comes alone (166); CODEOWNERS gives the reporter's file to the owner (163).
 # Every fixture names its section.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
@@ -66,9 +68,24 @@ run_case "a loose note under a week" \
   "${NB}s=s+'\n## 2026-W40\n\nsomething to follow up on\n';${W}" \
   guards "" 166
 
-run_case "a quotation filed as a fact" \
-  "never quotes" \
+run_case "a quotation with no work named" \
+  "quotes a line without naming its work in italics" \
   "${NB}s=s+'\n## 2026-W40\n\n- 2026-09-28 — The director said “it is the darkest yet”. [Trade](https://example.com/a)\n';${W}" \
+  guards "" 166
+
+run_case "two quotations in one entry" \
+  "carries 2 quotations — one per entry" \
+  "${NB}s=s+'\n## 2026-W40\n\n- 2026-09-28 \u2014 In *Batman* (1989): \u201cone\u201d and \u201ctwo\u201d. [Trade](https://example.com/a)\n';${W}" \
+  guards "" 166
+
+run_case "a quotation longer than a line" \
+  "quotes 26 words" \
+  "${NB}s=s+'\n## 2026-W40\n\n- 2026-09-28 \u2014 In *Batman* (1989): \u201c'+' '.join(['word']*26)+'\u201d. [Trade](https://example.com/a)\n';${W}" \
+  guards "" 166
+
+run_case "a quotation mark left open" \
+  "a quotation mark without its pair" \
+  "${NB}s=s+'\n## 2026-W40\n\n- 2026-09-28 \u2014 In *Batman* (1989): \u201cunclosed. [Trade](https://example.com/a)\n';${W}" \
   guards "" 166
 
 run_case "an entry dated outside its week" \
@@ -106,6 +123,11 @@ run_case "the fence opens all of nocturne/" \
 run_case "the scope forgets the notebook" \
   "scope for issue pull requests is gone or widened" \
   "${QA}a='|nocturne/NOTEBOOK\\\\.md\$|';assert s.count(a)==1;s=s.replace(a,'|',1);${W}" \
+  guards "" 163
+
+run_case "CODEOWNERS forgets the reporter's file" \
+  "does not give /nocturne/REPORTER.md to the owner" \
+  "$(pro .github/CODEOWNERS)a='/nocturne/REPORTER.md @6ummy-Dev\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
   guards "" 163
 
 finish "negtest780"
