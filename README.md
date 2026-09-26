@@ -82,11 +82,14 @@ its RSS feed and the X post that announces each issue. Until the first issue
 merges, `/nocturne/` is a holding page (noindex, no date promised) and the
 feed is open and empty, so a reader can subscribe early.
 
-A desk of AI drafting agents (seven, writing as one reporter) writes each
-issue as markdown in `nocturne/issues/`,
-following `nocturne/BRIEF.md`, `nocturne/REPORTER.md` (who is writing: the
-paper's unnamed reporter, 6.3.1) and `nocturne/VOICE.md`, and opens a pull
-request; the owner reviews and merges every one. The desk also keeps
+A desk of seven AI agents writes each issue as markdown in
+`nocturne/issues/`, following `nocturne/BRIEF.md` and `nocturne/VOICE.md`,
+and opens a pull request; the owner reviews and merges every one. One of
+them, the Night Editor, writes the issue as the paper's unnamed reporter, and
+only it reads `nocturne/REPORTER.md` (who he is) and `nocturne/CASEBOOK.md`
+(his closed past); the rest stay objective (6.3.3). The review documents the
+reporter was built from are for people and never go into an agent's
+context. The desk also keeps
 `nocturne/NOTEBOOK.md`, its dated, sourced reading record, filed in its own
 pull requests and never published. `npm run nocturne:build`
 turns the issues into `docs/nocturne/` and the sitemap's Nocturne block,
@@ -164,7 +167,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `DATA-MODEL.md` | The persisted payload, the `NW3` backup code, the JSON export, and the tolerance rules each is read with |
 | `CONTRIBUTING.md` | Which document answers what, how a change lands, and the checklist for adding a guard section or a negative suite |
 | `qa/guards.js` | Build guards — run before every commit (see below) |
-| `nocturne/` | Nocturne's source: `BRIEF.md`, `REPORTER.md` and `VOICE.md` (the owner's rules and the reporter's profile, which the drafting agents never edit), `NOTEBOOK.md` (the desk's reading record, never published) and `issues/`, one folder per issue — `issue.md` and its images |
+| `nocturne/` | Nocturne's source: `BRIEF.md`, `VOICE.md`, `REPORTER.md` and `CASEBOOK.md` (the owner's rules, the reporter's profile and his closed past, which the agents never edit), `NOTEBOOK.md` (the desk's reading record, never published) and `issues/`, one folder per issue — `issue.md` and its images |
 | `qa/nocturne.js` | The paper's builder and checker (`npm run nocturne:build`, `npm run nocturne:check`). Reads the catalogue out of `docs/index.html`; guards 163–169 require the same file |
 | `qa/nocturne-fonts/` | The paper's italic (NW Sans Italic, subset and renamed by `qa/subset-fonts.py --paper`) and its `record.json`; the build copies it into `docs/nocturne/` and refuses bytes the record did not bless |
 | `qa/nocturne-fixture/` | Two test issues (No. 0 and an invented No. 1) that guards 163–169 build and check on every run. Never published |
@@ -215,7 +218,7 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 87 negative suites, 1591
+trusted. That evidence lives in `qa/negative/` — 87 negative suites, 1600
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps

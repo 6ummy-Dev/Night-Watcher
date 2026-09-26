@@ -15893,9 +15893,10 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   /* 6.3.2. The fence keeps the desk out of the rules; CODEOWNERS makes every
      other pull request that touches them wait for the owner. The rules are
      three files now, and a file left out of CODEOWNERS is one a pull request
-     can change without the owner being asked (QA 6.3.1, P3-1). */
+     can change without the owner being asked (QA 6.3.1, P3-1). 6.3.3: four,
+     with the reporter's casebook. */
   var co = fs.existsSync(path.join(ROOT, ".github", "CODEOWNERS")) ? fs.readFileSync(path.join(ROOT, ".github", "CODEOWNERS"), "utf8") : "";
-  ["/.github/", "/qa/", "/nocturne/BRIEF.md", "/nocturne/REPORTER.md", "/nocturne/VOICE.md"].forEach(function(f){
+  ["/.github/", "/qa/", "/nocturne/BRIEF.md", "/nocturne/CASEBOOK.md", "/nocturne/REPORTER.md", "/nocturne/VOICE.md"].forEach(function(f){
     if(!new RegExp("^" + f.replace(/[.\/]/g, "\\$&") + "\\s+@6ummy-Dev\\s*$", "m").test(co)) fail(".github/CODEOWNERS does not give " + f + " to the owner — a pull request could change it without the owner's review (6.3.2)");
   });
   /* 6.3.0. An issue pull request runs the paper's checks, not the app's:

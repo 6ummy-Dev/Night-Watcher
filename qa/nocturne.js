@@ -46,6 +46,18 @@ var LATE    = "Late wires";
    service named as advice need a reader; the editor checks those (§11). */
 var BANNED  = ["epic", "iconic", "legendary", "must-watch", "must watch", "game-changer",
                "game changer", "fans rejoice", "buzz", "buzzing", "MCU", "click here"];
+/* 6.3.3. The reporter, the part a machine can hold (REPORTER.md, CASEBOOK.md).
+   Names his file and his casebook never let into print, and DC's own papers;
+   the regulars, one an issue at most; and the plain shapes of Batman speaking
+   about our world. A pattern catches only the plain forms: the rest is the
+   Night Editor's and the owner's read (VOICE.md §11). "Caped Crusader" is not
+   here: it is a series in the catalogue, so as a nickname it is a reader's
+   catch. */
+var NEVER   = ["Father Lusk", "Noonan's", "Noonan\u2019s", "calling card", "Daily Planet",
+               "Gotham Gazette", "Gotham Globe", "Gotham Times", "Gotham Herald",
+               "nameless reporter", "kind of ghost", "best journalist"];
+var REGULARS = ["Dorrie", "Ansel", "Cal Rhine"];
+var BAT_ON_US = /\b(Batman|Gordon)\s+(?:would(?:n't|n\u2019t| not)?\s+(?:like|love|approve|hate|enjoy|want|watch|read|buy|play|pick)|thinks|likes|loves|approves|told (?:me|us|this desk))\b/;
 var MONTHS  = ["January", "February", "March", "April", "May", "June", "July",
                "August", "September", "October", "November", "December"];
 var DAYS    = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -263,6 +275,12 @@ function voiceErrors(text, where, names){
     e.push(where + ": \"" + w + "\" is on VOICE.md §8's never-use list");
   });
   if(/\bthe Bat\b(?!man|mobile|cave|signal|wing|girl|woman)/.test(t)) e.push(where + ": \"the Bat\" — no nicknames (VOICE.md §8)");
+  NEVER.forEach(function(w){
+    if(new RegExp("(^|[^\\w])" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w])", "i").test(t)){
+      e.push(where + ": \"" + w + "\" never goes in the paper (REPORTER.md §2, §6)");
+    }
+  });
+  if(BAT_ON_US.test(t)) e.push(where + ": Batman on the real world — never, quoted or not (REPORTER.md §4)");
   if(/\p{Extended_Pictographic}/u.test(t)) e.push(where + ": an emoji");
   if(/(^|\s)#[A-Za-z]/.test(t)) e.push(where + ": a hashtag");
   /* 6.2.3. Merch is news, never shopping (VOICE.md §8). */
@@ -275,6 +293,22 @@ function voiceErrors(text, where, names){
   if(/\b(watch|stream) (it|them|this|these) (on|at)\b/i.test(t)) {
     e.push(where + ": a service named as advice — the site's where-to-watch search does that job");
   }
+  return e;
+}
+
+/* 6.3.3. Counted over the whole issue (the cold open, the stories, the
+   sign-off): "I" is the reporter inside a casebook memory, once an issue at
+   most, so a second is refused. Titles (in italics, or listed in names) and
+   quoted lines are not his "I" and are not counted. One Hellbox regular an
+   issue at most. */
+function reporterCounts(text, names){
+  var e = [];
+  var t = stripNames(String(text).replace(/\*[^*\n]+\*/g, " "), names);
+  t = plain(t).replace(/\u201c[^\u201d]*\u201d/g, " ").replace(/"[^"\n]*"/g, " ");
+  var i = (t.match(/(^|[^\w\u2019'])I(?:['\u2019](?:m|ve|d|ll))?(?![\w])/g) || []).length;
+  if(i > 1) e.push("\"I\" appears " + i + " times — once an issue at most, inside a casebook memory (REPORTER.md §4)");
+  var r = REGULARS.filter(function(n){ return new RegExp("(^|[^\\w])" + n + "(?![\\w])").test(t); });
+  if(r.length > 1) e.push(r.join(", ") + " in one issue — one Hellbox regular at most (REPORTER.md §4)");
   return e;
 }
 
@@ -410,7 +444,7 @@ function checkAll(issues, cat){
         var where = "name " + (i + 1);
         if(typeof n !== "string" || !n.trim()){ E(is, where + " is not a string"); return; }
         var bare = n.replace(/[^A-Za-z -]/g, "").trim().toLowerCase();
-        if(BANNED.some(function(w){ return w.toLowerCase() === bare; }) || !/\s/.test(n.trim())){
+        if(BANNED.concat(NEVER).some(function(w){ return w.toLowerCase().replace(/[^a-z -]/g, "") === bare; }) || !/\s/.test(n.trim())){
           E(is, where + " (" + n + ") is a bare word, not a name — names exempts titles, never our own words"); return;
         }
         var whole = [fm.title, fm.cold_open, fm.sign_off, is.body].concat((fm.stories || []).map(function(st){ return st && st.headline; })).join("\n");
@@ -487,6 +521,7 @@ function checkAll(issues, cat){
       }
     });
     if(total < L.words[0] || total > L.words[1]) E(is, "the issue is " + total + " words — a " + kind + " issue runs " + L.words[0] + " to " + L.words[1]);
+    reporterCounts([fm.cold_open, fm.sign_off, is.body].join("\n"), EX).forEach(function(m){ E(is, m); });
 
     var imgs = fm.images === undefined ? [] : fm.images;
     if(!Array.isArray(imgs)){ E(is, "images is not a list"); imgs = []; }

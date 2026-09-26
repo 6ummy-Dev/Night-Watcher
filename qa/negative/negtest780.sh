@@ -7,11 +7,16 @@
 # request scope take the notebook as a fourth path and nothing more (163).
 # 6.3.2: a quoted line in the notebook names its work, stays one line and
 # comes alone (166); CODEOWNERS gives the reporter's file to the owner (163).
+# 6.3.3: CODEOWNERS gives the casebook to the owner (163); the check holds
+# the reporter's plain rules: one "I" an issue, one Hellbox regular, the
+# names that never go in the paper, and Batman never on our world (166).
 # Every fixture names its section.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="$(pro qa/nocturne.js)"
 NB="$(pro nocturne/NOTEBOOK.md)"
+F40="$(pro qa/nocturne-fixture/issues/2026-w40-the-tin-hour-gets-a-date/issue.md)"
+T='It is ninety seconds long'
 FE="$(pro .github/workflows/nocturne-fence.yml)"
 QA="$(pro .github/workflows/qa.yml)"
 echo "--- 169: the paper's foot is the app's foot"
@@ -129,5 +134,52 @@ run_case "CODEOWNERS forgets the reporter's file" \
   "does not give /nocturne/REPORTER.md to the owner" \
   "$(pro .github/CODEOWNERS)a='/nocturne/REPORTER.md @6ummy-Dev\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
   guards "" 163
+
+run_case "CODEOWNERS forgets the casebook" \
+  "does not give /nocturne/CASEBOOK.md to the owner" \
+  "$(pro .github/CODEOWNERS)a='/nocturne/CASEBOOK.md @6ummy-Dev\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
+  guards "" 163
+
+echo "--- 166: the reporter's plain rules"
+
+run_case "a second I in one issue" \
+  "appears 2 times — once an issue at most" \
+  "${F40}a='${T}';assert s.count(a)==1;s=s.replace(a,'I saw it. I timed it. '+a,1);${W}" \
+  guards "" 166
+
+run_case "two Hellbox regulars in one issue" \
+  "one Hellbox regular at most" \
+  "${F40}a='${T}';assert s.count(a)==1;s=s.replace(a,'Dorrie poured. Cal Rhine said nothing. '+a,1);${W}" \
+  guards "" 166
+
+run_case "the cut regular comes back" \
+  "\"Father Lusk\" never goes in the paper" \
+  "${F40}a='${T}';assert s.count(a)==1;s=s.replace(a,'Father Lusk listened. '+a,1);${W}" \
+  guards "" 166
+
+run_case "a DC paper borrowed" \
+  "\"Gotham Gazette\" never goes in the paper" \
+  "${F40}a='${T}';assert s.count(a)==1;s=s.replace(a,'The Gotham Gazette ran it first. '+a,1);${W}" \
+  guards "" 166
+
+run_case "the boast in print" \
+  "\"best journalist\" never goes in the paper" \
+  "${F40}a='${T}';assert s.count(a)==1;s=s.replace(a,'Ask the best journalist in town. '+a,1);${W}" \
+  guards "" 166
+
+run_case "Batman likes a film" \
+  "Batman on the real world" \
+  "${F40}a='${T}';assert s.count(a)==1;s=s.replace(a,'Batman would like this one. '+a,1);${W}" \
+  guards "" 166
+
+run_case "Batman told the desk" \
+  "Batman on the real world" \
+  "${F40}a='${T}';assert s.count(a)==1;s=s.replace(a,'Batman told me it was good. '+a,1);${W}" \
+  guards "" 166
+
+run_case "a banned name listed in names to slip past" \
+  "is a bare word, not a name" \
+  "${F40}a='names: [';assert s.count(a)==1;s=s.replace(a,'names: [\"Father Lusk\", ',1);${W}" \
+  guards "" 166
 
 finish "negtest780"

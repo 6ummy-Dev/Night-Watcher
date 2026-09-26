@@ -14,6 +14,52 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.3.3] — 2026-09-26
+
+**The reporter, finished.** A patch on the paper's rules, built from a ground
+study, two outside reads and the owner's calls. The app changes only its
+version: no entry moves, nothing saved changes shape or meaning, and the
+counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is
+needed.**
+
+### Changed
+
+- **Only the Night Editor is the reporter.** Of the seven agents, the one
+  that writes the issue reads `REPORTER.md` and the new `CASEBOOK.md`; the
+  Wire, the Stoop, the Morgue, the Picture Desk, the SEO & AEO Desk and Dr
+  Eggbot stay objective and never read either. The Morgue, which files real
+  history, never sees the fiction. BRIEF opens with who reads what; README
+  says the same.
+- **`REPORTER.md`, rewritten.** He is posture, not plot: an old crime
+  reporter who counts what other people estimate. What is true of him and
+  never printed (the best, his belief, his looks, "a kind of ghost") sits
+  under its own heading. Read after BRIEF, VOICE and the week's cards.
+- **`CASEBOOK.md`, new and closed.** His whole past: three cases, two
+  meetings with Batman, three regulars at the Hellbox, and when each may be
+  used. The owner edits it; amendments are rare and the default is no.
+  CODEOWNERS names it, and guard 163 holds four rule files to the owner.
+- **The SEO & AEO pass labels, it never rewrites.** It runs before the build
+  and the check, may change headlines, the slug and alt text, and add a
+  plain fact the cards hold; anything else goes back to the Night Editor.
+  Its changes go in the pull request (BRIEF §4 step 3, §7).
+- **VOICE.** He, not they. Rain is weather: the sign-off keeps the wet city,
+  and elsewhere rain runs only when a sourced fact walks through it. "I" is
+  the reporter inside a casebook memory, once an issue; the X post's "I" is
+  the owner's and never carries his memories. A Batman line is one spoken
+  inside its work, never an interview or a recap. Two pre-flight boxes.
+- **"Since 1939"** replaces "87 years" in BRIEF and VOICE, a count that went
+  stale every year.
+
+### Added
+
+- **The check holds the reporter's plain rules.** `npm run nocturne:check`
+  refuses a second "I" in an issue (titles and quoted lines aside), two
+  Hellbox regulars in one issue, the names that never go in the paper (a cut
+  regular, DC's Gotham papers and the Daily Planet, Noonan's, a calling card,
+  "best journalist", "kind of ghost", "nameless reporter"), and the plain
+  shapes of Batman on our world ("Batman would like", "Batman told me"). The
+  rest stays the owner's read.
+
 ## [6.3.2] — 2026-09-26
 
 **The reporter can quote Batman.** A patch on the paper's rules, from the

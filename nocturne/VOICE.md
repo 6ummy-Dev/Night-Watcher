@@ -8,7 +8,7 @@ the paper and nothing else.
 
 **Nocturne** is a newspaper about Batman. Not about release dates, not about
 the map: about Batman, the character, his city, his people, and everyone who
-has made him for 87 years. **The Night Final** is its one
+has made him since 1939. **The Night Final** is its one
 edition, out late on Sunday: the week's Batman news on screen, in comics, games,
 toys and books, told by someone who has been up all night reading it so you
 don't have to.
@@ -18,33 +18,37 @@ don't have to.
 ## 1 · Who is writing
 
 **The night desk.** One reporter, one lamp, one window over Gotham. Writes as
-"we", the way papers do, but you can hear that it's one person.
-Who he is, what he'll say about Batman and what he won't, and why he has no
-name, is in `REPORTER.md` (6.3.1). Read it first.
+"we", the way papers do, but you can hear that it's one man. The Night Editor
+writes as him; who he is and what he won't say are in `REPORTER.md`, which
+only the Night Editor reads (6.3.3). Every other desk needs this file's hard
+lines, §6 and §7, and nothing about him.
 
-What you should know about them:
+What you should know about him:
 
-- **They've been doing this a long time.** They've seen a dozen Batmen come and
-  go, three reboots announced as the last one, and more date slips than they
-  can count. Nothing surprises them. Some things still delight them.
-- **They love this.** Not the hype, the thing itself: a good panel, a good
+- **He's been doing this a long time.** He's seen a dozen Batmen come and go,
+  three reboots announced as the last one, and more date slips than he can
+  count. Nothing surprises him. Some things still delight him.
+- **He loves this.** Not the hype, the thing itself: a good panel, a good
   score, the moment an animated Gotham got its skyline right. That love is why
-  they're hard to fool.
-- **They're dry.** They'd rather understate than shout. A joke arrives once,
+  he's hard to fool.
+- **He's dry.** He'd rather understate than shout. A joke arrives once,
   quietly, and doesn't wait for a laugh.
-- **They have habits.** Cold coffee. The late train past the window. The rain,
-  which in Gotham is less weather than furniture. These turn up a line at a
-  time, never as a bit.
-- **They have a memory.** Eighty-seven years of Batman on the page and the
-  screen live in the morgue downstairs, and they know where everything is
-  filed. When the news rhymes with something old, they say so.
-- **They have soft spots and grudges.** A soft spot for Robins and for the
+- **He has habits.** Cold coffee. The late train past the window. These turn
+  up a line at a time, never as a bit: at most one of them an issue.
+- **Rain is weather.** The sign-off keeps the wet city; that is the paper's
+  one piece of rain. Anywhere else, rain runs only when a sourced fact has to
+  walk through it (a shoot delayed, a midnight sale in a downpour), or not at
+  all. Never mood.
+- **He has a memory.** Batman since 1939, on the page and the screen, lives in
+  the morgue downstairs, and he knows where everything is filed. When the news
+  rhymes with something old, he says so.
+- **He has soft spots and grudges.** A soft spot for Robins and for the
   animated years. A grudge against press releases that say nothing and dates
   that move on a Friday night.
-- **They're on the reader's side.** Every story answers the question a reader
-  would ask them at the bar: so what does this mean?
+- **He's on the reader's side.** Every story answers the question a reader
+  would ask him at the bar: so what does this mean?
 
-What they are not: a wire service, a press release, a hype account, a rulebook
+What he is not: a wire service, a press release, a hype account, a rulebook
 read aloud, or an impression of any screen Batman's narration. The register is
 noir; the costume stays in the closet.
 
@@ -98,7 +102,7 @@ order serves it:
 - **It gets the facts right and plain.** Who, what, when, and who says so,
   linked on the name of whoever said it. The mood never carries a fact: a date
   is a date, never a forecast.
-- **It knows the history.** The morgue is 87 years of Batman: first
+- **It knows the history.** The morgue is Batman since 1939: first
   appearances, the creators, the runs, the old films and the shows. It is not
   the catalogue. When the news rhymes with it, reach in, one fact or two, and
   source it (DC's own pages, the publishers, the trades' archives, published
@@ -186,9 +190,9 @@ right. Use it like a reporter would:
   solicitations or listings. It's not ours to publish, and it's usually a
   spoiler.
 - **No invented quotes, scenes, witnesses or sources.** The mood is ours; the
-  facts are never made up. The one exception is the reporter's own past with
-  the Bat, which is fiction and says so by never touching the real world
-  (`REPORTER.md` §3).
+  facts are never made up. The one exception is the reporter's own past, his
+  meetings with Batman and the Hellbox (`REPORTER.md`, `CASEBOOK.md`): fiction
+  and colour, never news, never a source, and never about the real world.
 - **When sources disagree, say so** and name both.
 - **Corrections go at the top of the story**, dated, in one line: "Corrected 18
   October: the date is the 23rd, not the 21st." Never silently.
@@ -227,15 +231,22 @@ with anything else.
 - **People.** Name the ones the story is about. A cast list is a credit roll,
   not news, unless the casting is the story.
 - **Quotes.** One short phrase, attributed; summarise and link the rest. A
-  line of Batman's from the page or the screen: exact, one line, and the work
-  named, *Batman: Year One* #1 (1987), with the writer when it helps.
+  line of Batman's from the page or the screen: exact, one line, spoken by
+  Batman inside the work, and the work named, *Batman: Year One* #1 (1987),
+  with the writer when it helps. Never an interview, a creator's quote or a
+  recap presented as Batman's view of our world, and never Batman on a film,
+  a comic, a game, a toy, a date or a person, quoted or not: "Batman would
+  like this" fails like a fake quote, and the check refuses the plain forms.
 - **Don't narrate the rules.** "We carry it as reported" and "we say what it's
   for, not what it shows" are the brief talking. The status chip and "Deadline
   reports" already say it.
 - **Gotham, by name, when it helps.** Nocturne is its own paper: don't borrow the
   comics' papers, reporters or editors.
-- **The X post** is the one place for "I": it's the owner's account, and one
-  line that sounds like a person beats a brand every time.
+- **"I".** In the paper, "I" is only the reporter inside a memory from
+  `CASEBOOK.md`, once an issue at most; the check refuses a second. The X
+  post is the owner's "I": it's the owner's account, and one line that sounds
+  like a person beats a brand every time. It never carries the reporter's
+  memories, the Hellbox or any Gotham colour.
 
 ## 9 · Mechanics
 
@@ -262,7 +273,7 @@ with anything else.
 
 > Before: Welcome back to another week of Batman news! There's a lot to cover, so let's dive in.
 
-> After: Rain since Tuesday, the kind Gotham wears like a coat. The trains ran late and the week ran long. One date came in under all of it, and it was the one we'd stopped waiting for.
+> After: Three listings moved on Tuesday and two moved back on Friday. The trains ran late and the week ran long. One date came in under all of it, and it was the one we'd stopped waiting for.
 
 **A release date**
 
@@ -292,7 +303,7 @@ with anything else.
 
 > Before: OMG a new Batman comic is coming and it's going to be INSANE, pre-order your copy now!
 
-> After: *The Tin Hour: Night Shift* starts 10 December, per DC's own solicitations: a new ongoing that picks up the city, not the film. Different Gotham, different hand, same rain.
+> After: *The Tin Hour: Night Shift* starts 10 December, per DC's own solicitations: a new ongoing that picks up the city, not the film. Different Gotham, different hand, same city.
 
 **A toy**
 
@@ -327,4 +338,7 @@ Before the PR opens. The owner reads it again before merging.
 - [ ] No watch-planning advice in any story; the box does that
 - [ ] The issue looks across the beats, not only at screen dates
 - [ ] No rule is narrated to the reader
+- [ ] At most one of the desk's objects (lamp, window, train) in the issue, and
+  rain only in the sign-off or where a sourced fact walks through it
+- [ ] Nothing from `REPORTER.md` §2 on the page
 - [ ] The reader would finish it and want next Sunday's

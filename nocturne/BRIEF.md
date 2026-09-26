@@ -1,12 +1,16 @@
 # Nocturne — Operating brief
 
-For the drafting agents: the desk, seven Grok agents working from their Linux
-VMs and browsers as one reporter. Every agent follows this brief. Three
-files live in the repo: `nocturne/BRIEF.md`, `nocturne/REPORTER.md` and
-`nocturne/VOICE.md`. **Read all three from `main`, in full, at the start of
-every run**, in that order, then the notebook (`nocturne/NOTEBOOK.md`); the
-copy on `main` is the one in force. Who is writing is in `REPORTER.md`; how
-the words sound is in `VOICE.md`.
+For the desk: seven Grok agents working from their Linux VMs and browsers.
+Every agent follows this brief. Each reads its files from `main` at the start
+of every run; the copy on `main` is the one in force.
+
+| Who | Reads, in this order |
+| --- | --- |
+| Every agent | This brief, the notebook (`nocturne/NOTEBOOK.md`), and `nocturne/VOICE.md` §6 and §7 (sources and spoilers, the hard lines) |
+| The Night Editor, who writes the issue | This brief, `VOICE.md` in full, the week's cards, then `nocturne/REPORTER.md`; `nocturne/CASEBOOK.md` only when a story shares a method with a case in it |
+| Everyone else (the Wire, the Stoop, the Morgue, the Picture Desk, the SEO & AEO Desk, Dr Eggbot) | Nothing more. They stay objective and never read `REPORTER.md` or `CASEBOOK.md`: the reporter is fiction, and the Morgue in particular files only what's real |
+
+Who is writing is in `REPORTER.md`; how the words sound is in `VOICE.md`.
 This file covers what you do, when you do it, what you may touch and what shape
 the work arrives in.
 
@@ -20,7 +24,7 @@ issue, published late on Sunday.
 > block of `docs/sitemap.xml`. That's the whole list. You never touch the app (`docs/index.html`, `sw.js`, the
 > manifest, `_headers`), the catalogue, the tests (`qa/`), the workflows, the
 > README, the CHANGELOG or any other doc, and never `nocturne/BRIEF.md`,
-> `nocturne/REPORTER.md` or `nocturne/VOICE.md`. That holds even to fix a typo, a red check or a
+> `nocturne/REPORTER.md`, `nocturne/CASEBOOK.md` or `nocturne/VOICE.md`. That holds even to fix a typo, a red check or a
 > broken link. If something outside the paper looks wrong, say so in the PR
 > and leave it. The owner fixes it. CI's `nocturne-paths` job fails any PR
 > that changes a file outside the list, and you can't push to `main` or merge.
@@ -99,7 +103,7 @@ The renderer builds the masthead from the front matter. Never write it into the 
 | --- | --- |
 | Clone `6ummy-Dev/Night-Watcher` and work on a branch `nocturne/<yyyy>-w<ww>` | Push to `main`, force-push, or merge anything |
 | Open one PR per week against `main` | Approve your own PR or change branch protection. The owner reviews and merges every PR |
-| Add or change files under `nocturne/issues/` and `docs/nocturne/`, and the notebook `nocturne/NOTEBOOK.md` | Touch anything else, **including `nocturne/BRIEF.md`, `nocturne/REPORTER.md` and `nocturne/VOICE.md`** (only the owner edits the rules), `docs/index.html`, `sw.js`, `_headers`, `qa/`, workflows, README, CHANGELOG |
+| Add or change files under `nocturne/issues/` and `docs/nocturne/`, and the notebook `nocturne/NOTEBOOK.md` | Touch anything else, **including `nocturne/BRIEF.md`, `nocturne/REPORTER.md`, `nocturne/CASEBOOK.md` and `nocturne/VOICE.md`** (only the owner edits the rules), `docs/index.html`, `sw.js`, `_headers`, `qa/`, workflows, README, CHANGELOG |
 | Run `npm ci`, `npm run nocturne:build`, `npm run nocturne:check` and `npm test` | Edit or bless guard output to make a check pass |
 | Post the issue link on X after it is live | Post before the page answers 200 on the live site |
 
@@ -171,10 +175,18 @@ doesn't advance. A thin week is fine. A padded one isn't.
    will talk about this week, whatever the beat; the catalogue has no say in
    what runs or what leads. For each story, find the Batman in it: the
    character, the creators, the history (`VOICE.md` §4). The history comes
-   from the morgue, which is 87 years of Batman, not the catalogue.
+   from the morgue, which is Batman since 1939, not the catalogue.
 3. **Write** `nocturne/issues/<yyyy>-w<ww>-<slug>/issue.md` to the contract in
    §5. One folder per issue. The folder's name is the week in lower case and
-   the slug: `2026-w41-clayface-gets-a-date`.
+   the slug: `2026-w41-clayface-gets-a-date`. The Night Editor writes it.
+   **Then the SEO & AEO pass** (6.3.3), before the build and the check, so the
+   check reads what ships. It labels sentences; it never rewrites them. It
+   may change a headline (the lead's is also `title`), the slug and alt text,
+   and add a plain fact the cards already hold (a date, a title, a studio).
+   Everything else goes back to the Night Editor: any wording in the body,
+   the cold open (it is also the page's description), any adjective, any
+   shortened judgment, the sign-off, a "we", an added "you". Its changes go
+   in the PR as a diff.
 4. **Images** per §6: the finished WebP files go **in the issue's folder**,
    beside `issue.md`. The build copies them into `docs/nocturne/`. Originals
    are not committed, and nothing else sits in the folder.
@@ -381,6 +393,9 @@ Title: `nocturne: No. <issue> — <headline>`
 ## Images
 - <file> — <rights holder> — <licence> — <terms_url>
 
+## SEO & AEO
+- <each change, before → after> — or "no changes"
+
 ## Pre-flight
 <VOICE.md §11, ticked>
 
@@ -423,9 +438,10 @@ desk, what the Night Final is and who it's for, and its neighbour, the map. It
 runs as **No. 0**, so the first news issue is No. 1. The night desk's voice
 (`VOICE.md` §1) is the point of it: a reader should finish No. 0 knowing the
 person who writes the paper. **`REPORTER.md` applies to No. 0 too:** it is
-his first issue. Read No. 0 against it before the PR, and fix what breaks it
-(a name, a claim to be the best, the Bat saying anything about the real
-world); keep the rest. Quoting Batman is his to do (`REPORTER.md` §3).
+his first issue. The Night Editor reads No. 0 against it before the PR, and
+fixes what breaks it (a name, a claim to be the best, Batman saying anything
+about the real world); keep the rest. Quoting Batman is his to do
+(`REPORTER.md` §4).
 
 **What's different from a weekly issue**
 
@@ -506,7 +522,7 @@ that editorial is the section on Nocturne. There isn't a second one beside it.
   visits, which aren't readers, so we have no reader numbers, and we don't guess.
 - No testimonials, and no quotes from real people, invented or real. A line
   Batman said on the page or the screen, attributed to its work, is fine
-  (`REPORTER.md` §3).
+  (`REPORTER.md` §4).
 - No selling. The register still states rather than sells (`VOICE.md` §8): the
   counts and the rules speak for the app.
 - The app still never speaks. It's "we" built it, never "Night Watcher says".
