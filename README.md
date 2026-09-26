@@ -82,10 +82,11 @@ its RSS feed and the X post that announces each issue. Until the first issue
 merges, `/nocturne/` is a holding page (noindex, no date promised) and the
 feed is open and empty, so a reader can subscribe early.
 
-An AI drafting agent writes each issue as markdown in `nocturne/issues/`,
+A desk of AI drafting agents (seven, writing as one reporter) writes each
+issue as markdown in `nocturne/issues/`,
 following `nocturne/BRIEF.md`, `nocturne/REPORTER.md` (who is writing: the
 paper's unnamed reporter, 6.3.1) and `nocturne/VOICE.md`, and opens a pull
-request; the owner reviews and merges every one. The agent also keeps
+request; the owner reviews and merges every one. The desk also keeps
 `nocturne/NOTEBOOK.md`, its dated, sourced reading record, filed in its own
 pull requests and never published. `npm run nocturne:build`
 turns the issues into `docs/nocturne/` and the sitemap's Nocturne block,
@@ -155,7 +156,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `.gitignore` | Ignores `node_modules`, Wrangler state, editor files, etc. |
 | `package.json` | Dev scripts + the QA toolchain: jsdom for smoke, playwright and axe-core for the browser check, yaml for Nocturne's front matter; deploys run wrangler through npx, version pinned in the script |
 | `.github/workflows/qa.yml` | Runs every suite on every push and again nightly, so a tampered commit fails in public. An issue pull request, whose every path is inside the paper's fence, runs every guard and the paper's browser check and skips the app's heavy suites (6.3.0) |
-| `.github/workflows/nocturne-fence.yml` | The fence around the drafting agent: a pull request by `nocturne-desk` may change `nocturne/issues/`, `nocturne/NOTEBOOK.md`, `docs/nocturne/` and `docs/sitemap.xml` only. Runs on `pull_request_target`, so the copy on `main` judges it; executes nothing from the pull request. Guard 163 holds its shape |
+| `.github/workflows/nocturne-fence.yml` | The fence around the drafting agents: a pull request by `nocturne-desk` may change `nocturne/issues/`, `nocturne/NOTEBOOK.md`, `docs/nocturne/` and `docs/sitemap.xml` only. Runs on `pull_request_target`, so the copy on `main` judges it; executes nothing from the pull request. Guard 163 holds its shape |
 | `.github/CODEOWNERS` | The owner reviews every change to `.github/`, `qa/` and the agent's rules; the ruleset on `main` requires it |
 | `NOTES.md` | Why the code is written the way it is, in the present tense. Not served — `docs/index.html` carries no explanatory comments, and this is where they went |
 | `NOTES-history.md` | The post-mortems, the release essays and the archived comment blocks, each under a dated heading |
@@ -163,7 +164,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `DATA-MODEL.md` | The persisted payload, the `NW3` backup code, the JSON export, and the tolerance rules each is read with |
 | `CONTRIBUTING.md` | Which document answers what, how a change lands, and the checklist for adding a guard section or a negative suite |
 | `qa/guards.js` | Build guards — run before every commit (see below) |
-| `nocturne/` | Nocturne's source: `BRIEF.md`, `REPORTER.md` and `VOICE.md` (the owner's rules and the reporter's profile, which the drafting agent never edits), `NOTEBOOK.md` (the agent's reading record, never published) and `issues/`, one folder per issue — `issue.md` and its images |
+| `nocturne/` | Nocturne's source: `BRIEF.md`, `REPORTER.md` and `VOICE.md` (the owner's rules and the reporter's profile, which the drafting agents never edit), `NOTEBOOK.md` (the desk's reading record, never published) and `issues/`, one folder per issue — `issue.md` and its images |
 | `qa/nocturne.js` | The paper's builder and checker (`npm run nocturne:build`, `npm run nocturne:check`). Reads the catalogue out of `docs/index.html`; guards 163–169 require the same file |
 | `qa/nocturne-fonts/` | The paper's italic (NW Sans Italic, subset and renamed by `qa/subset-fonts.py --paper`) and its `record.json`; the build copies it into `docs/nocturne/` and refuses bytes the record did not bless |
 | `qa/nocturne-fixture/` | Two test issues (No. 0 and an invented No. 1) that guards 163–169 build and check on every run. Never published |

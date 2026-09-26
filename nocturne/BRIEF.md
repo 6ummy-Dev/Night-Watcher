@@ -1,6 +1,7 @@
 # Nocturne — Operating brief
 
-For the drafting agent (Grok, working from its Linux VM and browser). Three
+For the drafting agents: the desk, seven Grok agents working from their Linux
+VMs and browsers as one reporter. Every agent follows this brief. Three
 files live in the repo: `nocturne/BRIEF.md`, `nocturne/REPORTER.md` and
 `nocturne/VOICE.md`. **Read all three from `main`, in full, at the start of
 every run**, in that order, then the notebook (`nocturne/NOTEBOOK.md`); the
@@ -90,7 +91,7 @@ The renderer builds the masthead from the front matter. Never write it into the 
   founding issue, carries none. No. 1 on 4 Oct is the first issue that uses
   them.
 - **The colophon** closes every issue, fixed text set by the renderer:
-  "Nocturne is the weekly paper of Night Watcher, one fan's map of every Batman story on screen. Researched and drafted with an AI agent, edited and published by hand. Every story links its source. Images credited to their rights holders. The paper counts visits anonymously, with Cloudflare Web Analytics: no cookies, nothing that follows you." Never edit or drop it.
+  "Nocturne is the weekly paper of Night Watcher, one fan's map of every Batman story on screen. Researched and drafted by a desk of AI agents, built with Claude, edited and published by hand. Every story links its source. Images credited to their rights holders. The paper counts visits anonymously, with Cloudflare Web Analytics: no cookies, nothing that follows you." Never edit or drop it.
 
 ## 2 · Access and boundaries
 

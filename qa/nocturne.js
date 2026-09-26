@@ -744,7 +744,7 @@ var CSS = [
 ""].join("\n");
 
 var COLOPHON = "Nocturne is the weekly paper of Night Watcher, one fan\u2019s map of every Batman " +
-  "story on screen. Researched and drafted with an AI agent, edited and published by hand. " +
+  "story on screen. Researched and drafted by a desk of AI agents, built with Claude, edited and published by hand. " +
   "Every story links its source. Images credited to their rights holders. The paper counts " +
   "visits anonymously, with Cloudflare Web Analytics: no cookies, nothing that follows you.";
 

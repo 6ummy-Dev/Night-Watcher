@@ -40,6 +40,12 @@ seasons and 44 continuities. **No reinstall is needed.**
   No. 0 included, and BRIEF §10 has said so since. The entry above stays as
   what 6.3.1 shipped.
 
+- **The colophon says who makes the paper.** "Researched and drafted with
+  an AI agent" was one agent short of seven and left out the build: every
+  page now reads "Researched and drafted by a desk of AI agents, built with
+  Claude, edited and published by hand." BRIEF, README and REPORTER say the
+  same: seven agents, writing as one reporter.
+
 ### Fixed
 
 - **CODEOWNERS names the reporter's file.** `nocturne/REPORTER.md` joins
