@@ -1,9 +1,11 @@
 # Nocturne — Operating brief
 
-For the drafting agent (Grok, working from its Linux VM and browser). Both
-files live in the repo at `nocturne/BRIEF.md` and `nocturne/VOICE.md`. **Read
-both from `main`, in full, at the start of every run**; the copy on `main` is
-the one in force. How the words sound is in `VOICE.md`.
+For the drafting agent (Grok, working from its Linux VM and browser). Three
+files live in the repo: `nocturne/BRIEF.md`, `nocturne/REPORTER.md` and
+`nocturne/VOICE.md`. **Read all three from `main`, in full, at the start of
+every run**, in that order, then the notebook (`nocturne/NOTEBOOK.md`); the
+copy on `main` is the one in force. Who is writing is in `REPORTER.md`; how
+the words sound is in `VOICE.md`.
 This file covers what you do, when you do it, what you may touch and what shape
 the work arrives in.
 
@@ -12,12 +14,12 @@ issue, published late on Sunday.
 
 > **The one rule above all the others: you edit the paper and nothing else.**
 > Every file you create or change is under `nocturne/issues/` (your issue: its
-> `issue.md` and its images), or is written by `npm run nocturne:build` into
-> `docs/nocturne/` and the Nocturne block of `docs/sitemap.xml`. That's the
-> whole list. You never touch the app (`docs/index.html`, `sw.js`, the
+> `issue.md` and its images), is the notebook `nocturne/NOTEBOOK.md`, or is
+> written by `npm run nocturne:build` into `docs/nocturne/` and the Nocturne
+> block of `docs/sitemap.xml`. That's the whole list. You never touch the app (`docs/index.html`, `sw.js`, the
 > manifest, `_headers`), the catalogue, the tests (`qa/`), the workflows, the
-> README, the CHANGELOG or any other doc, and never `nocturne/BRIEF.md` or
-> `nocturne/VOICE.md`. That holds even to fix a typo, a red check or a
+> README, the CHANGELOG or any other doc, and never `nocturne/BRIEF.md`,
+> `nocturne/REPORTER.md` or `nocturne/VOICE.md`. That holds even to fix a typo, a red check or a
 > broken link. If something outside the paper looks wrong, say so in the PR
 > and leave it. The owner fixes it. CI's `nocturne-paths` job fails any PR
 > that changes a file outside the list, and you can't push to `main` or merge.
@@ -32,8 +34,8 @@ issue, published late on Sunday.
 
 Every Sunday night, publish one Night Final at `nightwatcher.life/nocturne/`
 covering the week's Batman news: **screen, comics, games, toys, books, all of
-it**, told by the night desk (`VOICE.md` §1). Then post one link on X once the
-page is live.
+it**, told by the reporter at the night desk (`REPORTER.md`; `VOICE.md` §1).
+Then post one link on X once the page is live.
 
 **Nocturne is a newspaper, not the app's changelog.** The paper and the map
 are neighbours in the same universe: the paper reports the news, the map keeps
@@ -47,7 +49,9 @@ reached through Home's one *Read the paper* button (from 6.2.1), the sitemap,
 the RSS feed at `/nocturne/feed.xml` and the weekly X post.** Until the first
 issue merges, `/nocturne/` is a holding page the build writes on its own; your
 first issue replaces it with the archive, *The morgue*. Never write or edit it.
-The footer's buttons read *Open the map*, *The wire* (the feed) and *The morgue*.
+The footer (6.3.1) leads back to the map with a *Night Watcher* button that
+carries the app's mark, then *RSS* (the feed) and, on issues, *The morgue*,
+with the colophon under the app's diamond rule. The renderer writes it.
 
 ### The masthead
 
@@ -94,7 +98,7 @@ The renderer builds the masthead from the front matter. Never write it into the 
 | --- | --- |
 | Clone `6ummy-Dev/Night-Watcher` and work on a branch `nocturne/<yyyy>-w<ww>` | Push to `main`, force-push, or merge anything |
 | Open one PR per week against `main` | Approve your own PR or change branch protection. The owner reviews and merges every PR |
-| Add or change files under `nocturne/issues/` and `docs/nocturne/` | Touch anything else, **including `nocturne/BRIEF.md` and `nocturne/VOICE.md`** (only the owner edits the rules), `docs/index.html`, `sw.js`, `_headers`, `qa/`, workflows, README, CHANGELOG |
+| Add or change files under `nocturne/issues/` and `docs/nocturne/`, and the notebook `nocturne/NOTEBOOK.md` | Touch anything else, **including `nocturne/BRIEF.md`, `nocturne/REPORTER.md` and `nocturne/VOICE.md`** (only the owner edits the rules), `docs/index.html`, `sw.js`, `_headers`, `qa/`, workflows, README, CHANGELOG |
 | Run `npm ci`, `npm run nocturne:build`, `npm run nocturne:check` and `npm test` | Edit or bless guard output to make a check pass |
 | Post the issue link on X after it is live | Post before the page answers 200 on the live site |
 
@@ -107,6 +111,23 @@ The files the build regenerates (`docs/nocturne/index.html`,
 `docs/nocturne/`. If a check fails outside those two folders, stop and say so in
 the PR. Don't fix it. If something in BRIEF or VOICE looks wrong or
 contradictory, say so in the PR; never change them.
+
+### The notebook (6.3.1)
+
+`nocturne/NOTEBOOK.md` is yours: what the desk has read, one fact at a time.
+Reading is part of every day's work, not only Sunday's: the comics, the
+creators, the history, the week's news as it breaks. File what you learn:
+
+- Under a week heading (`## 2026-W40`), oldest week first; one fact per line,
+  dated the day you read it, linked to where you read it:
+  `- 2026-09-28 — The fact, in one sentence. [Where](https://…)`
+- A fact needs a source the way a story does (`VOICE.md` §6). No quotes, no
+  drafts, no loose notes, nothing from a leak. The header stays as it is.
+- Read it before every run; it's where the stories and "From the morgue" come
+  from. It's never published and the build never reads it.
+- File the week's entries in your own PR: normally Sunday's issue PR; in a
+  week with no issue, a PR with the notebook alone, same branch pattern. CI
+  scopes it as a paper PR. `npm run nocturne:check` refuses a malformed entry.
 
 **An issue is content, not a release.** No version bump, no tag, no release
 notes, no CHANGELOG entry. CI still runs on every PR.
@@ -170,8 +191,8 @@ doesn't advance. A thin week is fine. A padded one isn't.
    preview, because the site has no preview deploys.
 9. **Open the PR** using the template in §7, from a branch named
    `nocturne/<yyyy>-w<ww>`. CI's `nocturne-paths` job fails the PR if it
-   changes anything outside `nocturne/issues/`, `docs/nocturne/` and
-   `docs/sitemap.xml`.
+   changes anything outside `nocturne/issues/`, `nocturne/NOTEBOOK.md`,
+   `docs/nocturne/` and `docs/sitemap.xml`.
 10. **After merge**, Sunday 22:00: the site deploys on the merge. From the VM,
    `curl -sI` the issue URL. Post only on a 200, and only if the page's `<h1>`
    matches the merged headline (§8).
@@ -396,7 +417,8 @@ The first issue isn't news. It's the paper introducing itself: who's at the
 desk, what the Night Final is and who it's for, and its neighbour, the map. It
 runs as **No. 0**, so the first news issue is No. 1. The night desk's voice
 (`VOICE.md` §1) is the point of it: a reader should finish No. 0 knowing the
-person who writes the paper.
+person who writes the paper. **No. 0 is written; `REPORTER.md` (6.3.1) came
+after it and applies from No. 1.** Don't rework No. 0 to it.
 
 **What's different from a weekly issue**
 
@@ -473,8 +495,8 @@ that editorial is the section on Nocturne. There isn't a second one beside it.
 **What No. 0 must not do**
 
 - **No claims we can't source:** no user numbers, rankings, "the best", "the
-  only", "the most complete". The site tracks no one, so we don't know how many
-  readers it has, and we don't guess.
+  only", "the most complete". The app tracks no one and the paper only counts
+  visits, which aren't readers, so we have no reader numbers, and we don't guess.
 - No testimonials or quotes from anyone, invented or real.
 - No selling. The register still states rather than sells (`VOICE.md` §8): the
   counts and the rules speak for the app.

@@ -80,13 +80,21 @@ figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;
 .ring{width:12px;height:12px;border-radius:50%;border:1.5px dashed var(--dust);flex:none;}
 .map.none p:last-child{margin:0;font-size:var(--t-desc);color:var(--dust);}
 .signoff{text-align:center;font-family:var(--deco);text-transform:uppercase;letter-spacing:.04em;font-size:var(--t-heading);margin:0;}
-.foot{max-width:620px;margin:40px auto 0;border-top:3px solid var(--bone);padding-top:4px;}
-.foot .inner{border-top:1px solid var(--bone);padding-top:18px;}
-.acts{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 20px;}
+/* 6.3.1: the colophon sits under the app's diamond rule, the way every tab in the app closes (guard 169). */
+.foot{max-width:620px;margin:44px auto 0;}
+.colophon::before{content:"";position:absolute;top:0;left:50%;width:4.5px;height:4.5px;transform:translate(-50%,-50%) rotate(45deg);background:var(--signal);box-shadow:0 0 0 6px var(--ink);}
+.acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:stretch;margin:0 0 30px;}
 .btn{font-family:var(--mono);font-size:var(--t-label);font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;padding:12px 14px;min-height:44px;display:inline-flex;align-items:center;}
-.btn.suit{background:var(--suit);color:var(--ink);}
+.btn.home{background:var(--signal);color:var(--ink);border:1px solid var(--signal);gap:12px;padding:10px 18px 10px 14px;text-align:left;}
+.btn.home .mk{width:36px;height:auto;flex:none;display:block;}
+.btn.home .lbl{display:flex;flex-direction:column;align-items:flex-start;gap:7px;}
+.btn.home b{font-family:var(--deco);font-weight:400;font-size:var(--t-heading);letter-spacing:.02em;line-height:1;text-box:trim-both cap alphabetic;}
+.btn.home small{font-size:var(--t-fine);letter-spacing:.17em;line-height:1;text-box:trim-both cap alphabetic;display:flex;align-items:center;}
+.btn.home small .arr{width:9px;height:9px;margin-left:5px;}
+.btn .rss{width:12px;height:12px;margin-right:8px;flex:none;}
+@media (max-width:560px){.btn.home{flex-basis:100%;justify-content:center;}}
 .btn.ghost{border:1px solid var(--line2);color:var(--steel);font-weight:400;}
-.colophon{font-size:var(--t-note);line-height:1.6;color:var(--dim);margin:0;}
+.colophon{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:0;position:relative;padding-top:22px;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}
 .sub{text-align:center;color:var(--dust);font-size:var(--t-desc);margin:0 auto 26px;max-width:460px;}
 .issues{list-style:none;margin:0 auto;padding:0;max-width:620px;}
 .issues li{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:16px 0;border-bottom:1px solid var(--line);}
@@ -100,7 +108,7 @@ figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;
 .cols h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);line-height:1.05;margin:0 0 8px;}
 .cols p{font-size:var(--t-desc);line-height:1.55;color:var(--dust);margin:0;}
 @media (max-width:560px){.cols{grid-template-columns:1fr;}.cols section{padding:16px 0 18px;}.cols section+section{border-left:0;border-top:1px solid var(--line2);}}
-@media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}}
+@media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}.colophon::before{forced-color-adjust:none;background:CanvasText;box-shadow:0 0 0 6px Canvas;}}
 /* Print (6.2.3): ink on white, the rules kept, no buttons. Same scale; only colour changes. */
 @media print{:root,:root[data-theme="darker"]{--ink:#FFFFFF;--sunk:#FFFFFF;--card:#FFFFFF;--card2:#FFFFFF;--line:#BBBBBB;--line2:#888888;--bone:#08090F;--dust:#333333;--dim:#444444;--suit:#08090F;--signal:#08090F;--steel:#333333;--signalline:rgba(8,9,15,.35);}
   .acts{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}

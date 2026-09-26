@@ -173,6 +173,13 @@ function esc(s){
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
                   .replace(/"/g, "&quot;");
 }
+/* 6.3.1: the app's own mark (index.html's header), and the standard feed glyph. */
+var MARK = '<svg class="mk" viewBox="8 16 84 70" aria-hidden="true"><g fill="currentColor" transform="translate(0,5)">' +
+  '<path d="M50 36 C 44 25, 29 21, 12 30 C 21 34, 25 41, 24 50 C 31 45, 37 47, 39 55 C 43 50, 47 51, 49 58 L 50 61 L 51 58 C 53 51, 57 50, 61 55 C 63 47, 69 45, 76 50 C 75 41, 79 34, 88 30 C 71 21, 56 25, 50 36 Z"/>' +
+  '<path d="M42 32 L49 29 L38 17 Z"/><path d="M58 32 L62 17 L51 29 Z"/><ellipse cx="50" cy="42" rx="10" ry="11"/>' +
+  '<path d="M50 51 C 45 60, 45 69, 50 78 C 55 69, 55 60, 50 51 Z"/></g></svg>';
+var RSS = '<svg class="rss" viewBox="0 0 12 12" aria-hidden="true"><circle cx="2.2" cy="9.8" r="1.5" fill="currentColor"/>' +
+  '<path d="M1.2 5.3a5.5 5.5 0 0 1 5.5 5.5M1.2 1.4a9.4 9.4 0 0 1 9.4 9.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 var ARROW = '<svg class="arr" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 9.5 9.2 2.8M4.2 2.5h5.3v5.3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 function unesc(s){
   return String(s).replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
@@ -701,13 +708,21 @@ var CSS = [
 ".ring{width:12px;height:12px;border-radius:50%;border:1.5px dashed var(--dust);flex:none;}",
 ".map.none p:last-child{margin:0;font-size:var(--t-desc);color:var(--dust);}",
 ".signoff{text-align:center;font-family:var(--deco);text-transform:uppercase;letter-spacing:.04em;font-size:var(--t-heading);margin:0;}",
-".foot{max-width:620px;margin:40px auto 0;border-top:3px solid var(--bone);padding-top:4px;}",
-".foot .inner{border-top:1px solid var(--bone);padding-top:18px;}",
-".acts{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 20px;}",
+"/* 6.3.1: the colophon sits under the app's diamond rule, the way every tab in the app closes (guard 169). */",
+".foot{max-width:620px;margin:44px auto 0;}",
+".colophon::before{content:\"\";position:absolute;top:0;left:50%;width:4.5px;height:4.5px;transform:translate(-50%,-50%) rotate(45deg);background:var(--signal);box-shadow:0 0 0 6px var(--ink);}",
+".acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:stretch;margin:0 0 30px;}",
 ".btn{font-family:var(--mono);font-size:var(--t-label);font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;padding:12px 14px;min-height:44px;display:inline-flex;align-items:center;}",
-".btn.suit{background:var(--suit);color:var(--ink);}",
+".btn.home{background:var(--signal);color:var(--ink);border:1px solid var(--signal);gap:12px;padding:10px 18px 10px 14px;text-align:left;}",
+".btn.home .mk{width:36px;height:auto;flex:none;display:block;}",
+".btn.home .lbl{display:flex;flex-direction:column;align-items:flex-start;gap:7px;}",
+".btn.home b{font-family:var(--deco);font-weight:400;font-size:var(--t-heading);letter-spacing:.02em;line-height:1;text-box:trim-both cap alphabetic;}",
+".btn.home small{font-size:var(--t-fine);letter-spacing:.17em;line-height:1;text-box:trim-both cap alphabetic;display:flex;align-items:center;}",
+".btn.home small .arr{width:9px;height:9px;margin-left:5px;}",
+".btn .rss{width:12px;height:12px;margin-right:8px;flex:none;}",
+"@media (max-width:560px){.btn.home{flex-basis:100%;justify-content:center;}}",
 ".btn.ghost{border:1px solid var(--line2);color:var(--steel);font-weight:400;}",
-".colophon{font-size:var(--t-note);line-height:1.6;color:var(--dim);margin:0;}",
+".colophon{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:0;position:relative;padding-top:22px;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}",
 ".sub{text-align:center;color:var(--dust);font-size:var(--t-desc);margin:0 auto 26px;max-width:460px;}",
 ".issues{list-style:none;margin:0 auto;padding:0;max-width:620px;}",
 ".issues li{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:16px 0;border-bottom:1px solid var(--line);}",
@@ -721,7 +736,7 @@ var CSS = [
 ".cols h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);line-height:1.05;margin:0 0 8px;}",
 ".cols p{font-size:var(--t-desc);line-height:1.55;color:var(--dust);margin:0;}",
 "@media (max-width:560px){.cols{grid-template-columns:1fr;}.cols section{padding:16px 0 18px;}.cols section+section{border-left:0;border-top:1px solid var(--line2);}}",
-"@media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}}",
+"@media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}.colophon::before{forced-color-adjust:none;background:CanvasText;box-shadow:0 0 0 6px Canvas;}}",
 "/* Print (6.2.3): ink on white, the rules kept, no buttons. Same scale; only colour changes. */",
 "@media print{:root,:root[data-theme=\"darker\"]{--ink:#FFFFFF;--sunk:#FFFFFF;--card:#FFFFFF;--card2:#FFFFFF;--line:#BBBBBB;--line2:#888888;--bone:#08090F;--dust:#333333;--dim:#444444;--suit:#08090F;--signal:#08090F;--steel:#333333;--signalline:rgba(8,9,15,.35);}",
 "  .acts{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}",
@@ -745,10 +760,10 @@ function dateline(a, b, c){
          '<span class="dl2"><i class="dsep"></i><span>' + c + '</span></span>';
 }
 function footer(extra){
-  return '<footer class="foot"><div class="inner">\n<div class="acts">' +
-    '<a class="btn suit" href="/">Open the map' + ARROW + '</a>' +
-    '<a class="btn ghost" href="/nocturne/feed.xml">The wire</a>' + (extra || "") + '</div>\n' +
-    '<p class="colophon">' + COLOPHON + '</p>\n</div></footer>\n';
+  return '<footer class="foot">\n<div class="acts">' +
+    '<a class="btn home" href="/">' + MARK + '<span class="lbl"><b>Night Watcher</b><small>Open the map' + ARROW + '</small></span></a>' +
+    '<a class="btn ghost" href="/nocturne/feed.xml" type="application/rss+xml">' + RSS + 'RSS</a>' + (extra || "") + '</div>\n' +
+    '<p class="colophon">' + COLOPHON + '</p>\n</footer>\n';
 }
 function head(o){
   return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' + THEME_TAG + '\n' +
@@ -1109,7 +1124,44 @@ function write(root, b){
   fs.writeFileSync(smPath, next);
 }
 
-module.exports = {build: build, drift: drift, write: write, checkAll: checkAll, listIssues: listIssues,
+/* 6.3.1. The notebook: the desk's research record (nocturne/NOTEBOOK.md). The
+   bots write it and file it in their own pull requests; it is never built,
+   never published and never read by the renderer. Its one shape: the header
+   the owner wrote, then week headings (## 2026-W40) holding entries, one fact
+   each, dated the day it was read and linked to where it was read:
+     - 2026-09-28 — The fact, in one sentence. [Where](https://…)
+   Nothing else: no quotes lifted into it, no drafts, no loose notes. */
+var NOTEBOOK_REL = "nocturne/NOTEBOOK.md";
+var NOTEBOOK_HEAD = "# The notebook";
+var NOTE_LINE = /^- (\d{4}-\d{2}-\d{2}) \u2014 (.+) \[[^\]\n]+\]\((https:\/\/[^\s)]+)\)$/;
+function notebookErrors(text){
+  var errs = [], week = null, seen = {};
+  if(typeof text !== "string") return errs;
+  var lines = text.replace(/\r\n/g, "\n").split("\n");
+  if(lines[0] !== NOTEBOOK_HEAD) errs.push(NOTEBOOK_REL + ": the first line is not \"" + NOTEBOOK_HEAD + "\" — the header stays as the owner wrote it");
+  var inEntries = false;
+  lines.forEach(function(l, i){
+    var at = NOTEBOOK_REL + " line " + (i + 1) + ": ";
+    var wk = l.match(/^## (\d{4}-W\d{2})$/);
+    if(wk){
+      if(!sundayOfWeek(wk[1])) errs.push(at + wk[1] + " is not an ISO week like 2026-W40");
+      if(seen[wk[1]]) errs.push(at + wk[1] + " has two headings — one per week");
+      if(week && wk[1] < week) errs.push(at + wk[1] + " comes after " + week + " — weeks run oldest to newest");
+      seen[wk[1]] = 1; week = wk[1]; inEntries = true; return;
+    }
+    if(!inEntries) return;
+    if(l === "") return;
+    var m = l.match(NOTE_LINE);
+    if(!m){ errs.push(at + "not an entry — \"- YYYY-MM-DD \u2014 one fact. [where](https://…)\""); return; }
+    if(!isoDate(m[1])) errs.push(at + m[1] + " is not a date");
+    else if(sundayOfWeek(week) && (m[1] > sundayOfWeek(week) || dayDiff(m[1], sundayOfWeek(week)) > 6)) errs.push(at + m[1] + " is not inside " + week);
+    if(/[\u201c\u201d"]/.test(m[2])) errs.push(at + "carries a quotation — the notebook files facts, never quotes");
+  });
+  return errs;
+}
+function dayDiff(a, b){ return Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 864e5); }
+
+module.exports = {build: build, notebookErrors: notebookErrors, NOTEBOOK_REL: NOTEBOOK_REL, NOTEBOOK_HEAD: NOTEBOOK_HEAD, drift: drift, write: write, checkAll: checkAll, listIssues: listIssues,
                   loadCatalogue: loadCatalogue, sundayOfWeek: sundayOfWeek, webpSize: webpSize,
                   LIMITS: LIMITS, BEGIN: BEGIN, END: END, FEED_PI: FEED_PI, FEED_DESC: FEED_DESC, OUT_REL: OUT_REL, SRC_REL: SRC_REL,
                   COLOPHON: COLOPHON, BEACON: BEACON, BEACON_TOKEN: BEACON_TOKEN, THEME_TAG: THEME_TAG,
@@ -1118,6 +1170,8 @@ module.exports = {build: build, drift: drift, write: write, checkAll: checkAll, 
 if(require.main === module){
   var cmd = process.argv[2];
   var b = build(ROOT);
+  var nbPath = path.join(ROOT, NOTEBOOK_REL);
+  if(fs.existsSync(nbPath)) b.errors = b.errors.concat(notebookErrors(fs.readFileSync(nbPath, "utf8")));
   if(b.errors.length){
     console.log("\nNocturne: " + b.errors.length + " problem" + (b.errors.length > 1 ? "s" : "") + ":");
     b.errors.forEach(function(m){ console.log("  \u2717 " + m); });

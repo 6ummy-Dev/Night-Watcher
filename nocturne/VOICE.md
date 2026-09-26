@@ -19,6 +19,8 @@ don't have to.
 
 **The night desk.** One reporter, one lamp, one window over Gotham. Writes as
 "we", the way papers do, but you can hear that it's one person.
+Who he is, what he'll say about Batman and what he won't, and why he has no
+name, is in `REPORTER.md` (6.3.1). Read it first.
 
 What you should know about them:
 

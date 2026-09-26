@@ -14,6 +14,42 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.3.1] — 2026-09-25
+
+**The paper's foot, its reporter and his notebook.** Three things for
+Nocturne before its first Sunday, in one patch. The app changes only its
+version: no entry moves, nothing saved changes shape or meaning, and the
+counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is
+needed.**
+
+### Changed
+
+- **The paper's footer is the app's footer.** The way back to the map is a
+  *Night Watcher* button carrying the app's own mark, its name set like the
+  app's wordmark and *Open the map* under it, mark and lines aligned. The
+  feed button says *RSS* with the feed glyph instead of *The wire*. *The
+  morgue* stays. The colophon moves to the app's footer type (mono, the fine
+  size, uppercase, centred) under the app's diamond rule, between the
+  buttons and the colophon, where two thin bone rules used to sit. Guard 169
+  holds the rule, the type, the mark, the name and the RSS label.
+- **BRIEF §10 says what's true about counting.** "The site tracks no one" went
+  stale with 6.3.0's visit counter: the app tracks no one, the paper counts
+  visits, and visits aren't readers.
+
+### Added
+
+- **The reporter.** `nocturne/REPORTER.md` is who writes the paper: the best
+  journalist Gotham ever had, never named and never bylined, who has met
+  Batman and never quotes him. The Gotham is colour; the news stays real and
+  sourced. The owner's file, like BRIEF and VOICE; it applies from No. 1, and
+  No. 0 stays as written.
+- **The notebook.** `nocturne/NOTEBOOK.md` is the desk's reading record: one
+  dated, sourced fact per line under week headings. The desk writes it and
+  files it in its own pull requests. The fence (`nocturne-fence.yml`) and
+  `qa.yml`'s scope take it as a fourth path, `npm run nocturne:check` refuses
+  a malformed entry or a quotation, and guard 166 holds its shape and keeps
+  every line of it out of `docs/`.
+
 ## [6.3.0] — 2026-09-25
 
 **The paper, ready for Sunday.** Everything planned for Nocturne before its

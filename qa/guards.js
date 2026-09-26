@@ -15875,12 +15875,12 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     ["on:\n  pull_request_target:", "runs on pull_request_target, so the fence on main judges every pull request"],
     ["if: github.event.pull_request.user.login == 'nocturne-desk'", "keys on the author, nocturne-desk, not on a branch name the agent picks"],
     ["git diff --no-renames --name-only", "diffs with --no-renames, so a rename out of a protected path counts"],
-    ["grep -Ev '^(nocturne/issues/|docs/nocturne/|docs/sitemap\\.xml$)'", "allows nocturne/issues/, docs/nocturne/ and docs/sitemap.xml only"],
+    ["grep -Ev '^(nocturne/issues/|nocturne/NOTEBOOK\\.md$|docs/nocturne/|docs/sitemap\\.xml$)'", "allows nocturne/issues/, nocturne/NOTEBOOK.md, docs/nocturne/ and docs/sitemap.xml only"],
     ["persist-credentials: false", "leaves no token in git's config"],
     ["permissions:\n  contents: read", "runs read-only"]
   ];
   if(!fence){
-    fail("the fence around the drafting agent is gone — .github/workflows/nocturne-fence.yml holds a pull request by nocturne-desk to the paper's three paths");
+    fail("the fence around the drafting agent is gone — .github/workflows/nocturne-fence.yml holds a pull request by nocturne-desk to the paper's paths");
   } else {
     need163.forEach(function(n){
       if(fence.indexOf(n[0]) < 0) fail("the fence around the drafting agent is gone or widened: nocturne-fence.yml no longer " + n[1]);
@@ -15901,7 +15901,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     ["  scope:\n    runs-on: ubuntu-latest", "has its scope job"],
     ['if [ "${{ github.event_name }}" = "pull_request" ]; then', "scopes pull requests only — every push and the nightly run everything"],
     ["CHANGED=$(git diff --no-renames --name-only HEAD^1 HEAD)", "reads the pull request's changes with --no-renames"],
-    ["grep -Ev '^(nocturne/issues/|docs/nocturne/|docs/sitemap\\.xml$)'", "scopes to the fence's three paths exactly"],
+    ["grep -Ev '^(nocturne/issues/|nocturne/NOTEBOOK\\.md$|docs/nocturne/|docs/sitemap\\.xml$)'", "scopes to the fence's four paths exactly"],
     ["      - if: needs.scope.outputs.paper != 'true'\n        run: npm test", "runs npm test on everything but an issue pull request"],
     ["run: node qa/guards.js && npm run nocturne:check", "still runs every guard and the paper's check on an issue pull request"],
     ["      - if: needs.scope.outputs.paper != 'true'\n        run: bash qa/negative/run-all.sh", "runs the negative shards on everything but an issue pull request"],
@@ -16101,8 +16101,27 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       if(!/figure-line\.webp[\s\S]*id="s7"/.test(h) || h.indexOf("figure-line.webp") < h.indexOf('id="s6"')) fail("the weekly fixture's after: 6 image does not run under story 6 (6.3.0)");
     }
   });
+  /* 6.3.1. The notebook is the desk's, inside the fence, and never the
+     paper's: it keeps its shape, and not one line of it reaches docs/. */
+  var nbPath = path.join(ROOT, NOC.NOTEBOOK_REL), nb = fs.existsSync(nbPath) ? fs.readFileSync(nbPath, "utf8") : null;
+  var nbEntries = 0;
+  if(nb === null) fail(NOC.NOTEBOOK_REL + " is gone — the desk files its reading there (6.3.1)");
+  else {
+    NOC.notebookErrors(nb).forEach(function(m){ fail("the notebook breaks its shape: " + m + " (6.3.1)"); });
+    var facts = nb.split("\n").filter(function(l){ return /^- \d{4}-\d{2}-\d{2} \u2014 /.test(l); });
+    nbEntries = facts.length;
+    [NOC_REAL].forEach(function(b){
+      if(!b) return;
+      Object.keys(b.files).forEach(function(f){
+        var t = b.files[f].toString("utf8");
+        if(t.indexOf(NOC.NOTEBOOK_HEAD) >= 0 || facts.some(function(l){ return t.indexOf(l.slice(15, 75)) >= 0 && l.length > 40; })){
+          fail("docs/nocturne/" + f + " carries the notebook — it is the desk's reading, never published (6.3.1)");
+        }
+      });
+    });
+  }
   note("nocturne: the fixture's No. 0 and No. 1 pass the contract; " +
-       (NOC_REAL ? NOC_REAL.list.length : 0) + " real issue(s) checked");
+       (NOC_REAL ? NOC_REAL.list.length : 0) + " real issue(s) checked; the notebook holds its shape (" + nbEntries + " entries) and stays out of docs/");
 })();
 
 /* ---------- 167. The sitemap and the feed list exactly the issues ---------- */
@@ -16266,6 +16285,17 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       if(pr.indexOf(':root,:root[data-theme="darker"]{') !== 0 && pr.indexOf('{:root,:root[data-theme="darker"]{') < 0){
         fail("the paper's print sheet does not override the darker theme — a reader on Darker prints black pages (6.3.0)");
       }
+      /* 6.3.1: the paper's foot is the app's foot. The colophon sits under
+         the same diamond on a fading signal line, between the buttons and
+         the colophon, and is set like the app's footers: mono, the fine
+         size, uppercase, centred. */
+      if(!/\.colophon::before\{content:"";position:absolute;top:0;left:50%;[^}]*rotate\(45deg\);background:var\(--signal\);[^}]*\}/.test(body)){
+        fail("the paper's colophon has lost the app's diamond rule — it closes the way every tab in the app does (6.3.1)");
+      }
+      if(/\.foot\{[^}]*border-top/.test(body)) fail("the paper's footer draws a border-top again — the separator is the diamond rule (6.3.1)");
+      if(!/\.colophon\{font-family:var\(--mono\);font-size:var\(--t-fine\);[^}]*text-transform:uppercase;text-align:center;[^}]*background:linear-gradient\(90deg,transparent,var\(--signalline\) 50%,transparent\) top\/100% 1px no-repeat;\}/.test(body)){
+        fail("the paper's colophon is not set like the app's footers — mono, fine, uppercase, centred, under its own diamond rule (6.3.1)");
+      }
       var appDark = (HTML.match(/:root\[data-theme="darker"\]\{([^}]*)\}/) || [0, ""])[1], dk = {};
       (appDark.match(/--[a-z0-9]+\s*:[^;}]+/g) || []).forEach(function(d){ var i = d.indexOf(":"); dk[d.slice(0, i).trim()] = d.slice(i + 1).trim(); });
       var paperDark = (body.match(/:root\[data-theme="darker"\]\{([^}]*)\}/) || [0, null])[1];
@@ -16304,7 +16334,24 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       if(/\u2197/.test(b.files[f].toString("utf8"))) fail("the paper's " + f + " carries U+2197 — outside the fonts; the arrow is the app's inline SVG");
     });
   });
-  note("nocturne: both stylesheets on the app's --t-* scale, print sheet set, italic blessed and served from the paper; " + pages169 + " files free of glyphs the fonts lack");
+  /* 6.3.1: every page's way back to the app carries the app's mark and its
+     name, and the feed is labelled RSS with the feed glyph. */
+  var feet169 = 0;
+  [NOC_REAL, NOC_FIX].forEach(function(b){
+    if(!b) return;
+    Object.keys(b.files).filter(function(f){ return /index\.html$/.test(f); }).forEach(function(f){
+      var h = b.files[f].toString("utf8"), ft = (h.match(/<footer class="foot">[\s\S]*?<\/footer>/) || [""])[0];
+      feet169++;
+      if(ft.indexOf('<a class="btn home" href="/"><svg class="mk" viewBox="8 16 84 70" aria-hidden="true">') < 0 || ft.indexOf("<b>Night Watcher</b>") < 0){
+        fail("the paper's " + f + " sends readers back to the app without its mark and name (6.3.1)");
+      }
+      if(!/<a class="btn ghost" href="\/nocturne\/feed\.xml" type="application\/rss\+xml"><svg class="rss"[^>]*>[\s\S]*?<\/svg>RSS<\/a>/.test(ft)){
+        fail("the paper's " + f + " labels its feed something other than RSS with the feed glyph (6.3.1)");
+      }
+    });
+  });
+  if(!feet169) fail("guard 169 found no paper page to read the footer of");
+  note("nocturne: both stylesheets on the app's --t-* scale, print sheet set, italic blessed and served from the paper; " + pages169 + " files free of glyphs the fonts lack; " + feet169 + " footers carry the mark, the name and RSS above the diamond");
 })();
 
 /* ---------- report ---------- */
