@@ -16,21 +16,13 @@ change that gets undone by the next person who touches the line.
 
 ## [6.3.7] — 2026-09-27
 
-**Six in the room.** A patch before the paper's first issue. The bots' group
-chat holds six, so the desk is seven agents now: the Wire, the Stoop, the
-Morgue, the Picture Desk, the Copy Desk and the Night Editor, with Dr Eggbot
-coordinating. The SEO & AEO Desk is gone. The same cut closes the one open
-code-scanning alert. The app changes only its version: no entry moves, nothing
-saved changes shape or meaning, and the counts stay at 137 films, 71 seasons
-and 44 continuities. **No reinstall is needed.**
+**One alert closed.** A patch before the paper's first issue. It closes the one
+open code-scanning alert. The app changes only its version: no entry moves,
+nothing saved changes shape or meaning, and the counts stay at 137 films,
+71 seasons and 44 continuities. **No reinstall is needed.**
 
 ### Changed
 
-- **The SEO & AEO pass is gone** (owner, 27 Sept). BRIEF drops it from the
-  read-order table, from §4's run and from the PR template; the Copy Desk now
-  reads the issue straight after the Night Editor, before the build. The
-  headline, the slug and the alt text are the Night Editor's again. BRIEF,
-  REPORTER and README count seven agents.
 - **Guard 163's CODEOWNERS check compares lines** instead of building a
   regular expression from each path. CodeQL flagged the old escape as
   incomplete (`js/incomplete-sanitization`, alert 35). The paths were
