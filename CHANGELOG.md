@@ -14,6 +14,23 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.3.8] — 2026-09-27
+
+**The SEO pass stays.** A patch that puts back what 6.3.7 took out by
+mistake. The SEO & AEO Desk left the bots' group chat, which holds six; it
+never left the run. The app changes only its version: no entry moves, nothing
+saved changes shape or meaning, and the counts stay at 137 films, 71 seasons
+and 44 continuities. **No reinstall is needed.**
+
+### Changed
+
+- **BRIEF, REPORTER and README are back to eight agents and the SEO & AEO
+  pass**, as they stood in 6.3.6: the SEO pass runs after the Night Editor and
+  before the build, the Copy Desk after it, and the PR keeps its "SEO & AEO"
+  heading. BRIEF §4 adds one line: the SEO & AEO Desk isn't in the group chat,
+  and its pass still runs.
+- 6.3.7's other change, guard 163's line compare for CODEOWNERS, stays.
+
 ## [6.3.7] — 2026-09-27
 
 **One alert closed.** A patch before the paper's first issue. It closes the one

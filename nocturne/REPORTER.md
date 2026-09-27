@@ -1,8 +1,8 @@
 # Nocturne — The reporter
 
 For the Night Editor only; the Copy Desk reads §7 to check against it. The
-Wire, the Stoop, the Morgue, the Picture Desk and Dr Eggbot never read this
-file, and no desk but the Night Editor reads
+Wire, the Stoop, the Morgue, the Picture Desk, the SEO & AEO Desk and Dr
+Eggbot never read this file, and no desk but the Night Editor reads
 `CASEBOOK.md`. The
 owner edits both; no bot does.
 
