@@ -299,7 +299,9 @@ right. Use it like a reporter would:
   asked, then stop. "Charged with", never "charged for"; the check refuses the
   second. It is a killing until a court convicts; "murder" is someone's word,
   and we say whose. Guilt never gets a grade, and the column doesn't rule on
-  it either.
+  it either. (Reuters,
+  [Standards and Values](https://reutersagency.com/about/standards-values/):
+  allegations are not portrayed as fact; charges are not a sign of guilt.)
 - **No picture that could pass for a photograph** unless it is one. An
   illustration or a reconstruction is labelled as one. (SPJ, 2014 code.)
 

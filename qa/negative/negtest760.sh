@@ -28,7 +28,7 @@ run_case "the fence stops counting renames" \
 
 run_case "the fence keys on a branch name again" \
   "keys on a branch name again" \
-  "${FE}a=\"if: github.event.pull_request.user.login == 'nocturne-desk'\";assert s.count(a)==1;s=s.replace(a,\"if: startsWith(github.head_ref, 'nocturne/')\",1);${W}" \
+  "${FE}a=\"if: github.event.pull_request.user.login == 'nocturne-night-final[bot]'\";assert s.count(a)==1;s=s.replace(a,\"if: startsWith(github.head_ref, 'nocturne/')\",1);${W}" \
   guards "" 163
 
 run_case "the fence runs from the pull request's own copy" \

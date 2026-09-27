@@ -14,6 +14,49 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.3.6] — 2026-09-27
+
+**The desk gets its own name.** A patch before the paper's first issue. The
+desk's GitHub user account is gone, so the desk now works as a GitHub App the
+owner created, `nocturne-night-final`, and the fence follows it. The same cut
+files the research that was waiting for it. The app changes only its version:
+no entry moves, nothing saved changes shape or meaning, and the counts stay at
+137 films, 71 seasons and 44 continuities. **No reinstall is needed.**
+
+### Changed
+
+- **The fence keys on the app.** `nocturne-fence.yml` now judges pull requests
+  by `nocturne-night-final[bot]`, the app's login, instead of the old
+  `nocturne-desk` account. It still keys on the author and never on the
+  branch, still runs from `main` on `pull_request_target`, and still allows
+  the paper's four paths only. The app holds read and write on contents and
+  pull requests and nothing else: it cannot push to `main`, which the ruleset
+  keeps for the owner, and it has no Workflows permission, so it cannot touch
+  `.github/`. Guard 163's pin and its negative fixture move with the name;
+  CODEOWNERS and README say it the same way.
+- **BRIEF §2 says who the desk is on GitHub:** the app and nothing else, a
+  one-hour token minted from its key each run, and never another account or
+  another person's login.
+- **A filing is not a fact** (VOICE §6) now cites Reuters' Standards and
+  Values beside the rule: allegations are not portrayed as fact, and charges
+  are not a sign of guilt.
+
+### Added
+
+- **Four morgue cards and two corrected.** Robin now files by the 1940
+  copyright register, "Apr. © Mar. 6; B 449539", with the register as its
+  second link, so the old "on-sale not settled" caveat goes. *Knightfall*
+  begins in *Batman* #492 (on sale 18 March 1993, Moench and Breyfogle), not
+  #491, which is the lead-in. *Bill the Boy Wonder*, Marc Tyler Nobleman and
+  Ty Templeton's picture-book biography of Bill Finger, is dated 1 July 2012
+  by Kirkus. The 1989 *Batman* card adds its Los Angeles premiere, 19 June,
+  and its writers, Sam Hamm and Warren Skaaren. The file holds 28 cards.
+
+### Under the hood
+
+- Negative fixtures stay 1,624 (1,507 guards / 117 smoke) across 87 suites;
+  one fixture in negtest760 re-aimed at the app's name.
+
 ## [6.3.5] — 2026-09-26
 
 **The research cut.** A patch on the paper's rules, built from three rounds

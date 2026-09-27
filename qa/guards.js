@@ -15873,14 +15873,14 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   var qa163 = fs.readFileSync(path.join(ROOT, ".github", "workflows", "qa.yml"), "utf8");
   var need163 = [
     ["on:\n  pull_request_target:", "runs on pull_request_target, so the fence on main judges every pull request"],
-    ["if: github.event.pull_request.user.login == 'nocturne-desk'", "keys on the author, nocturne-desk, not on a branch name the agent picks"],
+    ["if: github.event.pull_request.user.login == 'nocturne-night-final[bot]'", "keys on the author, the app nocturne-night-final[bot], not on a branch name the agent picks"],
     ["git diff --no-renames --name-only", "diffs with --no-renames, so a rename out of a protected path counts"],
     ["grep -Ev '^(nocturne/issues/|nocturne/NOTEBOOK\\.md$|docs/nocturne/|docs/sitemap\\.xml$)'", "allows nocturne/issues/, nocturne/NOTEBOOK.md, docs/nocturne/ and docs/sitemap.xml only"],
     ["persist-credentials: false", "leaves no token in git's config"],
     ["permissions:\n  contents: read", "runs read-only"]
   ];
   if(!fence){
-    fail("the fence around the drafting agent is gone — .github/workflows/nocturne-fence.yml holds a pull request by nocturne-desk to the paper's paths");
+    fail("the fence around the drafting agent is gone — .github/workflows/nocturne-fence.yml holds a pull request by nocturne-night-final[bot] to the paper's paths");
   } else {
     need163.forEach(function(n){
       if(fence.indexOf(n[0]) < 0) fail("the fence around the drafting agent is gone or widened: nocturne-fence.yml no longer " + n[1]);

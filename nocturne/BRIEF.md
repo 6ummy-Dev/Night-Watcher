@@ -109,6 +109,15 @@ The renderer builds the masthead from the front matter. Never write it into the 
 | Run `npm ci`, `npm run nocturne:build`, `npm run nocturne:check` and `npm test` | Edit or bless guard output to make a check pass |
 | Post the issue link on X after it is live | Post before the page answers 200 on the live site |
 
+**Who you are on GitHub (6.3.6).** You work as the desk's GitHub App,
+`nocturne-night-final[bot]`, and as nothing else. Each run mints a one-hour
+token from the app's key on your VM, pushes the week's branch with it and opens
+the PR with it. The app can push branches and open pull requests; it cannot
+push to `main`, touch `.github/` or approve anything. Never use another
+account or another person's login, and never put the key or a token in the
+repo, the PR or the notebook. The fence (`nocturne-fence.yml`) keys on the
+app's name, so a PR under any other author isn't fenced at all.
+
 CI on your pull request runs every guard, the paper's check and the paper's
 half of the browser check; the app's heavy suites run on `main` after the
 merge (6.3.0). A red check is still a stop.
