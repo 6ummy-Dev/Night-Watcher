@@ -55,7 +55,12 @@ var BANNED  = ["epic", "iconic", "legendary", "must-watch", "must watch", "game-
    catch. */
 var NEVER   = ["Father Lusk", "Noonan's", "Noonan\u2019s", "calling card", "Daily Planet",
                "Gotham Gazette", "Gotham Globe", "Gotham Times", "Gotham Herald",
-               "nameless reporter", "kind of ghost", "best journalist"];
+               "nameless reporter", "kind of ghost", "best journalist",
+               /* 6.3.5: the press of the films and the paperbacks, and their
+                  phrases (REPORTER.md §6). The shape he is not. */
+               "Chuck Tatum", "Hildy Johnson", "Walter Burns", "Hunsecker", "Sidney Falco",
+               "Sid Hudgens", "Lou Bloom", "Kolchak", "mean streets", "not himself mean",
+               "L.A. Noir", "eight million stories", "just the facts"];
 var REGULARS = ["Dorrie", "Ansel", "Cal Rhine"];
 var BAT_ON_US = /\b(Batman|Gordon)\s+(?:would(?:n't|n\u2019t| not)?\s+(?:like|love|approve|hate|enjoy|want|watch|read|buy|play|pick)|thinks|likes|loves|approves|told (?:me|us|this desk))\b/;
 var MONTHS  = ["January", "February", "March", "April", "May", "June", "July",
@@ -281,6 +286,15 @@ function voiceErrors(text, where, names){
     }
   });
   if(BAT_ON_US.test(t)) e.push(where + ": Batman on the real world — never, quoted or not (REPORTER.md §4)");
+  /* 6.3.5. Batman's creators are Kane and Finger, in DC's words; a sentence
+     that credits Kane with creating him and leaves Finger out is refused.
+     And a filing is not a fact: "charged with", never "charged for". */
+  t.split(/(?<=[.?;])\s+/).forEach(function(sn){
+    if(/\bcreat\w*/i.test(sn) && /\bKane\b/.test(sn) && !/\bFinger\b/.test(sn)){
+      e.push(where + ": Batman's creator named without Bill Finger — \"created by Bob Kane with Bill Finger\", in DC's words (VOICE.md §4)");
+    }
+  });
+  if(/\bcharged for\b/i.test(t)) e.push(where + ": \"charged for\" — a charge is \"charged with\"; a filing is not a fact (VOICE.md §6)");
   if(/\p{Extended_Pictographic}/u.test(t)) e.push(where + ": an emoji");
   if(/(^|\s)#[A-Za-z]/.test(t)) e.push(where + ": a hashtag");
   /* 6.2.3. Merch is news, never shopping (VOICE.md §8). */
@@ -565,6 +579,9 @@ function checkAll(issues, cat){
       var src = Array.isArray(st.sources) ? st.sources : [];
       if(!src.length) E(is, where + " has no source");
       src.forEach(function(u){
+        /* 6.3.5: the morgue file is a lookup, never a source. (The repo
+           itself stays citable: No. 0 is about the app.) */
+        if(/MORGUE\.md/i.test(u)) E(is, where + " cites " + u + " — the morgue file is never a source; cite the page its line points to (BRIEF.md, The morgue file)");
         if(!/^https:\/\/\S+$/.test(u)) E(is, where + "'s source is not an https URL: " + u);
         else linkErrors(u, where + "'s source").forEach(function(m){ E(is, m); });
       });
@@ -1130,9 +1147,16 @@ function build(root, opts){
   var errs = checkAll(issues, cat);
   var EXN = (cat.__names || []).filter(function(n){ return voiceErrors(n, "", []).length; });
   var warns = [];
+  /* 6.3.5: the morgue is "one fact or two" in a story (VOICE.md §4). */
+  var mgPath = path.join(root, MORGUE_REL), mgLinks = {};
+  if(fs.existsSync(mgPath)) morgueEntries(fs.readFileSync(mgPath, "utf8")).forEach(function(e){ e.links.forEach(function(u){ mgLinks[u] = 1; }); });
   issues.forEach(function(is){
     var nm = EXN.concat(is.fm && Array.isArray(is.fm.names) ? is.fm.names : []);
     warns.push.apply(warns, issueWarnings(is, nm));
+    (is.fm && Array.isArray(is.fm.stories) ? is.fm.stories : []).forEach(function(st, k){
+      var hit = (Array.isArray(st && st.sources) ? st.sources : []).filter(function(u){ return mgLinks[u]; }).length;
+      if(hit > 2) warns.push(is.id + ": story " + (k + 1) + " takes " + hit + " sources from the morgue file — history is one fact or two (VOICE.md §4)");
+    });
   });
   var files = {"nocturne.css": Buffer.from(CSS, "utf8"), "feed.css": Buffer.from(FEED_CSS, "utf8"),
                "theme.js": Buffer.from(THEME_JS, "utf8")};
@@ -1272,12 +1296,112 @@ function notebookErrors(text){
 }
 function dayDiff(a, b){ return Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 864e5); }
 
+/* 6.3.5. The morgue file (nocturne/MORGUE.md): the owner's card catalogue of
+   Batman's real history. The Morgue reads it before proposing a line; the
+   Night Editor looks things up in it, then opens and cites the page. It is
+   never a source, never quoted, never published. Its one shape: the owner's
+   header, then "## Entries", one fact a line in date order:
+     - <date> <type> | <kind> | <grade> | <fact> | [a](https://…) [b](https://…) | checked YYYY-MM-DD
+   The date's precision must fit its type; links are https, one or two, never
+   a wiki, a retailer or ourselves; the fact is premise only, in no voice, and
+   carries nothing from the reporter's fiction. */
+var MORGUE_REL = "nocturne/MORGUE.md";
+var MORGUE_HEAD = "# The morgue file";
+var MORGUE_CAP = 300;
+var MORGUE_TYPES = {"on-sale": "day", "edition": "day", "release": "day", "premiere": "day", "announced": "day", "event": "day",
+                    "cover": "month", "issue": "year", "published": "year", "copyright": "year", "run": "run"};
+var MORGUE_KINDS = ["debut", "comics", "screen", "books", "credit", "event"];
+var MORGUE_GRADES = ["first-party", "trade", "press", "reference", "catalogue"];
+var MORGUE_BLOCK = /(^|\.)(wikipedia\.org|fandom\.com|wikia\.com|wikia\.org|tvtropes\.org|imdb\.com|reddit\.com|waterstones\.com|nightwatcher\.life|github\.com|githubusercontent\.com)$|(^|\.)(amazon|abebooks|ebay)\.[a-z.]+$/i;
+var MORGUE_SPOIL = ["died", "dies", "death", "dead", "killed", "kills", "murdered", "revealed", "reveals", "unmasked",
+                    "twist", "ending", "turns out", "secretly", "survives", "resurrected", "post-credit"];
+var MORGUE_FICTION = ["Hellbox", "Dorrie", "Ansel", "Cal Rhine", "Kettle Street", "Lobster Shift", "Father Lusk", "Noonan"];
+var MORGUE_LINE = /^- (\d{4}(?:-\d{2}(?:-\d{2})?)?(?:\/\d{4})?) ([a-z-]+) \| ([a-z-]+) \| ([a-z-]+) \| (.+) \| ((?:\[[^\]\n]+\]\([^\s)]+\) ?){1,2}) \| checked (\d{4}-\d{2}-\d{2})$/;
+function morgueEntries(text){
+  var out = [];
+  String(text || "").replace(/\r\n/g, "\n").split("\n").forEach(function(l, i){
+    var m = l.match(MORGUE_LINE);
+    if(m) out.push({line: i + 1, date: m[1], type: m[2], kind: m[3], grade: m[4], fact: m[5], links: linksIn(m[6]), checked: m[7]});
+  });
+  return out;
+}
+function morgueErrors(text, today){
+  var errs = [];
+  if(typeof text !== "string") return errs;
+  var lines = text.replace(/\r\n/g, "\n").split("\n");
+  if(lines[0] !== MORGUE_HEAD) errs.push(MORGUE_REL + ": the first line is not \"" + MORGUE_HEAD + "\" — the header stays as the owner wrote it");
+  var heads = lines.filter(function(l){ return /^#{1,6} /.test(l); });
+  if(heads.join("|") !== MORGUE_HEAD + "|## Entries") errs.push(MORGUE_REL + ": its only headings are the title and \"## Entries\"");
+  var start = lines.indexOf("## Entries"), prev = null, seen = {}, n = 0;
+  today = today || new Date().toISOString().slice(0, 10);
+  lines.forEach(function(l, i){
+    if(start < 0 || i <= start || l === "") return;
+    var at = MORGUE_REL + " line " + (i + 1) + ": ";
+    var m = l.match(MORGUE_LINE);
+    if(!m){ errs.push(at + "not an entry — \"- <date> <type> | <kind> | <grade> | <fact> | [where](https://…) | checked YYYY-MM-DD\""); return; }
+    n++;
+    if(l.length > 600) errs.push(at + "is " + l.length + " characters — 600 at most");
+    var date = m[1], type = m[2], fact = m[5], links = linksIn(m[6]);
+    var want = MORGUE_TYPES[type];
+    if(!want) errs.push(at + "\"" + type + "\" is not a date type (" + Object.keys(MORGUE_TYPES).join(", ") + ")");
+    else {
+      var shape = /^\d{4}\/\d{4}$/.test(date) ? "run" : /^\d{4}-\d{2}-\d{2}$/.test(date) ? "day" : /^\d{4}-\d{2}$/.test(date) ? "month" : "year";
+      var fits = want === shape || (want === "month" && shape === "day") || (want === "year" && shape !== "run");
+      if(!fits) errs.push(at + (/^[aeiou]/.test(type) ? "an " : "a ") + type + " date needs " + (want === "day" ? "a full date" : want === "month" ? "at least a month" : want === "run" ? "a span, YYYY/YYYY" : "a year") + ", not " + date);
+      if(shape === "day" && !isoDate(date)) errs.push(at + date + " is not a date");
+      if(shape === "month" && !/^\d{4}-(0[1-9]|1[0-2])$/.test(date)) errs.push(at + date + " is not a month");
+    }
+    if(MORGUE_KINDS.indexOf(m[3]) < 0) errs.push(at + "\"" + m[3] + "\" is not a kind (" + MORGUE_KINDS.join(", ") + ")");
+    if(MORGUE_GRADES.indexOf(m[4]) < 0) errs.push(at + "\"" + m[4] + "\" is not a grade (" + MORGUE_GRADES.join(", ") + "); a wiki, a blog or a fan site is not one");
+    var key = date.slice(0, 10);
+    if(prev !== null && key < prev) errs.push(at + date + " comes after " + prev + " — entries run in date order");
+    prev = key;
+    var dup = date + "|" + fact.slice(0, 40).toLowerCase();
+    if(seen[dup]) errs.push(at + "files the same fact twice (line " + seen[dup] + ")");
+    seen[dup] = i + 1;
+    links.forEach(function(u){
+      if(!/^https:\/\/\S+$/.test(u)){ errs.push(at + "every link is https — " + u); return; }
+      var host; try { host = new URL(u).hostname; } catch(err){ errs.push(at + u + " is not a URL"); return; }
+      if(MORGUE_BLOCK.test(host)) errs.push(at + host + " is never a morgue source (no wikis, no retailers, never ourselves)");
+      linkErrors(u, at.slice(0, -2)).forEach(function(x){ errs.push(x); });
+    });
+    if(/\bDISPUTED\b/.test(fact) && links.length < 2) errs.push(at + "a DISPUTED fact carries both sources — two links");
+    if(!isoDate(m[7])) errs.push(at + "checked " + m[7] + " is not a date");
+    else if(m[7] > today) errs.push(at + "checked " + m[7] + " is in the future");
+    if(fact.split(/\s+/).length > 45) errs.push(at + "the fact runs " + fact.split(/\s+/).length + " words — 45 at most; it is a card, not a story");
+    /* The fact's own words: titles in italics and quoted titles aside. */
+    var own = fact.replace(/\*[^*\n]+\*/g, " ").replace(/\u201c[^\u201d]*\u201d/g, " ").replace(/"[^"\n]*"/g, " ");
+    MORGUE_SPOIL.forEach(function(w){
+      if(new RegExp("(^|[^\\w-])" + w + "(?![\\w-])", "i").test(own)) errs.push(at + "\"" + w + "\" — premise only; the morgue never carries an outcome (VOICE.md §7)");
+    });
+    if(/!/.test(own)) errs.push(at + "an exclamation mark outside a title");
+    bannedIn(own).forEach(function(w){ errs.push(at + "\"" + w + "\" is on VOICE.md §8's never-use list"); });
+    if(/(^|[^\w'\u2019])(we|We|I|us|our|Our)(?![\w'\u2019])/.test(own)) errs.push(at + "a card has no voice — no \"we\", no \"I\"");
+    MORGUE_FICTION.forEach(function(w){
+      if(new RegExp("(^|[^\\w])" + w + "(?![\\w])").test(fact)) errs.push(at + "\"" + w + "\" is the reporter's fiction — the morgue files only what's real");
+    });
+  });
+  if(start < 0) errs.push(MORGUE_REL + ": no \"## Entries\" heading");
+  if(n > MORGUE_CAP) errs.push(MORGUE_REL + ": " + n + " entries — " + MORGUE_CAP + " at most; past that it stops being a lookup");
+  return errs;
+}
+/* A card checked more than a year ago is re-opened before it is used again.
+   A warning from the command line only, never in the guards: time must not
+   turn a green tree red on its own. */
+function morgueWarnings(text, today){
+  today = today || new Date().toISOString().slice(0, 10);
+  return morgueEntries(text).filter(function(e){ return isoDate(e.checked) && dayDiff(e.checked, today) > 365; })
+    .map(function(e){ return MORGUE_REL + " line " + e.line + ": checked " + e.checked + ", over a year ago — re-open its link before it runs"; });
+}
+
 module.exports = {build: build, notebookErrors: notebookErrors, NOTEBOOK_REL: NOTEBOOK_REL, NOTEBOOK_HEAD: NOTEBOOK_HEAD, drift: drift, write: write, checkAll: checkAll, listIssues: listIssues,
                   loadCatalogue: loadCatalogue, sundayOfWeek: sundayOfWeek, webpSize: webpSize,
                   LIMITS: LIMITS, BEGIN: BEGIN, END: END, FEED_PI: FEED_PI, FEED_DESC: FEED_DESC, OUT_REL: OUT_REL, SRC_REL: SRC_REL,
                   COLOPHON: COLOPHON, BEACON: BEACON, BEACON_TOKEN: BEACON_TOKEN, THEME_TAG: THEME_TAG,
                   THEME_JS: THEME_JS, DARKER: DARKER, BEATS: BEATS,
-                  styleWarnings: styleWarnings, simileCount: simileCount, issueWarnings: issueWarnings, STYLE: STYLE};
+                  styleWarnings: styleWarnings, simileCount: simileCount, issueWarnings: issueWarnings, STYLE: STYLE,
+                  MORGUE_REL: MORGUE_REL, MORGUE_HEAD: MORGUE_HEAD, morgueErrors: morgueErrors, morgueEntries: morgueEntries,
+                  morgueWarnings: morgueWarnings, NEVER: NEVER};
 
 /* Warnings print after a clean run and never change the exit code: the
    Night Editor reads them and answers each in the PR (BRIEF.md §7). */
@@ -1293,6 +1417,12 @@ if(require.main === module){
   var b = build(ROOT);
   var nbPath = path.join(ROOT, NOTEBOOK_REL);
   if(fs.existsSync(nbPath)) b.errors = b.errors.concat(notebookErrors(fs.readFileSync(nbPath, "utf8")));
+  var mgPath = path.join(ROOT, MORGUE_REL);
+  if(fs.existsSync(mgPath)){
+    var mg = fs.readFileSync(mgPath, "utf8");
+    b.errors = b.errors.concat(morgueErrors(mg));
+    b.warnings = (b.warnings || []).concat(morgueWarnings(mg));
+  }
   if(b.errors.length){
     console.log("\nNocturne: " + b.errors.length + " problem" + (b.errors.length > 1 ? "s" : "") + ":");
     b.errors.forEach(function(m){ console.log("  \u2717 " + m); });

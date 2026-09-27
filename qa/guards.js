@@ -15894,9 +15894,11 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
      other pull request that touches them wait for the owner. The rules are
      three files now, and a file left out of CODEOWNERS is one a pull request
      can change without the owner being asked (QA 6.3.1, P3-1). 6.3.3: four,
-     with the reporter's casebook. */
+     with the reporter's casebook. 6.3.5: five, with the morgue file. The
+     fence needs no change for it: its allow-list, pinned above, names four
+     paths and MORGUE.md is none of them. */
   var co = fs.existsSync(path.join(ROOT, ".github", "CODEOWNERS")) ? fs.readFileSync(path.join(ROOT, ".github", "CODEOWNERS"), "utf8") : "";
-  ["/.github/", "/qa/", "/nocturne/BRIEF.md", "/nocturne/CASEBOOK.md", "/nocturne/REPORTER.md", "/nocturne/VOICE.md"].forEach(function(f){
+  ["/.github/", "/qa/", "/nocturne/BRIEF.md", "/nocturne/CASEBOOK.md", "/nocturne/MORGUE.md", "/nocturne/REPORTER.md", "/nocturne/VOICE.md"].forEach(function(f){
     if(!new RegExp("^" + f.replace(/[.\/]/g, "\\$&") + "\\s+@6ummy-Dev\\s*$", "m").test(co)) fail(".github/CODEOWNERS does not give " + f + " to the owner — a pull request could change it without the owner's review (6.3.2)");
   });
   /* 6.3.0. An issue pull request runs the paper's checks, not the app's:
@@ -16128,6 +16130,30 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
         }
       });
     });
+  }
+  /* 6.3.5. The morgue file: the owner's card catalogue of real history.
+     It keeps its shape (qa/nocturne.js morgueErrors, with a fixed date so no
+     day turns the tree red), and none of its facts reaches a built page:
+     it is a lookup, never published. */
+  var mgPath = path.join(ROOT, NOC.MORGUE_REL || "nocturne/MORGUE.md");
+  var mgText = fs.existsSync(mgPath) ? fs.readFileSync(mgPath, "utf8") : null;
+  var mgCount = 0;
+  if(typeof NOC.morgueErrors !== "function") fail("qa/nocturne.js has lost the morgue file's check (6.3.5)");
+  else if(mgText === null) fail("nocturne/MORGUE.md is gone — the desk's lookup of Batman's history (6.3.5)");
+  else {
+    NOC.morgueErrors(mgText, "9999-12-31").forEach(function(m){ fail("the morgue file breaks its shape: " + m + " (6.3.5)"); });
+    var mgFacts = NOC.morgueEntries(mgText).map(function(e){ return e.fact; });
+    mgCount = mgFacts.length;
+    [NOC_REAL, NOC_FIX].forEach(function(b){
+      if(!b) return;
+      Object.keys(b.files).forEach(function(f){
+        var t = b.files[f].toString("utf8");
+        if(t.indexOf(NOC.MORGUE_HEAD) >= 0 || mgFacts.some(function(x){ return x.length > 40 && t.indexOf(x.slice(0, 40)) >= 0; })){
+          fail("docs/nocturne/" + f + " carries the morgue file — it is a lookup, never published (6.3.5)");
+        }
+      });
+    });
+    if(!mgCount) fail("nocturne/MORGUE.md has no entries — the seed lines are gone (6.3.5)");
   }
   /* 6.3.4. The sentence counts warn and never refuse (VOICE.md §4). Each
      one must still fire on copy that breaks it, the fixture (the house

@@ -13,6 +13,10 @@
 # 6.3.4: the sentence counts (-ings, -ly adverbs, even sentence lengths,
 # similes) still fire, warn without refusing, print, and the fixture trips
 # none (166).
+# 6.3.5: the morgue file keeps its shape, never reaches a built page and
+# stays the owner's (166, 163); an issue never cites it; Batman's creator is
+# never Kane alone; a charge is "charged with"; the film press stays out
+# (166).
 # Every fixture names its section.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
@@ -225,6 +229,93 @@ run_case "the warnings are never printed" \
 run_case "the house sample goes soft on -ings" \
   "the Nocturne fixture trips a sentence warning" \
   "${F40}a='${T}';assert s.count(a)==1;s=s.replace(a,'Waiting, hoping, wishing, dreaming, trusting, fearing. '+a,1);${W}" \
+  guards "" 166
+
+echo "--- 166 and 163: the morgue file (6.3.5)"
+
+MG="$(pro nocturne/MORGUE.md)"
+L1='- 1939-03-30 on-sale | debut | first-party | Batman debuts'
+
+run_case "the morgue file is deleted" \
+  "nocturne/MORGUE.md is gone" \
+  "import os;os.remove('nocturne/MORGUE.md')" \
+  guards "" 166
+
+run_case "the morgue file's header is rewritten" \
+  "the header stays as the owner wrote it" \
+  "${MG}a='# The morgue file\n';assert s.startswith(a);s='# Morgue\n'+s[len(a):];${W}" \
+  guards "" 166
+
+run_case "a loose note among the entries" \
+  "not an entry" \
+  "${MG}s=s+'Remember to check the Robin date.\n';${W}" \
+  guards "" 166
+
+run_case "a wiki as a morgue source" \
+  "is never a morgue source" \
+  "${MG}a='https://www.comics.org/issue/442/';assert s.count(a)==1;s=s.replace(a,'https://en.wikipedia.org/wiki/Batman',1);${W}" \
+  guards "" 166
+
+run_case "an on-sale date with only a year" \
+  "needs a full date" \
+  "${MG}a='- 1939-03-30 on-sale';assert s.count(a)==1;s=s.replace(a,'- 1939 on-sale',1);${W}" \
+  guards "" 166
+
+run_case "the entries out of order" \
+  "entries run in date order" \
+  "${MG}s=s+'- 1938-01-01 event | event | first-party | A card filed out of order. | [DC](https://www.dc.com/) | checked 2026-09-26\n';${W}" \
+  guards "" 166
+
+run_case "a DISPUTED fact on one source" \
+  "a DISPUTED fact carries both sources" \
+  "${MG}s=s+'- 2026-01-01 event | event | first-party | DISPUTED: a date two pages disagree on. | [DC](https://www.dc.com/) | checked 2026-09-26\n';${W}" \
+  guards "" 166
+
+run_case "an outcome in a card" \
+  "premise only; the morgue never carries an outcome" \
+  "${MG}a='Batman debuts in';assert s.count(a)==1;s=s.replace(a,'Batman debuts and a hero dies in',1);${W}" \
+  guards "" 166
+
+run_case "a card with a voice" \
+  "a card has no voice" \
+  "${MG}a='Batman debuts in';assert s.count(a)==1;s=s.replace(a,'We think Batman debuts in',1);${W}" \
+  guards "" 166
+
+run_case "the reporter's fiction in the morgue" \
+  "is the reporter's fiction" \
+  "${MG}a='Batman debuts in';assert s.count(a)==1;s=s.replace(a,'Batman, as Dorrie remembers, debuts in',1);${W}" \
+  guards "" 166
+
+run_case "the morgue file reaches a built page" \
+  "carries the morgue file" \
+  "${N}a=\"'<p class=\\\"colophon\\\">' + COLOPHON + '</p>\";assert s.count(a)==1;s=s.replace(a,\"'<p class=\\\"colophon\\\">' + COLOPHON + ' # The morgue file</p>\",1);${W}" \
+  guards "" 166
+
+run_case "CODEOWNERS forgets the morgue file" \
+  "does not give /nocturne/MORGUE.md to the owner" \
+  "$(pro .github/CODEOWNERS)a='/nocturne/MORGUE.md  @6ummy-Dev\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
+  guards "" 163
+
+echo "--- 166: the research cut's plain rules (6.3.5)"
+
+run_case "an issue cites the morgue file" \
+  "the morgue file is never a source" \
+  "${F40}a='sources: [';assert s.count(a)>=1;s=s.replace(a,'sources: [\"https://github.com/6ummy-Dev/Night-Watcher/blob/main/nocturne/MORGUE.md\", ',1);${W}" \
+  guards "" 166
+
+run_case "Kane named alone as creator" \
+  "named without Bill Finger" \
+  "${F40}a='${T}';assert s.count(a)==1;s=s.replace(a,'Batman was created by Bob Kane in 1939. '+a,1);${W}" \
+  guards "" 166
+
+run_case "charged for" \
+  "a filing is not a fact (VOICE.md" \
+  "${F40}a='${T}';assert s.count(a)==1;s=s.replace(a,'He was charged for it. '+a,1);${W}" \
+  guards "" 166
+
+run_case "a film reporter's name in the paper" \
+  "\"Kolchak\" never goes in the paper" \
+  "${F40}a='${T}';assert s.count(a)==1;s=s.replace(a,'Kolchak would have filed it. '+a,1);${W}" \
   guards "" 166
 
 finish "negtest780"

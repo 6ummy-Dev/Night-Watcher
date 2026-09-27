@@ -110,7 +110,13 @@ order serves it:
 - **It says what it means.** For Batman and for the people who love him: what
   it adds, what it changes, what it echoes. That's the paragraph a fan site
   never writes.
-- **It ends on a line that lands.** Not a summary. The last word.
+- **It ends on a line that lands, on what is known.** Not a summary. The last
+  line is a sourced fact, a named person's words, or a grade of what is
+  already on the page; never a scene, a moment or a reaction nobody reported.
+  If the record is open, the ending leaves it open. If a project stalls and
+  nobody says why, say so and stop: no "it's dead", no "it's coming". The
+  sign-off is still licensed colour. Real harm has no landing line at all
+  (§6).
 
 Keep it short. Most sentences under 20 words. One simile or metaphor an issue
 at most, and it grades a thing, never a feeling; a figure in every sentence is
@@ -154,6 +160,37 @@ delay".
 The check counts the plain part of this (-ings, -ly adverbs, sentences all of
 one length, more than one simile an issue) and warns; it never refuses. Fix
 each warning or keep it, and list it in the PR (`BRIEF.md` §7).
+
+**Reading the record.** The Night Editor's rules for facts that come with a
+story already attached (6.3.5).
+
+- **When the week comes already told** (a troubled shoot, a curse, a comeback,
+  a feud, a firing), report who is telling it and link them. The paper
+  supplies no villain, no motive and no next act, and never calls anything a
+  curse, a saga or noir in its own voice.
+- **Read the record; never decode the marketing.** No theories about plots,
+  castings or cameos nobody has announced, and no reading clues in posters or
+  trailers.
+- **A creator's account is attributed, never history.** "He has said…". Where
+  the record disagrees, name both (§6).
+- **When the gap is the news,** say in one plain line how thin the record is:
+  what is confirmed, and by whom. Never a sentence about the desk's method.
+- **Kane and Finger.** When copy names Batman's creators, it names both, never
+  Kane alone, in DC's words: "created by Bob Kane with Bill Finger", linked to
+  DC's own page (the film page for *The Batman*, or DC's post of 22 February
+  2024). When the credit is itself the story, the dated fact is The Hollywood
+  Reporter's of 18 September 2015: DC's statement of an agreement with
+  Finger's family. It is an agreement, never a "settlement". Name both sides;
+  no grade settles it. The check refuses "created by Bob Kane" without
+  Finger.
+- **Say which date it is.** A comic has a cover date and an on-sale date,
+  often months apart: *Detective Comics* #27 is cover-dated May 1939 and went
+  on sale on 30 March 1939. An anniversary counts from the on-sale date, and
+  only when a source gives it. With only a cover date, write "cover-dated May
+  1939", never "published in May 1939". A reprint's or a collection's date is
+  never a first appearance. A copyright year is called a copyright year.
+- **The morgue file is a card catalogue** (`MORGUE.md`): look it up, open the
+  link, cite the link. Never copy its sentence and never cite the file.
 
 ## 5 · The shape of an issue
 
@@ -234,7 +271,37 @@ right. Use it like a reporter would:
   and colour, never news, never a source, and never about the real world.
 - **When sources disagree, say so** and name both.
 - **Corrections go at the top of the story**, dated, in one line: "Corrected 18
-  October: the date is the 23rd, not the 21st." Never silently.
+  October: the date is the 23rd, not the 21st." Never silently. A withdrawn
+  claim stays withdrawn: don't repeat it, even to deny it.
+- **Real harm runs flat.** When the news is a real death, an injury, a crime,
+  a suicide or an accusation against a real person, the noir voice drops. The
+  story gives the fact, who says so and the date, and names only the people
+  the source names. The people harmed come before the film. No desk object,
+  rain, casebook line, regular, simile, grade or joke, and no closing line
+  that lands. No tributes, no repeated photographs, no romance. A
+  perpetrator's name never goes in a headline. Leave out any detail that only
+  adds hurt, never a fact. A real crime is never "noir". (IPSO Editors' Code,
+  clause 4; SPJ, Minimize Harm.)
+- **A real suicide** is never the lead, never in a headline, the X post or the
+  cold open. No method, no single cause, no "trigger". Tell it through the
+  life and the work, say that suicide is preventable, and end the story with
+  Samaritans' own line, word for word, after "In the UK and Ireland:": "When
+  life is difficult, Samaritans are here – day or night, 365 days a year. You
+  can call them for free on 116 123, email them at jo@samaritans.org, or
+  visit www.samaritans.org to find your nearest branch." Never quote a
+  contagion figure. (IPSO clause 5; Samaritans' guidance on reporting
+  celebrity suicides, 2020.)
+- **Relatives and children.** The relatives or friends of someone accused or
+  convicted are not named unless they are the story. A child in a crime story
+  is not named. (IPSO clause 9.)
+- **A filing is not a fact.** An arrest, a charge, a lawsuit or an accusation:
+  say who filed it and where, and print the other side's answer or say we
+  asked, then stop. "Charged with", never "charged for"; the check refuses the
+  second. It is a killing until a court convicts; "murder" is someone's word,
+  and we say whose. Guilt never gets a grade, and the column doesn't rule on
+  it either.
+- **No picture that could pass for a photograph** unless it is one. An
+  illustration or a reconstruction is labelled as one. (SPJ, 2014 code.)
 
 ## 7 · Spoilers (a hard line)
 
@@ -248,6 +315,10 @@ with anything else.
   survives. Name the title and say "news about its sequel", or cut the story.
 - Comics spoil early: solicitation text and variant covers often give away what
   happens. Describe the premise of the run, never an issue's events.
+- **Summaries are spoiler text.** Catalogue character tags ("death",
+  "revealed as"), DC's own blurbs and blog posts, book subtitles and contents
+  lists, abstracts and film synopses all give endings away. Take the date and
+  the credit from them, never the description.
 - Images obey this too.
 - If in doubt, cut. Don't hedge, and don't announce what you cut: a spoiler rule
   kept well is invisible.
@@ -260,6 +331,9 @@ with anything else.
   iconic, legendary, must-watch, game-changer, fans rejoice, buzz, "drops" for a
   release, MCU comparisons, "the Bat" or other nicknames. The check refuses
   most of them. Names are the exception (§3).
+- **"Noir", "gritty" and "Dark Deco" are the makers' words,** never the
+  desk's praise: attribute them or cut them. A product whose title carries
+  "Noir" (*Batman Noir: The Long Halloween*) prints as a title.
 - **News, never shopping.** Toys, games, collectibles and merch are news when
   they're announced, dated or released: name the product, the maker, the date.
   No prices, no "buy now", no store or affiliate links. The check refuses those
@@ -380,6 +454,13 @@ Before the PR opens. The owner reads it again before merging.
 - [ ] No spoilers, in text or images
 - [ ] Merch is news, never shopping; no service named as a place to watch
 - [ ] Every date and fact is stated outright, never carried by the mood
+- [ ] Real harm runs flat; a real suicide follows §6 to the line; no relative
+  or child of a crime story named
+- [ ] Every filing is a filing: who filed it, the other side, no grade on
+  guilt
+- [ ] Batman's creators are Kane and Finger, in DC's words; every comic date
+  says which date it is
+- [ ] No description taken from a summary, a blurb or a catalogue tag
 - [ ] Dates, numbers and spelling follow §9; site counts match `docs/orders.txt`
 
 **The voice**

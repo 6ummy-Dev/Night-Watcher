@@ -1,14 +1,16 @@
 # Nocturne — Operating brief
 
-For the desk: seven Grok agents working from their Linux VMs and browsers.
+For the desk: eight Grok agents working from their Linux VMs and browsers.
 Every agent follows this brief. Each reads its files from `main` at the start
 of every run; the copy on `main` is the one in force.
 
 | Who | Reads, in this order |
 | --- | --- |
 | Every agent | This brief, the notebook (`nocturne/NOTEBOOK.md`), and `nocturne/VOICE.md` §6 and §7 (sources and spoilers, the hard lines) |
-| The Night Editor, who writes the issue | This brief, `VOICE.md` in full, the week's cards, then `nocturne/REPORTER.md`; `nocturne/CASEBOOK.md` only when a story shares a method with a case in it |
-| Everyone else (the Wire, the Stoop, the Morgue, the Picture Desk, the SEO & AEO Desk, Dr Eggbot) | Nothing more. They stay objective and never read `REPORTER.md` or `CASEBOOK.md`: the reporter is fiction, and the Morgue in particular files only what's real |
+| The Night Editor, who writes the issue | This brief, `VOICE.md` in full, the week's cards, then `nocturne/REPORTER.md`; `nocturne/CASEBOOK.md` only when a story shares a method with a case in it; `nocturne/MORGUE.md` by lookup only, never read through |
+| The Copy Desk, who checks the issue (6.3.5) | This brief (its checks are in §4), `VOICE.md` in full and `REPORTER.md` §7. Never `CASEBOOK.md` |
+| The Morgue, who files Batman's history | `nocturne/MORGUE.md` in full before proposing a line, so nothing is filed twice. Never `REPORTER.md` or `CASEBOOK.md`: it files only what's real |
+| Everyone else (the Wire, the Stoop, the Picture Desk, the SEO & AEO Desk, Dr Eggbot) | Nothing more. They stay objective and never read `REPORTER.md` or `CASEBOOK.md`: the reporter is fiction |
 
 Who is writing is in `REPORTER.md`; how the words sound is in `VOICE.md`.
 This file covers what you do, when you do it, what you may touch and what shape
@@ -24,7 +26,7 @@ issue, published late on Sunday.
 > block of `docs/sitemap.xml`. That's the whole list. You never touch the app (`docs/index.html`, `sw.js`, the
 > manifest, `_headers`), the catalogue, the tests (`qa/`), the workflows, the
 > README, the CHANGELOG or any other doc, and never `nocturne/BRIEF.md`,
-> `nocturne/REPORTER.md`, `nocturne/CASEBOOK.md` or `nocturne/VOICE.md`. That holds even to fix a typo, a red check or a
+> `nocturne/REPORTER.md`, `nocturne/CASEBOOK.md`, `nocturne/MORGUE.md` or `nocturne/VOICE.md`. That holds even to fix a typo, a red check or a
 > broken link. If something outside the paper looks wrong, say so in the PR
 > and leave it. The owner fixes it. CI's `nocturne-paths` job fails any PR
 > that changes a file outside the list, and you can't push to `main` or merge.
@@ -103,7 +105,7 @@ The renderer builds the masthead from the front matter. Never write it into the 
 | --- | --- |
 | Clone `6ummy-Dev/Night-Watcher` and work on a branch `nocturne/<yyyy>-w<ww>` | Push to `main`, force-push, or merge anything |
 | Open one PR per week against `main` | Approve your own PR or change branch protection. The owner reviews and merges every PR |
-| Add or change files under `nocturne/issues/` and `docs/nocturne/`, and the notebook `nocturne/NOTEBOOK.md` | Touch anything else, **including `nocturne/BRIEF.md`, `nocturne/REPORTER.md`, `nocturne/CASEBOOK.md` and `nocturne/VOICE.md`** (only the owner edits the rules), `docs/index.html`, `sw.js`, `_headers`, `qa/`, workflows, README, CHANGELOG |
+| Add or change files under `nocturne/issues/` and `docs/nocturne/`, and the notebook `nocturne/NOTEBOOK.md` | Touch anything else, **including `nocturne/BRIEF.md`, `nocturne/REPORTER.md`, `nocturne/CASEBOOK.md`, `nocturne/MORGUE.md` and `nocturne/VOICE.md`** (only the owner edits the rules), `docs/index.html`, `sw.js`, `_headers`, `qa/`, workflows, README, CHANGELOG |
 | Run `npm ci`, `npm run nocturne:build`, `npm run nocturne:check` and `npm test` | Edit or bless guard output to make a check pass |
 | Post the issue link on X after it is live | Post before the page answers 200 on the live site |
 
@@ -137,6 +139,26 @@ creators, the history, the week's news as it breaks. File what you learn:
 - File the week's entries in your own PR: normally Sunday's issue PR; in a
   week with no issue, a PR with the notebook alone, same branch pattern. CI
   scopes it as a paper PR. `npm run nocturne:check` refuses a malformed entry.
+
+### The morgue file (6.3.5)
+
+`nocturne/MORGUE.md` is Batman's history as a card catalogue: one real fact a
+line, each with the page it came from and the day it was last checked. The
+owner edits it; no desk does.
+
+- **It is a lookup, never a source.** Search it by date, name or kind. Then
+  open the link, read the page, and cite the page. Never copy a line's
+  sentence into copy, and never cite `MORGUE.md`: the check refuses a source
+  that points at it. If the page no longer says it, the
+  fact doesn't run: report it under "Morgue file" in the PR as stale.
+- **Take the date and the credit, never the description.** The pages behind it
+  (DC's blogs, catalogue records, synopses) often spoil (`VOICE.md` §7).
+- **An anniversary** needs a line with a day-precise on-sale, release,
+  premiere, announced or event date, two links, and no DISPUTED mark. A
+  cover-dated line is printed as "cover-dated".
+- **It grows through the Morgue.** File the fact in the notebook first. Then,
+  in your PR, propose up to five lines under "Morgue file" in the exact line
+  format. The owner re-opens each link and adds the lines himself.
 
 **An issue is content, not a release.** No version bump, no tag, no release
 notes, no CHANGELOG entry. CI still runs on every PR.
@@ -187,6 +209,10 @@ doesn't advance. A thin week is fine. A padded one isn't.
    the cold open (it is also the page's description), any adjective, any
    shortened judgment, the sign-off, a "we", an added "you". Its changes go
    in the PR as a diff.
+   **Then the Copy Desk** (6.3.5) reads the issue against the checks below and
+   returns a list of named breaks ("Story 2, second sentence: the grade comes
+   first; flip it"). It never rewrites. The Night Editor fixes the breaks it
+   names, and only those, and the list goes in the PR under "Copy desk".
 4. **Images** per §6: the finished WebP files go **in the issue's folder**,
    beside `issue.md`. The build copies them into `docs/nocturne/`. Originals
    are not committed, and nothing else sits in the folder.
@@ -217,6 +243,71 @@ doesn't advance. A thin week is fine. A padded one isn't.
 10. **After merge**, Sunday 22:00: the site deploys on the merge. From the VM,
    `curl -sI` the issue URL. Post only on a 200, and only if the page's `<h1>`
    matches the merged headline (§8).
+
+### The Copy Desk's checks (6.3.5)
+
+The check (`npm run nocturne:check`) catches what a pattern can. The Copy Desk
+catches the rest, story by story, and names each break.
+
+**Wording and claims**
+
+1. Borrowed epithets ("visionary", "fan-favourite", "acclaimed", "beloved"):
+   say what the person did, or attribute the word.
+2. "Noir", "gritty", "Dark Deco" in the desk's own voice (`VOICE.md` §8).
+3. Two stories stay two: no sentence links them by cause, plan or pattern
+   unless a source does.
+4. The process behind the fact: a solicitation date isn't an on-sale date, a
+   tracking figure isn't a gross, a festival slot isn't a release, a listing
+   isn't a confirmation.
+5. Money words ("record", "hit", "flop", "sold out") carry a sourced figure,
+   or go.
+6. Every "said", "did", "plans" or "confirmed" traces to an opened link that
+   says it.
+7. A maker's claim about itself ("biggest", "fans asked for this") is
+   attributed in the same sentence; facts of record stay plain.
+8. "Linked to", "in the frame", "rumoured", "in talks": the source is named in
+   the same sentence.
+9. An estimate says whose it is, and no grade rests on it.
+10. At a real event, no weather, crowd or mood that no opened source reports.
+11. No famous titles as puns (*In Cold Blood*, *Naked City* and the like).
+12. The headline is carried by the text.
+13. Comment, conjecture and fact stay apart; the street is labelled.
+14. A figure keeps its scope: who, where, when. A count is never a rate.
+
+**Real harm** (`VOICE.md` §6)
+
+15. A story about real harm or an accusation: no desk object, rain, case line,
+    regular, simile, grade, joke or scene image; the accused's fame is never
+    the angle.
+16. A real suicide: no method, no cause, not the lead, not in a headline, no
+    tribute language, and Samaritans' line at the end, word for word.
+17. No relative of someone accused, and no child in a crime story, named.
+18. A filing is a filing: who filed it, where, the other side's answer.
+
+**Sources and verification**
+
+19. Exact words: a credit, a quote or a date read through a summary is fetched
+    again and matched word for word, or it doesn't run.
+20. A source the desk can't open doesn't run.
+21. A search listing never confirms a date. Open the page.
+22. A name on a page isn't a byline.
+23. A third-party list isn't the publisher's record.
+24. A date in a web address isn't a date on the page.
+25. A publisher's date is read as the publisher writes it (10/01/2006 is
+    October at a US house).
+
+**Credits and dates**
+
+26. Names match the record's creator field: none dropped, none added.
+27. "(credited)" or "(signed)" in a catalogue is a printed credit; a bare or
+    "sourced" name is an indexer's, and is said so.
+28. Re-open a talent block before calling a credit missing.
+29. No letterer or colourist the page doesn't print.
+30. A trade report of a panel isn't the panel; a later interview doesn't prove
+    what was said earlier.
+31. An ISBN's check digit is recomputed.
+32. Batman's creators: Kane and Finger, in DC's words.
+33. Every comic date says which date it is.
 
 ## 5 · File contract
 
@@ -399,6 +490,12 @@ Title: `nocturne: No. <issue> — <headline>`
 
 ## SEO & AEO
 - <each change, before → after> — or "no changes"
+
+## Copy desk
+- <each break the Copy Desk named, and its fix> — or "clean"
+
+## Morgue file
+- <each proposed line, in MORGUE.md's format; each stale line> — or "none"
 
 ## Pre-flight
 <VOICE.md §11, ticked>
@@ -597,8 +694,12 @@ says otherwise.
 - **"The date in paragraph two"** means release and on-sale dates, not history
   years.
 - **The morgue's sources:** DC's character and issue pages, publisher and
-  distributor pages, the trades' archives and named reference books. A history
-  line with no source goes.
+  distributor pages, the trades' archives and named reference books. From
+  6.3.5, catalogues too (the Grand Comics Database, library records,
+  archive.org records): the only place most on-sale dates and full credits
+  live, and graded "catalogue" in `MORGUE.md`. A catalogue's API page is a
+  lead; open the reader's page before citing it. Never a wiki. A history line
+  with no source goes.
 - **The browser pass** for maker sites that need one runs every week.
 - **Headlines attribute only when the fact is disputed.** "The press says" is
   not a sign-off.

@@ -14,6 +14,66 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.3.5] — 2026-09-26
+
+**The research cut.** A patch on the paper's rules, built from three rounds
+of outside research on noir writing, newsroom standards and Batman's own
+history, each checked against the pages it cites. The app changes only its
+version: no entry moves, nothing saved changes shape or meaning, and the
+counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is
+needed.**
+
+### Changed
+
+- **Real harm runs flat.** VOICE §6, which every desk reads, gains five hard
+  lines. When the news is a real death, injury, crime or accusation, the noir
+  voice drops: the fact, the source, the date, the people harmed first, and
+  no colour, grade or landing line. A real suicide is never the lead or a
+  headline, carries no method or single cause, and ends on Samaritans' own
+  line. Relatives of the accused and children in crime stories go unnamed. A
+  filing is not a fact: "charged with", never "charged for", and no grade on
+  guilt. No picture passes for a photograph unless it is one. The sources
+  are the IPSO Editors' Code (clauses 4, 5 and 9), Samaritans' guidance on
+  reporting celebrity suicides, and the SPJ code.
+- **Reading the record** (VOICE §4). The already-told week, the marketing
+  never decoded, a creator's account attributed, the gap as news, the ending
+  that lands only on what is known. **Batman's creators are Kane and
+  Finger**, in DC's words. **Every comic date says which date it is**: cover
+  or on-sale, never a collection's date as a debut.
+- **Summaries are spoiler text** (VOICE §7): catalogue tags, DC's blurbs and
+  blogs, subtitles, abstracts and synopses give the date and the credit,
+  never the description. "Noir", "gritty" and "Dark Deco" are the makers'
+  words (VOICE §8). Four new pre-flight boxes.
+- **REPORTER.** His doubt goes where the power is; he is never in the fan
+  fight and never above it. The never list gains the press of the films and
+  the paperbacks, their phrases, the *nota roja* reporter, and DC's own
+  reporters and papers as his shape.
+
+### Added
+
+- **The Copy Desk, the eighth desk.** It reads the issue after the SEO & AEO
+  pass and before the build, against 33 named checks in BRIEF §4, and
+  returns the breaks it finds without rewriting. The pull request gains
+  "Copy desk" and "Morgue file" headings.
+- **`nocturne/MORGUE.md`, the morgue file.** The owner's card catalogue of
+  Batman's real history: 26 seed lines, one fact each, with its date type,
+  grade, one or two links and the day it was checked. The Morgue reads it in
+  full; the Night Editor looks things up, then opens and cites the page. It
+  is never a source and never published. CODEOWNERS gives it to the owner,
+  and the fence already keeps the desk out.
+- **The check holds more.** It refuses a morgue file out of shape (format,
+  date against type, order, https links with no wikis, retailers or
+  ourselves, an outcome word, a voice, the reporter's fiction), an issue
+  citing the morgue file, "created by Bob Kane" without Finger, "charged
+  for", and the film press's names and phrases. It warns on a story taking
+  more than two sources from the morgue file, and on a card checked more
+  than a year ago (the command line only). Guard 166 keeps every morgue fact
+  off the built pages.
+
+### Under the hood
+
+- Negative fixtures 1,608 → 1,624 (1,507 guards / 117 smoke); suites stay 87.
+
 ## [6.3.4] — 2026-09-26
 
 **How the sentences work.** A patch on the paper's rules, from the owner's
