@@ -1,7 +1,7 @@
 # 6.2.3. What the drafting agent must never change without the owner's review:
 # the workflows (and the fence among them), the checks, and the agent's own
-# rules. The ruleset on main requires Code Owners' review; nocturne-desk can
-# open a pull request, never approve one. The paper itself (nocturne/issues/,
+# rules. The ruleset on main requires Code Owners' review; the desk's app,
+# nocturne-night-final[bot], can open a pull request, never approve one. The paper itself (nocturne/issues/,
 # docs/nocturne/) is reviewed like everything else: one approval, the owner's.
 /.github/            @6ummy-Dev
 /qa/                 @6ummy-Dev
