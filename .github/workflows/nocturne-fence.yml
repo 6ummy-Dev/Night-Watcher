@@ -1,8 +1,9 @@
 name: Nocturne fence
 
 # 6.2.0, rebuilt 6.2.3. The fence around the drafting agent. Nocturne's
-# issues arrive as pull requests from the agent's own account, nocturne-desk;
-# the owner reviews and merges every one. The agent may write the issue's
+# issues arrive as pull requests from the agent's own identity, the GitHub App
+# nocturne-night-final (6.3.6; the nocturne-desk user account is gone). The
+# owner reviews and merges every one. The agent may write the issue's
 # markdown and images, the paper the build makes from them and the sitemap
 # block the build rewrites, and nothing else: not the rules it works under
 # (nocturne/BRIEF.md, nocturne/VOICE.md), not the checks that judge it
@@ -34,7 +35,7 @@ permissions:
 
 jobs:
   nocturne-paths:
-    if: github.event.pull_request.user.login == 'nocturne-desk'
+    if: github.event.pull_request.user.login == 'nocturne-night-final[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -52,7 +53,7 @@ jobs:
           CHANGED=$(git diff --no-renames --name-only "$BASE...refs/nocturne/head")
           BAD=$(printf '%s\n' "$CHANGED" | grep -Ev '^(nocturne/issues/|nocturne/NOTEBOOK\.md$|docs/nocturne/|docs/sitemap\.xml$)' | grep . || true)
           if [ -n "$BAD" ]; then
-            echo "a pull request by nocturne-desk may change nocturne/issues/, nocturne/NOTEBOOK.md, docs/nocturne/ and docs/sitemap.xml only:"
+            echo "a pull request by nocturne-night-final[bot] may change nocturne/issues/, nocturne/NOTEBOOK.md, docs/nocturne/ and docs/sitemap.xml only:"
             printf '%s\n' "$BAD"
             exit 1
           fi
