@@ -82,13 +82,13 @@ its RSS feed and the X post that announces each issue. Until the first issue
 merges, `/nocturne/` is a holding page (noindex, no date promised) and the
 feed is open and empty, so a reader can subscribe early.
 
-A desk of eight AI agents writes each issue as markdown in
+A desk of seven AI agents writes each issue as markdown in
 `nocturne/issues/`, following `nocturne/BRIEF.md` and `nocturne/VOICE.md`,
 and opens a pull request; the owner reviews and merges every one. One of
 them, the Night Editor, writes the issue as the paper's unnamed reporter, and
 only it reads `nocturne/REPORTER.md` (who he is) and `nocturne/CASEBOOK.md`
 (his closed past); the rest stay objective (6.3.3). The Copy Desk checks
-each issue before the build and names what breaks the rules; it never
+each issue straight after the Night Editor, before the build and names what breaks the rules; it never
 rewrites (6.3.5). `nocturne/MORGUE.md` is the owner's card catalogue of
 Batman's real history: the desk looks facts up there, then opens and cites
 the page, and the check holds the file's shape and keeps it off the site. The review documents the

@@ -15899,7 +15899,11 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
      paths and MORGUE.md is none of them. */
   var co = fs.existsSync(path.join(ROOT, ".github", "CODEOWNERS")) ? fs.readFileSync(path.join(ROOT, ".github", "CODEOWNERS"), "utf8") : "";
   ["/.github/", "/qa/", "/nocturne/BRIEF.md", "/nocturne/CASEBOOK.md", "/nocturne/MORGUE.md", "/nocturne/REPORTER.md", "/nocturne/VOICE.md"].forEach(function(f){
-    if(!new RegExp("^" + f.replace(/[.\/]/g, "\\$&") + "\\s+@6ummy-Dev\\s*$", "m").test(co)) fail(".github/CODEOWNERS does not give " + f + " to the owner — a pull request could change it without the owner's review (6.3.2)");
+    /* A plain line compare, not a regex built from the path (CodeQL
+       js/incomplete-sanitization, 6.3.7): the path is a literal, but a
+       compare has nothing to escape. */
+    var owned = co.split(/\r?\n/).some(function(l){ var p = l.replace(/\s+$/, "").split(/\s+/); return p.length === 2 && p[0] === f && p[1] === "@6ummy-Dev"; });
+    if(!owned) fail(".github/CODEOWNERS does not give " + f + " to the owner — a pull request could change it without the owner's review (6.3.2)");
   });
   /* 6.3.0. An issue pull request runs the paper's checks, not the app's:
      qa.yml's scope job reads what the pull request changed and, when every

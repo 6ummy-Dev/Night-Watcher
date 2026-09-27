@@ -1,6 +1,6 @@
 # Nocturne — Operating brief
 
-For the desk: eight Grok agents working from their Linux VMs and browsers.
+For the desk: seven Grok agents working from their Linux VMs and browsers.
 Every agent follows this brief. Each reads its files from `main` at the start
 of every run; the copy on `main` is the one in force.
 
@@ -10,7 +10,7 @@ of every run; the copy on `main` is the one in force.
 | The Night Editor, who writes the issue | This brief, `VOICE.md` in full, the week's cards, then `nocturne/REPORTER.md`; `nocturne/CASEBOOK.md` only when a story shares a method with a case in it; `nocturne/MORGUE.md` by lookup only, never read through |
 | The Copy Desk, who checks the issue (6.3.5) | This brief (its checks are in §4), `VOICE.md` in full and `REPORTER.md` §7. Never `CASEBOOK.md` |
 | The Morgue, who files Batman's history | `nocturne/MORGUE.md` in full before proposing a line, so nothing is filed twice. Never `REPORTER.md` or `CASEBOOK.md`: it files only what's real |
-| Everyone else (the Wire, the Stoop, the Picture Desk, the SEO & AEO Desk, Dr Eggbot) | Nothing more. They stay objective and never read `REPORTER.md` or `CASEBOOK.md`: the reporter is fiction |
+| Everyone else (the Wire, the Stoop, the Picture Desk, Dr Eggbot) | Nothing more. They stay objective and never read `REPORTER.md` or `CASEBOOK.md`: the reporter is fiction |
 
 Who is writing is in `REPORTER.md`; how the words sound is in `VOICE.md`.
 This file covers what you do, when you do it, what you may touch and what shape
@@ -210,15 +210,8 @@ doesn't advance. A thin week is fine. A padded one isn't.
 3. **Write** `nocturne/issues/<yyyy>-w<ww>-<slug>/issue.md` to the contract in
    §5. One folder per issue. The folder's name is the week in lower case and
    the slug: `2026-w41-clayface-gets-a-date`. The Night Editor writes it.
-   **Then the SEO & AEO pass** (6.3.3), before the build and the check, so the
-   check reads what ships. It labels sentences; it never rewrites them. It
-   may change a headline (the lead's is also `title`), the slug and alt text,
-   and add a plain fact the cards already hold (a date, a title, a studio).
-   Everything else goes back to the Night Editor: any wording in the body,
-   the cold open (it is also the page's description), any adjective, any
-   shortened judgment, the sign-off, a "we", an added "you". Its changes go
-   in the PR as a diff.
-   **Then the Copy Desk** (6.3.5) reads the issue against the checks below and
+   **Then the Copy Desk** (6.3.5) reads the issue against the checks below,
+   straight after the Night Editor (6.3.7: the SEO & AEO pass is gone), and
    returns a list of named breaks ("Story 2, second sentence: the grade comes
    first; flip it"). It never rewrites. The Night Editor fixes the breaks it
    names, and only those, and the list goes in the PR under "Copy desk".
@@ -496,9 +489,6 @@ Title: `nocturne: No. <issue> — <headline>`
 
 ## Images
 - <file> — <rights holder> — <licence> — <terms_url>
-
-## SEO & AEO
-- <each change, before → after> — or "no changes"
 
 ## Copy desk
 - <each break the Copy Desk named, and its fix> — or "clean"
