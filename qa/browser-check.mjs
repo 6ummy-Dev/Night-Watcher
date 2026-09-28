@@ -1739,14 +1739,45 @@ async function paperChecks(){
         scripts: [...document.scripts].filter(x => x.type !== "application/ld+json").map(x => x.getAttribute("src")).join(" ")
       }));
       st.status = resp ? resp.status() : 0;
-      /* 6.5.0: an issue's Share button answers. Headless Chromium has no
-         share sheet, so the button takes the copy path and says so in its
-         live region: "Link copied", or the link itself where the clipboard
-         is refused. Either is an answer; silence is the failure. */
+      /* 6.5.0: an issue's Share button answers. 6.5.1 (outside QA, C1-C4,
+         C18): the share sheet and the clipboard are stubbed in the page, so
+         every path is driven, not only the one headless Chromium happens to
+         take. A copy says "Link copied" in the live region only, and the
+         button keeps its word. A refused copy says "Copy failed" and puts
+         the link on its own line; a second click inside the 2.4 s still
+         brings the word back to "Share". A share sheet that fails copies
+         instead; one the reader cancels does nothing. */
       if(/No\. /.test(label)){
-        await np.click(".acts .btn.share");
-        await np.waitForTimeout(300);
-        st.shared = await np.evaluate(() => (document.querySelector(".acts .shout") || {}).textContent || "");
+        const stub = (share, copy) => np.evaluate(([share, copy]) => {
+          window.__copies = 0;
+          Object.defineProperty(navigator, "share", { configurable: true, value:
+            share === "none" ? undefined :
+            () => Promise.reject(share === "cancel" ? new DOMException("cancel", "AbortError") : new Error("no sheet")) });
+          Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: () => {
+            window.__copies++; return copy ? Promise.resolve() : Promise.reject(new Error("refused")); } } });
+        }, [share, copy]);
+        const read = () => np.evaluate(() => {
+          const b = document.querySelector(".acts .btn.share"), o = document.querySelector(".acts .shout");
+          return { word: b.querySelector(".sl").textContent, out: o.textContent, fail: o.classList.contains("fail"),
+                   copies: window.__copies, url: b.getAttribute("data-url") };
+        });
+        const sh = {};
+        await stub("none", true);
+        await np.click(".acts .btn.share"); await np.waitForTimeout(150);
+        sh.copied = await read();
+        await stub("none", false);
+        await np.click(".acts .btn.share"); await np.waitForTimeout(500);
+        await np.click(".acts .btn.share"); await np.waitForTimeout(150);
+        sh.refused = await read();
+        await np.waitForTimeout(2500);
+        sh.after = await read();
+        await stub("fails", true);
+        await np.click(".acts .btn.share"); await np.waitForTimeout(150);
+        sh.sheetFailed = await read();
+        await stub("cancel", true);
+        await np.click(".acts .btn.share"); await np.waitForTimeout(150);
+        sh.cancelled = await read();
+        st.share = sh;
       }
       const r = await np.evaluate(async () => await window.axe.run(document, {
         resultTypes: ["violations"],
@@ -1762,7 +1793,19 @@ async function paperChecks(){
     ok("nocturne (" + label + "): nothing wider than the phone; its own scripts and the beacon, no other",
        st.wide === false && st.scripts === wantScripts,
        "wide " + st.wide + ", scripts " + st.scripts);
-    if(/No\. /.test(label)) ok("nocturne (" + label + "): the Share button answers", !!st.shared, st.shared || "said nothing");
+    if(/No\. /.test(label)){
+      const sh = st.share || {};
+      const c = sh.copied || {}, r = sh.refused || {}, f = sh.after || {}, x = sh.sheetFailed || {}, k = sh.cancelled || {};
+      ok("nocturne (" + label + "): a copy says \"Link copied\" in the live region only; the button keeps its word",
+         c.out === "Link copied" && c.word === "Share" && !c.fail && c.copies === 1, JSON.stringify(c));
+      ok("nocturne (" + label + "): a refused copy says \"Copy failed\" and shows the link, as written, on its own line",
+         r.word === "Copy failed" && r.fail && r.out === r.url && r.copies === 2, JSON.stringify(r));
+      ok("nocturne (" + label + "): a second click inside 2.4 s still brings the word back to \"Share\"; the link stays",
+         f.word === "Share" && f.fail && f.out === f.url, JSON.stringify(f));
+      ok("nocturne (" + label + "): a failed share sheet copies instead; a cancelled one does nothing",
+         x.copies === 1 && x.out === "Link copied" && k.copies === 0 && k.out === "Link copied" && k.word === "Share",
+         JSON.stringify({ sheetFailed: x, cancelled: k }));
+    }
     ok("nocturne (" + label + "): axe, no serious violations", st.axe && !st.axe.length,
        st.axe && st.axe.length ? st.axe.join(", ") : "");
     if(errs.length || (st.axe && st.axe.length)){

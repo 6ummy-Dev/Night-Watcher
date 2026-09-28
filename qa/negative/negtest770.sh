@@ -49,7 +49,7 @@ run_case "the scope moves into a paths filter" \
   "${QA}a='  pull_request:\\n    branches: [main]\\n';assert s.count(a)==1;s=s.replace(a,\"  pull_request:\\n    branches: [main]\\n    paths:\\n      - 'docs/index.html'\\n\",1);${W}" \
   guards "" 163
 
-echo "--- 164: two scripts, ours and the beacon's"
+echo "--- 164: three scripts, ours and the beacon's"
 
 run_case "a third script on every page" \
   "carries a script that is not a JSON-LD data block, theme.js, paper.js or the analytics beacon" \
@@ -68,7 +68,7 @@ run_case "the pages stop counting their visits" \
 
 run_case "theme.js starts writing to storage" \
   "theme.js does more than read" \
-  "${N}a='setAttribute(\\\\\"data-theme\\\\\",\\\\\"darker\\\\\");}catch(e){}';assert a in s;s=s.replace(a,'setAttribute(\\\\\"data-theme\\\\\",\\\\\"darker\\\\\");localStorage.setItem(\\\\\"seen\\\\\",\\\\\"1\\\\\");}catch(e){}',1);${W}" \
+  "${N}a='setAttribute(\\\\\"data-theme\\\\\",\\\\\"darker\\\\\");})();';assert a in s;s=s.replace(a,'setAttribute(\\\\\"data-theme\\\\\",\\\\\"darker\\\\\");localStorage.setItem(\\\\\"seen\\\\\",\\\\\"1\\\\\");})();',1);${W}" \
   guards "" 164
 
 echo "--- 165: the app counts nothing"

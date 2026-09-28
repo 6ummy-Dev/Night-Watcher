@@ -713,9 +713,10 @@ var DARKER = (function(){
   return DARKER_KEYS.filter(function(k){ return have[k]; }).map(function(k){ return k + ":" + have[k] + ";"; }).join("");
 })();
 var THEME_JS = [
-"/* Nocturne \u2014 follows the app's theme. Written by qa/nocturne.js; never edited by hand. */",
-"try{var p=localStorage.getItem(\"nocturne-theme\"),n=JSON.parse(localStorage.getItem(\"batwatch-settings\")||\"null\")||JSON.parse(localStorage.getItem(\"batwatch-v3\")||\"null\");" +
-"var t=p===\"dark\"||p===\"darker\"?p:n&&n.theme;if(t===\"darker\")document.documentElement.setAttribute(\"data-theme\",\"darker\");}catch(e){}",
+"/* Nocturne \u2014 sets the theme before first paint: the paper's own choice (nocturne-theme) first, else the app's theme. Written by qa/nocturne.js; never edited by hand. */",
+"(function(){var t=null;try{t=localStorage.getItem(\"nocturne-theme\");}catch(e){}",
+"if(t!==\"dark\"&&t!==\"darker\"){t=null;try{var app=JSON.parse(localStorage.getItem(\"batwatch-settings\")||\"null\")||JSON.parse(localStorage.getItem(\"batwatch-v3\")||\"null\");t=app&&app.theme;}catch(e){}}",
+"if(t===\"darker\")document.documentElement.setAttribute(\"data-theme\",\"darker\");})();",
 ""].join("\n");
 var THEME_TAG = '<script src="/nocturne/theme.js"></script>';
 /* 6.5.0. paper.js, the paper's second script of its own, on every page,
@@ -731,18 +732,17 @@ var THEME_TAG = '<script src="/nocturne/theme.js"></script>';
    stores nothing else (guard 164). */
 var PAPER_JS = [
 "/* Nocturne \u2014 the Share button and the theme switch. Written by qa/nocturne.js; never edited by hand. */",
-"(function(){var R=document.documentElement;",
-"function mark(){var d=R.getAttribute(\"data-theme\")===\"darker\"?\"darker\":\"dark\";[].forEach.call(document.querySelectorAll(\"[data-theme-set]\"),function(b){b.setAttribute(\"aria-pressed\",String(b.getAttribute(\"data-theme-set\")===d));});}",
-"mark();",
-"document.addEventListener(\"click\",function(e){var x=e.target&&e.target.closest?e.target:null;if(!x)return;",
-"var tb=x.closest(\"[data-theme-set]\");if(tb){var v=tb.getAttribute(\"data-theme-set\")===\"darker\"?\"darker\":\"dark\";",
-"if(v===\"darker\")R.setAttribute(\"data-theme\",\"darker\");else R.removeAttribute(\"data-theme\");try{localStorage.setItem(\"nocturne-theme\",v);}catch(err){}mark();return;}",
-"var b=x.closest(\"[data-share]\");if(!b)return;",
-"var u=b.getAttribute(\"data-url\"),t=b.getAttribute(\"data-title\"),l=b.querySelector(\".sl\"),o=b.nextElementSibling;",
-"function say(m){if(l){var w=l.textContent;l.textContent=m;setTimeout(function(){l.textContent=w;},2400);}if(o&&o.className===\"shout\")o.textContent=m;}",
-"if(navigator.share){navigator.share({title:t,url:u}).catch(function(){});return;}",
-"if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(function(){say(\"Link copied\");},function(){say(u);});return;}",
-"say(u);});})();",
+"(function(){var root=document.documentElement,IDLE=\"Share\",timer=0;",
+"function markTheme(){var now=root.getAttribute(\"data-theme\")===\"darker\"?\"darker\":\"dark\";[].forEach.call(document.querySelectorAll(\"[data-theme-set]\"),function(b){b.setAttribute(\"aria-pressed\",String(b.getAttribute(\"data-theme-set\")===now));});}",
+"function setTheme(v){if(v===\"darker\")root.setAttribute(\"data-theme\",\"darker\");else root.removeAttribute(\"data-theme\");try{localStorage.setItem(\"nocturne-theme\",v);}catch(err){}markTheme();}",
+"function label(button,text){var word=button.querySelector(\".sl\");clearTimeout(timer);if(word)word.textContent=text;button.classList.toggle(\"failed\",text!==IDLE);if(text!==IDLE)timer=setTimeout(function(){label(button,IDLE);},2400);}",
+"function copied(button,out){label(button,IDLE);if(out){out.classList.remove(\"fail\");out.textContent=\"Link copied\";}}",
+"function failed(button,out,url){label(button,\"Copy failed\");if(out){out.classList.add(\"fail\");out.textContent=url;}}",
+"function copy(button,out,url){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(function(){copied(button,out);},function(){failed(button,out,url);});return;}failed(button,out,url);}",
+"function share(button){var url=button.getAttribute(\"data-url\"),title=button.getAttribute(\"data-title\"),out=button.nextElementSibling;if(!out||!out.classList.contains(\"shout\"))out=null;",
+"if(navigator.share){navigator.share({title:title,url:url}).catch(function(err){if(!err||err.name!==\"AbortError\")copy(button,out,url);});return;}copy(button,out,url);}",
+"markTheme();",
+"document.addEventListener(\"click\",function(e){var themeButton=e.target.closest(\"[data-theme-set]\");if(themeButton){setTheme(themeButton.getAttribute(\"data-theme-set\")===\"darker\"?\"darker\":\"dark\");return;}var shareButton=e.target.closest(\"[data-share]\");if(shareButton)share(shareButton);});})();",
 ""].join("\n");
 var PAPER_TAG = '<script src="/nocturne/paper.js" defer></script>';
 var SHARE_ICON = '<svg class="shr" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.4v6.8M3.3 4.1 6 1.4l2.7 2.7M2 6.4v4.2h8V6.4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
@@ -763,12 +763,12 @@ var BEACON = '<script type="module" src="https://static.cloudflareinsights.com/b
    qa/nocturne-fonts/ with its record. It is the paper's alone: it is not in
    docs/fonts/, so the app neither preloads nor precaches it, and the build
    writes it into docs/nocturne/ beside OFL.txt, which travels with it. */
-/* 6.4.0. The paper's own faces, all blessed in the one record: the italic
-   above and Newsreader 400 and italic for the reading text. No reserved
-   names, so they ship as subsets under their own names. None is in
-   docs/fonts/. 6.5.0: Bodoni Moda 700, the banner's and the story heads'
-   face, moved to docs/fonts/ when the app's Home card took it; the paper
-   reads it from there like the app's other faces. */
+/* The paper's own faces (6.4.0), all blessed in the one record: the
+   italic above and Newsreader 400 and italic for the reading text and, from
+   6.5.1, the sign-off. No reserved names, so they ship as subsets under
+   their own names, and none is in docs/fonts/. The paper's one shared face,
+   Bodoni Moda 700 (the banner and story heads), is the app's, in
+   docs/fonts/ since 6.5.0. */
 var PAPER_FONTS = (function(){
   var dir = path.join(__dirname, "nocturne-fonts");
   var rec = JSON.parse(fs.readFileSync(path.join(dir, "record.json"), "utf8"));
@@ -874,14 +874,16 @@ var CSS = [
 ".map dd.parked{display:inline-flex;align-items:center;gap:8px;}",
 ".ring{width:12px;height:12px;border-radius:50%;border:1.5px dashed var(--dust);flex:none;}",
 ".map.none p:last-child{margin:0;font-size:var(--t-desc);color:var(--dust);}",
-".signoff{text-align:center;font-family:var(--deco);text-transform:uppercase;letter-spacing:.04em;font-size:var(--t-heading);margin:0;}",
+/* 6.5.1, owner's call: the sign-off is the reporter's last line, so it is set
+   in the reading face, italic, in sentence case; it was NW Deco, a banner. */
+".signoff{text-align:center;font-family:var(--read);font-style:italic;font-size-adjust:.5;font-size:var(--t-heading);line-height:1.45;margin:0;}",
 "/* 6.3.1: the colophon sits under the app's diamond rule, the way every tab in the app closes (guard 169). */",
 ".foot{max-width:620px;margin:44px auto 0;}",
 ".colophon::before{content:\"\";position:absolute;top:0;left:50%;width:4.5px;height:4.5px;transform:translate(-50%,-50%) rotate(45deg);background:var(--signal);box-shadow:0 0 0 6px var(--ink);}",
 /* 6.5.0: the foot's buttons in two rows, the way back to the map on its own
    and the paper's own buttons under it, equal widths, one style. */
-".acts{display:grid;gap:10px;max-width:460px;margin:0 auto 30px;}",
-".acts .more{display:flex;gap:10px;position:relative;}",
+".acts{display:grid;gap:30px;max-width:460px;margin:0 auto 30px;}",
+".acts .more{display:flex;flex-wrap:wrap;gap:10px;position:relative;}",
 ".acts .more .btn{flex:1 1 0;min-width:0;justify-content:center;}",
 ".btn{font-family:var(--mono);font-size:var(--t-label);font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;padding:12px 14px;min-height:44px;display:inline-flex;align-items:center;}",
 ".btn.home{background:var(--signal);color:var(--ink);border:1px solid var(--signal);gap:12px;padding:10px 18px 10px 14px;text-align:left;}",
@@ -902,6 +904,8 @@ var CSS = [
 ".btn.share:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}",
 ".btn .shr{width:12px;height:12px;margin-right:8px;flex:none;}",
 ".shout{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}",
+".shout.fail{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal;flex-basis:100%;order:1;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.04em;color:var(--steel);text-align:center;overflow-wrap:anywhere;user-select:all;}",
+".btn.share.failed .shr{display:none;}",
 ".colophon{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:0;position:relative;padding-top:22px;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}",
 ".sub{text-align:center;color:var(--dust);font-size:var(--t-desc);margin:0 auto 26px;max-width:460px;}",
 ".front{max-width:680px;margin:0 auto;}",
@@ -964,8 +968,8 @@ function dateline(a, b, c){
 }
 function footer(extra){
   return '<footer class="foot">\n<div class="acts">' +
-    '<a class="btn home" href="/">' + MARK + '<span class="lbl"><b>Night Watcher</b><small>Open the map' + ARROW + '</small></span></a>' +
-    '<div class="more"><a class="btn ghost" href="/nocturne/feed.xml" type="application/rss+xml">' + RSS + 'RSS</a>' + (extra || "") + '</div></div>\n' +
+    '<div class="more"><a class="btn ghost" href="/nocturne/feed.xml" type="application/rss+xml">' + RSS + 'RSS</a>' + (extra || "") + '</div>' +
+    '<a class="btn home" href="/">' + MARK + '<span class="lbl"><b>Night Watcher</b><small>Open the map' + ARROW + '</small></span></a></div>\n' +
     '<div class="themerow" role="group" aria-label="Theme"><button type="button" data-theme-set="dark" aria-pressed="true">Dark deco</button>' +
     '<button type="button" data-theme-set="darker" aria-pressed="false">Darker</button></div>\n' +
     '<p class="colophon">' + COLOPHON + '</p>\n</footer>\n';
@@ -989,6 +993,7 @@ function head(o){
     '<meta property="og:image:height" content="' + o.img.h + '">\n' +
     '<meta property="og:image:alt" content="' + esc(o.img.alt) + '">\n' +
     '<meta name="twitter:card" content="summary_large_image">\n' +
+    '<meta name="twitter:image" content="' + o.img.url + '">\n' +
     (o.extra || "") + '</head>\n';
 }
 function ldjson(obj){
@@ -1052,7 +1057,7 @@ function board(fm, cat){
 
 function figure(im, lazy){
   return '<figure><img src="' + esc(im.file) + '" width="' + im.width + '" height="' + im.height +
-         '" alt="' + esc(im.alt) + '"' + (lazy ? ' loading="lazy"' : "") + '><figcaption><span>' + esc(im.alt) + '</span><span>' +
+         '" alt=""' + (lazy ? ' loading="lazy"' : "") + '><figcaption><span>' + esc(im.alt) + '</span><span>' +
          esc(im.credit) + '</span></figcaption></figure>\n';
 }
 

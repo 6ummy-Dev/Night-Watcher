@@ -251,7 +251,7 @@ run_case "the runtime cache write losing waitUntil is caught" \
 import io
 p='docs/sw.js'
 s=io.open(p,encoding='utf-8').read()
-old='e.waitUntil(\n          /* delete-then-put'
+old='e.waitUntil(\n        /* delete-then-put'
 assert old in s
 io.open(p,'w',encoding='utf-8').write(s.replace(old,old.replace('e.waitUntil(','void(')))
 "

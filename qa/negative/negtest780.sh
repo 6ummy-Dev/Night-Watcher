@@ -372,7 +372,7 @@ run_case "the app links to the crew's page" \
   guards "" 170
 
 run_case "the crew's page loses its noindex header" \
-  "rule is not the reviewed pair" \
+  "rule is not the reviewed three" \
   "$(pro docs/_headers)a='  X-Robots-Tag: noindex, nofollow\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
   guards "" 170
 
@@ -386,7 +386,7 @@ run_case "the sitemap lists the crew's page" \
   "$(pro docs/sitemap.xml)a='</urlset>';assert s.count(a)==1;s=s.replace(a,'<url><loc>https://nightwatcher.life/hww/</loc></url>\n'+a,1);${W}" \
   guards "" 170
 
-echo "--- 164: the theme switch keeps to the paper (6.5.0)"
+echo "--- 164: the theme switch keeps to the paper (6.5.0); Share names its own issue, twitter:image is og:image (6.5.1)"
 
 run_case "paper.js writes the app's settings" \
   "writes something other than the paper's own theme key" \
@@ -396,6 +396,21 @@ run_case "paper.js writes the app's settings" \
 run_case "a page loses the theme switch" \
   "does not carry the Dark deco / Darker switch" \
   "${N}a='>Dark deco</button>';assert s.count(a)==1;s=s.replace(a,'>Dark</button>',1);${W}" \
+  guards "" 164
+
+run_case "an issue's Share button names another issue" \
+  "does not name the issue's own address" \
+  "${N}a='footer(shareButton(url, ';assert s.count(a)==1;s=s.replace(a,'footer(shareButton(SITE + \"/nocturne/2026-w01-another/\", ',1);${W}" \
+  guards "" 164
+
+run_case "an issue carries two Share buttons" \
+  "does not carry its one Share button" \
+  "${N}a='footer(shareButton(url, ';assert s.count(a)==1;s=s.replace(a,'footer(shareButton(url, \"x\") + shareButton(url, ',1);${W}" \
+  guards "" 164
+
+run_case "twitter:image points somewhere else than og:image" \
+  "does not carry one twitter:image equal to its og:image" \
+  "${N}a='name=\"twitter:image\" content=\"\\' + o.img.url';assert s.count(a)==1;s=s.replace(a,'name=\"twitter:image\" content=\"\\' + SHARE.url',1);${W}" \
   guards "" 164
 
 finish "negtest780"

@@ -46,10 +46,10 @@ run_case "the fence around the agent's pull requests widens" \
   "$(pro .github/workflows/nocturne-fence.yml)a='|docs/sitemap\\\\.xml\$)';assert a in s;s=s.replace(a,'|docs/sitemap\\\\.xml\$|qa/)',1);${W}" \
   guards "" 163
 
-echo "--- 164: the paper runs no script"
+echo "--- 164: the paper runs only its own scripts and the beacon's"
 
 run_case "the paper's policy loosens its script-src" \
-  "not the reviewed default-deny policy" \
+  "the paper's header rule is not the reviewed pair" \
   "${HD}a=\"script-src 'self' https\";assert a in s;s=s.replace(a,\"script-src 'self' 'unsafe-inline' https\",1);${W}" \
   guards "" 164
 
@@ -92,7 +92,7 @@ run_case "the worker answers a paper navigation, executed" \
 
 run_case "sw.js steps aside only after it has answered" \
   "only after respondWith" \
-  "${SW}a='  if(url.pathname.indexOf(\"/nocturne/\") === 0) return;\n';assert a in s;s=s.replace(a,'',1);b='  );\n});';assert s.endswith(b+'\n');s=s[:-len(b)-1]+'  );\n  if(url.pathname.indexOf(\"/nocturne/\") === 0) return;\n});\n';${W}" \
+  "${SW}a='  if(url.pathname.indexOf(\"/nocturne/\") === 0) return;\n';assert a in s;s=s.replace(a,'',1);b='  }));\n});';assert s.endswith(b+'\n');s=s[:-len(b)-1]+'  }));\n  if(url.pathname.indexOf(\"/nocturne/\") === 0) return;\n});\n';${W}" \
   guards "" 165
 
 run_case "the shell caches the paper's stylesheet" \

@@ -48,20 +48,23 @@ Then post one link on X once the page is live.
 are neighbours in the same universe: the paper reports the news, the map keeps
 the order, and the renderer shows where a story sits whenever it touches the
 catalogue. It lives outside the
-PWA: the service worker skips `/nocturne/`. Its pages run two scripts, both
-the renderer's: `theme.js`, which follows the reader's Dark or Darker theme
-from the app, and Cloudflare Web Analytics' beacon, which counts visits
-without cookies (6.3.0). You never add a script. **It is
+PWA: the service worker skips `/nocturne/`. Its pages run three scripts, all
+the renderer's: `theme.js`, which sets the reader's Dark or Darker theme before
+the page paints (the paper's own switch first, the app's theme otherwise);
+`paper.js`, the *Share* button and the theme switch (6.5.0); and Cloudflare
+Web Analytics' beacon, which counts visits without cookies (6.3.0). You never
+add a script. **It is
 reached through Home's one *Read the paper* button (from 6.2.1), the sitemap,
-the RSS feed at `/nocturne/feed.xml` and the weekly X post.** Until the first
-issue merges, `/nocturne/` is a holding page the build writes on its own; your
-first issue replaces it with the front: the latest issue's headline, hero,
-cold open and story heads, one *Read the Night Final* button, and back issues
-under *The morgue* (6.4.0). Never write or edit it.
-The footer (6.3.1) leads back to the map with a *Night Watcher* button that
-carries the app's mark, then *RSS* (the feed) and, on issues, *Share* and
-*The morgue*, then the *Dark deco* / *Darker* switch (6.5.0), with the
-colophon under the app's diamond rule. The renderer writes it.
+the RSS feed at `/nocturne/feed.xml` and the weekly X post.** `/nocturne/` is
+the front, which the build writes from your issues: the latest issue's
+headline, hero, cold open and story heads, one *Read the Night Final* button,
+and back issues under *The morgue* (6.4.0). Never write or edit it.
+The footer opens with *RSS* (the feed) and, on issues, *Share* and *The
+morgue* in one row; under it the *Night Watcher* button that carries the
+app's mark and leads back to the map; then the *Dark deco* / *Darker* switch,
+each row 30px from the next (6.5.1); then the colophon under the app's diamond
+rule. The sign-off above it is set in the reading face, italic (6.5.1). The
+renderer writes all of it.
 
 ### The masthead
 
@@ -110,7 +113,7 @@ The renderer builds the masthead from the front matter. Never write it into the 
 | Open one PR per week against `main` | Approve your own PR or change branch protection. The owner reviews and merges every PR |
 | Add or change files under `nocturne/issues/` and `docs/nocturne/`, and the notebook `nocturne/NOTEBOOK.md` | Touch anything else, **including `nocturne/BRIEF.md`, `nocturne/REPORTER.md`, `nocturne/CASEBOOK.md`, `nocturne/MORGUE.md` and `nocturne/VOICE.md`** (only the owner edits the rules), `docs/index.html`, `sw.js`, `_headers`, `qa/`, workflows, README, CHANGELOG |
 | Run `npm ci`, `npm run nocturne:build`, `npm run nocturne:check` and `npm test` | Edit or bless guard output to make a check pass |
-| Post the issue link on X after it is live | Post before the page answers 200 on the live site |
+| Write the one X draft in the PR (the Night Editor, §8) | Post on X: the owner posts it, after the page answers 200 on the live site (6.5.1) |
 
 **Who you are on GitHub (6.3.6).** You work as the desk's GitHub App,
 `nocturne-night-final[bot]`, and as nothing else. Each run mints a one-hour
@@ -255,8 +258,9 @@ doesn't advance. A thin week is fine. A padded one isn't.
    changes anything outside `nocturne/issues/`, `nocturne/NOTEBOOK.md`,
    `docs/nocturne/` and `docs/sitemap.xml`.
 10. **After merge**, Sunday 22:00: the site deploys on the merge. From the VM,
-   `curl -sI` the issue URL. Post only on a 200, and only if the page's `<h1>`
-   matches the merged headline (§8).
+   `curl -sI` the issue URL. The post goes out only on a 200, and only if the
+   page's `<h1>` matches the merged headline (§8). The owner posts it; the desk
+   never does (6.5.1).
 
 ### The Copy Desk's checks (6.3.5)
 
@@ -526,6 +530,9 @@ nocturne:build ✅  nocturne:check ✅  npm test ✅
 ```
 
 ## 8 · The X post
+
+The owner posts it, as themselves. The Night Editor writes the one draft, in
+the PR, before the merge; nobody writes a second, and no desk posts (6.5.1).
 
 - One post per issue, Sunday 22:00–23:00 Montevideo, after the 200 check.
 - "I" voice. It opens on "The Night Final is out." or the lead story in one

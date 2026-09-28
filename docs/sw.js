@@ -9,7 +9,7 @@
  * the app is one index.html, so a sticky cache is a sticky catalogue and
  * sticky code with no way to push a fix. History: NOTES-history.md ("Where the served and config files' histories went").
  */
-var VERSION = "6.5.0";
+var VERSION = "6.5.1";
 var CACHE   = "night-watcher-" + VERSION;
 /* The shell: everything the page needs to open offline. Guard 13 diffs this
    list against what docs/ serves, crawler-facing files excluded; ./index.html
@@ -31,6 +31,9 @@ var SHELL   = ["./", "./manifest.json", "./icon.png", "./icon-192.png",
    the install fetched with a bare wildcard. ignoreVary on every match: there
    is one representation of each path in this cache, whatever Accept asked. */
 var ANY = {ignoreVary: true};
+/* 6.5.1. How long a navigation waits for the network before the cache
+   answers (owner's call: 4 s). */
+var NAV_WAIT = 4000;
 
 self.addEventListener("install", function(e){
   e.waitUntil(
@@ -66,55 +69,84 @@ self.addEventListener("fetch", function(e){
   /* 6.2.0. Nocturne, the weekly paper at /nocturne/, is not part of the app.
      It is never cached here and never falls back to the app's shell: an
      issue read offline is an honest network error, not the map pretending
-     to be the paper. Guard 165 holds this line ahead of respondWith. */
+     to be the paper. Guard 165 holds this line ahead of respondWith.
+     6.5.1: the slashless form too; Cloudflare answers /nocturne with a
+     redirect, and that is the network's to give, not the app's shell. */
+  if(url.pathname === "/nocturne") return;
   if(url.pathname.indexOf("/nocturne/") === 0) return;
   /* 6.5.0. /hww, the crew's page, is not the app either (guard 170). */
+  if(url.pathname === "/hww") return;
   if(url.pathname.indexOf("/hww/") === 0) return;
 
-  e.respondWith(
-    fetch(req).then(function(res){
-      if(res && res.ok){
-        var copy = res.clone();
-        /* The put rides waitUntil so the browser cannot kill the worker
-           between the reply and the write; c.put() rejects on 206s and on a
-           full quota, and the rejection lands in the catch. Guard 132
-           executes this path. */
-        e.waitUntil(
-          /* delete-then-put, both under ignoreVary: put() honours Vary when
-             it dedupes, so / could otherwise hold two representations (the
-             install's wildcard-Accept entry and a navigation's) and the
-             match below (in the catch) would answer the install-time one
-             forever. 5.3.1: when the cached entry carries the same ETag as
-             the response, nothing moved and nothing is written — every load
-             used to delete and re-put the 245 KB document and ~65 KB of
-             fonts out of a 304-refreshed HTTP cache entry. */
-          caches.open(CACHE).then(function(c){
-            return c.match(req, ANY).then(function(old){
-              var was = old && old.headers && old.headers.get("etag");
-              var now = res.headers && res.headers.get("etag");
-              if(old && was && now && was === now){
-                if(copy.body && copy.body.cancel) copy.body.cancel();
-                return;
-              }
-              return c.delete(req, ANY).then(function(){ return c.put(req, copy); });
-            });
-          }).catch(function(){})
-        );
-      }
-      return res;
-    }).catch(function(){
-      return caches.match(req, ANY).then(function(hit){
-        if(hit) return hit;
-        /* A navigation to any path under scope still opens the app: ./ is
-           the shell, and ./index.html is consulted last for a platform
-           where that path answers 200 and a visit cached it. */
-        if(req.mode === "navigate"){
-          return caches.match("./", ANY).then(function(shell){
-            return shell || caches.match("./index.html", ANY);
-          });
-        }
-        return Response.error();
+  /* What the cache can give: the request itself, and for a navigation the
+     app's shell. ./ is the shell, and ./index.html is consulted last for a
+     platform where that path answers 200 and a visit cached it. */
+  function fromCache(){
+    return caches.match(req, ANY).then(function(hit){
+      if(hit) return hit;
+      if(req.mode !== "navigate") return null;
+      return caches.match("./", ANY).then(function(shell){
+        return shell || caches.match("./index.html", ANY);
       });
-    })
-  );
+    });
+  }
+  function offline(){
+    return fromCache().then(function(hit){ return hit || Response.error(); });
+  }
+
+  var net = fetch(req).then(function(res){
+    if(res && res.ok){
+      var copy = res.clone();
+      /* The put rides waitUntil so the browser cannot kill the worker
+         between the reply and the write; c.put() rejects on 206s and on a
+         full quota, and the rejection lands in the catch. Guard 132
+         executes this path. */
+      e.waitUntil(
+        /* delete-then-put, both under ignoreVary: put() honours Vary when
+           it dedupes, so / could otherwise hold two representations (the
+           install's wildcard-Accept entry and a navigation's) and the
+           match in fromCache() would answer the install-time one
+           forever. 5.3.1: when the cached entry carries the same ETag as
+           the response, nothing moved and nothing is written — every load
+           used to delete and re-put the 245 KB document and ~65 KB of
+           fonts out of a 304-refreshed HTTP cache entry. */
+        caches.open(CACHE).then(function(c){
+          return c.match(req, ANY).then(function(old){
+            var was = old && old.headers && old.headers.get("etag");
+            var now = res.headers && res.headers.get("etag");
+            if(old && was && now && was === now){
+              if(copy.body && copy.body.cancel) copy.body.cancel();
+              return;
+            }
+            return c.delete(req, ANY).then(function(){ return c.put(req, copy); });
+          });
+        }).catch(function(){})
+      );
+    }
+    return res;
+  });
+  /* The worker stays up until the network has answered, so a late answer
+     still reaches the cache after the cache has answered the page. */
+  e.waitUntil(net.catch(function(){}));
+
+  if(req.mode !== "navigate"){
+    e.respondWith(net.catch(offline));
+    return;
+  }
+  /* 6.5.1, owner's call: a navigation waits NAV_WAIT for the network, then
+     the cache answers if it holds the page. A hung connection used to hold
+     the map until the network gave up. Assets stay plain network-first. */
+  e.respondWith(new Promise(function(resolve){
+    var settled = false, wait = 0;
+    function answer(r){
+      if(settled) return;
+      settled = true;
+      clearTimeout(wait);
+      resolve(r);
+    }
+    wait = setTimeout(function(){
+      fromCache().then(function(hit){ if(hit) answer(hit); });
+    }, NAV_WAIT);
+    net.then(answer, function(){ answer(offline()); });
+  }));
 });

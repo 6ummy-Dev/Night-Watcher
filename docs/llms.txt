@@ -21,6 +21,11 @@ Source (AGPL, free software): https://github.com/6ummy-Dev/Night-Watcher
 - Content ratings shown are the certified MPA / TV Parental Guidelines values — sourced or absent, never guessed.
 - Availability is never stored; every entry links a fresh where-to-watch search instead.
 
+## The paper
+
+- Nocturne, at [nightwatcher.life/nocturne/](https://nightwatcher.life/nocturne/), is Night Watcher's weekly paper: one issue, the Night Final, late on Sunday (Montevideo), with the week's Batman news across screen, comics, games, toys and books. No spoilers; every story links its source.
+- It is not part of the app and reads nothing the app stores. Its RSS feed is [nightwatcher.life/nocturne/feed.xml](https://nightwatcher.life/nocturne/feed.xml).
+
 ## For engines
 
 - The full crawlable catalogue — the eras of Bruce's life, all 44 continuities, the 74 curated titles, and a FAQ — is in the root page's initial HTML, no JavaScript required.

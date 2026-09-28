@@ -4301,9 +4301,13 @@ if(!/b\.dataset\.format/.test(HTML)) fail("nothing handles a format tap");
   var subH = parseFloat((sub.match(/min-height:([\d.]+)px/) || [0, 0])[1]);
   var pathH = parseFloat((HTML.match(/\.pathseg button\{[^}]*min-height:([\d.]+)px/) || [0, 0])[1]);
   if(!subH || !pathH){ fail("cannot read the chooser row heights"); return; }
-  if(subH >= pathH){
+  /* 6.5.1, owner's call 3 (outside QA, C11): the include row rises to 44,
+     the touch floor, which is the path control's own height. Level 1 is no
+     longer taller; the palette carries which row is which. It still may not
+     sit taller than level 1. */
+  if(subH > pathH){
     fail("the include controls are " + subH + "px against the path control's " +
-         pathH + "px \u2014 levels 2 and 3 are meant to sit shorter than level 1");
+         pathH + "px \u2014 levels 2 and 3 never sit taller than level 1");
   }
   /* Shorter, not shrunk to nothing: below the tap target it stops being a
      control you can hit. */
@@ -5978,9 +5982,30 @@ var ROUTE_VOCAB = [
            ") — 44 is the floor, reached by height or by an inset ::before");
     }
   });
+  /* 6.5.1 (outside QA, C11): two rows of buttons are styled through their
+     container, not a class of their own, so the list above never saw them:
+     the Theme row and the Movies / + Series switch under the belt, both
+     34px. Held by their exact selectors. Both rows clip their overflow, so
+     their focus ring is drawn inset, or the clip eats it. */
+  var ROWS75 = [".themerow button", ".includes .scope button"];
+  ROWS75.forEach(function(sel){
+    var hs = rules.filter(function(rule){ return rule.slice(0, rule.indexOf("{")).trim() === sel; })
+                  .map(function(rule){ var m = rule.match(/min-height:\s*([\d.]+)px/); return m ? parseFloat(m[1]) : null; })
+                  .filter(function(v){ return v !== null; });
+    if(!hs.length){
+      fail(sel + " declares no min-height — the row's buttons cannot be measured (6.5.1)");
+    } else if(Math.min.apply(null, hs) < 44){
+      fail(sel + " gives a " + Math.min.apply(null, hs) + "px touch target — 44 is the floor (6.5.1)");
+    }
+    var ring = rules.some(function(rule){
+      var sels = rule.slice(0, rule.indexOf("{")).split(",").map(function(x){ return x.trim(); });
+      return sels.indexOf(sel + ":focus-visible") >= 0 && /outline-offset:\s*-\d/.test(rule);
+    });
+    if(!ring) fail(sel + "'s focus ring is not drawn inset — the row clips its overflow, and the ring with it (6.5.1)");
+  });
   note("touch targets measured: " + Object.keys(height).sort().map(function(c){
     return "." + c + " " + (height[c] + (pad[c] || 0));
-  }).join(", "));
+  }).join(", ") + "; rows " + ROWS75.join(", ") + " at 44 or more, ring inset");
 })();
 
 /* ---------- 76. Home and The Path group the same way ---------- */
@@ -8316,10 +8341,12 @@ var ROUTE_VOCAB = [
            "one header, one place");
     }
   });
-  /* 6.2.0: one exception, by rule name. The paper under /nocturne/* runs no
-     script, so its policy is a header, not a <meta>; section 164 holds that
-     block exactly. Anywhere else a CSP header would sit on the app's
-     document beside the blessed <meta>, and the two would disagree. */
+  /* 6.2.0: one exception, by rule name. The paper under /nocturne/* runs
+     its scripts from files (theme.js, paper.js and the beacon), and its
+     pages are built, not blessed, so its policy is a header, not a <meta>
+     with a hash; section 164 holds that block exactly. Anywhere else a CSP
+     header would sit on the app's document beside the blessed <meta>, and
+     the two would disagree. */
   /* 6.5.0: and /hww/*, the crew's page, which runs no script at all;
      section 170 holds its block exactly. */
   var others104 = Object.keys(BLOCKS104).filter(function(k){ return k !== "/nocturne/*" && k !== "/hww/*"; });
@@ -8427,7 +8454,14 @@ var ROUTE_VOCAB = [
     ["/shot-wide.png", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
      "a day — the screenshot is regenerated under a stable name"],
     ["/manifest.json", /^\s+Cache-Control:\s*public,\s*max-age=86400\s*$/m,
-     "a day — the manifest changes with releases, under a stable name"]
+     "a day — the manifest changes with releases, under a stable name"],
+    /* 6.5.1: the paper and the crew's page are rebuilt in place under the
+       same paths, so they revalidate like the document; they rode the
+       platform default (max-age=0, must-revalidate) with nothing saying so. */
+    ["/nocturne/*", /^\s+Cache-Control:\s*no-cache\s*$/m,
+     "no-cache — the paper's pages are rebuilt in place, and a reader must never keep a stale issue"],
+    ["/hww/*", /^\s+Cache-Control:\s*no-cache\s*$/m,
+     "no-cache — the crew's page is rebuilt in place with every release"]
   ];
   RULES.forEach(function(r){
     var i = D.indexOf("\n" + r[0] + "\n");
@@ -12029,24 +12063,50 @@ var ROUTE_VOCAB = [
 
   function SyncP(v, bad){ this.v = v; this.bad = !!bad; }
   SyncP.wrap = function(x){ return x instanceof SyncP ? x : new SyncP(x); };
+  /* 6.5.1: a thenable can also wait (the navigation's network race), and
+     settles when the drive says so; its callbacks still run synchronously,
+     inside the call that settles it. */
+  SyncP.pending = function(){ var p = new SyncP(undefined); p.waiting = []; return p; };
+  SyncP.prototype.settle = function(v, bad){
+    if(!this.waiting) return;
+    var self = this;
+    if(!bad && v && typeof v.then === "function"){
+      v.then(function(x){ self.settle(x); }, function(e){ self.settle(e, true); });
+      return;
+    }
+    var w = this.waiting;
+    this.waiting = null; this.v = v; this.bad = !!bad;
+    w.forEach(function(fn){ fn(); });
+  };
   SyncP.prototype.then = function(f, r){
+    if(this.waiting){
+      var self = this, child = SyncP.pending();
+      this.waiting.push(function(){
+        self.then(f, r).then(function(v){ child.settle(v); }, function(e){ child.settle(e, true); });
+      });
+      return child;
+    }
     try{
       if(this.bad) return r ? SyncP.wrap(r(this.v)) : this;
       return f ? SyncP.wrap(f(this.v)) : this;
     }catch(e){ return new SyncP(e, true); }
   };
   SyncP.prototype["catch"] = function(r){ return this.then(null, r); };
-  var SyncPromise = {
-    resolve: function(x){ return SyncP.wrap(x); },
-    reject: function(e){ return new SyncP(e, true); },
-    all: function(arr){
+  var SyncPromise = function(exec){
+    var p = SyncP.pending();
+    try{ exec(function(v){ p.settle(v); }, function(e){ p.settle(e, true); }); }
+    catch(e){ p.settle(e, true); }
+    return p;
+  };
+  SyncPromise.resolve = function(x){ return SyncP.wrap(x); };
+  SyncPromise.reject = function(e){ return new SyncP(e, true); };
+  SyncPromise.all = function(arr){
       var out = [], firstErr = null, sawBad = false;
       arr.forEach(function(p){
         SyncP.wrap(p).then(function(v){ out.push(v); },
                            function(e){ if(!sawBad){ sawBad = true; firstErr = e; } });
       });
       return sawBad ? new SyncP(firstErr, true) : new SyncP(out);
-    }
   };
 
   var store132 = Object.create(null), puts = [], added = [], deletedCaches = [];
@@ -12065,6 +12125,7 @@ var ROUTE_VOCAB = [
   };
   var handlers = {};
   var nextFetch = null; /* set per drive: function(req) -> SyncP */
+  var timers132 = []; /* 6.5.1: the clock is the drive's; a timer fires when the drive says */
   var sandbox132 = {
     self: {
       addEventListener: function(t, f){ handlers[t] = f; },
@@ -12083,6 +12144,8 @@ var ROUTE_VOCAB = [
     Response: { error: function(){ return { ok: false, status: 0, swError: true }; } },
     Promise: SyncPromise,
     fetch: function(req){ return nextFetch(req); },
+    setTimeout: function(f, ms){ timers132.push({f: f, ms: ms}); return timers132.length; },
+    clearTimeout: function(id){ if(id && timers132[id - 1]) timers132[id - 1].f = null; },
     console: console
   };
   try{ vm.runInNewContext(src132, sandbox132, {filename: "docs/sw.js"}); }
@@ -12159,7 +12222,9 @@ var ROUTE_VOCAB = [
     fail("the service worker answers a /nocturne/ navigation \u2014 the paper would be cached by the " +
          "app, and offline it would fall back to the map");
   }
-  if(!r1.waited){
+  /* Two waitUntils on a 200: the worker kept up for the network (6.5.1),
+     and the cache write. */
+  if(r1.waited < 2){
     fail("the runtime cache write does not ride event.waitUntil — the browser " +
          "may kill the worker between the reply and the put, so a downloaded " +
          "update silently misses the offline cache");
@@ -12235,6 +12300,50 @@ var ROUTE_VOCAB = [
          "instead of the app");
   }
 
+  /* 6.5.1, owner's call: a navigation waits NAV_WAIT (4 s) for the network,
+     then the cache answers; the network's late answer still lands in the
+     cache. Assets never wait on a timer. The slashless /nocturne and /hww
+     are stepped aside for like their slashed forms. */
+  var hang7 = SyncP.pending();
+  store132[APP] = { ok: true, cachedApp: true };
+  var putsHang = puts.length;
+  timers132.length = 0;
+  var r7 = drive({ url: APP, method: "GET", mode: "navigate" }, function(){ return hang7; });
+  var live7 = timers132.filter(function(t){ return t.f; });
+  if(r7.res !== undefined){
+    fail("a navigation on a hung connection was answered before the network or the wait (6.5.1)");
+  }
+  if(sandbox132.NAV_WAIT !== 4000 || live7.length !== 1 || live7[0].ms !== sandbox132.NAV_WAIT){
+    fail("a navigation does not wait NAV_WAIT (4000 ms) for the network before the cache answers \u2014 " +
+         "the owner's call for a hung connection (6.5.1)");
+  } else {
+    live7[0].f();
+    if(!r7.res || r7.res.cachedApp !== true){
+      fail("a hung navigation is not answered from the cache after NAV_WAIT \u2014 a stalled connection " +
+           "holds the map until the network gives up (6.5.1)");
+    }
+  }
+  hang7.settle(okRes);
+  if(puts.length !== putsHang + 1){
+    fail("the network's late answer to a navigation the cache already answered never reached the cache (6.5.1)");
+  }
+  var hang8 = SyncP.pending();
+  timers132.length = 0;
+  var r8 = drive({ url: "https://nightwatcher.life/icon.png", method: "GET", mode: "" }, function(){ return hang8; });
+  if(timers132.some(function(t){ return t.f; }) || r8.res !== undefined){
+    fail("an asset request waits on a timer or is answered before the network \u2014 assets stay plain network-first (6.5.1)");
+  }
+  hang8.settle(okRes);
+  if(r8.res !== okRes) fail("an asset request is not answered by the network when it comes (6.5.1)");
+  ["/nocturne", "/hww"].forEach(function(p132){
+    var rs = drive({ url: "https://nightwatcher.life" + p132, method: "GET", mode: "navigate" },
+                   function(){ return SyncP.wrap(okRes); });
+    if(rs.responded){
+      fail("the service worker answers " + p132 + " without its slash \u2014 the paper and the crew's page are " +
+           "not the app in either form (6.5.1)");
+    }
+  });
+
   /* the worker never touches other origins or non-GETs. */
   var r5 = drive({ url: "https://example.com/x", method: "GET", mode: "" },
                  function(){ return SyncP.wrap(okRes); });
@@ -12251,8 +12360,8 @@ var ROUTE_VOCAB = [
 
   note("sw.js executed: shell precached (" + shell132.length + " entries), " +
        "stale cache purged, 200 cached via waitUntil, 500 not cached, " +
-       "offline serves cache and the navigate fallback, cross-origin and " +
-       "non-GET untouched");
+       "offline serves cache and the navigate fallback, a hung navigation " +
+       "answers from the cache after NAV_WAIT, cross-origin and non-GET untouched");
 })();
 
 /* ---------- 133. The root negotiates markdown, and only the root ---------- */
@@ -15942,19 +16051,21 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
 /* ---------- 164. The paper runs its own scripts and the beacon's ---------- */
 /* The app's CSP is a <meta> with one blessed hash; the paper's policy is a
    default-deny header on /nocturne/* and every page the build writes is held
-   to it here, the real issues and the fixture alike. Until 6.3.0 the paper
-   ran no script. Now it runs two, both owner's calls: theme.js, its own,
-   which follows the app's theme before first paint, and Cloudflare Web
-   Analytics' beacon, which counts visits without cookies. Each page carries
-   exactly those two tags, word for word, and a JSON-LD data block, which
-   never executes. The header is pinned whole: a policy that grows another
-   source, or loosens a default, is a policy nobody reviewed.
-   6.5.0, owner's calls: every page carries a third, paper.js, deferred and
-   once: the Share button on issues and the Dark deco / Darker switch in the
-   foot. It is the build's word for word. It fetches nothing and sets no
-   cookie, and its one write is the paper's own theme key, nocturne-theme,
-   never the app's settings. The policy does not move: 'self' already names
-   it. */
+   to it here, the real issues and the fixture alike. The paper runs three
+   scripts, all owner's calls, and each page carries exactly those three
+   tags, word for word, plus a JSON-LD data block, which never executes:
+   theme.js (6.3.0), which sets the theme before first paint, the paper's
+   own choice first and the app's theme otherwise; paper.js (6.5.0),
+   deferred, the Share button on issues and the Dark deco / Darker switch in
+   the foot; and Cloudflare Web Analytics' beacon (6.3.0), which counts
+   visits without cookies. Both scripts of the paper's own are the build's
+   word for word. paper.js fetches nothing and sets no cookie, and its one
+   write is the paper's own theme key, nocturne-theme, never the app's
+   settings. The CSP line is pinned whole: a policy that grows another
+   source, or loosens a default, is a policy nobody reviewed. 'self' already
+   names both scripts.
+   6.5.1: an issue's Share button names that issue's own address, not any
+   issue's, and every page's twitter:image is its og:image. */
 
 (function(){
   var CSP164 = "default-src 'none'; script-src 'self' https://static.cloudflareinsights.com; " +
@@ -15967,9 +16078,9 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
          "Content-Security-Policy at all");
   } else {
     var lines = m[1].split("\n").map(function(l){ return l.trim(); }).filter(Boolean);
-    if(lines.length !== 1 || lines[0] !== "Content-Security-Policy: " + CSP164){
-      fail("the paper's CSP header is not the reviewed default-deny policy — /nocturne/* " +
-           "carries exactly one line: Content-Security-Policy: " + CSP164);
+    if(lines.length !== 2 || lines[0] !== "Content-Security-Policy: " + CSP164 || lines[1] !== "Cache-Control: no-cache"){
+      fail("the paper's header rule is not the reviewed pair — /nocturne/* carries exactly two lines: " +
+           "Content-Security-Policy: " + CSP164 + " · Cache-Control: no-cache (6.5.1)");
     }
   }
   var pages = 0;
@@ -15988,8 +16099,19 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       if((h.match(/<div class="themerow" role="group" aria-label="Theme"><button type="button" data-theme-set="dark" aria-pressed="true">Dark deco<\/button><button type="button" data-theme-set="darker" aria-pressed="false">Darker<\/button><\/div>/g) || []).length !== 1){
         fail(where + " does not carry the Dark deco / Darker switch once in its foot (6.5.0)");
       }
-      if(isIssue && (h.match(/<button class="btn share" type="button" data-share data-url="https:\/\/nightwatcher\.life\/nocturne\/[^"]+\/" data-title="[^"]+">/g) || []).length !== 1){
-        fail(where + " does not carry its one Share button, at the foot, naming the issue's own address (6.5.0)");
+      if(isIssue){
+        var own164 = "https://nightwatcher.life/nocturne/" + f.replace(/index\.html$/, "");
+        var shares164 = h.match(/<button class="btn share" type="button" data-share data-url="[^"]*" data-title="[^"]+">/g) || [];
+        if(shares164.length !== 1){
+          fail(where + " does not carry its one Share button, at the foot (6.5.0)");
+        } else if(shares164[0].indexOf(' data-url="' + own164 + '"') < 0){
+          fail(where + "'s Share button does not name the issue's own address, " + own164 + " (6.5.1)");
+        }
+      }
+      var og164 = (h.match(/<meta property="og:image" content="([^"]*)">/) || [])[1];
+      var tw164 = h.match(/<meta name="twitter:image" content="([^"]*)">/g) || [];
+      if(tw164.length !== 1 || !og164 || tw164[0] !== '<meta name="twitter:image" content="' + og164 + '">'){
+        fail(where + " does not carry one twitter:image equal to its og:image (6.5.1)");
       }
       if(h.split(NOC.THEME_TAG).length !== 2 || h.indexOf(NOC.THEME_TAG) > h.indexOf("<meta name=\"viewport\"")){
         fail(where + " does not load theme.js exactly once at the top of <head> — the theme would flash");
@@ -16034,7 +16156,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   if(writes164.length !== 1 || writes164[0] !== 'localStorage.setItem("nocturne-theme",v)'){
     fail("paper.js writes something other than the paper's own theme key — its one write is nocturne-theme (6.5.0)");
   }
-  note("nocturne: " + pages + " pages carry theme.js, paper.js and the beacon and nothing else; one write, the paper's theme key; the /nocturne/* policy is default-deny plus those");
+  note("nocturne: " + pages + " pages carry theme.js, paper.js and the beacon and nothing else, Share names its own issue, twitter:image is og:image; one write, the paper's theme key; the /nocturne/* policy is default-deny plus those");
 })();
 
 /* ---------- 165. The paper is outside the app ---------- */
@@ -16061,6 +16183,12 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
          "and an offline issue would open the map");
   } else if(respond >= 0 && at > respond){
     fail("sw.js steps aside for /nocturne/ only after respondWith — by then the app has answered");
+  }
+  /* 6.5.1: and for /nocturne without its slash, before respondWith too. */
+  var bare165 = 'if(url.pathname === "/nocturne") return;', atBare = SW.indexOf(bare165);
+  if(atBare < 0 || (respond >= 0 && atBare > respond)){
+    fail("sw.js does not step aside for /nocturne without its slash before respondWith — the app would answer " +
+         "it, offline with the map (6.5.1)");
   }
   var shell165 = (SW.match(/var SHELL\s*=\s*\[([\s\S]*?)\]/) || [0, ""])[1];
   if(/nocturne/i.test(shell165)) fail("sw.js's SHELL lists part of the paper — the paper is not the app");
@@ -16241,6 +16369,19 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     fail("the Nocturne block does not sit after the site's own two URLs — section 67 reads the " +
          "home page's lastmod as the first in the file");
   }
+  /* 6.5.1: the fence lets the desk's PR touch this file, so the file itself
+     is fenced here: /, /llms.txt, and inside the block the paper's own
+     URLs. Nothing after the block, nothing else anywhere. */
+  if(locs.length === 2 && locs[1] !== "<loc>https://nightwatcher.life/llms.txt</loc>"){
+    fail("docs/sitemap.xml's second URL is not /llms.txt — the file lists /, /llms.txt and the paper's block, and nothing else (6.5.1)");
+  }
+  var inBlock167 = sm.slice(b, e).match(/<loc>[^<]*<\/loc>/g) || [];
+  if(inBlock167.some(function(l){ return l.indexOf("<loc>https://nightwatcher.life/nocturne/") !== 0; })){
+    fail("the sitemap's Nocturne block lists a URL outside /nocturne/ — the block is the paper's and nothing else (6.5.1)");
+  }
+  if((sm.slice(e).match(/<loc>/g) || []).length){
+    fail("docs/sitemap.xml lists a URL after the Nocturne block — the file lists /, /llms.txt and the paper's block, and nothing else (6.5.1)");
+  }
   if(!NOC_FIX || NOC_FIX.errors.length) return;
   var ids = NOC_FIX.list.map(function(i){ return i.id; });
   var feed = NOC_FIX.files["feed.xml"].toString("utf8");
@@ -16301,7 +16442,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   swept167.forEach(function(p2){
     if(/screen news/i.test(p2[1])) fail(p2[0] + " still calls the paper \"screen news\" — it covers all of Batman");
   });
-  note("nocturne: the sitemap block sits after the site's two URLs; the fixture's feed and block list its " + ids.length +
+  note("nocturne: the sitemap lists /, /llms.txt and the block, nothing else; the fixture's feed and block list its " + ids.length +
        " issues; with none, the holding page is noindex and the feed is open and empty");
 })();
 
@@ -16510,13 +16651,15 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   var hdr = fs.readFileSync(path.join(PUBLIC, "_headers"), "utf8");
   var m = hdr.match(/^\/hww\/\*\n((?:[ \t]+\S.*\n?)+)/m);
   var want = ["Content-Security-Policy: default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
-              "X-Robots-Tag: noindex, nofollow"];
+              "X-Robots-Tag: noindex, nofollow", "Cache-Control: no-cache"];
   if(!m || JSON.stringify(m[1].split("\n").map(function(l){ return l.trim(); }).filter(Boolean)) !== JSON.stringify(want)){
-    fail("docs/_headers' /hww/* rule is not the reviewed pair: " + want.join(" · "));
+    fail("docs/_headers' /hww/* rule is not the reviewed three: " + want.join(" · "));
   }
   if(/\/hww/i.test(fs.readFileSync(path.join(PUBLIC, "sitemap.xml"), "utf8"))) fail("the sitemap lists /hww — the crew's page is not published");
   var skip = 'if(url.pathname.indexOf("/hww/") === 0) return;';
   if(SW.indexOf(skip) < 0 || SW.indexOf(skip) > SW.indexOf("e.respondWith(")) fail("sw.js does not step aside for /hww/ before respondWith — the app would cache the crew's page");
+  var bare170 = 'if(url.pathname === "/hww") return;';
+  if(SW.indexOf(bare170) < 0 || SW.indexOf(bare170) > SW.indexOf("e.respondWith(")) fail("sw.js does not step aside for /hww without its slash before respondWith — the app would answer it (6.5.1)");
   if(/hww/i.test((SW.match(/var SHELL\s*=\s*\[([\s\S]*?)\]/) || [0, ""])[1])) fail("sw.js's SHELL lists the crew's page");
   var doors = [["docs/index.html", HTML]];
   ["404.html", "manifest.json", "llms.txt", "robots.txt", "orders.txt", "auth.md"].forEach(function(f){

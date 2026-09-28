@@ -5,18 +5,18 @@
 
 G="$(pro qa/guards.js)"
 
-echo "--- guard 55: levels 2-3 are shorter, at unchanged type size"
-run_case "rows the same height again" \
-  "levels 2 and 3 are meant to sit shorter than level 1" \
-  "${P}a='.includes .scope button{min-height:34px';assert a in s;s=s.replace(a,'.includes .scope button{min-height:44px');${W}"
+echo "--- guard 55: levels 2-3 never taller, at unchanged type size (6.5.1: both at 44)"
+run_case "the include row grows taller than the path row" \
+  "levels 2 and 3 never sit taller than level 1" \
+  "${P}a='.includes .scope button{min-height:44px';assert a in s;s=s.replace(a,'.includes .scope button{min-height:52px');${W}"
 
 run_case "type shrunk to buy height" \
   "shrinking the type is what wrapped both labels in 1.5.7" \
-  "${P}a='min-height:34px;padding:8px 6px;font-size:var(--t-fine)';assert a in s;s=s.replace(a,'min-height:34px;padding:8px 6px;font-size:8px');${W}"
+  "${P}a='min-height:44px;padding:8px 6px;font-size:var(--t-fine)';assert a in s;s=s.replace(a,'min-height:44px;padding:8px 6px;font-size:8px');${W}"
 
 run_case "shrunk below a tap target" \
   "under 30px they are no longer a thumb-sized target" \
-  "${P}a='.includes .scope button{min-height:34px';assert a in s;s=s.replace(a,'.includes .scope button{min-height:28px');${W}"
+  "${P}a='.includes .scope button{min-height:44px';assert a in s;s=s.replace(a,'.includes .scope button{min-height:28px');${W}"
 
 run_case "labels can wrap again" \
   "both broke across two lines" \

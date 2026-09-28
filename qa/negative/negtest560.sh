@@ -71,8 +71,8 @@ echo "--- 132: the navigate fallback tries the unredirected name first"
 
 run_case "the fallback goes back to index.html first" \
   "does not fall back to the app shell" \
-  "${V}a='return caches.match(\"./\", ANY).then(function(shell){\n            return shell || caches.match(\"./index.html\", ANY);';assert a in s
-s=s.replace(a,'return caches.match(\"./index.html\", ANY).then(function(shell){\n            return shell || caches.match(\"./\", ANY);',1);${VW}" \
+  "${V}a='return caches.match(\"./\", ANY).then(function(shell){\n        return shell || caches.match(\"./index.html\", ANY);';assert a in s
+s=s.replace(a,'return caches.match(\"./index.html\", ANY).then(function(shell){\n        return shell || caches.match(\"./\", ANY);',1);${VW}" \
   guards "" 132
 
 echo "--- 80 and 96: the named constants"

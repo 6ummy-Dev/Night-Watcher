@@ -25,10 +25,10 @@
 # about a document, and _headers matches on path only, cumulatively, with no
 # way to unset. describedby points at /llms.txt, the same file the Worker
 # serves to a client whose Accept prefers text/markdown; Vary: Accept on /
-# says so to any shared cache. The six rel=preload lines are for Early
+# says so to any shared cache. The seven rel=preload lines are for Early
 # Hints (4.9.2): with the zone toggle on, Cloudflare caches them from the
 # document's response and answers the next request with a 103 carrying
-# them, so the six font fetches overlap the HTML transfer instead of
+# them, so the seven font fetches overlap the HTML transfer instead of
 # waiting for the parser. They mirror the <head>'s own preloads exactly —
 # guard 104 holds the two sets equal and the fonts directory to both — and
 # they are unquoted (rel=preload) where the document relations are quoted:
@@ -40,11 +40,13 @@
 # /nocturne/* is the paper (6.2.0), and it is the one path whose CSP is a
 # header: the app's CSP is a <meta> with a blessed script hash; the paper's
 # policy is default-deny, written once here for every page the build writes.
-# Styles, images and fonts come from this origin and nothing else. Two
-# scripts run (6.3.0): the paper's own theme.js, and Cloudflare Web
-# Analytics' beacon, which reports to cloudflareinsights.com. The app has
-# neither. Guard 164 holds the line exactly. The paper takes the assets
-# plane's default cache (revalidate).
+# Styles, images and fonts come from this origin and nothing else. Three
+# scripts run: the paper's own theme.js (6.3.0) and paper.js (6.5.0), and
+# Cloudflare Web Analytics' beacon (6.3.0), which reports to
+# cloudflareinsights.com. The app has none of them. Guard 164 holds the rule
+# exactly. Both /nocturne/* and /hww/* say no-cache (6.5.1): the pages are
+# rebuilt in place and a reader should never be served a stale issue; guard
+# 104 pins it.
 #
 # The history of every decision above is in NOTES-history.md
 # ("Where the served and config files' histories went").
@@ -72,13 +74,15 @@
 
 /nocturne/*
   Content-Security-Policy: default-src 'none'; script-src 'self' https://static.cloudflareinsights.com; connect-src https://cloudflareinsights.com; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Cache-Control: no-cache
 
 # /hww/* is the crew's page (6.5.0): unlisted, so noindex twice (here and in
 # the page), and a default-deny policy that runs no script. Guard 170 holds
-# the pair exactly.
+# the rule exactly.
 /hww/*
   Content-Security-Policy: default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
   X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache
 
 /sw.js
   Cache-Control: no-cache
