@@ -50,7 +50,7 @@ jobs:
     outputs:
       paper: ${{ steps.scope.outputs.paper }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 2
           persist-credentials: false
@@ -74,13 +74,16 @@ jobs:
       # engines advertises ^22 || ^24 || >=26 and until 5.3.0 CI only ever
       # ran 22 — the QA's point: nightly would catch a 22 patch and never a
       # 24 break. The fast job runs both advertised LTS lines; the negative
-      # wall and the browser job stay on 22, where the cost lives.
+      # wall and the browser job stay on 22, where the cost lives. 6.5.1: and
+      # 26, the third line engines advertises (LTS from October).
       matrix:
-        node: [22, 24]
+        node: [22, 24, 26]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: ${{ matrix.node }}
           # engines pins ^22.22.2 / ^24.15.0 and .npmrc says engine-strict, so
@@ -108,7 +111,7 @@ jobs:
   # PR-gated job never runs (it did not, for a long time — NOTES-history.md
   # ("Where the served and config files' histories went")).
   #
-  # Cost: 1642 fixtures, of which 1525 run guards.js and 117 run smoke.js — most
+  # Cost: 1661 fixtures, of which 1544 run guards.js and 117 run smoke.js — most
   # of those scoped to one phase by SMOKE_ONLY. The split is guarded in this
   # file the same as the README's counts, so the next drift fails the build.
   # run-all.sh dispatches longest-first; this job shards 4-way on top, packed
@@ -133,7 +136,7 @@ jobs:
       matrix:
         include:
           - shard: "1"
-            pick: 'negtest(162|165|186|190|260|300|310|340|360|370|440|540|550|560|570|590|610|660|680|681)\.sh|negtest\.sh'
+            pick: 'negtest(162|165|186|190|260|300|310|340|360|370|440|540|550|560|570|590|610|660|680|681|790)\.sh|negtest\.sh'
           - shard: "2"
             pick: 'negtest(163|166|172|177|180|183|185|187|200|210|271|330|420|475|478|500|510|520|640|690|700|730|780)\.sh'
           - shard: "3"
@@ -141,9 +144,11 @@ jobs:
           - shard: "4"
             pick: 'negtest(170|181|182|195|250|252|272|273|320|380|400|430|450|470|476|480|580|600|650|670|720|750|760)\.sh'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 22
           # engines pins ^22.22.2 and .npmrc says engine-strict, so a runner
@@ -217,9 +222,11 @@ jobs:
       matrix:
         engine: [chromium, webkit]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 22
           # engines pins ^22.22.2 and .npmrc says engine-strict, so a runner
@@ -236,7 +243,7 @@ jobs:
       # for nothing), so a Playwright bump invalidates it and nothing else does.
       - id: pwv
         run: echo "v=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ matrix.engine }}-${{ runner.os }}-${{ steps.pwv.outputs.v }}
@@ -258,7 +265,7 @@ jobs:
       # The screenshots browser-check writes are the evidence a red run
       # leaves behind; a green run's are noise. Kept for a week.
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: browser-shots-${{ matrix.engine }}
           path: qa/.shots/
