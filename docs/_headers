@@ -66,11 +66,19 @@
   Link: </fonts/ibm-plex-sans-latin-600-normal.woff2>; rel=preload; as=font; crossorigin
   Link: </fonts/ibm-plex-mono-latin-400-normal.woff2>; rel=preload; as=font; crossorigin
   Link: </fonts/ibm-plex-mono-latin-600-normal.woff2>; rel=preload; as=font; crossorigin
+  Link: </fonts/bodoni-moda-latin-700-normal.woff2>; rel=preload; as=font; crossorigin
   Cache-Control: no-cache
   Vary: Accept
 
 /nocturne/*
   Content-Security-Policy: default-src 'none'; script-src 'self' https://static.cloudflareinsights.com; connect-src https://cloudflareinsights.com; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+# /hww/* is the crew's page (6.5.0): unlisted, so noindex twice (here and in
+# the page), and a default-deny policy that runs no script. Guard 170 holds
+# the pair exactly.
+/hww/*
+  Content-Security-Policy: default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  X-Robots-Tag: noindex, nofollow
 
 /sw.js
   Cache-Control: no-cache

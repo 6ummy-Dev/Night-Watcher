@@ -89,7 +89,7 @@ CARD   = "--card" in sys.argv
 CARD_FACES = [("docs/fonts", "limelight-latin-400-normal.woff2"),
               ("docs/fonts", "ibm-plex-mono-latin-400-normal.woff2"),
               ("docs/fonts", "ibm-plex-mono-latin-600-normal.woff2"),
-              ("qa/nocturne-fonts", "bodoni-moda-latin-700-normal.woff2")]
+              ("docs/fonts", "bodoni-moda-latin-700-normal.woff2")]
 
 # Basic Latin + Latin-1 Supplement + the punctuation the catalogue reaches for.
 RANGES = ["U+0020-007E", "U+00A0-00FF", "U+2010-2015", "U+2018-201F",
@@ -153,7 +153,8 @@ def card():
     for d, f in CARD_FACES:
         src = os.path.join(ROOT, d, f)
         ttf = f.replace(".woff2", ".ttf")
-        font = TTFont(src)
+        # recalcTimestamp off: a copy made twice is the same bytes twice.
+        font = TTFont(src, recalcTimestamp=False)
         font.flavor = None
         font.save(os.path.join(out, ttf))
         rec[ttf] = {"from": d + "/" + f, "from_sha256": sha(src),

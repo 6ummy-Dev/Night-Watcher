@@ -12,6 +12,9 @@ produced it: `NOTES-history.md`.)
    and the CHANGELOG entry's date must match `BUILT`, the sitemap's first
    `<lastmod>`, and the JSON-LD `dateModified`. Guards fail on drift, but
    write them together rather than letting the guards find out.
+   **Then `npm run hww:build` (6.5.0).** /hww prints the version and the
+   harness counts, read from the tree; guard 170 is red until it is rebuilt
+   after any of them moves.
 2. **The share card, when the catalogue moved.** `docs/share.png` bakes in
    the film, season and continuity counts, and guard 91 holds
    `qa/share-card.json` against the data on every run — so a catalogue edit

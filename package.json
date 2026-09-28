@@ -13,6 +13,8 @@
     "guards": "node qa/guards.js",
     "nocturne:build": "node qa/nocturne.js build",
     "nocturne:check": "node qa/nocturne.js check",
+    "hww:build": "node qa/hww.js build",
+    "hww:check": "node qa/hww.js check",
     "preview": "npx wrangler@4.123.0 dev",
     "test": "node qa/guards.js && node qa/smoke.js"
   },

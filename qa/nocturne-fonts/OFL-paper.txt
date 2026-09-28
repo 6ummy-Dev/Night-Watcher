@@ -3,17 +3,14 @@
 
 THE PAPER'S OWN FACES (served from /nocturne/ only, never by the app)
 
-Bodoni Moda
-Copyright 2020 The Bodoni Moda Project Authors (https://github.com/indestructible-type/Bodoni)
-Licensed under the SIL Open Font License, Version 1.1 (text above).
-
 Newsreader
 Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader)
 Licensed under the SIL Open Font License, Version 1.1 (text above).
 
-The three files shipped here (bodoni-moda-latin-700-normal.woff2,
-newsreader-latin-400-normal.woff2, newsreader-latin-400-italic.woff2) are
-subsets, Modified Versions under the licence. Neither family reserves a font
-name, so they keep their own. The copyright notices above travel with them
-unchanged, as the licence requires. The IBM Plex Sans italic served beside
-them is covered by the Plex notice above.
+The two files shipped here (newsreader-latin-400-normal.woff2 and
+newsreader-latin-400-italic.woff2) are subsets, Modified Versions under the
+licence. The family reserves no font name, so they keep their own. The
+copyright notice above travels with them unchanged, as the licence requires.
+The IBM Plex Sans italic served beside them is covered by the Plex notice
+above. Bodoni Moda, which the paper also sets, is served from /fonts/ and its
+notice is above with the app's faces.

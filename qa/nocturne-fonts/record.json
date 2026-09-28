@@ -1,10 +1,5 @@
 {
   "files": {
-    "bodoni-moda-latin-700-normal.woff2": {
-      "bytes": 11056,
-      "sha256": "f019f2475c8262ab1bd98f9d52932af944c1c1ece3f5fd3f3e2e4963beeca065",
-      "subset": true
-    },
     "ibm-plex-sans-latin-400-italic.woff2": {
       "bytes": 9156,
       "sha256": "d5ae6bc3278eff5696ab4cc1e8765bfb70938b9cfd61ddbd11aa2c654f0d4fa4",

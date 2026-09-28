@@ -121,3 +121,15 @@ notice above travels with them unchanged, as the licence requires.
 Big Shoulders Display
 Copyright 2019 The Big Shoulders Project Authors (https://github.com/xotypeco/big_shoulders)
 Licensed under the SIL Open Font License, Version 1.1 (text above).
+
+---
+
+Bodoni Moda
+Copyright 2020 The Bodoni Moda Project Authors (https://github.com/indestructible-type/Bodoni)
+Licensed under the SIL Open Font License, Version 1.1 (text above).
+
+The file shipped here (bodoni-moda-latin-700-normal.woff2) is a subset, a
+Modified Version under the licence. The family reserves no font name, so it
+keeps its own. It is the one face the app loads on demand rather than
+preloading: Home's card for the paper sets its headline in it, and the paper
+sets its banner and story heads in it (6.5.0).

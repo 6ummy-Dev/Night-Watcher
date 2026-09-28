@@ -21,6 +21,7 @@
 # ceiling is negtest750's fixture, re-aimed); the press faces are declared where they are served
 # (169); a card face that moved, or a card that is not the one the build
 # draws, is caught (166, 163).
+# 6.5.0: the crew's page is built from the tree and unlisted (170).
 # Every fixture names its section.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
@@ -336,9 +337,9 @@ run_case "the issue shares the site's card again" \
   "${N}a='var ogImg = {url: url + ';assert s.count(a)==1;i=s.index(a);j=s.index(';',i);s=s[:i]+'var ogImg = SHARE'+s[j:];${W}" \
   guards "" 168
 
-run_case "the press face is served but never declared" \
-  "no longer declares the paper's face bodoni-moda-latin-700-normal.woff2" \
-  "${N}L=s.split('\n');k=[i for i,l in enumerate(L) if 'PRESS.file' in l and '@font-face' in l];assert len(k)==1;del L[k[0]];s='\n'.join(L);${W}" \
+run_case "the reading face is served but never declared" \
+  "no longer declares the paper's face newsreader-latin-400-normal.woff2" \
+  "${N}L=s.split('\n');k=[i for i,l in enumerate(L) if 'READ.file' in l and '@font-face' in l];assert len(k)==1;del L[k[0]];s='\n'.join(L);${W}" \
   guards "" 169
 
 run_case "a card face is not the copy its record blessed" \
@@ -350,5 +351,51 @@ run_case "the card's headline is set another size" \
   "card.png is not what the build writes" \
   "${N}a='var size = 66,';assert s.count(a)==1;s=s.replace(a,'var size = 62,',1);${W}" \
   guards "" 163
+
+echo "--- 170: the crew's page is built and unlisted (6.5.0)"
+
+HW="$(pro qa/hww.js)"
+
+run_case "a fact on the crew's page moves without a rebuild" \
+  "the crew's page drifted from its build" \
+  "${HW}a='var LAST_AUDIT = \"6.3.0\";';assert s.count(a)==1;s=s.replace(a,'var LAST_AUDIT = \"6.4.0\";',1);${W}" \
+  guards "" 170
+
+run_case "the crew's page loses its noindex" \
+  "has lost its noindex" \
+  "${HW}a='noindex, nofollow\">';assert s.count(a)==1;s=s.replace(a,'index, follow\">',1);${W}" \
+  guards "" 170
+
+run_case "the app links to the crew's page" \
+  "links to /hww" \
+  "$(pro docs/index.html)a='<div id=\"splash\"';assert s.count(a)==1;s=s.replace(a,'<a href=\"/hww/\">How we work</a>'+a,1);${W}" \
+  guards "" 170
+
+run_case "the crew's page loses its noindex header" \
+  "rule is not the reviewed pair" \
+  "$(pro docs/_headers)a='  X-Robots-Tag: noindex, nofollow\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
+  guards "" 170
+
+run_case "the worker takes the crew's page in" \
+  "does not step aside for /hww/" \
+  "$(pro docs/sw.js)a='  if(url.pathname.indexOf(\"/hww/\") === 0) return;\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
+  guards "" 170
+
+run_case "the sitemap lists the crew's page" \
+  "the sitemap lists /hww" \
+  "$(pro docs/sitemap.xml)a='</urlset>';assert s.count(a)==1;s=s.replace(a,'<url><loc>https://nightwatcher.life/hww/</loc></url>\n'+a,1);${W}" \
+  guards "" 170
+
+echo "--- 164: the theme switch keeps to the paper (6.5.0)"
+
+run_case "paper.js writes the app's settings" \
+  "writes something other than the paper's own theme key" \
+  "${N}a='localStorage.setItem(\\\\\"nocturne-theme\\\\\",v);';assert s.count(a)==1;s=s.replace(a,a+'localStorage.setItem(\\\\\"nw-theme\\\\\",v);',1);${W}" \
+  guards "" 164
+
+run_case "a page loses the theme switch" \
+  "does not carry the Dark deco / Darker switch" \
+  "${N}a='>Dark deco</button>';assert s.count(a)==1;s=s.replace(a,'>Dark</button>',1);${W}" \
+  guards "" 164
 
 finish "negtest780"

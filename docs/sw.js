@@ -9,7 +9,7 @@
  * the app is one index.html, so a sticky cache is a sticky catalogue and
  * sticky code with no way to push a fix. History: NOTES-history.md ("Where the served and config files' histories went").
  */
-var VERSION = "6.4.0";
+var VERSION = "6.5.0";
 var CACHE   = "night-watcher-" + VERSION;
 /* The shell: everything the page needs to open offline. Guard 13 diffs this
    list against what docs/ serves, crawler-facing files excluded; ./index.html
@@ -23,7 +23,8 @@ var SHELL   = ["./", "./manifest.json", "./icon.png", "./icon-192.png",
                "./fonts/ibm-plex-sans-latin-400-normal.woff2",
                "./fonts/ibm-plex-sans-latin-600-normal.woff2",
                "./fonts/ibm-plex-mono-latin-400-normal.woff2",
-               "./fonts/ibm-plex-mono-latin-600-normal.woff2"];
+               "./fonts/ibm-plex-mono-latin-600-normal.woff2",
+               "./fonts/bodoni-moda-latin-700-normal.woff2"];
 
 /* / is served with Vary: Accept (worker.js negotiates the root), and the
    Cache API honours Vary — so a navigation's Accept never matches the entry
@@ -67,6 +68,8 @@ self.addEventListener("fetch", function(e){
      issue read offline is an honest network error, not the map pretending
      to be the paper. Guard 165 holds this line ahead of respondWith. */
   if(url.pathname.indexOf("/nocturne/") === 0) return;
+  /* 6.5.0. /hww, the crew's page, is not the app either (guard 170). */
+  if(url.pathname.indexOf("/hww/") === 0) return;
 
   e.respondWith(
     fetch(req).then(function(res){

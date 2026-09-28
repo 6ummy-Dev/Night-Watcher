@@ -5,6 +5,11 @@
       "sha256": "4e09a96e51c3bc40d6942bf3928089759a2ef9fbb0a1fb4a3a246921ea90d851",
       "subset": true
     },
+    "bodoni-moda-latin-700-normal.woff2": {
+      "bytes": 11056,
+      "sha256": "f019f2475c8262ab1bd98f9d52932af944c1c1ece3f5fd3f3e2e4963beeca065",
+      "subset": true
+    },
     "ibm-plex-mono-latin-400-normal.woff2": {
       "bytes": 7724,
       "sha256": "7db87db69204e3b6ba7d9ddded71612aa9d8a9283ee99e24bba052ffb8933d0b",

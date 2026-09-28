@@ -59,8 +59,9 @@ first issue replaces it with the front: the latest issue's headline, hero,
 cold open and story heads, one *Read the Night Final* button, and back issues
 under *The morgue* (6.4.0). Never write or edit it.
 The footer (6.3.1) leads back to the map with a *Night Watcher* button that
-carries the app's mark, then *RSS* (the feed) and, on issues, *The morgue*,
-with the colophon under the app's diamond rule. The renderer writes it.
+carries the app's mark, then *RSS* (the feed) and, on issues, *Share* and
+*The morgue*, then the *Dark deco* / *Darker* switch (6.5.0), with the
+colophon under the app's diamond rule. The renderer writes it.
 
 ### The masthead
 

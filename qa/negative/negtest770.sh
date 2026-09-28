@@ -52,7 +52,7 @@ run_case "the scope moves into a paths filter" \
 echo "--- 164: two scripts, ours and the beacon's"
 
 run_case "a third script on every page" \
-  "carries a script that is not a JSON-LD data block, theme.js or the analytics beacon" \
+  "carries a script that is not a JSON-LD data block, theme.js, paper.js or the analytics beacon" \
   "${N}a=\"'</main>\\\\n' + BEACON\";assert a in s;s=s.replace(a,'\\'</main>\\\\n<script src=\"/nocturne/x.js\"></script>\\\\n\\' + BEACON');${W}" \
   guards "" 164
 

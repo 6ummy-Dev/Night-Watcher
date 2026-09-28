@@ -42,33 +42,38 @@ run_case "the head loses mobile-web-app-capable" \
   guards "" 153
 
 run_case "the head loses preload fonts/limelight-latin-400-normal.woff2" \
-  "font preloads, not 6" \
+  "font preloads, not 7" \
   "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/limelight-latin-400-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses preload fonts/big-shoulders-display-latin-700-normal.woff2" \
-  "font preloads, not 6" \
+  "font preloads, not 7" \
   "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/big-shoulders-display-latin-700-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses preload fonts/ibm-plex-sans-latin-400-normal.woff2" \
-  "font preloads, not 6" \
+  "font preloads, not 7" \
   "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/ibm-plex-sans-latin-400-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses preload fonts/ibm-plex-sans-latin-600-normal.woff2" \
-  "font preloads, not 6" \
+  "font preloads, not 7" \
   "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/ibm-plex-sans-latin-600-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses preload fonts/ibm-plex-mono-latin-400-normal.woff2" \
-  "font preloads, not 6" \
+  "font preloads, not 7" \
   "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/ibm-plex-mono-latin-400-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses preload fonts/ibm-plex-mono-latin-600-normal.woff2" \
-  "font preloads, not 6" \
+  "font preloads, not 7" \
   "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/ibm-plex-mono-latin-600-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
+  guards "" 153
+
+run_case "the head loses preload fonts/bodoni-moda-latin-700-normal.woff2" \
+  "font preloads, not 7" \
+  "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/bodoni-moda-latin-700-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
 run_case "the head loses apple-mobile-web-app-status-bar-style" \
@@ -381,6 +386,26 @@ run_case "the README drops its row for docs/.well-known/security.txt" \
 run_case "the README drops its row for docs/.well-known/brave-rewards-verification.txt" \
   "README's file table does not list: docs/.well-known/brave-rewards-verification.txt" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('docs/.well-known/brave-rewards-verification.txt')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for docs/fonts/bodoni-moda-latin-700-normal.woff2" \
+  "README's file table does not list: docs/fonts/bodoni-moda-latin-700-normal.woff2" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('docs/fonts/bodoni-moda-latin-700-normal.woff2')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for docs/hww/index.html" \
+  "README's file table does not list: docs/hww/index.html" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('docs/hww/index.html')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for docs/hww/hww.css" \
+  "README's file table does not list: docs/hww/hww.css" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('docs/hww/hww.css')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for qa/hww.js" \
+  "README's file table does not list: qa/hww.js" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/hww.js')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
   guards "" 45
 
 run_case "the README drops its row for docs/fonts/limelight-latin-400-normal.woff2" \

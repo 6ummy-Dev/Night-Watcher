@@ -6,7 +6,7 @@
 @font-face{font-family:"NW Sans";src:url("/fonts/ibm-plex-sans-latin-600-normal.woff2") format("woff2");font-weight:600;font-display:swap;}
 @font-face{font-family:"NW Mono";src:url("/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");font-weight:400;font-display:swap;}
 @font-face{font-family:"NW Mono";src:url("/fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2");font-weight:600;font-display:swap;}
-@font-face{font-family:"Bodoni Moda";src:url("/nocturne/bodoni-moda-latin-700-normal.woff2") format("woff2");font-weight:700;font-display:swap;}
+@font-face{font-family:"Bodoni Moda";src:url("/fonts/bodoni-moda-latin-700-normal.woff2") format("woff2");font-weight:700;font-display:swap;}
 @font-face{font-family:"Newsreader";src:url("/nocturne/newsreader-latin-400-normal.woff2") format("woff2");font-weight:400;font-display:swap;}
 @font-face{font-family:"Newsreader";src:url("/nocturne/newsreader-latin-400-italic.woff2") format("woff2");font-weight:400;font-style:italic;font-display:swap;}
 :root{--ink:#08090F;--sunk:#0C111C;--card:#141B2C;--card2:#1B2438;--line:#252E42;--line2:#33405C;
@@ -89,7 +89,9 @@ figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;
 /* 6.3.1: the colophon sits under the app's diamond rule, the way every tab in the app closes (guard 169). */
 .foot{max-width:620px;margin:44px auto 0;}
 .colophon::before{content:"";position:absolute;top:0;left:50%;width:4.5px;height:4.5px;transform:translate(-50%,-50%) rotate(45deg);background:var(--signal);box-shadow:0 0 0 6px var(--ink);}
-.acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:stretch;margin:0 0 30px;}
+.acts{display:grid;gap:10px;max-width:460px;margin:0 auto 30px;}
+.acts .more{display:flex;gap:10px;position:relative;}
+.acts .more .btn{flex:1 1 0;min-width:0;justify-content:center;}
 .btn{font-family:var(--mono);font-size:var(--t-label);font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;padding:12px 14px;min-height:44px;display:inline-flex;align-items:center;}
 .btn.home{background:var(--signal);color:var(--ink);border:1px solid var(--signal);gap:12px;padding:10px 18px 10px 14px;text-align:left;}
 .btn.home .mk{width:36px;height:auto;flex:none;display:block;}
@@ -98,8 +100,17 @@ figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;
 .btn.home small{font-size:var(--t-fine);letter-spacing:.17em;line-height:1;text-box:trim-both cap alphabetic;display:flex;align-items:center;}
 .btn.home small .arr{width:9px;height:9px;margin-left:5px;}
 .btn .rss{width:12px;height:12px;margin-right:8px;flex:none;}
-@media (max-width:560px){.btn.home{flex-basis:100%;justify-content:center;}}
+.btn.home{justify-content:center;}
 .btn.ghost{border:1px solid var(--line2);color:var(--steel);font-weight:400;}
+.themerow{display:flex;max-width:460px;margin:0 auto 30px;border:1px solid var(--line2);}
+.themerow button{flex:1;min-height:44px;padding:8px 6px;background:none;border:0;border-right:1px solid var(--line2);font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.09em;text-transform:uppercase;color:var(--dust);cursor:pointer;}
+.themerow button:last-child{border-right:0;}
+.themerow button[aria-pressed="true"]{background:var(--suit);color:var(--ink);font-weight:600;}
+.themerow button:focus-visible{outline:2px solid var(--signal);outline-offset:-2px;}
+.btn.share{border:1px solid var(--line2);color:var(--steel);font-weight:400;background:none;cursor:pointer;}
+.btn.share:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
+.btn .shr{width:12px;height:12px;margin-right:8px;flex:none;}
+.shout{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
 .colophon{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:0;position:relative;padding-top:22px;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}
 .sub{text-align:center;color:var(--dust);font-size:var(--t-desc);margin:0 auto 26px;max-width:460px;}
 .front{max-width:680px;margin:0 auto;}
@@ -137,8 +148,8 @@ figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;
 .cols h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);line-height:1.05;margin:0 0 8px;}
 .cols p{font-size:var(--t-desc);line-height:1.55;color:var(--dust);margin:0;}
 @media (max-width:560px){.cols{grid-template-columns:1fr;}.cols section{padding:16px 0 18px;}.cols section+section{border-left:0;border-top:1px solid var(--line2);}}
-@media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}.colophon::before{forced-color-adjust:none;background:CanvasText;box-shadow:0 0 0 6px Canvas;}}
+@media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}.colophon::before{forced-color-adjust:none;background:CanvasText;box-shadow:0 0 0 6px Canvas;}.themerow button[aria-pressed="true"]{forced-color-adjust:none;background:Highlight;color:HighlightText;}}
 /* Print (6.2.3): ink on white, the rules kept, no buttons. Same scale; only colour changes. */
 @media print{:root,:root[data-theme="darker"]{--ink:#FFFFFF;--sunk:#FFFFFF;--card:#FFFFFF;--card2:#FFFFFF;--line:#BBBBBB;--line2:#888888;--bone:#08090F;--dust:#333333;--dim:#444444;--suit:#08090F;--signal:#08090F;--steel:#333333;--signalline:rgba(8,9,15,.35);}
-  .acts{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}
+  .acts{display:none;}.themerow{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}
   figure,.map,.corr,.board{break-inside:avoid;}.story h2{break-after:avoid;}@page{margin:16mm 14mm;}}

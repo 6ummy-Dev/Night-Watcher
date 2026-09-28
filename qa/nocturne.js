@@ -701,7 +701,8 @@ var TYPE_PAPER = "--t-plate:clamp(46px,14vw,104px);--t-banner:clamp(30px,8.4vw,5
    scale, keeping the colours the paper paints with; guard 169 holds the two
    equal. theme.js, the paper's one script of its own, reads the reader's
    choice from the app's settings and sets the attribute before first paint.
-   There is no switch on the paper. */
+   6.5.0: the paper has its own switch in the foot (paper.js); a reader who
+   flips it is followed by nocturne-theme first, the app second. */
 var DARKER_KEYS = ["--ink", "--sunk", "--card", "--card2", "--line", "--line2", "--bone", "--suit", "--dust", "--dim"];
 var DARKER = (function(){
   var html = fs.readFileSync(path.join(ROOT, "docs", "index.html"), "utf8");
@@ -713,10 +714,42 @@ var DARKER = (function(){
 })();
 var THEME_JS = [
 "/* Nocturne \u2014 follows the app's theme. Written by qa/nocturne.js; never edited by hand. */",
-"try{var n=JSON.parse(localStorage.getItem(\"batwatch-settings\")||\"null\")||JSON.parse(localStorage.getItem(\"batwatch-v3\")||\"null\");" +
-"if(n&&n.theme===\"darker\")document.documentElement.setAttribute(\"data-theme\",\"darker\");}catch(e){}",
+"try{var p=localStorage.getItem(\"nocturne-theme\"),n=JSON.parse(localStorage.getItem(\"batwatch-settings\")||\"null\")||JSON.parse(localStorage.getItem(\"batwatch-v3\")||\"null\");" +
+"var t=p===\"dark\"||p===\"darker\"?p:n&&n.theme;if(t===\"darker\")document.documentElement.setAttribute(\"data-theme\",\"darker\");}catch(e){}",
 ""].join("\n");
 var THEME_TAG = '<script src="/nocturne/theme.js"></script>';
+/* 6.5.0. paper.js, the paper's second script of its own, on every page,
+   deferred. Two jobs, both owner's calls.
+   The Share button (issues): where the browser has a share sheet (phones,
+   most tablets, Safari) it opens it with the issue's title and link; where
+   it has none, it copies the link and says so, in the button and in a
+   polite live region.
+   The theme switch (every page): Dark deco or Darker, the app's two themes.
+   The choice is the paper's own, kept under its own key (nocturne-theme),
+   and never written into the app's settings; until a reader flips it the
+   paper follows the app, as theme.js has since 6.3.0. It fetches nothing and
+   stores nothing else (guard 164). */
+var PAPER_JS = [
+"/* Nocturne \u2014 the Share button and the theme switch. Written by qa/nocturne.js; never edited by hand. */",
+"(function(){var R=document.documentElement;",
+"function mark(){var d=R.getAttribute(\"data-theme\")===\"darker\"?\"darker\":\"dark\";[].forEach.call(document.querySelectorAll(\"[data-theme-set]\"),function(b){b.setAttribute(\"aria-pressed\",String(b.getAttribute(\"data-theme-set\")===d));});}",
+"mark();",
+"document.addEventListener(\"click\",function(e){var x=e.target&&e.target.closest?e.target:null;if(!x)return;",
+"var tb=x.closest(\"[data-theme-set]\");if(tb){var v=tb.getAttribute(\"data-theme-set\")===\"darker\"?\"darker\":\"dark\";",
+"if(v===\"darker\")R.setAttribute(\"data-theme\",\"darker\");else R.removeAttribute(\"data-theme\");try{localStorage.setItem(\"nocturne-theme\",v);}catch(err){}mark();return;}",
+"var b=x.closest(\"[data-share]\");if(!b)return;",
+"var u=b.getAttribute(\"data-url\"),t=b.getAttribute(\"data-title\"),l=b.querySelector(\".sl\"),o=b.nextElementSibling;",
+"function say(m){if(l){var w=l.textContent;l.textContent=m;setTimeout(function(){l.textContent=w;},2400);}if(o&&o.className===\"shout\")o.textContent=m;}",
+"if(navigator.share){navigator.share({title:t,url:u}).catch(function(){});return;}",
+"if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(function(){say(\"Link copied\");},function(){say(u);});return;}",
+"say(u);});})();",
+""].join("\n");
+var PAPER_TAG = '<script src="/nocturne/paper.js" defer></script>';
+var SHARE_ICON = '<svg class="shr" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.4v6.8M3.3 4.1 6 1.4l2.7 2.7M2 6.4v4.2h8V6.4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
+function shareButton(url, title){
+  return '<button class="btn share" type="button" data-share data-url="' + url + '" data-title="' + esc(title) + '">' +
+         SHARE_ICON + '<span class="sl">Share</span></button><span class="shout" role="status" aria-live="polite"></span>';
+}
 /* 6.3.0. Cloudflare Web Analytics, on the paper only: no cookies, nothing
    that follows a reader. The token is public by design; the app carries
    neither the beacon nor the token (guard 165). */
@@ -731,9 +764,11 @@ var BEACON = '<script type="module" src="https://static.cloudflareinsights.com/b
    docs/fonts/, so the app neither preloads nor precaches it, and the build
    writes it into docs/nocturne/ beside OFL.txt, which travels with it. */
 /* 6.4.0. The paper's own faces, all blessed in the one record: the italic
-   above, and the press faces (Bodoni Moda 700 for the banner and the story
-   heads, Newsreader 400 and italic for the reading text). No reserved names,
-   so they ship as subsets under their own names. None is in docs/fonts/. */
+   above and Newsreader 400 and italic for the reading text. No reserved
+   names, so they ship as subsets under their own names. None is in
+   docs/fonts/. 6.5.0: Bodoni Moda 700, the banner's and the story heads'
+   face, moved to docs/fonts/ when the app's Home card took it; the paper
+   reads it from there like the app's other faces. */
 var PAPER_FONTS = (function(){
   var dir = path.join(__dirname, "nocturne-fonts");
   var rec = JSON.parse(fs.readFileSync(path.join(dir, "record.json"), "utf8"));
@@ -745,7 +780,6 @@ function paperFont(file){
   return f;
 }
 var ITALIC = paperFont("ibm-plex-sans-latin-400-italic.woff2");
-var PRESS  = paperFont("bodoni-moda-latin-700-normal.woff2");
 var READ   = paperFont("newsreader-latin-400-normal.woff2");
 var READ_I = paperFont("newsreader-latin-400-italic.woff2");
 
@@ -758,7 +792,7 @@ var CSS = [
 "@font-face{font-family:\"NW Sans\";src:url(\"/fonts/ibm-plex-sans-latin-600-normal.woff2\") format(\"woff2\");font-weight:600;font-display:swap;}",
 "@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-display:swap;}",
 "@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-600-normal.woff2\") format(\"woff2\");font-weight:600;font-display:swap;}",
-"@font-face{font-family:\"Bodoni Moda\";src:url(\"/nocturne/" + PRESS.file + "\") format(\"woff2\");font-weight:700;font-display:swap;}",
+"@font-face{font-family:\"Bodoni Moda\";src:url(\"/fonts/bodoni-moda-latin-700-normal.woff2\") format(\"woff2\");font-weight:700;font-display:swap;}",
 "@font-face{font-family:\"Newsreader\";src:url(\"/nocturne/" + READ.file + "\") format(\"woff2\");font-weight:400;font-display:swap;}",
 "@font-face{font-family:\"Newsreader\";src:url(\"/nocturne/" + READ_I.file + "\") format(\"woff2\");font-weight:400;font-style:italic;font-display:swap;}",
 ":root{--ink:#08090F;--sunk:#0C111C;--card:#141B2C;--card2:#1B2438;--line:#252E42;--line2:#33405C;",
@@ -844,7 +878,11 @@ var CSS = [
 "/* 6.3.1: the colophon sits under the app's diamond rule, the way every tab in the app closes (guard 169). */",
 ".foot{max-width:620px;margin:44px auto 0;}",
 ".colophon::before{content:\"\";position:absolute;top:0;left:50%;width:4.5px;height:4.5px;transform:translate(-50%,-50%) rotate(45deg);background:var(--signal);box-shadow:0 0 0 6px var(--ink);}",
-".acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:stretch;margin:0 0 30px;}",
+/* 6.5.0: the foot's buttons in two rows, the way back to the map on its own
+   and the paper's own buttons under it, equal widths, one style. */
+".acts{display:grid;gap:10px;max-width:460px;margin:0 auto 30px;}",
+".acts .more{display:flex;gap:10px;position:relative;}",
+".acts .more .btn{flex:1 1 0;min-width:0;justify-content:center;}",
 ".btn{font-family:var(--mono);font-size:var(--t-label);font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;padding:12px 14px;min-height:44px;display:inline-flex;align-items:center;}",
 ".btn.home{background:var(--signal);color:var(--ink);border:1px solid var(--signal);gap:12px;padding:10px 18px 10px 14px;text-align:left;}",
 ".btn.home .mk{width:36px;height:auto;flex:none;display:block;}",
@@ -853,8 +891,17 @@ var CSS = [
 ".btn.home small{font-size:var(--t-fine);letter-spacing:.17em;line-height:1;text-box:trim-both cap alphabetic;display:flex;align-items:center;}",
 ".btn.home small .arr{width:9px;height:9px;margin-left:5px;}",
 ".btn .rss{width:12px;height:12px;margin-right:8px;flex:none;}",
-"@media (max-width:560px){.btn.home{flex-basis:100%;justify-content:center;}}",
+".btn.home{justify-content:center;}",
 ".btn.ghost{border:1px solid var(--line2);color:var(--steel);font-weight:400;}",
+".themerow{display:flex;max-width:460px;margin:0 auto 30px;border:1px solid var(--line2);}",
+".themerow button{flex:1;min-height:44px;padding:8px 6px;background:none;border:0;border-right:1px solid var(--line2);font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.09em;text-transform:uppercase;color:var(--dust);cursor:pointer;}",
+".themerow button:last-child{border-right:0;}",
+".themerow button[aria-pressed=\"true\"]{background:var(--suit);color:var(--ink);font-weight:600;}",
+".themerow button:focus-visible{outline:2px solid var(--signal);outline-offset:-2px;}",
+".btn.share{border:1px solid var(--line2);color:var(--steel);font-weight:400;background:none;cursor:pointer;}",
+".btn.share:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}",
+".btn .shr{width:12px;height:12px;margin-right:8px;flex:none;}",
+".shout{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}",
 ".colophon{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:0;position:relative;padding-top:22px;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}",
 ".sub{text-align:center;color:var(--dust);font-size:var(--t-desc);margin:0 auto 26px;max-width:460px;}",
 ".front{max-width:680px;margin:0 auto;}",
@@ -892,10 +939,10 @@ var CSS = [
 ".cols h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);line-height:1.05;margin:0 0 8px;}",
 ".cols p{font-size:var(--t-desc);line-height:1.55;color:var(--dust);margin:0;}",
 "@media (max-width:560px){.cols{grid-template-columns:1fr;}.cols section{padding:16px 0 18px;}.cols section+section{border-left:0;border-top:1px solid var(--line2);}}",
-"@media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}.colophon::before{forced-color-adjust:none;background:CanvasText;box-shadow:0 0 0 6px Canvas;}}",
+"@media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}.colophon::before{forced-color-adjust:none;background:CanvasText;box-shadow:0 0 0 6px Canvas;}.themerow button[aria-pressed=\"true\"]{forced-color-adjust:none;background:Highlight;color:HighlightText;}}",
 "/* Print (6.2.3): ink on white, the rules kept, no buttons. Same scale; only colour changes. */",
 "@media print{:root,:root[data-theme=\"darker\"]{--ink:#FFFFFF;--sunk:#FFFFFF;--card:#FFFFFF;--card2:#FFFFFF;--line:#BBBBBB;--line2:#888888;--bone:#08090F;--dust:#333333;--dim:#444444;--suit:#08090F;--signal:#08090F;--steel:#333333;--signalline:rgba(8,9,15,.35);}",
-"  .acts{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}",
+"  .acts{display:none;}.themerow{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}",
 "  figure,.map,.corr,.board{break-inside:avoid;}.story h2{break-after:avoid;}@page{margin:16mm 14mm;}}",
 ""].join("\n");
 
@@ -918,11 +965,13 @@ function dateline(a, b, c){
 function footer(extra){
   return '<footer class="foot">\n<div class="acts">' +
     '<a class="btn home" href="/">' + MARK + '<span class="lbl"><b>Night Watcher</b><small>Open the map' + ARROW + '</small></span></a>' +
-    '<a class="btn ghost" href="/nocturne/feed.xml" type="application/rss+xml">' + RSS + 'RSS</a>' + (extra || "") + '</div>\n' +
+    '<div class="more"><a class="btn ghost" href="/nocturne/feed.xml" type="application/rss+xml">' + RSS + 'RSS</a>' + (extra || "") + '</div></div>\n' +
+    '<div class="themerow" role="group" aria-label="Theme"><button type="button" data-theme-set="dark" aria-pressed="true">Dark deco</button>' +
+    '<button type="button" data-theme-set="darker" aria-pressed="false">Darker</button></div>\n' +
     '<p class="colophon">' + COLOPHON + '</p>\n</footer>\n';
 }
 function head(o){
-  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' + THEME_TAG + '\n' +
+  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' + THEME_TAG + '\n' + PAPER_TAG + '\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
     '<title>' + esc(o.title) + '</title>\n' +
     '<meta name="description" content="' + esc(o.desc) + '">\n' +
@@ -1032,7 +1081,8 @@ function renderIssue(is, cat){
                 extra: '<meta property="article:published_time" content="' + fm.published + '">\n' + ldjson(ld)});
   var out = h + '<body>\n<main class="paper">\n' +
     masthead(dateline("No. " + fm.issue, esc(longDate(fm.published)), "Price: nothing. No account.")) +
-    '<article>\n<h1 class="banner">' + inline(fm.title) + '</h1>\n' + (founding ? "" : board(fm, cat));
+    '<article>\n<h1 class="banner">' + inline(fm.title) + '</h1>\n' +
+    (founding ? "" : board(fm, cat));
   if(hero) out += figure(hero, false);
   out += '<p class="cold">' + inline(fm.cold_open) + '</p>\n<div class="drule" aria-hidden="true"><i></i></div>\n';
   fm.stories.forEach(function(st, i){
@@ -1052,8 +1102,10 @@ function renderIssue(is, cat){
     if(!founding) out += mapBox(st, cat);
     out += '</section>\n';
   });
-  out += '<div class="drule" aria-hidden="true"><i></i></div>\n<p class="signoff">' + inline(fm.sign_off) + '</p>\n</article>\n' +
-         footer('<a class="btn ghost" href="/nocturne/">The morgue</a>') + '</main>\n' + BEACON + '\n</body>\n</html>\n';
+  /* 6.5.0: no diamond before the sign-off. The footer's rule closes the page,
+     and two diamonds that close together read as one too many. */
+  out += '<p class="signoff">' + inline(fm.sign_off) + '</p>\n</article>\n' +
+         footer(shareButton(url, plain(fm.title) + " \u00b7 Nocturne") + '<a class="btn ghost" href="/nocturne/">The morgue</a>') + '</main>\n' + BEACON + '\n</body>\n</html>\n';
   return out;
 }
 
@@ -1397,7 +1449,7 @@ function build(root, opts){
     });
   });
   var files = {"nocturne.css": Buffer.from(CSS, "utf8"), "feed.css": Buffer.from(FEED_CSS, "utf8"),
-               "theme.js": Buffer.from(THEME_JS, "utf8")};
+               "theme.js": Buffer.from(THEME_JS, "utf8"), "paper.js": Buffer.from(PAPER_JS, "utf8")};
   /* The paper's italic and the licence that travels with it (6.2.3). The
      bytes must be the ones qa/subset-fonts.py --paper blessed. */
   PAPER_FONTS.forEach(function(pf){
@@ -1639,7 +1691,7 @@ function morgueWarnings(text, today){
     .map(function(e){ return MORGUE_REL + " line " + e.line + ": checked " + e.checked + ", over a year ago — re-open its link before it runs"; });
 }
 
-module.exports = {build: build, cardKey: cardKey, CARD: CARD, notebookErrors: notebookErrors, NOTEBOOK_REL: NOTEBOOK_REL, NOTEBOOK_HEAD: NOTEBOOK_HEAD, drift: drift, write: write, checkAll: checkAll, listIssues: listIssues,
+module.exports = {build: build, cardKey: cardKey, CARD: CARD, PAPER_JS: PAPER_JS, PAPER_TAG: PAPER_TAG, notebookErrors: notebookErrors, NOTEBOOK_REL: NOTEBOOK_REL, NOTEBOOK_HEAD: NOTEBOOK_HEAD, drift: drift, write: write, checkAll: checkAll, listIssues: listIssues,
                   loadCatalogue: loadCatalogue, sundayOfWeek: sundayOfWeek, webpSize: webpSize,
                   LIMITS: LIMITS, BEGIN: BEGIN, END: END, FEED_PI: FEED_PI, FEED_DESC: FEED_DESC, OUT_REL: OUT_REL, SRC_REL: SRC_REL,
                   COLOPHON: COLOPHON, BEACON: BEACON, BEACON_TOKEN: BEACON_TOKEN, THEME_TAG: THEME_TAG,

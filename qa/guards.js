@@ -224,12 +224,13 @@ function blessHtml(next){
 
    NOCTURNE
      163  The paper is what its build writes
-     164  The paper runs two scripts: ours and the beacon's
+     164  The paper runs its own scripts and the beacon's
      165  The paper is outside the app
      166  Every issue keeps the contract
      167  The sitemap and the feed list exactly the issues
      168  The paper's weight
      169  The paper sets type on the app's scale
+     170  The crew's page is built and unlisted
 
    META
      65   The file points at where its reasoning went
@@ -1569,7 +1570,9 @@ if(PUBLIC !== ROOT){
      entry here would go stale every Sunday; the whole tree is out of the
      shell by rule, and section 165 fails the build if sw.js ever caches or
      answers for anything under /nocturne/. */
-  var NOT_SHELLED_DIRS = ["nocturne/"];
+  /* 6.5.0: and hww/, the crew's page, which the worker steps aside for too
+     (section 170). */
+  var NOT_SHELLED_DIRS = ["nocturne/", "hww/"];
   function outOfShellDir(f){
     return NOT_SHELLED_DIRS.some(function(d){ return f.indexOf(d) === 0; });
   }
@@ -8273,8 +8276,8 @@ var ROUTE_VOCAB = [
         return;
       }
     }
-    if(hints.length !== 6){
-      fail("the / rule carries " + hints.length + " font preload hint(s), not 6 — " +
+    if(hints.length !== 7){
+      fail("the / rule carries " + hints.length + " font preload hint(s), not 7 — " +
            "a face joined or left without the set changing here");
     }
     if(/rel=preload/.test(block104("/*"))){
@@ -8317,7 +8320,9 @@ var ROUTE_VOCAB = [
      script, so its policy is a header, not a <meta>; section 164 holds that
      block exactly. Anywhere else a CSP header would sit on the app's
      document beside the blessed <meta>, and the two would disagree. */
-  var others104 = Object.keys(BLOCKS104).filter(function(k){ return k !== "/nocturne/*"; });
+  /* 6.5.0: and /hww/*, the crew's page, which runs no script at all;
+     section 170 holds its block exactly. */
+  var others104 = Object.keys(BLOCKS104).filter(function(k){ return k !== "/nocturne/*" && k !== "/hww/*"; });
   if(others104.some(function(k){ return /Content-Security-Policy/i.test(block104(k)); })){
     fail("docs/_headers sets a CSP \u2014 the CSP lives in the <meta> tag whose " +
          "hash section 43 blesses, and two of them will disagree");
@@ -14721,8 +14726,8 @@ var ROUTE_VOCAB = [
      COUNT is pinned here so a seventh face cannot arrive, or a sixth leave,
      without the head's set changing on the record. */
   var preloads = (head.match(/<link rel="preload" as="font" type="font\/woff2" crossorigin href="fonts\/[^"]+\.woff2">/g) || []).length;
-  if(preloads !== 6){
-    fail("the head carries " + preloads + " font preloads, not 6 — a face arrived or " +
+  if(preloads !== 7){
+    fail("the head carries " + preloads + " font preloads, not 7 — a face arrived or " +
          "left without the set changing here");
   }
   /* Nothing in the head that is not on the list — and the census reads
@@ -14778,7 +14783,7 @@ var ROUTE_VOCAB = [
     fail("the head carries " + doubled.length + " required tag(s) more than once: " +
          doubled.join(", ") + " — a second copy is drift wearing the uniform");
   }
-  note("head: " + REQUIRED.length + " required tags present exactly once, 6 font " +
+  note("head: " + REQUIRED.length + " required tags present exactly once, 7 font " +
        "preloads, 2 style blocks, every element on the allowlist, no strays");
 })();
 
@@ -15934,7 +15939,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
        " on disk, docs/nocturne/ is byte-for-byte the build (" + Object.keys(NOC_REAL.files).length + " files)");
 })();
 
-/* ---------- 164. The paper runs two scripts: ours and the beacon's ---------- */
+/* ---------- 164. The paper runs its own scripts and the beacon's ---------- */
 /* The app's CSP is a <meta> with one blessed hash; the paper's policy is a
    default-deny header on /nocturne/* and every page the build writes is held
    to it here, the real issues and the fixture alike. Until 6.3.0 the paper
@@ -15943,7 +15948,13 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    Analytics' beacon, which counts visits without cookies. Each page carries
    exactly those two tags, word for word, and a JSON-LD data block, which
    never executes. The header is pinned whole: a policy that grows another
-   source, or loosens a default, is a policy nobody reviewed. */
+   source, or loosens a default, is a policy nobody reviewed.
+   6.5.0, owner's calls: every page carries a third, paper.js, deferred and
+   once: the Share button on issues and the Dark deco / Darker switch in the
+   foot. It is the build's word for word. It fetches nothing and sets no
+   cookie, and its one write is the paper's own theme key, nocturne-theme,
+   never the app's settings. The policy does not move: 'self' already names
+   it. */
 
 (function(){
   var CSP164 = "default-src 'none'; script-src 'self' https://static.cloudflareinsights.com; " +
@@ -15968,9 +15979,17 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       var h = pair[0].files[f].toString("utf8"), where = pair[1] + f;
       pages++;
       var scripts = h.match(/<script\b[^>]*>/gi) || [];
-      var ours = NOC.THEME_TAG.replace("</script>", ""), beacon = NOC.BEACON.replace("</script>", "");
-      if(scripts.some(function(t){ return t !== '<script type="application/ld+json">' && t !== ours && t !== beacon; })){
-        fail(where + " carries a script that is not a JSON-LD data block, theme.js or the analytics beacon — the paper runs those two scripts and no other");
+      var ours = NOC.THEME_TAG.replace("</script>", ""), beacon = NOC.BEACON.replace("</script>", ""), paperjs = NOC.PAPER_TAG.replace("</script>", "");
+      if(scripts.some(function(t){ return t !== '<script type="application/ld+json">' && t !== ours && t !== beacon && t !== paperjs; })){
+        fail(where + " carries a script that is not a JSON-LD data block, theme.js, paper.js or the analytics beacon — the paper runs those and no other");
+      }
+      var isIssue = /\/index\.html$/.test(f) && f !== "index.html";
+      if(h.split(NOC.PAPER_TAG).length !== 2) fail(where + " does not load paper.js exactly once — every page carries the theme switch (6.5.0)");
+      if((h.match(/<div class="themerow" role="group" aria-label="Theme"><button type="button" data-theme-set="dark" aria-pressed="true">Dark deco<\/button><button type="button" data-theme-set="darker" aria-pressed="false">Darker<\/button><\/div>/g) || []).length !== 1){
+        fail(where + " does not carry the Dark deco / Darker switch once in its foot (6.5.0)");
+      }
+      if(isIssue && (h.match(/<button class="btn share" type="button" data-share data-url="https:\/\/nightwatcher\.life\/nocturne\/[^"]+\/" data-title="[^"]+">/g) || []).length !== 1){
+        fail(where + " does not carry its one Share button, at the foot, naming the issue's own address (6.5.0)");
       }
       if(h.split(NOC.THEME_TAG).length !== 2 || h.indexOf(NOC.THEME_TAG) > h.indexOf("<meta name=\"viewport\"")){
         fail(where + " does not load theme.js exactly once at the top of <head> — the theme would flash");
@@ -16005,7 +16024,17 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   if(/fetch|XMLHttpRequest|sendBeacon|setItem|removeItem|cookie|import\(/.test(NOC.THEME_JS)){
     fail("theme.js does more than read the reader's theme — it may only read the app's settings and set one attribute");
   }
-  note("nocturne: " + pages + " pages carry theme.js and the beacon and nothing else, the /nocturne/* policy is default-deny plus those two");
+  if(NOC_REAL && NOC_REAL.files["paper.js"] && NOC_REAL.files["paper.js"].toString("utf8") !== NOC.PAPER_JS){
+    fail("docs/nocturne/paper.js is not the build's paper script");
+  }
+  if(/fetch|XMLHttpRequest|sendBeacon|sessionStorage|indexedDB|cookie|import\(|window\.open|location|removeItem|batwatch/.test(NOC.PAPER_JS)){
+    fail("paper.js does more than share and switch the theme — no network, no cookie, and never the app's settings (6.5.0)");
+  }
+  var writes164 = NOC.PAPER_JS.match(/localStorage\.setItem\([^)]*\)/g) || [];
+  if(writes164.length !== 1 || writes164[0] !== 'localStorage.setItem("nocturne-theme",v)'){
+    fail("paper.js writes something other than the paper's own theme key — its one write is nocturne-theme (6.5.0)");
+  }
+  note("nocturne: " + pages + " pages carry theme.js, paper.js and the beacon and nothing else; one write, the paper's theme key; the /nocturne/* policy is default-deny plus those");
 })();
 
 /* ---------- 165. The paper is outside the app ---------- */
@@ -16448,6 +16477,60 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   });
   if(!feet169) fail("guard 169 found no paper page to read the footer of");
   note("nocturne: both stylesheets on the app's --t-* scale, print sheet set, italic blessed and served from the paper; " + pages169 + " files free of glyphs the fonts lack; " + feet169 + " footers carry the mark, the name and RSS above the diamond");
+})();
+
+/* ---------- 170. The crew's page is built and unlisted ---------- */
+/* 6.5.0, owner's call. /hww, "How we work", is a page in the app's style that
+   nothing leads to. qa/hww.js writes it from the tree: the guard sections from
+   this file's index, the negative suites and fixtures from qa/negative/, the
+   smoke count README holds, the version from BUILD, and the header's own
+   mark. So a count that moves without a rebuild is drift here, the way the
+   paper's is in 163. Unlisted means all of it: noindex in the page and in
+   its header, a default-deny policy that runs no script, out of the sitemap,
+   out of the service worker, and no link from the app, the paper, the 404,
+   the manifest or the agent files. */
+
+(function(){
+  var HWW;
+  try { HWW = require("./hww.js"); }
+  catch(e){ fail("qa/hww.js does not load: " + e.message); return; }
+  var b;
+  try { b = HWW.build(); }
+  catch(e){ fail("the /hww build throws: " + e.message); return; }
+  HWW.drift(b).forEach(function(m){ fail("the crew's page drifted from its build: " + m + " — run npm run hww:build"); });
+  var h = b.files["index.html"].toString("utf8");
+  if(h.indexOf('<meta name="robots" content="noindex, nofollow">') < 0) fail("/hww/ has lost its noindex — the crew's page is not published");
+  if(/<script\b/i.test(h) || /\son[a-z]+\s*=/i.test(h) || /\sstyle\s*=/i.test(h)) fail("/hww/ carries a script, an inline handler or an inline style — its policy allows none");
+  if(b.files["index.html"].length > 40 * 1024) fail("/hww/ weighs " + b.files["index.html"].length + " bytes — a page is at most 40 KB, as the paper's are");
+  /* the mark is the header's, path for path */
+  var head = (HTML.match(/<button class="mark" id="markBtn"[^>]*>\s*(<svg[\s\S]*?<\/svg>)/) || [0, ""])[1].replace(/\n\s*/g, "");
+  if(!head || h.indexOf(head.replace('<svg viewBox="8 16 84 70" aria-hidden="true">', '<svg class="mk" viewBox="8 16 84 70" aria-hidden="true">')) < 0){
+    fail("/hww/ does not carry the app header's mark as it is — no mark is drawn for a page");
+  }
+  var hdr = fs.readFileSync(path.join(PUBLIC, "_headers"), "utf8");
+  var m = hdr.match(/^\/hww\/\*\n((?:[ \t]+\S.*\n?)+)/m);
+  var want = ["Content-Security-Policy: default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+              "X-Robots-Tag: noindex, nofollow"];
+  if(!m || JSON.stringify(m[1].split("\n").map(function(l){ return l.trim(); }).filter(Boolean)) !== JSON.stringify(want)){
+    fail("docs/_headers' /hww/* rule is not the reviewed pair: " + want.join(" · "));
+  }
+  if(/\/hww/i.test(fs.readFileSync(path.join(PUBLIC, "sitemap.xml"), "utf8"))) fail("the sitemap lists /hww — the crew's page is not published");
+  var skip = 'if(url.pathname.indexOf("/hww/") === 0) return;';
+  if(SW.indexOf(skip) < 0 || SW.indexOf(skip) > SW.indexOf("e.respondWith(")) fail("sw.js does not step aside for /hww/ before respondWith — the app would cache the crew's page");
+  if(/hww/i.test((SW.match(/var SHELL\s*=\s*\[([\s\S]*?)\]/) || [0, ""])[1])) fail("sw.js's SHELL lists the crew's page");
+  var doors = [["docs/index.html", HTML]];
+  ["404.html", "manifest.json", "llms.txt", "robots.txt", "orders.txt", "auth.md"].forEach(function(f){
+    if(fs.existsSync(path.join(PUBLIC, f))) doors.push(["docs/" + f, fs.readFileSync(path.join(PUBLIC, f), "utf8")]);
+  });
+  [NOC_REAL, NOC_FIX].forEach(function(bld){
+    if(!bld) return;
+    Object.keys(bld.files).filter(function(f){ return /\.(html|xml)$/.test(f); }).forEach(function(f){ doors.push(["the paper's " + f, bld.files[f].toString("utf8")]); });
+  });
+  doors.forEach(function(d){
+    if(/["'(=\s]\/hww\b|nightwatcher\.life\/hww/i.test(d[1])) fail(d[0] + " links to /hww — the crew's page is linked from nowhere");
+  });
+  note("hww: built from the tree at " + b.facts.build + " (" + b.facts.sections + " sections, " + b.facts.fixtures +
+       " fixtures in " + b.facts.suites + " suites, " + b.facts.smoke + " smoke checks), noindex twice, no script, out of the sitemap and the worker, linked from none of " + doors.length + " files");
 })();
 
 /* ---------- report ---------- */

@@ -14,6 +14,93 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.5.0] — 2026-09-27
+
+**The crew's page, and the paper's second pass.** Three owner's notes from the
+6.4.0 release, and a page that has been waiting for its own cut. Home's door
+to the paper now sets its headline in the paper's type. Every issue gets a
+Share button, and every page of the paper gets the app's Dark deco / Darker
+switch. The diamond before the sign-off goes. And */hww*, "How we work",
+goes up as a page in the app's style that nothing links to. The catalogue does
+not move: no entry moves, nothing saved changes shape or meaning, and the
+counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is
+needed.**
+
+### Added
+
+- **A Share button on every issue.** It sits in the foot, beside RSS and *The
+  morgue*. Where the browser has a share sheet (phones, most tablets,
+  Safari), it opens it with the issue's title and link, and the link previews
+  as the issue's own card. Where there's no share sheet, it copies the link
+  and says "Link copied", in the button and in a polite live region.
+- **The theme switch on the paper.** Every page's foot carries *Dark deco* and
+  *Darker*, the app's two themes, as the same two-button control as the app's
+  Theme row. The choice is the paper's own (`nocturne-theme`) and holds across
+  pages and visits. It never writes into the app's saved settings. Until a
+  reader flips it, the paper follows the app as it has since 6.3.0. In High
+  Contrast the pressed button repaints in system Highlight.
+- Both run in `paper.js`, the paper's second script of its own: on every
+  page, deferred. It fetches nothing, sets no cookie, and makes one write,
+  the paper's theme key. The `/nocturne/*` policy doesn't move, because
+  `'self'` already names it.
+- **/hww, "How we work".** Who does what on Night Watcher, in what order, and
+  the rules that hold it together, in eight sections: the shape of it (the
+  owner as the one gate, three lanes into the repo and CI), who owns what,
+  the Sunday machine, the research loop, four layers of QA, releases, the
+  stack and the rules. It is unlisted:
+  - `noindex` in the page and in its header
+  - a default-deny policy that runs no script
+  - out of the sitemap and the service worker
+  - linked from nothing
+
+  `qa/hww.js` writes it from the tree, so its numbers can't go stale: the
+  guard sections, the negative suites and fixtures, the smoke count and the
+  version. Its mark is the app header's own path, read out of `index.html`.
+  `npm run hww:build` and `hww:check`.
+
+### Changed
+
+- **Home's card for the paper sets its headline in Bodoni Moda**, the paper's
+  face, in sentence case. Bodoni moves from the paper's own fonts to
+  `docs/fonts/` and becomes the app's seventh face: preloaded, hinted in
+  Early Hints and precached like the other six (+11 KB on a first visit).
+  An exception would have been the rule guard 124 warns about, and a face
+  found only in CSS arrives measurably late. The paper now reads it from
+  `/fonts/`. Its notice moves to `docs/fonts/OFL.txt`.
+- **The issue's foot is one grid.** *Night Watcher* sits on its own row, with
+  RSS, Share and *The morgue* under it as equal columns in one style.
+- **No diamond before the sign-off.** The footer's rule closes the page. The
+  one after the cold open stays, and so does the front's rule before *The
+  morgue*.
+- `qa/subset-fonts.py --card` writes the same bytes on every run. The copies
+  carried a save timestamp, so 6.4.0's changed each time they were made.
+
+### Under the hood
+
+- Guard 13 leaves `hww/` out of the shell, as it does `nocturne/`. Guards
+  104 and 124 move from six faces to seven. Guard 104 lets `/hww/*` carry
+  its own CSP, as `/nocturne/*` does. Guard 164 holds `paper.js`: once on
+  every page, as the build writes it, with no network or cookie and one
+  write (`nocturne-theme`, never the app's settings), plus the switch in
+  every foot and one Share button on each issue that names the issue's own
+  address. New
+  guard **170, The crew's page is built and unlisted**, covers its drift,
+  `noindex`, no script or inline style, weight, mark, header pair, the
+  sitemap, the worker, and every file that could link to it.
+- The browser check expects `paper.js` on every page. It clicks Share
+  (headless Chromium copies the link and says so), and it flips the switch
+  to Darker, reloads, flips back, and confirms the app's settings are
+  untouched.
+- Guard sections 169 → 170. Negative fixtures 1,629 → 1,642 (1,512 → 1,525
+  guards / 117 smoke) across 87 suites:
+  - negtest780 takes six for 170 and two for the switch (164), and its
+    reading-face fixture moves from Bodoni to Newsreader.
+  - negtest610, the delete-and-assert-red sweep, takes five: Bodoni's
+    preload tag and the four new README rows. Its six preload fixtures now
+    expect seven faces.
+  - negtest770's third-script fixture expects the message that names
+    `paper.js`.
+
 ## [6.4.0] — 2026-09-27
 
 **The paper gets a front page.** The morning after No. 0, the paper's door

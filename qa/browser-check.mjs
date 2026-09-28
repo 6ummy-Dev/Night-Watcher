@@ -1739,6 +1739,15 @@ async function paperChecks(){
         scripts: [...document.scripts].filter(x => x.type !== "application/ld+json").map(x => x.getAttribute("src")).join(" ")
       }));
       st.status = resp ? resp.status() : 0;
+      /* 6.5.0: an issue's Share button answers. Headless Chromium has no
+         share sheet, so the button takes the copy path and says so in its
+         live region: "Link copied", or the link itself where the clipboard
+         is refused. Either is an answer; silence is the failure. */
+      if(/No\. /.test(label)){
+        await np.click(".acts .btn.share");
+        await np.waitForTimeout(300);
+        st.shared = await np.evaluate(() => (document.querySelector(".acts .shout") || {}).textContent || "");
+      }
       const r = await np.evaluate(async () => await window.axe.run(document, {
         resultTypes: ["violations"],
         runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] }
@@ -1749,9 +1758,11 @@ async function paperChecks(){
        errs[0] || ("HTTP " + st.status));
     ok("nocturne (" + label + "): every image decodes, the deco face loads",
        st.imgs && !st.imgs.length && st.deco, st.imgs && st.imgs.length ? "broken: " + st.imgs.join(", ") : "NW Deco " + st.deco);
-    ok("nocturne (" + label + "): nothing wider than the phone; theme.js and the beacon, no other script",
-       st.wide === false && st.scripts === "/nocturne/theme.js https://static.cloudflareinsights.com/beacon.min.js",
+    const wantScripts = "/nocturne/theme.js /nocturne/paper.js https://static.cloudflareinsights.com/beacon.min.js";
+    ok("nocturne (" + label + "): nothing wider than the phone; its own scripts and the beacon, no other",
+       st.wide === false && st.scripts === wantScripts,
        "wide " + st.wide + ", scripts " + st.scripts);
+    if(/No\. /.test(label)) ok("nocturne (" + label + "): the Share button answers", !!st.shared, st.shared || "said nothing");
     ok("nocturne (" + label + "): axe, no serious violations", st.axe && !st.axe.length,
        st.axe && st.axe.length ? st.axe.join(", ") : "");
     if(errs.length || (st.axe && st.axe.length)){
@@ -1775,6 +1786,32 @@ async function paperChecks(){
     ok("nocturne: a reader on " + theme + " in the app reads the paper in " + (want || "dark"),
        got && got.attr === want && got.ink === (want ? "rgb(0, 0, 0)" : "rgb(8, 9, 15)"), JSON.stringify(got));
     await tp.close();
+  }
+  /* 6.5.0. The paper's own switch: on Dark in the app, a reader flips the
+     paper to Darker, it holds across a reload, flips back, and the app's
+     saved settings are never touched. */
+  {
+    const sp = await nctx.newPage();
+    let got = "unread";
+    try{
+      await sp.goto(SITE_URL + "nocturne/", { waitUntil: "load" });
+      await sp.evaluate(() => localStorage.setItem("batwatch-settings", JSON.stringify({ theme: "dark" })));
+      await sp.reload({ waitUntil: "load" });
+      await sp.click('[data-theme-set="darker"]');
+      const flipped = await sp.evaluate(() => document.documentElement.getAttribute("data-theme") + " " + document.querySelector('[data-theme-set="darker"]').getAttribute("aria-pressed"));
+      await sp.reload({ waitUntil: "load" });
+      await sp.waitForTimeout(200);
+      const held = await sp.evaluate(() => document.documentElement.getAttribute("data-theme") + " " + document.querySelector('[data-theme-set="darker"]').getAttribute("aria-pressed"));
+      await sp.click('[data-theme-set="dark"]');
+      const back = await sp.evaluate(() => String(document.documentElement.getAttribute("data-theme")));
+      const app = await sp.evaluate(() => localStorage.getItem("batwatch-settings"));
+      got = { flipped, held, back, app };
+      await sp.evaluate(() => { localStorage.removeItem("batwatch-settings"); localStorage.removeItem("nocturne-theme"); });
+    }catch(e){ got = String(e).slice(0, 100); }
+    ok("nocturne: the paper's switch flips to Darker, holds across a reload, flips back, and leaves the app's settings alone",
+       got && got.flipped === "darker true" && got.held === "darker true" && got.back === "null" && got.app === JSON.stringify({ theme: "dark" }),
+       JSON.stringify(got));
+    await sp.close();
   }
   ok("nocturne: the beacon was answered locally, never fetched from Cloudflare", beaconAsked > 0, beaconAsked + " requests");
   /* The feed in a browser (6.2.2): styled by feed.css, not a raw XML tree,

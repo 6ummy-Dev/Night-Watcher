@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-9ZKGhqbI48j4e7VDhoY2L/zgvH6nGe3nqWEe1DUqcgA='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-CuJRbgc4U/KrJKjNXHhcU/O0Xgaz22fvHyKgFsUFGeQ='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -12,6 +12,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/ibm-plex-sans-latin-600-normal.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/ibm-plex-mono-latin-400-normal.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/ibm-plex-mono-latin-600-normal.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/bodoni-moda-latin-700-normal.woff2">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Night Watcher">
 <link rel="manifest" href="manifest.json">
@@ -50,6 +51,7 @@
 @font-face{font-family:"NW Sans";src:url("fonts/ibm-plex-sans-latin-600-normal.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap;}
 @font-face{font-family:"NW Mono";src:url("fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;}
 @font-face{font-family:"NW Mono";src:url("fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap;}
+@font-face{font-family:"Bodoni Moda";src:url("fonts/bodoni-moda-latin-700-normal.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;}
 
 :root{
   --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
@@ -148,7 +150,7 @@ main.sw::-webkit-scrollbar{display:none;}
 .fseal{background:var(--signal);color:var(--ink);font-weight:600;line-height:1.15;padding:5px 7px 4px;text-align:center;}
 .fname{font-family:var(--deco);text-transform:uppercase;letter-spacing:.06em;font-size:var(--t-num);line-height:.9;margin:12px 0 14px;}
 .fdate{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.16em;text-transform:uppercase;color:var(--dust);margin:0;padding:8px 0;border-top:3px double var(--bone);border-bottom:1px solid var(--line2);}
-.fhead{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);line-height:1.1;margin:14px 0 16px;text-wrap:balance;}
+.fhead{font-family:"Bodoni Moda",Didot,"Bodoni 72",Georgia,serif;font-weight:700;font-size:var(--t-heading);line-height:1.2;margin:14px 0 16px;text-wrap:balance;}
 .themerow button{flex:1;min-height:34px;padding:8px 6px;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.09em;text-transform:uppercase;color:var(--dust);border-right:1px solid var(--line2);}
 .themerow button:last-child{border-right:0;}
 .themerow button[aria-pressed="true"]{background:var(--suit);color:var(--ink);font-weight:600;}
@@ -1044,7 +1046,7 @@ main,.panel{scrollbar-gutter:stable both-edges;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 169 sections, each one negative-tested, which section 138
+   qa/guards.js — 170 sections, each one negative-tested, which section 138
    checks rather than assumes.
 
    Read those before changing something that looks redundant. Most of it is
@@ -1514,7 +1516,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "6.4.0";
+var BUILD = "6.5.0";
 var BUILT = "2026-09-27";
 var KEY = "batwatch-v3";
 var SKEY = "batwatch-settings";
