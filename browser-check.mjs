@@ -1,0 +1,1896 @@
+/* Browser check. Not part of npm test — jsdom has no layout, so the things
+   below cannot be observed by the harness at all: the header at 0% and 100%,
+   jumping to a group with content-visibility on, a group opening and closing,
+   the Where to watch URL a reader actually taps, accessibility in a STATE
+   rather than on a cold load, the service worker's offline promise. It IS in
+   CI: the browser job in qa.yml runs it on every push, on two engines.
+
+   Run against a served copy of docs/ at 390x844 (iPhone 12/13/14 logical
+   size). Playwright and axe-core are declared devDependencies and the
+   executable is resolved by Playwright, with an env override kept for
+   sandboxes that place it somewhere unusual — a hard-coded browser path is
+   how a check comes to pass because it never executed. (History:
+   NOTES-history.md ("Where the served and config files' histories went").) */
+import { chromium, webkit } from "playwright";
+import { createRequire } from "node:module";
+import fs from "node:fs";
+
+const SITE_URL = process.env.NW_URL || "http://127.0.0.1:8099/";
+/* Screenshots land beside this file, not in whatever directory the run was
+   started from (4.9.0 — the paths were cwd-relative). */
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+const SHOTS = path.join(path.dirname(fileURLToPath(import.meta.url)), ".shots");
+fs.mkdirSync(SHOTS, { recursive: true });
+const shot = (name) => path.join(SHOTS, name);
+/* axe-core, read from the declared devDependency rather than fetched. */
+const axeSrc = fs.readFileSync(
+  createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
+/* Playwright resolves its own browser. NW_CHROME is the escape hatch, not the
+   default — a pinned path IS the bug this replaced. */
+const EXE = process.env.NW_CHROME || undefined;
+/* NW_ENGINE=webkit runs this same file on WebKit — iOS is where the
+   clip-path ornaments actually ship. The default stays Chromium, and
+   NW_CHROME (an executablePath escape hatch) applies to Chromium only. */
+const WK = process.env.NW_ENGINE === "webkit";
+const out = [];
+let bad = 0;
+function ok(name, pass, detail){
+  out.push((pass ? "  ok   " : "  FAIL ") + name + (detail ? "  — " + detail : ""));
+  if(!pass) bad++;
+}
+/* MEASURE, DON'T SLEEP — the file's own rule, applied to the file (4.9.0:
+   nine fixed sleeps of 80–450 ms were bets on the runner). Two waits, each
+   for the thing a sleep was standing in for: frames() for a render and its
+   paint; scrollSettled() for a scroll offset that has stopped moving, which
+   is what Chromium's anchoring and the app's own scroll restore leave
+   behind. (A third, until(), was defined here from 4.9.0 to 5.3.0 and never
+   called — the states it was written for are read through frames() and the
+   verify callbacks below.) */
+async function frames(n = 2){
+  await page.evaluate(k => new Promise(r => {
+    const step = i => i ? requestAnimationFrame(() => step(i - 1)) : r();
+    step(k);
+  }), n);
+}
+async function scrollSettled(){
+  await page.evaluate(() => new Promise(res => {
+    let last = null, same = 0; const t0 = performance.now();
+    const tick = () => {
+      const y = scroller().scrollTop;
+      if(y === last){ if(++same >= 3) return res(); } else { same = 0; last = y; }
+      if(performance.now() - t0 > 1500) return res();
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }));
+}
+
+const browser = WK ? await webkit.launch()
+  : await chromium.launch(
+  EXE ? { executablePath: EXE, args: ["--no-sandbox"] } : { args: ["--no-sandbox"] });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 },
+                                     deviceScaleFactor: 3 });
+/* 6.3.0. NW_ONLY=paper runs the paper's pages and nothing else: the CI run
+   for an issue pull request, which can change only the paper (the fence
+   holds that). Every push to main and the nightly run the whole file. */
+const PAPER_ONLY = process.env.NW_ONLY === "paper";
+if(PAPER_ONLY){ await paperChecks(); await finish(); }
+/* THE PAGE'S OWN CSP REFUSES addScriptTag, AND THAT IS THE POLICY WORKING.
+   script-src is one sha256 hash and, since 3.2.0, nothing else at all — so
+   injecting a <script> element the ordinary way is blocked exactly as an
+   attacker's would be. addInitScript runs before the document's scripts, over
+   the debugger protocol rather than as page content, so it is not page content
+   for CSP to have an opinion about. Recorded because the failure message
+   ("Refused to execute inline script") reads like a broken harness and is in
+   fact the strongest evidence in this repository that the policy is real. */
+await page.addInitScript({ content: axeSrc });
+
+/* The console is read as well as the geometry: a CSP violation is the one
+   failure mode a policy tightening actually has, and it would go past every
+   green check without a word. Collected from here and asserted at the end,
+   so a violation in any state below is caught rather than only one on load. */
+const cspHits = [], pageErrs = [];
+page.on("console", m => {
+  const t = m.text();
+  if(/Content Security Policy|Refused to (connect|load|execute)/i.test(t)) cspHits.push(t);
+});
+page.on("pageerror", e => pageErrs.push(String(e)));
+await page.goto(SITE_URL, { waitUntil: "load" });
+await page.waitForFunction(() => typeof window.render === "function");
+
+/* Start clean and choose a path, so nothing below meets the first-run chooser. */
+await page.evaluate(() => {
+  localStorage.clear();
+  S.path = S.mode = "continuity"; S.watched = {}; S.skipped = {}; S.rated = {};
+  S.log = []; S.open = {}; S.peek = {}; S.tab = "watch"; S.filter = "all"; S.q = "";
+  setAllGroups(true); render(); snapTo(S.tab);
+  /* snapTo: setting S.tab directly leaves the deck parked where it was, a
+     state no real door produces — goTab and the hash handlers all snap. The
+     app self-corrects it (swipeRead reads the deck as truth), and WHEN that
+     correction fires moved between Chromium builds: rev 1234 fired it before
+     the content-visibility read below and flipped the app back to Home, which
+     has no .group to read. Align the deck like every real door does. */
+});
+
+/* ---- the header at 0% ------------------------------------------------- */
+const head0 = await page.evaluate(() => {
+  const bat = document.querySelector(".mark svg").getBoundingClientRect();
+  const ring = document.querySelector("#ringArc").getBoundingClientRect();
+  return { pct: document.getElementById("ringPct").textContent,
+           aria: document.getElementById("ringBtn").getAttribute("aria-label"),
+           batBox: bat.width, ringInk: ring.width,
+           offset: document.getElementById("ringArc").getAttribute("stroke-dashoffset"),
+           r: document.getElementById("ringArc").getAttribute("r"),
+           wraps: document.querySelector(".wordmark h1").getClientRects().length };
+});
+ok("header at 0%: the ring reads 0%", head0.pct === "0%", head0.pct);
+ok("header at 0%: the accessible name carries the number",
+   (head0.aria || "").indexOf("0%") === 0, head0.aria);
+/* Same arithmetic as guard 80, same source: the r the page actually ships.
+   A hardcoded circumference here would fail a correct page on a radius edit. */
+ok("header at 0%: the arc is fully retracted",
+   Math.abs(parseFloat(head0.offset) - 2 * Math.PI * parseFloat(head0.r)) < 0.05,
+   head0.offset + " vs 2π·" + head0.r);
+ok("header at 0%: the ring's ink is narrower than the bat's box",
+   head0.ringInk < head0.batBox, head0.ringInk.toFixed(2) + " vs " + head0.batBox.toFixed(2));
+ok("header at 0%: the wordmark holds one line at 390px",
+   head0.wraps === 1, head0.wraps + " line box(es)");
+
+/* the glyph's own drawn width, from the browser rather than from arithmetic */
+const drawn = await page.evaluate(() => {
+  const svg = document.querySelector(".mark svg");
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  svg.querySelectorAll("path, ellipse, circle, rect").forEach(el => {
+    const b = el.getBBox();
+    x0 = Math.min(x0, b.x); x1 = Math.max(x1, b.x + b.width);
+    y0 = Math.min(y0, b.y); y1 = Math.max(y1, b.y + b.height);
+  });
+  const vb = svg.viewBox.baseVal;
+  const scale = svg.getBoundingClientRect().width / vb.width;
+  const arc = document.getElementById("ringArc");
+  const r = parseFloat(arc.getAttribute("r"));
+  const sw = parseFloat(arc.getAttribute("stroke-width"));
+  return { bat: (x1 - x0) * scale, tall: (y1 - y0) * scale, ring: 2 * (r + sw / 2) };
+});
+ok("header: the ring draws strictly under the bat's glyph",
+   drawn.ring < drawn.bat,
+   "ring " + drawn.ring.toFixed(2) + "px, bat " + drawn.bat.toFixed(2) + "×" +
+   drawn.tall.toFixed(2) + "px");
+
+/* ---- the header at 100% ------------------------------------------------ */
+await page.evaluate(() => {
+  pool().forEach(f => { S.watched[f.id] = 1; });
+  render();
+});
+const head100 = await page.evaluate(() => {
+  const pct = document.getElementById("ringPct");
+  /* The <b> fills its flank, so its box is 46px and says nothing. What has to
+     fit is the text run — the same thing guard 80 computes from the font size. */
+  const rng = document.createRange();
+  rng.selectNodeContents(pct);
+  const r = rng.getBoundingClientRect();
+  const ringBox = document.querySelector(".ring svg").getBoundingClientRect();
+  const arc = document.getElementById("ringArc");
+  const rr = parseFloat(arc.getAttribute("r"));
+  const sw = parseFloat(arc.getAttribute("stroke-width"));
+  const scale = ringBox.width / 46;
+  const inner = (rr - sw / 2) * scale;
+  const h = r.height;
+  const chord = inner > h / 2 ? 2 * Math.sqrt(inner * inner - (h / 2) * (h / 2)) : 0;
+  return { text: pct.textContent, offset: arc.getAttribute("stroke-dashoffset"),
+           aria: document.getElementById("ringBtn").getAttribute("aria-label"),
+           labelW: r.width, labelH: h, chord: chord,
+           subWraps: document.getElementById("hsub").getClientRects().length,
+           bar: document.querySelector('meta[name="theme-color"]').content };
+});
+ok("header at 100%: the ring reads 100%", head100.text === "100%", head100.text);
+ok("header at 100%: the arc is fully drawn",
+   parseFloat(head100.offset) === 0, head100.offset);
+ok("header at 100%: the accessible name agrees with the visible number",
+   (head100.aria || "").indexOf("100%") === 0, head100.aria);
+ok('header at 100%: "100%" fits inside the ring',
+   head100.labelW < head100.chord,
+   head100.labelW.toFixed(2) + "px of text in a " + head100.chord.toFixed(2) +
+   "px chord at the label's own " + head100.labelH.toFixed(2) + "px height");
+ok("header at 100%: the subtitle holds one line at 390px",
+   head100.subWraps === 1, head100.subWraps + " line box(es)");
+
+/* ---- content-visibility is actually on ---------------------------------- */
+/* Two frames first: render() and the idle neighbor fills both hold .settling
+   (content-visibility:visible) until the frame after their scroll restore,
+   so a read that lands inside that frame reports the override, not the
+   resting state. The override IS the mechanism (section 122); the resting
+   state is what this check is about. */
+await page.evaluate(() => new Promise(r =>
+  requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 50)))));
+/* 4.2.3, Q-4 of the 19 Aug audit: this wait was `.catch(() => {})` — a
+   timeout fell through silently and the CV read below reported on a deck
+   that had never settled. A swallowed wait is a check that cannot say why
+   it failed; it says now. */
+const cvSettled = await page.waitForFunction(
+  () => document.querySelector("#view .panel:not([inert]) .group"),
+  null, { timeout: 5000 }).then(() => true, () => false);
+ok("the group list settles before the content-visibility read",
+   cvSettled, cvSettled ? "settled" :
+   "no .group within 5s — the CV state below is a deck that never settled");
+const cv = await page.evaluate(() => {
+  const g = document.querySelector("#view .panel:not([inert]) .group");
+  /* Crashed here as a raw TypeError on Chromium rev 1234 while every build
+     before it passed — a null read is a real finding about the deck's state,
+     so it fails as a check that says what the state was, not as a stack. */
+  if(!g) return { missing: true, tab: S.tab,
+                  sl: document.getElementById("view").scrollLeft,
+                  panels: Array.prototype.map.call(
+                    document.querySelectorAll("#view .panel"),
+                    p => p.id + (p.hasAttribute("inert") ? "[inert]" : "")) };
+  return { cv: getComputedStyle(g).contentVisibility,
+           cis: getComputedStyle(g).containIntrinsicSize,
+           groups: document.querySelectorAll("#view .panel:not([inert]) .group").length };
+});
+ok("content-visibility is on .group", !cv.missing && cv.cv === "auto",
+   cv.missing ? "no .group in a non-inert panel — " + JSON.stringify(cv)
+              : cv.cv + " / " + cv.cis);
+
+/* ---- jumping to a group, from all seven ways in ------------------------- */
+/* 3.3.2 REWROTE WHAT "IN VIEW" MEANS HERE, BECAUSE THE OLD PHRASING WAS WIDE
+   ENOUGH FOR THE BROKEN STATE TO SIT INSIDE IT. Until 3.3.1 the middle
+   assertion read `top > -2 && top < 844` — 844 is the whole viewport height,
+   so a jump that never scrolled at all passed as long as the target happened
+   to fall inside the first fold. It did: the donut's group sits about 434px
+   down the document, so every one of these four drives was green while the
+   page did not move. A reader found it from Home, where the target sits far
+   enough down that the same broken jump would have gone red.
+
+   Three assertions replace it, and none can be satisfied by doing nothing:
+   the page MOVED, it moved IN THE SAME TASK as the click, and the head parked
+   where a landing actually parks it — clamped at the sticky wrapper's own
+   offset, read from the page rather than assumed.
+
+   THE SAME-TASK ONE IS THE LOAD-BEARING ONE, and it took a failed negative
+   test to find that out. Serving this tree with `behavior:"smooth"` restored
+   left every settled assertion GREEN: headless Chromium animates 0 → 435 in
+   about 360ms and lands exactly, because a local copy under a headless
+   renderer does not reproduce the content-visibility race that made the same
+   code land at 0 on the live origin. An assertion read 700ms later cannot
+   tell the two apart. Read in the click's own task it can: instant is already
+   at 435, smooth is still at 0. A jump is a navigation, so arriving next
+   frame is the assertion, not arriving eventually.
+
+   The drives return the scroll offset from inside the click's task for that
+   reason, rather than the key alone.
+
+   Home's universe grid joins the drives below; it was never one of the four,
+   which is why the one entry point nothing drove is the one a person had to
+   find.
+
+   3.9.7: scroll lives on #app, not the document, so every drive here reads
+   and writes through the app's own seam — scrollKeep()/scrollPut() — and
+   measures #app's scrollHeight. window.scrollY is pinned at 0 now and a
+   drive that read it would be green against anything, which is the exact
+   shape of blindness this file exists to end. */
+async function jump(clickFn, label, tab, mode){
+  await page.evaluate((o) => {
+    S.tab = o.t; if(o.m) S.mode = o.m;
+    S.progOpen = {uni:true, era:true, dec:true}; render(); snapTo(S.tab); scrollPut(0);
+  }, {t: tab || "stats", m: mode || ""});
+  const before = await page.evaluate(() => scrollKeep());
+  const fired = await page.evaluate(clickFn);
+  const gk = fired && fired.gk;
+  if(!gk){ ok("jump from " + label, false, "found nothing to click"); return; }
+  /* 4.4.0, the parked rider, landed: this was waitForTimeout(700) — a bet
+     that every smooth scroll finishes inside 700ms on every runner. Settled
+     scroll is observable, so it is observed: the position is read across two
+     frames until it stops moving, capped at 2s so a wedged scroll fails the
+     landing assertions below instead of hanging the file. */
+  await page.evaluate(() => new Promise((res) => {
+    const t0 = performance.now();
+    let last = scrollKeep(), still = 0;
+    (function loop(){
+      requestAnimationFrame(() => {
+        const now = scrollKeep();
+        still = (now === last) ? still + 1 : 0;
+        last = now;
+        const t = performance.now() - t0;
+        /* 18 stable frames (~300ms) with a 300ms floor: a smooth scroll has
+           not begun in its first frames, and a settle that reads two equal
+           positions there would resolve before the ride starts. */
+        if((still >= 18 && t >= 300) || t > 2000) return res();
+        loop();
+      });
+    })();
+  }));
+  const landed = await page.evaluate((k) => {
+    const h = document.querySelector('.ghead[data-gk="' + k + '"]');
+    if(!h) return { ok: false, why: "the target group did not render" };
+    const r = h.getBoundingClientRect();
+    const grp = h.closest(".group");
+    /* The head lives inside a position:sticky wrapper, so its own rect is
+       clamped and cannot answer "how far away was this". The group is static
+       and can. */
+    const wrap = h.closest(".ghwrap") || h;
+    const a = scroller();
+    /* 4.0.0: the scrollport's top edge is the panel's, below the header, and
+       every sticky offset is panel-relative — so the landing is measured from
+       the panel's own top, not the viewport's. */
+    const paneTop = a.getBoundingClientRect().top;
+    return { ok: true, tab: S.tab, open: grp.classList.contains("open"),
+             top: r.top - paneTop, height: r.height, scrollY: scrollKeep(),
+             groupDocTop: grp.getBoundingClientRect().top - paneTop + scrollKeep(),
+             stick: parseFloat(getComputedStyle(wrap).top) || 0,
+             atEnd: a.scrollTop + a.clientHeight >= a.scrollHeight - 2,
+             cv: getComputedStyle(grp).contentVisibility,
+             onlyOpen: document.querySelectorAll("#view .panel:not([inert]) .group.open").length };
+  }, gk);
+  ok("jump from " + label + " lands on the right group",
+     landed.ok && landed.tab === "watch" && landed.open && landed.onlyOpen === 1,
+     JSON.stringify(landed));
+  /* Nothing to travel is the only excuse for not travelling. */
+  ok("jump from " + label + " moves the page",
+     landed.ok && (landed.groupDocTop <= landed.stick + 2 || landed.scrollY > before),
+     landed.ok ? "scroll " + before + " → " + landed.scrollY +
+                 ", group " + landed.groupDocTop.toFixed(1) + "px down the document" : "-");
+  /* The one an animated scroll cannot pass. `fired.y` is read in the same task
+     as the click, so an instant scrollIntoView is already applied and an
+     animated one has not started. */
+  ok("jump from " + label + " lands in the click's own task, not over one",
+     landed.ok && (landed.groupDocTop <= landed.stick + 2 ||
+                   Math.abs(fired.y - landed.scrollY) <= 2),
+     landed.ok ? "same-task " + fired.y + ", settled " + landed.scrollY : "-");
+  /* A landing clamps at the sticky offset. The end of the document is the
+     one place it cannot. */
+  ok("jump from " + label + " parks the head under the sticky header",
+     landed.ok && landed.top > -2 && (landed.top < landed.stick + 24 || landed.atEnd),
+     landed.ok ? "top " + landed.top.toFixed(1) + "px against a " + landed.stick +
+                 "px sticky offset" + (landed.atEnd ? ", document at its end" : "") : "-");
+  ok("jump from " + label + ": the landed group is not skipped by content-visibility",
+     landed.ok && landed.cv === "auto" && landed.height > 0,
+     landed.ok ? landed.cv + ", head " + landed.height.toFixed(1) + "px" : "-");
+}
+
+/* 3.8.1: Progress draws ONE chart, the belt's — so each chart drive sets the
+   mode it expects before looking for its bars. 3.8.2: the donut became the
+   skyline; the bars are real buttons on data-act="jump", clicked directly. */
+await jump(() => {
+  const g = document.querySelector('#view .panel:not([inert]) .pies .seg[data-gk^="c"]');
+  if(!g) return null;
+  const k = g.getAttribute("data-gk");
+  g.click();
+  return { gk: k, y: scrollKeep() };
+}, "the universes chart", "stats", "continuity");
+await jump(() => {
+  const g = document.querySelector('#view .panel:not([inert]) .pies .seg[data-gk^="e"]');
+  if(!g) return null;
+  const k = g.getAttribute("data-gk");
+  g.click();
+  return { gk: k, y: scrollKeep() };
+}, "the eras chart", "stats", "life");
+await jump(() => {
+  const g = document.querySelector('#view .panel:not([inert]) .pies .seg[data-gk^="d"]');
+  if(!g) return null;
+  const k = g.getAttribute("data-gk");
+  g.click();
+  return { gk: k, y: scrollKeep() };
+}, "the decades chart", "stats", "release");
+await jump(() => {
+  const bs = [...document.querySelectorAll('#view .panel:not([inert]) [data-act="jump"][data-gk^="c"]')]
+    .filter(b => !b.closest(".pies"));
+  if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click();
+  return { gk: k, y: scrollKeep() };
+}, "the universes fold");
+await jump(() => {
+  const bs = [...document.querySelectorAll('#view .panel:not([inert]) [data-act="jump"][data-gk^="e"]')]
+    .filter(b => !b.closest(".pies"));
+  if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click();
+  return { gk: k, y: scrollKeep() };
+}, "the eras fold");
+await jump(() => {
+  const bs = [...document.querySelectorAll('#view .panel:not([inert]) [data-act="jump"][data-gk^="d"]')]
+    .filter(b => !b.closest(".pies"));
+  if(!bs.length) return null; const k = bs[0].dataset.gk; bs[0].click();
+  return { gk: k, y: scrollKeep() };
+}, "the decades fold");
+/* The fifth way in at 3.3.2, and the one that had never been driven. */
+await jump(() => {
+  const c = document.querySelector('#view .panel:not([inert]) .ucard[data-act="jump"]');
+  if(!c) return null; const k = c.dataset.gk; c.click();
+  return { gk: k, y: scrollKeep() };
+}, "Home's universe grid", "home");
+
+/* ---- a group opens and closes, and the rows really disappear ------------ */
+await page.evaluate(() => {
+  S.tab = "watch"; S.mode = "continuity"; S.filter = "all"; S.q = "";
+  setAllGroups(true); render(); snapTo(S.tab); scrollPut(0);
+});
+const grp = await page.evaluate(() => {
+  const h = document.querySelector("#view .panel:not([inert]) .ghead");
+  const body = h.closest(".group").querySelector(".gbody");
+  return { gk: h.dataset.gk, open: h.getAttribute("aria-expanded"),
+           bodyShown: getComputedStyle(body).display };
+});
+ok("a group starts open", grp.open === "true" && grp.bodyShown === "block",
+   grp.open + " / " + grp.bodyShown);
+await page.click("#view .panel:not([inert]) .ghead");
+await frames();
+const closed = await page.evaluate(() => {
+  const h = document.querySelector("#view .panel:not([inert]) .ghead");
+  const g = h.closest(".group");
+  return { aria: h.getAttribute("aria-expanded"), cls: g.className,
+           body: getComputedStyle(g.querySelector(".gbody")).display,
+           allBtn: document.querySelector(".allbtn").textContent,
+           height: g.getBoundingClientRect().height,
+           headHeight: h.getBoundingClientRect().height };
+});
+ok("closing a group hides its rows",
+   closed.aria === "false" && closed.cls === "group" && closed.body === "none" &&
+   closed.height > 0 && closed.height < closed.headHeight * 2,
+   JSON.stringify(closed));
+await page.click("#view .panel:not([inert]) .ghead");
+await frames();
+const reopened = await page.evaluate(() => {
+  const h = document.querySelector("#view .panel:not([inert]) .ghead");
+  const g = h.closest(".group");
+  return { aria: h.getAttribute("aria-expanded"), cls: g.className,
+           body: getComputedStyle(g.querySelector(".gbody")).display,
+           rows: g.querySelectorAll(".film").length };
+});
+ok("re-opening a group brings its rows back",
+   reopened.aria === "true" && reopened.cls === "group open" &&
+   reopened.body === "block" && reopened.rows > 0, JSON.stringify(reopened));
+
+/* ---- the whole point of Stage 2: one tap on The Batman (2022) ----------- */
+const link = await page.evaluate(() => {
+  S.tab = "watch"; S.mode = "continuity"; S.filter = "all";
+  S.q = "The Batman"; setAllGroups(true); render(); snapTo(S.tab);
+  const f = FILMS.filter(x => x.t === "The Batman" && x.y === 2022)[0];
+  if(!f) return { err: "The Batman (2022) is not in the catalogue" };
+  S.open = {}; S.open[f.id] = true; render();
+  const a = document.querySelector('.film.open .linkrow a.lnk');
+  return { id: f.id, href: a ? a.href : null, text: a ? a.textContent.trim() : null,
+           rel: a ? a.getAttribute("rel") : null, target: a ? a.getAttribute("target") : null };
+});
+ok("Where to watch renders on The Batman (2022)",
+   !!link.href && link.id === "the-batman-2022" && /where to watch/i.test(link.text || ""),
+   JSON.stringify(link));
+if(link.href){
+  const q = decodeURIComponent(link.href);
+  ok("its URL searches 2022", q.indexOf("where to watch The Batman 2022") > 0, q);
+  ok("it does NOT search 2004", q.indexOf("2004") < 0, q);
+  ok("it opens safely", link.target === "_blank" && /noopener/.test(link.rel || "") &&
+     /noreferrer/.test(link.rel || ""), link.target + " " + link.rel);
+}
+
+/* ---- 3.1.0: the watch link's edges, which only a browser can see -------
+   Section 119 asserts that the two rules DECLARE the same min-height and the
+   same corner, and that the hero pill fills its column. It cannot assert what
+   the boxes actually do, and that is the half that was wrong for eleven
+   releases: NOTES.md said the link "shares Skip's edges", nothing checked it,
+   and it was false in the file the whole time. A comment asserting a
+   relationship is how that survives. This is the check that catches it, in the
+   one harness with layout.
+
+   It also caught the mock. The v2 mock measured the hero pill's right edge 8.0px
+   short of Skip's; in the real page it was 0.0px, because the pill overflowed
+   its column's 38% basis and min-width:auto widened the column to match — the
+   edges agreed BY ACCIDENT OF LABEL WIDTH, and would have parted the first time
+   the label or the font changed. flex:1 makes the agreement structural, which
+   is the fix either way. Measure the thing that runs, not a proxy for it. */
+const edges = await page.evaluate(() => {
+  localStorage.clear();
+  S.path = S.mode = "continuity"; S.watched = {}; S.skipped = {}; S.rated = {};
+  S.log = []; S.open = {}; S.peek = {}; S.tab = "next"; S.filter = "all"; S.q = "";
+  render(); snapTo(S.tab);
+  const lnk  = document.querySelector(".herorow .lnk");
+  const skip = document.querySelector(".heroacts .no");
+  if(!lnk || !skip) return { err: "the hero link or Skip is not rendered" };
+  const a = lnk.getBoundingClientRect(), s = skip.getBoundingClientRect();
+  const ca = getComputedStyle(lnk), cs = getComputedStyle(skip);
+  return { right: +(a.right - s.right).toFixed(1), height: +(a.height - s.height).toFixed(1),
+           radius: [ca.borderTopLeftRadius, cs.borderTopLeftRadius],
+           fits: lnk.scrollWidth <= Math.ceil(lnk.clientWidth),
+           fill: ca.backgroundColor, label: ca.color, edge: ca.borderTopColor };
+});
+ok("hero: the watch link's right edge is Skip's", edges.right === 0, edges.right + "px");
+ok("hero: the watch link stands as tall as Skip", edges.height === 0, edges.height + "px");
+ok("hero: the watch link turns the same corner as Skip",
+   !!edges.radius && edges.radius[0] === edges.radius[1], (edges.radius || []).join(" vs "));
+ok("hero: the 9px label still fits its column", edges.fits === true, "no wrap, no clip");
+ok("hero: the watch link is filled, lit, and read in bone",
+   edges.fill !== "rgba(0, 0, 0, 0)" && edges.label !== edges.edge,
+   edges.fill + " · label " + edges.label + " · edge " + edges.edge);
+
+const detail = await page.evaluate(() => {
+  S.tab = "watch"; S.q = ""; setAllGroups(true); render(); snapTo(S.tab);
+  const f = document.querySelector(".film");
+  const id = f.getAttribute("data-id") ||
+            (f.querySelector("[data-id]") || {}).getAttribute?.("data-id");
+  S.open = {}; S.open[id] = true; render();
+  const open = document.querySelector(".film.open");
+  if(!open) return { err: "no row opened" };
+  const lnk = open.querySelector(".lnk"), act = open.querySelector(".act"),
+        para = open.querySelector(".fdetail p");
+  if(!lnk || !act || !para) return { err: "the expanded row is missing a control" };
+  const a = lnk.getBoundingClientRect(), m = act.getBoundingClientRect(),
+        d = para.getBoundingClientRect();
+  return { vsAct: +(a.left - m.left).toFixed(1), vsPara: +(a.left - d.left).toFixed(1) };
+});
+ok("expanded row: the watch link sits on Mark watched's line", detail.vsAct === 0,
+   detail.vsAct + "px");
+ok("expanded row: and on the description's line", detail.vsPara === 0,
+   detail.vsPara + "px");
+
+/* ---- the tick, which this file had never clicked ---------------------- */
+/* 3.4.0. Every drive above sets S.watched directly and calls render(), or
+   drives a jump. Nothing here had ever pressed a tick, which is why five green
+   drives said nothing about either defect this release fixes: a scroll restore
+   that clamped against content-visibility, and a focus restore that returned to
+   the wrong element. Both are invisible to the guards (which read the tree) and
+   to smoke (which serializes markup, where neither a scroll offset nor an
+   activeElement leaves a mark). This is the only instrument that can see
+   either. */
+/* inPlace: tickUpdate patches the DOM only when nothing is filtered and
+   nothing is searched. Every other state falls back to the full render,
+   which legitimately rebuilds all of #view, so the identity assertion
+   below would be false there for a correct reason. */
+async function tickDrive(filter, label, mode){
+  const inPlace = filter === "all";
+  await page.evaluate(({f, m}) => {
+    S.path = S.mode = m; S.tab = "watch"; S.filter = f; S.q = "";
+    S.watched = {}; S.skipped = {}; S.rated = {}; S.open = {};
+    render(); snapTo(S.tab); scrollPut(0);
+  }, { f: filter, m: mode || "continuity" });
+  await frames();
+  await page.evaluate(() => scrollPut(Math.round(scroller().scrollHeight * 0.55)));
+  await scrollSettled();
+  /* Measured inside the click's own task, for the reason the jump drives are:
+     the clamp happens during the repaint, and Chromium's scroll anchoring pulls
+     the page back within a few hundred ms. A drive that waits and then looks is
+     green against the defect — this one was, before it was rewritten, which is
+     the whole reason it is written this way. */
+  const r = await page.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll('#view .panel:not([inert]) [data-act="watched"]'))
+      .find(el => { const q = el.getBoundingClientRect();
+                    return q.top > 100 && q.bottom < window.innerHeight - 60; });
+    if(!btn) return null;
+    const before = Math.round(scrollKeep());
+    const gk = btn.closest(".group").querySelector(".ghead").dataset.gk;
+    const elByKey = () => {
+      const h = document.querySelector('#view .panel:not([inert]) .ghead[data-gk="' + gk + '"]');
+      return h ? h.closest(".group") : null;
+    };
+    /* TWO ASSERTIONS, AND THE SECOND ONE IS THE READER'S. Element identity is
+       structural: nothing but a full render may replace a .group, because a
+       fresh node has no remembered size for content-visibility:auto and lands
+       at its contain-intrinsic-size. Height is the consequence a reader
+       actually feels. Both go red against 3.4.0 -- group 3512 -> 66, document
+       15347 -> 11901 -- and green after.
+
+       READ THIS BEFORE DEBUGGING THIS FILE. It loads NW_URL over HTTP, default
+       127.0.0.1:8099, NOT the tree it happens to sit in. Editing docs/ in a
+       scratch copy and running this from that copy tests whatever the server
+       is serving, which is the original. Three runs against a deliberately
+       broken tree reported green that way, and the mistake looked exactly like
+       a check that could not fail -- serve the copy on its own port and pass
+       NW_URL, or you are grading the wrong homework. */
+    const stamp = elByKey();
+    stamp.dataset.nwprobe = "1";
+    const grpH = Math.round(stamp.getBoundingClientRect().height);
+    const docH = Math.round(scroller().scrollHeight);
+    btn.click();
+    const after = elByKey();
+    return { before, sameTask: Math.round(scrollKeep()), grpH, docH,
+             replaced: !(after && after.dataset.nwprobe === "1"),
+             grpH2: after ? Math.round(after.getBoundingClientRect().height) : -1,
+             docH2: Math.round(scroller().scrollHeight) };
+  });
+  if(!r){
+    ok("tick keeps your place (filter " + label + ")", false, "no tick in view to click");
+    return;
+  }
+  await scrollSettled();
+  const settled = await page.evaluate(() => Math.round(scrollKeep()));
+  ok("tick keeps your place (filter " + label + ")",
+     r.before > 300 && Math.abs(r.sameTask - r.before) < 150,
+     "same-task " + r.before + " → " + r.sameTask + ", settled " + settled);
+  /* 3.4.1, and this is the assertion the 3.4.0 pair could not make. scrollY is
+     unchanged across the group-collapse defect -- 8780 to 8780 -- because the
+     offset does not move, the content under it does. What moves is the ticked
+     group's own height, so that is what is measured, in the click's own task. */
+  if(inPlace){
+    ok("a tick does not replace the group element (" + label + ")",
+       !r.replaced,
+       r.replaced
+         ? "the .group node was swapped for a fresh one — content-visibility:" +
+           "auto has no remembered size for it, so it renders at contain-" +
+           "intrinsic-size and the page moves under the reader"
+         : "same node kept, group " + r.grpH + " → " + r.grpH2);
+  }
+  ok("a tick does not collapse the group under you (" + label + ")",
+     r.grpH > 200 && r.grpH2 > r.grpH * 0.9,
+     "group " + r.grpH + " → " + r.grpH2 + ", document " + r.docH +
+     " → " + r.docH2);
+}
+
+await tickDrive("ess", "ess");
+await tickDrive("core", "core");
+/* The default state: no filter, no search. Both drives above take tickUpdate's
+   FALLBACK branch on its first line, so between them they had never exercised
+   the branch every reader is actually in. In Bruce's life the groups are eras,
+   which is where the collapse is worst. */
+await tickDrive("all", "all, life", "life");
+
+const foc = await page.evaluate(() => {
+  S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = "all"; S.q = "";
+  S.watched = {}; S.skipped = {}; S.rated = {}; S.open = {};
+  window.setAllGroups(true); render(); snapTo(S.tab);
+  const row = document.querySelector('#view .panel:not([inert]) [data-act="expand"]');
+  if(!row) return { err: "no expandable row" };
+  const id = row.dataset.id;
+  S.open[id] = 1; render();
+  const inRow = Array.from(
+    document.querySelectorAll('#view .panel:not([inert]) [data-act="watched"][data-id="' + id + '"]')).pop();
+  if(!inRow) return { err: "no Mark watched inside the open row" };
+  inRow.focus();
+  const started = document.activeElement === inRow;
+  inRow.click();
+  const ae = document.activeElement;
+  return { started, tag: ae ? ae.tagName : "none",
+           act: ae && ae.dataset ? (ae.dataset.act || "") : "" };
+});
+ok("focus survives a tick inside an open row",
+   !foc.err && foc.started && foc.tag === "BUTTON",
+   foc.err ? foc.err : "focus started on the button and landed on " +
+   foc.tag + (foc.act ? ' [data-act="' + foc.act + '"]' : ""));
+
+const focStar = await page.evaluate(() => {
+  S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = "all"; S.q = "";
+  S.watched = {}; S.rated = {}; S.open = {};
+  window.setAllGroups(true); render(); snapTo(S.tab);
+  const row = document.querySelector('#view .panel:not([inert]) [data-act="expand"]');
+  if(!row) return { err: "no expandable row" };
+  const id = row.dataset.id;
+  S.open[id] = 1; render();
+  const star = document.querySelector('#view .panel:not([inert]) [data-act="rate"][data-id="' + id + '"]');
+  if(!star) return { err: "no star in the open row" };
+  star.focus();
+  const started = document.activeElement === star;
+  star.click();
+  const ae = document.activeElement;
+  return { started, tag: ae ? ae.tagName : "none",
+           act: ae && ae.dataset ? (ae.dataset.act || "") : "" };
+});
+ok("focus survives rating from inside an open row",
+   !focStar.err && focStar.started && focStar.tag === "BUTTON",
+   focStar.err ? focStar.err : "landed on " + focStar.tag +
+   (focStar.act ? ' [data-act="' + focStar.act + '"]' : ""));
+
+/* Screenshots, so the header can be looked at rather than only measured. */
+await page.evaluate(() => { S.watched = {}; S.tab = "watch"; render(); snapTo(S.tab); scrollPut(0); });
+await page.screenshot({ path: shot("shot-header-0.png"), clip: {x:0, y:0, width:390, height:120} });
+await page.evaluate(() => { pool().forEach(f => S.watched[f.id] = 1); render(); });
+await page.screenshot({ path: shot("shot-header-100.png"), clip: {x:0, y:0, width:390, height:120} });
+
+/* ---- the deck (4.0.0): geometry, the swipe, and what survives it ------ */
+/* jsdom cannot swipe and the guards read the tree, so everything here is the
+   half only a browser can answer: the panels stand where the layout says,
+   a horizontal scroll of #view changes the active tab, a panel's place
+   survives being swiped away from, the footer door still resets, and the
+   belt's auto-close — whose observer root moved to the panel — still fires
+   when the pouches scroll out under the header. */
+const geo = await page.evaluate(() => {
+  S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = "all"; S.q = "";
+  S.watched = {}; S.open = {}; setAllGroups(true); render(); snapTo(S.tab); scrollPut(0);
+  const vp = document.getElementById("view");
+  const hdr = document.querySelector("header").getBoundingClientRect();
+  const pane = document.getElementById("panel-watch").getBoundingClientRect();
+  const cs = getComputedStyle(vp);
+  const ps = getComputedStyle(document.getElementById("panel-watch"));
+  return { headerBottom: hdr.bottom, paneTop: pane.top, paneW: pane.width,
+           vpW: vp.clientWidth, span: vp.scrollWidth,
+           snapType: cs.scrollSnapType, snapStop: ps.scrollSnapStop,
+           snapAlign: ps.scrollSnapAlign,
+           panels: document.querySelectorAll("#view > .panel").length };
+});
+ok("deck: the scrollport starts at the header's bottom — the scrollbar hides " +
+   "below the header the way it hides below the footer",
+   Math.abs(geo.headerBottom - geo.paneTop) < 1,
+   "header bottom " + geo.headerBottom.toFixed(1) + ", panel top " + geo.paneTop.toFixed(1));
+/* The bar is the frame's third member since the 16 Aug installed-app report:
+   in the flow, ending exactly where the viewport does, with the panels ending
+   exactly where it begins — no fixed anchor for iOS standalone to misplace. */
+const barGeo = await page.evaluate(() => {
+  const t = document.getElementById("tabs").getBoundingClientRect();
+  const p = document.getElementById("panel-watch").getBoundingClientRect();
+  return { tabsBottom: t.bottom, tabsTop: t.top, paneBottom: p.bottom,
+           vpH: window.innerHeight,
+           fixed: getComputedStyle(document.getElementById("tabs")).position };
+});
+ok("deck: the tab bar sits in the flow, flush with the viewport's bottom",
+   barGeo.fixed !== "fixed" && Math.abs(barGeo.tabsBottom - barGeo.vpH) < 1,
+   barGeo.fixed + ", bar bottom " + barGeo.tabsBottom.toFixed(1) + " of " + barGeo.vpH);
+ok("deck: the panels end where the bar begins",
+   Math.abs(barGeo.paneBottom - barGeo.tabsTop) < 1,
+   "panel bottom " + barGeo.paneBottom.toFixed(1) + ", bar top " + barGeo.tabsTop.toFixed(1));
+ok("deck: four panels, each exactly one viewport wide",
+   geo.panels === 4 && Math.abs(geo.paneW - geo.vpW) < 1 &&
+   Math.abs(geo.span - 4 * geo.vpW) < 4,
+   geo.panels + " panels, " + geo.paneW + "px in a " + geo.vpW + "px viewport, span " + geo.span);
+ok("deck: the computed snap is x mandatory, start, always",
+   /x mandatory/.test(geo.snapType) && geo.snapAlign === "start" && geo.snapStop === "always",
+   geo.snapType + " / " + geo.snapAlign + " / " + geo.snapStop);
+
+/* 4.3.1: the four tabs start level. Progress carried a private inline
+   margin-top on its first block, so it was the only tab standing 18px clear
+   of the parked belt — a drift no source sweep could see, because the offset
+   lived in a style attribute. The clearance is the belt's bottom margin now
+   (guard 128 pins the source); this measures the RESULT: the first painted
+   block below the belt sits at one height on every tab. */
+const level = await page.evaluate(async () => {
+  const tops = {};
+  for (const t of ["home", "next", "watch", "stats"]) {
+    goTab(t);
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const pane = document.querySelector("#view .panel:not([inert])");
+    pane.scrollTop = 0;
+    let el = pane.querySelector(".pathseg").nextElementSibling;
+    while (el && el.getBoundingClientRect().height === 0) el = el.nextElementSibling;
+    tops[t] = el ? Math.round(el.getBoundingClientRect().top * 2) / 2 : null;
+  }
+  goTab("watch");
+  return tops;
+});
+ok("the four tabs start level — one first-content offset below the belt",
+   [...new Set(Object.values(level))].length === 1 && Object.values(level).every(v => v !== null),
+   Object.entries(level).map(([k, v]) => k + " " + v).join(", "));
+
+/* 4.4.1: and the four tabs END level. The 4.4.0 soak found the footer
+   diamond floating at three different clearances — 30px under Home's theme
+   row, 16px under the availability notes, 14px over the legend — because
+   three rules each kept a private top margin, the 4.3.1 bug's mirror image
+   at the page's other end. The clearance is the shared footer rule's
+   margin-top now (§148 pins the source); this measures the RESULT: the gap
+   between each tab's closing diamond and the element above it. */
+const footGapsAll = await page.evaluate(async () => {
+  const gaps = {}, faces = {};
+  for (const t of ["home", "next", "watch", "stats"]) {
+    goTab(t);
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const pane = document.getElementById("panel-" + t);
+    const el = pane.querySelector(".homefoot, .note.foot, .legend");
+    const prev = el && el.previousElementSibling;
+    gaps[t] = (el && prev)
+      ? Math.round((el.getBoundingClientRect().top -
+                    prev.getBoundingClientRect().bottom) * 2) / 2
+      : null;
+    const cs = el ? getComputedStyle(el, "::before") : null;
+    faces[t] = cs ? cs.width + " x " + cs.height + " @ " + cs.transform : null;
+  }
+  goTab("watch");
+  return { gaps, faces };
+});
+const footGaps = footGapsAll.gaps, footFaces = footGapsAll.faces;
+ok("the four tabs end level — one clearance above every closing diamond",
+   [...new Set(Object.values(footGaps))].length === 1 &&
+   Object.values(footGaps).every(v => v !== null),
+   Object.entries(footGaps).map(([k, v]) => k + " " + v).join(", "));
+/* 4.4.3: the diamond was one glyph in one face — the legend inherited the
+   Sans stack while the notes and colophon sat in Mono, and The Path's ◆
+   drew from a different fallback at a different width. 5.2.0 removed the
+   face from the equation (the diamond is a drawn box on the small token),
+   so the same measurement now holds the BOX: one computed width, height
+   and rotation across all four seats — a seat sizing itself is the 4.4.3
+   spread wearing geometry. */
+ok("the four closing diamonds share one drawn box at one size",
+   [...new Set(Object.values(footFaces))].length === 1 &&
+   Object.values(footFaces).every(v => v !== null),
+   [...new Set(Object.values(footFaces))].map(f => String(f).slice(0, 60)).join(" / "));
+
+/* The swipe: scroll #view sideways one viewport and read what followed. The
+   place kept in The path must survive the trip away and back. */
+const swipe = await page.evaluate(async () => {
+  scrollPut(2600);
+  const kept = scrollKeep();
+  const vp = document.getElementById("view");
+  const snapped = () => new Promise(r => { let last = null, same = 0; const t0 = performance.now();
+    const tick = () => { const x = vp.scrollLeft; if(x === last){ if(++same >= 3) return r(); } else { same = 0; last = x; }
+      if(performance.now() - t0 > 1500) return r(); requestAnimationFrame(tick); }; tick(); });
+  vp.scrollBy({ left: -vp.clientWidth, behavior: "instant" });
+  await snapped();
+  const afterLeft = {
+    tab: S.tab,
+    current: document.querySelector("#tabs button[aria-current]").dataset.tab,
+    watchInert: document.getElementById("panel-watch").hasAttribute("inert"),
+    nextInert: document.getElementById("panel-next").hasAttribute("inert")
+  };
+  vp.scrollBy({ left: vp.clientWidth, behavior: "instant" });
+  await snapped();
+  return { kept, afterLeft,
+           back: { tab: S.tab, pos: scrollKeep(),
+                   watchInert: document.getElementById("panel-watch").hasAttribute("inert") } };
+});
+ok("swipe: scrolling the deck left lands on Next up — tab, aria-current and inert all move",
+   swipe.afterLeft.tab === "next" && swipe.afterLeft.current === "next" &&
+   swipe.afterLeft.watchInert && !swipe.afterLeft.nextInert,
+   JSON.stringify(swipe.afterLeft));
+/* 4.4.2: EXACTLY. This line allowed 150px of drift, and WebKit drifted 116
+   — a content-visibility clamp restored by the background refill — so the
+   phone lost The Path's place while the check read green. The place has one
+   JS memory now (section 149) and the ruler demands it back to the pixel. */
+ok("swipe: The path keeps its place across a swipe away and back",
+   swipe.back.tab === "watch" && !swipe.back.watchInert &&
+   swipe.kept > 2000 && swipe.back.pos === swipe.kept,
+   "kept " + swipe.kept + ", back at " + swipe.back.pos);
+
+/* The footer door: a tap resets the view it opens and aligns the deck. */
+await page.click('#tabs button[data-tab="stats"]');
+await frames();
+await page.click('#tabs button[data-tab="watch"]');
+await frames();
+const door = await page.evaluate(() => {
+  const vp = document.getElementById("view");
+  return { tab: S.tab, pos: scrollKeep(),
+           aligned: Math.abs(vp.scrollLeft - 2 * vp.clientWidth) < 2,
+           stale: document.getElementById("panel-stats").hasAttribute("inert") };
+});
+ok("footer tap: goTab resets the panel, aligns the deck, inerts the one it left",
+   door.tab === "watch" && door.pos === 0 && door.aligned && door.stale,
+   JSON.stringify(door));
+
+/* The belt's auto-close, on its new root. Open the pouches in the flow, then
+   scroll the panel until they pass under the header — the observer roots on
+   the panel now, so this is the exact threshold that moved. */
+const beltClose = await page.evaluate(async () => {
+  S.tab = "watch"; S.beltOpen = false; S.beltDrop = false; render(); snapTo(S.tab); scrollPut(0);
+  document.getElementById("beltpeek").click();
+  document.querySelector('#view .panel:not([inert]) [data-act="belt"]').click();
+  /* opened dropped from the peek; close the drop into the flow state */
+  closeBelt("drop");
+  /* The close re-renders after its 240 ms travel; wait for the render, not
+     the clock. */
+  await new Promise(r => { const t0 = performance.now(); const tick = () => {
+    if(!document.querySelector("#view .panel:not([inert]) .includes") || performance.now() - t0 > 1500) return r();
+    requestAnimationFrame(tick); }; tick(); });
+  openBelt();
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const openBefore = S.beltOpen && !!document.querySelector("#view .panel:not([inert]) .includes");
+  scrollPut(1200);
+  /* The observer closes the belt on its own callback; wait for the state. */
+  await new Promise(r => { const t0 = performance.now(); const tick = () => {
+    if(!S.beltOpen || performance.now() - t0 > 1500) return r();
+    requestAnimationFrame(tick); }; tick(); });
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  return { openBefore, openAfter: S.beltOpen,
+           includesGone: !document.querySelector("#view .panel:not([inert]) .includes:not(.closing)") };
+});
+ok("belt: the flow auto-close still fires with the observer rooted on the panel",
+   beltClose.openBefore && !beltClose.openAfter && beltClose.includesGone,
+   JSON.stringify(beltClose));
+
+/* Paint, looked at rather than inferred — the transparent-pouch lesson. */
+await page.evaluate(() => {
+  S.beltOpen = false; S.beltDrop = false; S.tab = "watch"; render(); snapTo(S.tab); scrollPut(0);
+});
+await frames();
+await page.screenshot({ path: shot("shot-deck-watch.png") });
+await page.evaluate(() => {
+  const vp = document.getElementById("view");
+  vp.scrollBy({ left: -Math.round(vp.clientWidth / 2), behavior: "instant" });
+});
+await frames();
+await page.screenshot({ path: shot("shot-deck-midswipe.png") });
+await page.evaluate(async () => {
+  const vp = document.getElementById("view");
+  vp.scrollBy({ left: vp.clientWidth, behavior: "instant" });
+  await new Promise(r => { let last = null, same = 0; const t0 = performance.now();
+    const tick = () => { const x = vp.scrollLeft; if(x === last){ if(++same >= 3) return r(); } else { same = 0; last = x; }
+      if(performance.now() - t0 > 1500) return r(); requestAnimationFrame(tick); }; tick(); });
+  goTab("watch");
+});
+
+/* ---- 4.4.0: the cut family, measured ---------------------------------- */
+/* Section 148 pins the source shapes; this is the half a regex cannot see —
+   what the engine actually computes. The clip resolves to a polygon, the
+   tick's rotation resolves to a matrix and widens its box by exactly the
+   rotation's arithmetic, the here mark lands on one group with painted
+   overlays, and the sticky header still sticks inside a group that carries
+   them — the interaction the corner-overlay construction was chosen FOR. */
+{
+  const deco = await page.evaluate(() => {
+    S.tab = "home"; S.q = ""; S.filter = "all"; render(); snapTo("home"); scrollPut(0);
+    const go = document.querySelector(".heroacts .go");
+    const cg = go ? getComputedStyle(go) : null;
+    S.tab = "watch"; render(); snapTo("watch"); scrollPut(0);
+    const heres = document.querySelectorAll(".group.here");
+    const h0 = heres[0] || null;
+    const hb = h0 ? getComputedStyle(h0, "::before").backgroundImage : "none";
+    const ha = h0 ? getComputedStyle(h0, "::after").backgroundImage : "none";
+    /* The Path row's tick, by name — the first .tick in the document can be
+       Activity's 24px one inside a warm Home panel. */
+    const tick = document.querySelector(".gbody .film .tick");
+    const tr = tick ? tick.getBoundingClientRect() : { width: 0 };
+    const tc = tick ? getComputedStyle(tick) : null;
+    const chip = document.querySelector(".chip");
+    return {
+      goClip: cg ? cg.clipPath : "none", goRadius: cg ? cg.borderRadius : "?",
+      heres: heres.length, hereBefore: hb, hereAfter: ha,
+      tickTransform: tc ? tc.transform : "none",
+      tickBox: +tr.width.toFixed(1),
+      chipRadius: chip ? getComputedStyle(chip).borderRadius : "?"
+    };
+  });
+  ok("the CTA computes the cut", /polygon/.test(deco.goClip) && deco.goRadius === "0px",
+     deco.goClip.slice(0, 40) + " r=" + deco.goRadius);
+  ok("exactly one group wears the here mark", deco.heres === 1, deco.heres + " marked");
+  ok("both here overlays paint their gradients",
+     /linear-gradient/.test(deco.hereBefore) && /linear-gradient/.test(deco.hereAfter),
+     (deco.hereBefore + " / " + deco.hereAfter).slice(0, 80));
+  /* 30px box × scale .78 × √2 ≈ 33.1 — the rotation read back out of layout. */
+  ok("the tick's diamond widens its box by the rotation's arithmetic",
+     deco.tickTransform !== "none" && deco.tickBox > 31 && deco.tickBox < 35.5,
+     deco.tickTransform + " box " + deco.tickBox + "px");
+  ok("the chips compute square", deco.chipRadius === "0px", deco.chipRadius);
+
+  /* The sticky header inside the marked group. Scroll until the here-group's
+     head is stuck, then require it to hold the panel-relative offset every
+     other group's head holds — the corner overlays must not unstick it. */
+  const stick = await page.evaluate(async () => {
+    const grp = document.querySelector(".group.here");
+    if(!grp) return { err: "no here-group rendered" };
+    const gk = grp.querySelector(".ghead").dataset.gk;
+    if(S.groupOpen[gk] === false){ S.groupOpen[gk] = true; render(); }
+    const grp2 = document.querySelector(".group.here");
+    const wrap = grp2.querySelector(".ghwrap"), a = scroller();
+    const paneTop = a.getBoundingClientRect().top;
+    const want = wrap ? parseFloat(getComputedStyle(wrap).top) : NaN;
+    scrollPut(scrollKeep(a) + grp2.getBoundingClientRect().top - paneTop + 120, a);
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const r = wrap.getBoundingClientRect();
+    return { got: +(r.top - paneTop).toFixed(1), want: +want.toFixed(1) };
+  });
+  ok("the here-group's header still sticks at its offset",
+     !stick.err && Math.abs(stick.got - stick.want) <= 1,
+     stick.err || (stick.got + " vs " + stick.want));
+  await page.evaluate(() => { scrollPut(0); });
+}
+
+/* ---- axe-core, in states a static scan cannot reach ------------------- */
+/* 3.2.0. Lighthouse already runs axe against the cold load and passes it, so
+   repeating that buys nothing — TEN of its accessibility checks are manual and
+   unautomatable (focus traps, managed focus, tab order, offscreen content) and
+   a static pass cannot reach a state at all. What this adds is the state: the
+   first-run chooser, which a cold load never shows, and a group opened, which
+   is the app's most complex live DOM. Injected from the declared devDependency
+   rather than a CDN — an accessibility guard that reaches the network to run
+   would contradict the page it is checking. */
+/* 3.7.2 (M-4 of the 10 Aug review): EACH STATE NOW PROVES IT HOLDS BEFORE AXE
+   RUNS. The "group opened" setup read `PATH[0].k` — PATH groups have n, name
+   and films, never .k — so the fold never opened and the pass audited the
+   plain view twice. A check that cannot fail is this repository's own named
+   anti-pattern, and it sat inside the accessibility instrument. The verify
+   callback is the fix's teeth: axe on the wrong state now goes red as "the
+   state did not hold" instead of green as a lie. */
+async function axeState(name, setup, verify){
+  await page.evaluate(setup);
+  if(verify){
+    const held = await page.evaluate(verify);
+    ok("axe (" + name + "): the state actually holds", !!held.pass, held.detail);
+    if(!held.pass) return;
+  }
+  const r = await page.evaluate(async () => await window.axe.run(document, {
+    resultTypes: ["violations"],
+    runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] }
+  }));
+  const v = r.violations.filter(x => x.impact !== "minor");
+  /* 4.9.5: A RED HERE NAMES THE NODE, OR IT NAMES NOTHING. On 29 Aug the
+     nightly went red with "color-contrast ×1" on a tree that had passed the
+     night before — same lockfile, same pinned Chrome build, three runs in a
+     row — and that was the whole message. Nothing on the runner could be
+     read from it, and the build it came from could not be fetched to look.
+     So the detail now carries what axe already knew: every node's target
+     selector and, for contrast, the colours and ratio it measured against
+     the floor it applied. And the state is photographed, so the artifact a
+     red run uploads shows what axe was looking at. */
+  const describe = (x) => x.id + " ×" + x.nodes.length + " [" + x.nodes.map(n => {
+    const d = (n.any && n.any[0] && n.any[0].data) || {};
+    const t = Array.isArray(n.target) ? n.target.join(" ") : String(n.target);
+    return d.contrastRatio !== undefined
+      ? t + " " + d.fgColor + " on " + d.bgColor + " = " + d.contrastRatio +
+        " (floor " + d.expectedContrastRatio + ", " + d.fontSize + " " + d.fontWeight + ")"
+      : t;
+  }).join("; ") + "]";
+  if(v.length){
+    await page.screenshot({ path: shot("shot-axe-" + name.replace(/\W+/g, "-") + ".png"),
+                            fullPage: true });
+  }
+  ok("axe (" + name + "): no serious violations", v.length === 0,
+     v.length ? v.map(describe).join(", ") : r.violations.length + " minor");
+}
+
+await axeState("first-run chooser", () => {
+  localStorage.clear(); S.path = null; S.tab = "home"; render(); snapTo(S.tab);
+}, () => {
+  const picks = document.querySelectorAll("#view .panel:not([inert]) .pick").length;
+  return { pass: picks > 0, detail: picks + " chooser card(s)" };
+});
+await axeState("a group opened", () => {
+  S.path = S.mode = "continuity"; S.tab = "watch"; S.open = {};
+  setAllGroups(false); render(); snapTo(S.tab);
+  const h = document.querySelector('#view .panel:not([inert]) .ghead[data-gk]');
+  if(h) h.click(); /* the app's own path in — aria-expanded flips, the fold renders */
+}, () => {
+  const open = document.querySelectorAll("#view .panel:not([inert]) .group.open").length;
+  const rows = document.querySelectorAll("#view .panel:not([inert]) .group.open .film").length;
+  return { pass: open === 1 && rows > 0, detail: open + " open group(s), " + rows + " row(s)" };
+});
+/* The expanded row — the app's most complex live DOM, and until 3.7.2 the
+   state nothing ever scanned. */
+await axeState("a row expanded", () => {
+  S.path = S.mode = "continuity"; S.tab = "watch"; S.q = "";
+  setAllGroups(true); render(); snapTo(S.tab);
+  const row = document.querySelector('#view .panel:not([inert]) [data-act="expand"]');
+  if(row){ S.open = {}; S.open[row.dataset.id] = 1; render(); }
+}, () => {
+  const open = document.querySelectorAll("#view .panel:not([inert]) .film.open").length;
+  const controls = document.querySelectorAll("#view .panel:not([inert]) .film.open .linkrow a, #view .film.open button").length;
+  return { pass: open === 1 && controls > 0, detail: open + " open row(s), " + controls + " control(s)" };
+});
+
+/* 5.3.1, from the 5.3.0 audit: THE STATES WITH THE WORST HISTORY WERE NEVER
+   SCANNED. The three states above are all Home / The Path in the default
+   theme; the 4.9.5 nightly red lived in Darker, the Restore textarea and the
+   bone buttons live on Progress, the dropped belt is its own DOM, and the
+   5.3.0 star run (`.strun role="img"`) sits in a rated row. Four more, each
+   proving it holds before axe runs. */
+await axeState("Darker on Home", () => {
+  S.theme = "darker"; applyTheme();
+  S.path = S.mode = "continuity"; S.tab = "home"; render(); snapTo(S.tab);
+}, () => {
+  const dark = document.documentElement.getAttribute("data-theme") === "darker";
+  const hero = document.querySelectorAll("#view .panel:not([inert]) .hero").length;
+  return { pass: dark && hero > 0, detail: "theme=" + document.documentElement.getAttribute("data-theme") + ", " + hero + " hero" };
+});
+await axeState("Progress, the restore box, the folds open, the bone buttons", () => {
+  S.theme = "dark"; applyTheme();
+  const f = FILMS[0].id;
+  S.watched[f] = 1; S.rated[f] = 4; S.log = [{ id: f, ts: Date.now() }];
+  S.progOpen = { uni: true, era: true, dec: true, fav: false };
+  S.tab = "stats"; render(); snapTo(S.tab);
+}, () => {
+  const box = !!document.querySelector("#view .panel:not([inert]) #restorebox");
+  const folds = document.querySelectorAll("#view .panel:not([inert]) .sfold.open").length;
+  const bone = document.querySelectorAll("#view .panel:not([inert]) .bkbtn").length;
+  return { pass: box && folds >= 3 && bone > 0, detail: "restore box " + box + ", " + folds + " fold(s) open, " + bone + " bone button(s)" };
+});
+await axeState("The Path, a rated row, the belt dropped", () => {
+  S.tab = "watch"; S.q = ""; S.filter = "all"; setAllGroups(true); render(); snapTo(S.tab);
+  S.beltOpen = true; beltDropOpen();
+}, () => {
+  const drop = !!document.querySelector("#view .panel:not([inert]) .includes[data-drop]");
+  const strun = document.querySelectorAll('#view .panel:not([inert]) .strun[role="img"]').length;
+  return { pass: drop && strun > 0, detail: "belt dropped " + drop + ", " + strun + " star run(s)" };
+});
+/* The forced-colors repaint (§159) is pinned as CSS text; here it is
+   observed: under forced colors the star's background must compute to the
+   system ink a probe painted with CanvasText computes to, and keep its size. */
+await page.emulateMedia({ forcedColors: "active" });
+await frames(2);
+{
+  const fc = await page.evaluate(() => {
+    const probe = document.createElement("i");
+    probe.style.cssText = "position:absolute;width:1px;height:1px;background:CanvasText;forced-color-adjust:none";
+    document.body.appendChild(probe);
+    const ink = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    const st = document.querySelector('#view .panel:not([inert]) .strun .st');
+    if(!st) return { pass: false, detail: "no .st in the dropped-belt state" };
+    const cs = getComputedStyle(st), r = st.getBoundingClientRect();
+    return { pass: cs.backgroundColor === ink && r.width > 8 && r.height > 8,
+             detail: ".st " + cs.backgroundColor + " vs CanvasText " + ink + ", " + Math.round(r.width) + "×" + Math.round(r.height) };
+  });
+  ok("forced colors: the star run repaints in system ink and keeps its geometry", fc.pass, fc.detail);
+}
+/* 6.0.4, withdrawn by 6.0.9's revert, back in 6.1.0. The state the text pins
+   could not see: with the belt OPEN, the pressed include switches are selected by `.includes .scope
+   button[aria-pressed="true"]` (0,3,1), which outranks the forced-colors
+   block's own `.scope button[aria-pressed="true"]` (0,2,1) — so without the
+   state rule they keep brand gold with forced-color-adjust:none still applying, and
+   reading the block as CSS text said nothing was wrong. This reads what the
+   engine computed: the pressed switch must land on the same colour a probe
+   painted with Highlight computes to. */
+{
+  const belt = await page.evaluate(() => {
+    const probe = document.createElement("i");
+    probe.style.cssText = "position:absolute;width:1px;height:1px;background:Highlight;forced-color-adjust:none";
+    document.body.appendChild(probe);
+    const hi = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    const drop = document.querySelector('#view .panel:not([inert]) .includes[data-drop]');
+    if(!drop) return { pass: false, detail: "the belt is not dropped in this state" };
+    const on = Array.from(drop.querySelectorAll('.scope button[aria-pressed="true"]'));
+    if(!on.length) return { pass: false, detail: "no pressed switch in the open belt" };
+    const off = on.filter(b => getComputedStyle(b).backgroundColor !== hi)
+                  .map(b => (b.textContent || "").trim() + " " + getComputedStyle(b).backgroundColor);
+    return { pass: off.length === 0,
+             detail: on.length + " pressed switch(es) vs Highlight " + hi + (off.length ? "; off: " + off.join(", ") : "") };
+  });
+  ok("forced colors: the open belt's pressed switches repaint in Highlight, not brand gold", belt.pass, belt.detail);
+}
+await page.emulateMedia({ forcedColors: "none" });
+await page.evaluate(() => { closeBelt("auto"); });
+await axeState("Next up on a bag, a rated night in Activity", () => {
+  S.watched = {}; S.rated = {}; S.log = [];
+  const gs = buildGroups(); let bags = 0, first = null;
+  gs.forEach(g => { if(g.bag) bags++; if(bags < 2) g.films.forEach(f => { if(!isParked(f)){ S.watched[f.id] = 1; if(!first) first = f.id; } }); });
+  if(first){ S.rated[first] = 4; S.log = [{ id: first, ts: Date.now() }]; }
+  S.tab = "next"; render(); snapTo(S.tab);
+}, () => {
+  const hero = document.querySelectorAll("#view .panel:not([inert]) .hero").length;
+  const pick = document.querySelectorAll('#view .panel:not([inert]) [data-act="choose"]').length;
+  const arow = document.querySelectorAll("#view .panel:not([inert]) .arow").length;
+  const stars = document.querySelectorAll("#view .panel:not([inert]) .arow .st").length;
+  return { pass: hero > 0 && pick > 0 && arow > 0 && stars > 0, detail: hero + " hero, " + pick + " chooser, " + arow + " activity row(s), " + stars + " star(s)" };
+});
+await page.evaluate(() => { S.watched = {}; S.rated = {}; S.log = []; S.progOpen = {}; render(); });
+
+/* ---- what the console said, across every state exercised above -------- */
+ok("no CSP violation in any state", cspHits.length === 0,
+   /* This read "connect-src 'none' held" until 3.3.2, one release after 3.3.1
+      removed that directive for never having taken effect. A green line that
+      names a thing which is not there is the same failure as a guard asserting
+      a retired state, in the one place a person reads rather than runs. */
+   cspHits.length ? cspHits[0].slice(0, 160) : "the policy refused nothing it allows");
+ok("no uncaught page error in any state", pageErrs.length === 0,
+   pageErrs.length ? pageErrs[0].slice(0, 160) : "clean");
+
+/* ---- keyboard: the page is traversable, and focus stays visible (4.9.2) --
+   The ISO triage's Interaction gap, the half that fits the harness: a
+   keyboard-only pass as a named test. From a known state (path chosen, The
+   path, every group collapsed — the traversal is about reachability, not
+   about tabbing through 205 rows), Tab is pressed for real until it reaches
+   the footer tabs: every stop must be visible, must not sit in an inert
+   panel, and must show a focus outline (the :focus-visible rule); the
+   header's three controls, the belt's four, the search box, a chip, a
+   group header and all four footer tabs must all be visited, in document
+   order (header → panel → tabs). A cap turns a focus trap into a failure
+   instead of a hang. The screen-reader pass stays a manual item — a
+   harness cannot listen. */
+await page.evaluate(() => {
+  S.path = S.mode = "continuity"; S.tab = "watch"; S.filter = "all"; S.q = "";
+  S.beltOpen = false; S.beltDrop = false; S.watched = {}; S.skipped = {};
+  setAllGroups(false); render(); snapTo(S.tab); scrollPut(0);
+  /* Sequential focus navigation continues from wherever the drives above
+     left it, blurred or not — so the traversal starts by focusing the
+     page's first control explicitly. */
+  document.getElementById("markBtn").focus();
+});
+await frames();
+const stops = [await page.evaluate(() => {
+  const el = document.activeElement, r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+  /* seeded programmatically, so :focus-visible legitimately may not apply
+     to this one stop — it is exempt from the outline assertion below */
+  return { key: "#" + el.id, tag: el.tagName, visible: r.width > 0 && r.height > 0,
+           inert: false, outline: cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0,
+           isTab: false, seeded: true };
+})];
+let trapped = true;
+for(let i = 0; i < 260; i++){
+  await page.keyboard.press("Tab");
+  const stop = await page.evaluate(() => {
+    const el = document.activeElement;
+    if(!el || el === document.body) return { body: true };
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return {
+      key: (el.id ? "#" + el.id : "") + (el.className && el.className.baseVal === undefined ? "." + String(el.className).split(" ")[0] : "") +
+           (el.dataset ? Object.keys(el.dataset).map(k => "[" + k + "=" + el.dataset[k] + "]").join("") : ""),
+      tag: el.tagName,
+      visible: r.width > 0 && r.height > 0,
+      inert: !!el.closest("[inert]"),
+      outline: cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0,
+      isTab: !!(el.dataset && el.dataset.tab)
+    };
+  });
+  if(stop.body) continue;
+  stops.push(stop);
+  if(stop.isTab && stop.key.indexOf("[tab=stats]") >= 0){ trapped = false; break; }
+}
+{
+  const bad = stops.filter(s2 => !s2.visible || s2.inert);
+  ok("keyboard: every Tab stop is visible and outside inert panels",
+     stops.length > 20 && bad.length === 0,
+     bad.length ? bad[0].key : stops.length + " stops");
+  const noOutline = stops.filter(s2 => s2.tag === "BUTTON" && !s2.outline && !s2.seeded);
+  ok("keyboard: every focused button shows the :focus-visible outline",
+     noOutline.length === 0, noOutline.length ? noOutline[0].key : "all outlined");
+  const keys = stops.map(s2 => s2.key);
+  const find = frag => keys.findIndex(k => k.indexOf(frag) >= 0);
+  /* With a path chosen and the belt closed, the strip is parked and hidden
+     by design; the peek (#beltpeek) is the keyboard door, and the drive
+     below proves the door opens. */
+  const REQUIRED_STOPS = ["#markBtn", "#topBtn", "#ringBtn", "#beltpeek",
+    "#q", ".chip", "[act=group]", "[tab=home]", "[tab=next]",
+    "[tab=watch]", "[tab=stats]"];
+  const missing = REQUIRED_STOPS.filter(frag => find(frag) < 0);
+  ok("keyboard: the header, belt, search, chips, groups and tabs are all reachable",
+     !trapped && missing.length === 0,
+     trapped ? "never reached the footer tabs in 260 presses (a trap, or the cap)" :
+     missing.length ? "unreached: " + missing.join(", ") : keys.length + " stops to the tabs");
+  ok("keyboard: the order runs header, then the panel, then the tabs",
+     find("#markBtn") === 0 && find("#markBtn") < find("#q") &&
+     find("#q") < find("[tab=home]"),
+     [find("#markBtn"), find("#q"), find("[tab=home]")].join(" < "));
+}
+
+/* Enter on the peek drops the belt, and the dropped belt's controls join
+   the tab order — the parked strip is hidden by design, so this is the
+   keyboard path to the path switcher and the pouches. */
+await page.evaluate(() => { document.getElementById("beltpeek").focus(); });
+await page.keyboard.press("Enter");
+await frames();
+/* 6.1.0: the peek hides the moment the belt drops, and until this cut the
+   focus it held fell to <body> — Tab only found the belt because Chromium
+   remembers where focus was lost, and a screen reader has no such luck.
+   The ARIA corpus's first run found it. Enter now lands on the pressed path. */
+const dropLanding = await page.evaluate(() => {
+  const el = document.activeElement;
+  return { pressed: !!el && el.getAttribute("aria-pressed") === "true" && !!el.closest(".pathseg[data-drop]"),
+           key: el && el.dataset ? Object.keys(el.dataset).map(x => "[" + x + "=" + el.dataset[x] + "]").join("") : "",
+           tag: el ? el.tagName : "" };
+});
+ok("keyboard: Enter on the peek puts focus on the pressed path inside the dropped belt",
+   dropLanding.pressed, dropLanding.tag + " " + dropLanding.key);
+const beltStops = [dropLanding.key];
+for(let i = 0; i < 12; i++){
+  await page.keyboard.press("Tab");
+  const k = await page.evaluate(() => {
+    const el = document.activeElement;
+    return el && el.dataset ? Object.keys(el.dataset).map(x => "[" + x + "=" + el.dataset[x] + "]").join("") : "";
+  });
+  beltStops.push(k);
+}
+ok("keyboard: Enter on the peek drops the belt and its controls are tabbable",
+   beltStops.some(k => k.indexOf("[path=") >= 0) &&
+   beltStops.some(k => k.indexOf("[act=belt]") >= 0),
+   beltStops.filter(Boolean).slice(0, 6).join(" "));
+/* The loss case, driven through the real doors: twelve Tabs walk out of the
+   belt (and a reader who has moved on is deliberately left where they are),
+   so close it, scroll the list until the strip parks behind the peek, drop
+   it again with Enter on the peek, and press Escape from inside. A parked
+   strip is visibility:hidden, so the control that had focus goes with it —
+   that is the focus beltFocus() hands back. */
+await page.evaluate(() => { if(S.beltDrop || S.beltOpen) closeBelt("auto"); });
+await frames();
+await page.evaluate(() => { scroller().scrollTop = 600; });
+await scrollSettled();
+/* The park is an observer's answer, so wait for it rather than for time. */
+const parkedForEsc = await page.waitForSelector("#beltpeek[data-on]", { timeout: 5000 })
+                               .then(() => true, () => false);
+await page.evaluate(() => { document.getElementById("beltpeek").focus(); });
+await page.keyboard.press("Enter");
+await frames();
+const inBelt = await page.evaluate(() => !!document.activeElement &&
+                                         !!document.activeElement.closest(".pathseg[data-drop]"));
+await page.keyboard.press("Escape");
+await frames();
+const beltShut = await page.evaluate(() => !S.beltDrop && !S.beltOpen);
+ok("keyboard: Escape closes the dropped belt", beltShut, "beltDrop cleared");
+/* 6.1.0, the other half: the dropped belt leaves with the focus inside it.
+   Once it has gone, focus is handed back to the peek (or to the strip's
+   pressed path when the strip is showing) — never left on the page. */
+const escLanding = await page.waitForFunction(() => {
+  const el = document.activeElement;
+  return el && el !== document.body ? (el.id || el.getAttribute("aria-label") || el.textContent.trim()) : false;
+}, null, { timeout: 3000 }).then(h => h.jsonValue(), () => "");
+ok("keyboard: after Escape, focus is on the path switcher, not the page",
+   parkedForEsc && inBelt && /^(beltpeek|By universe|Bruce’s life|Release order)$/.test(escLanding),
+   (parkedForEsc ? "" : "the strip never parked; ") + (inBelt ? "" : "focus was not in the belt; ") +
+   (escLanding || "document.body"));
+/* Where the strip stays hidden after the close, the focused control goes
+   with it — which state the list comes back in is an observer's timing in
+   this long-lived page, so the loss case is driven once more on a cold page,
+   where it is deterministic (measured both ways for 6.1.0). */
+{
+  const lctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: "block" });
+  const lp = await lctx.newPage();
+  await lp.addInitScript(() => { try{ localStorage.clear();
+    localStorage.setItem("batwatch-settings", JSON.stringify({ path: "continuity" })); }catch(e){} });
+  await lp.goto(SITE_URL + "#path", { waitUntil: "load" });
+  await lp.waitForFunction(() => typeof window.render === "function" && !document.getElementById("splash"));
+  await lp.evaluate(() => { scroller().scrollTop = 600; });
+  const lParked = await lp.waitForSelector("#beltpeek[data-on]", { timeout: 5000 }).then(() => true, () => false);
+  await lp.focus("#beltpeek");
+  await lp.keyboard.press("Enter");
+  /* the drop is allowed one scroll; let it land before closing */
+  await lp.evaluate(() => new Promise(res => {
+    let last = null, same = 0; const t0 = performance.now();
+    const tick = () => {
+      const y = scroller().scrollTop;
+      if(y === last){ if(++same >= 5) return res(); } else { same = 0; last = y; }
+      if(performance.now() - t0 > 2000) return res();
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }));
+  await lp.keyboard.press("Escape");
+  const reParked = await lp.waitForFunction(() => !S.beltDrop && !scroller().querySelector(".includes.closing") &&
+                                                  document.getElementById("beltpeek").hasAttribute("data-on"),
+                                            null, { timeout: 3000 }).then(() => true, () => false);
+  const lLanding = await lp.waitForFunction(() => {
+    const el = document.activeElement;
+    return el && el !== document.body ? (el.id || el.getAttribute("aria-label") || el.textContent.trim()) : false;
+  }, null, { timeout: 2000 }).then(h => h.jsonValue(), () => "");
+  ok("keyboard: Escape from a parked drop hands the lost focus back to the peek",
+     lParked && reParked && lLanding === "beltpeek",
+     (lParked ? "" : "the strip never parked; ") + (reParked ? "" : "the strip did not park again after the close; ") +
+     (lLanding || "document.body"));
+  await lctx.close();
+}
+
+/* ---- the header survives a rotation (6.1.0; sticky again in 6.1.2) -------
+   Guard 128's Q5 pins the rule — sticky at top:0, because iOS paints the
+   installed status bar from it; this reads what the engine computed and
+   turns the phone round twice. Chromium has never reproduced the iOS flip,
+   so a green line here is layout evidence, not a close; the flip itself is
+   recorded as iOS 27's (guard 162). */
+{
+  const readHead = () => page.evaluate(() => {
+    const h = document.querySelector("header");
+    return { pos: getComputedStyle(h).position, top: Math.round(h.getBoundingClientRect().top),
+             z: getComputedStyle(h).zIndex };
+  });
+  const r0 = await readHead();
+  await page.setViewportSize({ width: 844, height: 390 });
+  await frames(3);
+  const r1 = await readHead();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await frames(3);
+  const r2 = await readHead();
+  ok("rotation: the header is sticky at z-index 30, and sits at the top through a turn and back",
+     [r0, r1, r2].every(r => r.pos === "sticky" && r.z === "30" && r.top === 0),
+     [r0, r1, r2].map(r => r.pos + "@" + r.top).join(" → "));
+}
+
+/* ---- the installed footer (6.1.3) ----------------------------------------
+   Installed and upright, the tab bar and the toast drop the bottom inset —
+   one CSS rule, the owner's call (6.0.4's 59pt bar); guard 64 pins its text
+   and its place after the rules it overrides. Chromium cannot emulate
+   display-mode, so this proves the rest in a real engine: with a 34px
+   bottom inset (the iPhone's, set through CDP), a browser tab keeps the
+   whole inset; with the rule's display-mode condition lifted through CSSOM,
+   the bar's pad is 0 and the toast sits 34px lower in portrait, and both
+   get the inset back in landscape. The flip has no check here: it is
+   iOS 27's (section 162). */
+if(WK){
+  out.push("  skip installed footer — the safe-area inset is set through CDP, " +
+           "which Playwright's WebKit has no door to; Chromium drives it every run");
+} else {
+  const fctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: "block" });
+  const fp = await fctx.newPage();
+  const fcdp = await fctx.newCDPSession(fp);
+  await fcdp.send("Emulation.setSafeAreaInsetsOverride", { insets: { top: 0, bottom: 34, left: 0, right: 0 } });
+  await fp.goto(SITE_URL + "#progress", { waitUntil: "load" });
+  await fp.waitForFunction(() => typeof window.render === "function");
+  const foot = () => fp.evaluate(() => ({
+    pad: getComputedStyle(document.getElementById("tabs")).paddingBottom,
+    toast: parseFloat(getComputedStyle(document.getElementById("toast")).bottom)
+  }));
+  const inTab = await fp.evaluate(() => matchMedia("(display-mode: standalone)").matches);
+  const tab = await foot();
+  const lifted = await fp.evaluate(() => {
+    for(const sh of document.styleSheets){
+      for(const r of sh.cssRules){
+        if(r.media && /display-mode: standalone/.test(r.media.mediaText) && /orientation: portrait/.test(r.media.mediaText)){
+          r.media.mediaText = "(orientation: portrait)";
+          return true;
+        }
+      }
+    }
+    return false;
+  });
+  await frames(2);
+  const up = await foot();
+  await fp.setViewportSize({ width: 844, height: 390 });
+  await frames(3);
+  const side = await foot();
+  await fp.setViewportSize({ width: 390, height: 844 });
+  await frames(3);
+  const upAgain = await foot();
+  ok("installed footer: a browser tab keeps the whole 34px inset",
+     !inTab && tab.pad === "34px", (inTab ? "matched standalone; " : "") + "pad " + tab.pad);
+  ok("installed footer: installed and upright, the bar drops the inset and the toast sits 34px lower; landscape gets both back",
+     lifted && up.pad === "0px" && Math.round(tab.toast - up.toast) === 34 &&
+     side.pad === "34px" && Math.round(side.toast - up.toast) === 34 && upAgain.pad === "0px",
+     (lifted ? "" : "rule not found; ") + "pad " + [up.pad, side.pad, upAgain.pad].join(" → ") +
+     ", toast " + [tab.toast, up.toast, side.toast].map(Math.round).join("/"));
+  await fctx.close();
+}
+
+/* ---- the accessibility tree, recorded (6.1.0) --------------------------
+   The ARIA-snapshot corpus, left out on 2 Sept and again on 14 Sept, taken
+   in 6.1.0 so nothing on the reference list is waiting. axe proves no rule
+   is broken in seven states; this pins WHAT the tree says in eight, so a
+   renamed control, a lost label or a panel leaking through the inert wall
+   is a red run instead of a surprise on somebody's screen reader.
+
+   What it is and what it is not: Playwright's computed tree in Chromium,
+   blessed against the device pass's VoiceOver read of 3 Sept (clean). It is
+   not VoiceOver. It is recorded from Chromium and diffed on Chromium only;
+   the WebKit job runs the two assertions below and says it did not diff.
+
+   Each state is a fresh page from seeded storage and a real door (a hash
+   route, a click, a key), never a poked S — a state no reader can reach is
+   not worth recording. Each record is the header, the LIVE panel and the
+   tab bar (plus the toast where there is one): the inert panels are what a
+   screen reader cannot reach, so they are not what it hears.
+
+   Three things are normalised before a record is written or compared, so
+   the corpus goes stale on a real change and on nothing else: the Batman
+   Day line (dated copy the 23 Oct cut deletes — cut out, so the record
+   already reads the way that cut will leave it), BUILD and BUILT (every
+   release moves them). The install offer is held back for the same reason —
+   it arrives when Chromium decides the page is installable, which is a race
+   and not a state.
+
+   Bless: npm run browser -- --bless  (Chromium). Anything that moves a word
+   a reader hears in these states moves a record; read the diff. */
+const ARIA_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "aria");
+const ARIA_BLESS = process.argv.includes("--bless");
+const ARIA_STATES = ["home-first-run", "home", "next-up", "path", "path-belt-open",
+                     "path-row-open", "progress", "toast"];
+{
+  if(ARIA_BLESS && WK){ console.error("aria corpus: bless on Chromium — WebKit does not write the record"); process.exit(1); }
+  const SETTINGS = { path: "continuity", theme: "dark", scope: "movies", format: "anim", tier: "all" };
+  const recipe = {
+    "home-first-run": { settings: {}, hash: "" },
+    "home":           { settings: SETTINGS, hash: "" },
+    "next-up":        { settings: SETTINGS, hash: "#next" },
+    "path":           { settings: SETTINGS, hash: "#path" },
+    "path-belt-open": { settings: SETTINGS, hash: "#path", go: async p => {
+        await p.click('#view .panel:not([inert]) [data-act="allgroups"]');
+        await p.waitForSelector("#beltpeek[data-on]", { timeout: 5000 });
+        await p.focus("#beltpeek");
+        await p.keyboard.press("Enter");
+        await p.waitForSelector('#view .panel:not([inert]) .pathseg[data-drop]', { timeout: 5000 });
+      } },
+    "path-row-open":  { settings: SETTINGS, hash: "#path", go: async p => {
+        await p.click('#view .panel:not([inert]) [data-act="allgroups"]');
+        await p.click('#view .panel:not([inert]) .ghead[data-act="group"]');
+        await p.click('#view .panel:not([inert]) .fmain[data-act="expand"]');
+      } },
+    "progress":       { settings: SETTINGS, hash: "#progress" },
+    "toast":          { settings: SETTINGS, hash: "#path", go: async p => {
+        await p.click('#view .panel:not([inert]) [data-act="allgroups"]');
+        await p.click('#view .panel:not([inert]) .ghead[data-act="group"]');
+        await p.click('#view .panel:not([inert]) .film .tick');
+        await p.waitForSelector("#toast.show");
+      } },
+  };
+  fs.mkdirSync(ARIA_DIR, { recursive: true });
+  const actx = await browser.newContext({ viewport: { width: 390, height: 844 },
+                                          serviceWorkers: "block", reducedMotion: "reduce" });
+  const stale = [], named = [], unnamed = [];
+  let toastLive = null;
+  for(const name of ARIA_STATES){
+    const r = recipe[name];
+    const ap = await actx.newPage();
+    const errs = [];
+    ap.on("pageerror", e => errs.push(String(e)));
+    await ap.addInitScript(set => {
+      window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); e.stopImmediatePropagation(); }, true);
+      try{
+        localStorage.clear();
+        if(set.path !== undefined) localStorage.setItem("batwatch-settings", JSON.stringify(set));
+      }catch(e){}
+    }, r.settings);
+    await ap.goto(SITE_URL + r.hash, { waitUntil: "load" });
+    await ap.waitForFunction(() => typeof window.render === "function" && !document.getElementById("splash"),
+                             null, { timeout: 15000 });
+    if(r.go) await r.go(ap);
+    await ap.evaluate(() => new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res))));
+    const fixed = await ap.evaluate(() => ({ day: typeof dayLine === "function" ? dayLine().trim() : "",
+                                             build: BUILD, built: BUILT }));
+    /* The day line is cut out, not replaced: the paragraph it opens reads
+       the same with it gone as it will after the 23 Oct cut deletes it. */
+    const norm = t => {
+      if(fixed.day) t = t.split(fixed.day + " ").join("").split(fixed.day).join("");
+      return t.split("Build " + fixed.build).join("Build {BUILD}").split(fixed.built).join("{BUILT}");
+    };
+    const parts = [["header", "body > #app > header"], ["panel", "#view .panel:not([inert])"], ["tabs", "#tabs"]];
+    if(name === "toast") parts.push(["toast", "#toast"]);
+    let rec = "";
+    for(const [label, sel] of parts){
+      rec += "# " + label + "\n" + norm(await ap.locator(sel).first().ariaSnapshot()) + "\n";
+    }
+    const focus = await ap.evaluate(() => document.activeElement && document.activeElement !== document.body);
+    if(focus){
+      const f = await ap.locator(":focus").ariaSnapshot().catch(() => "");
+      (/^- [a-z]+ "[^"]+"/.test(f.split("\n")[0]) ? named : unnamed).push(name + ": " + f.split("\n")[0]);
+    }
+    if(name === "toast"){
+      toastLive = await ap.evaluate(() => {
+        const t = document.getElementById("toast");
+        return { role: t.getAttribute("role"), live: t.getAttribute("aria-live"),
+                 text: t.textContent.trim(), shown: t.classList.contains("show") };
+      });
+    }
+    if(errs.length) stale.push(name + " threw: " + errs[0].slice(0, 80));
+    const file = path.join(ARIA_DIR, name + ".yml");
+    if(ARIA_BLESS){
+      fs.writeFileSync(file, rec);
+    } else if(!WK){
+      const had = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null;
+      if(had !== rec){
+        stale.push(name + (had === null ? " (no record)" : ""));
+        fs.writeFileSync(shot("aria-" + name + ".yml"), rec);
+      }
+    }
+    await ap.close();
+  }
+  await actx.close();
+  if(WK){
+    out.push("  skip aria corpus diff — the record is Chromium's computed tree; " +
+             "the focus and live-region assertions below still run on WebKit");
+  } else {
+    ok("aria corpus: the tree in " + ARIA_STATES.length + " states matches qa/aria/" +
+       (ARIA_BLESS ? " (blessed this run)" : ""),
+       stale.length === 0,
+       stale.length ? "stale: " + stale.join(", ") + " — the live record is in qa/.shots/; " +
+                      "read it, then npm run browser -- --bless" : ARIA_STATES.join(", "));
+  }
+  /* WebKit does not focus a button on a mouse click (it is a platform
+     choice, and Safari's), so only the keyboard-driven belt state carries
+     focus there; Chromium carries it in three. */
+  ok("aria corpus: focus lands on something with a name",
+     unnamed.length === 0 && named.length >= (WK ? 1 : 3),
+     unnamed.length ? "unnamed: " + unnamed.join("; ") : named.length + " state(s) with focus, all named");
+  ok("aria corpus: the toast is a polite live region, shown, with words in it",
+     !!toastLive && toastLive.role === "status" && toastLive.live === "polite" &&
+     toastLive.shown && toastLive.text.length > 0,
+     JSON.stringify(toastLive));
+}
+
+/* ---- the offline promise, kept by a real worker in a real browser -------
+   3.7.2 (M-5 of the 10 Aug review). Guard 132 executes sw.js's handlers
+   against mocks; this is the other half — the registered worker, a real
+   cache, and the network actually off. A fresh context so the registration
+   and its caches are this drive's own. */
+const swCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const swPage = await swCtx.newPage();
+/* The app registers only on https or the literal hostname "localhost" —
+   127.0.0.1 (this file's default) never registers, and an un-guarded await
+   on serviceWorker.ready would hang this instrument forever. So this drive
+   uses the localhost spelling of the same server, and every wait below
+   carries its own clock. */
+const SWURL = SITE_URL.replace("//127.0.0.1", "//localhost");
+await swPage.goto(SWURL, { waitUntil: "load" });
+const swReady = await swPage.evaluate(async () => {
+  if(!("serviceWorker" in navigator)) return { supported: false };
+  try{
+    const reg = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((_, rej) => setTimeout(
+        () => rej(new Error("serviceWorker.ready did not settle in 15s — did the registration condition change?")), 15000))
+    ]);
+    if(!navigator.serviceWorker.controller){
+      await new Promise(res => {
+        navigator.serviceWorker.addEventListener("controllerchange", () => res(1), { once: true });
+        setTimeout(res, 4000);
+      });
+    }
+    return { supported: true, active: !!reg.active,
+             controlled: !!navigator.serviceWorker.controller };
+  }catch(e){ return { supported: false, err: String(e).slice(0, 140) }; }
+});
+ok("the service worker registers, activates, and takes the page",
+   swReady.supported && swReady.active && swReady.controlled, JSON.stringify(swReady));
+if(swReady.supported && swReady.active && swReady.controlled){
+  /* 3.9.2: POLLED, NOT SLEPT. A fixed 600 ms was a bet on the runner, and this
+     file's own rule is measure, don't sleep. Wait for the shell to actually be
+     in the cache, then go offline. */
+  /* 4.2.3, Q-4 of the 19 Aug audit: this wait's timeout was swallowed too —
+     going offline against a cold cache made the reload check fail as a
+     mystery instead of naming the cache that never filled. */
+  const shellCached = await swPage.waitForFunction(async () => {
+    for(const n of await caches.keys()){
+      if(await (await caches.open(n)).match("./")) return true;
+    }
+    return false;
+  }, null, {timeout: 10000}).then(() => true, () => false);
+  ok("the shell reaches the worker's cache before the offline test",
+     shellCached, shellCached ? "cached" :
+     "10s and ./ is in no cache — the offline reload below is against a cold cache");
+  /* 4.2.3, Q-13: entries > 0 proved A build boots offline, not that THIS
+     build does — a stale cached shell passes that bar (2.5.1 shipped
+     exactly that). The BUILD the worker serves offline must be the BUILD
+     the network served online. */
+  const onlineBuild = await swPage.evaluate(() => window.BUILD);
+  /* 4.4.1: the offline reload is Chromium's. The WebKit job's first run
+     (2026-08-20, run 353) proved everything above this line on WebKit —
+     registration, activation, control, THIS build's shell in the cache —
+     and then page.reload({offline}) died with "WebKit encountered an
+     internal error": the Playwright WebKit driver cannot navigate while
+     setOffline holds, which is a harness limit, not a Safari finding. A
+     skip that says so beats a red that cries wolf and beats silence worse
+     (the no-silent-caps rule): the line below prints on every WebKit run,
+     and Chromium keeps driving the real offline reload on every push. */
+  if(WK){
+    out.push("  skip offline reload — Playwright's WebKit driver errors " +
+             "internally on navigation while offline; registration, control " +
+             "and THIS build's cached shell are asserted above, and Chromium " +
+             "drives the offline reload every run");
+  } else {
+  await swCtx.setOffline(true);
+  let offline = { booted: false, entries: 0 };
+  try{
+    await swPage.reload({ waitUntil: "load" });
+    await swPage.waitForFunction(() => typeof window.render === "function", { timeout: 8000 });
+    offline = await swPage.evaluate(() => ({
+      booted: typeof window.render === "function",
+      entries: window.FILMS ? window.FILMS.length : 0,
+      build: window.BUILD
+    }));
+  }catch(e){ offline.err = String(e).slice(0, 120); }
+  ok("offline: the app still opens from the worker's cache",
+     offline.booted && offline.entries > 0,
+     offline.err || (offline.entries + " entries with the network off"));
+  ok("offline: the shell the worker serves is THIS build",
+     offline.booted && offline.build === onlineBuild,
+     offline.err || ("online " + onlineBuild + " vs offline " + offline.build));
+
+  /* ---- offline: tick, reload, still there (4.9.2) ----------------------
+     The ISO triage's honest Reliability gap: the offline test above proves
+     the shell opens; nothing proved a mark made WHILE offline survives an
+     offline reload. The whole chain is exercised: localStorage write under
+     a SW-served page, the debounce flushed by pagehide on the reload, and
+     restore() reading it back from the cache-served shell. */
+  let offTick = { ok: false };
+  try{
+    offTick = await swPage.evaluate(() => {
+      localStorage.removeItem("batwatch-v3");
+      S.path = S.mode = "life"; S.tab = "watch"; S.filter = "all"; S.q = "";
+      S.watched = {}; S.skipped = {}; S.rated = {}; S.log = [];
+      render(); snapTo(S.tab);
+      const tick = document.querySelector('#view .panel:not([inert]) .film .tick');
+      if(!tick) return { ok: false, err: "no tick in view" };
+      tick.click();
+      const id = tick.dataset.id;
+      return { ok: !!S.watched[id], id: id };
+    });
+    await swPage.reload({ waitUntil: "load" });
+    await swPage.waitForFunction(() => typeof window.render === "function", { timeout: 8000 });
+    const after = await swPage.evaluate((id) => {
+      goTab("watch");
+      return { kept: !!window.S.watched[id],
+               done: !!document.querySelector('#view .panel:not([inert]) .film.done') };
+    }, offTick.id);
+    ok("offline: a tick made offline survives an offline reload",
+       offTick.ok && after.kept && after.done,
+       offTick.err || ("ticked " + offTick.id + ", kept=" + after.kept + ", rendered=" + after.done));
+  }catch(e){
+    ok("offline: a tick made offline survives an offline reload", false, String(e).slice(0, 120));
+  }
+  await swCtx.setOffline(false);
+  }
+}
+await swCtx.close();
+
+/* ---- Nocturne, the paper (6.2.0) ---------------------------------------
+   The paper is static HTML the guards read as text; this is where it is
+   read as a page. The fixture's No. 0, No. 1 and archive are built in
+   memory by the same qa/nocturne.js and served through a route under
+   /nocturne-fixture/, so nothing is written into docs/ and the pages are
+   exercised before a real issue exists. Real issues, once there are any,
+   load from the served docs/nocturne/ as themselves. Each page: no console
+   or page errors, every image decoded, the deco face loaded, nothing wider
+   than the phone, and axe with no serious violation. */
+async function paperChecks(){
+  const noc = createRequire(import.meta.url)("./nocturne.js");
+  const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+  const fix = noc.build(ROOT, { src: "qa/nocturne-fixture/issues" });
+  const real = noc.build(ROOT);
+  const TYPES = { html: "text/html; charset=utf-8", css: "text/css", webp: "image/webp",
+                  xml: "application/xml" };
+  const nctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await nctx.addInitScript({ content: axeSrc });
+  /* 6.3.0. The analytics beacon is Cloudflare's, and a check that phones
+     Cloudflare on every run would count its own visits. It is answered here
+     with an empty module, so the page loads it the way a reader's does and
+     nothing leaves the runner. */
+  let beaconAsked = 0;
+  await nctx.route(u => u.hostname === "static.cloudflareinsights.com" || u.hostname === "cloudflareinsights.com", route => {
+    beaconAsked++;
+    return route.fulfill({ status: 200, body: "", contentType: "text/javascript",
+                           headers: { "access-control-allow-origin": "*" } });
+  });
+  await nctx.route(u => u.pathname.indexOf("/nocturne-fixture/") === 0, route => {
+    let rel = new URL(route.request().url()).pathname.slice("/nocturne-fixture/".length);
+    if(rel === "" || rel.slice(-1) === "/") rel += "index.html";
+    const body = fix.files[rel];
+    if(!body) return route.fulfill({ status: 404, body: "not in the fixture build" });
+    return route.fulfill({ status: 200, body, contentType: TYPES[rel.split(".").pop()] || "application/octet-stream" });
+  });
+  const targets = [];
+  fix.list.forEach(is => targets.push(["fixture No. " + is.fm.issue, "nocturne-fixture/" + is.id + "/"]));
+  if(fix.list.length) targets.push(["fixture archive", "nocturne-fixture/"]);
+  real.list.forEach(is => targets.push(["No. " + is.fm.issue, "nocturne/" + is.id + "/"]));
+  if(real.list.length) targets.push(["archive", "nocturne/"]);
+  else targets.push(["holding page", "nocturne/"]);   /* 6.2.1: no issue yet, /nocturne/ is On the press */
+  ok("nocturne: the fixture builds into pages to read", fix.errors.length === 0 && fix.list.length === 2,
+     fix.errors.length ? fix.errors[0] : fix.list.length + " issues");
+  for(const [label, rel] of targets){
+    const np = await nctx.newPage();
+    const errs = [];
+    np.on("console", m => { if(m.type() === "error") errs.push(m.text().slice(0, 100)); });
+    np.on("pageerror", e => errs.push(String(e).slice(0, 100)));
+    let st = { status: 0 };
+    try{
+      const resp = await np.goto(SITE_URL + rel, { waitUntil: "load" });
+      await np.evaluate(() => document.fonts.ready);
+      /* 6.3.0: an image under a later story is lazy; ask for it eagerly and
+         wait for it to decode, so "every image decodes" reads every image. */
+      await np.evaluate(async () => {
+        [...document.images].forEach(i => { i.loading = "eager"; });
+        await Promise.all([...document.images].map(i => i.decode().catch(() => {})));
+      });
+      st = await np.evaluate(() => ({
+        wide: document.documentElement.scrollWidth > innerWidth,
+        imgs: [...document.images].filter(i => !(i.complete && i.naturalWidth > 0)).map(i => i.getAttribute("src")),
+        deco: document.fonts.check('40px "NW Deco"'),
+        scripts: [...document.scripts].filter(x => x.type !== "application/ld+json").map(x => x.getAttribute("src")).join(" ")
+      }));
+      st.status = resp ? resp.status() : 0;
+      /* 6.5.0: an issue's Share button answers. 6.5.1 (outside QA, C1-C4,
+         C18): the share sheet and the clipboard are stubbed in the page, so
+         every path is driven, not only the one headless Chromium happens to
+         take. A copy says "Link copied" in the live region only, and the
+         button keeps its word. A refused copy says "Copy failed" and puts
+         the link on its own line; a second click inside the 2.4 s still
+         brings the word back to "Share". A share sheet that fails copies
+         instead; one the reader cancels does nothing. */
+      if(/No\. /.test(label)){
+        const stub = (share, copy) => np.evaluate(([share, copy]) => {
+          window.__copies = 0;
+          Object.defineProperty(navigator, "share", { configurable: true, value:
+            share === "none" ? undefined :
+            () => Promise.reject(share === "cancel" ? new DOMException("cancel", "AbortError") : new Error("no sheet")) });
+          Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: () => {
+            window.__copies++; return copy ? Promise.resolve() : Promise.reject(new Error("refused")); } } });
+        }, [share, copy]);
+        const read = () => np.evaluate(() => {
+          const b = document.querySelector(".acts .btn.share"), o = document.querySelector(".acts .shout");
+          return { word: b.querySelector(".sl").textContent, out: o.textContent, fail: o.classList.contains("fail"),
+                   copies: window.__copies, url: b.getAttribute("data-url") };
+        });
+        const sh = {};
+        await stub("none", true);
+        await np.click(".acts .btn.share"); await np.waitForTimeout(150);
+        sh.copied = await read();
+        await stub("none", false);
+        await np.click(".acts .btn.share"); await np.waitForTimeout(500);
+        await np.click(".acts .btn.share"); await np.waitForTimeout(150);
+        sh.refused = await read();
+        await np.waitForTimeout(2500);
+        sh.after = await read();
+        await stub("fails", true);
+        await np.click(".acts .btn.share"); await np.waitForTimeout(150);
+        sh.sheetFailed = await read();
+        await stub("cancel", true);
+        await np.click(".acts .btn.share"); await np.waitForTimeout(150);
+        sh.cancelled = await read();
+        st.share = sh;
+      }
+      const r = await np.evaluate(async () => await window.axe.run(document, {
+        resultTypes: ["violations"],
+        runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] }
+      }));
+      st.axe = r.violations.filter(x => x.impact !== "minor").map(x => x.id + " \u00d7" + x.nodes.length);
+    }catch(e){ errs.push(String(e).slice(0, 100)); }
+    ok("nocturne (" + label + "): loads with no errors", st.status === 200 && !errs.length,
+       errs[0] || ("HTTP " + st.status));
+    ok("nocturne (" + label + "): every image decodes, the deco face loads",
+       st.imgs && !st.imgs.length && st.deco, st.imgs && st.imgs.length ? "broken: " + st.imgs.join(", ") : "NW Deco " + st.deco);
+    const wantScripts = "/nocturne/theme.js /nocturne/paper.js https://static.cloudflareinsights.com/beacon.min.js";
+    ok("nocturne (" + label + "): nothing wider than the phone; its own scripts and the beacon, no other",
+       st.wide === false && st.scripts === wantScripts,
+       "wide " + st.wide + ", scripts " + st.scripts);
+    if(/No\. /.test(label)){
+      const sh = st.share || {};
+      const c = sh.copied || {}, r = sh.refused || {}, f = sh.after || {}, x = sh.sheetFailed || {}, k = sh.cancelled || {};
+      ok("nocturne (" + label + "): a copy says \"Link copied\" in the live region only; the button keeps its word",
+         c.out === "Link copied" && c.word === "Share" && !c.fail && c.copies === 1, JSON.stringify(c));
+      ok("nocturne (" + label + "): a refused copy says \"Copy failed\" and shows the link, as written, on its own line",
+         r.word === "Copy failed" && r.fail && r.out === r.url && r.copies === 2, JSON.stringify(r));
+      ok("nocturne (" + label + "): a second click inside 2.4 s still brings the word back to \"Share\"; the link stays",
+         f.word === "Share" && f.fail && f.out === f.url, JSON.stringify(f));
+      ok("nocturne (" + label + "): a failed share sheet copies instead; a cancelled one does nothing",
+         x.copies === 1 && x.out === "Link copied" && k.copies === 0 && k.out === "Link copied" && k.word === "Share",
+         JSON.stringify({ sheetFailed: x, cancelled: k }));
+    }
+    ok("nocturne (" + label + "): axe, no serious violations", st.axe && !st.axe.length,
+       st.axe && st.axe.length ? st.axe.join(", ") : "");
+    if(errs.length || (st.axe && st.axe.length)){
+      await np.screenshot({ path: shot("shot-nocturne-" + label.replace(/\W+/g, "-") + ".png"), fullPage: true });
+    }
+    await np.close();
+  }
+  /* 6.3.0. The paper follows the app's theme: a reader on Darker in the app
+     opens the paper in Darker, before first paint; one on Dark stays blue-black. */
+  for(const [theme, want] of [["darker", "darker"], ["dark", null]]){
+    const tp = await nctx.newPage();
+    let got = "unread";
+    try{
+      await tp.goto(SITE_URL + "nocturne/", { waitUntil: "load" });
+      await tp.evaluate(t => localStorage.setItem("batwatch-settings", JSON.stringify({ theme: t })), theme);
+      await tp.reload({ waitUntil: "load" });
+      got = await tp.evaluate(() => ({ attr: document.documentElement.getAttribute("data-theme"),
+                                       ink: getComputedStyle(document.body).backgroundColor }));
+      await tp.evaluate(() => localStorage.removeItem("batwatch-settings"));
+    }catch(e){ got = String(e).slice(0, 100); }
+    ok("nocturne: a reader on " + theme + " in the app reads the paper in " + (want || "dark"),
+       got && got.attr === want && got.ink === (want ? "rgb(0, 0, 0)" : "rgb(8, 9, 15)"), JSON.stringify(got));
+    await tp.close();
+  }
+  /* 6.5.0. The paper's own switch: on Dark in the app, a reader flips the
+     paper to Darker, it holds across a reload, flips back, and the app's
+     saved settings are never touched. */
+  {
+    const sp = await nctx.newPage();
+    let got = "unread";
+    try{
+      await sp.goto(SITE_URL + "nocturne/", { waitUntil: "load" });
+      await sp.evaluate(() => localStorage.setItem("batwatch-settings", JSON.stringify({ theme: "dark" })));
+      await sp.reload({ waitUntil: "load" });
+      await sp.click('[data-theme-set="darker"]');
+      const flipped = await sp.evaluate(() => document.documentElement.getAttribute("data-theme") + " " + document.querySelector('[data-theme-set="darker"]').getAttribute("aria-pressed"));
+      await sp.reload({ waitUntil: "load" });
+      await sp.waitForTimeout(200);
+      const held = await sp.evaluate(() => document.documentElement.getAttribute("data-theme") + " " + document.querySelector('[data-theme-set="darker"]').getAttribute("aria-pressed"));
+      await sp.click('[data-theme-set="dark"]');
+      const back = await sp.evaluate(() => String(document.documentElement.getAttribute("data-theme")));
+      const app = await sp.evaluate(() => localStorage.getItem("batwatch-settings"));
+      got = { flipped, held, back, app };
+      await sp.evaluate(() => { localStorage.removeItem("batwatch-settings"); localStorage.removeItem("nocturne-theme"); });
+    }catch(e){ got = String(e).slice(0, 100); }
+    ok("nocturne: the paper's switch flips to Darker, holds across a reload, flips back, and leaves the app's settings alone",
+       got && got.flipped === "darker true" && got.held === "darker true" && got.back === "null" && got.app === JSON.stringify({ theme: "dark" }),
+       JSON.stringify(got));
+    await sp.close();
+  }
+  ok("nocturne: the beacon was answered locally, never fetched from Cloudflare", beaconAsked > 0, beaconAsked + " requests");
+  /* The feed in a browser (6.2.2): styled by feed.css, not a raw XML tree,
+     and no wider than the phone. The empty feed from docs/ and the fixture's
+     two-item feed through the route. */
+  for(const [label, rel] of [["feed", "nocturne/feed.xml"], ["fixture feed", "nocturne-fixture/feed.xml"]]){
+    const fp = await nctx.newPage();
+    const errs = [];
+    fp.on("console", m => { if(m.type() === "error") errs.push(m.text().slice(0, 100)); });
+    fp.on("pageerror", e => errs.push(String(e).slice(0, 100)));
+    let st = { status: 0 };
+    try{
+      const resp = await fp.goto(SITE_URL + rel, { waitUntil: "load" });
+      st = await fp.evaluate(() => ({
+        styled: getComputedStyle(document.documentElement).display === "block" &&
+                getComputedStyle(document.documentElement).backgroundColor === "rgb(8, 9, 15)",
+        wide: document.documentElement.scrollWidth > innerWidth
+      }));
+      st.status = resp ? resp.status() : 0;
+    }catch(e){ errs.push(String(e).slice(0, 100)); }
+    ok("nocturne (" + label + "): styled by feed.css, no wider than the phone, no errors",
+       st.status === 200 && st.styled && st.wide === false && !errs.length,
+       errs[0] || ("HTTP " + st.status + ", styled " + st.styled + ", wide " + st.wide));
+    await fp.close();
+  }
+  await nctx.close();
+}
+await paperChecks();
+
+await finish();
+async function finish(){
+  await browser.close();
+  console.log("\nNight Watcher browser check — 390×844, " + (WK ? "WebKit" : "Chromium") +
+              (PAPER_ONLY ? ", the paper only" : "") + "\n");
+  out.forEach(l => console.log(l));
+  console.log(bad ? "\n  ✗ " + bad + " browser check(s) failed\n"
+                  : "\n  ✓ browser checks passed\n");
+  process.exit(bad ? 1 : 0);
+}

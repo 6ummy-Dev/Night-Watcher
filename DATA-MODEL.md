@@ -172,6 +172,15 @@ clocks and merges additively. The
 (`nw-backup-handle`) so later saves refresh the same file; the handle is
 device-local and never part of any format.
 
+## 4. The paper's key — `localStorage["nocturne-theme"]` (6.5.0)
+
+`"dark"` or `"darker"`, written only by `paper.js` when a reader presses the
+paper's theme switch. `theme.js` reads it before first paint and prefers it
+to the app's theme; `paper.js` reads it to mark the pressed button. The app
+never reads or writes it, and no backup code, restore link or export carries
+it: it is a per-browser convenience, lost with the site's data, and the paper
+falls back to the app's theme when it is missing or malformed.
+
 ## What never travels
 
 `S.mode`, `S.scope` when it is a view, the filter chip, search text, open

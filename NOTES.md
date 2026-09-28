@@ -86,7 +86,8 @@ identical optical centres.
 
 ### Fonts and palette
 
-Limelight, Big Shoulders Display and IBM Plex (Anton until 4.3.0), all under the SIL Open
+Limelight, Big Shoulders Display, IBM Plex (Anton until 4.3.0) and, from 6.5.0, Bodoni Moda
+700 for Home's card to the paper, all under the SIL Open
 Font License, served from `fonts/` rather than a CDN — the app makes a promise about asking nothing of
 anyone else, and guards section 42 enforces it. The palette is original hex,
 styled after the classic black / blue-grey / belt-yellow scheme.
@@ -2844,9 +2845,14 @@ The paper at `/nocturne/` (6.2.0). Why it is shaped this way:
   and `tierOf()` from `docs/index.html` and evaluates them, the same way the
   guards do, so an On-the-map box cannot disagree with the app.
 - **The CSP is a header here, and only here.** The app's policy is a
-  `<meta>` with a blessed script hash; the paper has no script, so one
-  default-deny header on `/nocturne/*` covers every page the build will
-  ever write. Section 104's "no CSP header" rule names this one exemption.
+  `<meta>` with a blessed script hash. The paper's pages are built, not
+  blessed, and run their scripts from files (`theme.js` from 6.3.0,
+  `paper.js` from 6.5.0, and the analytics beacon), so one default-deny
+  header on `/nocturne/*` that names `'self'` and the beacon's host covers
+  every page the build will ever write (section 164). `/hww/*` (6.5.0) has
+  its own header, which runs no script at all (section 170). Section 104's
+  "no CSP header" rule names these two exemptions, and pins both paths to
+  `no-cache` (6.5.1): they are rebuilt in place.
 - **YAML, a markdown subset, no markdown library.** The front matter is
   normal YAML, so a real parser reads it (`yaml`, dev-only). The body is
   paragraphs, `##` headlines, italic, bold and links, and the checker
@@ -2854,6 +2860,29 @@ The paper at `/nocturne/` (6.2.0). Why it is shaped this way:
   never carry markup the agent reached for.
 - **The weekly floor is 250 words.** VOICE.md first said 400, which three
   stories at the 120-word ceiling cannot reach.
+
+## What the install costs
+
+The HTML budget covers the document; the service worker's precache is the
+whole of what installing costs. At 6.5.1 it is 331,136 bytes, about 323 KiB:
+the document (253,317), the seven faces (65,560) and the manifest and icons
+(12,259). It is the `SHELL` list in `sw.js`; the paper and `/hww` are never
+in it.
+
+## Three hazards, and what answers each
+
+- **Lost progress.** The storage guards (a failed read stops the writes, a
+  failed write retries), the cross-tab merge
+  (`DATA-MODEL.md`), and the backup code, restore link and JSON export a
+  reader can take away.
+- **A spoiler.** The app shows titles, dates and ratings, never plot. The
+  paper's rule is VOICE.md's (no spoilers, in the paper or its pictures),
+  held by the Copy Desk's named breaks, the checker and the owner's review
+  of every issue.
+- **A night that is wrong for the room.** Each title carries its own
+  certificate as its own system states it (section 92), and the chip that
+  excludes `R` and `TV-MA` takes them out of the view without moving the
+  path (`OFFLIMITS`, above).
 
 ## The floor
 

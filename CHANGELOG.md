@@ -14,6 +14,83 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.5.1] — 2026-09-28
+
+**The outside QA on 6.5.0, taken whole, and three owner's calls on the
+paper.** A Cursor audit and a Chrome walk of the live site read 6.5.0 the
+day it shipped. Every finding that was true in the tree is fixed here; the
+triage records why each of the others is not. The paper's foot is
+reordered, its sign-off leaves NW Deco, and the brief now says plainly who
+posts on X. The catalogue does not move: no entry moves, nothing saved
+changes shape or meaning, and the counts stay at 137 films, 71 seasons and
+44 continuities. **No reinstall is needed.**
+
+### Changed
+
+- **The paper's foot, in a new order.** RSS, Share and *The morgue* come
+  first, in one row; then the *Night Watcher* button back to the map; then
+  the *Dark deco* / *Darker* switch, each row 30px from the next. The front
+  follows the same order with RSS alone in the first row.
+- **The sign-off is the reporter's last line,** so it is set in Newsreader
+  italic, the reading face, in sentence case. It was NW Deco in capitals, a
+  banner.
+- **Who posts on X, written down.** BRIEF's access table, its after-merge step and §8 now say
+  the owner posts, as themselves, and the Night Editor writes the one draft,
+  in the pull request, before the merge. No desk posts and nobody writes a
+  second draft. The desk's own roster already said so (its 28 Sept review);
+  the law now agrees. /hww's Sunday machine says the same, with the Sunday
+  path's real hours.
+- **Two rows in the app reach a finger's size.** The Theme row in Settings
+  and the Movies / + Series switch under the belt were 34px; both are 44 now,
+  with the focus ring drawn inside the row, where the row's clip can't eat it.
+  The include row is now as tall as the path control above it, and the
+  palette says which row is which.
+- **A stalled connection no longer holds the map.** The service worker gives
+  a page load 4 seconds on the network, then answers from its cache if it
+  holds the page; the network's late answer still refreshes the cache. Images,
+  fonts and the rest stay network-first, as they were.
+
+### Fixed
+
+- **Share.** A second tap inside two seconds used to leave the button saying
+  "Link copied" until a reload; it comes back to *Share* now. "Link copied" is
+  said once, in the live region, not twice. A copy that fails says *Copy
+  failed* and shows the link on its own line, as written and selectable, until
+  the next copy works. A share sheet that fails falls back to copying; one the
+  reader cancels does nothing.
+- The paper's theme no longer depends on the app's saved data being readable:
+  a corrupt app setting used to drop a valid paper choice.
+- Every paper page carries its own `twitter:image`. Issue pictures no longer
+  repeat their caption in `alt`, so a screen reader hears it once.
+- The service worker steps aside for `/nocturne` and `/hww` without the
+  trailing slash too.
+- `/nocturne/*` and `/hww/*` say `Cache-Control: no-cache`: both are rebuilt
+  in place, and they had been riding the platform's default with nothing
+  saying so.
+- /hww's phone layout keeps its rail (its mobile rule cancelled itself), and
+  its connector counts the gap like the bar above it.
+
+### Under the hood
+
+- Guard 164 checks that an issue's Share button names that issue's own
+  address and that `twitter:image` is `og:image`; 167 fences the whole
+  sitemap, not only the paper's block; 75 measures the two rows above; 104,
+  165 and 170 hold the new headers and the slashless paths; 132 drives the
+  4-second wait, the late cache write and the asset path. Guard 55 now says
+  levels 2 and 3 never sit taller than level 1, since both are 44.
+- New suite `negtest790`. The browser check now drives Share's four paths
+  with the share sheet and clipboard stubbed.
+- CI runs Node 26 beside 22 and 24, pins every action to a commit SHA, and
+  no checkout keeps its credentials.
+- /hww's counts come from `census.js`, its prose is escaped, and it says
+  what the audit found vague: the fence's four paths, that the Sunday freeze
+  is the owner's rule, what paper-only pull requests run, what "Scoped"
+  means, that a Night Final is not a release, and "Last independent audit".
+- The words caught up: README, BRIEF, RELEASING (the wire block, the `main`
+  ruleset as read on 28 Sept), NOTES (the precache's cost and three hazards),
+  SECURITY, DATA-MODEL (the paper's key), ARCHITECTURE, CONTRIBUTING, the
+  fonts' notices, and `llms.txt`, which now names the paper and its feed.
+
 ## [6.5.0] — 2026-09-27
 
 **The crew's page, and the paper's second pass.** Three owner's notes from the

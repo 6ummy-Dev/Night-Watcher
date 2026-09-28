@@ -226,7 +226,8 @@ and that is a finding, not a curiosity.
 **An issue is not a release.** It lands as a pull request from the drafting
 agent's `nocturne/` branch and goes live when the owner merges it (the
 Worker builds on every push to `main`). No version moves. Before merging:
-CI green on every job, the fence (`nocturne-fence.yml`) included. On an
+CI green on every job of the run for the pull request's head commit (this
+SHA's run, not an earlier push's), the fence (`nocturne-fence.yml`) included. On an
 issue pull request CI runs every guard, the paper's check and the paper's
 half of the browser check, and reports smoke and the negative shards as
 skipped (6.3.0); the push to `main` after the merge runs everything, so read
@@ -235,21 +236,25 @@ agent attached (390 and 1280 wide) read through; every source link opened
 on at least the lead story. Then, after the deploy:
 
 ```
-curl -sI https://nightwatcher.life/nocturne/ | grep -iE '^HTTP|content-security-policy'
+curl -sI https://nightwatcher.life/nocturne/ | grep -iE '^HTTP|content-security-policy|cache-control'
 curl -s  https://nightwatcher.life/nocturne/feed.xml | grep -c '<item>'
 curl -s  https://nightwatcher.life/sitemap.xml | grep -c '/nocturne/'
 curl -s  https://nightwatcher.life/nocturne/theme.js | head -c 60
+curl -s  https://nightwatcher.life/nocturne/paper.js | head -c 60
+curl -sI https://nightwatcher.life/hww/ | grep -iE '^HTTP|x-robots-tag|content-security-policy|cache-control'
 ```
 
 Expected: `200` and the one `Content-Security-Policy` line from
 `_headers`, exactly (from 6.3.0 it allows `script-src 'self'
 https://static.cloudflareinsights.com` and `connect-src
-https://cloudflareinsights.com`); `theme.js` answering with its header
-comment; the feed's item count equal to the issues merged (up
-to 20); the sitemap listing the archive and every issue. Before the first
-issue is merged, `/nocturne/` answers `200` with the holding page (On the
-press, `noindex`), the feed answers with `0` items and the sitemap lists no
-`/nocturne/` URL: that is the 6.2.1 state, not a fault.
+https://cloudflareinsights.com`) and `Cache-Control: no-cache` (6.5.1);
+`theme.js` and `paper.js` each answering with its header comment; the feed's
+item count equal to the issues merged, up to 20 (1 at No. 0); the sitemap
+listing the front and every issue. `/hww/` answers `200` with `X-Robots-Tag:
+noindex, nofollow`, its script-free policy and `no-cache`. The holding page
+(On the press, `noindex`, an empty feed, no `/nocturne/` URL in the sitemap)
+was the state from 6.2.1 until No. 0 merged on 27 Sept 2026; the build writes
+it again only if no issue exists, and on a live paper it is a fault.
 
 **The door on Home (6.2.1), a device check.** Home's *Read the paper* is
 built like *Where to watch*, but *Where to watch* leaves the site and the
@@ -343,6 +348,22 @@ and `worker.js` cite the maintainer's local evidence files
 `ops/c0-edge-injection.md`, and others). Those are annotated as
 maintainer-local where cited — they are not in the repository, and this file
 is the in-repo home for anything a release actually depends on.
+
+## The `main` ruleset (read 28 Sept 2026)
+
+Read in Settings → Rules by the owner; the file records it so a reader does
+not have to guess what protects `main`. GitHub is the authority; if the two
+disagree, the panel is right and this table is stale.
+
+| Setting | State |
+|---|---|
+| Ruleset | "Inicial", active on `main` |
+| Pull request | Required; 1 approval; code-owner review; the latest push approved by someone other than its pusher; stale approvals dismissed |
+| Force-push, deletion | Blocked |
+| Bypass | Repository admin (the owner) only. Neither app is on the list |
+| Required status checks | `nocturne-paths`. The owner's call (28 Sept) is to add the QA jobs too: `test`, `negative` and `browser`, one check per matrix leg (three Node lines, four shards, two engines). GitHub offers each by its full name only after it has run on a pull request |
+| Actions | Workflow token read-only; Actions can't create or approve pull requests; fork PRs from outsiders need approval |
+| Security | CodeQL default setup (JavaScript, `qa/guards.js` included; Actions, HTML, Python); secret scanning and push protection on; Dependabot alerts and grouped security updates on, version updates off |
 
 ## Standing notes
 

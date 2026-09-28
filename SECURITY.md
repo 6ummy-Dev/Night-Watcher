@@ -28,7 +28,13 @@ it's fixed.
   never sees which entries you watch. The client-side Web Analytics beacon that
   used to sit here was removed from the app in 3.2.0, and the app fetches
   nothing. Since 6.3.0 the paper at `/nocturne/`, and only the paper, carries
-  it: no cookies, disclosed in the paper's colophon.
+  it: no cookies, disclosed in the paper's colophon. The paper's own scripts
+  are `theme.js` and `paper.js` (6.5.0), which reads no progress and writes one
+  key, `nocturne-theme`. Any script on the origin can read `localStorage`,
+  the beacon included; the progress it could read is watched and rated titles
+  and settings, nothing that names a person. Cloudflare's edge can add Network Error Logging headers, which
+  make a browser report failed requests only, to Cloudflare; that is the
+  host's, not the app's.
 - Missing HTTP security headers on any address other than `nightwatcher.life`.
   The canonical site — now the only one — sets `Referrer-Policy`,
   `X-Frame-Options`, `Permissions-Policy`, `Cross-Origin-Opener-Policy` and

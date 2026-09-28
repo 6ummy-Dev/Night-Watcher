@@ -72,15 +72,19 @@ map that week. No. 0 is the paper introducing itself, and its neighbour.
 
 It is **not part of the app**. The service worker never caches it. Its pages
 are static, under a default-deny Content-Security-Policy of their own
-(`docs/_headers`), and run two scripts (6.3.0): `theme.js`, which follows
-the app's Dark or Darker theme, and Cloudflare Web Analytics' beacon, which
-counts the paper's visits without cookies and is disclosed in the colophon.
+(`docs/_headers`), and run three scripts: `theme.js` (6.3.0), which sets the
+theme before first paint, the reader's own choice for the paper first and the
+app's Dark or Darker otherwise; `paper.js` (6.5.0), the Share button on each
+issue and the theme switch in every page's foot; and Cloudflare Web
+Analytics' beacon (6.3.0), which counts the paper's visits without cookies
+and is disclosed in the colophon.
 The app itself carries no analytics and fetches nothing from anyone. The app's one door to it is Home's *Read the
 paper* card (6.2.1), a button built like *Where to watch* that opens the
 paper in a tab of its own. Beyond that it is reached through the sitemap,
-its RSS feed and the X post that announces each issue. Until the first issue
-merges, `/nocturne/` is a holding page (noindex, no date promised) and the
-feed is open and empty, so a reader can subscribe early.
+its RSS feed and the X post that announces each issue. `/nocturne/` is the
+front: the latest issue, with the back issues under *The morgue*. (Before
+No. 0 merged it was a holding page, noindex, with an open, empty feed; the
+build still writes that page whenever there is no issue.)
 
 A desk of eight AI agents writes each issue as markdown in
 `nocturne/issues/`, following `nocturne/BRIEF.md` and `nocturne/VOICE.md`,
@@ -151,7 +155,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `docs/_headers` | The security headers and cache policy, kept in the tree so they can be diffed, guarded and shipped |
 | `docs/hww/index.html` | /hww, "How we work": who does what on Night Watcher and the rules that hold it. Unlisted (noindex in the page and its header, out of the sitemap and the worker, linked from nowhere). Written by `npm run hww:build` from the tree, never by hand; guard 170 holds it |
 | `docs/hww/hww.css` | Its stylesheet: the app's tokens and faces, no script anywhere on the page |
-| `docs/nocturne/` | Nocturne, the paper: every issue, its images, the front (the latest issue, with back issues under The morgue), each page's 1200×630 share card (`card.png`), the RSS feed with its browser stylesheet `feed.css`, `nocturne.css`, `theme.js` (the paper's one script of its own), the paper's own faces and the `OFL.txt` that travels with it. Written by `npm run nocturne:build`, never by hand; guard 163 holds it to the build |
+| `docs/nocturne/` | Nocturne, the paper: every issue, its images, the front (the latest issue, with back issues under The morgue), each page's 1200×630 share card (`card.png`), the RSS feed with its browser stylesheet `feed.css`, `nocturne.css`, `theme.js` and `paper.js` (the paper's two scripts of its own), the paper's own faces and the `OFL.txt` that travels with it. Written by `npm run nocturne:build`, never by hand; guard 163 holds it to the build |
 | `docs/404.html` | The wrong-alley page. Self-contained, noindexed, served with a real 404 status |
 | `docs/.well-known/security.txt` | RFC 9116 disclosure pointer, with an `Expires` guard 140 watches — the tree's only clock |
 | `docs/.well-known/brave-rewards-verification.txt` | Brave Creators ownership token |
@@ -179,7 +183,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `nocturne/` | Nocturne's source: `BRIEF.md`, `VOICE.md`, `REPORTER.md`, `CASEBOOK.md` and `MORGUE.md` (the owner's rules, the reporter's profile, his closed past and the card catalogue of Batman's real history, which the agents never edit), `NOTEBOOK.md` (the desk's reading record, never published) and `issues/`, one folder per issue — `issue.md` and its images |
 | `qa/hww.js` | Builds and checks `docs/hww/` (`npm run hww:build`, `npm run hww:check`). Reads its counts from the tree: guard sections, negative suites and fixtures, the smoke count, BUILD, and the header's mark |
 | `qa/nocturne.js` | The paper's builder and checker (`npm run nocturne:build`, `npm run nocturne:check`). Reads the catalogue out of `docs/index.html`; guards 163–169 require the same file |
-| `qa/nocturne-fonts/` | The paper's own faces and their `record.json`: the italic (NW Sans Italic) and, from 6.4.0, Bodoni Moda 700 and Newsreader 400 and italic, subset by `qa/subset-fonts.py --paper`; `OFL-paper.txt`, the notices the build appends to the paper's `OFL.txt`; and `card/`, TrueType copies of the faces the share card sets (`--card`). The build copies the faces into `docs/nocturne/` and refuses bytes a record did not bless |
+| `qa/nocturne-fonts/` | The paper's own faces and their `record.json`: the italic (NW Sans Italic) and, from 6.4.0, Newsreader 400 and italic, subset by `qa/subset-fonts.py --paper`; `OFL-paper.txt`, the notices the build appends to the paper's `OFL.txt`; and `card/`, TrueType copies of the faces the share card sets (`--card`). The build copies the faces into `docs/nocturne/` and refuses bytes a record did not bless. Bodoni Moda 700, the paper's banner face, lives in `docs/fonts/` with the app's faces since 6.5.0, and the paper reads it from there |
 | `qa/nocturne-fixture/` | Two test issues (No. 0 and an invented No. 1) that guards 163–169 build and check on every run. Never published |
 | `qa/frozen-ids.json` | Snapshot of every `i:` slug, so a rename can't slip through |
 | `qa/script-bytes.json` | The blessed script's size and hash — the baseline every bless prints its size jump against; guard 43 holds it to the page |
@@ -228,7 +232,7 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 87 negative suites, 1642
+trusted. That evidence lives in `qa/negative/` — 88 negative suites, 1661
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps

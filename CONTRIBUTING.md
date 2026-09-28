@@ -25,10 +25,11 @@ pull requests — so "one change, one commit, one CHANGELOG entry" is the
 whole workflow.
 
 **The one exception is Nocturne (6.2.0).** Each weekly issue arrives as a
-pull request from a `nocturne/` branch, opened by the drafting agent under
-a bot account. It may change `nocturne/issues/`, `docs/nocturne/` and
-`docs/sitemap.xml` only (the `nocturne-paths` job in `qa.yml` fails
-anything wider), and the owner reviews and merges every one. An issue is
+pull request from a `nocturne/` branch, opened by the desk's GitHub App as
+`nocturne-night-final[bot]`. It may change `nocturne/issues/`,
+`nocturne/NOTEBOOK.md`, `docs/nocturne/` and `docs/sitemap.xml` only (the
+`nocturne-paths` job in `nocturne-fence.yml` fails anything wider, and guard
+167 holds the sitemap to the paper's block), and the owner reviews and merges every one. An issue is
 content, not a release: no version, no tag, no CHANGELOG entry. The
 agent's rules are `nocturne/BRIEF.md` and `nocturne/VOICE.md`, and only the
 owner edits them. The version rule is in `README.md` ("Releasing"); the

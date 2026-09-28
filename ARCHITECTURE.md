@@ -1,7 +1,8 @@
 # Night Watcher — the shape of the script
 
 `docs/index.html` is one file: markup, styles, catalogue and logic, about
-150 KB of script. This is the map a new reader needs before the first
+165 KB of script (the ledger, `qa/script-bytes.json`, holds the exact
+count). This is the map a new reader needs before the first
 change — what the sections are, what the state bag holds, how a count is
 made, how a route becomes a view, and what one render does. `NOTES.md` says
 why each piece is shaped as it is; `DATA-MODEL.md` is the storage half;
