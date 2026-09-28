@@ -78,8 +78,17 @@ green_case "the export is named only in a sitemap COMMENT" \
 
 # 5.3.1: guard 67 dates the llms.txt URL, so the mutation adds a third URL
 # rather than renaming the second one out from under it.
-green_case "a location merely CONTAINS the export name without being it" \
-  "${S}a='</urlset>';assert a in s;s=s.replace(a,'  <url>\n    <loc>https://nightwatcher.life/about-orders.txt-policy</loc>\n    <lastmod>2026-09-01</lastmod>\n  </url>\n'+a,1);${SW}"
+#
+# 6.5.2: this was a green_case until 6.5.1's fence (guard 167) made the input
+# impossible — the sitemap may list /, /llms.txt and the paper's block, and
+# nothing else, so no location can contain the export's name at all. The
+# mutation is unchanged; it now goes red on 167, pinned to that section, which
+# is the one that must answer for it. Guard 105's precision against a comment
+# is still held green by the fixture above.
+run_case "a location merely CONTAINS the export name without being it" \
+  "lists a URL after the Nocturne block" \
+  "${S}a='</urlset>';assert a in s;s=s.replace(a,'  <url>\n    <loc>https://nightwatcher.life/about-orders.txt-policy</loc>\n    <lastmod>2026-09-01</lastmod>\n  </url>\n'+a,1);${SW}" \
+  guards "" 167
 
 rm -rf "$NEG"
 finish "2.7.2 negative tests"
