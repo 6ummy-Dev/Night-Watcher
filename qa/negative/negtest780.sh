@@ -17,6 +17,10 @@
 # stays the owner's (166, 163); an issue never cites it; Batman's creator is
 # never Kane alone; a charge is "charged with"; the film press stays out
 # (166).
+# 6.4.0: every page shares its own stamped 1200x630 card (168; the 16 KB
+# ceiling is negtest750's fixture, re-aimed); the press faces are declared where they are served
+# (169); a card face that moved, or a card that is not the one the build
+# draws, is caught (166, 163).
 # Every fixture names its section.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
@@ -317,5 +321,34 @@ run_case "a film reporter's name in the paper" \
   "\"Kolchak\" never goes in the paper" \
   "${F40}a='${T}';assert s.count(a)==1;s=s.replace(a,'Kolchak would have filed it. '+a,1);${W}" \
   guards "" 166
+
+echo "--- 168/169/166/163: the front, the press faces and the card (6.4.0)"
+
+CR="$(pro qa/nocturne-fonts/card/record.json)"
+
+run_case "a card loses its stamp" \
+  "carries no nw-card stamp" \
+  "${N}a='return pngText(png, CARD.key, sum);';assert s.count(a)==1;s=s.replace(a,'return png;',1);${W}" \
+  guards "" 168
+
+run_case "the issue shares the site's card again" \
+  "its og:image is its own card" \
+  "${N}a='var ogImg = {url: url + ';assert s.count(a)==1;i=s.index(a);j=s.index(';',i);s=s[:i]+'var ogImg = SHARE'+s[j:];${W}" \
+  guards "" 168
+
+run_case "the press face is served but never declared" \
+  "no longer declares the paper's face bodoni-moda-latin-700-normal.woff2" \
+  "${N}L=s.split('\n');k=[i for i,l in enumerate(L) if 'PRESS.file' in l and '@font-face' in l];assert len(k)==1;del L[k[0]];s='\n'.join(L);${W}" \
+  guards "" 169
+
+run_case "a card face is not the copy its record blessed" \
+  "is not the copy its record blessed" \
+  "${CR}a='\"sha256\": \"';assert s.count(a)==4;s=s.replace(a,a+'0',1);${W}" \
+  guards "" 166
+
+run_case "the card's headline is set another size" \
+  "card.png is not what the build writes" \
+  "${N}a='var size = 66,';assert s.count(a)==1;s=s.replace(a,'var size = 62,',1);${W}" \
+  guards "" 163
 
 finish "negtest780"

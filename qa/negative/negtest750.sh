@@ -256,7 +256,7 @@ run_case "the feed stays closed until the first issue" \
 
 run_case "the archive keeps the holding page's noindex" \
   "the archive carries noindex" \
-  "${N}a='url: url, ogType: \"website\", img: SHARE});';assert s.count(a)==1;s=s.replace(a,'url: url, ogType: \"website\", img: SHARE, extra: \\'<meta name=\"robots\" content=\"noindex\">\\\\n\\'});',1);${W}" \
+  "${N}a='alt: CARD_ALT}});';assert s.count(a)==1;s=s.replace(a,'alt: CARD_ALT}, extra: \'<meta name=\"robots\" content=\"noindex\">\\\\n\'});',1);${W}" \
   guards "" 167
 
 run_case "the feed stops linking its stylesheet" \
@@ -271,7 +271,7 @@ run_case "the build stops writing feed.css" \
 
 run_case "the paper is screen news again" \
   "still calls the paper \"screen news\"" \
-  "${N}a='The morgue</h1>\\\\n<p class=\"sub\">The week\\\\u2019s Batman news';assert a in s,a;s=s.replace(a,'The morgue</h1>\\\\n<p class=\"sub\">The week\\\\u2019s Batman screen news',1);${W}" \
+  "${N}a='Batman news. Every Sunday, late. No spoilers';assert s.count(a)==1;s=s.replace(a,'Batman screen news. Every Sunday, late. No spoilers',1);${W}" \
   guards "" 167
 
 run_case "the feed's stylesheet loads a font from another origin" \
@@ -297,7 +297,7 @@ run_case "the feed's stylesheet outgrows its budget" \
   guards "" 168
 
 run_case "the stylesheet outgrows its budget" \
-  "the paper's stylesheet is at most 12 KB" \
+  "the paper's stylesheet is at most 16 KB" \
   "${N}a='\"*{box-sizing:border-box;}\",';assert a in s;s=s.replace(a,a+'\"/*'+'x'*13000+'*/\",',1);${W}" \
   guards "" 168
 

@@ -16281,7 +16281,11 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    image and per issue, and it is set in qa/nocturne.js where the check reads
    it. The numbers are pinned here too, so loosening a limit in the module
    is a change this file sees: 40 KB a page, 250 KB an image, three images
-   an issue, 1600 px on the long side (BRIEF.md section 6). */
+   an issue, 1600 px on the long side (BRIEF.md section 6).
+   6.4.0: the stylesheet's ceiling is 16 KB (the owner's call, for the
+   landing's front and the press faces), and every issue and the landing
+   carry a share card: a 1200x630 PNG at most 250 KB, stamped with the hash
+   of the SVG it was drawn from, and named by the page's og:image. */
 
 (function(){
   if(!NOC) return;
@@ -16297,11 +16301,33 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       var sz = bld.files[f].length; n++;
       if(/\.html$/.test(f) && sz > L.page) fail("the paper's " + f + " weighs " + sz + " bytes — a page is at most " + L.page);
       if(/\.webp$/.test(f) && sz > L.image) fail("the paper's " + f + " weighs " + sz + " bytes — an image is at most " + L.image);
-      if(f === "nocturne.css" && sz > 12 * 1024) fail("nocturne.css weighs " + sz + " bytes — the paper's stylesheet is at most 12 KB");
+      if(f === "nocturne.css" && sz > 16 * 1024) fail("nocturne.css weighs " + sz + " bytes — the paper's stylesheet is at most 16 KB");
+      if(/(^|\/)card\.png$/.test(f)){
+        var png = bld.files[f];
+        if(sz > L.image) fail("the paper's " + f + " weighs " + sz + " bytes — a card is at most " + L.image);
+        if(png.toString("latin1", 1, 4) !== "PNG" || png.readUInt32BE(16) !== 1200 || png.readUInt32BE(20) !== 630){
+          fail("the paper's " + f + " is not a 1200x630 PNG — the share card's one size");
+        }
+        if(!/^[0-9a-f]{64}$/.test(NOC.cardKey(png) || "")) fail("the paper's " + f + " carries no nw-card stamp — drift cannot tell whether it is the card the build draws");
+      }
       if(f === "feed.css" && sz > 4 * 1024) fail("feed.css weighs " + sz + " bytes — the feed's stylesheet is at most 4 KB");
     });
   });
-  note("nocturne: " + n + " built files inside the paper's weight limits");
+  var cards = 0;
+  [NOC_REAL, NOC_FIX].forEach(function(bld){
+    if(!bld || !bld.list || !bld.list.length) return;
+    Object.keys(bld.files).filter(function(f){ return /index\.html$/.test(f); }).forEach(function(f){
+      var card = f.replace(/index\.html$/, "card.png"), h = bld.files[f].toString("utf8");
+      if(!bld.files[card]){ fail("the paper's " + f + " has no card.png beside it — every issue and the landing share as a card (6.4.0)"); return; }
+      cards++;
+      var og = (h.match(/<meta property="og:image" content="([^"]+)">/) || [])[1] || "";
+      if(og !== "https://nightwatcher.life/nocturne/" + card) fail("the paper's " + f + " shares " + (og || "no image") + " — its og:image is its own card (6.4.0)");
+      if(h.indexOf('<meta property="og:image:width" content="1200">') < 0 || h.indexOf('<meta property="og:image:height" content="630">') < 0){
+        fail("the paper's " + f + " does not give its card's size as 1200x630");
+      }
+    });
+  });
+  note("nocturne: " + n + " built files inside the paper's weight limits; " + cards + " pages share their own 1200x630 card");
 })();
 
 /* ---------- 169. The paper sets type on the app's scale ---------- */
@@ -16385,8 +16411,10 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
         fail("the paper's italic " + f + " is not the face qa/nocturne-fonts/record.json blessed");
       }
       if(fs.existsSync(path.join(PUBLIC, "fonts", f))) fail(f + " is in docs/fonts/ — the paper's italic is the paper's alone; the app would have to preload it");
-      if(bld.files["nocturne.css"].toString("utf8").indexOf('src:url("/nocturne/' + f + '") format("woff2");font-weight:400;font-style:italic;') < 0){
-        fail("nocturne.css no longer declares the paper's italic face — titles fall back to a faked slant");
+      var decl = bld.files["nocturne.css"].toString("utf8").indexOf('src:url("/nocturne/' + f + '") format("woff2");');
+      if(decl < 0) fail("nocturne.css no longer declares the paper's face " + f + " — it is served and never used, or the paper falls back to a system face");
+      if(/italic/.test(f) && bld.files["nocturne.css"].toString("utf8").indexOf('src:url("/nocturne/' + f + '") format("woff2");font-weight:400;font-style:italic;') < 0){
+        fail("nocturne.css no longer declares the paper's italic face " + f + " as italic — titles fall back to a faked slant");
       }
     });
     if(JSON.stringify(rec169.ranges) !== JSON.stringify(JSON.parse(fs.readFileSync(path.join(ROOT, "qa", "font-subset.json"), "utf8")).ranges)){

@@ -179,7 +179,7 @@ run_case "the italic moves into the app's fonts" \
 
 run_case "the italic face drops out of the stylesheet" \
   "no longer declares the paper's italic face" \
-  "${N}a='font-weight:400;font-style:italic;';assert s.count(a)==1;s=s.replace(a,'font-weight:400;',1);${W}" \
+  "${N}L=s.split('\n');k=[i for i,l in enumerate(L) if 'ITALIC.file' in l and 'font-style:italic;' in l];assert len(k)==1;L[k[0]]=L[k[0]].replace('font-style:italic;','',1);s='\n'.join(L);${W}" \
   guards "" 169
 
 run_case "the licence stops travelling with the font" \

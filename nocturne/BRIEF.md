@@ -55,7 +55,9 @@ without cookies (6.3.0). You never add a script. **It is
 reached through Home's one *Read the paper* button (from 6.2.1), the sitemap,
 the RSS feed at `/nocturne/feed.xml` and the weekly X post.** Until the first
 issue merges, `/nocturne/` is a holding page the build writes on its own; your
-first issue replaces it with the archive, *The morgue*. Never write or edit it.
+first issue replaces it with the front: the latest issue's headline, hero,
+cold open and story heads, one *Read the Night Final* button, and back issues
+under *The morgue* (6.4.0). Never write or edit it.
 The footer (6.3.1) leads back to the map with a *Night Watcher* button that
 carries the app's mark, then *RSS* (the feed) and, on issues, *The morgue*,
 with the colophon under the app's diamond rule. The renderer writes it.
@@ -529,7 +531,8 @@ nocturne:build ✅  nocturne:check ✅  npm test ✅
   plain sentence, then the link. No hashtags, no emoji, no "RT", no "link in
   replies". The link goes in the post.
 - An optional closing question, answerable in three words.
-- The card comes from the issue's `og:image` (the hero) or the site default.
+- The card is the issue's own `card.png` (6.4.0): the renderer draws it from
+  the headline, the number and the date. You never make or edit it.
 - Reply to replies in the same voice. No arguing, no leaks, no spoilers.
 - Never a second post about the same issue.
 

@@ -1,8 +1,23 @@
 {
   "files": {
+    "bodoni-moda-latin-700-normal.woff2": {
+      "bytes": 11056,
+      "sha256": "f019f2475c8262ab1bd98f9d52932af944c1c1ece3f5fd3f3e2e4963beeca065",
+      "subset": true
+    },
     "ibm-plex-sans-latin-400-italic.woff2": {
       "bytes": 9156,
       "sha256": "d5ae6bc3278eff5696ab4cc1e8765bfb70938b9cfd61ddbd11aa2c654f0d4fa4",
+      "subset": true
+    },
+    "newsreader-latin-400-italic.woff2": {
+      "bytes": 11948,
+      "sha256": "d41c1c6f267456a3ffd1ea92365a034cd9e94e22e22859347f345e6aa10de2b2",
+      "subset": true
+    },
+    "newsreader-latin-400-normal.woff2": {
+      "bytes": 10964,
+      "sha256": "6fb3c5f9fcfd1dd934c7105511ce0a3321b1c1ff3ce8979b8a62690018bea758",
       "subset": true
     }
   },

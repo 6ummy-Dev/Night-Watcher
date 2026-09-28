@@ -14,6 +14,75 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.4.0] — 2026-09-27
+
+**The paper gets a front page.** The morning after No. 0, the paper's door
+was a list with one title in it. Now `/nocturne/` leads with the latest Night
+Final: its headline, its picture, its cold open and what is inside, then one
+button in. Back issues file below under *The morgue*. The paper also gets its
+own type, a broadsheet's Bodoni for the headlines and Newsreader for reading,
+and every issue shares as its own card instead of borrowing a picture. The app
+changes only its version: no entry moves, nothing saved changes shape or
+meaning, and the counts stay at 137 films, 71 seasons and 44 continuities.
+**No reinstall is needed.**
+
+### Added
+
+- **The front.** `/nocturne/` opens on the latest issue: a kicker (Latest,
+  its number, its date), the headline as the banner, the hero, the cold open
+  with the drop cap, *In this issue* (each story's headline, numbered, with
+  its beat on a weekly issue, each linking to its `#sN`), and one yellow
+  *Read the Night Final* button. The arrow points in, not up and out: ↗ stays
+  for links that leave. Under a diamond rule, *The morgue* lists the back
+  issues, or says No. 0 is the first. The nameplate is the page's `h1`.
+- **The press faces.** The banner and the story headlines are set in Bodoni
+  Moda 700, and the cold open and the stories in Newsreader 400 and italic.
+  Both are OFL with no reserved name, subset to the app's ranges by
+  `qa/subset-fonts.py --paper` and blessed in `qa/nocturne-fonts/record.json`
+  beside the italic. They are the paper's alone (+33 KB, served from
+  `/nocturne/`, never preloaded or precached by the app), and their notices
+  travel in the paper's `OFL.txt`. NW Deco keeps the nameplate, the drop cap
+  and the sign-off, and the mono keeps the kickers, so it stays a Night
+  Watcher paper. Reading text sets `font-size-adjust:.5` so Newsreader
+  reads at NW Sans's size on the same `--t-*` scale.
+- **Justified columns.** The cold open and the stories are set justified,
+  like a column of newsprint, and hyphenated by the browser (`hyphens:auto`
+  on the page's `lang="en"`) so a phone's narrow measure doesn't open rivers.
+  The Board, the map box, captions and the kickers stay ranged left.
+- **The share card.** Every issue and the front share a typographic
+  1200×630 PNG, `card.png`, which `nocturne:build` draws: the nameplate, the
+  seal, the number and date, the headline balanced in Bodoni, and the way
+  back. The front's card carries the tagline. The hero stays the article's
+  image (BRIEF §6: images are never altered), and the holding page keeps
+  `share.png`. The card is an SVG the module writes from blessed TrueType
+  copies of the served faces (`qa/subset-fonts.py --card`), rasterized by
+  resvg with no system font loaded. A rasterizer can differ by a pixel between
+  CPUs, so each PNG carries its SVG's SHA-256 in a `tEXt` chunk (`nw-card`),
+  and drift compares that.
+
+### Changed
+
+- **Guard 168**: the stylesheet's ceiling is 16 KB (the owner's call; the
+  front and the faces took it to 14.5 KB). Every page has a `card.png` beside
+  it: a 1200×630 PNG, at most 250 KB, stamped, and named by the page's
+  `og:image`.
+- **Guard 169** holds every face in the paper's record to an `@font-face`,
+  not only the italic.
+- **BRIEF §2 and §8** say what the front shows and that the card is the
+  issue's own `card.png`. README's rows follow.
+- `package.json` adds `opentype.js` (to measure the headline) and
+  `@resvg/resvg-js` (to draw the card), both dev-only.
+
+### Under the hood
+
+- Negative fixtures 1,624 → 1,629 (1,507 → 1,512 guards / 117 smoke) across
+  87 suites. negtest780 takes five: a card without its stamp, an issue sharing
+  the site's card, a served face never declared, a card face that is not its
+  blessed copy, and a card drawn at another size. Four older fixtures are
+  re-aimed at the new shape: negtest750's stylesheet budget (12 → 16 KB), its
+  archive `noindex` and "screen news" plants (now on the front's own lines),
+  and negtest760's italic (the stylesheet declares two italics now).
+
 ## [6.3.8] — 2026-09-27
 
 **The SEO pass stays.** A patch that puts back what 6.3.7 took out by

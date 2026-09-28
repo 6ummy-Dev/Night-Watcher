@@ -198,6 +198,8 @@ var MARK = '<svg class="mk" viewBox="8 16 84 70" aria-hidden="true"><g fill="cur
 var RSS = '<svg class="rss" viewBox="0 0 12 12" aria-hidden="true"><circle cx="2.2" cy="9.8" r="1.5" fill="currentColor"/>' +
   '<path d="M1.2 5.3a5.5 5.5 0 0 1 5.5 5.5M1.2 1.4a9.4 9.4 0 0 1 9.4 9.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 var ARROW = '<svg class="arr" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 9.5 9.2 2.8M4.2 2.5h5.3v5.3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+/* 6.4.0. Into the paper, not out of it: a plain right arrow. The ↗ stays for links that leave. */
+var ARROW_IN = '<svg class="arr" viewBox="0 0 12 12" aria-hidden="true"><path d="M1.8 6h8M6.6 2.6 10 6l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 function unesc(s){
   return String(s).replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 }
@@ -728,12 +730,24 @@ var BEACON = '<script type="module" src="https://static.cloudflareinsights.com/b
    qa/nocturne-fonts/ with its record. It is the paper's alone: it is not in
    docs/fonts/, so the app neither preloads nor precaches it, and the build
    writes it into docs/nocturne/ beside OFL.txt, which travels with it. */
-var ITALIC = (function(){
+/* 6.4.0. The paper's own faces, all blessed in the one record: the italic
+   above, and the press faces (Bodoni Moda 700 for the banner and the story
+   heads, Newsreader 400 and italic for the reading text). No reserved names,
+   so they ship as subsets under their own names. None is in docs/fonts/. */
+var PAPER_FONTS = (function(){
   var dir = path.join(__dirname, "nocturne-fonts");
   var rec = JSON.parse(fs.readFileSync(path.join(dir, "record.json"), "utf8"));
-  var file = Object.keys(rec.files)[0];
-  return {file: file, dir: dir, rec: rec.files[file]};
+  return Object.keys(rec.files).sort().map(function(f){ return {file: f, dir: dir, rec: rec.files[f]}; });
 })();
+function paperFont(file){
+  var f = PAPER_FONTS.filter(function(x){ return x.file === file; })[0];
+  if(!f) throw new Error("qa/nocturne-fonts/record.json has no " + file + " — run python3 qa/subset-fonts.py --paper");
+  return f;
+}
+var ITALIC = paperFont("ibm-plex-sans-latin-400-italic.woff2");
+var PRESS  = paperFont("bodoni-moda-latin-700-normal.woff2");
+var READ   = paperFont("newsreader-latin-400-normal.woff2");
+var READ_I = paperFont("newsreader-latin-400-italic.woff2");
 
 var CSS = [
 "/* Nocturne \u2014 the paper's one stylesheet. Written by qa/nocturne.js; never edited by hand. */",
@@ -744,11 +758,15 @@ var CSS = [
 "@font-face{font-family:\"NW Sans\";src:url(\"/fonts/ibm-plex-sans-latin-600-normal.woff2\") format(\"woff2\");font-weight:600;font-display:swap;}",
 "@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-display:swap;}",
 "@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-600-normal.woff2\") format(\"woff2\");font-weight:600;font-display:swap;}",
+"@font-face{font-family:\"Bodoni Moda\";src:url(\"/nocturne/" + PRESS.file + "\") format(\"woff2\");font-weight:700;font-display:swap;}",
+"@font-face{font-family:\"Newsreader\";src:url(\"/nocturne/" + READ.file + "\") format(\"woff2\");font-weight:400;font-display:swap;}",
+"@font-face{font-family:\"Newsreader\";src:url(\"/nocturne/" + READ_I.file + "\") format(\"woff2\");font-weight:400;font-style:italic;font-display:swap;}",
 ":root{--ink:#08090F;--sunk:#0C111C;--card:#141B2C;--card2:#1B2438;--line:#252E42;--line2:#33405C;",
 "  --bone:#E7E9F0;--dust:#93A0B8;--dim:#8B97B1;--suit:#A6ADBA;--signal:#FFCF1F;--steel:#7295CC;",
 "  --signalline:rgba(255,207,31,.4);",
 "  --deco:\"NW Deco\",\"Big Shoulders Display\",serif;--disp:\"Big Shoulders Display\",\"Arial Narrow\",Impact,sans-serif;",
 "  --body:\"NW Sans\",-apple-system,\"Segoe UI\",sans-serif;--mono:\"NW Mono\",ui-monospace,Menlo,monospace;",
+"  --press:\"Bodoni Moda\",Didot,\"Bodoni 72\",Georgia,serif;--read:\"Newsreader\",Georgia,serif;",
 "  " + TYPE_APP,
 "  " + TYPE_PAPER + "}",
 ":root[data-theme=\"darker\"]{" + DARKER + "}",
@@ -772,11 +790,11 @@ var CSS = [
 ".dl1,.dl2{display:inline-flex;gap:12px;align-items:center;}",
 "@media (max-width:560px){.dateline{flex-direction:column;align-items:center;gap:5px;}.dl2 .dsep{display:none;}}",
 ".dsep{display:inline-block;width:4.5px;height:4.5px;background:var(--signal);transform:rotate(45deg);}",
-".banner{font-family:var(--deco);font-weight:400;text-transform:uppercase;letter-spacing:.02em;font-size:var(--t-banner);line-height:.98;text-align:center;margin:26px 0 20px;text-wrap:balance;}",
+".banner{font-family:var(--press);font-weight:700;font-size:var(--t-banner);line-height:1.04;text-align:center;margin:26px 0 20px;text-wrap:balance;}",
 "figure{margin:0 0 26px;}",
 "figure img{display:block;width:100%;height:auto;border:1px solid var(--line2);background:var(--sunk);}",
 "figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:7px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;}",
-".cold{font-size:var(--t-heading);line-height:1.6;margin:0 auto 6px;max-width:620px;}",
+".cold{font-family:var(--read);font-size-adjust:.5;font-size:var(--t-heading);line-height:1.55;margin:0 auto 6px;max-width:620px;}",
 ".cold::first-letter{font-family:var(--deco);float:left;font-size:var(--t-drop);line-height:.82;margin:6px 10px 0 0;}",
 ".drule{display:flex;align-items:center;gap:9px;margin:28px auto;max-width:620px;color:var(--signal);}",
 ".drule i{width:7px;height:7px;background:currentColor;transform:rotate(45deg);flex:none;}",
@@ -803,8 +821,13 @@ var CSS = [
 ".board a{font-size:var(--t-desc);color:var(--bone);text-decoration:none;}",
 ".board .bnone{font-size:var(--t-desc);color:var(--dust);margin:0;}",
 ".map .place{font-size:var(--t-desc);color:var(--bone);margin:0 0 8px;}",
-".story h2{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-display);line-height:1.02;margin:0 0 12px;}",
+".story h2{font-family:var(--press);font-weight:700;font-size:var(--t-display);line-height:1.08;margin:0 0 12px;}",
 ".story p{margin:0 0 14px;max-width:62ch;}",
+/* 6.4.0: the reading text is set justified, like a column of newsprint,
+   hyphenated by the browser (lang="en") so a phone's narrow measure does
+   not open rivers. */
+".story>p:not([class]),.cold{text-align:justify;hyphens:auto;-webkit-hyphens:auto;hyphenate-limit-chars:6 3 2;}",
+".story>p:not([class]){font-family:var(--read);font-size-adjust:.5;line-height:1.55;}",
 ".story p a{text-decoration:none;border-bottom:1px solid var(--signal);}",
 ".arr{display:inline-block;width:.7em;height:.7em;margin-left:.25em;color:var(--signal);vertical-align:baseline;}",
 ".btn .arr{width:11px;height:11px;margin-left:6px;color:inherit;vertical-align:middle;}",
@@ -834,12 +857,35 @@ var CSS = [
 ".btn.ghost{border:1px solid var(--line2);color:var(--steel);font-weight:400;}",
 ".colophon{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:0;position:relative;padding-top:22px;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}",
 ".sub{text-align:center;color:var(--dust);font-size:var(--t-desc);margin:0 auto 26px;max-width:460px;}",
+".front{max-width:680px;margin:0 auto;}",
+".lead-kick{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.19em;text-transform:uppercase;color:var(--dust);display:flex;justify-content:center;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:26px 0 0;}",
+".lead-kick .new{color:var(--signal);font-weight:600;}",
+".front .banner{margin-top:12px;}",
+".front .banner a{text-decoration:none;}",
+".front .banner a:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:.12em;text-decoration-color:var(--signal);}",
+".front figure a{display:block;}",
+".front .cold{margin-bottom:22px;}",
+".inside{max-width:620px;margin:0 auto;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);padding:12px 0 6px;}",
+".inside .bh{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.19em;text-transform:uppercase;color:var(--signal);margin:0 0 4px;}",
+".inside ol{list-style:none;margin:0;padding:0;}",
+".inside li+li{border-top:1px solid var(--line);}",
+".inside a{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:baseline;padding:10px 0;text-decoration:none;min-height:44px;}",
+".inside .num{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.19em;color:var(--dim);}",
+".inside .hd{font-family:var(--press);font-weight:700;font-size:var(--t-heading);line-height:1.2;}",
+".inside .beat{display:block;font-family:var(--mono);font-weight:400;font-size:var(--t-fine);letter-spacing:.17em;color:var(--dust);margin-bottom:3px;}",
+".inside a:hover .hd{color:var(--signal);}",
+".read{text-align:center;margin:24px 0 0;}",
+".btn.read{background:var(--signal);color:var(--ink);border:1px solid var(--signal);font-size:var(--t-note);letter-spacing:.14em;padding:14px 22px;}",
+".btn.read .arr{width:12px;height:12px;margin-left:10px;}",
+".bh2{font-family:var(--deco);font-weight:400;text-transform:uppercase;letter-spacing:.04em;font-size:var(--t-title);text-align:center;margin:0 0 10px;}",
+".back{max-width:620px;margin:0 auto;}",
+".back .sub{margin-bottom:0;}",
 ".issues{list-style:none;margin:0 auto;padding:0;max-width:620px;}",
 ".issues li{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:16px 0;border-bottom:1px solid var(--line);}",
 ".issues .no{font-family:var(--deco);font-size:var(--t-num);line-height:1;grid-row:1/3;min-width:52px;}",
 ".issues .when{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}",
 ".issues li:first-child .when{color:var(--signal);}",
-".issues a{text-decoration:none;font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);line-height:1.05;}",
+".issues a{text-decoration:none;font-family:var(--press);font-weight:700;font-size:var(--t-heading);line-height:1.2;}",
 ".cols{display:grid;grid-template-columns:repeat(3,1fr);max-width:760px;margin:0 auto 28px;border-top:3px double var(--bone);border-bottom:1px solid var(--line2);}",
 ".cols section{padding:16px 18px 18px;}",
 ".cols section+section{border-left:1px solid var(--line2);}",
@@ -858,11 +904,11 @@ var COLOPHON = "Nocturne is the weekly paper of Night Watcher, one fan\u2019s ma
   "Every story links its source. Images credited to their rights holders. The paper counts " +
   "visits anonymously, with Cloudflare Web Analytics: no cookies, nothing that follows you.";
 
-function masthead(dateline){
+function masthead(dateline, plateH1){
   return '<header class="mast">\n' +
     '<div class="mast-top"><p class="presents">A paper of<br><a href="/">Night Watcher</a></p>' +
     '<p class="seal">Night<br>Final<small>Sunday</small></p></div>\n' +
-    '<p class="nameplate"><a href="/nocturne/">Nocturne</a></p>\n' +
+    (plateH1 ? '<h1 class="nameplate"><a href="/nocturne/" aria-current="page">Nocturne</a></h1>\n' : '<p class="nameplate"><a href="/nocturne/">Nocturne</a></p>\n') +
     '<hr class="rule2">\n<p class="dateline">' + dateline + '</p>\n<hr class="rule1">\n</header>\n';
 }
 function dateline(a, b, c){
@@ -971,11 +1017,12 @@ function renderIssue(is, cat){
   var after = {};
   placeImages(fm).forEach(function(p){ after[p.after] = p.im; });
   var url = issueUrl(is);
-  var ogImg = hero ? {url: url + hero.file, w: hero.width, h: hero.height, alt: hero.alt} : SHARE;
+  /* 6.4.0: the issue shares as its own card; the hero stays the article's image. */
+  var ogImg = {url: url + "card.png", w: CARD.w, h: CARD.h, alt: CARD_ALT + ": " + plain(fm.title)};
   var desc = plain(fm.cold_open);
   var ld = {"@context": "https://schema.org", "@type": "NewsArticle", headline: fm.title,
             datePublished: fm.published, dateModified: lastmod(is), url: url,
-            mainEntityOfPage: url, image: [ogImg.url], description: desc,
+            mainEntityOfPage: url, image: (hero ? [url + hero.file] : []).concat([ogImg.url]), description: desc,
             isPartOf: {"@type": "Periodical", name: "Nocturne", url: SITE + "/nocturne/"},
             author: {"@type": "Organization", name: "Night Watcher", url: SITE + "/"},
             publisher: {"@type": "Organization", name: "Night Watcher", url: SITE + "/",
@@ -1010,19 +1057,210 @@ function renderIssue(is, cat){
   return out;
 }
 
+/* The front (6.4.0). /nocturne/ leads with the latest Night Final: its
+   headline, hero, cold open and what is inside, then one button into the
+   issue. Back issues file below under The morgue. The nameplate is the h1. */
 function renderArchive(list){
   var url = SITE + "/nocturne/";
   var desc = "The Night Final: the week\u2019s Batman news. Every Sunday, late. No spoilers, every source linked.";
   var h = head({title: "Nocturne \u00b7 Night Watcher", ogTitle: "Nocturne \u00b7 Night Watcher", desc: desc,
-                url: url, ogType: "website", img: SHARE});
+                url: url, ogType: "website", img: {url: url + "card.png", w: CARD.w, h: CARD.h, alt: CARD_ALT}});
+  var is = list[0], fm = is.fm, founding = fm.kind === "founding", href = "/nocturne/" + is.id + "/";
+  var hero = fm.hero ? (fm.images || []).filter(function(im){ return im.file === fm.hero; })[0] : null;
   var out = h + '<body>\n<main class="paper">\n' +
-    masthead(dateline("The Night Final", "Every Sunday, late", "Price: nothing. No account.")) +
-    '<h1 class="banner">The morgue</h1>\n<p class="sub">The week\u2019s Batman news, told late. No spoilers, every source linked.</p>\n<ol class="issues" reversed>\n';
-  list.forEach(function(is, n){
-    out += '<li><span class="no">' + is.fm.issue + '</span><span class="when">' + (n ? "" : "Latest \u00b7 ") +
-           esc(longDate(is.fm.published)) + '</span><a href="/nocturne/' + is.id + '/">' + inline(is.fm.title) + '</a></li>\n';
+    masthead(dateline("The Night Final", "Every Sunday, late", "Price: nothing. No account."), true) +
+    '<article class="front" aria-labelledby="lead">\n' +
+    '<p class="lead-kick"><span class="new">Latest</span><i class="dsep"></i><span>No. ' + fm.issue + '</span><i class="dsep"></i><span>' + esc(longDate(fm.published)) + '</span></p>\n' +
+    '<h2 class="banner" id="lead"><a href="' + href + '">' + inline(fm.title) + '</a></h2>\n';
+  if(hero) out += '<figure><a href="' + href + '" tabindex="-1" aria-hidden="true"><img src="' + is.id + '/' + esc(hero.file) + '" width="' + hero.width + '" height="' + hero.height +
+                  '" alt=""></a><figcaption><span>' + esc(hero.alt) + '</span><span>' + esc(hero.credit) + '</span></figcaption></figure>\n';
+  out += '<p class="cold">' + inline(fm.cold_open) + '</p>\n' +
+    '<nav class="inside" aria-label="In this issue"><p class="bh">In this issue</p><ol>\n';
+  fm.stories.forEach(function(st, i){
+    out += '<li><a href="' + href + '#s' + (i + 1) + '"><span class="num">' + ("0" + (i + 1)).slice(-2) + '</span>' +
+           '<span class="hd">' + (founding ? "" : '<small class="beat">' + st.beat + '</small>') + inline(st.headline) + '</span></a></li>\n';
   });
-  return out + '</ol>\n' + footer("") + '</main>\n' + BEACON + '\n</body>\n</html>\n';
+  out += '</ol></nav>\n<p class="read"><a class="btn read" href="' + href + '">Read the Night Final' + ARROW_IN + '</a></p>\n</article>\n' +
+    '<div class="drule" aria-hidden="true"><i></i></div>\n' +
+    '<section class="back" aria-labelledby="morgue"><h2 class="bh2" id="morgue">The morgue</h2>\n';
+  var rest = list.slice(1);
+  if(!rest.length) out += '<p class="sub">No. ' + fm.issue + ' is the first. Back issues file here from next Sunday.</p>\n';
+  else {
+    out += '<ol class="issues" reversed>\n';
+    rest.forEach(function(b){
+      out += '<li><span class="no">' + b.fm.issue + '</span><span class="when">' + esc(longDate(b.fm.published)) +
+             '</span><a href="/nocturne/' + b.id + '/">' + inline(b.fm.title) + '</a></li>\n';
+    });
+    out += '</ol>\n';
+  }
+  return out + '</section>\n' + footer("") + '</main>\n' + BEACON + '\n</body>\n</html>\n';
+}
+
+/* ---------- the share card (6.4.0) ---------- */
+
+/* Each issue shares as a typographic 1200x630 card: the nameplate, the seal,
+   the issue's number and date, its headline, and the way back to the paper.
+   The landing shares a fixed one. Never built from the hero (BRIEF.md §6:
+   images are never altered). The card is drawn from the served faces
+   (TrueType copies blessed by qa/subset-fonts.py --card): every glyph is an
+   outline in an SVG this module writes, so the SVG is the same on any
+   machine. The PNG is that SVG rasterized by resvg. A rasterizer can differ
+   in a pixel between CPUs, so the PNG carries the SHA-256 of its SVG in a
+   tEXt chunk ("nw-card"), and drift compares that, not the pixels. */
+var CARD = {w: 1200, h: 630, ink: "#08090F", bone: "#E7E9F0", dust: "#93A0B8", dim: "#8B97B1",
+            line: "#33405C", signal: "#FFCF1F", key: "nw-card"};
+var CARD_DIR = path.join(__dirname, "nocturne-fonts", "card");
+var cardFaces = null;
+function cardFonts(){
+  if(cardFaces) return cardFaces;
+  var opentype = require("opentype.js");
+  var rec = JSON.parse(fs.readFileSync(path.join(CARD_DIR, "record.json"), "utf8")).files;
+  var crypto = require("crypto"), errs = [], out = {};
+  function load(key, file){
+    var r = rec[file];
+    if(!r){ errs.push("qa/nocturne-fonts/card/record.json has no " + file + " — run python3 qa/subset-fonts.py --card"); return; }
+    var buf = fs.readFileSync(path.join(CARD_DIR, file));
+    if(crypto.createHash("sha256").update(buf).digest("hex") !== r.sha256) errs.push("qa/nocturne-fonts/card/" + file + " is not the copy its record blessed — run python3 qa/subset-fonts.py --card");
+    var src = path.join(ROOT, r.from);
+    if(!fs.existsSync(src) || crypto.createHash("sha256").update(fs.readFileSync(src)).digest("hex") !== r.from_sha256) errs.push("qa/nocturne-fonts/card/" + file + " was copied from a " + r.from + " that has since moved — run python3 qa/subset-fonts.py --card");
+    out[key] = opentype.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.length));
+  }
+  load("deco", "limelight-latin-400-normal.ttf");
+  load("mono", "ibm-plex-mono-latin-400-normal.ttf");
+  load("mono6", "ibm-plex-mono-latin-600-normal.ttf");
+  load("press", "bodoni-moda-latin-700-normal.ttf");
+  cardFaces = {fonts: out, errors: errs};
+  return cardFaces;
+}
+function n2(x){ return (Math.round(x * 100) / 100).toString(); }
+/* One line of text as outlines: advance by advance, the tracking added
+   between letters the way CSS letter-spacing adds it (after each one). */
+function run(font, text, size, track){
+  var s = size / font.unitsPerEm, x = 0, parts = [];
+  font.stringToGlyphs(text).forEach(function(g){
+    parts.push({g: g, x: x});
+    x += g.advanceWidth * s + (track || 0) * size;
+  });
+  return {width: x - (text.length ? (track || 0) * size : 0), draw: function(x0, y){
+    return parts.map(function(p){ return p.g.getPath(x0 + p.x, y, size).toPathData(2); }).join("");
+  }};
+}
+/* Text is set by resvg from the card's faces (no system font is loaded),
+   named by family; the module measures with the same files to balance. */
+var FAMILY = {deco: "NW Deco", mono: "NW Mono", mono6: "NW Mono SemiBold", press: "Bodoni Moda 11pt"};
+function textAt(font, text, size, track, x, y, align, fill){
+  var key = Object.keys(cardFaces.fonts).filter(function(k){ return cardFaces.fonts[k] === font; })[0];
+  var w = {mono6: 600, press: 700}[key] || 400;
+  return '<text x="' + n2(x) + '" y="' + n2(y) + '" font-family="' + FAMILY[key] + '" font-weight="' + w +
+         '" font-size="' + size + '"' + (track ? ' letter-spacing="' + n2(track * size) + '"' : "") +
+         ' text-anchor="' + (align || "start") + '" fill="' + fill + '">' + esc(text) + '</text>';
+}
+/* The fewest lines at the widest measure, then the narrowest measure that
+   keeps that count: balanced, the way text-wrap:balance sets the banner. */
+function balance(font, text, size, max){
+  var words = text.split(/\s+/);
+  function lines(w){
+    var out = [], cur = "";
+    words.forEach(function(wd){
+      var t = cur ? cur + " " + wd : wd;
+      if(cur && run(font, t, size, 0).width > w){ out.push(cur); cur = wd; } else cur = t;
+    });
+    if(cur) out.push(cur);
+    return out;
+  }
+  var best = lines(max), lo = max * 0.4, hi = max;
+  for(var i = 0; i < 18; i++){
+    var mid = (lo + hi) / 2, l = lines(mid);
+    if(l.length > best.length) lo = mid; else { hi = mid; best = l; }
+  }
+  return best;
+}
+var CARD_MARK = '<g fill="' + CARD.signal + '" transform="translate(0,5)">' +
+  '<path d="M50 36 C 44 25, 29 21, 12 30 C 21 34, 25 41, 24 50 C 31 45, 37 47, 39 55 C 43 50, 47 51, 49 58 L 50 61 L 51 58 C 53 51, 57 50, 61 55 C 63 47, 69 45, 76 50 C 75 41, 79 34, 88 30 C 71 21, 56 25, 50 36 Z"/>' +
+  '<path d="M42 32 L49 29 L38 17 Z"/><path d="M58 32 L62 17 L51 29 Z"/><ellipse cx="50" cy="42" rx="10" ry="11"/>' +
+  '<path d="M50 51 C 45 60, 45 69, 50 78 C 55 69, 55 60, 50 51 Z"/></g>';
+function cardSvg(o){
+  var f = cardFonts().fonts, W = CARD.w, H = CARD.h, L = 64, R = W - 64, s = [];
+  s.push('<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">');
+  s.push('<defs><radialGradient id="g" cx="50%" cy="0%" r="70%"><stop offset="0" stop-color="#141B2C"/><stop offset="1" stop-color="' + CARD.ink + '"/></radialGradient></defs>');
+  s.push('<rect width="' + W + '" height="' + H + '" fill="url(#g)"/>');
+  s.push('<rect x="16.5" y="16.5" width="' + (W - 33) + '" height="' + (H - 33) + '" fill="none" stroke="' + CARD.line + '"/>');
+  s.push(textAt(f.mono, "A PAPER OF", 15, 0.2, L, 66, "start", CARD.dust));
+  s.push(textAt(f.mono, "NIGHT WATCHER", 15, 0.2, L, 89, "start", CARD.dust));
+  var sw = 89, sx = R - sw;
+  s.push('<rect x="' + sx + '" y="44" width="' + sw + '" height="69" fill="' + CARD.signal + '"/>');
+  s.push(textAt(f.mono6, "NIGHT", 15, 0.2, sx + sw / 2 + 1.5, 68, "middle", CARD.ink));
+  s.push(textAt(f.mono6, "FINAL", 15, 0.2, sx + sw / 2 + 1.5, 85, "middle", CARD.ink));
+  s.push(textAt(f.mono, "SUNDAY", 13, 0.2, sx + sw / 2 + 1.3, 103, "middle", CARD.ink));
+  var plate = o.big ? 128 : 104, py = o.big ? 214 : 176;
+  s.push(textAt(f.deco, "NOCTURNE", plate, 0.06, W / 2, py, "middle", CARD.bone));
+  var ry = o.big ? 244 : 204;
+  s.push('<rect x="' + L + '" y="' + ry + '" width="' + (R - L) + '" height="4" fill="' + CARD.bone + '"/>');
+  s.push('<rect x="' + L + '" y="' + (ry + 8.5) + '" width="' + (R - L) + '" height="1.5" fill="' + CARD.bone + '"/>');
+  /* the dateline: its parts, diamonds between */
+  var dl = o.dateline.map(function(t){ return run(f.mono, t.toUpperCase(), 17, 0.2); });
+  var gap = 18, dsz = 7, tot = dl.reduce(function(a, r){ return a + r.width; }, 0) + (dl.length - 1) * (gap * 2 + dsz);
+  var x = W / 2 - tot / 2, dy = ry + 43;
+  dl.forEach(function(r, i){
+    s.push(textAt(f.mono, o.dateline[i].toUpperCase(), 17, 0.2, x, dy, "start", CARD.dust));
+    x += r.width;
+    if(i < dl.length - 1){
+      var cx = x + gap + dsz / 2;
+      s.push('<rect x="' + n2(cx - dsz / 2) + '" y="' + n2(dy - 6 - dsz / 2) + '" width="' + dsz + '" height="' + dsz + '" fill="' + CARD.signal + '" transform="rotate(45 ' + n2(cx) + ' ' + n2(dy - 6) + ')"/>');
+      x += gap * 2 + dsz;
+    }
+  });
+  var rule2 = dy + 20;
+  s.push('<rect x="' + L + '" y="' + rule2 + '" width="' + (R - L) + '" height="1" fill="' + CARD.line + '"/>');
+  var top = rule2 + 1, bottom = 540;
+  if(o.headline){
+    var size = 66, lines = balance(f.press, o.headline, size, 1000);
+    while(lines.length > 3 && size > 46){ size -= 4; lines = balance(f.press, o.headline, size, 1000); }
+    var lh = size * 1.04, block = lh * (lines.length - 1), cap = size * 0.68;
+    var y0 = (top + bottom) / 2 - block / 2 + cap / 2;
+    lines.forEach(function(l, i){ s.push(textAt(f.press, l, size, 0, W / 2, y0 + i * lh, "middle", CARD.bone)); });
+  }
+  if(o.tagline){
+    var tl = balance(f.press, o.tagline, 40, 820), tlh = 50, ty0 = (top + bottom) / 2 - tlh * (tl.length - 1) / 2 + 14;
+    tl.forEach(function(l, i){ s.push(textAt(f.press, l, 40, 0, W / 2, ty0 + i * tlh, "middle", "#C9CCD3")); });
+  }
+  s.push('<svg x="' + L + '" y="551" width="46" height="38.33" viewBox="8 16 84 70">' + CARD_MARK + '</svg>');
+  s.push(textAt(f.mono, "NIGHTWATCHER.LIFE/NOCTURNE", 16, 0.18, L + 60, 576, "start", CARD.dim));
+  s.push(textAt(f.mono6, o.cta.toUpperCase(), 16, 0.18, R, 576, "end", CARD.signal));
+  s.push('</svg>');
+  return s.join("");
+}
+/* A tEXt chunk after IHDR: the key, a NUL, the text. */
+function pngText(png, key, text){
+  var zlib = require("zlib");
+  var data = Buffer.concat([Buffer.from(key, "latin1"), Buffer.from([0]), Buffer.from(text, "latin1")]);
+  var type = Buffer.from("tEXt", "latin1"), len = Buffer.alloc(4), crc = Buffer.alloc(4);
+  len.writeUInt32BE(data.length);
+  crc.writeUInt32BE(zlib.crc32(Buffer.concat([type, data])) >>> 0);
+  var at = 8 + 25; /* signature + IHDR (4 length, 4 type, 13 data, 4 crc) */
+  return Buffer.concat([png.slice(0, at), len, type, data, crc, png.slice(at)]);
+}
+function cardKey(png){
+  if(!png || png.length < 41 || png.toString("latin1", 37, 41) !== "tEXt") return null;
+  var n = png.readUInt32BE(33), d = png.slice(41, 41 + n), z = d.indexOf(0);
+  return d.toString("latin1", 0, z) === CARD.key ? d.toString("latin1", z + 1) : null;
+}
+function cardPng(o){
+  var svg = cardSvg(o);
+  var sum = require("crypto").createHash("sha256").update(svg).digest("hex");
+  var Resvg = require("@resvg/resvg-js").Resvg;
+  var png = Buffer.from(new Resvg(svg, {fitTo: {mode: "original"}, font: {loadSystemFonts: false,
+    fontFiles: Object.keys(JSON.parse(fs.readFileSync(path.join(CARD_DIR, "record.json"), "utf8")).files).sort().map(function(f){ return path.join(CARD_DIR, f); })}}).render().asPng());
+  return pngText(png, CARD.key, sum);
+}
+var CARD_ALT = "Nocturne, the weekly Batman paper of Night Watcher";
+function issueCard(is){
+  return cardPng({headline: plain(is.fm.title), cta: "Read the Night Final",
+                  dateline: ["No. " + is.fm.issue, longDate(is.fm.published)]});
+}
+function paperCard(){
+  return cardPng({big: true, cta: "Open the paper", dateline: ["The Night Final", "Every Sunday, late", "Price: nothing"],
+                  tagline: "The week’s Batman news, told late. No spoilers, every source linked."});
 }
 
 /* The holding page (6.2.1): what /nocturne/ serves while no issue is on disk.
@@ -1162,12 +1400,17 @@ function build(root, opts){
                "theme.js": Buffer.from(THEME_JS, "utf8")};
   /* The paper's italic and the licence that travels with it (6.2.3). The
      bytes must be the ones qa/subset-fonts.py --paper blessed. */
-  var ital = fs.readFileSync(path.join(ITALIC.dir, ITALIC.file));
-  if(ital.length !== ITALIC.rec.bytes || require("crypto").createHash("sha256").update(ital).digest("hex") !== ITALIC.rec.sha256){
-    errs.push("qa/nocturne-fonts/" + ITALIC.file + " is not the face qa/nocturne-fonts/record.json blessed — run python3 qa/subset-fonts.py --paper");
-  }
-  files[ITALIC.file] = ital;
-  files["OFL.txt"] = fs.readFileSync(path.join(root, "docs", "fonts", "OFL.txt"));
+  PAPER_FONTS.forEach(function(pf){
+    var buf = fs.readFileSync(path.join(pf.dir, pf.file));
+    if(buf.length !== pf.rec.bytes || require("crypto").createHash("sha256").update(buf).digest("hex") !== pf.rec.sha256){
+      errs.push("qa/nocturne-fonts/" + pf.file + " is not the face qa/nocturne-fonts/record.json blessed — run python3 qa/subset-fonts.py --paper");
+    }
+    files[pf.file] = buf;
+  });
+  /* The app's licence file, then the paper's own faces' notices (6.4.0). */
+  files["OFL.txt"] = Buffer.concat([fs.readFileSync(path.join(root, "docs", "fonts", "OFL.txt")),
+                                    fs.readFileSync(path.join(__dirname, "nocturne-fonts", "OFL-paper.txt"))]);
+  cardFonts().errors.forEach(function(m){ errs.push(m); });
   var list = issues.filter(function(i){ return i.fm && Number.isInteger(i.fm.issue); })
                    .sort(function(a, b){ return b.fm.issue - a.fm.issue; });
   if(!errs.length && list.length){
@@ -1175,11 +1418,13 @@ function build(root, opts){
       var page = renderIssue(is, cat);
       renderedLinkErrors(is, page).forEach(function(m){ errs.push(m); });
       files[is.id + "/index.html"] = Buffer.from(page, "utf8");
+      files[is.id + "/card.png"] = issueCard(is);
       (is.fm.images || []).forEach(function(im){
         files[is.id + "/" + im.file] = fs.readFileSync(path.join(is.dir, im.file));
       });
     });
     files["index.html"] = Buffer.from(renderArchive(list), "utf8");
+    files["card.png"]   = paperCard();
     files["feed.xml"]   = Buffer.from(renderFeed(list), "utf8");
   }
   else if(!errs.length){
@@ -1214,7 +1459,7 @@ function drift(root, b){
   var have = onDisk(path.join(root, OUT_REL));
   Object.keys(b.files).forEach(function(f){
     if(!have[f]) diff.push(OUT_REL + "/" + f + " is missing");
-    else if(!have[f].equals(b.files[f])) diff.push(OUT_REL + "/" + f + " is not what the build writes");
+    else if(/(^|\/)card\.png$/.test(f) ? cardKey(have[f]) !== cardKey(b.files[f]) : !have[f].equals(b.files[f])) diff.push(OUT_REL + "/" + f + " is not what the build writes");
   });
   Object.keys(have).forEach(function(f){
     if(!b.files[f]) diff.push(OUT_REL + "/" + f + " is not written by the build");
@@ -1394,7 +1639,7 @@ function morgueWarnings(text, today){
     .map(function(e){ return MORGUE_REL + " line " + e.line + ": checked " + e.checked + ", over a year ago — re-open its link before it runs"; });
 }
 
-module.exports = {build: build, notebookErrors: notebookErrors, NOTEBOOK_REL: NOTEBOOK_REL, NOTEBOOK_HEAD: NOTEBOOK_HEAD, drift: drift, write: write, checkAll: checkAll, listIssues: listIssues,
+module.exports = {build: build, cardKey: cardKey, CARD: CARD, notebookErrors: notebookErrors, NOTEBOOK_REL: NOTEBOOK_REL, NOTEBOOK_HEAD: NOTEBOOK_HEAD, drift: drift, write: write, checkAll: checkAll, listIssues: listIssues,
                   loadCatalogue: loadCatalogue, sundayOfWeek: sundayOfWeek, webpSize: webpSize,
                   LIMITS: LIMITS, BEGIN: BEGIN, END: END, FEED_PI: FEED_PI, FEED_DESC: FEED_DESC, OUT_REL: OUT_REL, SRC_REL: SRC_REL,
                   COLOPHON: COLOPHON, BEACON: BEACON, BEACON_TOKEN: BEACON_TOKEN, THEME_TAG: THEME_TAG,

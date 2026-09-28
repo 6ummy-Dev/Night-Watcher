@@ -1,0 +1,29 @@
+{
+  "files": {
+    "bodoni-moda-latin-700-normal.ttf": {
+      "bytes": 21252,
+      "from": "qa/nocturne-fonts/bodoni-moda-latin-700-normal.woff2",
+      "from_sha256": "f019f2475c8262ab1bd98f9d52932af944c1c1ece3f5fd3f3e2e4963beeca065",
+      "sha256": "59ed74d912609fdd91476a66b04b57fe52e5916f984b6e8c9edec77dd0de5f2a"
+    },
+    "ibm-plex-mono-latin-400-normal.ttf": {
+      "bytes": 16420,
+      "from": "docs/fonts/ibm-plex-mono-latin-400-normal.woff2",
+      "from_sha256": "7db87db69204e3b6ba7d9ddded71612aa9d8a9283ee99e24bba052ffb8933d0b",
+      "sha256": "8aaec8ecef4297ea408fa20430dd07cb44f32e3636ee3d7780d0653cbd6c7409"
+    },
+    "ibm-plex-mono-latin-600-normal.ttf": {
+      "bytes": 16240,
+      "from": "docs/fonts/ibm-plex-mono-latin-600-normal.woff2",
+      "from_sha256": "5aaec475f108f630b5217bd5b663b56feda2a7f23dd4e6b90ab75783b77b15d6",
+      "sha256": "3c4e741855c71b0bbe6f8facbf31501069e2110bce6a2274e4ac1f901c7b952b"
+    },
+    "limelight-latin-400-normal.ttf": {
+      "bytes": 28636,
+      "from": "docs/fonts/limelight-latin-400-normal.woff2",
+      "from_sha256": "38efd67204dad01342421e95f30812e323fefe3bdaf13ccf95c3e4f6c45d50f1",
+      "sha256": "c37338665b8335e8545810ca018f1d2711062ccefcb2b9943fdc633d194583ed"
+    }
+  },
+  "note": "Blessed by qa/subset-fonts.py --card. TrueType copies of the served faces the share card sets, decoded as they are. qa/nocturne.js refuses to draw a card if a copy or its source disagrees with this record."
+}

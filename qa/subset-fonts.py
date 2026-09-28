@@ -62,6 +62,15 @@ build if its bytes disagree with the record. Put the upstream file in
 qa/nocturne-fonts/ and run
     python3 qa/subset-fonts.py --paper
 
+THE CARD'S FACES (6.4.0). nocturne:build draws each issue's share card, and
+the renderer reads glyph outlines, which it cannot do from WOFF2 without an
+asynchronous decoder. `--card` writes a plain TrueType copy of each face the
+card sets, decoded from the blessed WOFF2 as it is (no re-subset, no rename:
+the glyphs and the names are the served file's), into qa/nocturne-fonts/card/,
+and blesses qa/nocturne-fonts/card/record.json. Run it after --paper or after
+the app's faces move:
+    python3 qa/subset-fonts.py --card
+
 Guard 106 does not run this. It checks the blessed manifest against the files on
 disk and against the catalogue's own characters, so the fonts and the record can
 only move together.
@@ -75,6 +84,12 @@ PAPER  = "--paper" in sys.argv
 if PAPER:
     FONTS = os.path.join(ROOT, "qa", "nocturne-fonts")
     OUT   = os.path.join(FONTS, "record.json")
+CARD   = "--card" in sys.argv
+# The faces the share card sets, and where each blessed WOFF2 lives.
+CARD_FACES = [("docs/fonts", "limelight-latin-400-normal.woff2"),
+              ("docs/fonts", "ibm-plex-mono-latin-400-normal.woff2"),
+              ("docs/fonts", "ibm-plex-mono-latin-600-normal.woff2"),
+              ("qa/nocturne-fonts", "bodoni-moda-latin-700-normal.woff2")]
 
 # Basic Latin + Latin-1 Supplement + the punctuation the catalogue reaches for.
 RANGES = ["U+0020-007E", "U+00A0-00FF", "U+2010-2015", "U+2018-201F",
@@ -130,7 +145,31 @@ def sha(p):
     return hashlib.sha256(open(p, "rb").read()).hexdigest()
 
 
+def card():
+    from fontTools.ttLib import TTFont
+    out = os.path.join(ROOT, "qa", "nocturne-fonts", "card")
+    os.makedirs(out, exist_ok=True)
+    rec = {}
+    for d, f in CARD_FACES:
+        src = os.path.join(ROOT, d, f)
+        ttf = f.replace(".woff2", ".ttf")
+        font = TTFont(src)
+        font.flavor = None
+        font.save(os.path.join(out, ttf))
+        rec[ttf] = {"from": d + "/" + f, "from_sha256": sha(src),
+                    "bytes": os.path.getsize(os.path.join(out, ttf)),
+                    "sha256": sha(os.path.join(out, ttf))}
+        print("card face   %-42s %6d" % (ttf, rec[ttf]["bytes"]))
+    io.open(os.path.join(out, "record.json"), "w", encoding="utf-8").write(json.dumps({
+        "note": ("Blessed by qa/subset-fonts.py --card. TrueType copies of the served faces the "
+                 "share card sets, decoded as they are. qa/nocturne.js refuses to draw a card "
+                 "if a copy or its source disagrees with this record."),
+        "files": rec}, indent=2, sort_keys=True) + "\n")
+
+
 def main():
+    if CARD:
+        return card()
     files = sorted(f for f in os.listdir(FONTS) if f.endswith(".woff2"))
     if not files:
         sys.exit("no woff2 files in docs/fonts")
