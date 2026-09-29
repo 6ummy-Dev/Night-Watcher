@@ -43,6 +43,12 @@ produced it: `NOTES-history.md`.)
    It serves `docs/` itself and quantizes itself, so no bless is needed for
    it; regenerate it too when Home or The Path changes shape, which no guard
    can see. If the catalogue did not move, skip this step.
+
+   **`llms.txt` follows by hand (6.5.2).** Its sentence about the plain-text
+   export states the entry count, which is films plus seasons. Guard 101
+   holds it, the curated count and the span against the data, so a count
+   that moved without this edit is red rather than shipped stale. The bless
+   does not write it.
 3. **Bless.** `npm run bless`. Since 3.7.2 a bless run re-checks the tree it
    wrote and exits red if anything is still wrong, so a green bless IS a
    green tree — but bless still refuses one thing by design: a frozen ID
