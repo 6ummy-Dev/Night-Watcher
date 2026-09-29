@@ -7893,6 +7893,46 @@ var ROUTE_VOCAB = [
              " \u2014 a count in prose drifts here exactly like it did in the README");
       }
     });
+    /* THE NUMBERS THE THREE COUNTS ABOVE DID NOT REACH, FOUND 29 Sept 2026.
+       llms.txt said "all 206 entries" while the catalogue had 208, and stayed
+       green: the check above reads the first "N films", "N seasons" and
+       "N continuities" and nothing else, so the entries sentence kept 5.3.0's
+       shelf (137 films + 69 seasons) through two season additions. An outside
+       audit read it off the wire. The rest of the file's figures were in the
+       same position, so they are held here too, each against the data it
+       states: the entry count is films plus seasons, every "N titles" is the
+       curated count, and the span is the catalogue's own first and last year.
+       Every occurrence is read, not the first, because the file states the
+       curated count three times. */
+    var wantEntries = actual.films + actual.seasons;
+    var mEntries = lt.match(/(\d+)\s+entries/);
+    if(!mEntries){
+      fail("llms.txt no longer states an entries count \u2014 the sentence that " +
+           "sends an engine to orders.txt says how many entries it holds");
+    } else if(parseInt(mEntries[1], 10) !== wantEntries){
+      fail("llms.txt says " + mEntries[1] + " entries, data has " + wantEntries +
+           " (" + actual.films + " films + " + actual.seasons + " seasons) \u2014 " +
+           "the count moved with the catalogue and this sentence did not");
+    }
+    var wantCurated = FILMS.filter(function(f){ return tierOf(f) !== "o"; }).length;
+    var curatedSeen = lt.match(/\d+\s+(?:curated\s+)?titles/g) || [];
+    if(!curatedSeen.length){
+      fail("llms.txt no longer states the curated count");
+    }
+    curatedSeen.forEach(function(s){
+      if(parseInt(s, 10) !== wantCurated){
+        fail("llms.txt says \"" + s + "\", data curates " + wantCurated +
+             " \u2014 the seed and the ItemList moved and this file did not");
+      }
+    });
+    var yrsLt = FILMS.map(function(f){ return f.y; });
+    var wantSpan = Math.min.apply(null, yrsLt) + " to " + Math.max.apply(null, yrsLt);
+    var mSpan = lt.match(/(\d{4}) to (\d{4})/);
+    if(!mSpan){
+      fail("llms.txt no longer states the release span");
+    } else if(mSpan[1] + " to " + mSpan[2] !== wantSpan){
+      fail("llms.txt says " + mSpan[0] + ", the catalogue runs " + wantSpan);
+    }
     /* THE SUBSTRING HOLE, FOUND 6 Aug 2026 AND CLOSED HERE. This read
            lt.indexOf("https://nightwatcher.life/") < 0
        while printing "llms.txt does not name the canonical URL". Those are not
@@ -8666,7 +8706,7 @@ var ROUTE_VOCAB = [
 
      The page now declares it as what it is — an alternate representation of
      the same catalogue. It stays OUT of sitemap.xml on purpose: the crawlable
-     seed already carries all 206 entries and so does orders.txt, so submitting
+     seed already carries every entry and so does orders.txt, so submitting
      both for indexing asks a search engine to choose between two
      near-identical bodies on one domain. Discoverable is not indexed. */
   if(!/<link rel="alternate" type="text\/plain" href="orders\.txt"/.test(HTML)){

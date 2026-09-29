@@ -86,6 +86,66 @@ a='137 films';assert a in s
 s=s.replace(a,'138 films',1)
 io.open(p,'w',encoding='utf-8').write(s)"
 
+# 6.5.2: the outside audit of 6.5.1 read "all 206 entries" off the wire while
+# the catalogue held 208. The three counts above never reached that sentence,
+# the curated 74 or the span, so §101 holds each of them now. Each fixture
+# names the section, because every one of these edits also moves llms.txt's
+# hash and §67 says so too.
+run_case "llms.txt's entries count is left behind by the catalogue" \
+  "llms.txt says 206 entries, data has 208" \
+  "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read()
+a='208 entries';assert a in s
+s=s.replace(a,'206 entries',1)
+io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 101
+
+run_case "llms.txt stops stating how many entries the export holds" \
+  "llms.txt no longer states an entries count" \
+  "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read()
+a='all 208 entries in all three orderings';assert a in s
+s=s.replace(a,'every entry in all three orderings',1)
+io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 101
+
+run_case "llms.txt's curated count drifts in its first sentence" \
+  "llms.txt says \"75 titles\", data curates 74" \
+  "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read()
+a='74 titles are curated';assert a in s
+s=s.replace(a,'75 titles are curated',1)
+io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 101
+
+run_case "llms.txt's curated count drifts in its LAST mention only" \
+  "llms.txt says \"75 curated titles\", data curates 74" \
+  "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read()
+a='ItemList (the 74 curated titles)';assert a in s
+s=s.replace(a,'ItemList (the 75 curated titles)',1)
+io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 101
+
+run_case "llms.txt stops stating the curated count anywhere" \
+  "llms.txt no longer states the curated count" \
+  "import io,re;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read()
+s2=re.sub(r'\d+\s+(?:curated\s+)?titles','the titles',s);assert s2!=s
+io.open(p,'w',encoding='utf-8').write(s2)" \
+  guards "" 101
+
+run_case "llms.txt's release span drifts" \
+  "llms.txt says 1943 to 2027, the catalogue runs 1943 to 2028" \
+  "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read()
+a='1943 to 2028';assert a in s
+s=s.replace(a,'1943 to 2027',1)
+io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 101
+
+run_case "llms.txt stops stating the release span" \
+  "llms.txt no longer states the release span" \
+  "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read()
+a='1943 to 2028';assert a in s
+s=s.replace(a,'the whole run',1)
+io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 101
+
 run_case "llms.txt is smuggled into the shell" \
   "llms.txt is in the offline shell" \
   "import io;p='docs/sw.js';s=io.open(p,encoding='utf-8').read()

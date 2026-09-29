@@ -14,6 +14,51 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.5.2] — 2026-09-28
+
+**One wrong number in the file engines read, and the guard that let it
+through.** The full outside audit of 6.5.1 found that `llms.txt` still said
+"all 206 entries". The catalogue has 208 in each ordering: 137 films and 71
+seasons. 206 was 5.3.0's shelf (137 films and 69 seasons), and it stayed
+through two season additions because nothing read that sentence. The
+catalogue does not move, nothing saved changes shape or meaning, and the
+counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is
+needed.**
+
+### Fixed
+
+- **`llms.txt` says 208.** The entries sentence carries the number the
+  catalogue has, and the file's other figures were checked against the data
+  the same day: the curated 74 (stated three times) and the span, 1943 to
+  2028, were already right.
+- **A stale count in a guard's comment** ("all 206 entries" beside the seed
+  and the export) now says "every entry", since the number is not the point.
+
+### Under the hood
+
+- **Guard 101 holds the rest of `llms.txt`'s figures.** It read the first
+  "N films", "N seasons" and "N continuities" and stopped, which is why the
+  entries sentence drifted unseen. It now also requires the entries count to
+  equal films plus seasons, every "N titles" to equal the curated count (the
+  file states it three times, so all three are read), and the span to equal
+  the catalogue's first and last year. Each fails if its figure disappears
+  as well as if it drifts. Seven new fixtures in `negtest210`, each pinned
+  to §101, including one that moves only the last mention of the curated
+  count.
+- **The next count move fails the build.** The Clayface cut changes the
+  entries number; until `llms.txt` follows, guard 101 is red instead of the
+  file shipping stale. RELEASING's step 2 now lists that sentence among the
+  count surfaces to edit by hand.
+- `negtest272`'s comment says 6.5.2: its fixture for a location that merely
+  contains the export's name went red on guard 167 with 6.5.1's sitemap
+  fence, which is the section that answers for it; that change landed on
+  `main` as `9f899a9` and is recorded here.
+
+### Why PATCH
+
+A data file, a guard and its fixtures, and words. No feature, no catalogue
+entry, no key. No tag, no notes.
+
 ## [6.5.1] — 2026-09-28
 
 **The outside QA on 6.5.0, taken whole, and three owner's calls on the
