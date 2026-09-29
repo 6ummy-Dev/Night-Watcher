@@ -2884,6 +2884,22 @@ in it.
   excludes `R` and `TV-MA` takes them out of the view without moving the
   path (`OFFLIMITS`, above).
 
+## Lighthouse's `robots-txt` audit fails on the CSP, not on `Content-Signal`
+
+Lighthouse fetches `/robots.txt` from inside the page it is auditing, so the
+page's own policy answers first. The app's meta CSP sets `default-src 'none'`
+and no `connect-src`, and connect falls back to `default-src`, so the fetch is
+refused: the audit reads "Fetch of robots.txt failed: … CSP violation", scores
+0, and takes SEO to 0.92. Reproduced on 28 Sept 2026 on 6.5.2 with Lighthouse
+13.5.0, the tree served locally: deleting the `Content-Signal` line changed
+nothing (still 0.92), and removing the app's CSP meta instead passed the audit
+and gave SEO 1.00 with the line in place. The paper's header policy names only
+`cloudflareinsights.com` for connect, so it should fail the same way; that was
+not reproduced, because a header needs the edge. Googlebot does not run under
+the page's CSP, so Search reads a valid file. The 0.92 is not a finding, and
+its cure, `connect-src 'self'`, would trade "the app fetches nothing" for a lab
+score. One outside read has filed it (the site audit, 28 Sept).
+
 ## The floor
 
 The browsers the script requires, written down once so nothing below the

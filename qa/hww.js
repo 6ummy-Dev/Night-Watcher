@@ -21,7 +21,7 @@ var path = require("path");
 
 var ROOT    = path.join(__dirname, "..");
 var OUT_REL = "docs/hww";
-var LAST_AUDIT = "6.3.0";   /* the owner's record: the last independent audit read this release */
+var LAST_AUDIT = "6.5.1";   /* the owner's record: the last independent audit read this release (6.5.3: the full audit and the site audit both read 6.5.1) */
 
 function read(rel){ return fs.readFileSync(path.join(ROOT, rel), "utf8"); }
 function esc(s){ return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }

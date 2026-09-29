@@ -1055,9 +1055,13 @@ function board(fm, cat){
     (rows.length ? '<ul>' + rows.join("") + '</ul>' : '<p class="bnone">Nothing moved on the map.</p>') + '</aside>\n';
 }
 
-function figure(im, lazy){
+/* 6.5.3: the hero is the page's largest paint, so it says so. The 28 Sept site
+   audit's Lighthouse run found the image was eager but never hinted, and that
+   the browser found it late. Only the hero: the figures below the fold stay
+   lazy, and hinting several images high makes none of them high. */
+function figure(im, lazy, hero){
   return '<figure><img src="' + esc(im.file) + '" width="' + im.width + '" height="' + im.height +
-         '" alt=""' + (lazy ? ' loading="lazy"' : "") + '><figcaption><span>' + esc(im.alt) + '</span><span>' +
+         '" alt=""' + (lazy ? ' loading="lazy"' : "") + (hero ? ' fetchpriority="high"' : "") + '><figcaption><span>' + esc(im.alt) + '</span><span>' +
          esc(im.credit) + '</span></figcaption></figure>\n';
 }
 
@@ -1088,7 +1092,7 @@ function renderIssue(is, cat){
     masthead(dateline("No. " + fm.issue, esc(longDate(fm.published)), "Price: nothing. No account.")) +
     '<article>\n<h1 class="banner">' + inline(fm.title) + '</h1>\n' +
     (founding ? "" : board(fm, cat));
-  if(hero) out += figure(hero, false);
+  if(hero) out += figure(hero, false, true);
   out += '<p class="cold">' + inline(fm.cold_open) + '</p>\n<div class="drule" aria-hidden="true"><i></i></div>\n';
   fm.stories.forEach(function(st, i){
     var sec = body.sections[i];
@@ -1130,7 +1134,7 @@ function renderArchive(list){
     '<p class="lead-kick"><span class="new">Latest</span><i class="dsep"></i><span>No. ' + fm.issue + '</span><i class="dsep"></i><span>' + esc(longDate(fm.published)) + '</span></p>\n' +
     '<h2 class="banner" id="lead"><a href="' + href + '">' + inline(fm.title) + '</a></h2>\n';
   if(hero) out += '<figure><a href="' + href + '" tabindex="-1" aria-hidden="true"><img src="' + is.id + '/' + esc(hero.file) + '" width="' + hero.width + '" height="' + hero.height +
-                  '" alt=""></a><figcaption><span>' + esc(hero.alt) + '</span><span>' + esc(hero.credit) + '</span></figcaption></figure>\n';
+                  '" alt="" fetchpriority="high"></a><figcaption><span>' + esc(hero.alt) + '</span><span>' + esc(hero.credit) + '</span></figcaption></figure>\n';
   out += '<p class="cold">' + inline(fm.cold_open) + '</p>\n' +
     '<nav class="inside" aria-label="In this issue"><p class="bh">In this issue</p><ol>\n';
   fm.stories.forEach(function(st, i){

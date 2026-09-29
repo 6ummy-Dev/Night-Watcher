@@ -358,7 +358,7 @@ HW="$(pro qa/hww.js)"
 
 run_case "a fact on the crew's page moves without a rebuild" \
   "the crew's page drifted from its build" \
-  "${HW}a='var LAST_AUDIT = \"6.3.0\";';assert s.count(a)==1;s=s.replace(a,'var LAST_AUDIT = \"6.4.0\";',1);${W}" \
+  "${HW}a='var LAST_AUDIT = \"6.5.1\";';assert s.count(a)==1;s=s.replace(a,'var LAST_AUDIT = \"6.4.0\";',1);${W}" \
   guards "" 170
 
 run_case "the crew's page loses its noindex" \

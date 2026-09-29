@@ -135,7 +135,7 @@ run_case "the noscript grows an attribute" \
 s=s.replace(a,'<noscript class=\"nojs\"><style>#splash{display:none;}</style></noscript>',1);${W}" \
   guards "" 78
 
-echo "--- 90: the seed names orders.txt once, and no other file"
+echo "--- 90: the seed names orders.txt and the paper once each, and nothing else"
 
 run_case "the orders.txt link is dropped from the seed" \
   "the seed links to orders.txt 0 times" \
@@ -153,6 +153,26 @@ run_case "the seed links orders.txt twice" \
   "the seed links to orders.txt 2 times" \
   "${P}a='<a href=\"#next\">Next up</a>';assert a in s
 s=s.replace(a,'<a href=\"orders.txt\">Next up</a>',1);${W}" \
+  guards "" 90
+
+# 6.5.3: the second named exception. The seed names the paper once, as exactly
+# /nocturne/, and nothing else under it or off this origin.
+run_case "the paper's link is dropped from the seed" \
+  "the seed links to /nocturne/ 0 times" \
+  "${P}a='<a href=\"/nocturne/\">Nocturne</a>';assert a in s
+s=s.replace(a,'Nocturne',1);${W}" \
+  guards "" 90
+
+run_case "the seed links the paper twice" \
+  "the seed links to /nocturne/ 2 times" \
+  "${P}a='<a href=\"#next\">Next up</a>';assert a in s
+s=s.replace(a,'<a href=\"/nocturne/\">Next up</a>',1);${W}" \
+  guards "" 90
+
+run_case "the seed's paper link points at a page under the paper" \
+  "the seed links out to /nocturne/feed.xml" \
+  "${P}a='<a href=\"/nocturne/\">Nocturne</a>';assert a in s
+s=s.replace(a,'<a href=\"/nocturne/feed.xml\">Nocturne</a>',1);${W}" \
   guards "" 90
 
 echo "--- smoke: a splash rule that matches neither staged state is dead"

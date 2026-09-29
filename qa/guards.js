@@ -6246,6 +6246,17 @@ var ROUTE_VOCAB = [
       "Pick an ordering, tick what you have seen, and the next unwatched entry is " +
       "always waiting: no account, no sign-in, it works offline, and your place is " +
       "kept in this browser alone.</p>",
+    /* 6.5.3: the paper, named where a crawler reads. The site audit bot of
+       28 Sept found the only way from Home to the paper was the button the app
+       builds in script, so a reader or crawler that runs none had no link at
+       all. This is the seed's one anchor to it: same tab, same origin, and
+       gone the moment the app boots, so the installed app still has exactly one
+       door (guard 165 counts the app outside this block). The words are the
+       paper's own contract, BRIEF's: weekly, late Sunday, a source on every
+       story, no spoilers. */
+    '<p>Once a week, late on Sunday, <a href="/nocturne/">Nocturne</a> \u2014 the paper \u2014 ' +
+      "reports the week\u2019s Batman news, one issue at a time, with a source on every " +
+      "story and no spoilers.</p>",
     "<h2>The eras of Bruce’s life</h2>",
     /* 2.7.2: the notes joined the names. The fifth audit asked for "a compact
        list of the eras with one-sentence definitions" and the seed carried the
@@ -6937,14 +6948,21 @@ var ROUTE_VOCAB = [
      spirit of the rule (never hand a reader to another origin) holds; the
      letter names the file, so a second off-route href still fails. */
   var ALLOWED_FILE = "orders.txt";
-  var fileLinks = 0;
+  /* 6.5.3: the SECOND named exception, and the same reasoning. /nocturne/ is
+     this site's own paper, same origin, and the 28 Sept site audit found the
+     one crawlable block never named it. Exactly that path: /nocturne/feed.xml,
+     an issue, or another origin still fails, and it is linked once. */
+  var ALLOWED_PAPER = "/nocturne/";
+  var fileLinks = 0, paperLinks = 0;
   hrefs.forEach(function(a){
     var h = a.slice(6, -1);
     if(h === ALLOWED_FILE){ fileLinks++; return; }
+    if(h === ALLOWED_PAPER){ paperLinks++; return; }
     if(h.charAt(0) !== "#"){
       fail("the seed links out to " + h + " — everything in the seed is this page, " +
            "and the one crawlable block must not hand its readers to another origin " +
-           "(the one file it may name is " + ALLOWED_FILE + ")");
+           "(the one file it may name is " + ALLOWED_FILE + ", and the one page is " +
+           ALLOWED_PAPER + ")");
       return;
     }
     h.slice(1).toLowerCase().split(/[-+]/).forEach(function(tok){
@@ -6960,7 +6978,12 @@ var ROUTE_VOCAB = [
          "release paragraph, is the 4.7.0 answer to \u201ckeep orders.txt linked\u201d; " +
          "none is the audit's finding again and more is a list of files");
   }
-  note("seed links: " + hrefs.length + ", every token known to guard 72, plus " + ALLOWED_FILE);
+  if(paperLinks !== 1){
+    fail("the seed links to " + ALLOWED_PAPER + " " + paperLinks + " times — once, in the " +
+         "paper's sentence, is the 6.5.3 answer to the site audit; none leaves a crawler " +
+         "with no way in and more is a list of doors");
+  }
+  note("seed links: " + hrefs.length + ", every token known to guard 72, plus " + ALLOWED_FILE + " and " + ALLOWED_PAPER);
 })();
 
 /* ---------- 91. The card the metas promise is the card that ships ---------- */
@@ -16233,14 +16256,20 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   var shell165 = (SW.match(/var SHELL\s*=\s*\[([\s\S]*?)\]/) || [0, ""])[1];
   if(/nocturne/i.test(shell165)) fail("sw.js's SHELL lists part of the paper — the paper is not the app");
   var door = '<a class="lnk paperlnk" href="/nocturne/" target="_blank" rel="noopener noreferrer">';
-  var doors = HTML.split(door).length - 1, paths = (HTML.match(/\/nocturne/gi) || []).length;
+  /* 6.5.3: the count reads the app OUTSIDE the seed. The seed is the crawlable
+     page and the app's first render replaces it wholesale, so its one plain
+     anchor (guard 90 holds it to exactly /nocturne/, once) is not a door a
+     reader can take from the running app, installed or not. The letter of the
+     owner's call, one door from Home, is unchanged for everything that runs. */
+  var appOnly = HTML.replace(/<main id="view">[\s\S]*?<\/main>/, "");
+  var doors = HTML.split(door).length - 1, paths = (appOnly.match(/\/nocturne/gi) || []).length;
   if(doors !== 1){
     fail("docs/index.html has " + doors + " links to the paper built like Where to watch — Home carries exactly one " +
          "(6.2.1): the .lnk button, target=\"_blank\", rel=\"noopener noreferrer\"");
   }
   if(paths !== 1){
-    fail("docs/index.html names /nocturne " + paths + " times — the app's one door to the paper is Home's " +
-         "button, and nothing else in the app points into the paper");
+    fail("docs/index.html names /nocturne " + paths + " times outside the seed — the app's one door to the paper is Home's " +
+         "button, and nothing else in the running app points into the paper");
   }
   [["docs/manifest.json", fs.readFileSync(path.join(PUBLIC, "manifest.json"), "utf8")],
    ["docs/404.html", fs.existsSync(path.join(PUBLIC, "404.html")) ? fs.readFileSync(path.join(PUBLIC, "404.html"), "utf8") : ""]

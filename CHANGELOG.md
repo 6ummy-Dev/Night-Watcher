@@ -14,6 +14,52 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.5.3] — 2026-09-28
+
+**The crawlable page names the paper, the paper's hero says it is the hero,
+and a Lighthouse false alarm is written down.** A site audit of the live 6.5.1
+(ad hoc, read-only, with Lighthouse) found two things that were true in the
+tree. The rest of it is either a settled call, or, in the one case that
+looked serious, misread: the `robots-txt` audit that scored 0 fails on the
+app's own CSP and not on `Content-Signal`, which is now in NOTES with the
+reproduction. The catalogue does not move, nothing saved changes shape or
+meaning, and the counts stay at 137 films, 71 seasons and 44 continuities.
+**No reinstall is needed.**
+
+### Changed
+
+- **The crawlable page links to the paper.** Home's only way to Nocturne was
+  the button the app builds in script, so a reader or crawler that runs none
+  had no link at all. The seed now carries one sentence, in the paper's own
+  words (weekly, late on Sunday, a source on every story, no spoilers), and one
+  same-tab link to `/nocturne/`. The app's first render replaces the seed, so
+  the running app still has exactly one door, Home's button.
+- **The paper's hero says it is the hero.** The image was loaded eagerly but
+  never hinted, and the audit's Lighthouse run found it late. It carries
+  `fetchpriority="high"` on the front and on each issue; the figures below the
+  fold stay lazy.
+- **/hww's "Last independent audit" reads 6.5.1.** The full audit and the site
+  audit both read that release.
+
+### Under the hood
+
+- **Guard 90 takes a second named exception,** exactly `/nocturne/`, linked
+  once, on the same reasoning as 4.7.0's `orders.txt`. `/nocturne/feed.xml`, an
+  issue or another origin still fails. Three fixtures in `negtest590`.
+- **Guard 165 counts the app outside the seed.** The owner's rule, one door
+  from Home and nothing else in the app that points into the paper, is the same
+  for everything that runs; only the crawlable block, which the app replaces,
+  is left out of the count.
+- NOTES: "Lighthouse's `robots-txt` audit fails on the CSP, not on
+  `Content-Signal`". Reproduced on 6.5.2 with Lighthouse 13.5.0: deleting the
+  line changes nothing (SEO 0.92); removing the app's CSP passes it (SEO 1.00).
+  The paper was not reproduced.
+
+### Why PATCH
+
+A crawlable sentence, an attribute in the renderer, a guard exception and its
+fixtures, and words. No feature, no catalogue entry, no key. No tag, no notes.
+
 ## [6.5.2] — 2026-09-28
 
 **One wrong number in the file engines read, and the guard that let it

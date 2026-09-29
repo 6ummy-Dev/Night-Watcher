@@ -198,10 +198,11 @@ win.addEventListener("load", function(){
       var hrefs = sv ? Array.prototype.map.call(sv.querySelectorAll("a"), function(a){
         return a.getAttribute("href"); }) : [];
       /* 4.7.0: plus the one file link the seed carries — orders.txt, the
-         plain-text catalogue — which guard 90 allows by name and once. */
-      check("the seed links carry the five route tokens and orders.txt",
-            hrefs.length === 6 &&
-            ["#universes", "#life", "#release", "#progress", "#next", "orders.txt"].every(function(t){
+         plain-text catalogue — which guard 90 allows by name and once.
+         6.5.3: and the paper, /nocturne/, the second named exception. */
+      check("the seed links carry the five route tokens, orders.txt and the paper",
+            hrefs.length === 7 &&
+            ["#universes", "#life", "#release", "#progress", "#next", "orders.txt", "/nocturne/"].every(function(t){
               return hrefs.indexOf(t) >= 0; }),
             hrefs.join(" ") || "no links");
     })();
