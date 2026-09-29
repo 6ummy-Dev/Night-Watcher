@@ -14,6 +14,69 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.5.4] — 2026-09-29
+
+**One man writes the paper, and the check holds him to it.** Nocturne's voice
+guide has told the desk to write as "we" since the first issue. From No. 1 the
+page is one reporter, and there is no desk plural: no "we", "our" or "us" in a
+headline, the cold open, a story, the column or the sign-off. The founding
+issue ran with a desk "we" and stays exactly as published. The catalogue does
+not move, nothing saved changes shape or meaning, and the counts stay at 137
+films, 71 seasons and 44 continuities. **No reinstall is needed.**
+
+### Changed
+
+- **The three guides drop the desk plural.** `VOICE.md` says the page is one
+  man and lists what that rules out (facts and promises take no pronoun, the
+  map's builder is one person, "Night Watchers" once an issue, "this paper" and
+  "the Night Final" twice between them). "We think" leaves the column: the
+  verdict is a bare sentence. The samples that taught the pronoun are rewritten,
+  a set of samples for the new voice is added, and the pre-flight gains a
+  pronoun line and a soul test beside the scrape test. `REPORTER.md` loses "the
+  paper is 'we'" and refuses him as a detective or a private-eye substitute.
+  `BRIEF.md` states that the founding editorial's column judges in bare
+  sentences and that one person built the map. Section numbers do not move.
+- **The harm rules take three more lines** from the published SPJ 2014 code and
+  the IPSO Editors' Code: no public-interest exception for accuracy, grief or
+  a child; no naming a suspect before a charge, no lurid detail, and a story
+  written for the person it is about years from now; a young person's death
+  takes the same bans as a suicide. The unvoted SPJ proposal stays out.
+- **"I" may carry a count.** The owner's ruling of 28 September: still once an
+  issue at most, and never as authority or to bless a film, but the one "I" may
+  sit in a casebook memory or on a count the reporter made himself.
+- **The Night Editor's session runs on the highest-performance model available
+  to it.** One line in `BRIEF.md`, on his row and at step 3. The check does not
+  enforce it and it never appears in the issue, the colophon or the X post.
+- **The check refuses the desk plural in a weekly issue** (we, we're, we've,
+  we'd, we'll, our, ours, ourselves, us), after the same stripping "I" gets:
+  italic titles, quoted lines and the names list are read past, and "US" the
+  country is never caught. The founding issue is exempt. Whether a quoted
+  "we" names who said it stays the Copy Desk's read. Two warnings join the
+  sentence counts: "Night Watchers" more than once, and "this paper" and "the
+  Night Final" more than twice between them.
+- **A morgue card takes the same pattern,** so "we're", "we've", "we'll" and
+  "ours" no longer slip through.
+
+### Under the hood
+
+- The weekly test fixture had five desk "we"s and is rewritten without them;
+  `negtest750`'s anchor on its cold open moves with it. It gains a "US" in
+  a story, which the check has to read past.
+- **Sixteen fixtures in `negtest780`,** pinned to section 166: the cold open,
+  a story, the sign-off, "ourselves", "we're", a headline, a correction and a
+  lower-case "us"; a card saying "we're" and "ours"; the pattern forgetting
+  "us" or reading "US" as "us"; the founding exemption removed; and each
+  warning switched off or made to fire on one. Guard 166 also runs the pattern
+  and both warnings on sentences of its own.
+- Harness: 170 sections, 88 negative suites, 1,687 fixtures (from 1,671), 522
+  smoke checks.
+
+### Why PATCH
+
+Three guides, a check and its fixtures, and words. No feature, no catalogue
+entry, no key, no renderer change: `docs/nocturne/` does not move. No tag, no
+notes.
+
 ## [6.5.3] — 2026-09-28
 
 **The crawlable page names the paper, the paper's hero says it is the hero,

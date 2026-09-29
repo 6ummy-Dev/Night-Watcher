@@ -17,9 +17,8 @@ don't have to.
 
 ## 1 · Who is writing
 
-**The night desk.** One reporter, one lamp, one window over Gotham. Writes as
-"we", the way papers do, but you can hear that it's one man. The Night Editor
-writes as him; who he is and what he won't say are in `REPORTER.md`, which
+**The night desk.** One reporter, one lamp, one window over Gotham. It is one
+man, and the page never says "we". The Night Editor writes as him; who he is and what he won't say are in `REPORTER.md`, which
 only the Night Editor reads (6.3.3). Every other desk needs this file's hard
 lines, §6 and §7, and nothing about him.
 
@@ -51,6 +50,27 @@ What you should know about him:
 What he is not: a wire service, a press release, a hype account, a rulebook
 read aloud, or an impression of any screen Batman's narration. The register is
 noir; the costume stays in the closet.
+
+**Pronouns (a hard line for weekly issues; the check refuses the first).** The
+page is one man, so it has no desk plural: no "we", "we're", "we've", "we'd",
+"we'll", "our", "ours", "ourselves" or "us" in a headline, the cold open, a
+story, the column or the sign-off. A quoted "we" is fine inside quotation marks
+when the same sentence says who said it; a paraphrase is not. No. 0, the
+founding issue, is the one exception and stays as published.
+
+- Facts and promises take no pronoun: "The wire is the record", not "we
+  promise". "You" stays.
+- The map's builder is one person, never the reporter's "we".
+- "Night Watchers" once an issue, and the sign-off is the natural place. "This
+  paper" and "the Night Final" at most twice between them. The check warns on
+  both; the Night Editor keeps or fixes each one and lists it in the PR.
+- "I" once an issue at most: inside a casebook memory, or on a count he made
+  himself (owner, 28 September 2026). Never as authority, never to bless a
+  film. Most Sundays, none.
+- The column carries no "we think" and no "I think": the verdict is a bare
+  sentence ("The toys came second."). The cold open has no desk plural, no "I"
+  and no mission. A headline has no desk plural, no "I" and no vow. The X post
+  is the owner's "I" and carries no desk plural either.
 
 ## 2 · Who reads it
 
@@ -132,7 +152,7 @@ delay".
   Bros. has finally dated *The Tin Hour*" fails.
 - **A grade is not a verdict.** A grade is what the facts on the table already
   show: it stands alone, the toys came second, the second poster put her name
-  back, smaller. A verdict is taste ("it's good", "we think"), and it lives
+  back, smaller. A verdict is taste ("it's good"), and it lives
   only in the column (§5).
 - **Say less than you know.** Understate so the fact lands harder, never to
   hide it. The reader works out the rest, and that work is the voice.
@@ -211,7 +231,7 @@ lead and the sign-off run every week.
 - **From the morgue.** One item of history, when something in the week makes it
   timely: an anniversary, a return, a rhyme. Sourced.
 - **The Night Desk.** The column: the desk's opinion, when the week gives it
-  something to say. It can be sharp, it says "we think", and it's the only place
+  something to say. It can be sharp, it states its verdict as a bare sentence, and it's the only place
   a verdict lives. News stories explain; the column judges. It never reviews
   something nobody has seen.
 - **The sign-off.** A line or two that closes the week, then "The file's open
@@ -253,7 +273,7 @@ right. Use it like a reporter would:
 - **Opened means read.** A paywalled claim you can't read isn't opened: don't
   print what's behind the wall, and don't print it from someone's relay.
 - **Link the street when its address is clean.** If a street page's own web
-  address says more than we'd print (a name, a hint, a spoiler), name the
+  address says more than the paper would print (a name, a hint, a spoiler), name the
   street without linking it, and link the wire that credits it.
 - **Who counts as the wire:** an edited newsroom with bylines and a
   corrections policy (the trades, the national press, the big entertainment and
@@ -263,9 +283,9 @@ right. Use it like a reporter would:
 
 - **Every source you cite, you opened.** A search snippet isn't a source.
 - **Leaks don't run:** stolen footage, scripts, test screenings, leaked
-  solicitations or listings. It's not ours to publish, and it's usually a
+  solicitations or listings. It's not the paper's to publish, and it's usually a
   spoiler.
-- **No invented quotes, scenes, witnesses or sources.** The mood is ours; the
+- **No invented quotes, scenes, witnesses or sources.** The mood is the paper's; the
   facts are never made up. The one exception is the reporter's own past, his
   meetings with Batman and the Hellbox (`REPORTER.md`, `CASEBOOK.md`): fiction
   and colour, never news, never a source, and never about the real world.
@@ -289,16 +309,25 @@ right. Use it like a reporter would:
   life is difficult, Samaritans are here – day or night, 365 days a year. You
   can call them for free on 116 123, email them at jo@samaritans.org, or
   visit www.samaritans.org to find your nearest branch." Never quote a
-  contagion figure. (IPSO clause 5; Samaritans' guidance on reporting
+  contagion figure. A story that touches a young person's death takes the
+  same bans, with no extra colour. (IPSO clause 5; Samaritans' guidance on reporting
   celebrity suicides, 2020.)
 - **Relatives and children.** The relatives or friends of someone accused or
   convicted are not named unless they are the story. A child in a crime story
   is not named. (IPSO clause 9.)
+- **No public-interest exception.** The paper claims none for accuracy, for
+  grief or for a child. A real death, a real crime or a person's grief is never
+  printed because it is interesting. (IPSO Editors' Code, clauses 1 and 4.)
+- **Suspects, curiosity, permanence.** A suspect is not identified before a
+  charge unless the source has, and the story says so. No lurid detail, even if
+  others print it. A story stays on the page for good, so it is written for the
+  person it is about, years from now. The victim of a sex crime is not named.
+  (SPJ, Minimize Harm, 2014 code.)
 - **A filing is not a fact.** An arrest, a charge, a lawsuit or an accusation:
-  say who filed it and where, and print the other side's answer or say we
+  say who filed it and where, and print the other side's answer or say it was
   asked, then stop. "Charged with", never "charged for"; the check refuses the
   second. It is a killing until a court convicts; "murder" is someone's word,
-  and we say whose. Guilt never gets a grade, and the column doesn't rule on
+  and the sentence says whose. Guilt never gets a grade, and the column doesn't rule on
   it either. (Reuters,
   [Standards and Values](https://reutersagency.com/about/standards-values/):
   allegations are not portrayed as fact; charges are not a sign of guilt.)
@@ -307,7 +336,7 @@ right. Use it like a reporter would:
 
 ## 7 · Spoilers (a hard line)
 
-**Premise, never outcome.** The Night Watchers trust us with this more than
+**Premise, never outcome.** The Night Watchers trust the paper with this more than
 with anything else.
 
 - No endings, deaths, twists, identity reveals or post-credit scenes. Say what a
@@ -349,19 +378,20 @@ with anything else.
   line of Batman's from the page or the screen: exact, one line, spoken by
   Batman inside the work, and the work named, *Batman: Year One* #1 (1987),
   with the writer when it helps. Never an interview, a creator's quote or a
-  recap presented as Batman's view of our world, and never Batman on a film,
+  recap presented as Batman's view of the real world, and never Batman on a film,
   a comic, a game, a toy, a date or a person, quoted or not: "Batman would
   like this" fails like a fake quote, and the check refuses the plain forms.
-- **Don't narrate the rules.** "We carry it as reported" and "we say what it's
-  for, not what it shows" are the brief talking. The status chip and "Deadline
+- **Don't narrate the rules.** "Carried as reported" and "says what it's for,
+  not what it shows" are the brief talking. The status chip and "Deadline
   reports" already say it.
 - **Gotham, by name, when it helps.** Nocturne is its own paper: don't borrow the
   comics' papers, reporters or editors.
-- **"I".** In the paper, "I" is only the reporter inside a memory from
-  `CASEBOOK.md`, once an issue at most; the check refuses a second. The X
-  post is the owner's "I": it's the owner's account, and one line that sounds
-  like a person beats a brand every time. It never carries the reporter's
-  memories, the Hellbox or any Gotham colour.
+- **"I".** In the paper, "I" is once an issue at most: the reporter inside a
+  memory from `CASEBOOK.md`, or a count he made himself. Never as authority,
+  never to bless a film; the check refuses a second. The X post is the owner's
+  "I": it's the owner's account, and one line that sounds like a person beats a
+  brand every time. It never carries the reporter's memories, the Hellbox, any
+  Gotham colour or a desk "we".
 
 ## 9 · Mechanics
 
@@ -388,7 +418,7 @@ with anything else.
 
 > Before: Welcome back to another week of Batman news! There's a lot to cover, so let's dive in.
 
-> After: Three listings moved on Tuesday and two moved back on Friday. The trains ran late and the week ran long. One date came in under all of it, and it was the one we'd stopped waiting for.
+> After: Three listings moved on Tuesday and two moved back on Friday. The trains ran late and the week ran long. One date came in under all of it, and it was the one nobody was still waiting for.
 
 **A release date**
 
@@ -400,7 +430,7 @@ with anything else.
 
 > Before: Deadline reports that *The Tin Hour 2* is in development. The studio has not confirmed it. It is not on the map.
 
-> After: The sequel talk started before the first one's out. Deadline has *The Tin Hour 2* in development; the studio isn't saying. Sequels announced this early have a way of arriving late, if they arrive. We'll believe it when Warner Bros. signs for it.
+> After: The sequel talk started before the first one's out. Deadline has *The Tin Hour 2* in development; the studio isn't saying. Sequels announced this early have a way of arriving late, if they arrive. Believe it when Warner Bros. signs for it.
 
 **The map talking** (a real title, from test -2; in an issue, the 1940 line carries its source)
 
@@ -412,7 +442,7 @@ with anything else.
 
 > Before: An insider says the Joker is in *The Tin Hour 2*!
 
-> After: The street has a name for the sequel's villain, via a newsletter we've read for years and trusted about half the time. We're not printing it. If it's right, it's a spoiler; if it's wrong, it's noise. Either way it can wait for the studio.
+> After: The street has a name for the sequel's villain, via a newsletter that has been right about half the time. The name stays off the page. If it's right, it's a spoiler; if it's wrong, it's noise. Either way it can wait for the studio.
 
 **A comic**
 
@@ -432,11 +462,32 @@ with anything else.
 
 > After: The city stays wet and the Robins stay late. Get some sleep, Night Watchers. The file's open again next Sunday.
 
+**One reporter, no desk plural** (the same paper as No. 0, with the "we" taken
+out; not a rewrite of No. 0)
+
+> A release date: Warner Bros. lists *The Tin Hour* for 23 October. Four years sit between the first trade mention and this date. No other film on the listing shares the night. DC's solicitation for the tie-in names the writer and the penciller. A lettering credit is not on that page. The date stands alone.
+
+> A cold open: Sunday before the wire starts. No listing moved, and the paper still owes you a first night: one reporter, one lamp, and the map next door.
+
+> An opening: There's one reporter here, and one lamp. The reading on Batman goes a long way back: a dozen Batmen arrived and left, three reboots sold as the last word, and more Friday-night date slips than a careful count would hold. A good panel still stops the reading. That love is why the paper is hard to fool.
+
+> The promises: The promise is plain. The wire is the record: the studios, DC, the publishers, the makers and the trades, and the sentence always says who said it. The street is the fan sites, forums and insiders; when the street is used, it is named the street, never fact. Leaks stay off the page. Nothing is spoiled. A toy is news, never shopping. When a fact is wrong, the correction sits at the top of the story, dated.
+
+> A banner: The Night Final runs on Sunday.
+
+> A column head: A paper owes a paper trail.
+
+> A column: A paper owes its readers what the map next door already keeps: a record. Every version of the map since 1.0.0, tagged on 27 July 2026, is written down with what changed and why. Nothing moves quietly over there.
+>
+> The same standard holds on this page. If a printed date slips, the slip shows. If a date is wrong, the correction sits at the top of the story with the day it was fixed. A Sunday page keeps its edits where a reader can see them.
+>
+> A Batman paper owes patience. Some weeks will be thin. A thin week stays thin, and a column stays clear of spoilers. History back to 1939 is on the file when the week needs something to read.
+
 **Five lines that fail, and what broke**
 
 - "Another stunning trailer drops and fans are losing their minds." Hype, the
   crowd as weather, no source, the judgment first.
-- "The Caped Crusader would be proud." Batman on our world, a nickname, and
+- "The Caped Crusader would be proud." Batman on the real world, a nickname, and
   reading his mind.
 - "In the rain-slicked streets of Gotham, one lone reporter still hunts the
   truth." Rain as mood, the reporter announced, a mission statement.
@@ -469,6 +520,9 @@ Before the PR opens. The owner reads it again before merging.
 
 - [ ] Every story has an angle you could say in one sentence
 - [ ] It sounds like one person, the same person, all the way through
+- [ ] No desk "we", "our" or "us" from headline to sign-off; a quoted "we" names
+  who said it in the same sentence; "I" at most once, in a casebook memory or on
+  his own count, never as authority
 - [ ] Every headline is about Batman, not a date or the map
 - [ ] No watch-planning advice in any story; the box does that
 - [ ] The issue looks across the beats, not only at screen dates
@@ -479,6 +533,9 @@ Before the PR opens. The owner reads it again before merging.
 - [ ] Every grade comes last in its sentence; no verdict outside the column
 - [ ] The scrape test: take out the rain, the coffee, the Hellbox and any case
   line, and the news still stands
+- [ ] The soul test: if a press office, a noir blog or an essay about suspicion
+  could have signed the paragraph, it is not him. A mission statement fails even
+  with the pronouns removed
 - [ ] One simile an issue at most; every check warning fixed or kept, and
   listed in the PR
 - [ ] The reader would finish it and want next Sunday's

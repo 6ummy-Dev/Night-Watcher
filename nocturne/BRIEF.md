@@ -7,7 +7,7 @@ of every run; the copy on `main` is the one in force.
 | Who | Reads, in this order |
 | --- | --- |
 | Every agent | This brief, the notebook (`nocturne/NOTEBOOK.md`), and `nocturne/VOICE.md` §6 and §7 (sources and spoilers, the hard lines) |
-| The Night Editor, who writes the issue | This brief, `VOICE.md` in full, the week's cards, then `nocturne/REPORTER.md`; `nocturne/CASEBOOK.md` only when a story shares a method with a case in it; `nocturne/MORGUE.md` by lookup only, never read through |
+| The Night Editor, who writes the issue | This brief, `VOICE.md` in full, the week's cards, then `nocturne/REPORTER.md`; `nocturne/CASEBOOK.md` only when a story shares a method with a case in it; `nocturne/MORGUE.md` by lookup only, never read through. His session runs on the highest-performance model available to that session (§4, step 3) |
 | The Copy Desk, who checks the issue (6.3.5) | This brief (its checks are in §4), `VOICE.md` in full and `REPORTER.md` §7. Never `CASEBOOK.md` |
 | The Morgue, who files Batman's history | `nocturne/MORGUE.md` in full before proposing a line, so nothing is filed twice. Never `REPORTER.md` or `CASEBOOK.md`: it files only what's real |
 | Everyone else (the Wire, the Stoop, the Picture Desk, the SEO & AEO Desk, Dr Eggbot) | Nothing more. They stay objective and never read `REPORTER.md` or `CASEBOOK.md`: the reporter is fiction |
@@ -215,7 +215,7 @@ doesn't advance. A thin week is fine. A padded one isn't.
    from the morgue, which is Batman since 1939, not the catalogue.
 3. **Write** `nocturne/issues/<yyyy>-w<ww>-<slug>/issue.md` to the contract in
    §5. One folder per issue. The folder's name is the week in lower case and
-   the slug: `2026-w41-clayface-gets-a-date`. The Night Editor writes it.
+   the slug: `2026-w41-clayface-gets-a-date`. The Night Editor writes it. Every Sunday, before he drafts, the Night Editor's session runs on the highest-performance model available to that session; the check does not enforce it, and it never appears in the issue, the colophon or the X post.
    **Then the SEO & AEO pass** (6.3.3). The SEO & AEO Desk isn't in the desk's
    group chat, which holds six (6.3.8), but its pass still runs here,
    before the build and the check, so the
@@ -224,7 +224,7 @@ doesn't advance. A thin week is fine. A padded one isn't.
    and add a plain fact the cards already hold (a date, a title, a studio).
    Everything else goes back to the Night Editor: any wording in the body,
    the cold open (it is also the page's description), any adjective, any
-   shortened judgment, the sign-off, a "we", an added "you". Its changes go
+   shortened judgment, the sign-off, a desk "we" (banned in weekly copy, `VOICE.md` §1), an added "you". Its changes go
    in the PR as a diff.
    **Then the Copy Desk** (6.3.5) reads the issue against the checks below and
    returns a list of named breaks ("Story 2, second sentence: the grade comes
@@ -611,7 +611,7 @@ neighbour, not four:
 4. **The beats:** what the Night Final covers, screen, comics, games, toys,
    books, and how it reads the wire and the street (`VOICE.md` §6).
 5. **The Night Desk:** the paper's first column, the desk's view of what a
-   Batman paper owes its readers. It says "we think".
+   Batman paper owes its readers. It states its verdict as a bare sentence.
 6. **One fan and the ledger:** who builds the map, alone, with every change
    written down.
 
@@ -649,7 +649,7 @@ that editorial is the section on Nocturne. There isn't a second one beside it.
   (`REPORTER.md` §4).
 - No selling. The register still states rather than sells (`VOICE.md` §8): the
   counts and the rules speak for the app.
-- The app still never speaks. It's "we" built it, never "Night Watcher says".
+- The app still never speaks. One person built it, never "Night Watcher says".
 
 **Section order.** The editorial is section 1 and the map next door is
 section 2, because the images below are placed by position (§6). The other

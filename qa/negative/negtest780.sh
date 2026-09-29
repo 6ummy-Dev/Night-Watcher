@@ -22,6 +22,10 @@
 # (169); a card face that moved, or a card that is not the one the build
 # draws, is caught (166, 163).
 # 6.5.0: the crew's page is built from the tree and unlisted (170).
+# 6.5.4: the page is one man. A weekly issue has no desk plural, on the same
+# pattern a morgue card uses; "US", a quoted "we" and an italic title are not it;
+# the founding issue is the one exception; "Night Watchers" and "this paper"
+# warn past their caps (166).
 # Every fixture names its section.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
@@ -412,5 +416,87 @@ run_case "twitter:image points somewhere else than og:image" \
   "does not carry one twitter:image equal to its og:image" \
   "${N}a='name=\"twitter:image\" content=\"\\' + o.img.url';assert s.count(a)==1;s=s.replace(a,'name=\"twitter:image\" content=\"\\' + SHARE.url',1);${W}" \
   guards "" 164
+
+echo "--- 166: one man writes the page (6.5.4)"
+
+run_case "the desk says we in the cold open" \
+  "the desk plural appears 1 time (we)" \
+  "${F40}a='the one the week owed.';assert s.count(a)==1;s=s.replace(a,'the one we owed.',1);${W}" \
+  guards "" 166
+
+run_case "a story asks us" \
+  "the desk plural appears 1 time (us)" \
+  "${F40}a='keeps for the night it opens.';assert s.count(a)==1;s=s.replace(a,'keeps for the night it opens for us.',1);${W}" \
+  guards "" 166
+
+run_case "the sign-off says our" \
+  "the desk plural appears 1 time (Our)" \
+  "${F40}a=\"The file's open again next Sunday.\";assert s.count(a)==1;s=s.replace(a,\"Our file's open again next Sunday.\",1);${W}" \
+  guards "" 166
+
+run_case "a story keeps it to ourselves" \
+  "the desk plural appears 1 time (ourselves)" \
+  "${F40}a='a rumour with a good lawyer.';assert s.count(a)==1;s=s.replace(a,'a rumour kept to ourselves.',1);${W}" \
+  guards "" 166
+
+run_case "a story says we're" \
+  "the desk plural appears 1 time (we're)" \
+  "${F40}a='Pre-order dates slip, so';assert s.count(a)==1;s=s.replace(a,\"Pre-order dates slip, and we're watching, so\",1);${W}" \
+  guards "" 166
+
+run_case "a headline says our" \
+  "the desk plural appears" \
+  "${F40}a='The toys have the decency to come second';assert s.count(a)==2;s=s.replace(a,'Our toys have the decency to come second');${W}" \
+  guards "" 166
+
+run_case "a correction says we" \
+  "the desk plural appears 1 time (we)" \
+  "${F40}a='the date is the 23rd, not the 21st.';assert s.count(a)==1;s=s.replace(a,'we had the date as the 21st, not the 23rd.',1);${W}" \
+  guards "" 166
+
+run_case "US, the country, goes lower case" \
+  "the desk plural appears 1 time (us)" \
+  "${F40}a='own US listing';assert s.count(a)==1;s=s.replace(a,'own us listing',1);${W}" \
+  guards "" 166
+
+run_case "a card says we're" \
+  "a card has no voice" \
+  "${MG}a='Batman debuts in';assert s.count(a)==1;s=s.replace(a,\"We're sure Batman debuts in\",1);${W}" \
+  guards "" 166
+
+run_case "a card says ours" \
+  "a card has no voice" \
+  "${MG}a='Batman debuts in';assert s.count(a)==1;s=s.replace(a,'Ours: Batman debuts in',1);${W}" \
+  guards "" 166
+
+run_case "the pattern forgets us" \
+  "the desk plural no longer catches we, we're, our, ours, ourselves and us" \
+  "${N}a='|us|Us)';assert s.count(a)==1;s=s.replace(a,'|Us)',1);${W}" \
+  guards "" 166
+
+run_case "the pattern reads US as us" \
+  "the desk plural catches a US studio, a quoted" \
+  "${N}a='return (t.match(DESK_PLURAL) || [])';assert s.count(a)==1;s=s.replace(a,'return (t.match(new RegExp(DESK_PLURAL.source, \"gi\")) || [])',1);${W}" \
+  guards "" 166
+
+run_case "the founding issue loses its exemption" \
+  "the desk plural appears" \
+  "${N}a='if(kind !== \"founding\") deskPluralErrors';assert s.count(a)==1;s=s.replace(a,'if(true) deskPluralErrors',1);${W}" \
+  guards "" 166
+
+run_case "the Night Watchers warning is switched off" \
+  "the Night Watchers warning no longer fires" \
+  "${N}a='if(nw > 1)';assert s.count(a)==1;s=s.replace(a,'if(nw > 9)',1);${W}" \
+  guards "" 166
+
+run_case "the this-paper warning is switched off" \
+  "the this-paper warning no longer fires" \
+  "${N}a='if(pp > 2)';assert s.count(a)==1;s=s.replace(a,'if(pp > 9)',1);${W}" \
+  guards "" 166
+
+run_case "the Night Watchers warning fires on one" \
+  "the pronoun warnings fire on one Night Watchers" \
+  "${N}a='if(nw > 1)';assert s.count(a)==1;s=s.replace(a,'if(nw > 0)',1);${W}" \
+  guards "" 166
 
 finish "negtest780"

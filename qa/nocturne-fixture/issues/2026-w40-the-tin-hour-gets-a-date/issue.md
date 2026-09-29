@@ -6,7 +6,7 @@ title: "The Tin Hour gets a date"
 slug: the-tin-hour-gets-a-date
 week: 2026-W40
 published: 2026-10-04
-cold_open: "Rain since Tuesday. The trains ran late and the week ran long. One date came in under all of it, and it's the one we were waiting for."
+cold_open: "Rain since Tuesday. The trains ran late and the week ran long. One date came in under all of it, and it's the one the week owed."
 hero: key-art.webp
 images:
   - file: key-art.webp
@@ -82,7 +82,7 @@ corrections:
 ---
 ## The Tin Hour gets a date
 
-*The Tin Hour* has a date: 23 October, per [the studio's own listing](https://example.com/the-tin-hour). It keeps to its own corner of the city, and nothing else on the map waits on it, so we will file it as optional in a universe of its own.
+*The Tin Hour* has a date: 23 October, per [the studio's own US listing](https://example.com/the-tin-hour). It keeps to its own corner of the city, and nothing else on the map waits on it, so the map files it as optional in a universe of its own.
 
 It is not on the map yet. It goes on the shelf, parked, in the next release, and it stays parked at the kerb with the lights off until the 23rd. Nothing you have ticked moves.
 
@@ -90,11 +90,11 @@ It is not on the map yet. It goes on the shelf, parked, in the next release, and
 
 Word of a sequel came in off the wire. [A trade report](https://example.com/trade/tin-hour-sequel) has it in development; the studio has not said a word. In this city a story is not true until someone signs for it, so it stays off the map.
 
-No date, no director and no studio statement. We will park it the night the studio confirms it, and not an hour before. Until then it is a rumour with a good lawyer.
+No date, no director and no studio statement. The map parks it the night the studio confirms it, and not an hour before. Until then it is a rumour with a good lawyer.
 
 ## Knightquest gets its night
 
-*Knightquest* has a night of its own at last. [Its pre-order listing](https://example.com/pre-order/knightquest) gives 8 December. Pre-order dates slip, so we will read it again the week before it lands.
+*Knightquest* has a night of its own at last. [Its pre-order listing](https://example.com/pre-order/knightquest) gives 8 December. Pre-order dates slip, so the date gets read again the week before it lands.
 
 The second part of the Knightfall story was always the harder sell: the man in the suit is not the man you know. The listing is the first thing with a date on it, and that is enough for one week.
 
@@ -102,7 +102,7 @@ The second part of the Knightfall story was always the harder sell: the man in t
 
 A second trailer for *The Tin Hour* is out, per [the studio's channel](https://example.com/the-tin-hour/trailer-2?cut=final&lang=en). It is ninety seconds long and it is built to sell the mood, not the plot, which is the right way round.
 
-Studios used to cut three trailers and show you the whole film by the third. This one keeps its cards close. We will let the trailer speak for itself and keep the rest for the night it opens.
+Studios used to cut three trailers and show you the whole film by the third. This one keeps its cards close. The trailer can speak for itself, and the rest keeps for the night it opens.
 
 ## The comic takes the city, not the film
 

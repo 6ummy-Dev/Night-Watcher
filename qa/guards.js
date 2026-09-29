@@ -16406,6 +16406,29 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       fail("the simile count no longer tells a simile from an idiom (6.3.4)");
     }
     if(!(NOC.STYLE.similes === 1)) fail("the simile cap is not one an issue (6.3.4, owner)");
+    /* 6.5.4. The page is one man (VOICE.md §1). The desk plural is refused in a
+       weekly issue, on the same pattern the morgue's cards use; "US", a quoted
+       "we" and an italic title are not it; the two counts warn. */
+    var DP = NOC.deskPluralIn, PW = NOC.pronounWarnings;
+    if(typeof DP !== "function" || typeof PW !== "function"){
+      fail("qa/nocturne.js has lost its pronoun check (6.5.4)");
+    } else {
+      if(DP("We think it is ours. Ask us, and we're sure our map is ourselves.", []).join("|") !== "We|ours|us|we're|our|ourselves"){
+        fail("the desk plural no longer catches we, we're, our, ours, ourselves and us (6.5.4)");
+      }
+      if(DP("A US studio said \"we will\" of *Us*, and the map's builder kept it.", []).length){
+        fail("the desk plural catches a US studio, a quoted \"we\" or an italic title (6.5.4)");
+      }
+      if(!PW({id: "t", fm: {cold_open: "Night Watchers.", sign_off: "Night Watchers."}, body: ""}).some(function(m){ return /"Night Watchers" appears 2 times/.test(m); })){
+        fail("the Night Watchers warning no longer fires on two of them (6.5.4)");
+      }
+      if(!PW({id: "t", fm: {cold_open: "This paper.", sign_off: "The Night Final."}, body: "This paper."}).some(function(m){ return /"this paper" and "the Night Final" appear 3 times/.test(m); })){
+        fail("the this-paper warning no longer fires on three (6.5.4)");
+      }
+      if(PW({id: "t", fm: {cold_open: "Night Watchers.", sign_off: "This paper."}, body: "The Night Final."}).length){
+        fail("the pronoun warnings fire on one Night Watchers and two of this paper and the Night Final (6.5.4)");
+      }
+    }
     var fw = NOC_FIX.warnings || [];
     if(!Array.isArray(NOC_FIX.warnings)) fail("the build no longer returns its warnings (6.3.4)");
     fw.forEach(function(m){ fail("the Nocturne fixture trips a sentence warning — it is the house sample: " + m + " (6.3.4)"); });

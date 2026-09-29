@@ -313,8 +313,8 @@ function voiceErrors(text, where, names){
 }
 
 /* 6.3.3. Counted over the whole issue (the cold open, the stories, the
-   sign-off): "I" is the reporter inside a casebook memory, once an issue at
-   most, so a second is refused. Titles (in italics, or listed in names) and
+   sign-off): "I" is the reporter inside a casebook memory or on his own count
+   (6.5.4), once an issue at most, so a second is refused. Titles (in italics, or listed in names) and
    quoted lines are not his "I" and are not counted. One Hellbox regular an
    issue at most. */
 function reporterCounts(text, names){
@@ -322,10 +322,46 @@ function reporterCounts(text, names){
   var t = stripNames(String(text).replace(/\*[^*\n]+\*/g, " "), names);
   t = plain(t).replace(/\u201c[^\u201d]*\u201d/g, " ").replace(/"[^"\n]*"/g, " ");
   var i = (t.match(/(^|[^\w\u2019'])I(?:['\u2019](?:m|ve|d|ll))?(?![\w])/g) || []).length;
-  if(i > 1) e.push("\"I\" appears " + i + " times — once an issue at most, inside a casebook memory (REPORTER.md §4)");
+  if(i > 1) e.push("\"I\" appears " + i + " times — once an issue at most, inside a casebook memory or on his own count (REPORTER.md §4)");
   var r = REGULARS.filter(function(n){ return new RegExp("(^|[^\\w])" + n + "(?![\\w])").test(t); });
   if(r.length > 1) e.push(r.join(", ") + " in one issue — one Hellbox regular at most (REPORTER.md §4)");
   return e;
+}
+
+/* 6.5.4. The page is one man (VOICE.md §1): a weekly issue has no desk plural.
+   One pattern serves the issue and the morgue card. Case-sensitive on "us", so
+   "US" (the country) is never caught; titles in italics, quoted lines and the
+   names list are stripped first, the way "I" is counted. Whether a quoted "we"
+   is attributed in its own sentence is the Copy Desk's read, not the check's. */
+var DESK_PLURAL = /(^|[^\w\u2019'-])((?:[Ww]e(?:['\u2019](?:re|ve|d|ll))?)|(?:[Oo]ur(?:s|selves)?)|us|Us)(?![\w\u2019'-])/g;
+function deskPluralIn(text, names){
+  var t = stripNames(String(text).replace(/\*[^*\n]+\*/g, " "), names);
+  t = plain(t).replace(/\u201c[^\u201d]*\u201d/g, " ").replace(/"[^"\n]*"/g, " ");
+  return (t.match(DESK_PLURAL) || []).map(function(m){ return m.replace(/^[^A-Za-z]+/, ""); });
+}
+function deskPluralErrors(fm, body, names){
+  /* The title and each story's headline are also ## lines in the body, so they
+     count once; one that the body does not carry is read on its own. */
+  var b = String(body || ""), parts = [fm.cold_open, fm.sign_off, b];
+  [fm.title].concat((fm.stories || []).map(function(st){ return st && st.headline; }))
+            .concat((fm.corrections || []).map(function(c){ return c && c.text; }))
+            .forEach(function(x){ if(typeof x === "string" && b.indexOf(x) < 0) parts.push(x); });
+  var whole = parts.filter(function(x){ return typeof x === "string"; }).join("\n");
+  var hits = deskPluralIn(whole, names);
+  if(!hits.length) return [];
+  var uniq = hits.filter(function(h, i){ return hits.indexOf(h) === i; });
+  return ["the desk plural appears " + hits.length + " time" + (hits.length > 1 ? "s" : "") + " (" + uniq.join(", ") +
+          ") — one man writes this page: no \"we\", \"our\" or \"us\" outside quotation marks (VOICE.md §1)"];
+}
+/* 6.5.4. Counted like the sentence counts below: these warn, never refuse. */
+function pronounWarnings(is){
+  var w = [], fm = is.fm;
+  var t = plain([fm.cold_open, fm.sign_off, is.body].join("\n"));
+  var nw = (t.match(/\bNight Watchers\b/g) || []).length;
+  if(nw > 1) w.push(is.id + ": \"Night Watchers\" appears " + nw + " times — once an issue, and the sign-off is the natural place (VOICE.md §1)");
+  var pp = (t.match(/\bthis paper\b|\bthe Night Final\b/gi) || []).length;
+  if(pp > 2) w.push(is.id + ": \"this paper\" and \"the Night Final\" appear " + pp + " times between them — twice at most (VOICE.md §1)");
+  return w;
 }
 
 /* 6.3.4. The sentence counts (VOICE.md §4, "How the sentences work"). These
@@ -381,6 +417,7 @@ function issueWarnings(is, names){
   parts.sections.forEach(function(sec){
     w.push.apply(w, styleWarnings(sec.text, is.id + ": \"" + sec.headline + "\"", names));
   });
+  if(fm.kind !== "founding") w.push.apply(w, pronounWarnings(is));
   var sim = simileCount([fm.cold_open, fm.sign_off, is.body].join("\n"), names);
   if(sim > STYLE.similes) w.push(is.id + ": " + sim + " similes — one an issue at most, and it grades a thing, not a feeling (VOICE.md §4)");
   return w;
@@ -599,6 +636,8 @@ function checkAll(issues, cat){
     });
     if(total < L.words[0] || total > L.words[1]) E(is, "the issue is " + total + " words — a " + kind + " issue runs " + L.words[0] + " to " + L.words[1]);
     reporterCounts([fm.cold_open, fm.sign_off, is.body].join("\n"), EX).forEach(function(m){ E(is, m); });
+    /* 6.5.4. The founding issue is the one exception: No. 0 ran with a desk "we". */
+    if(kind !== "founding") deskPluralErrors(fm, is.body, EX).forEach(function(m){ E(is, m); });
 
     var imgs = fm.images === undefined ? [] : fm.images;
     if(!Array.isArray(imgs)){ E(is, "images is not a list"); imgs = []; }
@@ -1682,7 +1721,7 @@ function morgueErrors(text, today){
     });
     if(/!/.test(own)) errs.push(at + "an exclamation mark outside a title");
     bannedIn(own).forEach(function(w){ errs.push(at + "\"" + w + "\" is on VOICE.md §8's never-use list"); });
-    if(/(^|[^\w'\u2019])(we|We|I|us|our|Our)(?![\w'\u2019])/.test(own)) errs.push(at + "a card has no voice — no \"we\", no \"I\"");
+    if(/(^|[^\w'\u2019])I(?![\w'\u2019])/.test(own) || own.match(DESK_PLURAL)) errs.push(at + "a card has no voice — no \"we\", no \"I\"");
     MORGUE_FICTION.forEach(function(w){
       if(new RegExp("(^|[^\\w])" + w + "(?![\\w])").test(fact)) errs.push(at + "\"" + w + "\" is the reporter's fiction — the morgue files only what's real");
     });
@@ -1706,6 +1745,7 @@ module.exports = {build: build, cardKey: cardKey, CARD: CARD, PAPER_JS: PAPER_JS
                   COLOPHON: COLOPHON, BEACON: BEACON, BEACON_TOKEN: BEACON_TOKEN, THEME_TAG: THEME_TAG,
                   THEME_JS: THEME_JS, DARKER: DARKER, BEATS: BEATS,
                   styleWarnings: styleWarnings, simileCount: simileCount, issueWarnings: issueWarnings, STYLE: STYLE,
+  deskPluralIn: deskPluralIn, pronounWarnings: pronounWarnings,
                   MORGUE_REL: MORGUE_REL, MORGUE_HEAD: MORGUE_HEAD, morgueErrors: morgueErrors, morgueEntries: morgueEntries,
                   morgueWarnings: morgueWarnings, NEVER: NEVER};
 

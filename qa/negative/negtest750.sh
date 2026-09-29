@@ -134,7 +134,7 @@ run_case "a real issue that breaks the contract" \
 
 run_case "an exclamation mark in the cold open" \
   "an exclamation mark" \
-  "${F40}a='the one we were waiting for.';assert a in s;s=s.replace(a,'the one we were waiting for!',1);${W}" \
+  "${F40}a='the one the week owed.';assert a in s;s=s.replace(a,'the one the week owed!',1);${W}" \
   guards "" 166
 
 run_case "a never-use word in a story" \
