@@ -141,6 +141,16 @@ run_case "the head loses twitter:image" \
   "${P}a='<meta name=\"twitter:image\" content=\"https://nightwatcher.life/share.png\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
+run_case "the head loses twitter:title" \
+  "required tag(s): twitter:title" \
+  "${P}import re;a=re.search(r'<meta name=\"twitter:title\" content=\"[^\"]+\">\n',s);assert a;s=s.replace(a.group(0),'',1);${W}" \
+  guards "" 153
+
+run_case "the head loses twitter:description" \
+  "required tag(s): twitter:description" \
+  "${P}import re;a=re.search(r'<meta name=\"twitter:description\" content=\"[^\"]+\">\n',s);assert a;s=s.replace(a.group(0),'',1);${W}" \
+  guards "" 153
+
 run_case "the head loses og:locale" \
   "required tag(s): og:locale" \
   "${P}a='<meta property=\"og:locale\" content=\"en_US\">';assert a in s;s=s.replace(a,'',1);${W}" \
@@ -598,6 +608,11 @@ run_case "the README drops its row for .npmrc" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('.npmrc')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
   guards "" 45
 
+run_case "the README drops its row for .nvmrc" \
+  "README's file table does not list: .nvmrc" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('.nvmrc')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
 run_case "the README drops its row for qa/share-card.html" \
   "README's file table does not list: qa/share-card.html" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/share-card.html')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
@@ -652,6 +667,16 @@ run_case "the README drops its row for DATA-MODEL.md" \
 run_case "the README drops its row for CONTRIBUTING.md" \
   "README's file table does not list: CONTRIBUTING.md" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('CONTRIBUTING.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for CLAUDE.md" \
+  "README's file table does not list: CLAUDE.md" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('CLAUDE.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
+run_case "the README drops its row for .claude/" \
+  "README's file table does not list: .claude/" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('.claude/')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
   guards "" 45
 
 run_case "the README drops its row for NOTES-history.md" \

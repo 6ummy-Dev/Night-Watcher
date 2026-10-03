@@ -5,15 +5,17 @@
 
 # 4.3.1 moved the scopenote's inline margin into its classed rule; the verbatim
 # 1.8.2 shape here is re-anchored without it — the marker under test is unchanged.
+# 6.5.5 renders the scopenote always (empty until a query, QA L5), so the
+# anchors moved with that line; the bug restored is the same.
 # The whole bug, restored: the head carries a marker again and the count is
 # replaced into it afterwards. This is verbatim what 1.8.2 shipped.
 REGRESS="${P}a='''      '<span class=\"albl\">'+(ao ? \"Collapse all\" : \"Expand all\")+'</span><span class=\"caret\" aria-hidden=\"true\"></span></button></div>';'''
 assert a in s
 s=s.replace(a,'''      '<span class=\"albl\">'+(ao ? \"Collapse all\" : \"Expand all\")+'</span><span class=\"caret\" aria-hidden=\"true\"></span></button></div>%%COUNT%%';''',1)
-b='''  var html = head + (q ? scopeNote(shownTotal) : \"\") + body;'''
+b='''  var html = head + scopeNote(q ? shownTotal : null) + body;'''
 assert b in s
 s=s.replace(b,'''  var html = head + body;
-  html = html.replace(\"%%COUNT%%\", q ? scopeNote(shownTotal) : \"\");''',1)
+  html = html.replace(\"%%COUNT%%\", scopeNote(q ? shownTotal : null));''',1)
 ${W}"
 
 echo "--- 79: no marker a user could type"
@@ -32,8 +34,8 @@ run_case "a marker is added under another name" \
 
 run_case "a view builder replaces a literal in markup it assembled" \
   "on markup it assembled" \
-  "${P}a='  var html = head + (q';assert a in s
-s=s.replace(a,'  head = head.replace(\"chips\", \"chips\");\n  var html = head + (q',1);${W}"
+  "${P}a='  var html = head + scopeNote(';assert a in s
+s=s.replace(a,'  head = head.replace(\"chips\", \"chips\");\n  var html = head + scopeNote(',1);${W}"
 
 run_case "the sweep stops looking at the builders" \
   "no viewWatch() to check" \

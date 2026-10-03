@@ -9,7 +9,7 @@
  * the app is one index.html, so a sticky cache is a sticky catalogue and
  * sticky code with no way to push a fix. History: NOTES-history.md ("Where the served and config files' histories went").
  */
-var VERSION = "6.5.4";
+var VERSION = "6.5.5";
 var CACHE   = "night-watcher-" + VERSION;
 /* The shell: everything the page needs to open offline. Guard 13 diffs this
    list against what docs/ serves, crawler-facing files excluded; ./index.html
@@ -78,11 +78,18 @@ self.addEventListener("fetch", function(e){
   if(url.pathname === "/hww") return;
   if(url.pathname.indexOf("/hww/") === 0) return;
 
+  /* 6.5.5 (QA L1): a navigation is cached under its path, the query
+     dropped. Every /?fbclid=… or /?utm_… visit used to store another full
+     copy of the page under its own URL, and offline never needed one: a
+     query URL with no entry already fell to the shell. Now it refreshes the
+     one entry its path names. Everything else keeps its full URL. */
+  var key = req.mode === "navigate" ? url.origin + url.pathname : req;
+
   /* What the cache can give: the request itself, and for a navigation the
      app's shell. ./ is the shell, and ./index.html is consulted last for a
      platform where that path answers 200 and a visit cached it. */
   function fromCache(){
-    return caches.match(req, ANY).then(function(hit){
+    return caches.match(key, ANY).then(function(hit){
       if(hit) return hit;
       if(req.mode !== "navigate") return null;
       return caches.match("./", ANY).then(function(shell){
@@ -111,14 +118,14 @@ self.addEventListener("fetch", function(e){
            used to delete and re-put the 245 KB document and ~65 KB of
            fonts out of a 304-refreshed HTTP cache entry. */
         caches.open(CACHE).then(function(c){
-          return c.match(req, ANY).then(function(old){
+          return c.match(key, ANY).then(function(old){
             var was = old && old.headers && old.headers.get("etag");
             var now = res.headers && res.headers.get("etag");
             if(old && was && now && was === now){
               if(copy.body && copy.body.cancel) copy.body.cancel();
               return;
             }
-            return c.delete(req, ANY).then(function(){ return c.put(req, copy); });
+            return c.delete(key, ANY).then(function(){ return c.put(key, copy); });
           });
         }).catch(function(){})
       );

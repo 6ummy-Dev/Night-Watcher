@@ -11,6 +11,8 @@
 # 132: the runtime cache write deletes-then-puts under ignoreVary. Section
 # 75: an undeclared control height is a failure now, not a warning.
 # Section 113: the shard packing's balance is measured.
+# 6.5.5: a navigation is cached under its path and an asset under its full
+# URL (132, QA L1); a q-value is held to 0..1 (133, QA I4).
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 K="$(pro worker.js)"
@@ -69,8 +71,37 @@ echo "--- 132: one representation per path, enforced"
 
 run_case "the runtime put stops deleting first" \
   "does not delete-then-put" \
-  "${S2}a='return c.delete(req, ANY).then(function(){ return c.put(req, copy); });';assert a in s;s=s.replace(a,'return c.put(req, copy);',1);${VW}" \
+  "${S2}a='return c.delete(key, ANY).then(function(){ return c.put(key, copy); });';assert a in s;s=s.replace(a,'return c.put(key, copy);',1);${VW}" \
   guards "" 132
+
+# 6.5.5 (QA L1): a navigation is cached under its path; an asset keeps its
+# full URL.
+run_case "navigations are cached under their full URL again" \
+  "navigations with a query are cached under their full URL" \
+  "${S2}a='var key = req.mode === \"navigate\" ? url.origin + url.pathname : req;';assert s.count(a)==1;s=s.replace(a,'var key = req;',1);${VW}" \
+  guards "" 132
+
+run_case "every request is cached under its path, assets too" \
+  "an asset request lost its query in the cache key" \
+  "${S2}a='var key = req.mode === \"navigate\" ? url.origin + url.pathname : req;';assert s.count(a)==1;s=s.replace(a,'var key = url.origin + url.pathname;',1);${VW}" \
+  guards "" 132
+
+echo "--- 133: a q-value is 0..1 (6.5.5, QA I4)"
+
+run_case "a q above 1 is taken at its word" \
+  "a q above 1 on markdown" \
+  "${K}a='Math.min(1, Math.max(0, q))';assert s.count(a)==1;s=s.replace(a,'q',1);${KW}" \
+  guards "" 133
+
+run_case "a malformed q counts as 1 again" \
+  "a malformed q on markdown" \
+  "${K}a='Math.min(1, Math.max(0, q)) : 0;';assert s.count(a)==1;s=s.replace(a,'Math.min(1, Math.max(0, q)) : 1;',1);${KW}" \
+  guards "" 133
+
+run_case "a q inside 0..1 is ignored" \
+  "markdown alone at q=0.5 fell through to HTML" \
+  "${K}a='Math.min(1, Math.max(0, q)) : 0;';assert s.count(a)==1;s=s.replace(a,'0 : 0;',1);${KW}" \
+  guards "" 133
 
 echo "--- 75: an unmeasurable control is a failure, not a warning"
 

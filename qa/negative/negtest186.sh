@@ -33,7 +33,7 @@ s=s.replace(a,'<a href=\"https://example.com/\">',1);${W}"
 run_case "the seed links are stripped" \
   "the seed block carries no links at all" \
   "${P}import re;m=re.search(r'<main id=\"view\">[\\s\\S]*?</main>',s);assert m
-seed=re.sub(r'<a href=\"[^\"]*\">([^<]*)</a>',r'\\1',m.group(0));assert '<a ' not in seed
+seed=re.sub(r'<a href=\"[^\"]*\"[^>]*>([^<]*)</a>',r'\\1',m.group(0));assert '<a ' not in seed
 s=s[:m.start()]+seed+s[m.end():];${W}"
 
 echo "--- smoke: the first render replaces the seed"

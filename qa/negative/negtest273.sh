@@ -100,7 +100,8 @@ run_case "the link is unwrapped back to plain words" \
 
 run_case "the link points at something else" \
   "nothing links the source" \
-  "${P}s=s.replace('href=\"https://github.com/6ummy-Dev/Night-Watcher\" target','href=\"https://www.gnu.org/licenses/agpl-3.0.html\" target',1);${W}"
+  "${P}a='href=\"https://github.com/6ummy-Dev/Night-Watcher\" target=\"_blank\" rel=\"noopener noreferrer\">read the source';assert s.count(a)==1
+s=s.replace(a,'href=\"https://www.gnu.org/licenses/agpl-3.0.html\" target=\"_blank\" rel=\"noopener noreferrer\">read the source',1);${W}"
 
 run_case "the link leaves the build line for the Home colophon" \
   "not on Progress" \
@@ -126,7 +127,7 @@ assert a;s=s.replace(a.group(0),'',1);${W}"
 
 run_case "the words change under the link" \
   "the support line lost its words" \
-  "${P}s=s.replace('Keep the path lit.','Feed the meter.',1);${W}"
+  "${P}i=s.index('<span class=\"buildline\">Keep the path lit.');s=s[:i]+s[i:].replace('Keep the path lit.','Feed the meter.',1);${W}"
 
 run_case "the line climbs above the build line" \
   "sits above the build line" \
@@ -134,6 +135,15 @@ run_case "the line climbs above the build line" \
 assert a;s=s.replace(a.group(0),'',1)
 b='<span class=\"buildline\">Build '
 assert b in s;s=s.replace(b,a.group(0)+b,1);${W}"
+
+# 6.5.5: the seed carries the same words and link for a reader without
+# JavaScript. The build line's copy going must still fail; the seed's copy
+# must not answer for it.
+run_case "the build line's support goes and the seed's copy stays" \
+  "the support line is gone" \
+  "${P}import re;a=re.search(r'<span class=\"buildline\">Keep the path lit[^<]*<a [^>]*>Support</a></span>',s)
+assert a;s=s.replace(a.group(0),'',1);assert 'Keep the path lit.' in s;${W}" \
+  guards "" 98
 
 echo "--- the page's own script parses"
 

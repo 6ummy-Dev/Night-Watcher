@@ -195,9 +195,11 @@ run_case "the disarm timer puts a hidden row back (smoke)" \
   "${P}a='  scratch.innerHTML = filmRow(f, row.hidden);\n  row.parentNode.replaceChild(scratch.firstChild, row);\n  if(hadFocus)';assert a in s;s=s.replace(a,'  scratch.innerHTML = filmRow(f);\n  row.parentNode.replaceChild(scratch.firstChild, row);\n  if(hadFocus)',1);${W}" \
   "smoke" "main"
 
-run_case "a refused log leaves a watched title with no night (smoke)" \
-  "a watched title whose log entries were all refused still gets a night" \
-  "${P}a='    if(Array.isArray(o.log)) mergeLog(o.log.filter(function(en){ return en && S.watched[en.id]; }));\n    var have3 = {};';assert a in s;s=s.replace(a,'    if(Array.isArray(o.log)){ mergeLog(o.log.filter(function(en){ return en && S.watched[en.id]; })); persist(); render(); return res; }\n    var have3 = {};',1);${W}" \
+# 6.5.5 (QA M4) inverted 5.4.0's fallback: a restore is not a night. The
+# fixture plants the fresh-timestamp loop back in the JSON branch.
+run_case "a refused log gets an invented night again (smoke)" \
+  "a watched title whose log entries were all refused gets no invented night" \
+  "${P}a='    if(Array.isArray(o.log)) mergeLog(o.log.filter(function(en){ return en && S.watched[en.id]; }));\n    persist(); render();';assert s.count(a)==1;s=s.replace(a,'    if(Array.isArray(o.log)) mergeLog(o.log.filter(function(en){ return en && S.watched[en.id]; }));\n    var have3 = {};\n    S.log.forEach(function(x){ have3[x.id] = 1; });\n    var id4; for(id4 in res.watched){ if(S.watched[id4] && !have3[id4]) S.log.push({id:id4, ts:Date.now()}); }\n    persist(); render();',1);${W}" \
   "smoke" "main"
 
 run_case "the closing note opens on a day line again (smoke)" \

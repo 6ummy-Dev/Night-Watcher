@@ -199,10 +199,14 @@ win.addEventListener("load", function(){
         return a.getAttribute("href"); }) : [];
       /* 4.7.0: plus the one file link the seed carries — orders.txt, the
          plain-text catalogue — which guard 90 allows by name and once.
-         6.5.3: and the paper, /nocturne/, the second named exception. */
-      check("the seed links carry the five route tokens, orders.txt and the paper",
-            hrefs.length === 7 &&
-            ["#universes", "#life", "#release", "#progress", "#next", "orders.txt", "/nocturne/"].every(function(t){
+         6.5.3: and the paper, /nocturne/, the second named exception.
+         6.5.5: and the repository and the support page, the third and
+         fourth, the first two off this origin. */
+      check("the seed links carry the five route tokens, orders.txt, the paper, the source and the support page",
+            hrefs.length === 9 &&
+            ["#universes", "#life", "#release", "#progress", "#next", "orders.txt", "/nocturne/",
+             "https://github.com/6ummy-Dev/Night-Watcher",
+             "https://publishers.basicattentiontoken.org/en/c/nightwatcher"].every(function(t){
               return hrefs.indexOf(t) >= 0; }),
             hrefs.join(" ") || "no links");
     })();
@@ -2567,6 +2571,66 @@ win.addEventListener("load", function(){
             check("a tick after a corrupt read does not overwrite the unread bytes",
                   w5.localStorage.getItem("batwatch-v3") === corrupt,
                   "stored: " + String(w5.localStorage.getItem("batwatch-v3")).slice(0, 40));
+            /* 6.5.5 (QA M3): the latch and the bytes stay, but an unreadable
+               store gets its own banner (it is not "blocked"), and the
+               existing two-tap Clear all progress ends it: the one explicit,
+               confirmed overwrite. A store whose READ throws is blocked, and
+               clearing must not pretend otherwise. */
+            check("an unreadable store's banner says it could not be read, and how to start fresh",
+                  /couldn\u2019t be read/.test(d5.getElementById("nosave").textContent) &&
+                  /Clear all progress/.test(d5.getElementById("nosave").textContent),
+                  d5.getElementById("nosave").textContent.slice(0, 60));
+            reboot(corrupt, "corrupt store, cleared", function(wc, dc){
+              wc.S.tab = "stats"; wc.render();
+              var rb = function(){ return dc.querySelector('#view .panel:not([inert]) button[data-act="reset"]'); };
+              rb().click(); rb().click();
+              wc.flushPersist();
+              var fresh = wc.localStorage.getItem("batwatch-v3");
+              check("Clear all progress, confirmed, ends an unreadable store's latch",
+                    wc.readFailed === false && wc.canSave === true && dc.getElementById("nosave").hidden,
+                    "readFailed=" + wc.readFailed + " canSave=" + wc.canSave);
+              check("and writes a fresh payload over the unread bytes",
+                    fresh !== corrupt && !!JSON.parse(fresh || "null"), String(fresh).slice(0, 40));
+              reboot({m:fresh, s:wc.localStorage.getItem("batwatch-settings")}, "after clearing a corrupt store", function(wn, dn){
+                check("the boot after the clear reads clean",
+                      wn.readFailed === false && wn.canSave === true && dn.getElementById("nosave").hidden,
+                      "readFailed=" + wn.readFailed);
+                reboot(corrupt, "unreadable again", function(wa, da){
+                  check("a second unreadable store latches again",
+                        wa.readFailed === true && wa.canSave === false && !da.getElementById("nosave").hidden);
+                });
+              });
+            });
+            (function(){
+              var held = JSON.stringify({watched:{}, skipped:{}, rated:{}, log:[]});
+              var db = new jsdom.JSDOM(html, {runScripts:"dangerously", url:"https://nightwatcher.life/",
+                pretendToBeVisual:true, beforeParse:function(w){
+                  floor(w);
+                  w.localStorage.setItem("batwatch-v3", held);
+                  var realGet = w.Storage.prototype.getItem;
+                  w.__realGet = realGet;
+                  w.Storage.prototype.getItem = function(k){
+                    if(k === "batwatch-v3") throw new Error("SecurityError: read refused");
+                    return realGet.call(this, k);
+                  };
+                }});
+              db.window.addEventListener("load", function(){
+                setTimeout(function(){
+                  var wb = db.window, dbd = wb.document;
+                  wb.S.tab = "stats"; wb.render();
+                  var rb = function(){ return dbd.querySelector('#view .panel:not([inert]) button[data-act="reset"]'); };
+                  rb().click(); rb().click();
+                  wb.flushPersist();
+                  check("a store whose read throws keeps the blocked banner",
+                        /blocked/i.test(dbd.getElementById("nosave").textContent) && !dbd.getElementById("nosave").hidden);
+                  check("and Clear all progress does not end a blocked store's latch",
+                        wb.readFailed === true && wb.canSave === false,
+                        "readFailed=" + wb.readFailed + " canSave=" + wb.canSave);
+                  check("and the bytes it could not read are left alone",
+                        wb.__realGet.call(wb.localStorage, "batwatch-v3") === held);
+                }, 0);
+              });
+            })();
             /* 5.0.0: a skip placed on a title that was not out yet, under
                an older build, is "not now" said twice — dropped at load. */
             var staleSkips = {};
@@ -3006,15 +3070,109 @@ win.addEventListener("load", function(){
       check("a log entry at or before the epoch is refused",
             S.log.every(function(en){ return en.ts > 0; }),
             "log: " + JSON.stringify(S.log));
-      /* 5.4.0, from the 5.3.1 audit: when the file carried a log, mergeLog()
-         was the only path, so a title whose every entry was refused was
-         watched with no night — Progress printed none. The fresh-timestamp
-         fallback runs for whatever the log did not take. */
-      check("a watched title whose log entries were all refused still gets a night",
-            S.watched[A] === 1 && S.log.length === 1 && S.log[0].id === A && S.log[0].ts > 0,
+      /* 5.4.0 gave a title whose every entry was refused a fresh night, so
+         Progress would print one. 6.5.5 (QA M4) INVERTS it: a restore is not
+         a night. The fallback stamped every restored title with the moment
+         of the restore, which is how a restored backup forecast "done by"
+         two days out. A title the log does not date stays undated. */
+      check("a watched title whose log entries were all refused gets no invented night",
+            S.watched[A] === 1 && S.log.length === 0,
             "log: " + JSON.stringify(S.log));
       S.watched = {}; S.log = []; S.clk = {w:{}, s:{}, r:{}};
       win.persist(); win.flushPersist(); win.render();
+    })();
+
+    /* --- a restore is not a night (6.5.5, QA M4) --------------------------
+       applyImport() pushed a log row stamped "now" for every title a backup
+       code restored, and the JSON branch did the same for every title its
+       own log did not date. The log is a record of watching: a restore of
+       forty titles became forty titles watched tonight, and the pace
+       forecast read "done by" a couple of days out. */
+    (function(){
+      function clean(){ S.watched = {}; S.skipped = {}; S.rated = {}; S.log = []; S.clk = {w:{}, s:{}, r:{}}; }
+      clean();
+      var ids = FILMS.filter(function(f){ return !win.isParked(f); }).slice(0, 40).map(function(f){ return f.id; });
+      ids.forEach(function(id){ S.watched[id] = 1; });
+      var code = win.exportCode();
+      clean();
+      win.doRestore(code);
+      check("a backup-code restore marks every title it carries",
+            ids.every(function(id){ return S.watched[id] === 1; }), Object.keys(S.watched).length + " of " + ids.length);
+      check("a backup-code restore writes no night",
+            S.log.length === 0, S.log.length + " log rows after the restore");
+      check("a restore alone forecasts no done-by",
+            win.doneBy(win.nightsOf(S.log), win.counts().left, Date.now()) === null);
+      S.tab = "next"; win.render();
+      check("a restore adds no Recent activity rows",
+            win.document.querySelectorAll("#view .panel:not([inert]) .arow").length === 0,
+            win.document.querySelectorAll("#view .panel:not([inert]) .arow").length + " rows");
+      var now = Date.now(), rest = FILMS.filter(function(f){ return !win.isParked(f) && !S.watched[f.id]; });
+      [2, 1, 0].forEach(function(back, i){ S.watched[rest[i].id] = 1; S.log.push({id: rest[i].id, ts: now - back * 864e5}); });
+      var nt = win.nightsOf(S.log);
+      check("three real nights after a restore are the only nights the forecast reads",
+            nt.nights === 3 && nt.logged === 3, JSON.stringify(nt));
+      clean(); S.tab = "home";
+      win.persist(); win.flushPersist(); win.render();
+    })();
+
+    /* --- the small QA fixes (6.5.5) ----------------------------------------
+       L4: a toast stays long enough to read, capped. L5: the search count is
+       a standing live region, so the first count is heard. L12: a failed
+       backup write releases its file. L13: a card that cannot be drawn says
+       so. Each driven through the app's own function. */
+    (function(){
+      var got = [], realST = win.setTimeout;
+      win.setTimeout = function(f, ms){ got.push(ms); return 0; };
+      win.toast("Saved");
+      win.toast(new Array(201).join("x"));
+      win.setTimeout = realST;
+      win.document.getElementById("toast").classList.remove("show");
+      check("a short toast stays 1.7 s plus 50 ms a character",
+            got[0] === 1700 + 50 * 5, String(got[0]));
+      check("a long toast is held to six seconds", got[1] === 6000, String(got[1]));
+
+      S.tab = "watch"; S.q = ""; win.render();
+      var pane = win.panelOf("watch"), sn0 = pane && pane.querySelector(".scopenote");
+      check("the search count's live region is on the page before the first keystroke",
+            !!sn0 && sn0.textContent === "" && sn0.getAttribute("role") === "status",
+            sn0 ? JSON.stringify(sn0.textContent) : "no .scopenote");
+      S.q = "batman"; win.searchApply();
+      var sn1 = pane.querySelector(".scopenote");
+      S.q = "batman begins"; win.searchApply();
+      var sn2 = pane.querySelector(".scopenote");
+      check("the first count is spoken into the same node, not a new one",
+            sn1 === sn0 && sn2 === sn0 && /^\d+ match(es)?$/.test(sn2.textContent), sn2 ? sn2.textContent : "-");
+      S.q = ""; win.searchApply();
+      check("clearing the search empties the live region and keeps it",
+            pane.querySelector(".scopenote") === sn0 && sn0.textContent === "");
+      S.tab = "home"; win.render();
+
+      var aborted = 0;
+      var h = {queryPermission: function(){ return Promise.resolve("granted"); },
+               createWritable: function(){ return Promise.resolve({
+                 write: function(){ return Promise.reject(new Error("disk full")); },
+                 close: function(){ return Promise.resolve(); },
+                 abort: function(){ aborted++; return Promise.resolve(); }}); }};
+      win.fhWrite(h, "{}").then(function(ok){
+        check("a failed backup write aborts its writable and reports failure",
+              ok === false && aborted === 1, "ok=" + ok + " aborted=" + aborted);
+      });
+
+      var toasts = [], realToast = win.toast, realCE = win.document.createElement;
+      win.toast = function(m){ toasts.push(m); };
+      win.document.createElement = function(t){
+        var el = realCE.call(win.document, t);
+        if(String(t).toLowerCase() === "canvas"){
+          el.getContext = function(){ return null; };
+          el.toBlob = function(cb){ cb(null); };
+        }
+        return el;
+      };
+      var made = 0;
+      try{ win.cardFile(function(){ made++; }); }catch(e){ toasts.push("threw: " + e.message); }
+      win.document.createElement = realCE; win.toast = realToast;
+      check("a card the browser cannot draw says so",
+            made === 0 && toasts.length === 1 && /couldn\u2019t be drawn/.test(toasts[0]), JSON.stringify(toasts));
     })();
 
     /* --- restore() is a door too (5.3.0, from the two 5.2.4 QAs) ---------

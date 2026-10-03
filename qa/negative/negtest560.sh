@@ -130,8 +130,8 @@ s=s.replace(a,'if(!rv || isParkedId(id) || S.rated[id] === rv',1);${W}" \
 
 run_case "applyImport grows its own copy of the loop back" \
   "sets S.watched by hand again" \
-  "${P}a='  applyMarks(res, true).added.forEach(function(id){ S.log.push({id:id, ts:Date.now()}); });';assert a in s
-s=s.replace(a,'  var id; for(id in res.watched){ if(BYID[id] && !S.watched[id]){ S.watched[id] = 1; S.log.push({id:id, ts:Date.now()}); } }\n  applyMarks(res, true);',1);${W}" \
+  "${P}a='function applyImport(res){\n  if(!S.path && isPath(res.path)){ S.path = S.mode = res.path; }\n  applyMarks(res, true);';assert a in s
+s=s.replace(a,'function applyImport(res){\n  if(!S.path && isPath(res.path)){ S.path = S.mode = res.path; }\n  var id; for(id in res.watched){ if(BYID[id] && !S.watched[id]){ S.watched[id] = 1; } }\n  applyMarks(res, true);',1);${W}" \
   guards "" 111
 
 run_case "the storage event stops merging through the helper" \

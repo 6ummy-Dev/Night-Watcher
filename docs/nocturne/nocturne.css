@@ -114,6 +114,9 @@ figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;
 .shout.fail{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal;flex-basis:100%;order:1;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.04em;color:var(--steel);text-align:center;overflow-wrap:anywhere;user-select:all;}
 .btn.share.failed .shr{display:none;}
 .colophon{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:0;position:relative;padding-top:22px;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}
+.support{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:6px 0 0;}
+.support a{text-decoration:underline;text-underline-offset:.2em;}
+.support a:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
 .sub{text-align:center;color:var(--dust);font-size:var(--t-desc);margin:0 auto 26px;max-width:460px;}
 .front{max-width:680px;margin:0 auto;}
 .lead-kick{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.19em;text-transform:uppercase;color:var(--dust);display:flex;justify-content:center;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:26px 0 0;}

@@ -24,6 +24,7 @@
     - button "Optional"
     - button "R / TV-MA off"
   - button "Expand all"
+  - status
   - heading "2 DC Animated Universe 0 of 10" [level=2]:
     - button "2 DC Animated Universe 0 of 10"
   - heading "2 The Comic Adaptations 0 of 8" [level=2]:

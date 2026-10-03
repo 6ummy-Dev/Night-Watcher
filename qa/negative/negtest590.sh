@@ -15,7 +15,9 @@
 #
 # Section 90 (one exception): the seed may link to orders.txt, once. None is
 # the 4.6.0 audit's finding again; a second file is the old rule; twice is a
-# list of files.
+# list of files. 6.5.3 named the paper, and 6.5.5 the repository and the
+# support page, the first two off this origin: each exactly once, each in its
+# own tab with noopener noreferrer.
 #
 # Smoke (staged): the dead-rule sweep stages #splash and #splash.gone because
 # the cover is gone by the time the sweep starts. A splash rule that matches
@@ -173,6 +175,52 @@ run_case "the seed's paper link points at a page under the paper" \
   "the seed links out to /nocturne/feed.xml" \
   "${P}a='<a href=\"/nocturne/\">Nocturne</a>';assert a in s
 s=s.replace(a,'<a href=\"/nocturne/feed.xml\">Nocturne</a>',1);${W}" \
+  guards "" 90
+
+# 6.5.5: the third and fourth named exceptions, the first off this origin. The
+# seed links the repository once, from the word GitHub, and the app's one ask
+# once, in the app's words; another path on either host, a second copy, the
+# link gone, or a bare link without its own tab and noopener noreferrer fails.
+run_case "the seed's GitHub link is dropped" \
+  "the seed links to https://github.com/6ummy-Dev/Night-Watcher 0 times" \
+  "${P}a='<a href=\"https://github.com/6ummy-Dev/Night-Watcher\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>';assert s.count(a)==1
+s=s.replace(a,'GitHub',1);${W}" \
+  guards "" 90
+
+run_case "the seed's GitHub link points at another path on GitHub" \
+  "the seed links out to https://github.com/6ummy-Dev/Night-Watcher/issues" \
+  "${P}a='<a href=\"https://github.com/6ummy-Dev/Night-Watcher\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>';assert s.count(a)==1
+s=s.replace(a,a.replace('Night-Watcher\"','Night-Watcher/issues\"'),1);${W}" \
+  guards "" 90
+
+run_case "the seed links GitHub twice" \
+  "the seed links to https://github.com/6ummy-Dev/Night-Watcher 2 times" \
+  "${P}a='<a href=\"#next\">Next up</a>';assert a in s
+s=s.replace(a,'<a href=\"https://github.com/6ummy-Dev/Night-Watcher\" target=\"_blank\" rel=\"noopener noreferrer\">Next up</a>',1);${W}" \
+  guards "" 90
+
+run_case "the seed's GitHub link loses its own tab and noopener" \
+  "does not open in its own tab with noopener noreferrer" \
+  "${P}a='<a href=\"https://github.com/6ummy-Dev/Night-Watcher\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>';assert s.count(a)==1
+s=s.replace(a,'<a href=\"https://github.com/6ummy-Dev/Night-Watcher\">GitHub</a>',1);${W}" \
+  guards "" 90
+
+run_case "the seed's Support link is dropped" \
+  "the seed links to https://publishers.basicattentiontoken.org/en/c/nightwatcher 0 times" \
+  "${P}a='<p>Keep the path lit. <a href=\"https://publishers.basicattentiontoken.org/en/c/nightwatcher\" target=\"_blank\" rel=\"noopener noreferrer\">Support</a></p>';assert s.count(a)==1
+s=s.replace(a,'',1);${W}" \
+  guards "" 90
+
+run_case "the seed's Support link points at another page on that host" \
+  "the seed links out to https://publishers.basicattentiontoken.org/en/c/someoneelse" \
+  "${P}a='<p>Keep the path lit. <a href=\"https://publishers.basicattentiontoken.org/en/c/nightwatcher\" target=\"_blank\" rel=\"noopener noreferrer\">Support</a></p>';assert s.count(a)==1
+s=s.replace(a,a.replace('/en/c/nightwatcher','/en/c/someoneelse'),1);${W}" \
+  guards "" 90
+
+run_case "the seed links Support twice" \
+  "the seed links to https://publishers.basicattentiontoken.org/en/c/nightwatcher 2 times" \
+  "${P}a='<p>Keep the path lit. <a href=\"https://publishers.basicattentiontoken.org/en/c/nightwatcher\" target=\"_blank\" rel=\"noopener noreferrer\">Support</a></p>';assert s.count(a)==1
+s=s.replace(a,a+a,1);${W}" \
   guards "" 90
 
 echo "--- smoke: a splash rule that matches neither staged state is dead"

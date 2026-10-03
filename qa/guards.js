@@ -26,6 +26,11 @@ var PUBLIC = fs.existsSync(path.join(ROOT, "docs", "index.html"))
 var HTML   = fs.readFileSync(path.join(PUBLIC, "index.html"), "utf8");
 var SNAP   = path.join(__dirname, "frozen-ids.json");
 var BLESS  = process.argv.indexOf("--bless") >= 0;
+/* 6.5.5: the two off-origin addresses the crawlable seed may carry, written
+   once. Section 78 writes them into the seed and section 90 allows exactly
+   these, so the writer and the gate cannot name two different URLs. */
+var SEED_GITHUB  = "https://github.com/6ummy-Dev/Night-Watcher";
+var SEED_SUPPORT = "https://publishers.basicattentiontoken.org/en/c/nightwatcher";
 
 /* FIVE WRITERS, ONE STALE STRING. Every
    index.html bless writer used to call fs.writeFileSync with a replacement
@@ -203,6 +208,7 @@ function blessHtml(next){
      70   An entry outside the timeline says why
      90   The seed links carry only known tokens
      91   The card the metas promise is the card that ships
+     171  Every page's Twitter title and description are its og twins
      95   The curated list is machine-readable
      100  The straight answers are machine-readable
      101  The site answers off the app too
@@ -231,6 +237,7 @@ function blessHtml(next){
      168  The paper's weight
      169  The paper sets type on the app's scale
      170  The crew's page is built and unlisted
+     172  The paper carries the app's one ask, under its colophon
 
    META
      65   The file points at where its reasoning went
@@ -6352,11 +6359,17 @@ var ROUTE_VOCAB = [
     /* 3.9.1: who stands behind it, in the crawlable seed. The provenance line
        lived only in the app's JS-rendered footer, so a reader without
        JavaScript — and the engines that grade Human Trust — never saw who
-       keeps it, that it is unofficial, or that it is AGPL. No outbound link
-       (guard 90 keeps the seed's anchors internal); the claim is the value. */
+       keeps it, that it is unofficial, or that it is AGPL. 6.5.5 (owner's
+       calls 2 and 9, from the 29 Sept site audit): the word GitHub links the
+       repository, and the app's one ask follows in the app's own words, so
+       the two doors the Progress build line opens are open here too. Same
+       shape as the build line (own tab, noopener noreferrer); guard 90 allows
+       each URL by name, once, and nothing else off the origin. */
     "<p>An unofficial fan guide, kept by 6ummy and free software under the AGPL — " +
-      "the source is public on GitHub. Built in the open by one person and offered " +
+      'the source is public on <a href="' + SEED_GITHUB + '" target="_blank" rel="noopener noreferrer">GitHub</a>. ' +
+      "Built in the open by one person and offered " +
       "as-is; corrections and additions are welcome there.</p>",
+    '<p>Keep the path lit. <a href="' + SEED_SUPPORT + '" target="_blank" rel="noopener noreferrer">Support</a></p>',
     "</main>"
   ].join("\n");
 
@@ -6953,16 +6966,26 @@ var ROUTE_VOCAB = [
      one crawlable block never named it. Exactly that path: /nocturne/feed.xml,
      an issue, or another origin still fails, and it is linked once. */
   var ALLOWED_PAPER = "/nocturne/";
-  var fileLinks = 0, paperLinks = 0;
+  /* 6.5.5: the THIRD and FOURTH named exceptions, the first off this origin,
+     both owner's calls on the 29 Sept site audit (calls 2 and 9). The seed's
+     provenance line said "the source is public on GitHub" and could not be
+     followed; the app's one ask lived only on Progress. Exactly these two
+     URLs, once each: the same host with another path, a second copy, or any
+     other origin still fails. Neither host is fetched (section 42 names both
+     on the NAMED footing); these are links a reader may choose to follow. */
+  var ALLOWED_OUT = [SEED_GITHUB, SEED_SUPPORT];
+  var fileLinks = 0, paperLinks = 0, outLinks = {};
+  ALLOWED_OUT.forEach(function(u){ outLinks[u] = 0; });
   hrefs.forEach(function(a){
     var h = a.slice(6, -1);
     if(h === ALLOWED_FILE){ fileLinks++; return; }
     if(h === ALLOWED_PAPER){ paperLinks++; return; }
+    if(ALLOWED_OUT.indexOf(h) >= 0){ outLinks[h]++; return; }
     if(h.charAt(0) !== "#"){
       fail("the seed links out to " + h + " — everything in the seed is this page, " +
            "and the one crawlable block must not hand its readers to another origin " +
-           "(the one file it may name is " + ALLOWED_FILE + ", and the one page is " +
-           ALLOWED_PAPER + ")");
+           "(the one file it may name is " + ALLOWED_FILE + ", the one page is " +
+           ALLOWED_PAPER + ", and the two addresses off it are " + ALLOWED_OUT.join(" and ") + ")");
       return;
     }
     h.slice(1).toLowerCase().split(/[-+]/).forEach(function(tok){
@@ -6983,7 +7006,21 @@ var ROUTE_VOCAB = [
          "paper's sentence, is the 6.5.3 answer to the site audit; none leaves a crawler " +
          "with no way in and more is a list of doors");
   }
-  note("seed links: " + hrefs.length + ", every token known to guard 72, plus " + ALLOWED_FILE + " and " + ALLOWED_PAPER);
+  ALLOWED_OUT.forEach(function(u){
+    if(outLinks[u] !== 1){
+      fail("the seed links to " + u + " " + outLinks[u] + " times — once, in the " +
+           "provenance lines, is the 6.5.5 answer to the site audit; none takes the " +
+           "door away from a reader without JavaScript and more is a list of links");
+    }
+  });
+  var outTags90 = seed.match(/<a href="https?:\/\/[^"]*"[^>]*>/g) || [];
+  outTags90.forEach(function(t){
+    if(!/ target="_blank" rel="noopener noreferrer">$/.test(t)){
+      fail("a seed link off the origin does not open in its own tab with noopener noreferrer — " +
+           "it is the Progress build line's shape, and the page it opens must not reach back (" + t + ")");
+    }
+  });
+  note("seed links: " + hrefs.length + ", every token known to guard 72, plus " + ALLOWED_FILE + ", " + ALLOWED_PAPER + " and " + ALLOWED_OUT.length + " addresses off the origin, once each");
 })();
 
 /* ---------- 91. The card the metas promise is the card that ships ---------- */
@@ -7729,17 +7766,22 @@ var ROUTE_VOCAB = [
      machinery is the reader deciding whether it deserves keeping alive. The
      anchor sits inside the .note so it inherits the guarded underline —
      the same colour-blind affordance "read the source" earned in 2.7.3. */
-  if(!/<a href="https:\/\/publishers\.basicattentiontoken\.org\/en\/c\/nightwatcher" target="_blank" rel="noopener noreferrer">Support<\/a>/.test(HTML)){
+  /* 6.5.5: the seed now carries the same line for a reader without
+     JavaScript (section 78), so these checks read the page with the seed
+     cut out. Otherwise the seed's copy would answer for the app's, and the
+     build line's could go without a failure. */
+  var APP_SL = HTML.replace(/<main id="view">[\s\S]*?<\/main>/, "");
+  if(!/<a href="https:\/\/publishers\.basicattentiontoken\.org\/en\/c\/nightwatcher" target="_blank" rel="noopener noreferrer">Support<\/a>/.test(APP_SL)){
     fail("the support line is gone \u2014 one line, one word, a link was the " +
          "owner's shape for the only ask the app makes, and Brave Creators " +
          "is the only rail");
   }
-  if(!/Keep the path lit\. <a href="https:\/\/publishers\.basicattentiontoken\.org/.test(HTML)){
+  if(!/Keep the path lit\. <a href="https:\/\/publishers\.basicattentiontoken\.org/.test(APP_SL)){
     fail("the support line lost its words \u2014 \"Keep the path lit.\" is the " +
          "owner's line, and Support is the one word that carries the link");
   }
-  var slAt = HTML.indexOf("Keep the path lit.");
-  if(slAt >= 0 && slAt < HTML.indexOf(">read the source</a>")){
+  var slAt = APP_SL.indexOf("Keep the path lit.");
+  if(slAt >= 0 && slAt < APP_SL.indexOf(">read the source</a>")){
     fail("the support line sits above the build line \u2014 its seat is under " +
          "it: the last line of the last tab, after the machinery, never " +
          "before it");
@@ -12299,7 +12341,7 @@ var ROUTE_VOCAB = [
      forever. Harmless within one VERSION (same bytes), and exactly the
      comment "one representation per path" left unenforced. */
   var SWSRC = fs.readFileSync(path.join(PUBLIC, "sw.js"), "utf8");
-  if(!/c\.delete\(req, ANY\)\.then\(function\(\)\{ return c\.put\(req, copy\); \}\)/.test(SWSRC)){
+  if(!/c\.delete\(key, ANY\)\.then\(function\(\)\{ return c\.put\(key, copy\); \}\)/.test(SWSRC)){
     fail("the runtime cache write does not delete-then-put under ignoreVary — " +
          "put() dedupes honouring Vary, so a path can hold two " +
          "representations and the ANY match answers the stale one forever");
@@ -12322,6 +12364,25 @@ var ROUTE_VOCAB = [
   drive({ url: APP, method: "GET", mode: "" }, function(){ return SyncP.wrap(etagRes('"v2"')); });
   if(puts.length !== putsBefore + 2){
     fail("a response with a NEW ETag was not written to the runtime cache — offline would keep serving the old build");
+  }
+
+  /* 6.5.5 (QA L1): a navigation is cached under its path, the query
+     dropped. Three visits to the page, two of them tagged by a campaign or a
+     share link, leave ONE document in the cache, not three copies of 248 KiB;
+     an asset keeps its full URL, query and all. */
+  var docs132 = function(){
+    return Object.keys(store132).filter(function(k){ return /^https:\/\/nightwatcher\.life\/(\?|$)/.test(k); });
+  };
+  ["https://nightwatcher.life/", "https://nightwatcher.life/?a=1", "https://nightwatcher.life/?utm_source=x"].forEach(function(u){
+    drive({ url: u, method: "GET", mode: "navigate" }, function(){ return SyncP.wrap(okRes); });
+  });
+  if(docs132().length !== 1 || docs132()[0] !== "https://nightwatcher.life/"){
+    fail("navigations with a query are cached under their full URL (" + docs132().join(", ") +
+         ") — every tagged visit stores another copy of the page; a navigation is cached under its path (6.5.5)");
+  }
+  drive({ url: "https://nightwatcher.life/manifest.json?v=2", method: "GET", mode: "" }, function(){ return SyncP.wrap(okRes); });
+  if(!store132["https://nightwatcher.life/manifest.json?v=2"]){
+    fail("an asset request lost its query in the cache key — only a navigation is cached under its path (6.5.5)");
   }
 
   /* an error response is served but NEVER cached — the M-5 headline. */
@@ -12597,7 +12658,11 @@ var ROUTE_VOCAB = [
    ["curl",      "*/*"],
    ["no Accept", null],
    ["a tie — markdown listed but html equal",  "text/markdown,text/html"],
-   ["markdown at lower q than html", "text/markdown;q=0.5,text/html"]
+   ["markdown at lower q than html", "text/markdown;q=0.5,text/html"],
+   /* 6.5.5 (QA I4): a q-value is 0..1. Above 1 is held to 1 (a tie, so
+      the page), and a malformed one is 0. */
+   ["a q above 1 on markdown", "text/markdown;q=2,text/html"],
+   ["a malformed q on markdown", "text/markdown;q=abc,text/html;q=0.5"]
   ].forEach(function(c){
     var r = un(mod.fetch(req(c[1]), env));
     if(r !== htmlRes){
@@ -12631,6 +12696,10 @@ var ROUTE_VOCAB = [
   if(!q || q.body !== LLMS){
     fail("markdown preferred through q-values (0.8 over html's 0.4) fell " +
          "through to HTML — the parser reads presence, not preference");
+  }
+  var q5 = un(mod.fetch(req("text/markdown;q=0.5"), env));
+  if(!q5 || q5.body !== LLMS){
+    fail("markdown alone at q=0.5 fell through to HTML — a q inside 0..1 is a preference, and held as one (6.5.5)");
   }
   /* Method and path gates: the script itself refuses, even though wrangler
      scoping already keeps these off the Worker. Belt AND suspenders, because
@@ -14853,6 +14922,8 @@ var ROUTE_VOCAB = [
     ["og:image",                         /<meta property="og:image" content="https:\/\/nightwatcher\.life\/share\.png">/],
     ["twitter:card",                     /<meta name="twitter:card" content="summary_large_image">/],
     ["twitter:image",                    /<meta name="twitter:image" content="https:\/\/nightwatcher\.life\/share\.png">/],
+    ["twitter:title",                    /<meta name="twitter:title" content="[^"]+">/],
+    ["twitter:description",              /<meta name="twitter:description" content="[^"]+">/],
     ["og:locale",                        /<meta property="og:locale" content="en_US">/],
     ["og:image:width",                   /<meta property="og:image:width" content="1200">/],
     ["og:image:height",                  /<meta property="og:image:height" content="630">/],
@@ -16073,9 +16144,14 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
      can change without the owner being asked (QA 6.3.1, P3-1). 6.3.3: four,
      with the reporter's casebook. 6.3.5: five, with the morgue file. The
      fence needs no change for it: its allow-list, pinned above, names four
-     paths and MORGUE.md is none of them. */
+     paths and MORGUE.md is none of them. 6.5.5: seven, with the Claude
+     setup. .claude/settings.json runs a shell command in every Claude Code
+     session on the repo, so a pull request that changes it changes what runs
+     on the owner's machine; CLAUDE.md steers the agent as BRIEF.md steers
+     the desk. Neither is on the fence's allow-list either. */
   var co = fs.existsSync(path.join(ROOT, ".github", "CODEOWNERS")) ? fs.readFileSync(path.join(ROOT, ".github", "CODEOWNERS"), "utf8") : "";
-  ["/.github/", "/qa/", "/nocturne/BRIEF.md", "/nocturne/CASEBOOK.md", "/nocturne/MORGUE.md", "/nocturne/REPORTER.md", "/nocturne/VOICE.md"].forEach(function(f){
+  ["/.github/", "/qa/", "/nocturne/BRIEF.md", "/nocturne/CASEBOOK.md", "/nocturne/MORGUE.md", "/nocturne/REPORTER.md", "/nocturne/VOICE.md",
+   "/CLAUDE.md", "/.claude/"].forEach(function(f){
     /* A plain line compare, not a regex built from the path (CodeQL
        js/incomplete-sanitization, 6.3.7): the path is a literal, but a
        compare has nothing to escape. */
@@ -16766,6 +16842,79 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   });
   note("hww: built from the tree at " + b.facts.build + " (" + b.facts.sections + " sections, " + b.facts.fixtures +
        " fixtures in " + b.facts.suites + " suites, " + b.facts.smoke + " smoke checks), noindex twice, no script, out of the sitemap and the worker, linked from none of " + doors.length + " files");
+})();
+
+/* ---------- 171. Every page's Twitter title and description are its og twins ---------- */
+/* 6.5.5, owner's call 1 on the 29 Sept site audit. Home and the paper carried
+   twitter:card and twitter:image and nothing else, so a card on X fell back
+   to whatever the client guessed for its words. Each page now states
+   twitter:title and twitter:description, and each must be exactly its og:
+   twin: the paper's renderer derives them from the same values, never a
+   second copy typed beside the first, and Home's are held to its own og
+   tags here. One of each per page; a second copy is a page arguing with
+   itself. Same shape as section 164's twitter:image clause. */
+
+(function(){
+  function twins(h, where){
+    [["title", "og:title"], ["description", "og:description"]].forEach(function(p){
+      var og = h.match(new RegExp('<meta property="' + p[1] + '" content="([^"]*)">', "g")) || [];
+      var tw = h.match(new RegExp('<meta name="twitter:' + p[0] + '" content="([^"]*)">', "g")) || [];
+      if(tw.length !== 1){
+        fail(where + " carries " + tw.length + " twitter:" + p[0] + " tags — one, equal to its " + p[1] + " (6.5.5)");
+        return;
+      }
+      var ogv = og.length === 1 ? og[0].replace(/^[^"]*"[^"]*" content="/, "") : null;
+      var twv = tw[0].replace(/^[^"]*"[^"]*" content="/, "");
+      if(ogv === null || twv !== ogv){
+        fail(where + "'s twitter:" + p[0] + " is not its " + p[1] + " — the two say one thing, word for word (6.5.5)");
+      }
+    });
+  }
+  var pages = 1;
+  twins(HTML.slice(0, HTML.indexOf("</head>")), "Home");
+  [[NOC_REAL, "docs/nocturne/"], [NOC_FIX, "the fixture's "]].forEach(function(pair){
+    if(!pair[0]) return;
+    Object.keys(pair[0].files).filter(function(f){ return /\.html$/.test(f); }).forEach(function(f){
+      pages++;
+      twins(pair[0].files[f].toString("utf8"), pair[1] + f);
+    });
+  });
+  note("twitter: " + pages + " pages carry one twitter:title and one twitter:description, each its og twin");
+})();
+
+/* ---------- 172. The paper carries the app's one ask, under its colophon ---------- */
+/* 6.5.5, owner's call (29 Sept). The app has asked for support in one line
+   since 4.1.0: "Keep the path lit." with the one word Support carrying the
+   owner's Brave Creators page (section 77 holds it on Progress). The paper
+   now ends the same way, in the same words, as the last line of its foot
+   under the colophon, so the front and every issue carry it. Pinned here:
+   the words, the exact URL, its own tab with noopener noreferrer, once per
+   page, after the colophon and inside the footer. The host is NAMED in
+   section 42 and never fetched; the paper's CSP restricts loads, not a link
+   a reader follows. */
+
+(function(){
+  var want = '<p class="support">Keep the path lit. <a href="https://publishers.basicattentiontoken.org/en/c/nightwatcher" target="_blank" rel="noopener noreferrer">Support</a></p>';
+  if(NOC.SUPPORT === undefined || '<p class="support">' + NOC.SUPPORT + '</p>' !== want){
+    fail("qa/nocturne.js's support line is not the owner's: " + want + " (6.5.5)");
+  }
+  var pages = 0;
+  [[NOC_REAL, "docs/nocturne/"], [NOC_FIX, "the fixture's "]].forEach(function(pair){
+    if(!pair[0]) return;
+    Object.keys(pair[0].files).filter(function(f){ return /\.html$/.test(f); }).forEach(function(f){
+      var h = pair[0].files[f].toString("utf8"), where = pair[1] + f;
+      pages++;
+      var hits = h.split("basicattentiontoken.org").length - 1;
+      var at = h.indexOf(want), col = h.indexOf('<p class="colophon">'), end = h.indexOf("</footer>");
+      if(hits !== 1 || h.split(want).length !== 2){
+        fail(where + " does not carry the support line exactly once, as the owner wrote it — " +
+             "“Keep the path lit.” with Support linking " + "the Brave Creators page in its own tab (6.5.5)");
+      } else if(col < 0 || at < col || end < 0 || at > end){
+        fail(where + "'s support line is not the last line of the foot, under the colophon — its seat is after the machinery, as on Progress (6.5.5)");
+      }
+    });
+  });
+  note("paper: " + pages + " pages end on the support line, once, under the colophon");
 })();
 
 /* ---------- report ---------- */

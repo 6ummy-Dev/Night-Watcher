@@ -45,6 +45,7 @@ p{margin:0 0 12px;max-width:66ch;}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;}
 .card{border:1px solid var(--line2);background:var(--card);padding:14px 16px;}
 .card h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);margin:0 0 8px;}
+section>h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);margin:20px 0 8px;}
 .card dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:baseline;}
 .card dt{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.17em;text-transform:uppercase;color:var(--signal);}
 .card dt.no{color:var(--dim);}

@@ -946,6 +946,9 @@ var CSS = [
 ".shout.fail{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal;flex-basis:100%;order:1;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.04em;color:var(--steel);text-align:center;overflow-wrap:anywhere;user-select:all;}",
 ".btn.share.failed .shr{display:none;}",
 ".colophon{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:0;position:relative;padding-top:22px;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}",
+".support{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:6px 0 0;}",
+".support a{text-decoration:underline;text-underline-offset:.2em;}",
+".support a:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}",
 ".sub{text-align:center;color:var(--dust);font-size:var(--t-desc);margin:0 auto 26px;max-width:460px;}",
 ".front{max-width:680px;margin:0 auto;}",
 ".lead-kick{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.19em;text-transform:uppercase;color:var(--dust);display:flex;justify-content:center;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:26px 0 0;}",
@@ -1005,13 +1008,20 @@ function dateline(a, b, c){
   return '<span class="dl1"><span>' + a + '</span><i class="dsep"></i><span>' + b + '</span></span>' +
          '<span class="dl2"><i class="dsep"></i><span>' + c + '</span></span>';
 }
+/* 6.5.5, owner's call (29 Sept): the paper carries the app's one ask, in the
+   app's words, as the last line of its foot, under the colophon. Same URL and
+   same shape as the Progress build line: one word carries the link, it opens
+   in its own tab, and nothing fetches the host. Guard 172 pins it. */
+var SUPPORT_URL = "https://publishers.basicattentiontoken.org/en/c/nightwatcher";
+var SUPPORT = 'Keep the path lit. <a href="' + SUPPORT_URL + '" target="_blank" rel="noopener noreferrer">Support</a>';
+
 function footer(extra){
   return '<footer class="foot">\n<div class="acts">' +
     '<div class="more"><a class="btn ghost" href="/nocturne/feed.xml" type="application/rss+xml">' + RSS + 'RSS</a>' + (extra || "") + '</div>' +
     '<a class="btn home" href="/">' + MARK + '<span class="lbl"><b>Night Watcher</b><small>Open the map' + ARROW + '</small></span></a></div>\n' +
     '<div class="themerow" role="group" aria-label="Theme"><button type="button" data-theme-set="dark" aria-pressed="true">Dark deco</button>' +
     '<button type="button" data-theme-set="darker" aria-pressed="false">Darker</button></div>\n' +
-    '<p class="colophon">' + COLOPHON + '</p>\n</footer>\n';
+    '<p class="colophon">' + COLOPHON + '</p>\n<p class="support">' + SUPPORT + '</p>\n</footer>\n';
 }
 function head(o){
   return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' + THEME_TAG + '\n' + PAPER_TAG + '\n' +
@@ -1033,6 +1043,8 @@ function head(o){
     '<meta property="og:image:alt" content="' + esc(o.img.alt) + '">\n' +
     '<meta name="twitter:card" content="summary_large_image">\n' +
     '<meta name="twitter:image" content="' + o.img.url + '">\n' +
+    '<meta name="twitter:title" content="' + esc(o.ogTitle) + '">\n' +
+    '<meta name="twitter:description" content="' + esc(o.desc) + '">\n' +
     (o.extra || "") + '</head>\n';
 }
 function ldjson(obj){
@@ -1742,7 +1754,7 @@ function morgueWarnings(text, today){
 module.exports = {build: build, cardKey: cardKey, CARD: CARD, PAPER_JS: PAPER_JS, PAPER_TAG: PAPER_TAG, notebookErrors: notebookErrors, NOTEBOOK_REL: NOTEBOOK_REL, NOTEBOOK_HEAD: NOTEBOOK_HEAD, drift: drift, write: write, checkAll: checkAll, listIssues: listIssues,
                   loadCatalogue: loadCatalogue, sundayOfWeek: sundayOfWeek, webpSize: webpSize,
                   LIMITS: LIMITS, BEGIN: BEGIN, END: END, FEED_PI: FEED_PI, FEED_DESC: FEED_DESC, OUT_REL: OUT_REL, SRC_REL: SRC_REL,
-                  COLOPHON: COLOPHON, BEACON: BEACON, BEACON_TOKEN: BEACON_TOKEN, THEME_TAG: THEME_TAG,
+                  COLOPHON: COLOPHON, SUPPORT: SUPPORT, SUPPORT_URL: SUPPORT_URL, BEACON: BEACON, BEACON_TOKEN: BEACON_TOKEN, THEME_TAG: THEME_TAG,
                   THEME_JS: THEME_JS, DARKER: DARKER, BEATS: BEATS,
                   styleWarnings: styleWarnings, simileCount: simileCount, issueWarnings: issueWarnings, STYLE: STYLE,
   deskPluralIn: deskPluralIn, pronounWarnings: pronounWarnings,

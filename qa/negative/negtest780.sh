@@ -26,6 +26,9 @@
 # pattern a morgue card uses; "US", a quoted "we" and an italic title are not it;
 # the founding issue is the one exception; "Night Watchers" and "this paper"
 # warn past their caps (166).
+# 6.5.5: every page's twitter:title and twitter:description are its og twins
+# (171); the paper ends on the app's one ask, under its colophon (172);
+# CODEOWNERS gives CLAUDE.md and .claude/ to the owner (163).
 # Every fixture names its section.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
@@ -305,6 +308,18 @@ run_case "CODEOWNERS forgets the morgue file" \
   "$(pro .github/CODEOWNERS)a='/nocturne/MORGUE.md  @6ummy-Dev\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
   guards "" 163
 
+# 6.5.5: the Claude setup is the owner's too. .claude/settings.json runs a
+# shell command in every Claude Code session on the repo.
+run_case "CODEOWNERS forgets CLAUDE.md" \
+  "does not give /CLAUDE.md to the owner" \
+  "$(pro .github/CODEOWNERS)a='/CLAUDE.md           @6ummy-Dev\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
+  guards "" 163
+
+run_case "CODEOWNERS forgets the .claude folder" \
+  "does not give /.claude/ to the owner" \
+  "$(pro .github/CODEOWNERS)a='/.claude/            @6ummy-Dev\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
+  guards "" 163
+
 echo "--- 166: the research cut's plain rules (6.3.5)"
 
 run_case "an issue cites the morgue file" \
@@ -362,7 +377,7 @@ HW="$(pro qa/hww.js)"
 
 run_case "a fact on the crew's page moves without a rebuild" \
   "the crew's page drifted from its build" \
-  "${HW}a='var LAST_AUDIT = \"6.5.1\";';assert s.count(a)==1;s=s.replace(a,'var LAST_AUDIT = \"6.4.0\";',1);${W}" \
+  "${HW}a='var LAST_AUDIT = \"6.5.4\";';assert s.count(a)==1;s=s.replace(a,'var LAST_AUDIT = \"6.4.0\";',1);${W}" \
   guards "" 170
 
 run_case "the crew's page loses its noindex" \
@@ -416,6 +431,56 @@ run_case "twitter:image points somewhere else than og:image" \
   "does not carry one twitter:image equal to its og:image" \
   "${N}a='name=\"twitter:image\" content=\"\\' + o.img.url';assert s.count(a)==1;s=s.replace(a,'name=\"twitter:image\" content=\"\\' + SHARE.url',1);${W}" \
   guards "" 164
+
+echo "--- 171: every page's twitter:title and twitter:description are its og twins (6.5.5)"
+
+run_case "Home's twitter:title says something else than its og:title" \
+  "Home's twitter:title is not its og:title" \
+  "${P}a='<meta name=\"twitter:title\" content=\"Night Watcher · ';assert s.count(a)==1;s=s.replace(a,'<meta name=\"twitter:title\" content=\"Night Watcher, ',1);${W}" \
+  guards "" 171
+
+run_case "Home carries twitter:description twice" \
+  "Home carries 2 twitter:description tags" \
+  "${P}import re;a=re.search(r'<meta name=\"twitter:description\" content=\"[^\"]+\">\n',s);assert a;s=s.replace(a.group(0),a.group(0)*2,1);${W}" \
+  guards "" 171
+
+run_case "the paper's twitter:title is typed from the page title, not og:title" \
+  "twitter:title is not its og:title" \
+  "${N}a='name=\"twitter:title\" content=\"\\' + esc(o.ogTitle)';assert s.count(a)==1;s=s.replace(a,'name=\"twitter:title\" content=\"\\' + esc(o.title)',1);${W}" \
+  guards "" 171
+
+run_case "the paper drops twitter:description" \
+  "carries 0 twitter:description tags" \
+  "${N}a='name=\"twitter:description\" content=\"';assert s.count(a)==1;s=s.replace(a,'name=\"twitter:summary\" content=\"',1);${W}" \
+  guards "" 171
+
+echo "--- 172: the paper ends on the app's one ask, under its colophon (6.5.5)"
+
+run_case "the paper's support line changes its words" \
+  "qa/nocturne.js's support line is not the owner's" \
+  "${N}a='Keep the path lit. <a href=';assert s.count(a)==1;s=s.replace(a,'Keep the lights on. <a href=',1);${W}" \
+  guards "" 172
+
+run_case "the paper's support line links another page" \
+  "does not carry the support line exactly once" \
+  "${N}a='/en/c/nightwatcher';assert s.count(a)==1;s=s.replace(a,'/en/c/nightwatcher-two',1);${W}" \
+  guards "" 172
+
+run_case "the paper's support line drops noopener noreferrer" \
+  "qa/nocturne.js's support line is not the owner's" \
+  "${N}a=' rel=\"noopener noreferrer\">Support</a>';assert s.count(a)==1;s=s.replace(a,'>Support</a>',1);${W}" \
+  guards "" 172
+
+run_case "the paper's support line climbs above the colophon" \
+  "is not the last line of the foot, under the colophon" \
+  "${N}Q=chr(39);a='<p class=\"support\">'+Q+' + SUPPORT + '+Q+'</p>';assert s.count(a)==1;s=s.replace(a,'',1)
+b='<div class=\"acts\">';assert s.count(b)==1;s=s.replace(b,a+b,1);${W}" \
+  guards "" 172
+
+run_case "the paper carries its support line twice" \
+  "does not carry the support line exactly once" \
+  "${N}Q=chr(39);a='<p class=\"support\">'+Q+' + SUPPORT + '+Q+'</p>';assert s.count(a)==1;s=s.replace(a,a+a,1);${W}" \
+  guards "" 172
 
 echo "--- 166: one man writes the page (6.5.4)"
 
