@@ -90,15 +90,22 @@ function css(f){
 ".stem{width:1px;height:18px;background:var(--line2);margin:0 auto;}",
 ".lanes{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap);padding-top:18px;}",
 ".lanes.two{grid-template-columns:1fr 1fr;}",
-".lanes::before{content:\"\";position:absolute;top:0;height:1px;background:var(--line2);left:calc((100% - 2 * var(--gap)) / 6);right:calc((100% - 2 * var(--gap)) / 6);}",
-".lanes.two::before{left:calc((100% - var(--gap)) / 4);right:calc((100% - var(--gap)) / 4);}",
+/* 6.5.7: the bar above the two apps keeps the three-desk inset. A two-column
+   inset stopped short of the stems coming down from Cursor and Outside help.
+   The extra pixel on the right covers the stem, whose left edge sits at 50%. */
+".lanes::before{content:\"\";position:absolute;top:0;height:1px;background:var(--line2);left:calc((100% - 2 * var(--gap)) / 6);right:calc((100% - 2 * var(--gap)) / 6 - 1px);}",
 ".lane{position:relative;border:1px solid var(--line2);background:linear-gradient(175deg,var(--card2),var(--card) 70%);padding:12px 14px;}",
-".lane::before{content:\"\";position:absolute;left:50%;top:-18px;width:1px;height:18px;background:var(--line2);}",
+/* The lane's border puts the padding edge 1px below the bar, so the stem
+   starts one pixel higher than the padding and overlaps the rule. */
+".lane::before{content:\"\";position:absolute;left:50%;top:-19px;width:1px;height:19px;background:var(--line2);}",
 ".lane b{display:block;font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);line-height:1.05;}",
 ".lane .who{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.17em;text-transform:uppercase;color:var(--signal);margin:4px 0 8px;display:block;}",
 ".lane p{font-size:var(--t-desc);color:var(--dust);margin:0;}",
 ".join{position:relative;padding-top:18px;margin-top:0;}",
-".join::before{content:\"\";position:absolute;top:0;height:1px;background:var(--line2);left:calc((100% - 2 * var(--gap)) / 6);right:calc((100% - 2 * var(--gap)) / 6);}",
+".join::before{content:\"\";position:absolute;top:0;height:1px;background:var(--line2);left:calc((100% - 2 * var(--gap)) / 6);right:calc((100% - 2 * var(--gap)) / 6 - 1px);}",
+/* The join under the two apps ends on their stems. The three-desk inset
+   left that bar hanging past both cards. */
+".lanes.two+.join::before{left:calc((100% - var(--gap)) / 4);right:calc((100% - var(--gap)) / 4 - 1px);}",
 ".join::after{content:\"\";position:absolute;left:50%;top:0;width:1px;height:18px;background:var(--line2);}",
 ".lanes+.join{margin-top:0;}",
 ".lanes .lane::after{content:\"\";position:absolute;left:50%;bottom:-19px;width:1px;height:18px;background:var(--line2);}",
@@ -106,7 +113,7 @@ function css(f){
 ".box{max-width:360px;margin:0 auto;border:1px solid var(--line2);background:var(--sunk);text-align:center;padding:10px 14px;}",
 ".box b{display:block;font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);}",
 ".box small{display:block;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.17em;text-transform:uppercase;color:var(--dust);margin-top:4px;}",
-"@media (max-width:640px){.lanes{grid-template-columns:1fr;}.lanes::before,.join::before{display:none;}.lane::before,.lanes .lane::after{display:none;}.lane+.lane{margin-top:0;}.lanes{gap:10px;border-left:1px solid var(--line2);padding:10px 0 10px 14px;}}",
+"@media (max-width:640px){.lanes,.lanes.two{grid-template-columns:1fr;}.lanes::before,.lanes.two::before,.join::before{display:none;}.lane::before,.lanes .lane::after{display:none;}.lane+.lane{margin-top:0;}.lanes{gap:10px;border-left:1px solid var(--line2);padding:10px 0 10px 14px;}}",
 ".cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;}",
 ".card{border:1px solid var(--line2);background:var(--card);padding:14px 16px;}",
 ".card h3{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);margin:0 0 8px;}",
