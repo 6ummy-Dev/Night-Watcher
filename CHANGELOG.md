@@ -14,6 +14,26 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.5.6] — 2026-10-03
+
+**The weekday desk is Cursor.** A release is a pull request the owner squash-merges, and a merge to `main` publishes the site. The catalogue does not move, nothing saved changes shape, and the counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.**
+
+### Changed
+
+- **`/hww` states the process now in force.** Cursor is the weekday build desk. The Sunday desk does not move, and a weekday pull request lands before 17:00 Montevideo or it waits. Two GitHub apps: `night-watcher-build` on weekdays, `nocturne-night-final` on Sunday. The owner is the only approver and the only merger. Releases are a squash-merge, one commit, no zip. A merge publishes `nightwatcher.life`. The page keeps the app's chrome, its noindex, and the counts read from the tree.
+- **The colophon drops Claude.** The clause is `Researched and drafted by a desk of AI agents, edited and published by hand.` The same sentence is the quote in `nocturne/BRIEF.md`, the one owner-authorized edit to that file.
+- **The home footer** reads `kept by 6ummy, with AI on the night shift`.
+- **`AGENTS.md`** points Cursor at the five rule files and `RELEASING.md`. It does not restate them. `CODEOWNERS` gives it to the owner.
+- **`RELEASING.md`**: a merge publishes. `npm run deploy` is the recovery command, not the normal release.
+
+### Under the hood
+
+- Guard 163's owner list gains `/AGENTS.md`. One new negative fixture, the deletion of that row. Harness: 172 sections, 88 negative suites, 1,717 fixtures (from 1,716), 542 smoke checks.
+
+### Why PATCH
+
+Copy, the crew page, and documentation. No new control, no catalogue entry, no key, no saved-shape change. No tag, no notes.
+
 ## [6.5.5] — 2026-10-03
 
 **Everything pending, in one pack.** The site audit's small things (Twitter

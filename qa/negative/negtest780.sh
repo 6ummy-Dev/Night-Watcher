@@ -315,6 +315,12 @@ run_case "CODEOWNERS forgets CLAUDE.md" \
   "$(pro .github/CODEOWNERS)a='/CLAUDE.md           @6ummy-Dev\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
   guards "" 163
 
+# 6.5.6: AGENTS.md points Cursor at the rules. Same owner row as CLAUDE.md.
+run_case "CODEOWNERS forgets AGENTS.md" \
+  "does not give /AGENTS.md to the owner" \
+  "$(pro .github/CODEOWNERS)a='/AGENTS.md           @6ummy-Dev\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
+  guards "" 163
+
 run_case "CODEOWNERS forgets the .claude folder" \
   "does not give /.claude/ to the owner" \
   "$(pro .github/CODEOWNERS)a='/.claude/            @6ummy-Dev\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \

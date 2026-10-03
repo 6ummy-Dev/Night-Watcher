@@ -103,7 +103,7 @@ The renderer builds the masthead from the front matter. Never write it into the 
   founding issue, carries none. No. 1 on 4 Oct is the first issue that uses
   them.
 - **The colophon** closes every issue, fixed text set by the renderer:
-  "Nocturne is the weekly paper of Night Watcher, one fan's map of every Batman story on screen. Researched and drafted by a desk of AI agents, built with Claude, edited and published by hand. Every story links its source. Images credited to their rights holders. The paper counts visits anonymously, with Cloudflare Web Analytics: no cookies, nothing that follows you." Never edit or drop it.
+  "Nocturne is the weekly paper of Night Watcher, one fan's map of every Batman story on screen. Researched and drafted by a desk of AI agents, edited and published by hand. Every story links its source. Images credited to their rights holders. The paper counts visits anonymously, with Cloudflare Web Analytics: no cookies, nothing that follows you." Never edit or drop it.
 
 ## 2 · Access and boundaries
 

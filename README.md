@@ -114,12 +114,9 @@ One HTML file, no build step, nothing to install, and nothing vendored — every
 
 Open `docs/index.html` in any modern browser, or serve the `docs/` folder from any static host — this repo publishes via Cloudflare Workers Assets. Served over HTTPS it registers a service worker, so after the first visit it opens and works with no network at all. Opened straight off disk as `file://` it still works; the service worker just doesn't register, since browsers only allow them in a secure context.
 
-### Deploy to Cloudflare Workers
+### How it reaches Cloudflare
 
-```sh
-npm install          # or bun install
-npm run deploy       # wrangler, version-pinned in package.json
-```
+A merge to `main` publishes `nightwatcher.life`. Cloudflare carries the merge. `npm run deploy` is the recovery command in `RELEASING.md`, for a Worker that was deleted or mis-bound, not a normal release.
 
 The static files live in `docs/`. `wrangler.jsonc` points the assets directory there so `node_modules` is never uploaded.
 
@@ -180,6 +177,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `DATA-MODEL.md` | The persisted payload, the `NW3` backup code, the JSON export, and the tolerance rules each is read with |
 | `CONTRIBUTING.md` | Which document answers what, how a change lands, and the checklist for adding a guard section or a negative suite |
 | `CLAUDE.md` | Notes for Claude Code: where each view renders, the commands, the rules the guards enforce, and the shell habits that keep an agent out of trouble. Points at ARCHITECTURE.md and CONTRIBUTING.md rather than restating them |
+| `AGENTS.md` | Notes for Cursor: the weekday build desk. Points at the five rule files and RELEASING.md. Does not restate them |
 | `.claude/` | Claude Code project setup: `settings.json` (a hook that runs `qa/guards.js` after Claude edits a file and hands any `✗` lines back to it, never blocking), `hooks/guards-after-edit.sh`, and the `nw-qa` skill (`skills/nw-qa/`: the read-only QA audit, its probes and its report template; audit reports stay out of this public tree, per SECURITY.md). Not served, not part of the app |
 | `qa/guards.js` | Build guards — run before every commit (see below) |
 | `nocturne/` | Nocturne's source: `BRIEF.md`, `VOICE.md`, `REPORTER.md`, `CASEBOOK.md` and `MORGUE.md` (the owner's rules, the reporter's profile, his closed past and the card catalogue of Batman's real history, which the agents never edit), `NOTEBOOK.md` (the desk's reading record, never published) and `issues/`, one folder per issue — `issue.md` and its images |
@@ -235,7 +233,7 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 88 negative suites, 1716
+trusted. That evidence lives in `qa/negative/` — 88 negative suites, 1717
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps

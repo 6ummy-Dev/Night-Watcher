@@ -35,7 +35,7 @@ The belt (`masterChooser()`) heads all four tabs; the rows below are what each t
 - LF line endings everywhere (`.gitattributes`); the guards hash bytes.
 
 ## Git and releases
-- The owner releases by uploading to `main`. Don't commit, push, open PRs, or run `npm run deploy` / `rollback` unless asked in this conversation.
+- A merge to `main` publishes the site. Weekday work is a pull request from `night-watcher-build[bot]`. The owner squash-merges. Don't push `main`, merge, or run `npm run deploy` / `rollback` unless asked. `npm run deploy` is recovery, not the normal release.
 - Nocturne issue PRs come from `nocturne-night-final[bot]` and may touch only the paper (`nocturne-fence.yml`). `.github/`, `qa/` and the agent's rules are code-owned.
 
 ## QA and audits
