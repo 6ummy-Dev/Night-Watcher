@@ -10,3 +10,8 @@
 /nocturne/MORGUE.md  @6ummy-Dev
 /nocturne/REPORTER.md @6ummy-Dev
 /nocturne/VOICE.md   @6ummy-Dev
+# 6.5.5. The Claude setup: .claude/settings.json runs a shell command in every
+# Claude Code session on this repo, and CLAUDE.md steers the agent the way
+# BRIEF.md steers the desk.
+/CLAUDE.md           @6ummy-Dev
+/.claude/            @6ummy-Dev
