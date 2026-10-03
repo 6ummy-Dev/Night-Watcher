@@ -28,7 +28,7 @@ change that gets undone by the next person who touches the line.
 
 ### Under the hood
 
-- Guard 163's owner list gains `/AGENTS.md`. One new negative fixture, the deletion of that row. Harness: 172 sections, 88 negative suites, 1,717 fixtures (from 1,716), 542 smoke checks.
+- Guard 163's owner list gains `/AGENTS.md`. Two new negative fixtures: the deletion of that row, and the README file-table row for `AGENTS.md`. Harness: 172 sections, 88 negative suites, 1,718 fixtures (from 1,716), 542 smoke checks.
 
 ### Why PATCH
 
