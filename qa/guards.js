@@ -16148,10 +16148,12 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
      setup. .claude/settings.json runs a shell command in every Claude Code
      session on the repo, so a pull request that changes it changes what runs
      on the owner's machine; CLAUDE.md steers the agent as BRIEF.md steers
-     the desk. Neither is on the fence's allow-list either. */
+     the desk. Neither is on the fence's allow-list either. 6.5.6: AGENTS.md
+     points Cursor at the rules and does not restate them, so it is the
+     owner's the same way. */
   var co = fs.existsSync(path.join(ROOT, ".github", "CODEOWNERS")) ? fs.readFileSync(path.join(ROOT, ".github", "CODEOWNERS"), "utf8") : "";
   ["/.github/", "/qa/", "/nocturne/BRIEF.md", "/nocturne/CASEBOOK.md", "/nocturne/MORGUE.md", "/nocturne/REPORTER.md", "/nocturne/VOICE.md",
-   "/CLAUDE.md", "/.claude/"].forEach(function(f){
+   "/CLAUDE.md", "/AGENTS.md", "/.claude/"].forEach(function(f){
     /* A plain line compare, not a regex built from the path (CodeQL
        js/incomplete-sanitization, 6.3.7): the path is a literal, but a
        compare has nothing to escape. */

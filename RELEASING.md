@@ -125,9 +125,12 @@ section until 4.1.1; it belongs in the checklist that runs.)
 
 ## Ship
 
-7. **Deploy.** `npm run deploy` (wrangler, to the Worker that serves
-   `docs/`). Releases here ship from a green tree on `main` — there is no
-   staging origin, which is exactly why everything above runs first.
+7. **Publish.** A merge to `main` publishes `nightwatcher.life`. Cloudflare
+   carries the merge, after the Worker was connected. Releases ship from a
+   green tree on `main` — there is no staging origin, which is exactly why
+   everything above runs first. Do not also run `npm run deploy` on a normal
+   release. That command is the recovery path under "Recovering a deleted or
+   mis-bound Worker", not how a release goes live.
    **Tagging: `x.y.0` minors and majors are tagged and get a GitHub Release;
    patches are not** — so the Releases page trails `origin/main` between
    minors by design, and an outside reader who counts tags against the
@@ -137,7 +140,7 @@ section until 4.1.1; it belongs in the checklist that runs.)
    `git ls-remote --tags origin`, never from a `--depth` clone, which omits
    them and has produced a false "tagging lapsed" finding of its own.
 
-## The wire checks — after every deploy
+## The wire checks — after the merge publishes
 
 The tree cannot see the edge. Rules configured in the Cloudflare dashboard
 apply AFTER `_headers` and win, which is how 3.4.2 served a stale

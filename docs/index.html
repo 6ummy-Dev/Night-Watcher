@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-4OmqxUBrMW07eZ7uemrhnl8jbLh4be5bXu6hbgNxRIM='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-LXgaMDVVHAMK3oUuVO0iOPCNhby+tcodwU4bvSIyrP8='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -1522,7 +1522,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "6.5.5";
+var BUILD = "6.5.6";
 var BUILT = "2026-10-03";
 var KEY = "batwatch-v3";
 var SKEY = "batwatch-settings";
@@ -2615,7 +2615,7 @@ function viewHome(c){
   html += paperRow() + themeRow();
   html += '<p class="homefoot">Night Watcher \u00b7 an unofficial fan guide \u00b7 ' +
     'progress saves in this browser only \u00b7 the host counts visits, never what ' +
-    'you watch \u00b7 free software under the AGPL \u00b7 kept by 6ummy, with Claude on the night shift</p>';
+    'you watch \u00b7 free software under the AGPL \u00b7 kept by 6ummy, with AI on the night shift</p>';
   return html;
 }
 

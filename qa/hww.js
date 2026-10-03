@@ -89,7 +89,9 @@ function css(f){
 ".flow{--gap:14px;position:relative;margin:0 auto;}",
 ".stem{width:1px;height:18px;background:var(--line2);margin:0 auto;}",
 ".lanes{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap);padding-top:18px;}",
+".lanes.two{grid-template-columns:1fr 1fr;}",
 ".lanes::before{content:\"\";position:absolute;top:0;height:1px;background:var(--line2);left:calc((100% - 2 * var(--gap)) / 6);right:calc((100% - 2 * var(--gap)) / 6);}",
+".lanes.two::before{left:calc((100% - var(--gap)) / 4);right:calc((100% - var(--gap)) / 4);}",
 ".lane{position:relative;border:1px solid var(--line2);background:linear-gradient(175deg,var(--card2),var(--card) 70%);padding:12px 14px;}",
 ".lane::before{content:\"\";position:absolute;left:50%;top:-18px;width:1px;height:18px;background:var(--line2);}",
 ".lane b{display:block;font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);line-height:1.05;}",
@@ -153,56 +155,50 @@ function page(f){
   out.push('<link rel="icon" href="/icon.svg" type="image/svg+xml">\n<link rel="stylesheet" href="/hww/hww.css">\n</head>\n<body>\n<main class="page">');
   out.push('<header class="top">' + f.mark.replace('<svg viewBox="8 16 84 70" aria-hidden="true">', '<svg class="mk" viewBox="8 16 84 70" aria-hidden="true">') +
            '<p class="k">Night Watcher · As of ' + esc(f.build) + '</p><h1>How we work</h1>' +
-           '<p class="lede">Who does what, in what order, and the rules that hold it. One fan builds the map. A small crew does the rest. Every change goes through one gate: the owner reviews it and the owner merges it.</p></header>');
+           '<p class="lede">Who does what, in what order, and the rules that hold it. Cursor is the weekday build desk. The Sunday desk does not move. Every change goes through one gate: the owner reviews it and the owner merges it.</p></header>');
 
-  /* 6.5.5: the prose is the owner's of 3 Oct 2026, corrected against the desk
-     roster that day. Only the words moved; the page's design is 6.5.0's. */
+  /* 6.5.6: the prose is the short next brief, now in force. The page's design
+     stays 6.5.0's. Counts still come from the tree. */
   out.push('<section aria-labelledby="s1"><h2 id="s1"><span class="no">01</span>The shape of it</h2>');
-  out.push('<div class="flow"><div class="gate"><b>The owner</b><small>Decides · reviews · uploads · merges</small></div><div class="stem"></div>' +
+  out.push('<div class="flow"><div class="gate"><b>The owner</b><small>Still the only approver · the only merger</small></div><div class="stem"></div>' +
            '<div class="lanes">' +
-           '<div class="lane"><b>Claude</b><span class="who">The build desk</span><p>Plans, mocks, builds, QA, release prep, research digs. Any session, cloud agents included, hands back files and never pushes.</p></div>' +
-           '<div class="lane"><b>Grok Bot</b><span class="who">The Nocturne desk</span><p>Eight agents. Dr Eggbot runs the week and is not in the room. Sunday they open one pull request as nocturne-night-final.</p></div>' +
-           '<div class="lane"><b>Outside help</b><span class="who">Ad hoc</span><p>Independent research teams and independent auditors, called in when a question needs real ground.</p></div>' +
-           '</div><div class="join"></div><div class="box"><b>The repo and CI</b><small>Guards · smoke · the negative wall · browsers</small></div><div class="stem"></div>' +
-           '<div class="box"><b>Cloudflare</b><small>The Worker → nightwatcher.life · one origin</small></div></div>');
-  out.push('<p class="note chipnote">Cursor is not a lane. It is ad hoc, and it hands files back. The app is one file, no account, no server. Progress stays in the browser.</p>');
+           '<div class="lane"><b>Cursor</b><span class="who">The build desk</span><p>Plans, mocks, builds, QA, release prep, the research dig. The push is the app’s, not the owner’s login. Does not merge.</p></div>' +
+           '<div class="lane"><b>Grok Bot</b><span class="who">The Nocturne desk</span><p>Unchanged. Eight agents. Dr Eggbot runs the week. One Sunday pull request as nocturne-night-final.</p></div>' +
+           '<div class="lane"><b>Outside help</b><span class="who">Ad hoc</span><p>Independent research teams and independent auditors. None of them opens work.</p></div>' +
+           '</div><div class="lanes two">' +
+           '<div class="lane"><b>night-watcher-build</b><span class="who">Weekday app</span><p>A one-hour token, a branch, a pull request. Contents and pull requests only. Cannot approve. Cannot push main.</p></div>' +
+           '<div class="lane"><b>nocturne-night-final</b><span class="who">Sunday app</span><p>The same limits, and the fence on top. Four paths only. Not reused on a weekday.</p></div>' +
+           '</div><div class="join"></div><div class="box"><b>CI on that pull request</b><small>The full wall · green on that commit</small></div><div class="stem"></div>' +
+           '<div class="box"><b>The owner squash-merges</b><small>One commit · not while a Night Final is open</small></div><div class="stem"></div>' +
+           '<div class="box"><b>A merge publishes</b><small>nightwatcher.life · one origin</small></div></div>');
+  out.push('<p class="note chipnote">The reader does not move. One file, no account, no server, progress in the browser.</p>');
   out.push('</section>');
 
   out.push('<section aria-labelledby="s2"><h2 id="s2"><span class="no">02</span>Who owns what</h2><div class="cards">' +
-    card("The owner", "Every decision, every merge, every upload, the device passes, the Sunday review, the “I” on X and every post there, the five rule files.", "") +
-    card("Claude", "Plans, builds, QA reports, release prep, research verification, audit triage.", "Push, from any session. Merge. Take a call that is the owner’s.") +
-    card("Dr Eggbot", "The clock. Wakes the desks in order. Mints the one-hour token. Builds, checks, screenshots, opens the pull request, pastes the one X draft into it. The profile name is Pegg. Same agent.", "Sit in the room. Post. Write a second X draft. Invent news. Push main.") +
-    card("The room", "Six seats: the Wire, the Stoop, the Morgue, Picture Desk, the Night Editor, the Copy Desk.", "SEO does not sit here. A second room that still seats SEO is not the one in force.") +
-    card("Research teams", "Studies. The app, the catalogue, the paper.", "Change the repo. Their files are studies until the owner rules.") +
-    card("Independent auditors", "An independent read of the live release.", "Open work. Findings go through triage.") +
+    card("The owner", "Every decision, every merge, the device passes, the Sunday review, the “I” on X and every post there, the five rule files. Approves the weekday pull request because the pusher is not the owner.", "") +
+    card("Cursor", "Plans, builds, QA reports, release prep, the dig that tries to disprove a claim.", "Merge. Push main. Push as the owner. Use the Sunday app. Edit the five rule files. Bless a check to make it green.") +
+    card("night-watcher-build", "The weekday branch and the pull request. Working login night-watcher-build[bot].", "Approve. Push main. Workflows. The bypass list. The Sunday name.") +
+    card("The Sunday desk", "The paper, exactly as now. Eggbot, the six-seat room, SEO by DM.", "Retuned for a weekday. The fence stays keyed on nocturne-night-final[bot].") +
+    card("Research teams", "Studies, until the owner rules.", "A commit. The dig and the catalogue edit are two steps.") +
+    card("Independent auditors", "An independent read of the live release.", "Open work. A branch.") +
     '</div></section>');
 
   out.push('<section aria-labelledby="s3"><h2 id="s3"><span class="no">03</span>The Sunday machine</h2>' +
-    '<p>Nocturne is the paper. The Night Final is the one Sunday edition. It is not the changelog. Times are Montevideo. A thin week is fine. A padded one is not. No news, no issue, and the number does not advance.</p><ol class="steps">' +
-    '<li><span class="when">Mon–Sat 08:38</span><span class="what">Stoop, then Wire. A sweep, plus the standing look at Justice Year. A digest only if the cards changed or that chase moved. No pull request on a weekday.</span></li>' +
-    '<li><span class="when">Sun before noon</span><span class="what">The last sweep. The news window closes at 12:00. What arrives after noon waits.</span></li>' +
-    '<li><span class="when">Sun 12:38</span><span class="what">The issue path, so the pull request is open before 17:00. Order below.</span></li>' +
-    '<li class="gate2"><span class="when">Sun 17:00–21:00</span><span class="what">The owner reviews and merges. By the owner’s rule, not a ruleset, nothing else goes to main while it is open.</span></li>' +
-    '<li><span class="when">Sun 22:00–23:00</span><span class="what">A 200 and the merged headline. Then the owner posts the one draft. No desk posts.</span></li>' +
-    '<li><span class="when">Not by 23:00</span><span class="what">The issue does not run. Still-news can carry. The rest is dropped.</span></li>' +
-    '</ol><h3>The run</h3><ol class="steps">' +
-    '<li><span class="when">Night Editor</span><span class="what">Keep, kill, or spike. Batman first. The catalogue has no say. Writes the issue. Highest-performance model available. The name of the model never appears.</span></li>' +
-    '<li><span class="when">SEO, by DM</span><span class="what">Labels. May change a headline, the slug, or alt text. Does not rewrite. Eggbot does not build until this file exists, even when it says no changes.</span></li>' +
-    '<li><span class="when">Copy Desk</span><span class="what">Named breaks only. Never rewrites. The Night Editor fixes those breaks and only those.</span></li>' +
-    '<li><span class="when">Pictures</span><span class="what">A licence that can be written down, or the story runs without an image. At most three, one hero.</span></li>' +
-    '<li><span class="when">Stamp, last</span><span class="what">The Morgue reads the catalogue only now, and only to fill the link. It does not change the story and it does not pick the lead. Flags go in the pull request. The desk never edits the map.</span></li>' +
-    '<li><span class="when">Pre-flight</span><span class="what">The Night Editor, against the voice checklist.</span></li>' +
-    '<li><span class="when">Eggbot</span><span class="what">Build, check, test. All green or stop. Two screenshots, 390 and 1280. There is no preview deploy. One pull request, branch nocturne/&lt;week&gt;, as nocturne-night-final[bot]. Pastes the Night Editor’s body, including the one X draft. No second draft.</span></li>' +
+    '<p>The Sunday desk does not move. Nocturne is the paper. The Night Final is the one Sunday edition. It is not the changelog. Times are Montevideo. A thin week is fine. A padded one is not.</p><ol class="steps">' +
+    '<li><span class="when">Mon–Sat 08:38</span><span class="what">Stoop, then Wire. Plus the standing look at Justice Year. No pull request on a weekday from this desk.</span></li>' +
+    '<li><span class="when">Sun before noon</span><span class="what">The last sweep. The window closes at 12:00.</span></li>' +
+    '<li><span class="when">Sun 12:38</span><span class="what">Night Editor, then SEO by DM, then Copy, then pictures, then the stamp, then the pre-flight, then eggbot builds and opens the pull request.</span></li>' +
+    '<li class="gate2"><span class="when">Sun 17:00–21:00</span><span class="what">The owner merges. Nothing else goes to main while it is open, weekday pull requests included. Land them before 17:00, or leave them.</span></li>' +
+    '<li><span class="when">Sun 22:00–23:00</span><span class="what">A 200 and the headline. The owner posts the one draft.</span></li>' +
+    '<li><span class="when">Not by 23:00</span><span class="what">The issue does not run.</span></li>' +
     '</ol>' +
-    '<p>The street may run only labelled as the street. It rarely leads. If the wire has the same news, lead with the wire. Leaks go nowhere. A creator’s own post is official, not street. That call is the owner’s, 3 October, written on the roster.</p>' +
-    '<p>Handoff lives on the box and never ships. Notebook lines are what may enter the pull request. A quiet week that still has notebook lines gets one pull request, the notebook alone, on Sunday.</p>' +
-    '<p>Four paths and no others: nocturne/issues/, docs/nocturne/, nocturne/NOTEBOOK.md, docs/sitemap.xml. The token lasts one hour. The app cannot approve and cannot push main. A Night Final is content, not a release: no version, no tag, no notes.</p></section>');
+    '<p>Handoff never ships. Four paths only. A quiet week with notebook lines gets one pull request, the notebook alone. Eggbot does not build until the SEO file exists. The token lasts one hour. A Night Final is not a release.</p></section>');
 
   out.push('<section aria-labelledby="s4"><h2 id="s4"><span class="no">04</span>The research loop</h2><ol class="steps">' +
-    '<li><span class="when">Deliver</span><span class="what">An outside team delivers its files.</span></li>' +
-    '<li><span class="when">Dig</span><span class="what">Claude reopens every cited page and tries to disprove each claim that would change the repo.</span></li>' +
+    '<li><span class="when">Deliver</span><span class="what">An outside team delivers its files. Studies, not commits.</span></li>' +
+    '<li><span class="when">Dig</span><span class="what">Cursor reopens every cited page and tries to disprove each claim that would change the repo. It does not edit the catalogue in that same turn.</span></li>' +
     '<li><span class="when">Sort</span><span class="what">Held, improved, unconfirmed, or wrong. Unopened is unconfirmed.</span></li>' +
-    '<li class="gate2"><span class="when">Rule</span><span class="what">The owner rules. Only then does anything go into a release.</span></li>' +
+    '<li class="gate2"><span class="when">Rule</span><span class="what">The owner rules. Only then does a release pull request open.</span></li>' +
     '</ol></section>');
 
   out.push('<section aria-labelledby="s5"><h2 id="s5"><span class="no">05</span>Four layers of QA</h2><div class="stats">' +
@@ -211,30 +207,32 @@ function page(f){
     '<div class="stat"><b>' + n(f.smoke) + '</b><span>Smoke checks</span></div>' +
     '<div class="stat"><b>' + esc(LAST_AUDIT) + '</b><span>Last independent audit</span></div>' +
     '</div>' +
-    '<p><b>The harness</b> runs on every push and pull request. ' + n(f.sections) + ' guard sections, ' + n(f.fixtures) + ' negative fixtures, ' + n(f.smoke) + ' smoke checks. Chromium and WebKit, with axe. A paper-only pull request runs every guard and skips smoke and the wall. Every push to main runs all of it.</p>' +
-    '<p><b>Claude’s QA reports</b> read the whole repo, each finding with a way to reproduce it. <b>Independent auditors</b> read the live release. <b>The owner’s eye</b> covers devices, VoiceOver, High Contrast, and the Sunday review.</p>' +
+    '<p><b>The harness</b> runs on the pull request, before the merge, and again on main. ' + n(f.sections) + ' guard sections, ' + n(f.fixtures) + ' negative fixtures, ' + n(f.smoke) + ' smoke checks. Chromium and WebKit, with axe. While iterating, the pass can be scoped. The merge gate is the full wall on that commit. A paper-only pull request runs every guard and skips smoke and the wall. Every push to main runs all of it.</p>' +
+    '<p><b>Cursor’s QA reports</b> read the whole repo, each finding with a way to reproduce it. <b>Independent auditors</b> read the live release and do not open work. <b>The owner’s eye</b> covers devices, VoiceOver, High Contrast, and the Sunday review.</p>' +
     '<p class="note">A QA-driven cut takes every finding in one release, and anything left out gets its reason. Standing decisions do not reopen because a scanner proposes their opposite.</p></section>');
 
-  out.push('<section aria-labelledby="s6"><h2 id="s6"><span class="no">06</span>Releases</h2><div class="tw"><table><thead><tr><th>Kind</th><th>When</th><th>Tag</th><th>Wall</th></tr></thead><tbody>' +
-    '<tr><td>Major</td><td>Anything that re-means saved progress</td><td>Yes</td><td>Full</td></tr>' +
-    '<tr><td>Minor</td><td>A feature</td><td>Yes</td><td>Full</td></tr>' +
-    '<tr><td>Patch</td><td>Fixes, copy, research, catalogue triggers</td><td>No</td><td>The page says scoped before the upload. The checklist says the full wall before any cut.</td></tr>' +
+  out.push('<section aria-labelledby="s6"><h2 id="s6"><span class="no">06</span>Releases</h2><div class="tw"><table><thead><tr><th>Kind</th><th>When</th><th>Tag</th><th>How it lands</th></tr></thead><tbody>' +
+    '<tr><td>Major</td><td>Anything that re-means saved progress</td><td>Yes</td><td>Squash-merge. One commit.</td></tr>' +
+    '<tr><td>Minor</td><td>A feature</td><td>Yes</td><td>Squash-merge. One commit.</td></tr>' +
+    '<tr><td>Patch</td><td>Fixes, copy, research, catalogue triggers</td><td>No</td><td>Squash-merge. One commit. The full wall is CI, not a local selection.</td></tr>' +
+    '<tr><td>Night Final</td><td>Sunday</td><td>No</td><td>The desk’s pull request. Not a version.</td></tr>' +
     '</tbody></table></div>' +
-    '<p>Claude delivers a zip and a prep record. The owner uploads to main, watches CI, confirms the deploy. That upload is how a release lands. The ruleset already wants a pull request. Never inside a Sunday window.</p>' +
-    '<p class="note">Deploy is two sentences. The desk says Cloudflare deploys on merge. The checklist says npm run deploy from a green main, then the wire, in a private window. No Action in the repo deploys. Do not do both until one of them is confirmed.</p></section>');
+    '<p>No zip. The weekday app opens the pull request. The owner squash-merges, so a rollback is one commit. If the owner pushes a commit onto that branch, the approval is dismissed and the owner cannot approve the new tip. The fix comes from the app. Never inside a Sunday window. A colophon change rewrites every paper page, so that pull request does not land while a Night Final is open.</p>' +
+    '<p class="note">A merge to main publishes the site. The wire is read in a private window.</p></section>');
 
   out.push('<section aria-labelledby="s7"><h2 id="s7"><span class="no">07</span>The stack</h2><ul class="chips">' +
-    ['Claude<small>builds</small>', 'Independent auditors<small>ad hoc</small>', 'Grok Bot<small>the desk, eggbot runs it</small>', 'Cursor<small>ad hoc, hands back files</small>',
-     'GitHub<small>repo, CI, the desk’s app</small>', 'Cloudflare<small>hosting, DNS, the edge</small>'].map(function(c){ return '<li>' + c + '</li>'; }).join("") +
-    '</ul><p class="note chipnote">In the repo: one file for the app, the paper’s builder, the guards, smoke, the negative wall, and the browser check. No server, no account, no new services. Handoff is on the box, not in the repo.</p></section>');
+    ['Cursor<small>weekday build desk</small>', 'Independent auditors<small>ad hoc</small>', 'Grok Bot<small>the Sunday desk</small>',
+     'GitHub<small>repo, CI, both apps</small>', 'Cloudflare<small>hosting, DNS, the edge</small>'].map(function(c){ return '<li>' + c + '</li>'; }).join("") +
+    '</ul><p class="note chipnote">Claude is off the build desk. No new service. The weekday app is the same GitHub the desk already uses, a second app. In the repo: one file for the app, the paper’s builder, the guards, smoke, the negative wall, and the browser check. No server, no account. Handoff is on the box, not in the repo.</p></section>');
 
   out.push('<section aria-labelledby="s8"><h2 id="s8"><span class="no">08</span>The rules</h2><ol class="rules">' +
     '<li>The owner merges. No bot, no session, no auditor lands anything.</li>' +
     '<li>Every fact has a source that was opened. Unopened is unconfirmed.</li>' +
     '<li>Plans and mocks before code. Measured, not eyeballed.</li>' +
-    '<li>One source of truth per thing. One owner per rule file. One voice per issue.</li>' +
+    '<li>One source of truth per thing. The Cursor file points at the rules. It is not a second brief.</li>' +
     '<li>No new third-party services. Use what is already paid for.</li>' +
-    '<li>Short, direct, transparent. Show the method. Say what was not checked.</li>' +
+    '<li>Short, direct, transparent. Say what was not checked.</li>' +
+    '<li>Weekday pushes go out as night-watcher-build[bot]. Not as the owner. Not as the Sunday bot.</li>' +
     '</ol></section>');
   out.push('<p class="foot">Unlisted, not secret: out of the sitemap and linked from nothing on the site; its source is in the repo. Dark deco only, because the page runs no script. Its counts are read from the tree at ' + esc(f.build) + '.</p>');
   out.push('</main>\n</body>\n</html>\n');

@@ -674,6 +674,11 @@ run_case "the README drops its row for CLAUDE.md" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('CLAUDE.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
   guards "" 45
 
+run_case "the README drops its row for AGENTS.md" \
+  "README's file table does not list: AGENTS.md" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('AGENTS.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
 run_case "the README drops its row for .claude/" \
   "README's file table does not list: .claude/" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('.claude/')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
