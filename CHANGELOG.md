@@ -14,6 +14,18 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.5.7] — 2026-10-03
+
+**The org lines meet the lanes.** On How we work, the stems under Cursor and Outside help stopped short of the bar above the two apps, and the bar under those apps ran past them. The catalogue does not move, nothing saved changes shape, and the counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.**
+
+### Fixed
+
+- **`/hww` connectors.** The bar above the two GitHub apps reaches the three stems coming down from the desks. The bar under those apps ends on their own stems. On a narrow screen the two apps stack with the rest of the diagram.
+
+### Why PATCH
+
+A crew-page layout fix. No new control, no catalogue entry, no key, no saved-shape change. No tag, no notes.
+
 ## [6.5.6] — 2026-10-03
 
 **The weekday desk is Cursor.** A release is a pull request the owner squash-merges, and a merge to `main` publishes the site. The catalogue does not move, nothing saved changes shape, and the counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.**
