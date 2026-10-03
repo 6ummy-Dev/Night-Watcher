@@ -218,14 +218,32 @@ curl -s -o /dev/null -w '%{http_code}\n' \
   https://nightwatcher.life/platform/v2/x402/discovery/resources
 ```
 
-Expected: the `ad` flag and RRSIG records once DNSSEC is enabled in the
-Cloudflare DNS panel (it is a panel action by necessity — DNS is already
-panel-owned per the wrangler.jsonc custom-domain rationale; if the domain is
-on Cloudflare Registrar the DS record places itself); and a real `404` from
+Expected: the `ad` flag and RRSIG records. DNSSEC is on in the Cloudflare
+DNS panel and the DS record is at the parent since 29 Sept 2026 (a panel
+action by necessity — DNS is already panel-owned per the wrangler.jsonc
+custom-domain rationale; the domain is on Cloudflare Registrar, so the DS
+record placed itself); no `ad` flag is a finding. And a real `404` from
 the x402-shaped path — the 8/10 scan logged a 200 there, almost certainly
 the scanner probing Cloudflare's own platform endpoint, but if this URL ever
 answers 200 from the outside, something is answering in front of the Worker
 and that is a finding, not a curiosity.
+
+**HSTS (6.5.5 onward).** Strict-Transport-Security is set in the Cloudflare
+panel (SSL/TLS → Edge Certificates), not in `_headers`, so no guard can read
+it and this wire check is its only guard:
+
+```
+curl -sI https://nightwatcher.life/ | grep -i strict-transport
+curl -sI http://nightwatcher.life/  | grep -i strict-transport
+```
+
+Expected: exactly one `strict-transport-security: max-age=31536000;
+includeSubDomains` line on the HTTPS answer, with no `preload`; nothing at
+all on the plain `http://` answer (a browser ignores HSTS over HTTP, and the
+HTTP answer is the redirect). A shorter `max-age`, a missing
+`includeSubDomains`, a second copy (a `_headers` line arriving beside the
+panel's), or `preload` appearing is a panel change nobody recorded: the
+state and the reason preload is off are in `NOTES.md`.
 
 ## Nocturne (6.2.0 onward)
 

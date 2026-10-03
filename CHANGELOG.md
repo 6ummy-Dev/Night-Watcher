@@ -14,6 +14,121 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.5.5] — 2026-10-03
+
+**Everything pending, in one pack.** The site audit's small things (Twitter
+tags, a title under Bing's 70, the seed's two links, the paper's Support line),
+the ten held fixes from the engineering QA report of 1 October, the crew page's
+words, and a Claude Code setup for the repository. Two of the QA fixes change
+what the app does where it was wrong: a restore no longer counts as a night,
+and an unreadable store can be cleared. The catalogue does not move, nothing
+saved changes shape, and the counts stay at 137 films, 71 seasons and 44
+continuities. **No reinstall is needed.**
+
+### Fixed
+
+- **A restore is not a night.** Restoring a backup code logged every title it
+  carried as watched at the moment of the restore, and a JSON backup did the
+  same for every title its own log did not date (5.4.0's fallback, from the
+  5.3.1 audit). Forty restored titles became forty watched tonight: Recent
+  activity filled with them and the pace forecast read "done by" a couple of
+  days out. A restore now writes no log rows; a JSON file's own log still
+  merges. Logs already stamped by a past restore are not repaired, because
+  nothing tells their rows from real ones.
+- **An unreadable store can be ended.** Saved progress that reads but does not
+  parse has kept the session read-only since 3.4.4, and the banner said storage
+  was blocked. It has its own banner now ("couldn't be read … Clear all
+  progress on Progress starts fresh"), and the existing two-tap *Clear all
+  progress* ends it: the one confirmed overwrite. A store whose read throws is
+  blocked, keeps its banner, and clearing does not end it. The latch, the
+  unread bytes and the two keys are as they were.
+- **A query no longer stores another copy of the page.** The service worker
+  cached a navigation under its full URL, so every `?fbclid=` or `?utm_` visit
+  added a 248 KiB copy. A navigation is cached under its path now; assets keep
+  their full URL.
+- **Toasts last long enough to read:** 1.7 s plus 50 ms a character, held to
+  six seconds.
+- **The first search count is heard.** The count's status region arrived with
+  its text, so a screen reader stayed silent on the first one. The region is on
+  the Path tab from the start, empty until there is a query.
+- **A failed backup write releases its file,** and **a share card the browser
+  cannot draw says so** instead of doing nothing.
+- **The Worker holds a q-value to 0..1.** `q=2` read as 2 and a malformed `q`
+  as 1; above 1 is 1 now, and malformed is 0.
+- **The Home `<title>` is 69 characters,** under Bing's 70: `Batman watch order.
+  Every movie & series, no spoilers · Night Watcher`.
+
+### Changed
+
+- **Twitter tags on every page.** Home, the paper's front and every issue carry
+  `twitter:title` and `twitter:description`, each its `og:` twin word for word;
+  the paper's renderer derives them from the same values.
+- **The seed links the source and the app's one ask.** For a reader without
+  JavaScript, the word GitHub in the provenance line links the repository, and
+  "Keep the path lit. Support" follows in the app's words, the same two links
+  the Progress build line carries.
+- **The paper ends on the same line.** "Keep the path lit. Support" is the last
+  line of the paper's foot, under the colophon, on the front and every issue,
+  in its own tab. Nothing fetches the host.
+- **`/hww` carries the owner's words of 3 October** (the desk's coordinator and
+  the room as their own cards, the Sunday run step by step, the releases and
+  deploy notes, the stack and the rules), and its last independent audit reads
+  6.5.4. The design is 6.5.0's; one heading rule is added.
+- **`SECURITY.md` names the backup file handle:** any script on the origin, the
+  paper's beacon included, can reach the IndexedDB `nw-backup-handle` and, while
+  the permission is live, the file behind it.
+- **`.nvmrc`** names Node 22.22.2, the lowest `engines` accepts.
+- **The Claude setup.** `CLAUDE.md` (where each view renders, the commands, the
+  rules the guards enforce), `.claude/settings.json` with a hook that runs the
+  guards after Claude edits a file and never blocks, and the read-only `nw-qa`
+  audit skill without its baseline report (the tree is public). CODEOWNERS
+  gives both paths to the owner, because the settings file runs a command in
+  every Claude Code session on the repo.
+
+### At the edge, not in the tree
+
+All on 29 September, all panel actions: HSTS is one year with
+`includeSubDomains`, preload off; DNSSEC is on and the DS record is at the
+parent; the registrar moved from GoDaddy to Cloudflare. `RELEASING.md` gains
+the HSTS wire check, its only guard, and `NOTES.md` records the state.
+
+### Under the hood
+
+- **Guard 171:** every page's `twitter:title` and `twitter:description` are
+  its `og:` twins, one each. **Guard 172:** the paper's Support line, its
+  words, URL, own tab, once per page, under the colophon. Section 153's head
+  list gains the two tags.
+- **Guard 90** takes its third and fourth named exceptions, the first off the
+  origin: the repository and the Support page, exactly those URLs, once each,
+  in their own tab with `noopener noreferrer`. The Progress Support checks read
+  the page without the seed, so the seed's copy cannot answer for the build
+  line's.
+- **Guard 132** drives three tagged navigations and requires one cached
+  document, and an asset keeps its query. **Guard 133** reads `q=2`, a
+  malformed `q` and a lone `q=0.5`. The CODEOWNERS list gains `/CLAUDE.md` and
+  `/.claude/`.
+- Twenty new smoke checks: the restore writes no night, forecasts nothing and
+  adds no activity, real nights after it are the only ones; the unreadable
+  store's banner, its clear, the clean boot after it, and the latch on a second
+  bad store; a blocked store's banner, latch and bytes kept; the toast's two
+  lengths; the live region's node across keystrokes; the aborted writable; the
+  card that cannot be drawn. 5.4.0's "still gets a night" check is inverted.
+- Fixtures in `negtest590`, `610`, `620`, `700`, `780` and `273`. Anchors
+  that the pack moved are re-aimed, the strings it deleted as well as the ones
+  it changed: `negtest273`'s words and source-link fixtures (the seed's copies
+  now come first in the file), `183`'s scope-note pair, `186`'s seed-link
+  strip, `560`'s and `700`'s restore loops, `620`'s cache write, and `780`'s
+  `/hww` audit release.
+- Harness: 172 sections, 88 negative suites, 1,716 fixtures (from 1,687), 542
+  smoke checks (from 522).
+
+### Why PATCH
+
+Fixes, tags, links, docs and tooling. No new control, no catalogue entry, no
+key, no saved-shape change: the app's behaviour moves only where it was wrong.
+The paper's Support line is a visible element that README's feature rule could
+read as a MINOR; the owner chose a PATCH on 29 September. No tag, no notes.
+
 ## [6.5.4] — 2026-09-29
 
 **One man writes the paper, and the check holds him to it.** Nocturne's voice

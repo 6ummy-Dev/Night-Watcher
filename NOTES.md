@@ -15,7 +15,7 @@ Four other places carry part of the story and are not repeated here:
   required reading before a change; everything here is written in the
   present tense.
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 170 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 172 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -334,12 +334,30 @@ long-lived page the strip comes back parked or not on an observer's timing).
 Two latches, because a failed READ and a failed WRITE are opposite facts and
 3.4.5 fixed them in opposite directions. A read that failed means the state on
 disk is unknown, so the writes stop for the session — `readFailed` is checked
-in `persist()` and `persistNow()` and never clears. Before 3.4.5 the async
+in `persist()` and `persistNow()`, and nothing but a confirmed clear ends it
+(below, `readBad`). Before 3.4.5 the async
 backend's rejection path left saving on, and the first tick wrote a one-entry
 payload over everything the reader had. A write that failed says nothing about
 the next one, so `canSave` clears itself the moment a write lands: one
 quota-style throw used to latch it for the session and everything after the
 blip was lost on close. Guard 127 holds both directions, and holds them apart.
+
+### `readBad` (6.5.5)
+
+The two ways a read fails are not the same event, and from 6.5.5 the reader
+is told which. A store whose `get` throws is blocked: nothing can be read or
+written, and the banner says storage is blocked. A store that answers with
+bytes that do not parse, or parse into something that is not a payload, is
+unreadable: `readBad` is set before the parse and cleared only when the whole
+restore lands, so any throw inside it counts. Its banner says the progress
+could not be read and that *Clear all progress* starts fresh. The latch and
+the bytes stay exactly as 3.4.4 left them (guard 127): nothing writes over an
+unread payload on its own. The one way out is the existing two-tap *Clear all
+progress*, which on an unreadable store clears `readBad` and `readFailed`,
+turns saving back on and writes a fresh payload over both keys, because the
+reader has just confirmed, twice, that the old state is to go. On a blocked
+store it does nothing of the kind. No new control and no third key; the QA
+report of 1 Oct 2026 (M3) found the read-only state permanent.
 
 ### `saveWorked()`
 
@@ -891,11 +909,19 @@ Sanitised to the same shape the storage listener writes. It used to
 push the whole foreign object, so extra fields from a hand-edited
 backup persisted into storage forever and a string ts sorted oddly.
 
-A JSON file that carries a log is merged through here and nothing else,
-so until 5.4.0 a watched title whose every entry was refused (`ts:0`, the
-5.3.1 tightening) arrived watched with no night — Progress printed none.
-`doRestore()` now stamps a fresh timestamp for any watched title the merge
-did not take, the same fallback a file with no log always had.
+A JSON file that carries a log is merged through here and nothing else.
+5.4.0 added a fallback: a watched title whose every entry was refused
+(`ts:0`, the 5.3.1 tightening) got a fresh timestamp, the same one a file
+with no log gave every title, and a backup code's restore did the same in
+`applyImport()`. **6.5.5 removed all of it (QA M4).** The log is a record of
+watching, not of restoring: a restore of forty titles became forty titles
+watched tonight, Recent activity filled with them, and the pace forecast
+read "done by" a couple of days out. A restored title the log does not date
+stays undated, and Progress counts it without a night. A flag on the
+restored rows was considered and not taken: `dedupeLog()` and `mergeLog()`
+rebuild entries as `{id, ts}`, so a flag is stripped on the next load unless
+the saved shape moves. Logs already stamped by a past restore are not
+repaired; nothing can tell their rows from real ones.
 
 ### `if(!S.path && isPath(res.path)){ S.path = S.mode = res.p…`
 
@@ -1199,6 +1225,25 @@ is a supported way to run this. Failure is silent and non-fatal.
 
 
 ---
+
+### `toast()`, `scopeNote()`, `fhWrite()`, `cardFile()` — four small fixes (6.5.5)
+
+From the QA report of 1 Oct 2026, each held by a smoke check.
+
+- **`toast()` stays long enough to read (L4).** 1.7 s was right for "Saved"
+  and too short for a sentence. It is 1.7 s plus 50 ms a character, held to
+  six seconds. No pause on hover: a toast is not a control.
+- **The search count is a standing live region (L5).** The count used to be
+  inserted already holding its text, and a screen reader does not announce a
+  status region that arrives with its content, so the first count was
+  silent. `viewWatch()` now always renders the `.scopenote` status, empty
+  until there is a query, and `searchApply()` only changes its text.
+  `.scopenote:empty` drops the margin; it is not `display:none`, which would
+  take it out of the accessibility tree and silence it again.
+- **A failed backup write releases its file (L12).** When `write()` rejects,
+  `fhWrite()` aborts the writable instead of leaving it open.
+- **A card the browser cannot draw says so (L13).** `toBlob` can hand back
+  nothing; "Share the night" did nothing at all, and now it toasts.
 
 ## Styles
 
@@ -2899,6 +2944,25 @@ not reproduced, because a header needs the edge. Googlebot does not run under
 the page's CSP, so Search reads a valid file. The 0.92 is not a finding, and
 its cure, `connect-src 'self'`, would trade "the app fetches nothing" for a lab
 score. One outside read has filed it (the site audit, 28 Sept).
+
+## The edge: HSTS, DNSSEC and the registrar (6.5.5)
+
+Three things about how the site is served live in Cloudflare's panel, not in
+the tree, so no guard can read them. They are written down here so the next
+reader knows what the wire should say and why.
+
+- **HSTS** is one year, `max-age=31536000; includeSubDomains`, set in the
+  SSL/TLS panel since 29 Sept 2026 (before that it was thirty days without
+  `includeSubDomains`, the reversible setting on purpose). Guard 104 keeps it
+  out of `_headers`, because one header in two places is two places to be
+  wrong. **Preload is off,** deliberately: a preload-list entry ships inside
+  browsers and is slow to undo. The wire check in `RELEASING.md` is HSTS's
+  only guard.
+- **DNSSEC** is on, and the DS record is at the parent (29 Sept 2026). The
+  `ad` flag check in `RELEASING.md` reads it.
+- **The registrar** moved from GoDaddy to Cloudflare Registrar on 29 Sept
+  2026, which is why the DS record placed itself. The registration runs to
+  31 July 2028.
 
 ## The floor
 

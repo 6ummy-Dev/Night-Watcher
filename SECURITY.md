@@ -32,7 +32,12 @@ it's fixed.
   are `theme.js` and `paper.js` (6.5.0), which reads no progress and writes one
   key, `nocturne-theme`. Any script on the origin can read `localStorage`,
   the beacon included; the progress it could read is watched and rated titles
-  and settings, nothing that names a person. Cloudflare's edge can add Network Error Logging headers, which
+  and settings, nothing that names a person. The same is true of IndexedDB:
+  any script on the origin, the paper's beacon included, can reach the
+  `nw-backup-handle` database, where the app keeps the handle to a backup
+  file you chose with *Save to a file*, and while the browser's permission
+  for that file is live, the file behind it, which holds the full JSON
+  backup. Cloudflare's edge can add Network Error Logging headers, which
   make a browser report failed requests only, to Cloudflare; that is the
   host's, not the app's.
 - Missing HTTP security headers on any address other than `nightwatcher.life`.

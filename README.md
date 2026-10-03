@@ -179,6 +179,8 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `ARCHITECTURE.md` | The shape of the script: its sections, the state bag, the counting pipeline, the routes and the render loop |
 | `DATA-MODEL.md` | The persisted payload, the `NW3` backup code, the JSON export, and the tolerance rules each is read with |
 | `CONTRIBUTING.md` | Which document answers what, how a change lands, and the checklist for adding a guard section or a negative suite |
+| `CLAUDE.md` | Notes for Claude Code: where each view renders, the commands, the rules the guards enforce, and the shell habits that keep an agent out of trouble. Points at ARCHITECTURE.md and CONTRIBUTING.md rather than restating them |
+| `.claude/` | Claude Code project setup: `settings.json` (a hook that runs `qa/guards.js` after Claude edits a file and hands any `✗` lines back to it, never blocking), `hooks/guards-after-edit.sh`, and the `nw-qa` skill (`skills/nw-qa/`: the read-only QA audit, its probes and its report template; audit reports stay out of this public tree, per SECURITY.md). Not served, not part of the app |
 | `qa/guards.js` | Build guards — run before every commit (see below) |
 | `nocturne/` | Nocturne's source: `BRIEF.md`, `VOICE.md`, `REPORTER.md`, `CASEBOOK.md` and `MORGUE.md` (the owner's rules, the reporter's profile, his closed past and the card catalogue of Batman's real history, which the agents never edit), `NOTEBOOK.md` (the desk's reading record, never published) and `issues/`, one folder per issue — `issue.md` and its images |
 | `qa/hww.js` | Builds and checks `docs/hww/` (`npm run hww:build`, `npm run hww:check`). Reads its counts from the tree: guard sections, negative suites and fixtures, the smoke count, BUILD, and the header's mark |
@@ -207,6 +209,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `qa/requirements-tooling.txt` | The Python side of the tooling (Pillow, fonttools, brotli) for the icon set, the font subsets and the quantize of the card and the screenshots |
 | `.gitattributes` | LF everywhere and the binaries named — the guards hash and split the tree byte-for-byte |
 | `.npmrc` | `engine-strict=true`, so a Node outside `package.json`'s `engines` fails at `npm ci` instead of warning and failing mid-suite |
+| `.nvmrc` | The Node version to install, `22.22.2`, the lowest `engines` accepts, so `nvm use` picks one `npm ci` will take |
 | `qa/share-card.html` | The card's layout, rendered headless by the script above |
 | `qa/contrast.md` | The measured contrast table — written by guard 20 under `npm run bless`, never typed; any other run fails if it is stale |
 | `qa/browser-check.mjs` | A real browser at 390×844, for the header, the jumps and the tick — the things jsdom cannot see — and the writer and reader of `qa/aria/`; its screenshots land in `qa/.shots/` (ignored by git, uploaded by CI on a red run) |
@@ -232,14 +235,14 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 88 negative suites, 1687
+trusted. That evidence lives in `qa/negative/` — 88 negative suites, 1716
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
 every fixture onto the section it breaks and fails the build on any section
 without one, and the counts in this paragraph are themselves guarded.
 
-The second half of `npm test` is `qa/smoke.js`, a headless render test that boots the real page in jsdom and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, the cross-tab merge, and the path end to end — 522 checks. jsdom is a declared dev dependency; a local clone without it skips the suite and says so, CI treats the skip as a failure.
+The second half of `npm test` is `qa/smoke.js`, a headless render test that boots the real page in jsdom and drives what static analysis can't reach: rendering, scope switching, hostile import, the backup parser against old, forward-dated, pasted and malformed codes, a copy with `localStorage` throwing, the cross-tab merge, and the path end to end — 542 checks. jsdom is a declared dev dependency; a local clone without it skips the suite and says so, CI treats the skip as a failure.
 
 ## Releasing
 

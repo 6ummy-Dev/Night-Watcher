@@ -40,7 +40,9 @@ function withSecurity(h){
 /* Does this Accept header PREFER markdown? Only an explicit text/markdown
    entry counts — wildcards do not, or curl and every feed reader would get
    markdown for the front page — and it must beat text/html STRICTLY: a
-   browser's own Accept always names html, so a tie goes to the page. */
+   browser's own Accept always names html, so a tie goes to the page.
+   6.5.5 (QA I4): a q-value is held to RFC 9110's 0..1. q=2 is 1, and a
+   malformed one (q=abc, q=) is 0, so it can never outrank the page. */
 function wantsMarkdown(accept){
   var md = 0, html = 0;
   String(accept || "").split(",").forEach(function(part){
@@ -48,8 +50,8 @@ function wantsMarkdown(accept){
     if(type !== "text/markdown" && type !== "text/html") return;
     var q = 1, i, m;
     for(i = 1; i < bits.length; i++){
-      m = bits[i].trim().match(/^q=([0-9.]+)$/i);
-      if(m){ q = parseFloat(m[1]); if(!isFinite(q)) q = 1; }
+      m = bits[i].trim().match(/^q=(.*)$/i);
+      if(m){ q = /^[0-9.]+$/.test(m[1]) ? Number(m[1]) : NaN; q = isFinite(q) ? Math.min(1, Math.max(0, q)) : 0; }
     }
     if(type === "text/markdown" && q > md) md = q;
     if(type === "text/html" && q > html) html = q;

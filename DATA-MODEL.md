@@ -138,7 +138,10 @@ A code written before 6.0.0 that carries the Batwoman bundle's hash imports
 as the three seasons (`splitPayload()` on the parsed result, before it is
 counted as found).
 Restoring a code merges through `applyMarks()` with fresh clocks: nothing
-already ticked is lost, and a skip never lands on a watched entry.
+already ticked is lost, and a skip never lands on a watched entry. It
+writes no log rows: a code carries no dates, and a restore is not a night
+(6.5.5; until then every restored title was logged as watched at the moment
+of the restore).
 
 The restore link is the site (or the current origin) plus `#nw=` and the
 code; guard 73 holds the worst-case link under the length every browser and
@@ -163,10 +166,11 @@ carry a clocked id from a newer build's tab on purpose — `NOTES.md` records
 it as accepted under the storage listener's own entry
 (`window.addEventListener("storage", …)`, in the Script section). The log
 is merged when present, for watched entries only (`mergeLog()`: catalogue ids, released, a timestamp
-after the epoch, one entry per id; the watched filter is 6.1.5, the same as the tab door), and any watched entry the merge did not
-leave a night for — a file with no log, or a file whose entries for that
-title were all refused — gets a fresh timestamp (5.4.0; until then the
-fallback ran only when the log was absent). Like the code, it carries no
+after the epoch, one entry per id; the watched filter is 6.1.5, the same as the tab door), and nothing else is
+added: a watched entry the file does not date (no log, or every entry for
+it refused) stays undated, because a restore is not a night (6.5.5; from
+5.4.0 such an entry got a fresh timestamp, and before that, a file with no
+log did). Like the code, it carries no
 clocks and merges additively. The
 "Save to a file" button keeps a `FileSystemFileHandle` in IndexedDB
 (`nw-backup-handle`) so later saves refresh the same file; the handle is
