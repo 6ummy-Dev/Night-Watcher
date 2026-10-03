@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guards-after-edit.sh\"",
+            "timeout": 60,
+            "statusMessage": "Running Night Watcher guards"
+          }
+        ]
+      }
+    ]
+  }
+}
