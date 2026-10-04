@@ -102,7 +102,7 @@ jobs:
 
       - if: needs.scope.outputs.paper == 'true'
         name: the paper's checks (an issue pull request)
-        run: node qa/guards.js && npm run nocturne:check
+        run: node qa/guards.js
 
   # The negative suites. Each fixture breaks one thing on purpose in a throwaway
   # copy of the tree and asserts the guards go red for the right reason — the
@@ -113,7 +113,7 @@ jobs:
   # job never ran (NOTES-history.md ("Where the served and config files'
   # histories went")).
   #
-  # Cost: 1718 fixtures, of which 1601 run guards.js and 117 run smoke.js — most
+  # Cost: 1719 fixtures, of which 1602 run guards.js and 117 run smoke.js — most
   # of those scoped to one phase by SMOKE_ONLY. The split is guarded in this
   # file the same as the README's counts, so the next drift fails the build.
   # run-all.sh dispatches longest-first; this job shards 4-way on top, packed

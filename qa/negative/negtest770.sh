@@ -44,6 +44,11 @@ run_case "npm test skipped for every pull request" \
   "${QA}a=\"      - if: needs.scope.outputs.paper != 'true'\\n        run: npm test\";assert s.count(a)==1;s=s.replace(a,\"      - if: github.event_name != 'pull_request'\\n        run: npm test\",1);${W}" \
   guards "" 163
 
+run_case "an issue pull request builds the paper twice" \
+  "without a second paper build" \
+  "${QA}a='        run: node qa/guards.js\\n';assert s.count(a)==1;s=s.replace(a,'        run: node qa/guards.js && npm run nocturne:check\\n',1);${W}" \
+  guards "" 163
+
 run_case "the scope moves into a paths filter" \
   "filters on paths" \
   "${QA}a='  pull_request:\\n    branches: [main]\\n';assert s.count(a)==1;s=s.replace(a,\"  pull_request:\\n    branches: [main]\\n    paths:\\n      - 'docs/index.html'\\n\",1);${W}" \

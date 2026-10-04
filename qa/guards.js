@@ -16172,7 +16172,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     ["CHANGED=$(git diff --no-renames --name-only HEAD^1 HEAD)", "reads the pull request's changes with --no-renames"],
     ["grep -Ev '^(nocturne/issues/|nocturne/NOTEBOOK\\.md$|docs/nocturne/|docs/sitemap\\.xml$)'", "scopes to the fence's four paths exactly"],
     ["      - if: needs.scope.outputs.paper != 'true'\n        run: npm test", "runs npm test on everything but an issue pull request"],
-    ["run: node qa/guards.js && npm run nocturne:check", "still runs every guard and the paper's check on an issue pull request"],
+    ["        run: node qa/guards.js\n", "still runs every guard on an issue pull request, without a second paper build"],
     ["      - if: needs.scope.outputs.paper != 'true'\n        run: bash qa/negative/run-all.sh", "runs the negative shards on everything but an issue pull request"],
     ["NW_ONLY=${{ needs.scope.outputs.paper == 'true' && 'paper' || 'all' }} npm run browser", "runs the paper half of the browser check on an issue pull request and all of it otherwise"]
   ];
@@ -16515,7 +16515,8 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     if(cli.indexOf("\n  printWarnings(b.warnings);\n") < 0) fail("the sentence warnings are never printed (6.3.4)");
   }
   note("nocturne: the fixture's No. 0 and No. 1 pass the contract; " +
-       (NOC_REAL ? NOC_REAL.list.length : 0) + " real issue(s) checked; the notebook holds its shape (" + nbEntries + " entries) and stays out of docs/");
+       (NOC_REAL ? NOC_REAL.list.length : 0) + " real issue(s) checked; the notebook holds its shape (" + nbEntries + " entries) and stays out of docs/. " +
+       "Sentence warnings do not fail here; npm run nocturne:check prints them and exits 0.");
 })();
 
 /* ---------- 167. The sitemap and the feed list exactly the issues ---------- */
