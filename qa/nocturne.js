@@ -1175,7 +1175,8 @@ function renderIssue(is, cat){
    what is inside it, and the morgue. Nothing here is a second pitch.
    An issue's markdown is its own issue.md, copied byte for byte. */
 function mdLink(text, href){
-  return "[" + String(text).replace(/\]/g, "\\]") + "](" + href + ")";
+  /* Backslash first: a \ before ] would otherwise escape the escape and close the label. */
+  return "[" + String(text).replace(/\\/g, "\\\\").replace(/\]/g, "\\]") + "](" + href + ")";
 }
 function renderFrontMarkdown(list){
   var is = list[0], fm = is.fm, founding = fm.kind === "founding";
