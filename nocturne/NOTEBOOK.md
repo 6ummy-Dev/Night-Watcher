@@ -31,3 +31,8 @@ The rules (`BRIEF.md` §2, the notebook):
 - 2026-09-27 — Night Watcher's live `orders.txt` and main `docs/orders.txt` both state 137 films and 71 seasons of television across 44 continuities. [orders.txt](https://nightwatcher.life/orders.txt)
 - 2026-09-27 — Version 1.0.0 of Night Watcher was tagged on 27 July 2026, per the changelog archive. [CHANGELOG-archive](https://github.com/6ummy-Dev/Night-Watcher/blob/main/CHANGELOG-archive.md)
 - 2026-09-27 — The README names three watch orders (by universe, Bruce's life in eleven eras, release order) and states there is no account and nothing tracking what you watch. [README](https://github.com/6ummy-Dev/Night-Watcher/blob/main/README.md)
+
+## 2026-W40
+
+- 2026-10-04 — Supermemory's privacy policy says the service stores the account name and email, uploaded documents and files, and data synced from connected services including Google Drive and Notion, and that when AI features are on that content may be processed by OpenAI and Google Gemini. [Privacy policy](https://supermemory.ai/privacy/)
+- 2026-10-04 — The public Supermemory repository is clients, schemas, and docs under the MIT license. Its self-hosting overview says the server binary is a separate codebase and is not open source. First boot of that binary asks for an OpenAI, Anthropic, or Gemini key. [Repository](https://github.com/supermemoryai/supermemory) [Self-hosting overview](https://github.com/supermemoryai/supermemory/blob/main/apps/docs/self-hosting/overview.mdx)
