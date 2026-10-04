@@ -87,15 +87,21 @@
 # canonical is its own URL. Sitemap and
 # describedby name the same resources / already advertises. The seven font
 # preloads stay under /: the paper's pages do not preload faces.
+# 6.6.3: Vary: Accept, the same reason / carries it. The worker negotiates
+# a markdown representation of these two document URLs, and the HTML answer
+# is the other one. A cache that stores only the HTML will hand it to a
+# client that asked for markdown unless both representations say they vary.
 /nocturne/
   Link: <https://nightwatcher.life/sitemap.xml>; rel="sitemap"
   Link: <https://nightwatcher.life/nocturne/>; rel="canonical"
   Link: </llms.txt>; rel="describedby"
+  Vary: Accept
 
 /nocturne/:issue/
   Link: <https://nightwatcher.life/sitemap.xml>; rel="sitemap"
   Link: <https://nightwatcher.life/nocturne/:issue/>; rel="canonical"
   Link: </llms.txt>; rel="describedby"
+  Vary: Accept
 
 # /hww/* is the crew's page (6.5.0): unlisted, so noindex twice (here and in
 # the page), and a default-deny policy that runs no script. Guard 170 holds

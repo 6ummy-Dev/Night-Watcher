@@ -221,7 +221,7 @@ function blessHtml(next){
      140  The disclosure channel is a file, and it has not expired
      105  The catalogue answers in plain text
      141  The two orderings are named once, and shared
-     133  The root negotiates markdown, and only the root
+     133  The root and the paper negotiate markdown
      125  robots.txt states a position on AI use
      106  The fonts carry every letter the catalogue uses
      116  The fonts really carry what the page really renders
@@ -12555,7 +12555,7 @@ var ROUTE_VOCAB = [
        "answers from the cache after NAV_WAIT, cross-origin and non-GET untouched");
 })();
 
-/* ---------- 133. The root negotiates markdown, and only the root ---------- */
+/* ---------- 133. The root and the paper negotiate markdown ---------- */
 /* 3.8.0, from the 10 Aug Radar triage: `GET /` with an Accept header that
    PREFERS text/markdown answers with llms.txt as text/markdown — the one item
    gating agent-readiness Level 3. The dashboard alternative (managed
@@ -12565,15 +12565,22 @@ var ROUTE_VOCAB = [
    worker.js is written with .then() chains instead of async/await precisely
    so a sync-thenable can drive it to completion inside one call stack.
 
+   6.6.3: the same negotiation for Nocturne's documents. /nocturne/ answers
+   with the front's index.md, and /nocturne/<issue>/ answers with that
+   issue's own issue.md. HTML stays the default. Stylesheets, scripts,
+   images, fonts, the feed, and the slashless /nocturne redirect do not
+   negotiate: run_worker_first names only the document directory URLs, and
+   the script refuses every other path on its own.
+
    The stakes of the fallthrough branch are the whole tree: every guard above
    this one asserts things about the bytes docs/ serves, and a Worker sitting
    in front could quietly serve something else. So the passthrough assertions
    are IDENTITY checks — the response object the mock assets plane returned,
    not a copy — which is stronger than byte-for-byte. And run_worker_first is
-   pinned to exactly ["/", "/.well-known/api-catalog"]: the root (an asset,
-   negotiated) and the api-catalog (no asset, worker-owned), and nothing else,
-   so every other path stays on the assets plane where worker code cannot
-   reach it, slow it, or break it while down. */
+   pinned to the root, the api-catalog, /nocturne/, and /nocturne/ plus a
+   star and a trailing slash: the paper's document URLs. The star matches
+   deeply and the paper pattern requires a trailing slash, so a file under
+   /nocturne/ stays on the assets plane where worker code cannot reach it. */
 
 (function(){
   var wpath = path.join(ROOT, "worker.js");
@@ -12596,11 +12603,11 @@ var ROUTE_VOCAB = [
     fail("the assets plane has no ASSETS binding — worker.js has no way to " +
          "fall through, and every request it touches dead-ends");
   }
-  if(!/"run_worker_first":\s*\[\s*"\/"\s*,\s*"\/\.well-known\/api-catalog"\s*\]/.test(wr)){
-    fail("run_worker_first is not exactly [\"/\", \"/.well-known/api-catalog\"] " +
-         "— either the Worker never runs (no negotiation, no api-catalog) or " +
-         "it fronts MORE than those two, and every asset behind it pays the " +
-         "hop and inherits its failure modes");
+  if(!/"run_worker_first":\s*\[\s*"\/"\s*,\s*"\/\.well-known\/api-catalog"\s*,\s*"\/nocturne\/"\s*,\s*"\/nocturne\/\*\/"\s*\]/.test(wr)){
+    fail("run_worker_first is not exactly [\"/\", \"/.well-known/api-catalog\", \"/nocturne/\", \"/nocturne/*/\"] " +
+         "— either the Worker never runs (no negotiation, no api-catalog, no " +
+         "paper) or it fronts MORE than those, and every other asset behind " +
+         "it pays the hop and inherits its failure modes");
   }
 
   /* Execute it. Real URL; stub Request/Response so the result can be read
@@ -12618,13 +12625,35 @@ var ROUTE_VOCAB = [
     return out;
   }
   var LLMS = "# Night Watcher\n\nmock markdown body\n";
+  var FRONT = "# Nocturne\n\nfront body\n";
   var htmlRes = { status: 200, marker: "the blessed HTML, untouched" };
   var assetLog = [];
+  function mdKind(u){
+    if(/\/llms\.txt$/.test(u)) return "llms";
+    if(/\/nocturne\/index\.md$/.test(u)) return "front";
+    if(/\/issue\.md$/.test(u)) return "issue";
+    return "";
+  }
+  function mdBody(u){
+    var k = mdKind(u);
+    if(k === "llms") return LLMS;
+    if(k === "front") return FRONT;
+    if(k === "issue") return "ISSUE\n" + u + "\n";
+    return "";
+  }
+  function mdAsset(u, headers, onText){
+    if(!mdKind(u)) return null;
+    return { status: 200, headers: headers || { get: function(){ return null; } },
+      text: function(){ if(onText) onText(); return new SyncV(mdBody(u)); } };
+  }
   var env = { ASSETS: { fetch: function(req){
     var u = typeof req === "string" ? req : req.url;
     assetLog.push(u);
-    if(/\/llms\.txt$/.test(u)) return new SyncV({ status: 200,
-      text: function(){ return new SyncV(LLMS); } });
+    /* The worker's own read is a headerless Request. The caller's request
+       carries headers, and that one is the page: even when its URL is the
+       markdown file, the answer is the asset, not a second negotiation. */
+    var hit = req.headers ? null : mdAsset(u);
+    if(hit) return new SyncV(hit);
     return new SyncV(htmlRes);
   } } };
   var box = { URL: URL,
@@ -12779,16 +12808,97 @@ var ROUTE_VOCAB = [
          "keeps it off the Worker today, but that is edge config, and the " +
          "script must refuse on its own");
   }
+  /* 6.6.3: Nocturne's documents negotiate their own markdown. HTML stays
+     the default. A file under the paper, and the slashless forms, do not. */
+  var PAPER = "https://nightwatcher.life/nocturne/";
+  var ISSUE_ID = "2026-w39-nocturne-somebody-has-to-stay-up-with-batman";
+  var ISSUE = PAPER + ISSUE_ID + "/";
+  var paper = un(mod.fetch(req("text/markdown", "GET", PAPER), env));
+  if(!paper || paper.body !== FRONT){
+    fail("Accept: text/markdown on /nocturne/ did not answer with the front's markdown — " +
+         "the paper must not negotiate llms.txt");
+  } else {
+    var ph = paper.init.headers || {};
+    if(!/^text\/markdown/.test(ph["Content-Type"] || "")){
+      fail("the paper's markdown response is not Content-Type: text/markdown — the " +
+           "negotiation answered with the wrong label on the right body");
+    }
+    if((ph["Vary"] || "") !== "Accept"){
+      fail("the paper's markdown response does not carry Vary: Accept — a cache " +
+           "would mix the paper's HTML and its markdown");
+    }
+    if((ph["Content-Location"] || "") !== "/nocturne/index.md"){
+      fail("the front's markdown lost Content-Location: /nocturne/index.md — the " +
+           "one honest pointer to where this representation lives on its own");
+    }
+  }
+  var issueBody = "ISSUE\nhttps://nightwatcher.life/nocturne/" + ISSUE_ID + "/issue.md\n";
+  var issueRes = un(mod.fetch(req("text/markdown", "GET", ISSUE), env));
+  if(!issueRes || issueRes.body !== issueBody){
+    fail("Accept: text/markdown on an issue page did not answer with that issue's markdown — " +
+         "the body must be that issue's issue.md, not the front and not llms.txt");
+  } else if(((issueRes.init.headers || {})["Content-Location"] || "") !== "/nocturne/" + ISSUE_ID + "/issue.md"){
+    fail("the issue's markdown lost Content-Location: /nocturne/" + ISSUE_ID + "/issue.md — " +
+         "the pointer has to name that issue's own file");
+  }
+  var paperHead = un(mod.fetch(req("text/markdown", "HEAD", PAPER), env));
+  if(!paperHead || paperHead === htmlRes || paperHead.body){
+    fail("HEAD /nocturne/ with Accept: text/markdown fell through or carried a body — " +
+         "HEAD answers the GET's headers and nothing else");
+  } else {
+    var phh = paperHead.init.headers || {};
+    if(!/^text\/markdown/.test(phh["Content-Type"] || "") || (phh["Vary"] || "") !== "Accept" ||
+       (phh["Content-Location"] || "") !== "/nocturne/index.md"){
+      fail("HEAD /nocturne/'s markdown response does not carry the GET's headers — " +
+           "the two methods must describe the same representation");
+    }
+  }
+  var issueHead = un(mod.fetch(req("text/markdown", "HEAD", ISSUE), env));
+  if(!issueHead || issueHead === htmlRes || issueHead.body){
+    fail("HEAD on an issue page with Accept: text/markdown fell through or carried a body");
+  }
+  var paperQ = un(mod.fetch(req("text/html;q=0.4,text/markdown;q=0.8", "GET", PAPER), env));
+  if(!paperQ || paperQ.body !== FRONT){
+    fail("the paper ignored a markdown preference expressed through q-values");
+  }
+  [["a browser on the paper", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", PAPER],
+   ["a tie on the paper", "text/markdown,text/html", PAPER],
+   ["markdown below html on the paper", "text/markdown;q=0.5,text/html", ISSUE]
+  ].forEach(function(c){
+    var rPaper = un(mod.fetch(req(c[1], "GET", c[2]), env));
+    if(rPaper !== htmlRes){
+      fail(c[0] + " did not get the assets plane's response by identity — HTML stays the paper's default");
+    }
+  });
+  var paperPost = un(mod.fetch(req("text/markdown", "POST", PAPER), env));
+  if(paperPost !== htmlRes) fail("a POST to a paper document negotiated markdown — the branch answers GET and HEAD only");
+  ["/nocturne",
+   "/nocturne/nocturne.css", "/nocturne/feed.css", "/nocturne/theme.js", "/nocturne/paper.js",
+   "/nocturne/feed.xml", "/nocturne/card.png", "/nocturne/OFL.txt", "/nocturne/index.md",
+   "/nocturne/" + ISSUE_ID + "/issue.md",
+   "/nocturne/" + ISSUE_ID + "/card.png",
+   "/nocturne/" + ISSUE_ID + "/night-watcher-no0.webp",
+   "/hww/", "/hww"].forEach(function(path133){
+    var rAsset = un(mod.fetch(req("text/markdown", "GET", "https://nightwatcher.life" + path133), env));
+    if(rAsset !== htmlRes){
+      fail("a paper asset negotiated markdown (" + path133 + ") — stylesheets, scripts, images, fonts, the feed and the slashless form stay on the assets plane");
+    }
+  });
   /* A broken llms.txt must degrade to the page, not to a broken negotiation. */
   var env404 = { ASSETS: { fetch: function(rq){
     var u = typeof rq === "string" ? rq : rq.url;
-    if(/\/llms\.txt$/.test(u)) return new SyncV({ status: 404 });
+    if(!rq.headers && mdKind(u)) return new SyncV({ status: 404 });
     return new SyncV(htmlRes);
   } } };
   var broken = un(mod.fetch(req("text/markdown"), env404));
   if(broken !== htmlRes){
     fail("with llms.txt unreadable the negotiation did not fall through to " +
          "the page — an agent gets a broken markdown body instead of the app");
+  }
+  var brokenFront = un(mod.fetch(req("text/markdown", "GET", PAPER), env404));
+  if(brokenFront !== htmlRes){
+    fail("with the front's markdown unreadable the negotiation did not fall through to " +
+         "the page — an agent gets a broken markdown body instead of the paper");
   }
   /* 3.9.0: the well-known api-catalog is the Worker's second owned path — an
      empty RFC 9727 linkset on its own URL, GET-only, leaving the root's
@@ -12868,6 +12978,8 @@ var ROUTE_VOCAB = [
     if(!star[n]) fail("_headers no longer declares " + n + " under /*");
   });
   [["the markdown response", md], ["the markdown HEAD response", mdHead],
+   ["the paper front's markdown", paper], ["the paper front's markdown HEAD", paperHead],
+   ["the issue's markdown", issueRes], ["the issue's markdown HEAD", issueHead],
    ["the api-catalog", ac], ["the api-catalog HEAD response", acHead]].forEach(function(pair){
     var res = pair[1];
     if(!res || res === htmlRes || typeof res.then === "function") return;
@@ -12901,6 +13013,61 @@ var ROUTE_VOCAB = [
            "HTML representation, and a markdown body has no fonts to preload");
     }
   });
+  /* 6.6.3: the paper's negotiated bodies carry the same three document
+     relations the HTML documents declare, with :issue filled in. No font
+     hints, and no api-catalog or service-doc. */
+  function paperDocLinks(rule, issue){
+    var link = hdrBlock(rule)["Link"] || "";
+    return issue ? link.split(":issue").join(issue) : link;
+  }
+  [["the paper front's markdown", paper, paperDocLinks("/nocturne/")],
+   ["the paper front's markdown HEAD", paperHead, paperDocLinks("/nocturne/")],
+   ["the issue's markdown", issueRes, paperDocLinks("/nocturne/:issue/", ISSUE_ID)],
+   ["the issue's markdown HEAD", issueHead, paperDocLinks("/nocturne/:issue/", ISSUE_ID)]
+  ].forEach(function(pair){
+    var res = pair[1];
+    if(!res || res === htmlRes || typeof res.then === "function") return;
+    var got = (res.init.headers || {})["Link"] || "";
+    if(/rel="(?:api-catalog|service-doc)"/.test(got)){
+      fail("the paper's markdown advertises api-catalog or service-doc — the homepage does not, and the site has no API");
+    }
+    if(/rel=preload/.test(got)){
+      fail(pair[0] + " carries a font preload hint — a markdown body has no fonts to preload");
+    }
+    if(got !== pair[2]){
+      fail(pair[0] + "'s Link header is not the document's three Link lines from _headers " +
+           "(sitemap, canonical, describedby) — the negotiated paper must advertise what the HTML advertises");
+    }
+  });
+  ["/nocturne/", "/nocturne/:issue/"].forEach(function(rule){
+    if((hdrBlock(rule)["Vary"] || "") !== "Accept"){
+      fail(rule + " does not declare Vary: Accept — the paper's HTML and its markdown are two representations of one URL");
+    }
+  });
+  /* The files the worker fetches. An issue's bytes are the source issue.md.
+     The front's file is the paper, not the homepage's llms.txt. */
+  var noc133 = path.join(PUBLIC, "nocturne");
+  var src133 = path.join(ROOT, "nocturne", "issues");
+  if(!fs.existsSync(path.join(noc133, "index.md"))){
+    fail("docs/nocturne/index.md is missing — /nocturne/ has no markdown representation to negotiate");
+  } else if(fs.readFileSync(path.join(noc133, "index.md"), "utf8").indexOf("# Nocturne\n") !== 0){
+    fail("the front's markdown does not open as the paper — /nocturne/ would negotiate a page the front is not");
+  }
+  if(fs.existsSync(src133)){
+    fs.readdirSync(src133).forEach(function(id133){
+      if(id133.charAt(0) === ".") return;
+      var dir133 = path.join(src133, id133);
+      if(!fs.statSync(dir133).isDirectory()) return;
+      var srcFile = path.join(dir133, "issue.md");
+      var pubFile = path.join(noc133, id133, "issue.md");
+      if(!fs.existsSync(srcFile)) return;
+      if(!fs.existsSync(pubFile)){
+        fail("docs/nocturne/" + id133 + "/issue.md is missing — the issue page has no markdown representation to negotiate");
+      } else if(!fs.readFileSync(srcFile).equals(fs.readFileSync(pubFile))){
+        fail("docs/nocturne/" + id133 + "/issue.md is not the issue's source — the negotiated body must be that issue.md, one source");
+      }
+    });
+  }
   var acPost = un(mod.fetch(req("*/*", "POST", "https://nightwatcher.life/.well-known/api-catalog"), env));
   if(acPost !== htmlRes){
     fail("a POST to /.well-known/api-catalog did not fall through by identity " +
@@ -12908,13 +13075,14 @@ var ROUTE_VOCAB = [
          "markdown branch (4.0.1)");
   }
   note("worker.js executed: markdown negotiation answers llms.txt with " +
-       "Vary/Content-Location, all four built responses (GET and HEAD) carry " +
-       "every /* header _headers declares, five non-preferring shapes pass through by " +
-       "identity, q-values read, POST and non-root refused in the script, " +
-       "unreadable llms.txt degrades to the page; /.well-known/api-catalog " +
-       "answers an empty linkset on GET and HEAD and nothing else; " +
-       "run_worker_first pinned to " +
-       "[\"/\", \"/.well-known/api-catalog\"]");
+       "Vary/Content-Location, the paper's documents answer with their own " +
+       "markdown the same way, built responses carry every /* header _headers " +
+       "declares, non-preferring shapes and paper assets pass through by " +
+       "identity, q-values read, POST and non-documents refused in the script, " +
+       "an unreadable representation degrades to the page; " +
+       "/.well-known/api-catalog answers an empty linkset on GET and HEAD " +
+       "and nothing else; run_worker_first pinned to the root, the api-catalog " +
+       "and the paper's document URLs");
 })();
 
 /* ---------- 134. A removal is a fact with a clock, not a hole ---------- */

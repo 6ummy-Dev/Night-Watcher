@@ -38,8 +38,8 @@ run_case "a widened run_worker_first is caught" \
 import io
 p='wrangler.jsonc'
 s=io.open(p,encoding='utf-8').read()
-assert '\"run_worker_first\": [\"/\", \"/.well-known/api-catalog\"],' in s
-io.open(p,'w',encoding='utf-8').write(s.replace('\"run_worker_first\": [\"/\", \"/.well-known/api-catalog\"],','\"run_worker_first\": true,'))
+assert '\"run_worker_first\": [\"/\", \"/.well-known/api-catalog\", \"/nocturne/\", \"/nocturne/*/\"],' in s
+io.open(p,'w',encoding='utf-8').write(s.replace('\"run_worker_first\": [\"/\", \"/.well-known/api-catalog\", \"/nocturne/\", \"/nocturne/*/\"],','\"run_worker_first\": true,'))
 " guards "" 133
 
 run_case "a served copy of worker.js is caught" \
@@ -90,6 +90,68 @@ s=io.open(p,encoding='utf-8').read()
 needle='\"Vary\": \"Accept\",'
 assert needle in s
 io.open(p,'w',encoding='utf-8').write(s.replace(needle,'\"Vary\": \"Origin\",'))
+" guards "" 133
+
+# --- guard 133 (6.6.3): the paper negotiates its own markdown ---
+
+run_case "the front is handed llms.txt" \
+  "did not answer with the front's markdown" \
+"
+import io
+p='worker.js'
+s=io.open(p,encoding='utf-8').read()
+needle='asset: \"/nocturne/index.md\"'
+assert needle in s
+io.open(p,'w',encoding='utf-8').write(s.replace(needle,'asset: \"/llms.txt\"',1))
+" guards "" 133
+
+run_case "a paper stylesheet negotiates" \
+  "a paper asset negotiated markdown" \
+"
+import io
+p='worker.js'
+s=io.open(p,encoding='utf-8').read()
+needle='if(!m) return null;'
+assert needle in s
+io.open(p,'w',encoding='utf-8').write(s.replace(needle,'if(!m) return {asset: \"/llms.txt\", canonical: \"https://nightwatcher.life/nocturne/\"};',1))
+" guards "" 133
+
+run_case "the paper's markdown grows an api-catalog relation" \
+  "the paper's markdown advertises api-catalog" \
+"
+import io
+p='worker.js'
+s=io.open(p,encoding='utf-8').read()
+needle='>; rel=\"canonical\", </llms.txt>; rel=\"describedby\"'
+assert s.count(needle) == 1
+io.open(p,'w',encoding='utf-8').write(s.replace(needle,'>; rel=\"canonical\", </llms.txt>; rel=\"describedby\", </.well-known/api-catalog>; rel=\"api-catalog\"',1))
+" guards "" 133
+
+run_case "the paper's HTML drops Vary: Accept" \
+  "does not declare Vary: Accept" \
+"
+import io
+p='docs/_headers'
+s=io.open(p,encoding='utf-8').read()
+a='  Link: <https://nightwatcher.life/nocturne/>; rel=\"canonical\"\\n  Link: </llms.txt>; rel=\"describedby\"\\n  Vary: Accept\\n'
+assert s.count(a)==1
+io.open(p,'w',encoding='utf-8').write(s.replace(a,a.replace('  Vary: Accept\\n',''),1))
+" guards "" 133
+
+run_case "an issue's negotiated markdown leaves its source" \
+  "is not the issue's source" \
+"
+import io
+p='docs/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/issue.md'
+s=io.open(p,encoding='utf-8').read()
+io.open(p,'w',encoding='utf-8').write(s+'\\nnot the source\\n')
+" guards "" 133
+
+run_case "the front's markdown file is deleted" \
+  "docs/nocturne/index.md is missing" \
+"
+import os
+os.remove('docs/nocturne/index.md')
 " guards "" 133
 
 # --- guard 133 (3.9.0): the api-catalog is empty and correctly typed ---

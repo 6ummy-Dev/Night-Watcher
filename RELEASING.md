@@ -211,6 +211,12 @@ Expected: `text/markdown` with `Vary: Accept` and `Content-Location:
 /llms.txt`, the body opening `# Night Watcher` (llms.txt's first line) — and
 the last line proves a plain request still gets the HTML doctype, because
 the passthrough is the branch every other check in this file depends on.
+The paper does the same for its documents (6.6.3). `/nocturne/` answers
+with `Content-Location: /nocturne/index.md` and a body opening `# Nocturne`.
+An issue answers with `Content-Location: /nocturne/<issue>/issue.md` and
+that issue's own `issue.md`. A request with no markdown preference still
+gets the HTML. `/nocturne/feed.xml` and `/nocturne/nocturne.css` stay those
+files even when the request asks for markdown.
 The markdown response and `/.well-known/api-catalog` are built by the Worker
 and do not get `_headers`; they carry the security set from `worker.js`
 itself (guard 133 holds the two equal), so the first `curl -sI` above run
