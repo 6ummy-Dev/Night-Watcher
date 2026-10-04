@@ -47,7 +47,11 @@ function facts(){
   while((rm = rre.exec(html))){
     (rm[2].match(/--[a-z0-9-]+\s*:[^;]+/g) || []).forEach(function(d){ var i = d.indexOf(":"); var k = d.slice(0, i).trim(); if(!(k in tok)) tok[k] = d.slice(i + 1).trim(); });
   }
-  return {build: build, sections: sections, suites: tot.suites, fixtures: tot.fixtures, smoke: +smoke, mark: mark, tok: tok};
+  var faces = (html.match(/@font-face\{[^}]*\}/g) || []).map(function(b){
+    return b.replace(/url\("fonts\//g, 'url("/fonts/');
+  });
+  if(faces.length !== 7) throw new Error("the app declares " + faces.length + " faces, not 7");
+  return {build: build, sections: sections, suites: tot.suites, fixtures: tot.fixtures, smoke: +smoke, mark: mark, tok: tok, faces: faces};
 }
 
 /* ---------- the stylesheet ---------- */
@@ -63,12 +67,7 @@ function css(f){
   return [
 "/* /hww — written by qa/hww.js; never edited by hand. The app's tokens and faces. */",
 "/* Landmarks wear --deco at .02em. Item titles wear --disp at .05em and --t-heading. Counts wear --num at .025em. */",
-"@font-face{font-family:\"NW Deco\";src:url(\"/fonts/limelight-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-style:normal;font-display:swap;}",
-"@font-face{font-family:\"Big Shoulders Display\";src:url(\"/fonts/big-shoulders-display-latin-700-normal.woff2\") format(\"woff2\");font-weight:700;font-style:normal;font-display:swap;}",
-"@font-face{font-family:\"NW Sans\";src:url(\"/fonts/ibm-plex-sans-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-style:normal;font-display:swap;}",
-"@font-face{font-family:\"NW Sans\";src:url(\"/fonts/ibm-plex-sans-latin-600-normal.woff2\") format(\"woff2\");font-weight:600;font-style:normal;font-display:swap;}",
-"@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-style:normal;font-display:swap;}",
-"@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-600-normal.woff2\") format(\"woff2\");font-weight:600;font-style:normal;font-display:swap;}",
+].concat(f.faces).concat([
 ":root{" + vars + "}",
 "*{box-sizing:border-box;}html,body{margin:0;padding:0;}",
 "body{background:var(--ink);color:var(--bone);font-family:var(--body);font-size:var(--t-body);line-height:1.5;-webkit-font-smoothing:antialiased;}",
@@ -147,7 +146,7 @@ function css(f){
 ".rules li{margin:0 0 8px;}",
 ".rules li::marker{color:var(--signal);font-family:var(--mono);}",
 ".foot{margin-top:40px;padding-top:22px;text-align:center;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);line-height:1.8;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}",
-""].join("\n");
+""]).join("\n");
 }
 
 /* ---------- the page ---------- */
