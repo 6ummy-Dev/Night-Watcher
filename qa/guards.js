@@ -13168,7 +13168,7 @@ var ROUTE_VOCAB = [
      its second argument is python, not an expected failure. The arguments
      are read the way bash reads them — by qa/negative/census.js since 5.3.1,
      the same reader 65, 113 and run-all.sh use. */
-  var NO_SECT_PINNED = 742;  /* 5.3.1: six retrofitted a sect when the credit rule tightened (negtest161 ×2, 162, 180, 210 ×2); four exact duplicates struck (negtest162, 186, 250, 270). 6.0.3: one more retrofitted — negtest176’s missing-height fixture, whose mutation trips §157 as well. 6.0.9: eight struck — negtest478’s heal and reclaim fixtures, retired with the 301108 workaround; its three replacements name §64 */
+  var NO_SECT_PINNED = 740;  /* 5.3.1: six retrofitted a sect when the credit rule tightened (negtest161 ×2, 162, 180, 210 ×2); four exact duplicates struck (negtest162, 186, 250, 270). 6.0.3: one more retrofitted — negtest176’s missing-height fixture, whose mutation trips §157 as well. 6.0.9: eight struck — negtest478’s heal and reclaim fixtures, retired with the 301108 workaround; its three replacements name §64. 6.6.1: two struck — negtest220’s extra ratingBadge() seat and negtest180’s retired-address phrase, each already proved by a survivor */
   if(fixtureCensus().broken) return;
   fixtureCensus().suites.forEach(function(su){
     su.cases.forEach(function(c){

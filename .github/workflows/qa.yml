@@ -113,7 +113,7 @@ jobs:
   # job never ran (NOTES-history.md ("Where the served and config files'
   # histories went")).
   #
-  # Cost: 1719 fixtures, of which 1602 run guards.js and 117 run smoke.js — most
+  # Cost: 1711 fixtures, of which 1594 run guards.js and 117 run smoke.js — most
   # of those scoped to one phase by SMOKE_ONLY. The split is guarded in this
   # file the same as the README's counts, so the next drift fails the build.
   # run-all.sh dispatches longest-first; this job shards 4-way on top, packed
