@@ -20,6 +20,8 @@ Four other places carry part of the story and are not repeated here:
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
 
+Weekday process is `qa/hww.js`. The Cursor desk note is `AGENTS.md`. The tripwire sheet is `CLAUDE.md`. The script map is `ARCHITECTURE.md`.
+
 If you are about to change something in `index.html` that looks redundant, look
 for it here first. Most of it is load-bearing, and this project has a long
 history of rules that only make sense once you know what they were written after.
