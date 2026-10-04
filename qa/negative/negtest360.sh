@@ -148,7 +148,7 @@ s=s.replace(a,'true;',1);${W}" guards "" 128
 
 run_case "the peek goes back to a div with a button's role" \
   "not a native button" \
-  "${P}a='<button id=\"beltpeek\" data-lit=\"life\" aria-label=\"Path switcher — open\"></button>'
+  "${P}a='<button id=\"beltpeek\" type=\"button\" data-lit=\"life\" aria-label=\"Path switcher — open\"></button>'
 assert a in s
 s=s.replace(a,'<div id=\"beltpeek\" data-lit=\"life\" role=\"button\" tabindex=\"0\" aria-label=\"Path switcher — open\"></div>',1);${W}" guards "" 128
 

@@ -3868,7 +3868,7 @@ if(!/id="topBtn"/.test(HTML)) fail("the wordmark is no longer a control");
 if(HTML.indexOf('getElementById("topBtn")') < 0){
   fail("the wordmark has no click handler \u2014 tapping the title would do nothing");
 }
-if(!/<h1><button id="topBtn">/.test(HTML)){
+if(!/<h1><button id="topBtn" type="button">/.test(HTML)){
   fail("the wordmark button is outside its h1 \u2014 the heading must stay a heading");
 }
 
