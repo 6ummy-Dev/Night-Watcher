@@ -29,6 +29,17 @@ images:
     retrieved: 2026-10-04
     width: 1354
     height: 1600
+  - file: justice-year-risk.webp
+    after: 2
+    alt: "Illustration: Batman and a man in a coat"
+    credit: "Image: Bruno Redondo"
+    rights_holder: "Bruno Redondo"
+    source_url: "https://x.com/Williamson_Josh/status/2104994620853846501"
+    licence: "Official promo image"
+    terms_url: "https://x.com/Williamson_Josh/status/2104994620853846501"
+    retrieved: 2026-10-04
+    width: 960
+    height: 1200
 stories:
   - headline: "Clayface has a final trailer. The R is still not the studio's."
     status: reported
@@ -115,7 +126,7 @@ The date is the studio's. The letter is still a listing.
 
 Joshua Williamson put the title on his own account. DC's pages still do not print it.
 
-The pictures with this story are earlier, and they do not name the book. On [29 September](https://x.com/Williamson_Josh/status/2104994620853846501) and [1 October](https://x.com/Williamson_Josh/status/2105745190199636171) he posted them and tagged DC and Batman. The posts have no title. The 29 September picture prints "Involving the Justice League is a risk." The 1 October picture prints "Get out of my city. Now." Both credit Joshua Williamson and Bruno Redondo. Neither prints the title.
+The pictures with this story are earlier, and they do not name the book. On [29 September](https://x.com/Williamson_Josh/status/2104994620853846501) and [1 October](https://x.com/Williamson_Josh/status/2105745190199636171) he posted them and tagged DC and Batman. The posts have no title. The 29 September picture prints "INVOLVING THE JUSTICE LEAGUE IS A RISK." The 1 October picture prints "GET OUT OF MY CITY. NOW!" Both credit Joshua Williamson and Bruno Redondo. Neither prints the title.
 
 On 2 October he wrote ["Batman: Justice Year"](https://x.com/Williamson_Josh/status/2106062906408227135), then "From me and @Bruno_Redondo_F in 2027," then "More info next week..." A [second post](https://x.com/Williamson_Josh/status/2106081787730616364) the same afternoon calls the picture a teaser and credits Bruno Redondo and the colour account he tagged. That is the title, and that is the year. It is not a month, a format, or an issue count.
 
