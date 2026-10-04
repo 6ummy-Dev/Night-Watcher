@@ -267,7 +267,7 @@ agent attached (390 and 1280 wide) read through; every source link opened
 on at least the lead story. Then, after the deploy:
 
 ```
-curl -sI https://nightwatcher.life/nocturne/ | grep -iE '^HTTP|content-security-policy|cache-control'
+curl -sI https://nightwatcher.life/nocturne/ | grep -iE '^HTTP|content-security-policy|cache-control|^link:'
 curl -s  https://nightwatcher.life/nocturne/feed.xml | grep -c '<item>'
 curl -s  https://nightwatcher.life/sitemap.xml | grep -c '/nocturne/'
 curl -s  https://nightwatcher.life/nocturne/theme.js | head -c 60
@@ -278,7 +278,11 @@ curl -sI https://nightwatcher.life/hww/ | grep -iE '^HTTP|x-robots-tag|content-s
 Expected: `200` and the one `Content-Security-Policy` line from
 `_headers`, exactly (from 6.3.0 it allows `script-src 'self'
 https://static.cloudflareinsights.com` and `connect-src
-https://cloudflareinsights.com`) and `Cache-Control: no-cache` (6.5.1);
+https://cloudflareinsights.com`), `Cache-Control: no-cache` (6.5.1), and
+the front's three `Link` lines (6.6.2): sitemap for the site sitemap,
+canonical for `https://nightwatcher.life/nocturne/`, describedby for
+`/llms.txt`. An issue's pretty URL sends the same three, with canonical
+pointing at that issue. The seven font preloads stay on `/`.
 `theme.js` and `paper.js` each answering with its header comment; the feed's
 item count equal to the issues merged, up to 20 (1 at No. 0); the sitemap
 listing the front and every issue. `/hww/` answers `200` with `X-Robots-Tag:

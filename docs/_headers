@@ -83,7 +83,8 @@
 # relation describes a document (the same reason they left /* in 3.7.1).
 # The front's canonical is the front. An issue's pretty URL is one path
 # segment; :issue is that segment, and the assets plane writes it into the
-# header value, so each issue's canonical is its own URL. Sitemap and
+# header value once (a placeholder is referenced once). Each issue's
+# canonical is its own URL. Sitemap and
 # describedby name the same resources / already advertises. The seven font
 # preloads stay under /: the paper's pages do not preload faces.
 /nocturne/
