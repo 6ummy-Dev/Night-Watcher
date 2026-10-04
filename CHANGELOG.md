@@ -14,6 +14,29 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.6.2] — 2026-10-04
+
+**Why PATCH.** Tooling and copy. No catalogue change, no new control, and
+nothing saved changes shape. 597 negative fixtures now name the one guard
+section whose `fail()` text contains their expect. 143 stay unpinned: 124
+phrases appear in no section's text, 18 appear in more than one, and the
+marker-format fixture, whose mutation erases the section headers so the
+failure line carries no §. The
+eight static header and tab buttons carry `type="button"`. The browser job
+serves through the header-aware server, so `docs/_headers` apply in CI.
+Nocturne's documents send the three Link relations the homepage already
+sends. The front's canonical is `https://nightwatcher.life/nocturne/`.
+An issue's pretty URL fills `:issue`, so that issue's canonical is its
+own URL. Sitemap and describedby name the same resources as the homepage.
+The seven font preloads stay on `/`. The paper does not send
+`rel="api-catalog"` or `rel="service-doc"`.
+The crew page records the last independent audit as 6.6.0, the tree that
+pass read. `DATA-MODEL.md` already matches the live save, so it is
+unchanged. The parked `when` dates are untouched. The counts stay at 137
+films, 71 seasons and 44 continuities. **No reinstall is needed.** The
+service worker's version string changed, so a returning browser picks up
+the new shell on its next visit.
+
 ## [6.6.1] — 2026-10-04
 
 **Why PATCH.** Documentation, the duplicate paper step, eight repeated

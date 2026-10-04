@@ -9,20 +9,20 @@ echo "--- 62: every tab clears the viewport (3.9.7: the block owns the scroll no
 # rest of the lock is negtest460's.
 run_case "the app grows a min-height again" \
   "#app carries a min-height again" \
-  "${P}a='height:100svh;height:100dvh;';assert a in s;s=s.replace(a,'min-height:calc(100svh + 1px);');${W}"
+  "${P}a='height:100svh;height:100dvh;';assert a in s;s=s.replace(a,'min-height:calc(100svh + 1px);');${W}" guards "" 64
 
 run_case "the height lock loses its lock" \
   "is not height-locked to the viewport" \
-  "${P}a='height:100svh;height:100dvh;';assert a in s;s=s.replace(a,'height:100dvh;');${W}"
+  "${P}a='height:100svh;height:100dvh;';assert a in s;s=s.replace(a,'height:100dvh;');${W}" guards "" 64
 
 echo "--- 64: one filter, every reader"
 run_case "subOf stops skipping a sub that is only the year" \
   "subOf() no longer skips a sub that is only the year" \
-  "${P}a='return (f.sub && f.sub !== String(f.y)) ? f.sub : \"\";';assert a in s;s=s.replace(a,'return f.sub || \"\";');${W}"
+  "${P}a='return (f.sub && f.sub !== String(f.y)) ? f.sub : \"\";';assert a in s;s=s.replace(a,'return f.sub || \"\";');${W}" guards "" 64
 
 run_case "the queue goes back to reading .sub directly" \
   "reads .sub directly instead of subOf()" \
-  "${P}a='(subOf(x) ? \\'<span class=\\\"qsub\\\">\\'+esc(subOf(x))';assert a in s;s=s.replace(a,'(x.sub ? \\'<span class=\\\"qsub\\\">\\'+esc(x.sub)');${W}"
+  "${P}a='(subOf(x) ? \\'<span class=\\\"qsub\\\">\\'+esc(subOf(x))';assert a in s;s=s.replace(a,'(x.sub ? \\'<span class=\\\"qsub\\\">\\'+esc(x.sub)');${W}" guards "" 64
 
 echo "--- smoke: no CSS rule is left behind"
 run_case "a rule outlives the markup it styled" \

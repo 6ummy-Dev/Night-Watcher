@@ -14,15 +14,15 @@ echo "--- 106: the fonts carry every letter the catalogue uses"
 
 run_case "a title arrives with a character the subset does not have" \
   "fall outside the font subset" \
-  "${P}s=s.replace('Pennyworth','Pennywörth中',1);${W}"
+  "${P}s=s.replace('Pennyworth','Pennywörth中',1);${W}" guards "" 106
 
 run_case "the export gains a character the subset does not have" \
   "fall outside the font subset" \
-  "import io;p='docs/orders.txt';s=io.open(p,encoding='utf-8').read();s=s.replace('Pennyworth','Pęnnyworth',1);io.open(p,'w',encoding='utf-8').write(s)"
+  "import io;p='docs/orders.txt';s=io.open(p,encoding='utf-8').read();s=s.replace('Pennyworth','Pęnnyworth',1);io.open(p,'w',encoding='utf-8').write(s)" guards "" 106
 
 run_case "the blessed range is narrowed under the catalogue" \
   "fall outside the font subset" \
-  "import io,json;p='qa/font-subset.json';d=json.load(io.open(p,encoding='utf-8'));d['ranges']=['U+0041-005A'];io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2,sort_keys=True))"
+  "import io,json;p='qa/font-subset.json';d=json.load(io.open(p,encoding='utf-8'));d['ranges']=['U+0041-005A'];io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2,sort_keys=True))" guards "" 106
 
 # 4.3.0 retired Anton, which these fixtures were anchored on; they mutate the
 # big-shoulders face now — any shipped woff2 serves, the guard under test is
@@ -30,40 +30,40 @@ run_case "the blessed range is narrowed under the catalogue" \
 run_case "a font is swapped for a different one of the same size" \
   "does not match its blessed hash" \
   "import io,os
-p='docs/fonts/big-shoulders-display-latin-700-normal.woff2';b=bytearray(open(p,'rb').read());b[-1]^=0xFF;open(p,'wb').write(bytes(b))"
+p='docs/fonts/big-shoulders-display-latin-700-normal.woff2';b=bytearray(open(p,'rb').read());b[-1]^=0xFF;open(p,'wb').write(bytes(b))" guards "" 106
 
 run_case "a font is replaced by the full unsubset face" \
   "the font moved and the record of what it contains did not" \
   "import io
-p='docs/fonts/big-shoulders-display-latin-700-normal.woff2';b=open(p,'rb').read();open(p,'wb').write(b+b'\x00'*64)"
+p='docs/fonts/big-shoulders-display-latin-700-normal.woff2';b=open(p,'rb').read();open(p,'wb').write(b+b'\x00'*64)" guards "" 106
 
 run_case "the manifest of what the fonts contain is deleted" \
   "qa/font-subset.json is missing" \
-  "import os;os.remove('qa/font-subset.json')"
+  "import os;os.remove('qa/font-subset.json')" guards "" 106
 
 run_case "a face ships that nothing blessed" \
   "a face nobody blessed is a face nobody checked" \
-  "import shutil;shutil.copy('docs/fonts/big-shoulders-display-latin-700-normal.woff2','docs/fonts/extra-latin-400-normal.woff2')"
+  "import shutil;shutil.copy('docs/fonts/big-shoulders-display-latin-700-normal.woff2','docs/fonts/extra-latin-400-normal.woff2')" guards "" 106
 
 echo "--- 106: the favicon stays crawlable"
 
 run_case "the favicon goes back to a data: URI" \
   "ships as a data: URI" \
-  "${P}s=s.replace('<link rel=\"icon\" type=\"image/svg+xml\" href=\"icon.svg\">','<link rel=\"icon\" type=\"image/svg+xml\" href=\"data:image/svg+xml,%3Csvg%3E%3C/svg%3E\">',1);${W}"
+  "${P}s=s.replace('<link rel=\"icon\" type=\"image/svg+xml\" href=\"icon.svg\">','<link rel=\"icon\" type=\"image/svg+xml\" href=\"data:image/svg+xml,%3Csvg%3E%3C/svg%3E\">',1);${W}" guards "" 105
 
 run_case "the icon file is dropped but the head still points at it" \
   "docs/icon.svg is missing" \
-  "import os;os.remove('docs/icon.svg')"
+  "import os;os.remove('docs/icon.svg')" guards "" 115
 
 echo "--- 96: the belt collapses its own box, and reduced motion still cuts it"
 
 run_case "the box collapse is removed and only the pouches animate" \
   "no longer collapses its own box" \
-  "${P}s=s.replace('.includes.closing{overflow:hidden;max-height:180px;animation:beltclose .24s ease-in forwards;}','',1);${W}"
+  "${P}s=s.replace('.includes.closing{overflow:hidden;max-height:180px;animation:beltclose .24s ease-in forwards;}','',1);${W}" guards "" 96
 
 run_case "the collapse keyframes are emptied" \
   "no longer collapses its own box" \
-  "${P}s=s.replace('@keyframes beltclose{to{max-height:0;','@keyframes beltclose{to{opacity:0;',1);${W}"
+  "${P}s=s.replace('@keyframes beltclose{to{max-height:0;','@keyframes beltclose{to{opacity:0;',1);${W}" guards "" 96
 
 run_case "reduced motion stops cutting the box collapse" \
   "does not cut .includes.closing" \
@@ -84,19 +84,19 @@ run_case "a section loses its last assertion" \
   "contains no fail()" \
   "import io,re;p='qa/guards.js';s=io.open(p,encoding='utf-8').read()
 i=s.index('/* ---------- 44.');j=s.index('/* ---------- ',i+20)
-io.open(p,'w',encoding='utf-8').write(s[:i]+'/* ---------- 44. placeholder ---- */\nvar _x44 = 1;\n\n'+s[j:])"
+io.open(p,'w',encoding='utf-8').write(s[:i]+'/* ---------- 44. placeholder ---- */\nvar _x44 = 1;\n\n'+s[j:])" guards "" 107
 
 run_case "a second section is quietly nested inside another" \
   "is not at file scope" \
   "import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read()
 i=s.index('/* ---------- 44.')
-io.open(p,'w',encoding='utf-8').write(s[:i]+'  '+s[i:])"
+io.open(p,'w',encoding='utf-8').write(s[:i]+'  '+s[i:])" guards "" 107
 
 run_case "the recorded exception outlives the nesting it excused" \
   "the exception outlived the thing it excused" \
   "import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read()
 s=s.replace('  /* ---------- 24. one string per ordering','/* ---------- 24. one string per ordering',1)
-io.open(p,'w',encoding='utf-8').write(s)"
+io.open(p,'w',encoding='utf-8').write(s)" guards "" 107
 
 run_case "the marker format changes and the census silently measures nothing" \
   "the marker format changed and this guard is now measuring nothing" \

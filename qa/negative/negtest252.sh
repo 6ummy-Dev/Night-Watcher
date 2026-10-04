@@ -26,41 +26,41 @@ run_case "the name keeps the words but loses the number" \
 
 run_case "the ring renders no starting percentage" \
   "renders no starting percentage" \
-  "${P}s=s.replace('<b id=\"ringPct\">0%</b>','<b id=\"ringPct\"></b>',1);${W}"
+  "${P}s=s.replace('<b id=\"ringPct\">0%</b>','<b id=\"ringPct\"></b>',1);${W}" guards "" 80
 
 run_case "the ring button is no longer a button" \
   "#ringBtn is gone" \
-  "${P}s=s.replace('<button class=\"ring\" id=\"ringBtn\"','<div class=\"ring\" id=\"ringBtn\"',1);${W}"
+  "${P}s=s.replace('<button class=\"ring\" id=\"ringBtn\"','<div class=\"ring\" id=\"ringBtn\"',1);${W}" guards "" 80
 
 echo "--- 80: the name keeps moving with the number"
 run_case "renderHead stops updating the name" \
   "does not update the ring's accessible name" \
-  "${P}import re;s=re.sub(r'\n *document\.getElementById\(\"ringBtn\"\)\.setAttribute\(\"aria-label\".*?\);','',s,count=1,flags=re.S);${W}"
+  "${P}import re;s=re.sub(r'\n *document\.getElementById\(\"ringBtn\"\)\.setAttribute\(\"aria-label\".*?\);','',s,count=1,flags=re.S);${W}" guards "" 80
 
 run_case "the number is computed twice instead of shared" \
   "computes the ring percentage more than once" \
-  "${P}a='ringText + \" \\\\u2014 open progress\"';assert a in s;s=s.replace(a,'Math.round(frac*100) + \"% \\\\u2014 open progress\"',1);${W}"
+  "${P}a='ringText + \" \\\\u2014 open progress\"';assert a in s;s=s.replace(a,'Math.round(frac*100) + \"% \\\\u2014 open progress\"',1);${W}" guards "" 80
 
 echo "--- 78 / 100: the two restored answers hold on both sides"
 run_case "the privacy answer is cut from the seed" \
   "no longer matches the data" \
-  "${P}i=s.index('<h3>Does it track what I watch?</h3>');j=s.index('<h3>',i+10);s=s[:i]+s[j:];${W}"
+  "${P}i=s.index('<h3>Does it track what I watch?</h3>');j=s.index('<h3>',i+10);s=s[:i]+s[j:];${W}" guards "" 78
 
 run_case "the Joker answer is cut from the seed" \
   "no longer matches the data" \
-  "${P}i=s.index('<h3>Where do the Joker films fit?</h3>');j=s.index('<p>An unofficial fan guide',i);s=s[:i]+s[j:];${W}"
+  "${P}i=s.index('<h3>Where do the Joker films fit?</h3>');j=s.index('<p>An unofficial fan guide',i);s=s[:i]+s[j:];${W}" guards "" 78
 
 run_case "a restored answer is reworded in the seed only" \
   "no longer matches the data" \
-  "${P}i=s.index('<h3>Does it track what I watch?</h3>');a='There is no account and no sign-in';j=s.index(a,i);s=s[:j]+'There is no account'+s[j+len(a):];${W}"
+  "${P}i=s.index('<h3>Does it track what I watch?</h3>');a='There is no account and no sign-in';j=s.index(a,i);s=s[:j]+'There is no account'+s[j+len(a):];${W}" guards "" 78
 
 run_case "the FAQPage drops a question the seed still answers" \
   "FAQPage no longer matches" \
-  "${P}import re;s=re.sub(r',\{\"@type\":\"Question\",\"name\":\"Where do the Joker films fit\?\".*?\}\}','',s,count=1);${W}"
+  "${P}import re;s=re.sub(r',\{\"@type\":\"Question\",\"name\":\"Where do the Joker films fit\?\".*?\}\}','',s,count=1);${W}" guards "" 100
 
 run_case "the FAQPage answer is reworded away from the seed" \
   "FAQPage no longer matches" \
-  "${P}i=s.index('\"@type\":\"FAQPage\"');j=s.index('nowhere near the rest',i);s=s[:j]+'somewhere else'+s[j+len('nowhere near the rest'):];${W}"
+  "${P}i=s.index('\"@type\":\"FAQPage\"');j=s.index('nowhere near the rest',i);s=s[:j]+'somewhere else'+s[j+len('nowhere near the rest'):];${W}" guards "" 100
 
 rm -rf "$NEG"
 finish "2.5.2 negative tests"

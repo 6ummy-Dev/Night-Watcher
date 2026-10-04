@@ -76,6 +76,27 @@
   Content-Security-Policy: default-src 'none'; script-src 'self' https://static.cloudflareinsights.com; connect-src https://cloudflareinsights.com; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
   Cache-Control: no-cache
 
+# The paper's documents (6.6.2). / does not match /nocturne/, so a paper page
+# was the one HTML response that sent no Link relations. The three document
+# relations / already sends sit here, on the documents only: /nocturne/* also
+# covers the stylesheet, the scripts, the feed and the faces, and a link
+# relation describes a document (the same reason they left /* in 3.7.1).
+# The front's canonical is the front. An issue's pretty URL is one path
+# segment; :issue is that segment, and the assets plane writes it into the
+# header value once (a placeholder is referenced once). Each issue's
+# canonical is its own URL. Sitemap and
+# describedby name the same resources / already advertises. The seven font
+# preloads stay under /: the paper's pages do not preload faces.
+/nocturne/
+  Link: <https://nightwatcher.life/sitemap.xml>; rel="sitemap"
+  Link: <https://nightwatcher.life/nocturne/>; rel="canonical"
+  Link: </llms.txt>; rel="describedby"
+
+/nocturne/:issue/
+  Link: <https://nightwatcher.life/sitemap.xml>; rel="sitemap"
+  Link: <https://nightwatcher.life/nocturne/:issue/>; rel="canonical"
+  Link: </llms.txt>; rel="describedby"
+
 # /hww/* is the crew's page (6.5.0): unlisted, so noindex twice (here and in
 # the page), and a default-deny policy that runs no script. Guard 170 holds
 # the rule exactly.

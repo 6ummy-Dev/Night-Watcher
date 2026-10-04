@@ -10,16 +10,16 @@ run_case "a late-starting universe is moved to the front" \
   "the universes run in the order their stories start" \
   "${P}import re;m=re.search(r'\n\n\{n:\"\d+\",name:\"The Damian years placeholder\"',s)
 i=s.index('{n:\"07\",name:');j=s.index('{n:\"08\",name:')
-blk=s[i:j];s=s[:i]+s[j:];k=s.index('{n:\"01\",name:');s=s[:k]+blk+s[k:];${W}"
+blk=s[i:j];s=s[:i]+s[j:];k=s.index('{n:\"01\",name:');s=s[:k]+blk+s[k:];${W}" guards "" 69
 
 run_case "a universe that starts before another is filed after it" \
   "starts earlier than" \
-  "${P}a='{i:\"pennyworth-complete-series-2019\"';assert a in s;s=s.replace(',e:1,lo:1',',e:6,lo:21',1);${W}"
+  "${P}a='{i:\"pennyworth-complete-series-2019\"';assert a in s;s=s.replace(',e:1,lo:1',',e:6,lo:21',1);${W}" guards "" 69
 
 echo "--- 70: an entry outside the timeline says why"
 run_case "an entry is left outside without a reason" \
   "without saying why" \
-  "${P}a=',e:0,out:\"who\"';assert a in s;s=s.replace(a,',e:0',1);${W}"
+  "${P}a=',e:0,out:\"who\"';assert a in s;s=s.replace(a,',e:0',1);${W}" guards "" 70
 
 run_case "an entry claims a reason that does not exist" \
   'says out:' \
@@ -27,21 +27,21 @@ run_case "an entry claims a reason that does not exist" \
 
 run_case "a placed entry still claims a reason for having none" \
   "still claims a reason" \
-  "${P}a='{i:\"batman-1989\",t:\"Batman\",';assert a in s;s=s.replace(a,'{i:\"batman-1989\",t:\"Batman\",out:\"who\",');${W}"
+  "${P}a='{i:\"batman-1989\",t:\"Batman\",';assert a in s;s=s.replace(a,'{i:\"batman-1989\",t:\"Batman\",out:\"who\",');${W}" guards "" 70
 
 echo "--- 51: era 0 is the absence of a position, not a late one"
 run_case "the direction check counts era 0 as a late era again" \
   "runs backwards through the eras" \
-  "${G}a='      if(!(f.e || 0)) return;';assert a in s;s=s.replace(a,'');${W}"
+  "${G}a='      if(!(f.e || 0)) return;';assert a in s;s=s.replace(a,'');${W}" guards "" 51
 
 echo "--- 68: the timeline still holds after the rebuild"
 run_case "an era loses a position" \
   "is half-positioned" \
-  "${P}a=',e:11,lo:2';assert a in s;s=s.replace(a,',e:11');${W}"
+  "${P}a=',e:11,lo:2';assert a in s;s=s.replace(a,',e:11');${W}" guards "" 68
 
 run_case "the new terminal era is emptied into the old one" \
   "positions run 1..n" \
-  "${P}a=',e:11,lo:7';assert a in s;s=s.replace(a,',e:11,lo:8');${W}"
+  "${P}a=',e:11,lo:7';assert a in s;s=s.replace(a,',e:11,lo:8');${W}" guards "" 68
 
 echo "--- the era scheme itself"
 # NOT TESTED, deliberately. "An era may say who is in it, never what happens to

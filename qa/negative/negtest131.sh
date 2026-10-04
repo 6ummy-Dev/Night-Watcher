@@ -5,15 +5,15 @@
 echo "--- 131: the install seat"
 run_case "the seat renders inside the installed app" \
   "installBlock() renders inside the installed app" \
-  "${P}a='if(isStandalone()) return \"\";';assert a in s;s=s.replace(a,'');${W}"
+  "${P}a='if(isStandalone()) return \"\";';assert a in s;s=s.replace(a,'');${W}" guards "" 131
 
 run_case "the button stops waiting for a held offer" \
   "the install button no longer waits for a held offer" \
-  "${P}a='if(installEvt){';assert a in s;s=s.replace(a,'if(true){');${W}"
+  "${P}a='if(installEvt){';assert a in s;s=s.replace(a,'if(true){');${W}" guards "" 131
 
 run_case "the button takes the suit fill" \
   "the install button took the suit fill" \
-  "${P}a='class=\"bkbtn installbtn\"';assert a in s;s=s.replace(a,'class=\"bkbtn primary installbtn\"');${W}"
+  "${P}a='class=\"bkbtn installbtn\"';assert a in s;s=s.replace(a,'class=\"bkbtn primary installbtn\"');${W}" guards "" 131
 
 # 6.0.2: the clause section 131 gained when the seat went to signal — the
 # old rule refused a fill, this one refuses its absence.
@@ -24,23 +24,23 @@ run_case "the button loses the signal fill" \
 
 run_case "the offer is no longer spent before prompt()" \
   "the offer is no longer spent before prompt()" \
-  "${P}a='var iev = installEvt; installEvt = null;';assert a in s;s=s.replace(a,'var iev = installEvt;');${W}"
+  "${P}a='var iev = installEvt; installEvt = null;';assert a in s;s=s.replace(a,'var iev = installEvt;');${W}" guards "" 131
 
 run_case "beforeinstallprompt lets the mini-infobar through" \
   "beforeinstallprompt no longer calls preventDefault()" \
-  "${P}a='e.preventDefault();\n  installEvt = e;';assert a in s;s=s.replace(a,'installEvt = e;');${W}"
+  "${P}a='e.preventDefault();\n  installEvt = e;';assert a in s;s=s.replace(a,'installEvt = e;');${W}" guards "" 131
 
 run_case "the iOS hint loses its dismissal gate" \
   "the iOS hint lost its gate" \
-  "${P}a='if(IOSDEVICE && !S.insOff){';assert a in s;s=s.replace(a,'if(IOSDEVICE){');${W}"
+  "${P}a='if(IOSDEVICE && !S.insOff){';assert a in s;s=s.replace(a,'if(IOSDEVICE){');${W}" guards "" 131
 
 run_case "insOff persists its default too" \
   "insOff persists something other than only-true" \
-  "${P}a='get:function(){ return S.insOff ? true : undefined; }';assert a in s;s=s.replace(a,'get:function(){ return S.insOff; }');${W}"
+  "${P}a='get:function(){ return S.insOff ? true : undefined; }';assert a in s;s=s.replace(a,'get:function(){ return S.insOff; }');${W}" guards "" 131
 
 run_case "a restored payload cannot dismiss the hint" \
   "a restored payload can no longer dismiss the hint" \
-  "${P}a='read:function(v){ return v === true ? true : undefined; }';assert a in s;s=s.replace(a,'read:function(v){ return v; }');${W}"
+  "${P}a='read:function(v){ return v === true ? true : undefined; }';assert a in s;s=s.replace(a,'read:function(v){ return v; }');${W}" guards "" 131
 
 run_case "a second seat opens in Next up" \
   "2 install seats" \
@@ -49,26 +49,26 @@ run_case "a second seat opens in Next up" \
 echo "--- 131: the two watching-truths"
 run_case "Next up drops the watching-truths" \
   "Next up dropped the watching-truths" \
-  "${P}a='activityBlock()+watchNotes();';assert a in s;s=s.replace(a,'activityBlock();');${W}"
+  "${P}a='activityBlock()+watchNotes();';assert a in s;s=s.replace(a,'activityBlock();');${W}" guards "" 131
 
 run_case "the dates note falls out of watchNotes()" \
   "watchNotes() no longer carries both truths" \
-  "${P}a=' Announced dates can move.</p>';assert a in s;s=s.replace(a,'</p>');${W}"
+  "${P}a=' Announced dates can move.</p>';assert a in s;s=s.replace(a,'</p>');${W}" guards "" 131
 
 run_case "the availability note comes back to Progress" \
   "a watching-truth is back in Progress" \
-  "${P}a='installBlock()+';assert a in s;s=s.replace(a,'\\'<p class=\"note\">Announced dates can move.</p>\\'+installBlock()+');${W}"
+  "${P}a='installBlock()+';assert a in s;s=s.replace(a,'\\'<p class=\"note\">Announced dates can move.</p>\\'+installBlock()+');${W}" guards "" 131
 
 run_case "the saves-line comes back to Progress" \
   "the saves-line is back in Progress" \
-  "${P}a='Keep the path lit.';assert a in s;s=s.replace(a,'Progress saves automatically in this browser. Keep the path lit.');${W}"
+  "${P}a='Keep the path lit.';assert a in s;s=s.replace(a,'Progress saves automatically in this browser. Keep the path lit.');${W}" guards "" 131
 
 # 4.1.0: the support line joined the footer as a second span.buildline, so
 # renaming only the first left the word "buildline" in viewStats and the
 # guard rightly stayed quiet. The mutation now renames every buildline span.
 run_case "the build line leaves Progress" \
   "the build line left Progress" \
-  "${P}a='<span class=\"buildline\"';assert a in s;s=s.replace(a,'<span class=\"buildref\"');${W}"
+  "${P}a='<span class=\"buildline\"';assert a in s;s=s.replace(a,'<span class=\"buildref\"');${W}" guards "" 131
 
 rm -rf "$NEG"
 finish "131 negative tests"

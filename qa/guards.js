@@ -3868,7 +3868,7 @@ if(!/id="topBtn"/.test(HTML)) fail("the wordmark is no longer a control");
 if(HTML.indexOf('getElementById("topBtn")') < 0){
   fail("the wordmark has no click handler \u2014 tapping the title would do nothing");
 }
-if(!/<h1><button id="topBtn">/.test(HTML)){
+if(!/<h1><button id="topBtn" type="button">/.test(HTML)){
   fail("the wordmark button is outside its h1 \u2014 the heading must stay a heading");
 }
 
@@ -8445,6 +8445,65 @@ var ROUTE_VOCAB = [
     }
   });
 
+  /* 6.6.2. THE PAPER'S DOCUMENTS ADVERTISE WHAT / ADVERTISES. / sends three
+     document Link relations and seven font preloads. /nocturne/ does not
+     match that rule, so a paper page sent none of them. The relations sit
+     on the documents, not on /nocturne/*: that star also covers the
+     stylesheet, the scripts, the feed and the faces, which is the reason
+     3.7.1 took the same lines off /*. The front's canonical is the front.
+     An issue is one path segment, and :issue is that segment — the assets
+     plane writes the matched segment into the header value, so each issue's
+     canonical is its own URL. Sitemap and describedby name the same
+     resources / already names. The paper's pages do not preload faces, so
+     the seven hints stay under /. api-catalog and service-doc stay off:
+     the site has no API, and / does not send them. */
+  (function(){
+    function linkLine(body, line){
+      var esc = line.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp("^\\s+Link:\\s*" + esc + "\\s*$", "m").test(body);
+    }
+    var paperLinks = [
+      ["/nocturne/", [
+        '<https://nightwatcher.life/sitemap.xml>; rel="sitemap"',
+        '<https://nightwatcher.life/nocturne/>; rel="canonical"',
+        '</llms.txt>; rel="describedby"']],
+      ["/nocturne/:issue/", [
+        '<https://nightwatcher.life/sitemap.xml>; rel="sitemap"',
+        '<https://nightwatcher.life/nocturne/:issue/>; rel="canonical"',
+        '</llms.txt>; rel="describedby"']]
+    ];
+    paperLinks.forEach(function(rule){
+      var body = block104(rule[0]);
+      if(!body){
+        fail("docs/_headers has no " + rule[0] + " rule — a paper document would send no Link relations");
+        return;
+      }
+      rule[1].forEach(function(line){
+        if(linkLine(body, line)) return;
+        var rel = (line.match(/rel="([^"]+)"/) || [])[1];
+        if(rule[0] === "/nocturne/" && rel === "canonical"){
+          fail("the paper front does not declare its own canonical Link");
+        } else if(rel === "canonical"){
+          fail("an issue page does not declare its own canonical Link");
+        } else if(rel === "describedby"){
+          fail(rule[0] + " does not carry describedby pointing at /llms.txt");
+        } else {
+          fail(rule[0] + " does not carry the sitemap relation / already advertises");
+        }
+      });
+      if(/rel=preload/.test(body)){
+        fail("the paper preloads a face it does not preload — " + rule[0] +
+             " carries rel=preload, and the paper's pages have no font preload");
+      }
+      if(/rel="(?:api-catalog|service-doc)"/.test(body)){
+        fail("the paper advertises api-catalog or service-doc — the homepage does not, and the site has no API");
+      }
+    });
+    if(/^\s+Link:/m.test(block104("/nocturne/*"))){
+      fail("a Link relation sits under /nocturne/* — that star covers the stylesheet, the scripts, the feed and the faces");
+    }
+  })();
+
   /* The two the edge owns must not be duplicated here. Two sources for one
      header is the drift this file exists to avoid. */
   ["Strict-Transport-Security", "X-Content-Type-Options"].forEach(function(k){
@@ -8626,7 +8685,8 @@ var ROUTE_VOCAB = [
      is the file whose scopes are the thing under test. */
   note("_headers: " + PINNED104.map(function(t){ return t[0] + " on " + t[3]; }).join(", ") +
        ", no-cache on / and /sw.js, a year on /fonts/*, a day on the icon " +
-       "set, and out of the offline shell");
+       "set, and out of the offline shell; paper documents carry sitemap, " +
+       "their own canonical and describedby, with no font preload");
 })();
 
 /* ---------- 105. The catalogue answers in plain text ------------------ */
@@ -13176,7 +13236,7 @@ var ROUTE_VOCAB = [
      its second argument is python, not an expected failure. The arguments
      are read the way bash reads them — by qa/negative/census.js since 5.3.1,
      the same reader 65, 113 and run-all.sh use. */
-  var NO_SECT_PINNED = 740;  /* 5.3.1: six retrofitted a sect when the credit rule tightened (negtest161 ×2, 162, 180, 210 ×2); four exact duplicates struck (negtest162, 186, 250, 270). 6.0.3: one more retrofitted — negtest176’s missing-height fixture, whose mutation trips §157 as well. 6.0.9: eight struck — negtest478’s heal and reclaim fixtures, retired with the 301108 workaround; its three replacements name §64. 6.6.1: two struck — negtest220’s extra ratingBadge() seat and negtest180’s retired-address phrase, each already proved by a survivor */
+  var NO_SECT_PINNED = 143;  /* 5.3.1: six retrofitted a sect when the credit rule tightened (negtest161 ×2, 162, 180, 210 ×2); four exact duplicates struck (negtest162, 186, 250, 270). 6.0.3: one more retrofitted — negtest176’s missing-height fixture, whose mutation trips §157 as well. 6.0.9: eight struck — negtest478’s heal and reclaim fixtures, retired with the 301108 workaround; its three replacements name §64. 6.6.1: two struck — negtest220’s extra ratingBadge() seat and negtest180’s retired-address phrase, each already proved by a survivor. 6.6.2: 597 retrofitted a sect, each whose expect sits in exactly one section's fail() text. 143 stay unpinned — 124 whose phrase is in no section's text, 18 whose phrase sits in more than one, and negtest270's marker-format fixture, whose mutation erases the section headers so the failure line carries no § */
   if(fixtureCensus().broken) return;
   fixtureCensus().suites.forEach(function(su){
     su.cases.forEach(function(c){

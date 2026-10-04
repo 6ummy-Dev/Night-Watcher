@@ -6,13 +6,13 @@ echo "--- 76: Home and The Path group the same way"
 run_case "Home goes back to always drawing the universes" \
   "Home iterates PATH directly" \
   "${P}a='  buildGroups().forEach(function(g){';assert a in s
-s=s.replace(a,'  PATH.forEach(function(g, gi){',1);${W}"
+s=s.replace(a,'  PATH.forEach(function(g, gi){',1);${W}" guards "" 76
 
 run_case "Home stops building its grid from buildGroups()" \
   "no longer builds its grid from buildGroups()" \
   "${P}i=s.index('function viewHome(');j=s.index('function viewNext(')
 blk=s[i:j];assert 'buildGroups()' in blk
-s=s[:i]+blk.replace('buildGroups()','GROUPS_CACHE')+s[j:];${W}"
+s=s[:i]+blk.replace('buildGroups()','GROUPS_CACHE')+s[j:];${W}" guards "" 76
 
 run_case "a decade key loses its branch in goToGroup" \
   'GROUPINGS has no row for the "d" key' \
@@ -25,7 +25,7 @@ run_case "a decade key loses its branch in goToGroup" \
 run_case "the jump asks for a scroll behavior again" \
   "asks for a scroll behavior again" \
   "${P}a='target.scrollIntoView({block:\"start\"});';assert a in s
-s=s.replace(a,'target.scrollIntoView({block:\"start\", behavior:calmScroll()});',1);${W}"
+s=s.replace(a,'target.scrollIntoView({block:\"start\", behavior:calmScroll()});',1);${W}" guards "" 76
 
 run_case "the jump stops scrolling to the group it opened" \
   "no longer scrolls to the group it opened" \
@@ -34,11 +34,11 @@ blk=s[i:j];assert 'scrollIntoView' in blk
 import re
 blk2=re.sub(r'  if\(target\) target\.scrollIntoView\(\{block:\"start\"\}\);\n','',blk,count=1)
 assert 'scrollIntoView' not in blk2
-s=s[:i]+blk2+s[j:];${W}"
+s=s[:i]+blk2+s[j:];${W}" guards "" 76
 
 run_case "the grid drops the path's description" \
   "Home's grid carries no description" \
-  "${P}a='+esc(pathBlurb(S.mode))+';assert a in s;s=s.replace(a,'+\"\"+',1);${W}"
+  "${P}a='+esc(pathBlurb(S.mode))+';assert a in s;s=s.replace(a,'+\"\"+',1);${W}" guards "" 76
 
 run_case "a path loses its grid heading" \
   "GRIDNAME has no heading for the release path" \
@@ -51,7 +51,7 @@ echo "--- 40 and 54: the scoreboard belongs to Progress"
 run_case "the scoreboard comes back to Home" \
   "not rendered exactly once" \
   "${P}a=\"  html += '<p class=\\\"qhead big gap\\\">'\";assert a in s
-s=s.replace(a,\"  html += '<p class=\\\"qhead\\\">Scoreboard</p>'+scoreboard(c);\\n\"+a,1);${W}"
+s=s.replace(a,\"  html += '<p class=\\\"qhead\\\">Scoreboard</p>'+scoreboard(c);\\n\"+a,1);${W}" guards "" 40
 
 echo "--- 73: the ceiling is a ceiling"
 run_case "a rating goes back to carrying its own hash" \
@@ -64,18 +64,18 @@ s=s.replace('\"R\" + pos.join(\"\")','\"R\" + w.map(function(h,i){return h+pos[i
 echo "--- 8: the format version is declared"
 run_case "the format changes without the version moving" \
   "exportCode is not writing NW3" \
-  "${P}a='return \"NW3W\"';assert a in s;s=s.replace(a,'return \"NW2W\"',1);${W}"
+  "${P}a='return \"NW3W\"';assert a in s;s=s.replace(a,'return \"NW2W\"',1);${W}" guards "" 8
 
 run_case "an old NW2 code stops restoring its ratings" \
   "the rating segment is read" \
-  "${P}a='  if(ver >= 3){';assert a in s;s=s.replace(a,'  if(ver >= 1){',1);${W}"
+  "${P}a='  if(ver >= 3){';assert a in s;s=s.replace(a,'  if(ver >= 1){',1);${W}" guards "" 8
 
 echo "--- 54 (3.9.0): the first-run page offers scope beside format"
 run_case "the first-run page drops the scope switch" \
   "renders no scope switch" \
   "${P}a='''What are you watching</p>'+formatSwitch()+scopeSwitch()+tierSwitch()+'''
 assert a in s
-s=s.replace(a,'''What are you watching</p>'+formatSwitch()+tierSwitch()+''',1);${W}"
+s=s.replace(a,'''What are you watching</p>'+formatSwitch()+tierSwitch()+''',1);${W}" guards "" 54
 
 rm -rf "$NEG"
 finish "1.7.7 negative tests"

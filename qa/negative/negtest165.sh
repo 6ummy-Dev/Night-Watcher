@@ -7,21 +7,21 @@ N="import io;p='NOTES.md';s=io.open(p,encoding='utf-8').read();"
 echo "--- 65: the restore banner reaches both halves of Home"
 run_case "the banner drops off the first-run branch (the 1.6.4 regression)" \
   "a device with no path chosen would see nothing" \
-  "${P}a=\"html += pendingBanner()+'<div class=\\\"chooser\\\">'\";assert a in s;s=s.replace(a,\"html += '<div class=\\\"chooser\\\">'\");${W}"
+  "${P}a=\"html += pendingBanner()+'<div class=\\\"chooser\\\">'\";assert a in s;s=s.replace(a,\"html += '<div class=\\\"chooser\\\">'\");${W}" guards "" 65
 
 run_case "the banner drops off the main branch" \
   "missing from Home once a path exists" \
-  "${P}a='  html += pendingBanner();';assert a in s;s=s.replace(a,'');${W}"
+  "${P}a='  html += pendingBanner();';assert a in s;s=s.replace(a,'');${W}" guards "" 65
 
 run_case "the banner stops mentioning the carried path" \
   "does not say when a link carries a path" \
-  "${P}a='if(!S.path && isPath(p.path)) bits += \" and a path\";';assert a in s;s=s.replace(a,'');${W}"
+  "${P}a='if(!S.path && isPath(p.path)) bits += \" and a path\";';assert a in s;s=s.replace(a,'');${W}" guards "" 65
 
 echo "--- 65: a number in prose is guarded like every other count"
 run_case "the header's section count drifts" \
   "guard sections; there are" \
   "${P}import re;m=re.search(r'qa/guards\\.js — (\\d+) sections',s);assert m
-s=s[:m.start(1)]+str(int(m.group(1))-10)+s[m.end(1):];${W}"
+s=s[:m.start(1)]+str(int(m.group(1))-10)+s[m.end(1):];${W}" guards "" 65
 
 run_case "NOTES.md's section count drifts" \
   "NOTES.md says" \

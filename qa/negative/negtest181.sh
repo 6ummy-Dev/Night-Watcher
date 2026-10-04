@@ -11,19 +11,19 @@ run_case "a slug is renamed without being recorded" \
 run_case "the old name is added back alongside the new one" \
   "renamed id is back in the data" \
   "${P}a=' {i:\"batman-1989\"';assert a in s
-i=s.index(a);s=s[:i]+' {i:\"the-super-powers-team-galactic-guardians-198-1985\",t:\"Ghost\",y:1985,e:0,out:\"none\",d:\"x\",o:1},\n'+s[i:];${W}"
+i=s.index(a);s=s[:i]+' {i:\"the-super-powers-team-galactic-guardians-198-1985\",t:\"Ghost\",y:1985,e:0,out:\"none\",d:\"x\",o:1},\n'+s[i:];${W}" guards "" 2
 
 run_case "the rename lands on an id that does not exist" \
   "which is not in the catalogue" \
   "import io,json;p='qa/renamed-ids.json';d=json.load(io.open(p,encoding='utf-8'))
 k=list(d)[0];d[k]['to']='a-slug-that-was-never-here-1985'
-io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=1))"
+io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=1))" guards "" 2
 
 run_case "a rename is recorded with no reason" \
   "gives no real reason for renaming" \
   "import io,json;p='qa/renamed-ids.json';d=json.load(io.open(p,encoding='utf-8'))
 k=list(d)[0];d[k]['why']='typo'
-io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=1))"
+io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=1))" guards "" 2
 
 echo "--- 78: what a crawler reads"
 # 1.8.6 moved the block out of <noscript> and into <main id="view">, and the
@@ -33,16 +33,16 @@ echo "--- 78: what a crawler reads"
 run_case "the crawlable block is deleted" \
   "the crawlable catalogue is gone" \
   "${P}import re;m=re.search(r'<main id=\"view\">[\\s\\S]*?</main>',s);assert m
-s=s[:m.start()]+'<main id=\"view\"></main>'+s[m.end():];${W}"
+s=s[:m.start()]+'<main id=\"view\"></main>'+s[m.end():];${W}" guards "" 78
 
 run_case "a continuity is renamed and the block is not rebuilt" \
   "no longer matches the data" \
-  "${P}a='name:\"Arkhamverse\"';assert a in s;s=s.replace(a,'name:\"The Arkham Games\"',1);${W}"
+  "${P}a='name:\"Arkhamverse\"';assert a in s;s=s.replace(a,'name:\"The Arkham Games\"',1);${W}" guards "" 78
 
 run_case "the block sinks below the app, outside #view" \
   'sits outside <main id="view">' \
   "${P}import re;m=re.search(r'<main id=\"view\">([\\s\\S]*?)</main>',s);assert m
-s=s[:m.start()]+'<main id=\"view\"></main>\\n'+m.group(1)+s[m.end():];${W}"
+s=s[:m.start()]+'<main id=\"view\"></main>\\n'+m.group(1)+s[m.end():];${W}" guards "" 78
 
 echo "--- 78: no noindex may be injected now that there is one origin"
 # 3.3.1: this used to prove the mirror asked not to be indexed. GitHub Pages was
@@ -51,7 +51,7 @@ echo "--- 78: no noindex may be injected now that there is one origin"
 run_case "a robots noindex arrives in the markup" \
   "noindex injection is back" \
   "${P}a='<link rel=\"canonical\"';assert a in s
-s=s.replace(a,'<meta name=\"robots\" content=\"noindex, follow\">\\n<link rel=\"canonical\"',1);${W}"
+s=s.replace(a,'<meta name=\"robots\" content=\"noindex, follow\">\\n<link rel=\"canonical\"',1);${W}" guards "" 78
 
 rm -rf "$NEG"
 finish "1.8.1 negative tests"

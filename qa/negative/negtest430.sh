@@ -19,19 +19,19 @@
 
 run_case "1: an id that is not a lowercase slug" \
   "id is not a lowercase slug" \
-  "${P}old='i:\"batman-year-one-2011\"';assert old in s;s=s.replace(old,'i:\"Batman-Year-One-2011\"',1);${W}"
+  "${P}old='i:\"batman-year-one-2011\"';assert old in s;s=s.replace(old,'i:\"Batman-Year-One-2011\"',1);${W}" guards "" 1
 
 run_case "3: an idHash that collides with everything" \
   "idHash COLLISION" \
-  "${P}old='return (\"0000\" + (h >>> 0).toString(36)).slice(-5);';assert old in s;s=s.replace(old,'return \"aaaaa\";',1);${W}"
+  "${P}old='return (\"0000\" + (h >>> 0).toString(36)).slice(-5);';assert old in s;s=s.replace(old,'return \"aaaaa\";',1);${W}" guards "" 3
 
 run_case "4: route filtering back on the raw o flag" \
   "tests the raw f.o flag" \
-  "${P}old='S.filter === \"core\" && tierOf(f) === \"o\"';assert old in s;s=s.replace(old,'S.filter === \"core\" && f.o',1);${W}"
+  "${P}old='S.filter === \"core\" && tierOf(f) === \"o\"';assert old in s;s=s.replace(old,'S.filter === \"core\" && f.o',1);${W}" guards "" 4
 
 run_case "9: the Copy link control leaves the Progress tab" \
   "Copy link control is gone" \
-  "${P}old='data-act=\"copylink\"';assert old in s;s=s.replace(old,'data-act=\"copylinkX\"');${W}"
+  "${P}old='data-act=\"copylink\"';assert old in s;s=s.replace(old,'data-act=\"copylinkX\"');${W}" guards "" 9
 
 run_case "12: the manifest points at a file that is not there" \
 "manifest references missing file" \
@@ -41,7 +41,7 @@ p='docs/manifest.json'
 m=json.loads(io.open(p,encoding='utf-8').read())
 m['icons'].append({'src':'nope.png','sizes':'1x1','type':'image/png'})
 io.open(p,'w',encoding='utf-8').write(json.dumps(m,indent=2))
-"
+" guards "" 12
 
 run_case "15: the meta description miscounts the films" \
 "the head is the copy a search engine quotes" \
@@ -54,7 +54,7 @@ i=s.index(old); j=s.index('>',i)
 head=s[:i]; tag=s[i:j]; tail=s[j:]
 assert '137 films' in tag
 io.open(p,'w',encoding='utf-8').write(head+tag.replace('137 films','136 films',1)+tail)
-"
+" guards "" 15
 
 run_case "16: the newest CHANGELOG release is not the shipped one" \
 "CHANGELOG.md's newest release is" \
@@ -65,19 +65,19 @@ s=io.open(p,encoding='utf-8').read()
 m=re.search(r'^## \[(\d+\.\d+\.\d+)\]',s,re.M)
 assert m
 io.open(p,'w',encoding='utf-8').write(s[:m.start(1)]+'9.9.9'+s[m.end(1):])
-"
+" guards "" 16
 
 run_case "17: the shared hero size goes missing" \
   ".hero h2 has no font-size" \
-  "${P}old='.hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:';assert old in s;s=s.replace(old,'.hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;line-height-x:',1);${W}"
+  "${P}old='.hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:';assert old in s;s=s.replace(old,'.hero h2{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;line-height-x:',1);${W}" guards "" 17
 
 run_case "18: the scrollbar gutter stops being reserved" \
   "missing scrollbar-gutter:stable" \
-  "${P}assert 'scrollbar-gutter' in s;s=s.replace('scrollbar-gutter','scrollbar-gutter-x',1);${W}"
+  "${P}assert 'scrollbar-gutter' in s;s=s.replace('scrollbar-gutter','scrollbar-gutter-x',1);${W}" guards "" 18
 
 run_case "19: an import writes a raw rating into S.rated" \
   "writes a raw rating into S.rated" \
-  "${P}old='S.rated[id] = rv; if(stamp)';assert old in s;s=s.replace(old,'S.rated[id] = res.rated[id]; if(stamp)',1);${W}"
+  "${P}old='S.rated[id] = rv; if(stamp)';assert old in s;s=s.replace(old,'S.rated[id] = res.rated[id]; if(stamp)',1);${W}" guards "" 19
 
 run_case "22: a JS escape stranded in the static markup" \
 "JS escape(s) (" \
@@ -90,39 +90,39 @@ body=s[i:j]
 old='</h1>'
 assert old in body
 io.open(p,'w',encoding='utf-8').write(s[:i]+body.replace(old,'</h1>\\\\u2014',1)+s[j:])
-"
+" guards "" 22
 
 run_case "23: two paths sharing a PATHCODE letter" \
   "two paths share a PATHCODE letter" \
-  "${P}old='var PATHCODE = {continuity:\"c\", life:\"l\", release:\"r\"};';assert old in s;s=s.replace(old,'var PATHCODE = {continuity:\"c\", life:\"l\", release:\"c\"};',1);${W}"
+  "${P}old='var PATHCODE = {continuity:\"c\", life:\"l\", release:\"r\"};';assert old in s;s=s.replace(old,'var PATHCODE = {continuity:\"c\", life:\"l\", release:\"c\"};',1);${W}" guards "" 23
 
 run_case "24: PATHBLURB comes back as a second source of path copy" \
   "PATHBLURB is back" \
-  "${P}assert 'esc(pathBlurb(' in s;s=s.replace('esc(pathBlurb(','esc(PATHBLURB(',1);${W}"
+  "${P}assert 'esc(pathBlurb(' in s;s=s.replace('esc(pathBlurb(','esc(PATHBLURB(',1);${W}" guards "" 24
 
 run_case "25: the copy calls storage a device again" \
   "storage is per browser" \
-  "${P}assert 'this browser' in s;s=s.replace('this browser','this device',1);${W}"
+  "${P}assert 'this browser' in s;s=s.replace('this browser','this device',1);${W}" guards "" 25
 
 run_case "26: the app calls itself a field guide" \
   "the app calls itself a fan guide" \
-  "${P}assert 'unofficial fan guide' in s;s=s.replace('unofficial fan guide','unofficial field guide',1);${W}"
+  "${P}assert 'unofficial fan guide' in s;s=s.replace('unofficial fan guide','unofficial field guide',1);${W}" guards "" 26
 
 run_case "32: titleYear() renamed, so the watch link loses its year" \
   "titleYear() is gone" \
-  "${P}assert 'function titleYear(' in s;s=s.replace('function titleYear(','function titleYr(',1);${W}"
+  "${P}assert 'function titleYear(' in s;s=s.replace('function titleYear(','function titleYr(',1);${W}" guards "" 32
 
 run_case "36: the collapse-all control leaves The Path" \
   "collapse-all control is gone" \
-  "${P}assert 'data-act=\"allgroups\"' in s;s=s.replace('data-act=\"allgroups\"','data-act=\"allgroupsX\"');${W}"
+  "${P}assert 'data-act=\"allgroups\"' in s;s=s.replace('data-act=\"allgroups\"','data-act=\"allgroupsX\"');${W}" guards "" 36
 
 run_case "37: the rating stars get a second home" \
   "rating stars are rendered in" \
-  "${P}old='stars(S.rated[';assert old in s;s=s.replace(old,'stars(S.rated[0]||0)+stars(S.rated[',1);${W}"
+  "${P}old='stars(S.rated[';assert old in s;s=s.replace(old,'stars(S.rated[0]||0)+stars(S.rated[',1);${W}" guards "" 37
 
 run_case "41: the restore box loses its real label" \
   "labelled by its placeholder only" \
-  "${P}old='<label class=\"bklab\" for=\"restorebox\">';assert old in s;s=s.replace(old,'<label class=\"bklab\">',1);${W}"
+  "${P}old='<label class=\"bklab\" for=\"restorebox\">';assert old in s;s=s.replace(old,'<label class=\"bklab\">',1);${W}" guards "" 41
 
 run_case "45: the README file table lists a file that is not served" \
 "lists files that do not exist" \
@@ -133,7 +133,7 @@ s=io.open(p,encoding='utf-8').read()
 old='| \`docs/favicon.ico\` |'
 assert old in s
 io.open(p,'w',encoding='utf-8').write(s.replace(old,'| \`docs/nope.txt\` | not a real file |\n'+old,1))
-"
+" guards "" 45
 
 run_case "48: the Progress footer describes the old link again" \
   "still mentions" \
@@ -141,27 +141,27 @@ run_case "48: the Progress footer describes the old link again" \
 
 run_case "49: the Activity tick reads as unwatched" \
   "Activity tick is unfilled" \
-  "${P}old='.arow .tick{width:24px;height:24px;align-self:start;margin-top:2px;background:var(--suit);';assert old in s;s=s.replace(old,'.arow .tick{width:24px;height:24px;align-self:start;margin-top:2px;background:transparent;',1);${W}"
+  "${P}old='.arow .tick{width:24px;height:24px;align-self:start;margin-top:2px;background:var(--suit);';assert old in s;s=s.replace(old,'.arow .tick{width:24px;height:24px;align-self:start;margin-top:2px;background:transparent;',1);${W}" guards "" 49
 
 run_case "52: the chosen format stops being persisted" \
   "format is not persisted" \
-  "${P}assert 'k:\"format\",' in s;s=s.replace('k:\"format\",','k:\"fmtx\",  ',1);${W}"
+  "${P}assert 'k:\"format\",' in s;s=s.replace('k:\"format\",','k:\"fmtx\",  ',1);${W}" guards "" 52
 
 run_case "53: formatSwitch() is gone" \
   "formatSwitch() is gone" \
-  "${P}assert 'function formatSwitch(' in s;s=s.replace('function formatSwitch(','function formatSwitchX(',1);${W}"
+  "${P}assert 'function formatSwitch(' in s;s=s.replace('function formatSwitch(','function formatSwitchX(',1);${W}" guards "" 53
 
 run_case "73: the worst-case restore link grows past the ceiling" \
   "worst-case restore link is" \
-  "${P}old='return (\"0000\" + (h >>> 0).toString(36)).slice(-5);';assert old in s;s=s.replace(old,'return \"pad\" + (\"0000\" + (h >>> 0).toString(36)).slice(-5) + \"padpadpad\";',1);${W}"
+  "${P}old='return (\"0000\" + (h >>> 0).toString(36)).slice(-5);';assert old in s;s=s.replace(old,'return \"pad\" + (\"0000\" + (h >>> 0).toString(36)).slice(-5) + \"padpadpad\";',1);${W}" guards "" 73
 
 run_case "122: the scroll restore stops settling the layout" \
   "no longer adds .settling" \
-  "${P}old='vp.classList.add(\"settling\");\n    scrollPut(keep);';assert old in s;s=s.replace(old,'void 0;\n    scrollPut(keep);',1);${W}"
+  "${P}old='vp.classList.add(\"settling\");\n    scrollPut(keep);';assert old in s;s=s.replace(old,'void 0;\n    scrollPut(keep);',1);${W}" guards "" 122
 
 run_case "34: ratePrompt comes back after Activity replaced it" \
   "ratePrompt survives" \
-  "${P}assert 'function activityBlock(' in s;s=s.replace('function activityBlock(','function ratePrompt_activityBlock(',1);${W}"
+  "${P}assert 'function activityBlock(' in s;s=s.replace('function activityBlock(','function ratePrompt_activityBlock(',1);${W}" guards "" 34
 
 run_case "75: a control drawn smaller than a finger" \
 "px touch target" \
@@ -173,7 +173,7 @@ i=s.index('.chip{'); j=s.index('}',i)
 rule=s[i:j]
 assert 'min-height:44px' in rule
 io.open(p,'w',encoding='utf-8').write(s[:i]+rule.replace('min-height:44px','min-height:20px')+s[j:])
-"
+" guards "" 75
 
 run_case "117: llms.txt loses the summary the README anchors" \
 "llms.txt has no" \
@@ -197,7 +197,7 @@ s=io.open(p,encoding='utf-8').read()
 s2=s.replace('/auth.md\n  Cache-Control: no-cache\n','')
 assert s2 != s
 io.open(p,'w',encoding='utf-8').write(s2)
-"
+" guards "" 139
 
 run_case "139: llms.txt given a lifetime instead" \
 "no longer declares no-cache" \
@@ -219,7 +219,7 @@ s=io.open(p,encoding='utf-8').read()
 s2=re.sub(r'<meta http-equiv=\"Content-Security-Policy\"[^>]*>\n','',s,count=1)
 assert s2 != s
 io.open(p,'w',encoding='utf-8').write(s2)
-"
+" guards "" 139
 
 rm -rf "$NEG"
 finish "negtest430"

@@ -26,25 +26,25 @@ run_case "the drop arrives in one frame again" \
   "no longer mirrors the retraction" \
   "${P}a='.pathseg[data-toast]{animation:beltdrop .22s ease;}'
 assert a in s
-s=s.replace(a,'',1);${W}"
+s=s.replace(a,'',1);${W}" guards "" 130
 
 run_case "the entrance shrinks to a nudge" \
   "no longer mirrors the retraction" \
   "${P}a='@keyframes beltdrop{from{transform:translateY(calc(var(--belt-peek) - var(--beltH)));}}'
 assert a in s
-s=s.replace(a,'@keyframes beltdrop{from{transform:translateY(-10px);opacity:0;}}',1);${W}"
+s=s.replace(a,'@keyframes beltdrop{from{transform:translateY(-10px);opacity:0;}}',1);${W}" guards "" 130
 
 run_case "the entrance flag leaks past its render" \
   "not scoped to the one render" \
   "${P}a='  S.beltDropping = true; render(); S.beltDropping = false;'
 assert a in s
-s=s.replace(a,'  S.beltDropping = true; render();',1);${W}"
+s=s.replace(a,'  S.beltDropping = true; render();',1);${W}" guards "" 130
 
 run_case "reduced motion keeps the entrance" \
   "does not cut the drop's entrance" \
   "${P}a=',.pathseg[data-toast]{animation:none;}}'
 assert a in s
-s=s.replace(a,'{animation:none;}}',1);${W}"
+s=s.replace(a,'{animation:none;}}',1);${W}" guards "" 130
 
 echo "--- 130: every seam in the stack is an overlap (owner: 'not always almost there')"
 
@@ -52,7 +52,7 @@ run_case "the daylight comes back between the pouches" \
   "format row grew a bottom margin back" \
   "${P}a='.includes .scope{position:relative;background:var(--ink);margin:0;'
 assert a in s
-s=s.replace(a,'.includes .scope{position:relative;background:var(--ink);margin:0 0 6px;',1);${W}"
+s=s.replace(a,'.includes .scope{position:relative;background:var(--ink);margin:0 0 6px;',1);${W}" guards "" 130
 
 echo "--- 130: once chosen, the belt IS the peek (owner: 'it stays under the header')"
 
@@ -60,25 +60,25 @@ run_case "parked stops being state" \
   "does not render from S.path exactly once" \
   "${P}a='''(S.path && !(S.beltOpen && !S.beltDrop) ? ' data-park=\"\"' : '')'''
 assert a in s
-s=s.replace(a,\"' data-park=\\\"\\\"'\",1);${W}"
+s=s.replace(a,\"' data-park=\\\"\\\"'\",1);${W}" guards "" 130
 
 run_case "the pull drifts by the sentinel's pixel" \
   "pull is gone or drifted" \
   "${P}a='.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 18px;}'
 assert a in s
-s=s.replace(a,'.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px) 0 18px;}',1);${W}"
+s=s.replace(a,'.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px) 0 18px;}',1);${W}" guards "" 130
 
 run_case "the column's padding walks away from the pull" \
   "no longer starts 18px 18px" \
   "${P}a='.pcol{padding:18px 18px '
 assert a in s
-s=s.replace(a,'.pcol{padding:17px 18px ',1);${W}"
+s=s.replace(a,'.pcol{padding:17px 18px ',1);${W}" guards "" 130
 
 run_case "the parked strip grows a position rule again" \
   "grew a position rule or an anchor" \
   "${P}a='.pathseg[data-park]{margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 18px;}'
 assert a in s
-s=s.replace(a,'.pathseg[data-park]{position:fixed;margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 18px;}',1);${W}"
+s=s.replace(a,'.pathseg[data-park]{position:fixed;margin:calc(var(--belt-peek) - var(--beltH) - 18px - 1px) 0 18px;}',1);${W}" guards "" 130
 
 run_case "the chosen parked strip stays painted" \
   "still paints inside the deck" \
@@ -90,43 +90,43 @@ run_case "the retraction becomes a blink" \
   "ends the drop without staging the ride" \
   "${P}a='if(endDrop && seg){ seg.setAttribute(\"data-ride\", \"\"); seg.removeAttribute(\"data-drop\"); }'
 assert a in s
-s=s.replace(a,'if(endDrop && seg){ seg.removeAttribute(\"data-drop\"); }',1);${W}"
+s=s.replace(a,'if(endDrop && seg){ seg.removeAttribute(\"data-drop\"); }',1);${W}" guards "" 130
 
 run_case "the peek loses the chosen half of its truth" \
   "no longer reads both parked truths" \
   "${P}a='pk.hasAttribute(\"data-park\")) &&'
 assert a in s
-s=s.replace(a,'false) &&',1);${W}"
+s=s.replace(a,'false) &&',1);${W}" guards "" 128
 
 run_case "a dropped belt keeps its shadow across the change" \
   "keep its shadow on the new tab" \
   "${P}a='  scrollPut(0);\n  if(S.beltDrop){ closeBelt(\"auto\"); scrubBelt(prev); } else render();'
 assert a in s
-s=s.replace(a,'  scrollPut(0);\n  render();',1);${W}"
+s=s.replace(a,'  scrollPut(0);\n  render();',1);${W}" guards "" 130
 
 run_case "the ring wires around goTab" \
   "bypasses goTab" \
   "${P}a='  goTab(\"stats\");'
 assert a in s
-s=s.replace(a,'  S.tab = \"stats\"; scrollPut(0); render();',1);${W}"
+s=s.replace(a,'  S.tab = \"stats\"; scrollPut(0); render();',1);${W}" guards "" 130
 
 run_case "the hidden-state bookkeeping creeps back" \
   "bookkeeping is back" \
   "${P}a='var beltIO = null, beltIncIO = null, beltIncRoot = null, dropArmed = false,'
 assert a in s
-s=s.replace(a,'var beltFix = false;\\nvar beltIO = null, beltIncIO = null, beltIncRoot = null, dropArmed = false,',1);${W}"
+s=s.replace(a,'var beltFix = false;\\nvar beltIO = null, beltIncIO = null, beltIncRoot = null, dropArmed = false,',1);${W}" guards "" 130
 
 run_case "the JS anchor probe returns" \
   "the JS anchor probe is back" \
   "${P}a='function beltDropOpen(){'
 assert a in s
-s=s.replace(a,'function supportsAnchor(){ return true; }\\nfunction beltDropOpen(){',1);${W}"
+s=s.replace(a,'function supportsAnchor(){ return true; }\\nfunction beltDropOpen(){',1);${W}" guards "" 128
 
 run_case "the entrance flag survives a reload" \
   "entrance flag is written" \
   "${P}a='  {k:\"bkDismissAt\",  get:stampOut(\"bkDismissAt\"),  read:stampOf}'
 assert a in s
-s=s.replace(a,a+',\n  {k:\"beltDropping\", read:function(v){ return v; }}',1);${W}"
+s=s.replace(a,a+',\n  {k:\"beltDropping\", read:function(v){ return v; }}',1);${W}" guards "" 130
 
 echo "--- 129, the fallback half: a peek that opens nothing is not a door"
 
@@ -142,13 +142,13 @@ run_case "the static glow leaves #beltpeek[data-on]" \
   "not the static two-layer corner hug" \
   "${P}a='box-shadow:0 1px 5px -1px var(--signaledge), 0 3px 12px -3px var(--signaledge);}'
 assert a in s
-s=s.replace(a,'}',1);${W}"
+s=s.replace(a,'}',1);${W}" guards "" 130
 
 run_case "the pulse comes back as a keyframe" \
   "animated again" \
   "${P}a='#beltpeek{display:none;'
 assert a in s
-s=s.replace(a,'@keyframes beltglow{to{opacity:.7;}}#beltpeek{display:none;',1);${W}"
+s=s.replace(a,'@keyframes beltglow{to{opacity:.7;}}#beltpeek{display:none;',1);${W}" guards "" 130
 
 echo "--- the smoke half: the parked selectors must live in some staged state"
 

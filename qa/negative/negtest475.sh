@@ -18,12 +18,12 @@ run_case "applyTheme() collapses back to the table lookup (the pre-4.0.5 shape)"
   "no longer announces #000000 when installed" \
   "${P}a='isStandalone() ? \"#000000\"'
 assert a in s
-s=s.replace(a,'THEMEBAR[S.theme] ? THEMEBAR[S.theme]',1);${W}"
+s=s.replace(a,'THEMEBAR[S.theme] ? THEMEBAR[S.theme]',1);${W}" guards "" 28
 
 run_case "standalone announces the theme's own navy instead of black" \
   "no longer announces #000000 when installed" \
   "${P}a='isStandalone() ? \"#000000\"';assert a in s
-s=s.replace(a,'isStandalone() ? \"#0C111C\"',1);${W}"
+s=s.replace(a,'isStandalone() ? \"#0C111C\"',1);${W}" guards "" 28
 
 NEG_ARGS="--bless"
 green_case "the browser arm's fallback is reworded and stays green" \

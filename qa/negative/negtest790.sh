@@ -1,6 +1,8 @@
 #!/bin/bash
 # negtest790 — 6.5.1, the outside QA on 6.5.0. The paper and the crew's page
-# revalidate (104); the worker steps aside for /nocturne and /hww with or
+# revalidate (104). 6.6.2: the paper's documents carry the apex's three Link
+# relations, each issue's canonical is its own URL, and a preload or an
+# api-catalog relation on the paper fails (104). The worker steps aside for /nocturne and /hww with or
 # without the slash (165, 170) and gives a hung navigation 4 s before the
 # cache answers (132); the sitemap lists /, /llms.txt and the paper's block
 # and nothing else (167); the Theme row and the include switch are 44px with
@@ -15,12 +17,42 @@ echo "--- 104: the paper and the crew's page revalidate"
 
 run_case "the paper's no-cache is dropped" \
   "no longer sets Cache-Control on /nocturne/*" \
-  "${HD}a=\"frame-ancestors 'none'\\n  Cache-Control: no-cache\\n\\n# /hww/*\";assert s.count(a)==1;s=s.replace(a,\"frame-ancestors 'none'\\n\\n# /hww/*\",1);${W}" \
+  "${HD}a=\"frame-ancestors 'none'\\n  Cache-Control: no-cache\\n\\n# The paper's documents\";assert s.count(a)==1;s=s.replace(a,\"frame-ancestors 'none'\\n\\n# The paper's documents\",1);${W}" \
   guards "" 104
 
 run_case "the crew's page's no-cache is dropped" \
   "no longer sets Cache-Control on /hww/*" \
   "${HD}a='  X-Robots-Tag: noindex, nofollow\\n  Cache-Control: no-cache\\n';assert s.count(a)==1;s=s.replace(a,'  X-Robots-Tag: noindex, nofollow\\n',1);${W}" \
+  guards "" 104
+
+run_case "the paper front loses its canonical Link" \
+  "the paper front does not declare its own canonical Link" \
+  "${HD}a='  Link: <https://nightwatcher.life/nocturne/>; rel=\"canonical\"\\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
+  guards "" 104
+
+run_case "an issue's canonical stops naming that issue" \
+  "an issue page does not declare its own canonical Link" \
+  "${HD}a='  Link: <https://nightwatcher.life/nocturne/:issue/>; rel=\"canonical\"\\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
+  guards "" 104
+
+run_case "the paper front loses describedby" \
+  "does not carry describedby pointing at /llms.txt" \
+  "${HD}a='/nocturne/\\n  Link: <https://nightwatcher.life/sitemap.xml>; rel=\"sitemap\"\\n  Link: <https://nightwatcher.life/nocturne/>; rel=\"canonical\"\\n  Link: </llms.txt>; rel=\"describedby\"\\n';assert s.count(a)==1;s=s.replace(a,'/nocturne/\\n  Link: <https://nightwatcher.life/sitemap.xml>; rel=\"sitemap\"\\n  Link: <https://nightwatcher.life/nocturne/>; rel=\"canonical\"\\n',1);${W}" \
+  guards "" 104
+
+run_case "a font preload is bolted onto the paper" \
+  "the paper preloads a face it does not preload" \
+  "${HD}a='  Link: <https://nightwatcher.life/nocturne/>; rel=\"canonical\"\\n';assert s.count(a)==1;s=s.replace(a,'  Link: <https://nightwatcher.life/nocturne/>; rel=\"canonical\"\\n  Link: </fonts/limelight-latin-400-normal.woff2>; rel=preload; as=font; crossorigin\\n',1);${W}" \
+  guards "" 104
+
+run_case "a Link relation lands on every paper asset" \
+  "a Link relation sits under /nocturne/*" \
+  "${HD}a=\"frame-ancestors 'none'\\n  Cache-Control: no-cache\\n\";assert s.count(a)==1;s=s.replace(a,\"frame-ancestors 'none'\\n  Cache-Control: no-cache\\n  Link: <https://nightwatcher.life/nocturne/>; rel=\\\"canonical\\\"\\n\",1);${W}" \
+  guards "" 104
+
+run_case "the paper advertises an API it does not have" \
+  "the paper advertises api-catalog or service-doc" \
+  "${HD}a='  Link: </llms.txt>; rel=\"describedby\"\\n\\n/nocturne/:issue/';assert s.count(a)==1;s=s.replace(a,'  Link: </llms.txt>; rel=\"describedby\"\\n  Link: </.well-known/api-catalog>; rel=\"api-catalog\"\\n\\n/nocturne/:issue/',1);${W}" \
   guards "" 104
 
 echo "--- 165, 170: the worker steps aside without the slash too"

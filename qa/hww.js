@@ -21,7 +21,7 @@ var path = require("path");
 
 var ROOT    = path.join(__dirname, "..");
 var OUT_REL = "docs/hww";
-var LAST_AUDIT = "6.5.4";   /* the owner's record: the last independent audit read this release (6.5.5: the full audit of 30 Sept and the site audit of 29 Sept both read 6.5.4) */
+var LAST_AUDIT = "6.6.0";   /* the owner's record: the last independent audit read this release (6.5.5: the full audit of 30 Sept and the site audit of 29 Sept both read 6.5.4. 6.6.2: the pass that preceded 6.6.1 read the tree at 6.6.0, origin/main 39b39db, after a 6.5.9 checkout. 6.6.1 had not been audited as a release) */
 
 function read(rel){ return fs.readFileSync(path.join(ROOT, rel), "utf8"); }
 function esc(s){ return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }

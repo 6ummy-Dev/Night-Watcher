@@ -25,39 +25,39 @@ run_case "isPath goes back to the prototype-chain lookup" \
   return typeof id === \"string\" && HAS.call(PATHCODE, id) && typeof PATHCODE[id] === \"string\";
 }'''
 assert a in s
-s=s.replace(a,'function isPath(id){ return !!PATHCODE[id]; }',1);${W}"
+s=s.replace(a,'function isPath(id){ return !!PATHCODE[id]; }',1);${W}" guards "" 126
 
 run_case "isPath keeps hasOwnProperty and drops the string check" \
   "a name off Object.prototype passes as a path again" \
   "${P}a='&& typeof PATHCODE[id] === \"string\"';assert a in s
-s=s.replace(a,'|| typeof PATHCODE[id] !== \"undefined\"',1);${W}"
+s=s.replace(a,'|| typeof PATHCODE[id] !== \"undefined\"',1);${W}" guards "" 126
 
 run_case "isPath stops asking whether the key is its own" \
   "no longer asks PATHCODE whether the key is its own" \
   "${P}a='HAS.call(PATHCODE, id)';assert a in s
-s=s.replace(a,'(id in PATHCODE)',1);${W}"
+s=s.replace(a,'(id in PATHCODE)',1);${W}" guards "" 126
 
 run_case "isPath refuses a real path with the bad ones" \
   "the hardening took a real path with it" \
   "${P}a='typeof PATHCODE[id] === \"string\"';assert a in s
-s=s.replace(a,'typeof PATHCODE[id] === \"number\"',1);${W}"
+s=s.replace(a,'typeof PATHCODE[id] === \"number\"',1);${W}" guards "" 126
 
 run_case "BYID goes back to a plain object literal" \
   "BYID is a plain object literal again" \
   "${P}a='var BYID = Object.create(null);';assert a in s
-s=s.replace(a,'var BYID = {};',1);${W}"
+s=s.replace(a,'var BYID = {};',1);${W}" guards "" 126
 
 echo "--- 127: a failed read stops the writes"
 
 run_case "the read failure leaves saving on" \
   "failed read no longer stops the writes" \
   "${P}a='  catch(e){ readFailed = true; canSave = false; return; }';assert a in s
-s=s.replace(a,'  catch(e){ return; }',1);${W}"
+s=s.replace(a,'  catch(e){ return; }',1);${W}" guards "" 127
 
 run_case "one of the two failure paths stops latching" \
   "latches readFailed on both of its failure paths" \
   "${P}a='  }catch(e){ readFailed = true; canSave = false; }\n}\n';assert a in s
-s=s.replace(a,'  }catch(e){ canSave = false; }\n}\n',1);${W}"
+s=s.replace(a,'  }catch(e){ canSave = false; }\n}\n',1);${W}" guards "" 127
 
 run_case "persist writes without asking whether the read worked" \
   "persist() writes without asking whether the read succeeded" \
@@ -83,29 +83,29 @@ run_case "the write failure latches with no way back" \
 assert a in s
 s=s.replace(a,'  }',1)
 a2='function saveWorked(){ if(!canSave){ canSave = true; flagSave(); } }\n';assert a2 in s
-s=s.replace(a2,'',1);${W}"
+s=s.replace(a2,'',1);${W}" guards "" 127
 
 run_case "the old catch-and-latch shape comes back" \
   "that is the 2.4 shape returning" \
   "${P}a='  catch(e){ saveFailed(); }';assert a in s
-s=s.replace(a,'  catch(e){ canSave = false; flagSave(); }',1);${W}"
+s=s.replace(a,'  catch(e){ canSave = false; flagSave(); }',1);${W}" guards "" 127
 
 echo "--- 127: a restored container has to be a container"
 
 run_case "watched is taken straight off the payload again" \
   "takes a progress container straight off the parsed payload again" \
   "${P}a='  {k:\"watched\",      read:marksOf},';assert a in s
-s=s.replace(a,'  {k:\"watched\",      read:function(v){ return v || {}; }},',1);${W}"
+s=s.replace(a,'  {k:\"watched\",      read:function(v){ return v || {}; }},',1);${W}" guards "" 127
 
 run_case "ratings skip the shaping pass" \
   "no longer shapes all three progress containers" \
   "${P}a='  {k:\"rated\",        read:ratingsOf},';assert a in s
-s=s.replace(a,'  {k:\"rated\",        read:function(v){ return v ? v : {}; }},',1);${W}"
+s=s.replace(a,'  {k:\"rated\",        read:function(v){ return v ? v : {}; }},',1);${W}" guards "" 127
 
 run_case "marksOf keeps whatever value it is handed" \
   "no longer normalises a real container" \
   "${P}a='for(k in v){ if(HAS.call(v, k) && v[k]) out[k] = 1; }';assert a in s
-s=s.replace(a,'for(k in v){ if(HAS.call(v, k)) out[k] = v[k]; }',1);${W}"
+s=s.replace(a,'for(k in v){ if(HAS.call(v, k)) out[k] = v[k]; }',1);${W}" guards "" 127
 
 run_case "marksOf stops checking the shape it was given" \
   "returned something other than an empty container" \
@@ -115,18 +115,18 @@ run_case "marksOf stops checking the shape it was given" \
 assert a in s
 s=s.replace(a,'''function marksOf(v){
   var out = {}, k;
-  if(!v) return out;''',1);${W}"
+  if(!v) return out;''',1);${W}" guards "" 127
 
 run_case "the rating clamp comes out of ratingsOf" \
   "let an out-of-range rating through" \
   "${P}a='for(k in v){ if(HAS.call(v, k)){ n = clampRating(v[k]); if(n) out[k] = n; } }';assert a in s
-s=s.replace(a,'for(k in v){ if(HAS.call(v, k)){ n = v[k]; if(n) out[k] = n; } }',1);${W}"
+s=s.replace(a,'for(k in v){ if(HAS.call(v, k)){ n = v[k]; if(n) out[k] = n; } }',1);${W}" guards "" 127
 
 echo "--- 127: a log entry without a timestamp"
 
 run_case "mergeLog goes back to isFinite on its own" \
   "no longer asks validTs() about the timestamp" \
-  "${P}a='validTs(en.ts)';assert a in s;s=s.replace(a,'isFinite(en.ts)',1);${W}"
+  "${P}a='validTs(en.ts)';assert a in s;s=s.replace(a,'isFinite(en.ts)',1);${W}" guards "" 127
 
 run_case "validTs admits null again" \
   "validTs(null) is true" \
@@ -136,14 +136,14 @@ s=s.replace(a,'return isFinite(v);',1);${W}"
 run_case "validTs rejects a real timestamp" \
   "validTs() rejects a real timestamp" \
   "${P}a='&& isFinite(v) && Number(v) > 0;';assert a in s
-s=s.replace(a,'&& isFinite(v) && Number(v) > 0 && typeof v === \"number\";',1);${W}"
+s=s.replace(a,'&& isFinite(v) && Number(v) > 0 && typeof v === \"number\";',1);${W}" guards "" 127
 
 echo "--- 98: the share block's title tracks the level the tab uses"
 
 run_case "the share title drops back to an h3" \
   "the share block is not a card" \
   "${P}a='<div class=\"bk sharecard\"><h2>Share your progress</h2>';assert a in s
-s=s.replace(a,'<div class=\"bk sharecard\"><h3>Share your progress</h3>',1);${W}"
+s=s.replace(a,'<div class=\"bk sharecard\"><h3>Share your progress</h3>',1);${W}" guards "" 98
 
 echo "--- 123: the focus snapshot tells the two watched buttons apart"
 
@@ -151,11 +151,11 @@ run_case "the detail action button loses its data-src" \
   "indistinguishable from the row's own tick in a focus snapshot" \
   "${P}a='data-act=\"watched\" data-src=\"detail\" data-id=';assert a in s
 s=s.replace(a,'data-act=\"watched\" data-id=',1)
-a2='\"n\",\"pk\",\"src\"]';assert a2 in s;s=s.replace(a2,'\"n\",\"pk\"]',1);${W}"
+a2='\"n\",\"pk\",\"src\"]';assert a2 in s;s=s.replace(a2,'\"n\",\"pk\"]',1);${W}" guards "" 123
 
 run_case "dedupeLog stops asking about the timestamp" \
   "admitted an entry with no usable timestamp" \
   "${P}a='if(!e || !e.id || !BYID[e.id] || !validTs(e.ts)) return;';assert a in s
-s=s.replace(a,'if(!e || !e.id || !BYID[e.id]) return;',1);${W}"
+s=s.replace(a,'if(!e || !e.id || !BYID[e.id]) return;',1);${W}" guards "" 35
 
 finish "negtest350"

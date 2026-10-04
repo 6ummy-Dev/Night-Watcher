@@ -21,35 +21,35 @@ echo "--- 105: the export tracks the data"
 
 run_case "orders.txt is deleted" \
   "docs/orders.txt is missing" \
-  "import os;os.remove('docs/orders.txt')"
+  "import os;os.remove('docs/orders.txt')" guards "" 105
 
 run_case "orders.txt is emptied" \
   "no longer matches the catalogue" \
-  "import io;io.open('docs/orders.txt','w',encoding='utf-8').write('')"
+  "import io;io.open('docs/orders.txt','w',encoding='utf-8').write('')" guards "" 105
 
 run_case "a title drifts in the export" \
   "no longer matches the catalogue" \
-  "${T}s=s.replace('Pennyworth —','Pennyworth -',1);${TW}"
+  "${T}s=s.replace('Pennyworth —','Pennyworth -',1);${TW}" guards "" 105
 
 run_case "a year drifts in the export" \
   "no longer matches the catalogue" \
-  "${T}i=s.index('(2019)');s=s[:i]+'(2018)'+s[i+6:];${TW}"
+  "${T}i=s.index('(2019)');s=s[:i]+'(2018)'+s[i+6:];${TW}" guards "" 105
 
 run_case "a content rating is dropped from the export" \
   "no longer matches the catalogue" \
-  "${T}s=s.replace(' · TV-MA','',1);${TW}"
+  "${T}s=s.replace(' · TV-MA','',1);${TW}" guards "" 105
 
 run_case "an unreleased title loses its marker" \
   "no longer matches the catalogue" \
-  "${T}s=s.replace(' · NOT OUT YET','',1);${TW}"
+  "${T}s=s.replace(' · NOT OUT YET','',1);${TW}" guards "" 105
 
 run_case "two entries swap places inside a continuity" \
   "no longer matches the catalogue" \
-  "${T}import re;m=list(re.finditer(r'\n  (\d+)\. ',s));a=m[0].start();b=m[1].start();c=m[2].start() if len(m)>2 else len(s);s=s[:a]+s[b:c]+s[a:b]+s[c:];${TW}"
+  "${T}import re;m=list(re.finditer(r'\n  (\d+)\. ',s));a=m[0].start();b=m[1].start();c=m[2].start() if len(m)>2 else len(s);s=s[:a]+s[b:c]+s[a:b]+s[c:];${TW}" guards "" 105
 
 run_case "the entry count in the export's own header drifts" \
   "no longer matches the catalogue" \
-  "${T}s=s.replace('137 films','136 films',1);${TW}"
+  "${T}s=s.replace('137 films','136 films',1);${TW}" guards "" 105
 
 # 3.9.6 REPOINTED THIS FIXTURE AND THE REASON IS THE FIXTURE'S OWN SUBJECT. It
 # used to cut the header's sentence about which ordering the file carried and
@@ -65,17 +65,17 @@ run_case "the entry count in the export's own header drifts" \
 # what keeps that true.
 run_case "the header's account of the orderings is cut" \
   "no longer matches the catalogue" \
-  "${T}i=s.index('ALL THREE ORDERINGS ARE BELOW');j=s.index('cannot disagree with what the app renders.',i);s=s[:i]+s[j+41:];${TW}"
+  "${T}i=s.index('ALL THREE ORDERINGS ARE BELOW');j=s.index('cannot disagree with what the app renders.',i);s=s[:i]+s[j+41:];${TW}" guards "" 105
 
 echo "--- 105: the export stays findable, and stays out of the cache"
 
 run_case "llms.txt stops pointing at the export" \
   "llms.txt does not point at orders.txt" \
-  "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read();i=s.index('- The whole catalogue as plain text');j=s.index('\n',i);s=s[:i]+s[j+1:];io.open(p,'w',encoding='utf-8').write(s)"
+  "import io;p='docs/llms.txt';s=io.open(p,encoding='utf-8').read();i=s.index('- The whole catalogue as plain text');j=s.index('\n',i);s=s[:i]+s[j+1:];io.open(p,'w',encoding='utf-8').write(s)" guards "" 105
 
 run_case "the export is precached into the offline shell" \
   "orders.txt is in the offline shell" \
-  "import io;p='docs/sw.js';s=io.open(p,encoding='utf-8').read();i=s.index('var SHELL');j=s.index('[',i)+1;s=s[:j]+'\n  \"./orders.txt\",'+s[j:];io.open(p,'w',encoding='utf-8').write(s)"
+  "import io;p='docs/sw.js';s=io.open(p,encoding='utf-8').read();i=s.index('var SHELL');j=s.index('[',i)+1;s=s[:j]+'\n  \"./orders.txt\",'+s[j:];io.open(p,'w',encoding='utf-8').write(s)" guards "" 105
 
 run_case "the export is served but nothing decides about the cache" \
   "either add it to SHELL or name it" \

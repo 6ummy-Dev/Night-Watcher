@@ -18,17 +18,17 @@ echo "--- the scroll owner: document clipped, #app scrolls"
 run_case "the document unlocks" \
   "html,body no longer clip" \
   "${P}a='html,body{margin:0;padding:0;height:100%;overflow:hidden;}';assert a in s
-s=s.replace(a,'html,body{margin:0;padding:0;height:100%;}',1);${W}"
+s=s.replace(a,'html,body{margin:0;padding:0;height:100%;}',1);${W}" guards "" 64
 
 run_case "#app becomes a scroller again" \
   "#app scrolls" \
   "${P}a='height:100dvh;overflow:hidden;';assert a in s
-s=s.replace(a,'height:100dvh;overflow-y:auto;',1);${W}"
+s=s.replace(a,'height:100dvh;overflow-y:auto;',1);${W}" guards "" 64
 
 run_case "the overscroll chain reopens" \
   "chains its overscroll" \
   "${P}a='overflow-y:auto;overscroll-behavior:none;scroll-snap-align:start;';assert a in s
-s=s.replace(a,'overflow-y:auto;scroll-snap-align:start;',1);${W}"
+s=s.replace(a,'overflow-y:auto;scroll-snap-align:start;',1);${W}" guards "" 64
 
 echo "--- the banned scroller: window calls address what no longer moves"
 
@@ -45,7 +45,7 @@ s=s.replace(a,'if(drift) window.scrollBy(0, drift);',1);${W}"
 run_case "the retraction listener binds to window again" \
   "a scroll listener is bound to window" \
   "${P}a='dropArmedEl.addEventListener(\"scroll\", dropScrollOnce';assert a in s
-s=s.replace(a,'window.addEventListener(\"scroll\", dropScrollOnce',1);${W}"
+s=s.replace(a,'window.addEventListener(\"scroll\", dropScrollOnce',1);${W}" guards "" 64
 
 echo "--- 122: the restore still settles, and still exists"
 
@@ -57,7 +57,7 @@ run_case "the restore goes bare again" \
 assert a in s
 s=s.replace(a,'''  if(keep) scrollPut(keep);
   if(keep){
-    vp.classList.add(\"settling\");''',1);${W}"
+    vp.classList.add(\"settling\");''',1);${W}" guards "" 122
 
 # 4.4.4: the 4.4.2 settle added a SECOND scrollPut(keep) inside the rAF,
 # so removing the first no longer brought the bug back whole — the fixture
@@ -71,7 +71,7 @@ assert a in s
 s=s.replace(a,'requestAnimationFrame(function(){ vp.classList.remove(\"settling\"); });',1)
 b='if(drift) scrollPut(scrollKeep() + drift);'
 assert b in s
-s=s.replace(b,'',1);${W}"
+s=s.replace(b,'',1);${W}" guards "" 122
 
 rm -rf "$NEG"
 finish "negtest460"

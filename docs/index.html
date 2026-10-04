@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-otzhpBqkTWaLMZ1Pk4eRz7G/2so5m2qxAF0Eh5DaIVs='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-hmZTfAczhFXGawJeg3/VA8Q/HTIFcgs4ldr0WO3Ym94='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -546,7 +546,7 @@ main,.panel{scrollbar-gutter:stable both-edges;}
 <div id="app">
   <header>
     <div class="hrow">
-      <button class="mark" id="markBtn" aria-label="Home">
+      <button class="mark" id="markBtn" type="button" aria-label="Home">
         <svg viewBox="8 16 84 70" aria-hidden="true"><g fill="currentColor" transform="translate(0,5)">
           <path d="M50 36 C 44 25, 29 21, 12 30 C 21 34, 25 41, 24 50 C 31 45, 37 47, 39 55 C 43 50, 47 51, 49 58 L 50 61 L 51 58 C 53 51, 57 50, 61 55 C 63 47, 69 45, 76 50 C 75 41, 79 34, 88 30 C 71 21, 56 25, 50 36 Z"/>
           <path d="M42 32 L49 29 L38 17 Z"/><path d="M58 32 L62 17 L51 29 Z"/>
@@ -554,8 +554,8 @@ main,.panel{scrollbar-gutter:stable both-edges;}
           <path d="M50 51 C 45 60, 45 69, 50 78 C 55 69, 55 60, 50 51 Z"/>
         </g></svg>
       </button>
-      <div class="wordmark"><h1><button id="topBtn">Night Watcher</button></h1><p id="hsub">Batman watch orders</p></div>
-      <button class="ring" id="ringBtn" aria-label="0% — open progress">
+      <div class="wordmark"><h1><button id="topBtn" type="button">Night Watcher</button></h1><p id="hsub">Batman watch orders</p></div>
+      <button class="ring" id="ringBtn" type="button" aria-label="0% — open progress">
         <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">
           <circle id="ringTrack" cx="23" cy="23" r="17.5" fill="none" stroke-width="3"></circle>
           <circle id="ringArc" cx="23" cy="23" r="17.5" fill="none" stroke-width="3"
@@ -565,7 +565,7 @@ main,.panel{scrollbar-gutter:stable both-edges;}
       </button>
     </div>
     <p id="nosave" role="status" hidden>Storage is blocked here — progress will be gone when you reload. Back up your code from Progress.</p>
-    <button id="beltpeek" data-lit="life" aria-label="Path switcher — open"></button>
+    <button id="beltpeek" type="button" data-lit="life" aria-label="Path switcher — open"></button>
   </header>
   <main id="view">
 <h1>Every Batman story ever filmed</h1>
@@ -1034,13 +1034,13 @@ main,.panel{scrollbar-gutter:stable both-edges;}
 <p>Keep the path lit. <a href="https://publishers.basicattentiontoken.org/en/c/nightwatcher" target="_blank" rel="noopener noreferrer">Support</a></p>
 </main>
   <nav id="tabs" aria-label="Views">
-    <button data-tab="home" aria-current="page">
+    <button type="button" data-tab="home" aria-current="page">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.1 10.9 12 4.4l7.9 6.5v8.7H4.1Z"/></svg>Home</button>
-    <button data-tab="next">
+    <button type="button" data-tab="next">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.75 4.9 18.5 12l-9.75 7.1Z" fill="currentColor" stroke-linejoin="round"/></svg>Next up</button>
-    <button data-tab="watch">
+    <button type="button" data-tab="watch">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="4.6" cy="6.2" r="1.4" fill="currentColor" stroke="none"/><path d="M9.2 6.2h10.8"/><circle cx="4.6" cy="12" r="1.4" fill="currentColor" stroke="none"/><path d="M9.2 12h10.8"/><circle cx="4.6" cy="17.8" r="1.4" fill="currentColor" stroke="none"/><path d="M9.2 17.8h10.8"/></svg>The path</button>
-    <button data-tab="stats">
+    <button type="button" data-tab="stats">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.6" opacity=".38"/><path d="M12 4.4a7.6 7.6 0 0 1 7.6 7.6"/></svg>Progress</button>
   </nav>
 </div>
@@ -1522,7 +1522,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "6.6.1";
+var BUILD = "6.6.2";
 var BUILT = "2026-10-04";
 var KEY = "batwatch-v3";
 var SKEY = "batwatch-settings";

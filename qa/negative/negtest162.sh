@@ -8,11 +8,11 @@ M="import io;p='docs/sitemap.xml';s=io.open(p,encoding='utf-8').read();"
 echo "--- 67: the page's date (was an unnumbered pair of checks until 1.6.6)"
 run_case "the sitemap date drifts from the structured data" \
   "both are hand-written and one of them is wrong" \
-  "${M}import re;s=re.sub(r'<lastmod>[^<]*</lastmod>','<lastmod>2026-07-31</lastmod>',s);${W}"
+  "${M}import re;s=re.sub(r'<lastmod>[^<]*</lastmod>','<lastmod>2026-07-31</lastmod>',s);${W}" guards "" 67
 
 run_case "the sitemap loses its lastmod" \
   "it tells a crawler nothing about freshness" \
-  "${M}import re;s=re.sub(r'<lastmod>[^<]*</lastmod>','',s);${W}"
+  "${M}import re;s=re.sub(r'<lastmod>[^<]*</lastmod>','',s);${W}" guards "" 67
 
 echo "--- 61: an inherited fade is measured too"
 run_case "the Activity block is faded instead of stepped (the idea this release rejected)" \
@@ -23,7 +23,7 @@ run_case "the Activity block is faded instead of stepped (the idea this release 
 echo "--- 62: nothing focusable is small enough to zoom"
 run_case "the search field goes back under 16px" \
   "iOS zooms the page on any focused input under 16px" \
-  "${P}a='font-family:var(--body);font-size:var(--t-body);margin-bottom:12px';assert a in s;s=s.replace(a,'font-family:var(--body);font-size:15px;margin-bottom:12px');${W}"
+  "${P}a='font-family:var(--body);font-size:var(--t-body);margin-bottom:12px';assert a in s;s=s.replace(a,'font-family:var(--body);font-size:15px;margin-bottom:12px');${W}" guards "" 62
 
 run_case "the backup paste field goes back under 16px" \
   ".bkin is 11px" \
@@ -31,20 +31,20 @@ run_case "the backup paste field goes back under 16px" \
 
 run_case "a field loses its font-size entirely" \
   "has no font-size of its own to measure" \
-  "${P}a='font-family:var(--mono);font-size:var(--t-body);line-height:1.5;padding:11px;margin:12px 0 10px;';assert a in s;s=s.replace(a,'font-family:var(--mono);line-height:1.5;padding:11px;margin:12px 0 10px;');${W}"
+  "${P}a='font-family:var(--mono);font-size:var(--t-body);line-height:1.5;padding:11px;margin:12px 0 10px;';assert a in s;s=s.replace(a,'font-family:var(--mono);line-height:1.5;padding:11px;margin:12px 0 10px;');${W}" guards "" 62
 
 echo "--- 63: the grid columns have a floor"
 run_case "the columns go back to a bare 1fr" \
   "that is minmax(auto,1fr)" \
-  "${P}a='grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}';assert a in s;s=s.replace(a,'grid-template-columns:1fr 1fr;gap:10px;}');${W}"
+  "${P}a='grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}';assert a in s;s=s.replace(a,'grid-template-columns:1fr 1fr;gap:10px;}');${W}" guards "" 63
 
 run_case "the floor is raised off zero" \
   "columns have no zero floor" \
-  "${P}a='repeat(2,minmax(0,1fr))';assert a in s;s=s.replace(a,'repeat(2,minmax(120px,1fr))');${W}"
+  "${P}a='repeat(2,minmax(0,1fr))';assert a in s;s=s.replace(a,'repeat(2,minmax(120px,1fr))');${W}" guards "" 63
 
 run_case "the card can no longer break a word" \
   "cannot break a long word" \
-  "${P}a='min-height:98px;overflow-wrap:anywhere;}';assert a in s;s=s.replace(a,'min-height:98px;}');${W}"
+  "${P}a='min-height:98px;overflow-wrap:anywhere;}';assert a in s;s=s.replace(a,'min-height:98px;}');${W}" guards "" 63
 
 # The two guard-66 fixtures this suite carried (renumber a section; drop an
 # INDEX row) were copies of negtest.sh's, three suites over; struck in 4.9.0.
