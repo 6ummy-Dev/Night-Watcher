@@ -376,21 +376,37 @@ and `worker.js` cite the maintainer's local evidence files
 maintainer-local where cited — they are not in the repository, and this file
 is the in-repo home for anything a release actually depends on.
 
-## The `main` ruleset (read 28 Sept 2026)
+## The `main` ruleset (read 4 October 2026)
 
-Read in Settings → Rules by the owner; the file records it so a reader does
-not have to guess what protects `main`. GitHub is the authority; if the two
-disagree, the panel is right and this table is stale.
+Read from the ruleset API (`GET /repos/6ummy-Dev/Night-Watcher/rulesets/19786317`).
+The file records it so a reader does not have to guess what protects `main`.
+GitHub is the authority; if the two disagree, the panel is right and this
+table is stale.
 
 | Setting | State |
 |---|---|
-| Ruleset | "Inicial", active on `main` |
-| Pull request | Required; 1 approval; code-owner review; the latest push approved by someone other than its pusher; stale approvals dismissed |
+| Ruleset | "Inicial", active, on the default branch |
+| Pull request | Required; 1 approval; code-owner review; the latest push approved by someone other than its pusher; stale approvals dismissed; an extra approval when the change is unattributed. Merge, squash and rebase are allowed |
 | Force-push, deletion | Blocked |
-| Bypass | Repository admin (the owner) only. Neither app is on the list |
-| Required status checks | `nocturne-paths`. The owner's call (28 Sept) is to add the QA jobs too: `test`, `negative` and `browser`, one check per matrix leg (three Node lines, four shards, two engines). GitHub offers each by its full name only after it has run on a pull request |
-| Actions | Workflow token read-only; Actions can't create or approve pull requests; fork PRs from outsiders need approval |
-| Security | CodeQL default setup (JavaScript, `qa/guards.js` included; Actions, HTML, Python); secret scanning and push protection on; Dependabot alerts and grouped security updates on, version updates off |
+| Bypass | This read returned no bypass list (`bypass_actors` null). None is named here |
+| Required status checks | Ten, listed under the table as the API returns them. A branch does not have to be up to date with `main` before merge |
+| Actions | Not in the ruleset object. Last written 28 Sept 2026: workflow token read-only; Actions can't create or approve pull requests; fork PRs from outsiders need approval |
+| Security | Not in the ruleset object. Last written 28 Sept 2026: CodeQL default setup (JavaScript, `qa/guards.js` included; Actions, HTML, Python); secret scanning and push protection on; Dependabot alerts and grouped security updates on, version updates off |
+
+The ten required contexts, character for character:
+
+- `nocturne-paths`
+- `negative (1, negtest(162|165|186|190|260|300|310|340|360|370|440|540|550|560|570|590|610|660|680|...`
+- `negative (2, negtest(163|166|172|177|180|183|185|187|200|210|271|330|420|475|478|500|510|520|640|...`
+- `negative (3, negtest(131|161|164|171|175|176|220|251|270|350|390|410|460|490|530|620|630|710|740|...`
+- `negative (4, negtest(170|181|182|195|250|252|272|273|320|380|400|430|450|470|476|480|580|600|650|...`
+- `test (22)`
+- `test (24)`
+- `test (26)`
+- `browser (chromium)`
+- `browser (webkit)`
+
+The four `negative` strings are 100 characters in the API and end in `...`.
 
 ## Standing notes
 
