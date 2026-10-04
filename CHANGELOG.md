@@ -14,6 +14,22 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.6.0] — 2026-10-04
+
+**A MINOR by the owner's call on 4 October.** README would have filed the
+pack since v6.5.0 as PATCH: no new control, no catalogue row, and nothing
+saved changes shape. The pack is the QA fixes (a restore is not a night, and
+an unreadable store can be cleared), the crew page, the colophon and the
+footer, and HWW type. Sunday's issue stays its own pull request. The
+catalogue does not move, and the counts stay at 137 films, 71 seasons and 44
+continuities. **No reinstall is needed.**
+
+### Changed
+
+- **The ruleset table matches the 4 October read.** Inicial requires
+  `nocturne-paths`, `test (22)`, `test (24)`, `test (26)`, both browser
+  engines, and four negative shards, under the names the API returns.
+
 ## [6.5.9] — 2026-10-04
 
 **How we work wears the app’s type.** Section titles on the crew page were set in Big Shoulders, the face the item titles wear. They wear NW Deco now, tracked like the app’s landmarks. The counts wear `--num`. Body copy sits at a line-height of 1.5, and each `@font-face` sets `font-style: normal`. The catalogue does not move, nothing saved changes shape, and the counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.**
