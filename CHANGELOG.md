@@ -14,6 +14,14 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.6.3] — 2026-10-04
+
+**Why PATCH.** Nocturne's documents answer `Accept: text/markdown`. HTML stays the default. An issue's markdown is that issue's own `issue.md`. The front's markdown is the front the build already writes: the latest Night Final, what is inside it, and the morgue. Stylesheets, scripts, images, fonts and the feed do not negotiate. No catalogue change. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Changed
+
+- **Nocturne negotiates markdown.** `GET` or `HEAD` of `/nocturne/` or `/nocturne/<issue>/`, with an `Accept` that prefers `text/markdown` the way the homepage already parses q-values, answers `text/markdown; charset=utf-8`, `Vary: Accept`, and `Content-Location` pointing at that page's markdown. The three Link relations the HTML document sends ride on the response. `rel="api-catalog"` and `rel="service-doc"` stay off. A browser's Accept still gets the HTML from the assets plane. Slashless `/nocturne` still falls through, so the redirect stays the network's. The HTML documents declare `Vary: Accept` too, or a cache could store one representation and hand it to the other client. A title that contains a backslash is escaped before `]`, so the markdown link label cannot close early. The holding page's markdown is held to the same rule as its HTML: it promises no date.
+
 ## [6.6.2] — 2026-10-04
 
 **Why PATCH.** Tooling and copy. No catalogue change, no new control, and

@@ -16,20 +16,22 @@
   "observability": {
     "enabled": true
   },
-  /* The `main` script owns two request shapes: `GET /` with an Accept header
-     that prefers text/markdown gets llms.txt as the markdown representation,
-     and GET /.well-known/api-catalog answers an empty RFC 9727 linkset (the
-     honest "no API"). run_worker_first is scoped to exactly those two paths:
-     every OTHER path is served by the assets plane directly and cannot be
-     intercepted, slowed, or altered by worker code. "/" has an asset behind
-     it and falls through byte-for-byte for browsers; "/.well-known/api-catalog"
-     has none, so scoping the worker to it costs no asset the hop. Guard 133
-     executes every branch. */
+  /* The `main` script owns three request shapes: `GET /` with an Accept
+     header that prefers text/markdown gets llms.txt as the markdown
+     representation, GET /.well-known/api-catalog answers an empty RFC 9727
+     linkset (the honest "no API"), and GET /nocturne/ or /nocturne/<issue>/
+     with that Accept gets that page's own markdown. run_worker_first is
+     scoped to exactly those paths. `*` matches deeply, and the paper pattern
+     is only directory URLs, so a stylesheet, a script, an image, a font, the
+     feed, and the slashless /nocturne redirect stay on the assets plane.
+     "/" and the paper documents have assets behind them and fall through for
+     browsers; "/.well-known/api-catalog" has none. Guard 133 executes every
+     branch. */
   "main": "worker.js",
   "assets": {
     "directory": "docs",
     "binding": "ASSETS",
-    "run_worker_first": ["/", "/.well-known/api-catalog"],
+    "run_worker_first": ["/", "/.well-known/api-catalog", "/nocturne/", "/nocturne/*/"],
     /* "404-page", NOT "single-page-application". The app is one page with
        hash routing, so SPA fallback buys nothing — and it would turn every
        missing asset into a cached-as-HTML 200, which is why it stays banned.

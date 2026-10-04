@@ -1169,6 +1169,53 @@ function renderIssue(is, cat){
   return out;
 }
 
+/* The front's markdown (6.6.3). There is no source file for /nocturne/:
+   the front is this function's HTML, and the markdown is the same page —
+   the nameplate, the dateline, the latest issue's title and cold open,
+   what is inside it, and the morgue. Nothing here is a second pitch.
+   An issue's markdown is its own issue.md, copied byte for byte. */
+function mdLink(text, href){
+  /* Backslash first: a \ before ] would otherwise escape the escape and close the label. */
+  return "[" + String(text).replace(/\\/g, "\\\\").replace(/\]/g, "\\]") + "](" + href + ")";
+}
+function renderFrontMarkdown(list){
+  var is = list[0], fm = is.fm, founding = fm.kind === "founding";
+  var href = "/nocturne/" + is.id + "/";
+  var lines = ["# Nocturne", "",
+    "The Night Final. Every Sunday, late. Price: nothing. No account.", "",
+    "Latest. No. " + fm.issue + ". " + longDate(fm.published) + ".", "",
+    "## " + mdLink(fm.title, href), "",
+    fm.cold_open, "",
+    "In this issue", ""];
+  fm.stories.forEach(function(st, i){
+    var label = founding ? st.headline : st.beat + " " + st.headline;
+    lines.push((i + 1) + ". " + mdLink(label, href + "#s" + (i + 1)));
+  });
+  lines.push("", mdLink("Read the Night Final", href), "", "## The morgue", "");
+  var rest = list.slice(1);
+  if(!rest.length) lines.push("No. " + fm.issue + " is the first. Back issues file here from next Sunday.");
+  else rest.forEach(function(b){
+    lines.push("- No. " + b.fm.issue + ". " + longDate(b.fm.published) + ". " +
+                mdLink(b.fm.title, "/nocturne/" + b.id + "/"));
+  });
+  lines.push("");
+  return lines.join("\n");
+}
+function renderHoldingMarkdown(){
+  return ["# Nocturne", "",
+    "The Night Final. Every Sunday, late. Price: nothing. No account.", "",
+    "## On the press", "",
+    "The first Night Final is being set. Nocturne is the weekly paper of Night Watcher.", "",
+    "### The beat", "",
+    "Batman on screen, in comics, games, toys and books. The week\u2019s news, gathered once.", "",
+    "### The map next door", "",
+    "When a story touches the watch orders, a box says where it sits. The news comes first.", "",
+    "### The hour", "",
+    "Sunday, late. One issue a week, none in a week without news. No account, no spoilers, every source linked.", "",
+    "The feed is already open. Add it to your reader and the first issue arrives there.", ""
+  ].join("\n");
+}
+
 /* The front (6.4.0). /nocturne/ leads with the latest Night Final: its
    headline, hero, cold open and what is inside, then one button into the
    issue. Back issues file below under The morgue. The nameplate is the h1. */
@@ -1530,17 +1577,20 @@ function build(root, opts){
       var page = renderIssue(is, cat);
       renderedLinkErrors(is, page).forEach(function(m){ errs.push(m); });
       files[is.id + "/index.html"] = Buffer.from(page, "utf8");
+      files[is.id + "/issue.md"] = fs.readFileSync(path.join(is.dir, "issue.md"));
       files[is.id + "/card.png"] = issueCard(is);
       (is.fm.images || []).forEach(function(im){
         files[is.id + "/" + im.file] = fs.readFileSync(path.join(is.dir, im.file));
       });
     });
     files["index.html"] = Buffer.from(renderArchive(list), "utf8");
+    files["index.md"]   = Buffer.from(renderFrontMarkdown(list), "utf8");
     files["card.png"]   = paperCard();
     files["feed.xml"]   = Buffer.from(renderFeed(list), "utf8");
   }
   else if(!errs.length){
     files["index.html"] = Buffer.from(renderHolding(), "utf8");
+    files["index.md"]   = Buffer.from(renderHoldingMarkdown(), "utf8");
     files["feed.xml"]   = Buffer.from(renderFeed([]), "utf8");
   }
   Object.keys(files).forEach(function(f){

@@ -1,20 +1,26 @@
 /* Night Watcher — the Worker in front of the assets.
  *
- * Two request shapes are answered here; everything else falls through to
+ * Three request shapes are answered here; everything else falls through to
  * env.ASSETS.fetch() untouched (same bytes, same _headers, same CSP hash,
- * same ETag), and wrangler.jsonc scopes run_worker_first to exactly these two
- * paths so nothing else pays the hop:
+ * same ETag). wrangler.jsonc scopes run_worker_first to the root, the
+ * api-catalog, and Nocturne's document URLs, so a stylesheet, a script, an
+ * image, a font, the feed, and the slashless /nocturne redirect never pay
+ * the hop:
  *
  *   GET|HEAD /   with an Accept that PREFERS text/markdown → docs/llms.txt as
  *                text/markdown, with the asset's own validators so a
  *                revalidation under no-cache can answer 304.
  *   GET|HEAD /.well-known/api-catalog → an empty RFC 9727 linkset: the
  *                machine-readable "there is no API", sibling to auth.md.
+ *   GET|HEAD /nocturne/ and /nocturne/<issue>/ with that same Accept →
+ *                the front's index.md, or that issue's own issue.md.
+ *                HTML stays the default. The script refuses every other
+ *                path on its own, including the slashless forms.
  *
  * .then() chains, not async/await: guard 133 drives this handler with a
  * synchronous thenable harness, and await cannot be forced synchronous.
- * docs/_headers reaches asset responses and nothing built here, so the two
- * responses restate the security set and the root's Link set from the
+ * docs/_headers reaches asset responses and nothing built here, so the
+ * responses restate the security set and the document Link set from the
  * constants below; guard 133 holds them equal to _headers.
  * History (why not the dashboard, why the catalogue is empty, the validators):
  * NOTES-history.md ("Where the served and config files' histories went").
@@ -59,11 +65,33 @@ function wantsMarkdown(accept){
   return md > 0 && md > html;
 }
 
-function markdownResponse(request, env, head){
+/* A Nocturne document, or nothing. /nocturne/ is the front. An issue is
+   one lowercase path segment and a trailing slash — the pretty URL, not
+   index.html, and not a file. Stylesheets, scripts, images, fonts, the
+   feed, the markdown files themselves, and the slashless /nocturne (the
+   assets plane redirects that) all return null and fall through. */
+function paperDoc(pathname){
+  if(pathname === "/nocturne/"){
+    return {asset: "/nocturne/index.md", canonical: "https://nightwatcher.life/nocturne/"};
+  }
+  var m = pathname.match(/^\/nocturne\/([a-z0-9]+(?:-[a-z0-9]+)*)\/$/);
+  if(!m) return null;
+  return {asset: "/nocturne/" + m[1] + "/issue.md",
+          canonical: "https://nightwatcher.life/nocturne/" + m[1] + "/"};
+}
+/* The three document relations the HTML page already sends. No api-catalog,
+   no service-doc: the site has no API, and the homepage does not send them. */
+function paperLinks(canonical){
+  return '<https://nightwatcher.life/sitemap.xml>; rel="sitemap", <' + canonical +
+         '>; rel="canonical", </llms.txt>; rel="describedby"';
+}
+
+function markdownResponse(request, env, head, assetPath, links){
   var url = new URL(request.url);
-  return env.ASSETS.fetch(new Request(url.origin + "/llms.txt")).then(function(res){
-    /* If llms.txt cannot be read, the negotiation quietly does not exist:
-       fall through to the page rather than invent a broken markdown body. */
+  var where = assetPath || "/llms.txt";
+  return env.ASSETS.fetch(new Request(url.origin + where)).then(function(res){
+    /* If the representation cannot be read, the negotiation quietly does
+       not exist: fall through to the page rather than invent a body. */
     if(!res || res.status !== 200) return env.ASSETS.fetch(request);
     /* The asset's validators ride through, so a client revalidating under
        no-cache can be answered 304 instead of re-sent the whole body. */
@@ -71,11 +99,12 @@ function markdownResponse(request, env, head){
     var modified = (res.headers && res.headers.get("Last-Modified")) || "";
     var headers = withSecurity({
       "Content-Type": "text/markdown; charset=utf-8",
-      "Content-Location": "/llms.txt",
+      "Content-Location": where,
       "Link": ROOT_LINKS,
       "Vary": "Accept",
       "Cache-Control": "no-cache"
     });
+    if(links) headers["Link"] = links;
     if(etag) headers["ETag"] = etag;
     if(modified) headers["Last-Modified"] = modified;
     /* RFC 9110 §13.1.2: "*" matches any current representation, and the
@@ -122,6 +151,12 @@ export default {
        (request.method === "GET" || request.method === "HEAD") &&
        wantsMarkdown(request.headers.get("Accept"))){
       return markdownResponse(request, env, request.method === "HEAD");
+    }
+    var doc = paperDoc(url.pathname);
+    if(doc &&
+       (request.method === "GET" || request.method === "HEAD") &&
+       wantsMarkdown(request.headers.get("Accept"))){
+      return markdownResponse(request, env, request.method === "HEAD", doc.asset, paperLinks(doc.canonical));
     }
     return env.ASSETS.fetch(request);
   }

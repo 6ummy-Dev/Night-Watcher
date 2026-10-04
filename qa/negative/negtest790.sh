@@ -52,7 +52,7 @@ run_case "a Link relation lands on every paper asset" \
 
 run_case "the paper advertises an API it does not have" \
   "the paper advertises api-catalog or service-doc" \
-  "${HD}a='  Link: </llms.txt>; rel=\"describedby\"\\n\\n/nocturne/:issue/';assert s.count(a)==1;s=s.replace(a,'  Link: </llms.txt>; rel=\"describedby\"\\n  Link: </.well-known/api-catalog>; rel=\"api-catalog\"\\n\\n/nocturne/:issue/',1);${W}" \
+  "${HD}a='  Link: </llms.txt>; rel=\"describedby\"\\n  Vary: Accept\\n\\n/nocturne/:issue/';assert s.count(a)==1;s=s.replace(a,'  Link: </llms.txt>; rel=\"describedby\"\\n  Vary: Accept\\n  Link: </.well-known/api-catalog>; rel=\"api-catalog\"\\n\\n/nocturne/:issue/',1);${W}" \
   guards "" 104
 
 echo "--- 165, 170: the worker steps aside without the slash too"
