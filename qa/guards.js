@@ -13908,16 +13908,15 @@ var ROUTE_VOCAB = [
 })();
 
 /* ---------- 144. The wrangler state stays out of the index ------------- */
-/* Releases here ship by unzipping files, and a zip cannot carry a git
-   operation — so a release note once claimed the Miniflare cache under
+/* A tree with no git index cannot prove this, and the negative scratch
+   copy is that tree. A release note once claimed the Miniflare cache under
    .wrangler/state/ had left the index when it had only left the release
    branch. A sentence claiming a fact the tree does not hold is this
    project's most-repeated bug class, so the fact gets a guard. .gitignore
    lists .wrangler/; nothing under it belongs in the index (wrangler dev
    recreates the directory). This section reads the git index file directly
-   — no git binary, no child process. Where no .git exists (a zip-applied
-   tree, a negative scratch copy) it says so and stands down; CI and the
-   release machine always have one. */
+   — no git binary, no child process. Where no .git exists it says so and
+   stands down; CI and a normal checkout always have one. */
 
 (function(){
   var gidx = path.join(ROOT, ".git", "index");

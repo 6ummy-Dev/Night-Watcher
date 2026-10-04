@@ -1,8 +1,9 @@
 # Contributing to Night Watcher
 
-One fan, working solo, with a QA harness that argues back. This is the map
-of the documents, how a change lands, and the two checklists nothing else
-carried in writing: adding a guard section, and adding a negative suite.
+One owner, a weekday Cursor desk, a Sunday paper desk, and a QA harness
+that argues back. This is the map of the documents, how a change lands, and
+the two checklists nothing else carried in writing: adding a guard section,
+and adding a negative suite.
 
 ## Which document answers what
 
@@ -15,16 +16,22 @@ carried in writing: adding a guard section, and adding a negative suite.
 | How did it come to be this way — the post-mortems and release essays | `NOTES-history.md` |
 | What shipped in each release, newest first | `CHANGELOG.md` (4.0.0 onward; `CHANGELOG-archive.md` holds 1.x–3.x) |
 | What is the release checklist, the wire checks, the rollback | `RELEASING.md` |
+| Who pushes, who merges, what the Sunday desk does | `qa/hww.js` (rendered `docs/hww/`). Do not restate it |
+| What a Cursor agent reads, and what it must not do | `AGENTS.md` |
+| Where a tab paints, which commands to run, which files are generated | `CLAUDE.md` |
 | What is the exact rule and the failure it was written after | the comment above each section of `qa/guards.js` |
 | How to report a security issue | `SECURITY.md` |
 
 ## How a change lands
 
-Releases ship as zips the owner uploads to `main` — never pushes, never
-pull requests — so "one change, one commit, one CHANGELOG entry" is the
-whole workflow.
+Weekday work is a pull request from the Cursor agent. The owner reviews
+and merges. A merge to `main` publishes the site. `npm run deploy` is
+recovery, in `RELEASING.md`. Who does what is `qa/hww.js` (rendered at
+`docs/hww/`, unlisted). One change still gets one CHANGELOG entry. The
+version rule is `README.md` ("Releasing").
 
-**The one exception is Nocturne (6.2.0).** Each weekly issue arrives as a
+**Nocturne (6.2.0) is the Sunday desk, not an exception to the pull
+request.** Each weekly issue arrives as a
 pull request from a `nocturne/` branch, opened by the desk's GitHub App as
 `nocturne-night-final[bot]`. It may change `nocturne/issues/`,
 `nocturne/NOTEBOOK.md`, `docs/nocturne/` and `docs/sitemap.xml` only (the
