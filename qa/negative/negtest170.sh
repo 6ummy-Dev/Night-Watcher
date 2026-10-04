@@ -8,12 +8,12 @@ R="$(pro README.md)"
 echo "--- 5: the serials need decades to live in"
 run_case "the forties bucket is removed under an entry that needs it" \
   "falls outside every DECADES bucket" \
-  "${P}a=' {k:1940, name:\"The forties\"';assert a in s;i=s.index(a);j=s.index('\n',i+1);s=s[:i]+s[j:];${W}"
+  "${P}a=' {k:1940, name:\"The forties\"';assert a in s;i=s.index(a);j=s.index('\n',i+1);s=s[:i]+s[j:];${W}" guards "" 5
 
 echo "--- 51: a continuous arc may age, but not un-age"
 run_case "the Nolan trilogy runs backwards through the eras" \
   "cannot un-age" \
-  "${P}a='{i:\"the-dark-knight-rises-2012\",t:\"The Dark Knight Rises\",y:2012,e:5';assert a in s;s=s.replace(a,'{i:\"the-dark-knight-rises-2012\",t:\"The Dark Knight Rises\",y:2012,e:1');${W}"
+  "${P}a='{i:\"the-dark-knight-rises-2012\",t:\"The Dark Knight Rises\",y:2012,e:5';assert a in s;s=s.replace(a,'{i:\"the-dark-knight-rises-2012\",t:\"The Dark Knight Rises\",y:2012,e:1');${W}" guards "" 51
 
 run_case "a film is lifted out of the Dark Knight Saga" \
   "should hold 3 films, found 2" \
@@ -34,12 +34,12 @@ run_case "a continuity is added and the meta tags are not" \
 
 run_case "the episode floor is left behind by a new series" \
   "the floor is far enough behind to be misleading" \
-  "${R}a='2,000+ episodes';assert a in s;s=s.replace(a,'1,700+ episodes');${W}"
+  "${R}a='2,000+ episodes';assert a in s;s=s.replace(a,'1,700+ episodes');${W}" guards "" 14
 
 echo "--- the inclusion rule is on the page, not in someone's head"
 run_case "the README loses the rule for what belongs here" \
   "README no longer describes" \
-  "${R}a='## What belongs in the catalogue';assert a in s;s=s.replace(a,'## Notes on scope');${W}"
+  "${R}a='## What belongs in the catalogue';assert a in s;s=s.replace(a,'## Notes on scope');${W}" guards "" 31
 
 echo "--- smoke: positional numbering survives an empty bucket"
 run_case "the group numbers are assigned before the empty ones are dropped" \

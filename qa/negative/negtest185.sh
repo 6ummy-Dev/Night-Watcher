@@ -6,11 +6,11 @@
 echo "--- 82: Pages never gets a custom domain"
 run_case "a CNAME appears in the published directory" \
   "that is a GitHub Pages custom domain" \
-  "import io;io.open('docs/CNAME','w').write('nightwatcher.life\n')"
+  "import io;io.open('docs/CNAME','w').write('nightwatcher.life\n')" guards "" 82
 
 run_case "a CNAME appears at the repo root" \
   "that is a GitHub Pages custom domain" \
-  "import io;io.open('CNAME','w').write('nightwatcher.life\n')"
+  "import io;io.open('CNAME','w').write('nightwatcher.life\n')" guards "" 82
 
 echo "--- 83: the manifest id is an identity"
 # Inverted in 2.7.0. This fixture used to mutate the id TO "/" and require a
@@ -20,17 +20,17 @@ echo "--- 83: the manifest id is an identity"
 run_case "the id is reverted to the old project-page path" \
   "it is an identity key, not a path" \
   "import io,json;p='docs/manifest.json';d=json.load(io.open(p,encoding='utf-8'))
-d['id']='/Night-Watcher/';io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2))"
+d['id']='/Night-Watcher/';io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2))" guards "" 83
 
 run_case "the id drifts to something plausible" \
   "it is an identity key, not a path" \
   "import io,json;p='docs/manifest.json';d=json.load(io.open(p,encoding='utf-8'))
-d['id']='https://nightwatcher.life/';io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2))"
+d['id']='https://nightwatcher.life/';io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2))" guards "" 83
 
 run_case "the id is dropped entirely" \
   "manifest.json has no id" \
   "import io,json;p='docs/manifest.json';d=json.load(io.open(p,encoding='utf-8'))
-del d['id'];io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2))"
+del d['id'];io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2))" guards "" 83
 
 echo "--- 84: the one deliberate slug/year mismatch"
 run_case "the frozen slug is renamed to match its year" \
@@ -42,35 +42,35 @@ run_case "the year is changed to match the slug instead" \
   "is supposed to carry one" \
   "${P}import re
 m=re.search(r'\\{i:\"harley-quinn-season-5-2024\"[^}]*?,y:(2025)', s);assert m
-s=s[:m.start(1)]+'2024'+s[m.end(1):];${W}"
+s=s[:m.start(1)]+'2024'+s[m.end(1):];${W}" guards "" 84
 
 run_case "a second entry's slug and year drift apart" \
   "Fix the year, never the slug" \
   "${P}a='{i:\"batman-1989\",t:\"Batman\",y:1989,';assert a in s
-s=s.replace(a,'{i:\"batman-1989\",t:\"Batman\",y:1990,',1);${W}"
+s=s.replace(a,'{i:\"batman-1989\",t:\"Batman\",y:1990,',1);${W}" guards "" 84
 
 echo "--- 85: Static Shock and Titans keep one row each"
 run_case "the single-row series is replaced by seasons" \
   "splits a series that is entered as one row by decision" \
   "${P}a='{i:\"static-shock-seasons-1-4-2000\"';assert a in s
-s=s.replace(a,'{i:\"static-shock-season-1-2000\"',1);${W}"
+s=s.replace(a,'{i:\"static-shock-season-1-2000\"',1);${W}" guards "" 85
 
 echo "--- 86: eleven eras, plus outside"
 run_case "era 7 is split into a twelfth era" \
   "the era scheme is eleven stages" \
   "${P}a=' {k:8,  name:\"The Damian years\"';assert a in s
-s=s.replace(a,' {k:12, name:\"The late Watchtower years\", note:\"Still the League, later.\"},\n {k:8,  name:\"The Damian years\"',1);${W}"
+s=s.replace(a,' {k:12, name:\"The late Watchtower years\", note:\"Still the League, later.\"},\n {k:8,  name:\"The Damian years\"',1);${W}" guards "" 86
 
 run_case "era 0 is dropped" \
   "era 0 (outside any timeline) is missing" \
   "${P}import re
-m=re.search(r' \\{k:0,[^\\n]*\\n', s);assert m;s=s[:m.start()]+s[m.end():];${W}"
+m=re.search(r' \\{k:0,[^\\n]*\\n', s);assert m;s=s[:m.start()]+s[m.end():];${W}" guards "" 86
 
 echo "--- 87: a backup carries progress, not settings"
 run_case "the JSON backup starts carrying the theme" \
   "a backup restores progress onto the device" \
   "${P}a='path:S.path, watched:S.watched';assert a in s
-s=s.replace(a,'path:S.path, theme:S.theme, watched:S.watched',1);${W}"
+s=s.replace(a,'path:S.path, theme:S.theme, watched:S.watched',1);${W}" guards "" 87
 
 run_case "the JSON backup stops carrying the ratings" \
   "exportJSON() no longer carries rated" \
@@ -81,7 +81,7 @@ echo "--- 88: the universe chip describes the universe"
 run_case "the chip is taken off the filtered list" \
   "eraTag() takes the unfiltered group" \
   "${P}a='tag:gr.tag(g),';assert a in s
-s=s.replace(a,'tag:gr.tag(fs),',1);${W}"
+s=s.replace(a,'tag:gr.tag(fs),',1);${W}" guards "" 88
 
 # 3.0.0: THIS MUTATION TRIPPED NOTHING AT ALL. It made eraTag() read a list
 # with television removed on BOTH scopes, so the chip was consistently wrong and
@@ -102,11 +102,11 @@ run_case "a second rename is added beside the first" \
   "import io,json;p='qa/renamed-ids.json';d=json.load(io.open(p,encoding='utf-8'))
 d['batman-1989']={'to':'batman-the-movie-1989','in':'1.8.5',
  'why':'A second rename, which is exactly what the recorded exception is not a precedent for.'}
-io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=1))"
+io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=1))" guards "" 89
 
 run_case "the record of the one exception is deleted" \
   "qa/renamed-ids.json is gone" \
-  "import os;os.remove('qa/renamed-ids.json')"
+  "import os;os.remove('qa/renamed-ids.json')" guards "" 89
 
 echo "--- the count sweep reaches the workflow"
 run_case "a workflow comment states a stale fixture count" \

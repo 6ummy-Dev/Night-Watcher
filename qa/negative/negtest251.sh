@@ -14,11 +14,11 @@ run_case "_headers is deleted" \
   "import os;os.remove('docs/_headers')
 import io;p='README.md';s=io.open(p,encoding='utf-8').read()
 a='| \`docs/_headers\` |';i=s.index(a);j=s.index('\n',i);s=s[:i]+s[j+1:]
-io.open(p,'w',encoding='utf-8').write(s)"
+io.open(p,'w',encoding='utf-8').write(s)" guards "" 104
 
 run_case "the /* rule is narrowed to one path" \
   "has no /* rule" \
-  "${H}a='\n/*\n';assert a in s;s=s.replace(a,'\n/index.html\n',1);${HW}"
+  "${H}a='\n/*\n';assert a in s;s=s.replace(a,'\n/index.html\n',1);${HW}" guards "" 104
 # ANCHOR WIDENED IN 3.7.1, AND IT HAD TO BE. It was a bare '/*', which is the
 # first two characters of the rule AND appears in the file's header comment the
 # moment that comment discusses the rule — which 3.7.1's does. The assert passed
@@ -97,20 +97,20 @@ run_case "Link: sitemap is re-declared under /* as well" \
 
 run_case "the / rule is deleted and its lines fall back under /*" \
   "has no / rule" \
-  "${H}a='\n/\n';assert a in s;s=s.replace(a,'\n',1);${HW}"
+  "${H}a='\n/\n';assert a in s;s=s.replace(a,'\n',1);${HW}" guards "" 104
 
 echo "--- 104: one header, one place"
 run_case "HSTS is duplicated into the file" \
   "which the edge already sets" \
-  "${H}s=s.rstrip()+'\n  Strict-Transport-Security: max-age=2592000\n';${HW}"
+  "${H}s=s.rstrip()+'\n  Strict-Transport-Security: max-age=2592000\n';${HW}" guards "" 104
 
 run_case "nosniff is duplicated into the file" \
   "which the edge already sets" \
-  "${H}s=s.rstrip()+'\n  X-Content-Type-Options: nosniff\n';${HW}"
+  "${H}s=s.rstrip()+'\n  X-Content-Type-Options: nosniff\n';${HW}" guards "" 104
 
 run_case "a second CSP is introduced as a header" \
   "the CSP lives in the <meta> tag" \
-  "${H}s=s.rstrip()+\"\n  Content-Security-Policy: default-src 'self'\n\";${HW}"
+  "${H}s=s.rstrip()+\"\n  Content-Security-Policy: default-src 'self'\n\";${HW}" guards "" 104
 
 echo "--- the file is a served file like any other"
 run_case "_headers is smuggled into the service worker shell" \

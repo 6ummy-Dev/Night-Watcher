@@ -8,23 +8,23 @@ G="$(pro qa/guards.js)"
 echo "--- 68: an era is fully positioned or not positioned at all"
 run_case "one entry loses its position" \
   "is half-positioned" \
-  "${P}a=',e:6,lo:4';assert a in s;s=s.replace(a,',e:6');${W}"
+  "${P}a=',e:6,lo:4';assert a in s;s=s.replace(a,',e:6');${W}" guards "" 68
 
 run_case "two entries in an era share a position" \
   "to two entries" \
-  "${P}a=',e:9,lo:2';assert a in s;s=s.replace(a,',e:9,lo:1');${W}"
+  "${P}a=',e:9,lo:2';assert a in s;s=s.replace(a,',e:9,lo:1');${W}" guards "" 68
 
 run_case "a position is skipped, so the highest exceeds the count" \
   "positions run 1..n" \
-  "${P}a=',e:9,lo:3';assert a in s;s=s.replace(a,',e:9,lo:4');${W}"
+  "${P}a=',e:9,lo:3';assert a in s;s=s.replace(a,',e:9,lo:4');${W}" guards "" 68
 
 run_case "an era loses every position" \
   "has no life positions at all" \
-  "${P}import re;s=re.sub(r'(,e:1,)lo:\d+',r'\1'.replace(',,',','),s);s=s.replace(',e:1,,',',e:1,');${W}"
+  "${P}import re;s=re.sub(r'(,e:1,)lo:\d+',r'\1'.replace(',,',','),s);s=s.replace(',e:1,,',',e:1,');${W}" guards "" 68
 
 run_case "an entry outside any timeline is given a life position" \
   "carry a life position" \
-  "${P}a='{i:\"superman-red-son-2020\",t:\"Superman: Red Son\",y:2020,e:0,';assert a in s;s=s.replace(a,'{i:\"superman-red-son-2020\",t:\"Superman: Red Son\",y:2020,e:0,lo:1,');${W}"
+  "${P}a='{i:\"superman-red-son-2020\",t:\"Superman: Red Son\",y:2020,e:0,';assert a in s;s=s.replace(a,'{i:\"superman-red-son-2020\",t:\"Superman: Red Son\",y:2020,e:0,lo:1,');${W}" guards "" 68
 
 echo "--- 68: the sort actually uses the position"
 run_case "the timeline sort falls back to typing order" \
@@ -40,19 +40,19 @@ run_case "an era orders by release year again" \
 echo "--- 51: every continuity, not one"
 run_case "a continuity runs backwards through the eras" \
   "cannot un-age" \
-  "${P}a='{i:\"the-batman-season-4-2006\",t:\"The Batman\",sub:\"Season 4\",y:2006,ep:13,k:\"tv\",e:3';assert a in s;s=s.replace(a,'{i:\"the-batman-season-4-2006\",t:\"The Batman\",sub:\"Season 4\",y:2006,ep:13,k:\"tv\",e:2');${W}"
+  "${P}a='{i:\"the-batman-season-4-2006\",t:\"The Batman\",sub:\"Season 4\",y:2006,ep:13,k:\"tv\",e:3';assert a in s;s=s.replace(a,'{i:\"the-batman-season-4-2006\",t:\"The Batman\",sub:\"Season 4\",y:2006,ep:13,k:\"tv\",e:2');${W}" guards "" 51
 
 run_case "a bag loses its flag and its lack of an arc becomes a failure" \
   "flag it bag:1 or name it in WEAVES" \
-  "${P}a='name:\"Standalone Films\",bag:1';assert a in s;s=s.replace(a,'name:\"Standalone Films\"');${W}"
+  "${P}a='name:\"Standalone Films\",bag:1';assert a in s;s=s.replace(a,'name:\"Standalone Films\"');${W}" guards "" 51
 
 run_case "a weave is dropped from the exemption list" \
   "runs backwards through the eras" \
-  "${G}a='\"Tomorrowverse\": \"Superman and Batman arcs alternating; Long Halloween is year two\",';assert a in s;s=s.replace(a,'');${W}"
+  "${G}a='\"Tomorrowverse\": \"Superman and Batman arcs alternating; Long Halloween is year two\",';assert a in s;s=s.replace(a,'');${W}" guards "" 51
 
 run_case "the exemption list names a continuity that no longer exists" \
   "which is not a continuity any more" \
-  "${P}a='name:\"Tomorrowverse\"';assert a in s;s=s.replace(a,'name:\"The Tomorrowverse\"');${W}"
+  "${P}a='name:\"Tomorrowverse\"';assert a in s;s=s.replace(a,'name:\"The Tomorrowverse\"');${W}" guards "" 51
 
 echo "--- 51: era 0 is last in a life, not first"
 # 1.7.2 made the direction check skip era 0, which is what eraRank() existed to
@@ -61,25 +61,25 @@ echo "--- 51: era 0 is last in a life, not first"
 # protects is the ERAS array being reordered, so that is what this mutates now.
 run_case "the eras are reordered and a continuity is left running backwards" \
   "runs backwards through the eras" \
-  "${P}import re;m=re.search(r' \{k:2,[^\n]*\n',s);assert m;blk=m.group(0);s=s[:m.start()]+s[m.end():];i=s.index(' {k:0,');s=s[:i]+blk+s[i:];${W}"
+  "${P}import re;m=re.search(r' \{k:2,[^\n]*\n',s);assert m;blk=m.group(0);s=s[:m.start()]+s[m.end():];i=s.index(' {k:0,');s=s[:i]+blk+s[i:];${W}" guards "" 51
 
 echo "--- the format override"
 run_case "Clayface goes back to inheriting an animated group" \
   "an entry can no longer state its own format" \
-  "${P}a='fmt:(f.fmt || g.fmt || \"anim\")';assert a in s;s=s.replace(a,'fmt:(g.fmt || \"anim\")');${W}"
+  "${P}a='fmt:(f.fmt || g.fmt || \"anim\")';assert a in s;s=s.replace(a,'fmt:(g.fmt || \"anim\")');${W}" guards "" 51
 
 run_case "an entry overrides its group with the group's own value" \
   "entry format override is wrong on" \
-  "${P}a='{i:\"batman-1989\",t:\"Batman\",';assert a in s;s=s.replace(a,'{i:\"batman-1989\",t:\"Batman\",fmt:\"live\",');${W}"
+  "${P}a='{i:\"batman-1989\",t:\"Batman\",';assert a in s;s=s.replace(a,'{i:\"batman-1989\",t:\"Batman\",fmt:\"live\",');${W}" guards "" 51
 
 run_case "an entry claims a format that does not exist" \
   "entry format override is wrong on" \
-  "${P}a='{i:\"clayface-2026\",t:\"Clayface\",fmt:\"live\"';assert a in s;s=s.replace(a,'{i:\"clayface-2026\",t:\"Clayface\",fmt:\"theatrical\"');${W}"
+  "${P}a='{i:\"clayface-2026\",t:\"Clayface\",fmt:\"live\"';assert a in s;s=s.replace(a,'{i:\"clayface-2026\",t:\"Clayface\",fmt:\"theatrical\"');${W}" guards "" 51
 
 echo "--- the live-action floor"
 run_case "the live-action catalogue collapses" \
   "live-action entries dropped to" \
-  "${P}import re;s=re.sub(r'fmt:\"live\",\n','',s);s=s.replace('fmt:\"live\",','');${W}"
+  "${P}import re;s=re.sub(r'fmt:\"live\",\n','',s);s=s.replace('fmt:\"live\",','');${W}" guards "" 51
 
 rm -rf "$NEG"
 finish "1.7.1 negative tests"

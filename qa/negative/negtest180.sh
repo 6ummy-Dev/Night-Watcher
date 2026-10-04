@@ -15,7 +15,7 @@ echo "--- 77: the move offer stays retired"
 run_case "moveBanner() comes back" \
   "the move offer is back" \
   "${P}a='function flagSave(){';assert a in s
-s=s.replace(a,'function moveBanner(){ return \"\"; }\nfunction flagSave(){',1);${W}"
+s=s.replace(a,'function moveBanner(){ return \"\"; }\nfunction flagSave(){',1);${W}" guards "" 77
 
 run_case "the dismissal flag comes back" \
   "the moveHid dismissal flag" \
@@ -40,12 +40,12 @@ s=s.replace(a,'.movego{color:red;}\n.viewing p{',1);${W}"
 run_case "the retired address is referenced again" \
   "the retired beta address is referenced in the app again" \
   "${P}a='var SITE = ';assert a in s
-s=s.replace(a,'var OLD = \"https://6ummy-dev.github.io/Night-Watcher/\";\nvar SITE = ',1);${W}"
+s=s.replace(a,'var OLD = \"https://6ummy-dev.github.io/Night-Watcher/\";\nvar SITE = ',1);${W}" guards "" 77
 
 run_case "offCanonical() comes back" \
   "offCanonical() is back" \
   "${P}a='function flagSave(){';assert a in s
-s=s.replace(a,'function offCanonical(){ return false; }\nfunction flagSave(){',1);${W}"
+s=s.replace(a,'function offCanonical(){ return false; }\nfunction flagSave(){',1);${W}" guards "" 77
 
 echo "--- 78: nothing may inject a noindex now that there is one origin"
 run_case "the noindex injection comes back" \
@@ -54,7 +54,7 @@ run_case "the noindex injection comes back" \
 s=s.replace(a,'function offCanonical(){ return true; }\nfunction flagSave(){',1)
 a2='\nrestore();'
 assert a2 in s
-s=s.replace(a2,'if(offCanonical()){var n=document.createElement(\"meta\");n.setAttribute(\"name\",\"robots\");n.setAttribute(\"content\",\"noindex, follow\");document.head.appendChild(n);}\n'+a2,1);${W}"
+s=s.replace(a2,'if(offCanonical()){var n=document.createElement(\"meta\");n.setAttribute(\"name\",\"robots\");n.setAttribute(\"content\",\"noindex, follow\");document.head.appendChild(n);}\n'+a2,1);${W}" guards "" 78
 
 echo "--- 114: the README may not promise a dead address"
 R="$(pro README.md)"

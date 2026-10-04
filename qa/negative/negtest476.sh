@@ -18,12 +18,12 @@ echo "--- 18: the gutter loses both-edges and the peek drifts off the column"
 run_case "the gutter reverts to one-sided stable (the pre-4.0.6 shape)" \
   "missing scrollbar-gutter:stable both-edges" \
   "${P}a='main,.panel{scrollbar-gutter:stable both-edges;}';assert a in s
-s=s.replace(a,'main,.panel{scrollbar-gutter:stable;}',1);${W}"
+s=s.replace(a,'main,.panel{scrollbar-gutter:stable;}',1);${W}" guards "" 18
 
 run_case "the gutter leaves entirely" \
   "missing scrollbar-gutter:stable both-edges" \
   "${P}a='main,.panel{scrollbar-gutter:stable both-edges;}';assert a in s
-s=s.replace(a,'',1);${W}"
+s=s.replace(a,'',1);${W}" guards "" 18
 
 echo "--- 130: the halo comes back and lights the page instead of the handle"
 
@@ -31,13 +31,13 @@ run_case "the glow reverts to the 4.0.4 all-round halo" \
   "not the static two-layer corner hug" \
   "${P}a='box-shadow:0 1px 5px -1px var(--signaledge), 0 3px 12px -3px var(--signaledge);}'
 assert a in s
-s=s.replace(a,'box-shadow:0 0 16px 0 var(--signaledge);}',1);${W}"
+s=s.replace(a,'box-shadow:0 0 16px 0 var(--signaledge);}',1);${W}" guards "" 130
 
 run_case "the glow keeps the shape but swaps in a new colour" \
   "not the static two-layer corner hug" \
   "${P}a='box-shadow:0 1px 5px -1px var(--signaledge), 0 3px 12px -3px var(--signaledge);}'
 assert a in s
-s=s.replace(a,'box-shadow:0 1px 5px -1px rgba(255,207,31,.55), 0 3px 12px -3px rgba(255,207,31,.55);}',1);${W}"
+s=s.replace(a,'box-shadow:0 1px 5px -1px rgba(255,207,31,.55), 0 3px 12px -3px rgba(255,207,31,.55);}',1);${W}" guards "" 130
 
 rm -rf "$NEG"
 finish "negtest476"

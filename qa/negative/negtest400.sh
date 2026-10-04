@@ -20,7 +20,7 @@ run_case "deleting worker.js is caught" \
 "
 import os
 os.remove('worker.js')
-"
+" guards "" 133
 
 run_case "wrangler losing main is caught" \
   "no main pointing at worker.js" \
@@ -30,7 +30,7 @@ p='wrangler.jsonc'
 s=io.open(p,encoding='utf-8').read()
 assert '\"main\": \"worker.js\",' in s
 io.open(p,'w',encoding='utf-8').write(s.replace('\"main\": \"worker.js\",',''))
-"
+" guards "" 133
 
 run_case "a widened run_worker_first is caught" \
   "run_worker_first is not exactly" \
@@ -40,14 +40,14 @@ p='wrangler.jsonc'
 s=io.open(p,encoding='utf-8').read()
 assert '\"run_worker_first\": [\"/\", \"/.well-known/api-catalog\"],' in s
 io.open(p,'w',encoding='utf-8').write(s.replace('\"run_worker_first\": [\"/\", \"/.well-known/api-catalog\"],','\"run_worker_first\": true,'))
-"
+" guards "" 133
 
 run_case "a served copy of worker.js is caught" \
   "a worker.js is inside docs/" \
 "
 import shutil
 shutil.copy('worker.js','docs/worker.js')
-"
+" guards "" 133
 
 run_case "an Accept tie handed to markdown is caught by identity" \
   "did not get the assets plane's response by identity" \
@@ -57,7 +57,7 @@ p='worker.js'
 s=io.open(p,encoding='utf-8').read()
 assert 'return md > 0 && md > html;' in s
 io.open(p,'w',encoding='utf-8').write(s.replace('return md > 0 && md > html;','return md > 0 && md >= html;'))
-"
+" guards "" 133
 
 run_case "a lost pathname gate is caught" \
   "a non-root path negotiated markdown in the script" \
@@ -68,7 +68,7 @@ s=io.open(p,encoding='utf-8').read()
 needle='url.pathname === \"/\" &&'
 assert s.count(needle) == 1
 io.open(p,'w',encoding='utf-8').write(s.replace(needle,''))
-"
+" guards "" 133
 
 run_case "a second copy of the markdown body is caught" \
   "did not answer with llms.txt's bytes" \
@@ -79,7 +79,7 @@ s=io.open(p,encoding='utf-8').read()
 needle='return new Response(md, {status: 200, headers: headers});'
 assert needle in s
 io.open(p,'w',encoding='utf-8').write(s.replace(needle,'return new Response(\"# a second copy of the catalogue prose\", {status: 200, headers: headers});'))
-"
+" guards "" 133
 
 run_case "a dropped Vary header is caught" \
   "does not carry Vary: Accept" \
@@ -90,7 +90,7 @@ s=io.open(p,encoding='utf-8').read()
 needle='\"Vary\": \"Accept\",'
 assert needle in s
 io.open(p,'w',encoding='utf-8').write(s.replace(needle,'\"Vary\": \"Origin\",'))
-"
+" guards "" 133
 
 # --- guard 133 (3.9.0): the api-catalog is empty and correctly typed ---
 
@@ -103,7 +103,7 @@ s=io.open(p,encoding='utf-8').read()
 needle='\"linkset\":[]'
 assert needle in s
 io.open(p,'w',encoding='utf-8').write(s.replace(needle,'\"linkset\":[{\"anchor\":\"/\"}]'))
-"
+" guards "" 133
 
 run_case "a mislabeled api-catalog is caught" \
   "not application/linkset+json" \
@@ -114,7 +114,7 @@ s=io.open(p,encoding='utf-8').read()
 needle='application/linkset+json'
 assert needle in s
 io.open(p,'w',encoding='utf-8').write(s.replace(needle,'application/json'))
-"
+" guards "" 133
 
 # --- guard 134: the tombstone shape holds ---
 
@@ -125,7 +125,7 @@ needle='  {k:\"clk\",          read:clocksOf},\n'
 assert needle in s
 s=s.replace(needle,'')
 $W
-"
+" guards "" 134
 
 run_case "a removal site that stops stamping is caught" \
   "rate() does not stamp its clock" \

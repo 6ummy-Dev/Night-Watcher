@@ -28,12 +28,12 @@ echo "--- 29: the external-script sweep matches the page it guards"
 run_case "a single-quoted external script is added" \
   "the app must run with no network" \
   "${P}a='</body>'
-assert a in s;s=s.replace(a,\"<script src='https://github.com/evil.js'></script>\"+a,1);${W}"
+assert a in s;s=s.replace(a,\"<script src='https://github.com/evil.js'></script>\"+a,1);${W}" guards "" 29
 
 run_case "a double-quoted external script is added" \
   "the app must run with no network" \
   "${P}a='</body>'
-assert a in s;s=s.replace(a,'<script src=\"https://example.com/evil.js\"></script>'+a,1);${W}"
+assert a in s;s=s.replace(a,'<script src=\"https://example.com/evil.js\"></script>'+a,1);${W}" guards "" 29
 
 # 3.2.0 RETIRED THE EMPTY-SWEEP CHECK AND THIS FIXTURE INVERTS WITH IT. The
 # old check failed when the sweep matched NOTHING, because the page carried one
@@ -49,7 +49,7 @@ assert a in s;s=s.replace(a,'<script src=\"https://example.com/evil.js\"></scrip
 run_case "a script in the beacon's own shape is added" \
   "the app must run with no network" \
   "${P}a='</body>'
-assert a in s;s=s.replace(a,\"<script type='module' src='https://static.example.com/x.min.js'></script>\"+a,1);${W}"
+assert a in s;s=s.replace(a,\"<script type='module' src='https://static.example.com/x.min.js'></script>\"+a,1);${W}" guards "" 29
 
 echo "--- 43: every directive the policy declares is pinned"
 
@@ -76,7 +76,7 @@ run_case "a pinned directive is opened to anywhere" \
 # Its absence is held by the unpinned-directive check, not by a pin.
 run_case "connect-src comes back to the policy" \
   "which nothing here checks" \
-  "${P}s=s.replace(\"default-src 'none'; \",\"default-src 'none'; connect-src 'none'; \",1);${W}"
+  "${P}s=s.replace(\"default-src 'none'; \",\"default-src 'none'; connect-src 'none'; \",1);${W}" guards "" 43
 
 run_case "a directive is dropped from the policy" \
   "CSP no longer sets worker-src" \
@@ -84,7 +84,7 @@ run_case "a directive is dropped from the policy" \
 
 run_case "a directive arrives that nothing pins" \
   "an unpinned directive is an unreviewed one" \
-  "${P}s=s.replace(\"; base-uri 'none'\",\"; frame-src *; base-uri 'none'\",1);${W}"
+  "${P}s=s.replace(\"; base-uri 'none'\",\"; frame-src *; base-uri 'none'\",1);${W}" guards "" 43
 
 run_case "an origin is smuggled into script-src beside the hash" \
   "script-src carries https://cdn.example.com" \
@@ -99,7 +99,7 @@ run_case "an origin is smuggled into script-src beside the hash" \
 run_case "a second plain script is added above the application block" \
   "plain <script> blocks" \
   "${P}a='<!-- No trademarked logos'
-assert a in s;s=s.replace(a,'<script>var decoy=1;</script>'+a,1);${W}"
+assert a in s;s=s.replace(a,'<script>var decoy=1;</script>'+a,1);${W}" guards "" 43
 
 echo "--- 11: the service worker is parsed, not just grepped"
 
@@ -109,13 +109,13 @@ echo "--- 11: the service worker is parsed, not just grepped"
 run_case "a syntax error is appended to sw.js" \
   "docs/sw.js does not parse" \
   "import io;p='docs/sw.js';s=io.open(p,encoding='utf-8').read()
-io.open(p,'w',encoding='utf-8').write(s+'\nfunction broken( {\n')"
+io.open(p,'w',encoding='utf-8').write(s+'\nfunction broken( {\n')" guards "" 11
 
 run_case "a quote is dropped inside sw.js" \
   "docs/sw.js does not parse" \
   "import io;p='docs/sw.js';s=io.open(p,encoding='utf-8').read()
 a='\"./manifest.json\"';assert a in s;s=s.replace(a,'\"./manifest.json',1)
-io.open(p,'w',encoding='utf-8').write(s)"
+io.open(p,'w',encoding='utf-8').write(s)" guards "" 11
 
 echo "--- 110: the page can still be pinch-zoomed"
 
@@ -124,15 +124,15 @@ echo "--- 110: the page can still be pinch-zoomed"
 # shipped green through guards and smoke.
 run_case "the viewport caps zoom" \
   "Capping zoom is a WCAG 1.4.4 failure" \
-  "${P}s=s.replace('initial-scale=1, viewport-fit=cover','initial-scale=1, maximum-scale=1, viewport-fit=cover',1);${W}"
+  "${P}s=s.replace('initial-scale=1, viewport-fit=cover','initial-scale=1, maximum-scale=1, viewport-fit=cover',1);${W}" guards "" 110
 
 run_case "the viewport refuses zoom outright" \
   "refuses to be pinch-zoomed at all" \
-  "${P}s=s.replace('initial-scale=1, viewport-fit=cover','initial-scale=1, user-scalable=no, viewport-fit=cover',1);${W}"
+  "${P}s=s.replace('initial-scale=1, viewport-fit=cover','initial-scale=1, user-scalable=no, viewport-fit=cover',1);${W}" guards "" 110
 
 run_case "the viewport stops sizing to the device" \
   "no longer sets width=device-width" \
-  "${P}s=s.replace('content=\"width=device-width, initial-scale=1, viewport-fit=cover\"','content=\"width=1024, initial-scale=1, viewport-fit=cover\"',1);${W}"
+  "${P}s=s.replace('content=\"width=device-width, initial-scale=1, viewport-fit=cover\"','content=\"width=1024, initial-scale=1, viewport-fit=cover\"',1);${W}" guards "" 110
 
 # 404.html was unchecked entirely, and it is the page a reader meets when they
 # are already lost.
@@ -140,12 +140,12 @@ run_case "the 404 page caps zoom" \
   "Capping zoom is a WCAG 1.4.4 failure" \
   "import io;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
 a='width=device-width, initial-scale=1';assert a in s
-s=s.replace(a,a+', maximum-scale=1',1);io.open(p,'w',encoding='utf-8').write(s)"
+s=s.replace(a,a+', maximum-scale=1',1);io.open(p,'w',encoding='utf-8').write(s)" guards "" 110
 
 run_case "the 404 page loses its viewport" \
   "has no viewport meta" \
   "import io,re;p='docs/404.html';s=io.open(p,encoding='utf-8').read()
-s=re.sub(r'<meta name=\"viewport\"[^>]*>','',s);io.open(p,'w',encoding='utf-8').write(s)"
+s=re.sub(r'<meta name=\"viewport\"[^>]*>','',s);io.open(p,'w',encoding='utf-8').write(s)" guards "" 110
 
 echo "--- 91: the share card has a byte ceiling"
 
@@ -163,7 +163,7 @@ i=8+8+struct.unpack('>I',b[8:12])[0]+4
 pay=b'Comment\x00'+(b'x'*200000)
 ch=b'tEXt'+pay
 out=b[:i]+struct.pack('>I',len(pay))+ch+struct.pack('>I',zlib.crc32(ch)&0xffffffff)+b[i:]
-io.open(p,'wb').write(out)"
+io.open(p,'wb').write(out)" guards "" 91
 
 echo "--- 108: the fallbacks report instead of dying"
 
@@ -174,7 +174,7 @@ echo "--- 108: the fallbacks report instead of dying"
 # where it is defined.
 run_case "shareCardBlock is renamed out from under the guard" \
   "shareCardBlock() is gone" \
-  "${P}s=s.replace('function shareCardBlock','function shareCardPanel');${W}"
+  "${P}s=s.replace('function shareCardBlock','function shareCardPanel');${W}" guards "" 108
 
 echo "--- smoke: the NW1 check tests the thing it names"
 
@@ -201,11 +201,11 @@ echo "--- 109: every count on Progress is a way into the list"
 # an empty catalogue rather than like a broken link.
 run_case "a filter is renamed under the tile that points at it" \
   "chipSet() does not offer it" \
-  "${P}a='[\"skip\",\"Skipped\"]';assert a in s;s=s.replace(a,'[\"skipped\",\"Skipped\"]',1);${W}"
+  "${P}a='[\"skip\",\"Skipped\"]';assert a in s;s=s.replace(a,'[\"skipped\",\"Skipped\"]',1);${W}" guards "" 109
 
 run_case "the Skipped filter is removed and the tile is left behind" \
   "chipSet() does not offer it" \
-  "${P}a='[\"skip\",\"Skipped\"],';assert a in s;s=s.replace(a,'',1);${W}"
+  "${P}a='[\"skip\",\"Skipped\"],';assert a in s;s=s.replace(a,'',1);${W}" guards "" 109
 
 run_case "a count goes back to being a figure with nowhere to go" \
   "all three counts are a way in or none of them is" \
@@ -223,17 +223,17 @@ echo "--- 44: the watch link searches for the entry's own production"
 run_case "the year goes back to being keyed on the title alone" \
   "the reader is sent to a different production" \
   "${P}a='      var k = g.t + \"|\" + g.gi;';assert a in s;s=s.replace(a,'      var k = g.t;',1)
-b='  return TITLEYEAR[f.t + \"|\" + f.gi];';assert b in s;s=s.replace(b,'  return TITLEYEAR[f.t];',1);${W}"
+b='  return TITLEYEAR[f.t + \"|\" + f.gi];';assert b in s;s=s.replace(b,'  return TITLEYEAR[f.t];',1);${W}" guards "" 44
 
 run_case "the link hands over the title instead of the entry" \
   "no longer hands watchUrl() the entry" \
-  "${P}a='watchUrl(f)+';assert a in s;s=s.replace(a,'watchUrl(f.t)+',1);${W}"
+  "${P}a='watchUrl(f)+';assert a in s;s=s.replace(a,'watchUrl(f.t)+',1);${W}" guards "" 44
 
 # The other direction: a year that is not any entry's year in that universe.
 run_case "the year is taken from the wrong end of the universe" \
   "the first year this title appears in its own universe" \
   "${P}a='if(TITLEYEAR[k] === undefined || g.y < TITLEYEAR[k]) TITLEYEAR[k] = g.y;'
-assert a in s;s=s.replace(a,'if(TITLEYEAR[k] === undefined || g.y > TITLEYEAR[k]) TITLEYEAR[k] = g.y;',1);${W}"
+assert a in s;s=s.replace(a,'if(TITLEYEAR[k] === undefined || g.y > TITLEYEAR[k]) TITLEYEAR[k] = g.y;',1);${W}" guards "" 44
 
 # And in the browser, by name. A count would still pass if the wrong six were
 # fixed, so the six entries are named in smoke and asserted one at a time.
@@ -319,13 +319,13 @@ s=s.replace(a,'',1);${W}" \
 run_case "the helper loses the line and the guard says so" \
   "an entry can come back watched AND skipped" \
   "${P}a='    if(S.skipped[id]){ delete S.skipped[id]; if(stamp) stampMark(\"s\", id); }\n';assert a in s
-s=s.replace(a,'',1);${W}"
+s=s.replace(a,'',1);${W}" guards "" 111
 
 run_case "the log merge is copied back out to a call site" \
   "the log-merge dance appears" \
   "${P}a='  if(Array.isArray(o.log)) moved += mergeLog(o.log.filter(function(en){ return en && S.watched[en.id]; }));'
 assert a in s
-s=s.replace(a,'  if(Array.isArray(o.log)){ var have={}; S.log.forEach(function(x){have[x.id]=1;}); o.log.forEach(function(en){ if(en \&\& en.id \&\& isFinite(en.ts) \&\& !have[en.id]){ S.log.push({id:String(en.id),ts:Number(en.ts)}); have[en.id]=1; moved++; } }); S.log.sort(function(a,b){return a.ts-b.ts;}); }',1);${W}"
+s=s.replace(a,'  if(Array.isArray(o.log)){ var have={}; S.log.forEach(function(x){have[x.id]=1;}); o.log.forEach(function(en){ if(en \&\& en.id \&\& isFinite(en.ts) \&\& !have[en.id]){ S.log.push({id:String(en.id),ts:Number(en.ts)}); have[en.id]=1; moved++; } }); S.log.sort(function(a,b){return a.ts-b.ts;}); }',1);${W}" guards "" 111
 
 echo "--- 112: the Restore box survives a render nobody asked for"
 
@@ -337,7 +337,7 @@ run_case "render stops carrying the paste across" \
 run_case "the preservation is dropped out of render entirely" \
   "render() does not preserve #restorebox" \
   "${P}a='  var fields = fieldSnap(v);';assert a in s;s=s.replace(a,'  var fields = [];',1)
-a='  var field = fieldRestore(v, fields);';assert a in s;s=s.replace(a,'  var field = null;',1);${W}"
+a='  var field = fieldRestore(v, fields);';assert a in s;s=s.replace(a,'  var field = null;',1);${W}" guards "" 112
 
 echo "--- 104: the cache policy, pinned the moment it exists"
 
@@ -379,7 +379,7 @@ run_case "the fonts rule is dropped" \
 # A blanket rule under /* covers sw.js, and the two want opposite answers.
 run_case "a blanket cache policy is set under the star rule" \
   "which covers sw.js" \
-  "${H2}s=s.replace('  X-Frame-Options: DENY','  X-Frame-Options: DENY\n  Cache-Control: public, max-age=3600',1);${HW2}"
+  "${H2}s=s.replace('  X-Frame-Options: DENY','  X-Frame-Options: DENY\n  Cache-Control: public, max-age=3600',1);${HW2}" guards "" 104
 
 
 echo "--- 113: every negative suite runs in CI"
@@ -390,17 +390,17 @@ echo "--- 113: every negative suite runs in CI"
 # a watcher that cannot see from where the work happens.
 run_case "a suite is added and never sharded" \
   "no CI shard runs" \
-  "import io;io.open('qa/negative/negtest999.sh','w').write('#!/bin/bash\n. \"\$(dirname \"\${BASH_SOURCE[0]}\")/_lib.sh\"\nfinish \"stub\"\n')"
+  "import io;io.open('qa/negative/negtest999.sh','w').write('#!/bin/bash\n. \"\$(dirname \"\${BASH_SOURCE[0]}\")/_lib.sh\"\nfinish \"stub\"\n')" guards "" 113
 
 run_case "a shard pattern is dropped from the matrix" \
   "expected 4" \
   "import io,re;p='.github/workflows/qa.yml';s=io.open(p,encoding='utf-8').read()
 i=s.index(\"          - shard: \\\"4\\\"\");j=s.index('    steps:',i)
-s=s[:i]+s[j:];io.open(p,'w',encoding='utf-8').write(s)"
+s=s[:i]+s[j:];io.open(p,'w',encoding='utf-8').write(s)" guards "" 113
 
 run_case "the workflow is deleted outright" \
   "nothing runs the suites on push" \
-  "import os;os.remove('.github/workflows/qa.yml')"
+  "import os;os.remove('.github/workflows/qa.yml')" guards "" 113
 
 echo "--- 114: the README describes the origin that actually serves"
 
@@ -412,7 +412,7 @@ run_case "the retired move offer returns to the README" \
   "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
 a='restores here).'
 assert a in s;s=s.replace(a,'restores here). The app offers to carry progress across from the old address.',1)
-io.open(p,'w',encoding='utf-8').write(s)"
+io.open(p,'w',encoding='utf-8').write(s)" guards "" 114
 
 # 3.3.1: the paragraph used to have to say what the app DID to the mirror.
 # The app does nothing to it -- there is no mirror -- so what it must now say is
@@ -422,7 +422,7 @@ run_case "the README promises the retired address again" \
   "import io;p='README.md';s=io.open(p,encoding='utf-8').read()
 a='(the GitHub Pages mirror\nit started on was unpublished in August 2026; a backup taken there still\nrestores here)'
 assert a in s;s=s.replace(a,'(the old GitHub Pages address still works and always will)',1)
-io.open(p,'w',encoding='utf-8').write(s)"
+io.open(p,'w',encoding='utf-8').write(s)" guards "" 114
 
 run_case "the paragraph stops saying the mirror is gone" \
   "does not say the mirror was" \
@@ -430,7 +430,7 @@ run_case "the paragraph stops saying the mirror is gone" \
 a='(the GitHub Pages mirror\nit started on was unpublished in August 2026; a backup taken there still\nrestores here)'
 assert a in s;s=s.replace(a,'(the GitHub Pages mirror is described elsewhere)',1)
 s=s.replace('was retired','was changed',1)
-io.open(p,'w',encoding='utf-8').write(s)"
+io.open(p,'w',encoding='utf-8').write(s)" guards "" 114
 
 echo "--- the generated code sweep in section 8"
 # The sweep asserts two things no hand-written fixture can express, because you
@@ -441,7 +441,7 @@ echo "--- the generated code sweep in section 8"
 run_case "importCode invents an id it could not resolve" \
   "the catalogue does not contain" \
   "${P}a='    id = map[W.substr(i,5)];';assert a in s
-s=s.replace(a,'    id = map[W.substr(i,5)] || W.substr(i,5);',1);${W}"
+s=s.replace(a,'    id = map[W.substr(i,5)] || W.substr(i,5);',1);${W}" guards "" 8
 
 # A pasted or truncated code must be refused, never crash the restore. Dropping
 # one defensive default is enough: a real code always carries a W segment, so
@@ -449,7 +449,7 @@ s=s.replace(a,'    id = map[W.substr(i,5)] || W.substr(i,5);',1);${W}"
 run_case "a defensive default is dropped from the segment read" \
   "must be refused, never crash" \
   "${P}a='  var W = seg.W || \"\", K = seg.S';assert a in s
-s=s.replace(a,'  var W = seg.W, K = seg.S',1);${W}"
+s=s.replace(a,'  var W = seg.W, K = seg.S',1);${W}" guards "" 8
 
 echo "--- the idHash memo proves its own assumption"
 # The memo is sound only while idHash is pure. This gives it state exactly as a
@@ -459,7 +459,7 @@ echo "--- the idHash memo proves its own assumption"
 run_case "idHash is given state" \
   "idHash is not pure" \
   "${P}a='  var h = 2166136261, i;';assert a in s
-s=s.replace(a,'  var h = 2166136261 + (idHash.n = (idHash.n || 0) + 1), i;',1);${W}"
+s=s.replace(a,'  var h = 2166136261 + (idHash.n = (idHash.n || 0) + 1), i;',1);${W}" guards "" 2
 
 echo "--- 115: four copies of the bat agree"
 
@@ -476,19 +476,19 @@ io.open(p,'w',encoding='utf-8').write(s)"
 run_case "the ellipse is dropped from the header" \
   "lost its ellipse" \
   "${P}import re;m=re.search(r'(<button class=\"mark\"[\\s\\S]*?</button>)',s);assert m
-b=m.group(1);nb=re.sub(r'<ellipse[^>]*>','',b);s=s[:m.start(1)]+nb+s[m.end(1):];${W}"
+b=m.group(1);nb=re.sub(r'<ellipse[^>]*>','',b);s=s[:m.start(1)]+nb+s[m.end(1):];${W}" guards "" 115
 
 run_case "the icon is moved without the header" \
   "same shape, different position" \
   "import io;p='docs/icon.svg';s=io.open(p,encoding='utf-8').read()
 a='transform=\"translate(0,5)\"';assert a in s;s=s.replace(a,'transform=\"translate(0,9)\"',1)
-io.open(p,'w',encoding='utf-8').write(s)"
+io.open(p,'w',encoding='utf-8').write(s)" guards "" 115
 
 echo "--- 42: named origins and fetched origins are different lists"
 
 run_case "an unlisted origin appears in the page" \
   "reaches out to" \
-  "${P}s=s.replace('\"https://x.com/6ummy\"','\"https://x.com/6ummy\",\"https://evil.example.com/x\"',1);${W}"
+  "${P}s=s.replace('\"https://x.com/6ummy\"','\"https://x.com/6ummy\",\"https://evil.example.com/x\"',1);${W}" guards "" 42
 
 
 echo "--- 3.0.2: the guard holes"
@@ -498,7 +498,7 @@ echo "--- 3.0.2: the guard holes"
 run_case "a named seat leaves the page" \
   "is gone from the page" \
   "${P}a='<p class=\"qhead big\">Then</p>';assert a in s
-s=s.replace(a,'<p class=\"qhead big\">Next</p>',1);${W}"
+s=s.replace(a,'<p class=\"qhead big\">Next</p>',1);${W}" guards "" 99
 
 # Section 22 could not see the head, which is where the description tags live.
 run_case "a JS escape is stranded in the description" \
@@ -510,7 +510,7 @@ s=s[:m.start(1)]+m.group(1).replace(' ','\\\\u2014',1)+s[m.end(1):];${W}"
 run_case "a blank-target link loses noreferrer" \
   "missing rel=" \
   "${P}a='target=\"_blank\" rel=\"noopener noreferrer\"';assert a in s
-s=s.replace(a,'target=\"_blank\" rel=\"noopener\"',1);${W}"
+s=s.replace(a,'target=\"_blank\" rel=\"noopener\"',1);${W}" guards "" 43
 
 echo "--- 3.0.2: the app defects"
 
@@ -522,12 +522,12 @@ assert a in s;s=s.replace(a,'    setTimeout(function({ if(!S.beltOpen) render();
 run_case "the share handler stops telling a cancel from a failure" \
   "download fallback(s) and needs two" \
   "${P}import re;i=s.index('act === \"cardshare\"'); j=s.index('\n  }',i)
-blk=s[i:j];nb=re.sub(r'download\\(f\\.name, f\\)','void 0',blk);s=s[:i]+nb+s[j:];${W}"
+blk=s[i:j];nb=re.sub(r'download\\(f\\.name, f\\)','void 0',blk);s=s[:i]+nb+s[j:];${W}" guards "" 98
 
 run_case "the share handler goes back to one empty catch" \
   "no longer distinguishes a cancelled share" \
   "${P}a='        if(err && err.name === \"AbortError\") return;'
-assert a in s;s=s.replace(a,'        if(err) return;',1);${W}"
+assert a in s;s=s.replace(a,'        if(err) return;',1);${W}" guards "" 98
 
 echo "--- 116: the fonts really carry what the page renders"
 
@@ -547,7 +547,7 @@ run_case "a recorded system mark turns up in a subset face" \
   "import io;p='qa/guards.js';s=io.open(p,encoding='utf-8').read()
 a='0x2605: \"the star in the five-stars text file — written to a download, never rendered by the page\"';assert a in s
 s=s.replace(a,'0x0041: \"a letter that is obviously in every face\"',1)
-io.open(p,'w',encoding='utf-8').write(s)"
+io.open(p,'w',encoding='utf-8').write(s)" guards "" 116
 
 # 5.2.0 closed the scan gap: a character can render from the stylesheet as
 # easily as from markup — the tick's \\2713 hid in content:\"…\" for five
@@ -564,7 +564,7 @@ io.open(p,'w',encoding='utf-8').write(s)" \
 run_case "the cmap reader is fed something that is not a woff2" \
   "cannot read the cmap out of" \
   "import io;p='docs/fonts/anton-latin-400-normal.woff2'
-io.open(p,'wb').write(b'NOTAWOFF2'+b'\\x00'*400)"
+io.open(p,'wb').write(b'NOTAWOFF2'+b'\\x00'*400)" guards "" 116
 
 echo "--- 5.1: smoke does not skip silently in CI"
 

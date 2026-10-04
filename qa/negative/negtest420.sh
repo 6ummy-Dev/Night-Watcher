@@ -30,7 +30,7 @@ d=[i for i,l in enumerate(lines) if 'i:\"batman-death-in-the-family-2020\"' in l
 assert len(u)==1 and len(d)==1 and u[0] < d[0]
 lines[u[0]], lines[d[0]] = lines[d[0]], lines[u[0]]
 io.open(p,'w',encoding='utf-8').write('\n'.join(lines))
-"
+" guards "" 30
 
 # --- guard 30, by life: the same rule on the other shelf ---
 
@@ -45,7 +45,7 @@ d='i:\"batman-death-in-the-family-2020\",t:\"Batman: Death in the Family\",y:202
 assert u in s and d in s
 s=s.replace(u,u.replace('lo:1,','lo:2,')).replace(d,d.replace('lo:2,','lo:1,'))
 io.open(p,'w',encoding='utf-8').write(s)
-"
+" guards "" 30
 
 rm -rf "$NEG"
 finish "negtest420"

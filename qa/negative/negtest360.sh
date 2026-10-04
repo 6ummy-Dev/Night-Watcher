@@ -18,21 +18,21 @@ echo "--- 128: the peek lights from S.mode, never from S.path (Q1)"
 
 run_case "the peek repoints at S.path" \
   "the peek lights from S.path" \
-  "${P}a='setAttribute(\"data-lit\", S.mode)';assert a in s;s=s.replace(a,'setAttribute(\"data-lit\", S.path)',1);${W}"
+  "${P}a='setAttribute(\"data-lit\", S.mode)';assert a in s;s=s.replace(a,'setAttribute(\"data-lit\", S.path)',1);${W}" guards "" 128
 
 run_case "the peek stops lighting at all" \
   "the peek does not light from S.mode" \
-  "${P}a='  document.getElementById(\"beltpeek\").setAttribute(\"data-lit\", S.mode);\n';assert a in s;s=s.replace(a,'',1);${W}"
+  "${P}a='  document.getElementById(\"beltpeek\").setAttribute(\"data-lit\", S.mode);\n';assert a in s;s=s.replace(a,'',1);${W}" guards "" 128
 
 run_case "pressed follows the view instead of the choice" \
   "no longer press from S.path" \
-  "${P}a='segButtons(\"path\", PATHS, S.path)';assert a in s;s=s.replace(a,'segButtons(\"path\", PATHS, S.mode)',1);${W}"
+  "${P}a='segButtons(\"path\", PATHS, S.path)';assert a in s;s=s.replace(a,'segButtons(\"path\", PATHS, S.mode)',1);${W}" guards "" 128
 
 run_case "the middle chunk drifts off its third" \
   "has no position for" \
   "${P}a='#beltpeek[data-lit=\"continuity\"]::after{left:26%;}'
 assert a in s
-s=s.replace(a,'#beltpeek[data-lit=\"continuity\"]::after{left:30%;}',1);${W}"
+s=s.replace(a,'#beltpeek[data-lit=\"continuity\"]::after{left:30%;}',1);${W}" guards "" 128
 
 echo "--- 128: position carries exactly one condition (F14)"
 
@@ -40,13 +40,13 @@ run_case "an open belt parks again" \
   "an open belt parks" \
   "${P}a='.pathseg[data-held]{position:relative;top:auto;margin-bottom:0;}'
 assert a in s
-s=s.replace(a,'',1);${W}"
+s=s.replace(a,'',1);${W}" guards "" 128
 
 run_case "the open belt sinks onto its pouches again" \
   "the belt eats its pouches" \
   "${P}a='.pathseg[data-held]{position:relative;top:auto;margin-bottom:0;}'
 assert a in s
-s=s.replace(a,'.pathseg[data-held]{position:relative;margin-bottom:0;}',1);${W}"
+s=s.replace(a,'.pathseg[data-held]{position:relative;margin-bottom:0;}',1);${W}" guards "" 128
 
 run_case "a third position condition arrives" \
   "carries 3 rules" \
@@ -58,13 +58,13 @@ run_case "data-held stops reading the state" \
   "data-held does not render from S.beltOpen" \
   "${P}a='''(S.beltOpen && !S.beltDrop ? ' data-held=\"\"' : '')'''
 assert a in s
-s=s.replace(a,'''' data-held=\"\"''',1);${W}"
+s=s.replace(a,'''' data-held=\"\"''',1);${W}" guards "" 128
 
 run_case "the parked offset loses its one source" \
   "not sticky at calc" \
   "${P}a='top:calc(var(--ghtop) - var(--beltH))'
 assert a in s
-s=s.replace(a,'top:37px',1);${W}"
+s=s.replace(a,'top:37px',1);${W}" guards "" 128
 
 echo "--- 128: the offsets derive from --hdrh, border included (F1/F3/B2)"
 
@@ -72,25 +72,25 @@ run_case "the border leaves the fallback" \
   "12 + 46 + 12 + the 1px border" \
   "${P}a='--hdrh:calc(env(safe-area-inset-top) + 71px);'
 assert a in s
-s=s.replace(a,'--hdrh:calc(env(safe-area-inset-top) + 70px);',1);${W}"
+s=s.replace(a,'--hdrh:calc(env(safe-area-inset-top) + 70px);',1);${W}" guards "" 128
 
 run_case "--ghtop stops deriving" \
   "no longer the peek alone" \
   "${P}a='--ghtop:var(--belt-peek);'
 assert a in s
-s=s.replace(a,'--ghtop:calc(var(--hdrh) + var(--belt-peek));',1);${W}"
+s=s.replace(a,'--ghtop:calc(var(--hdrh) + var(--belt-peek));',1);${W}" guards "" 128
 
 run_case "a local fallback creeps back into a call site" \
   "its own --ghtop fallback constant" \
   "${P}a='top:var(--ghtop);z-index:2;}'
 assert a in s
-s=s.replace(a,'top:var(--ghtop, calc(env(safe-area-inset-top) + 70px));z-index:2;}',1);${W}"
+s=s.replace(a,'top:var(--ghtop, calc(env(safe-area-inset-top) + 70px));z-index:2;}',1);${W}" guards "" 128
 
 run_case "the JS override reverts to --ghtop" \
   "does not override --hdrh" \
   "${P}a='document.documentElement.style.setProperty(\"--hdrh\", h.offsetHeight'
 assert a in s
-s=s.replace(a,'document.documentElement.style.setProperty(\"--ghtop\", h.offsetHeight',1);${W}"
+s=s.replace(a,'document.documentElement.style.setProperty(\"--ghtop\", h.offsetHeight',1);${W}" guards "" 128
 
 echo "--- 128: the peek is the header's own element, off means off (Q2, 4.0.4)"
 
@@ -98,25 +98,25 @@ run_case "the peek's base rule comes unmoored" \
   "base rule is gone or unmoored" \
   "${P}a='#beltpeek{display:none;position:absolute;'
 assert a in s
-s=s.replace(a,'#beltpeek{position:absolute;',1);${W}"
+s=s.replace(a,'#beltpeek{position:absolute;',1);${W}" guards "" 128
 
 run_case "the off peek eats header taps" \
   "base rule takes pointer events" \
   "${P}a='border-radius:0;overflow:hidden;pointer-events:none;}'
 assert a in s
-s=s.replace(a,'border-radius:0;overflow:hidden;}',1);${W}"
+s=s.replace(a,'border-radius:0;overflow:hidden;}',1);${W}" guards "" 128
 
 run_case "the on peek answers nothing" \
   "on state is not a working handle" \
   "${P}a='#beltpeek[data-on]{display:block;pointer-events:auto;cursor:pointer;'
 assert a in s
-s=s.replace(a,'#beltpeek[data-on]{display:block;cursor:pointer;',1);${W}"
+s=s.replace(a,'#beltpeek[data-on]{display:block;cursor:pointer;',1);${W}" guards "" 128
 
 run_case "reduced motion loses the pseudo-elements" \
   "does not reach pseudo-elements" \
   "${P}a='@media (prefers-reduced-motion:reduce){*,::before,::after{transition:none!important;}}'
 assert a in s
-s=s.replace(a,'@media (prefers-reduced-motion:reduce){*{transition:none!important;}}',1);${W}"
+s=s.replace(a,'@media (prefers-reduced-motion:reduce){*{transition:none!important;}}',1);${W}" guards "" 128
 
 echo "--- 128: the two --hdr declarations move together (Q4)"
 
@@ -138,19 +138,19 @@ run_case "the parked tap goes nowhere" \
   "does not drop the belt" \
   "${P}a='document.getElementById(\"beltpeek\").addEventListener(\"click\"'
 assert a in s
-s=s.replace(a,'document.getElementById(\"beltpeek\").addEventListener(\"clack\"',1);${W}"
+s=s.replace(a,'document.getElementById(\"beltpeek\").addEventListener(\"clack\"',1);${W}" guards "" 128
 
 run_case "the peek shows over the pouches" \
   "ignores data-held" \
   "${P}a='!pk.hasAttribute(\"data-held\") && !pk.hasAttribute(\"data-drop\");'
 assert a in s
-s=s.replace(a,'true;',1);${W}"
+s=s.replace(a,'true;',1);${W}" guards "" 128
 
 run_case "the peek goes back to a div with a button's role" \
   "not a native button" \
   "${P}a='<button id=\"beltpeek\" data-lit=\"life\" aria-label=\"Path switcher — open\"></button>'
 assert a in s
-s=s.replace(a,'<div id=\"beltpeek\" data-lit=\"life\" role=\"button\" tabindex=\"0\" aria-label=\"Path switcher — open\"></div>',1);${W}"
+s=s.replace(a,'<div id=\"beltpeek\" data-lit=\"life\" role=\"button\" tabindex=\"0\" aria-label=\"Path switcher — open\"></div>',1);${W}" guards "" 128
 
 echo "--- 128: an observer on the sentinel, never a listener, never a read"
 
@@ -158,7 +158,7 @@ run_case "the sentinel disappears" \
   "has no park sentinel" \
   "${P}a='''<i class=\"beltguide\" aria-hidden=\"true\"></i>'''
 assert a in s
-s=s.replace(a,'',1);${W}"
+s=s.replace(a,'',1);${W}" guards "" 128
 
 run_case "a third scroll listener arrives here too" \
   "reviewed with exactly 3" \
@@ -170,13 +170,13 @@ run_case "render stops re-pointing the observer" \
   "does not re-point the belt observer" \
   "${P}a='  beltWatch();\\n}'
 assert a in s
-s=s.replace(a,'\\n}',1);${W}"
+s=s.replace(a,'\\n}',1);${W}" guards "" 128
 
 run_case "beltWatch loses sight of the sentinel" \
   "does not observe the sentinel" \
   "${P}a='var g = pane.querySelector(\".beltguide\");'
 assert a in s
-s=s.replace(a,'var g = null;',1);${W}"
+s=s.replace(a,'var g = null;',1);${W}" guards "" 128
 
 echo "--- the smoke half: the sentinel is part of the belt, and the parked state is staged"
 

@@ -20,7 +20,7 @@ s=s.replace(a,'the host sees nothing, never what ',1);${W}"
 
 run_case "the README's visit bullet is deleted" \
   "the README's visit-counting bullet is gone" \
-  "${R}import re;s=re.sub(r'^- \*\*Anonymous visit counts.*\$','',s,flags=re.M);${RW}"
+  "${R}import re;s=re.sub(r'^- \*\*Anonymous visit counts.*\$','',s,flags=re.M);${RW}" guards "" 121
 
 run_case "the README stops naming the host" \
   'visit-counting bullet no longer carries "host"' \
@@ -32,7 +32,7 @@ io.open(p,'w',encoding='utf-8').write(s)"
 
 run_case "the footer is removed altogether" \
   "the Home footer is gone" \
-  "${P}import re;s=re.sub(r'<p class=\"homefoot\">','<p class=\"gone\">',s,count=1);${W}"
+  "${P}import re;s=re.sub(r'<p class=\"homefoot\">','<p class=\"gone\">',s,count=1);${W}" guards "" 121
 
 echo "--- 20: the UI-component exemption is earned per rule, not per token"
 run_case "the buckle's second line goes back to --staroff" \
@@ -48,7 +48,7 @@ s=s.replace(a,'.buildline{color:var(--line2);display:block;',1);${W}"
 run_case "the exemption outlives the rule it was written for" \
   "UI_EXEMPT names" \
   "${P}a='.stars button';assert a in s
-s=s.replace(a,'.stars bttn',1);${W}"
+s=s.replace(a,'.stars bttn',1);${W}" guards "" 20
 
 echo "--- 120: the scroll read comes before the first write"
 run_case "the scroll read slides back below flagSave()" \
@@ -65,11 +65,11 @@ assert b in s
 s=s.replace(b,b+'''
   var keep = scrollKeep();
   if(nwArriveKeep !== null){ keep = nwArriveKeep; nwArriveKeep = null; }
-  if(nwScrollAdjust){ keep = Math.max(0, keep - nwScrollAdjust); nwScrollAdjust = 0; }''',1);${W}"
+  if(nwScrollAdjust){ keep = Math.max(0, keep - nwScrollAdjust); nwScrollAdjust = 0; }''',1);${W}" guards "" 120
 
 run_case "render() stops opening with the write it is measured against" \
   "no longer opens with flagSave()" \
-  "${P}a='  flagSave();\n';assert a in s;s=s.replace(a,'  flagSaveLater();\n',1);${W}"
+  "${P}a='  flagSave();\n';assert a in s;s=s.replace(a,'  flagSaveLater();\n',1);${W}" guards "" 120
 
 echo "--- the favicon set, which used to be a count"
 run_case "the classic path is dropped from the head" \
@@ -92,10 +92,10 @@ io.open(p,'w',encoding='utf-8').write(s)"
 run_case "a fifth icon arrives that nobody decided on" \
   "an icon this section does not know about" \
   "${P}a='<link rel=\"icon\" type=\"image/svg+xml\" href=\"icon.svg\">';assert a in s
-s=s.replace(a,a+'<link rel=\"icon\" type=\"image/png\" sizes=\"64x64\" href=\"icon-64.png\">',1);${W}"
+s=s.replace(a,a+'<link rel=\"icon\" type=\"image/png\" sizes=\"64x64\" href=\"icon-64.png\">',1);${W}" guards "" 105
 
 run_case "the ico is a PNG wearing the wrong extension" \
   "does not begin with the ICO signature" \
-  "import shutil;shutil.copyfile('docs/icon-192.png','docs/favicon.ico')"
+  "import shutil;shutil.copyfile('docs/icon-192.png','docs/favicon.ico')" guards "" 105
 
 finish "negtest330"

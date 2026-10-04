@@ -70,7 +70,7 @@ echo "--- 124: every face is asked for before the CSS finds it"
 run_case "a face loses its preload" \
   "CSS-discovered faces are not requested" \
   "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/ibm-plex-mono-latin-600-normal.woff2\">\n';assert a in s
-s=s.replace(a,'',1);${W}"
+s=s.replace(a,'',1);${W}" guards "" 124
 
 # 4.3.0 retired Anton, which these fixtures were anchored on; they mutate the
 # big-shoulders face now — any shipped woff2 serves, the guard under test is
@@ -78,23 +78,23 @@ s=s.replace(a,'',1);${W}"
 run_case "a preload loses its crossorigin attribute" \
   "has no crossorigin attribute" \
   "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/big-shoulders-display-latin-700-normal.woff2\">';assert a in s
-s=s.replace(a,'<link rel=\"preload\" as=\"font\" type=\"font/woff2\" href=\"fonts/big-shoulders-display-latin-700-normal.woff2\">',1);${W}"
+s=s.replace(a,'<link rel=\"preload\" as=\"font\" type=\"font/woff2\" href=\"fonts/big-shoulders-display-latin-700-normal.woff2\">',1);${W}" guards "" 124
 
 run_case "a preload loses its as=font" \
   "without it the browser cannot prioritise" \
   "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/limelight-latin-400-normal.woff2\">';assert a in s
-s=s.replace(a,'<link rel=\"preload\" type=\"font/woff2\" crossorigin href=\"fonts/limelight-latin-400-normal.woff2\">',1);${W}"
+s=s.replace(a,'<link rel=\"preload\" type=\"font/woff2\" crossorigin href=\"fonts/limelight-latin-400-normal.woff2\">',1);${W}" guards "" 124
 
 run_case "a preload survives the face it was for" \
   "which no @font-face uses" \
   "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/big-shoulders-display-latin-700-normal.woff2\">';assert a in s
-s=s.replace(a,a+'\n<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/retired-latin-400-normal.woff2\">',1);${W}"
+s=s.replace(a,a+'\n<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/retired-latin-400-normal.woff2\">',1);${W}" guards "" 124
 
 echo "--- 125: robots.txt states a position on AI use"
 
 run_case "the Content-Signal line is deleted" \
   "declares no Content-Signal line" \
-  "${RP}i=s.index('Content-Signal:');j=s.index('\n',i);s=s[:i]+s[j+1:];${HW}"
+  "${RP}i=s.index('Content-Signal:');j=s.index('\n',i);s=s[:i]+s[j+1:];${HW}" guards "" 125
 
 # The anchor tracks the shipped line — ai-train flipped to yes in 3.7.2, the
 # owner's rights call, and an anchor on the old value reports SETUP BROKE.
@@ -106,17 +106,17 @@ s=s.replace(a,'Content-Signal: ai-train=yes, search=yes, ai-input=maybe',1);${HW
 run_case "the sitemap line leaves robots.txt" \
   "no longer names the sitemap" \
   "${RP}a='Sitemap: https://nightwatcher.life/sitemap.xml';assert a in s
-s=s.replace(a,'Sitemap: https://example.org/sitemap.xml',1);${HW}"
+s=s.replace(a,'Sitemap: https://example.org/sitemap.xml',1);${HW}" guards "" 125
 
 run_case "robots.txt stops allowing the root" \
   "no longer allows every user-agent" \
-  "${RP}a='Allow: /';assert a in s;s=s.replace(a,'Disallow: /',1);${HW}"
+  "${RP}a='Allow: /';assert a in s;s=s.replace(a,'Disallow: /',1);${HW}" guards "" 125
 
 echo "--- 39: commerce vocabulary does not come back to the JSON-LD"
 
 run_case "the Offer node is restored" \
   "carries an Offer again" \
   "${P}a='\"isAccessibleForFree\":true';assert a in s
-s=s.replace(a,a+',\"offers\":{\"@type\":\"Offer\",\"price\":\"0\",\"priceCurrency\":\"USD\"}',1);${W}"
+s=s.replace(a,a+',\"offers\":{\"@type\":\"Offer\",\"price\":\"0\",\"priceCurrency\":\"USD\"}',1);${W}" guards "" 39
 
 finish "negtest340"

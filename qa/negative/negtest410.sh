@@ -30,14 +30,14 @@ p='docs/auth.md'
 s=io.open(p,encoding='utf-8').read()
 assert s.startswith('# Night Watcher')
 io.open(p,'w',encoding='utf-8').write(s.replace(s.split('\n')[0],'# Authentication',1))
-"
+" guards "" 135
 
 run_case "deleting auth.md is caught" \
   "docs/auth.md is gone" \
 "
 import os
 os.remove('docs/auth.md')
-"
+" guards "" 135
 
 # --- guard 136: one hostname is one binding, and the file says so ---
 
@@ -49,7 +49,7 @@ p='wrangler.jsonc'
 s=io.open(p,encoding='utf-8').read()
 assert '\"workers_dev\": false,' in s
 io.open(p,'w',encoding='utf-8').write(s.replace('\"workers_dev\": false,','\"workers_dev\": true,'))
-"
+" guards "" 136
 
 run_case "a second apex binding is caught" \
   "ONE HOSTNAME IS ONE BINDING" \
@@ -60,7 +60,7 @@ s=io.open(p,encoding='utf-8').read()
 old='{ \"pattern\": \"nightwatcher.life\", \"custom_domain\": true }'
 assert old in s
 io.open(p,'w',encoding='utf-8').write(s.replace(old, old + ',\n    { \"pattern\": \"nightwatcher.life/*\" }'))
-"
+" guards "" 136
 
 run_case "the apex demoted from custom domain is caught" \
   "not bound as a custom domain" \
@@ -70,7 +70,7 @@ p='wrangler.jsonc'
 s=io.open(p,encoding='utf-8').read()
 assert '\"custom_domain\": true' in s
 io.open(p,'w',encoding='utf-8').write(s.replace('\"custom_domain\": true','\"custom_domain\": false'))
-"
+" guards "" 136
 
 # --- guard 10, widened: bless must not launder foreign code ---
 
@@ -83,7 +83,7 @@ s=io.open(p,encoding='utf-8').read()
 anchor='function flagSave(){'
 assert anchor in s
 io.open(p,'w',encoding='utf-8').write(s.replace(anchor,'/*! nwlib v1.0.0 */\n'+anchor,1))
-"
+" guards "" 10
 
 run_case "a sourceMappingURL in the file is caught" \
   "the app ships one inline script that is ours" \
@@ -94,7 +94,7 @@ s=io.open(p,encoding='utf-8').read()
 anchor='function flagSave(){'
 assert anchor in s
 io.open(p,'w',encoding='utf-8').write(s.replace(anchor,'//# sourceMappingURL=app.js.map\n'+anchor,1))
-"
+" guards "" 10
 
 # The mutation lands inside the one inline script, so the CSP hash moves with
 # it and every run is red for that reason alone. NEG_ARGS runs this one under
@@ -156,7 +156,7 @@ s=io.open(p,encoding='utf-8').read()
 anchor='</head>'
 assert anchor in s
 io.open(p,'w',encoding='utf-8').write(s.replace(anchor,'<!-- Cloudflare Web Analytics : smuggled prose -->\n'+anchor,1))
-"
+" guards "" 65
 
 run_case "the qa.yml guards-fixture count drifting is caught" \
   "run guards.js" \
@@ -191,7 +191,7 @@ s=io.open(p,encoding='utf-8').read()
 old='(request.method === \"GET\" || request.method === \"HEAD\")'
 assert old in s
 io.open(p,'w',encoding='utf-8').write(s.replace(old,'request.method === \"GET\"'))
-"
+" guards "" 133
 
 # --- guard 137: the four seams stay closed ---
 
@@ -204,7 +204,7 @@ s=io.open(p,encoding='utf-8').read()
 old='\n  else document.documentElement.style.removeProperty(\"--hdrh\");'
 assert old in s
 io.open(p,'w',encoding='utf-8').write(s.replace(old,''))
-"
+" guards "" 137
 
 run_case "the import ignoring a mark's value is caught" \
   "no longer consults the VALUE of a stored mark" \
@@ -215,7 +215,7 @@ s=io.open(p,encoding='utf-8').read()
 old='for(src in (wBox || {})) if(HAS.call(wBox, src) && wBox[src]) res.watched[src] = 1;'
 assert old in s
 io.open(p,'w',encoding='utf-8').write(s.replace(old,'for(src in (wBox || {})) if(HAS.call(wBox, src)) res.watched[src] = 1;'))
-"
+" guards "" 137
 
 run_case "dedupeLog pushing entries unboxed is caught" \
   "no longer re-boxes its entries" \
@@ -226,7 +226,7 @@ s=io.open(p,encoding='utf-8').read()
 old='var box = {id:String(e.id), ts:Number(e.ts)};\n    seen[e.id] = box; out.push(box);'
 assert old in s
 io.open(p,'w',encoding='utf-8').write(s.replace(old,'seen[e.id] = e; out.push(e);'))
-"
+" guards "" 137
 
 run_case "IOSDEVICE sliding back below restore() is caught" \
   "assigned after the restore() call again" \
@@ -241,7 +241,7 @@ s=s[:start]+s[end:]
 anchor='window.addEventListener(\"beforeinstallprompt\"'
 assert anchor in s
 io.open(p,'w',encoding='utf-8').write(s.replace(anchor,blk+anchor,1))
-"
+" guards "" 137
 
 # --- catch-up, section 132: the offline promise ---
 
@@ -254,7 +254,7 @@ s=io.open(p,encoding='utf-8').read()
 old='e.waitUntil(\n        /* delete-then-put'
 assert old in s
 io.open(p,'w',encoding='utf-8').write(s.replace(old,old.replace('e.waitUntil(','void(')))
-"
+" guards "" 132
 
 run_case "an error response written to the cache is caught" \
   "WRITTEN TO THE CACHE" \
@@ -265,7 +265,7 @@ s=io.open(p,encoding='utf-8').read()
 old='if(res && res.ok){'
 assert old in s
 io.open(p,'w',encoding='utf-8').write(s.replace(old,'if(res){'))
-"
+" guards "" 132
 
 run_case "the fetch handler answering cross-origin is caught" \
   "answered for a cross-origin request" \
@@ -276,7 +276,7 @@ s=io.open(p,encoding='utf-8').read()
 old='if(url.origin !== location.origin) return;'
 assert old in s
 io.open(p,'w',encoding='utf-8').write(s.replace(old,''))
-"
+" guards "" 132
 
 # --- catch-up, section 30: the documented spoiler order, now the right way round ---
 
@@ -293,7 +293,7 @@ assert len(rot)==1 and len(jlu)==1 and rot[0] < jlu[0]
 row=lines.pop(rot[0])
 lines.insert(jlu[0], row)
 io.open(p,'w',encoding='utf-8').write('\n'.join(lines))
-"
+" guards "" 30
 
 # --- catch-up, section 27: the path is chosen, never assigned ---
 
@@ -306,7 +306,7 @@ s=io.open(p,encoding='utf-8').read()
 a='read:function(v, o){ return isPath(v) ? v : isPath(o.mode) ? o.mode : undefined; }'
 assert a in s
 io.open(p,'w',encoding='utf-8').write(s.replace(a,'read:function(v, o){ return isPath(v) ? v : isPath(o.mode) ? o.mode : S.mode; }',1))
-"
+" guards "" 27
 
 # --- catch-up, section 21: a blocked store has to say so ---
 
@@ -319,7 +319,7 @@ s=io.open(p,encoding='utf-8').read()
 s2=re.sub(r'id=\"nosave\"','id=\"nosaveX\"',s,count=1)
 assert s2 != s
 io.open(p,'w',encoding='utf-8').write(s2)
-"
+" guards "" 21
 
 # --- catch-up, section 7: the backup code round-trip ---
 
@@ -332,7 +332,7 @@ s=io.open(p,encoding='utf-8').read()
 old='if(S.skipped[f.id]){ k.push(idHash(f.id)); inK[f.id] = 1; }'
 assert old in s
 io.open(p,'w',encoding='utf-8').write(s.replace(old,'if(S.skipped[f.id]){ inK[f.id] = 1; }'))
-"
+" guards "" 7
 
 # --- guard 138: the coverage map itself ---
 #
@@ -354,7 +354,7 @@ b='docs/auth.md is gone'
 assert a in s and b in s
 s=s.replace(a,'nothing will ever print this').replace(b,'nor will this ever print')
 io.open(p,'w',encoding='utf-8').write(s)
-"
+" guards "" 138
 
 rm -rf "$NEG"
 finish "negtest410"

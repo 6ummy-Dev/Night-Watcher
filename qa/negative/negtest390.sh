@@ -32,7 +32,7 @@ a=s.index(needle)
 b=s.index('\n', a)
 assert s[a:b].endswith('},'), 'the joker-2019 line no longer ends the way this mutation assumes'
 io.open(p,'w',encoding='utf-8').write(s[:a]+s[b+1:])
-"
+" guards "" 2
 
 # H-2, variant (a): corrupt TWO blessed regions — ItemList and FAQPage — and
 # one bless run must fix both and exit green. Under the stale-string bug the

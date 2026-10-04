@@ -18,23 +18,23 @@
 
 run_case "141: the life sort goes back to an anonymous function" \
   "no longer sorts the life ordering" \
-  "${P}old='sort:lifeCmp}';assert old in s;s=s.replace(old,'sort:function(a,b){ return (a.lo||9999)-(b.lo||9999); }}',1);${W}"
+  "${P}old='sort:lifeCmp}';assert old in s;s=s.replace(old,'sort:function(a,b){ return (a.lo||9999)-(b.lo||9999); }}',1);${W}" guards "" 141
 
 run_case "141: the release sort points at something else" \
   "no longer sorts the release ordering" \
-  "${P}old='sort:releaseCmp}';assert old in s;s=s.replace(old,'sort:cmpX}',1);${W}"
+  "${P}old='sort:releaseCmp}';assert old in s;s=s.replace(old,'sort:cmpX}',1);${W}" guards "" 141
 
 run_case "141: an inline comparator creeps back into buildGroups" \
   "has an inline comparator again" \
-  "${P}old='    if(gr.sort) fs.sort(gr.sort);';assert old in s;s=s.replace(old,'    if(gr.sort) fs.sort(function(a,b){ return gr.sort(a,b); });',1);${W}"
+  "${P}old='    if(gr.sort) fs.sort(gr.sort);';assert old in s;s=s.replace(old,'    if(gr.sort) fs.sort(function(a,b){ return gr.sort(a,b); });',1);${W}" guards "" 141
 
 run_case "141: lifeCmp stops keying on the manual life order" \
   "it settles order inside one era" \
-  "${P}old='((a.lo || 9999) - (b.lo || 9999)) || (a.gi - b.gi) || (a.ix - b.ix)';assert old in s;s=s.replace(old,'(a.gi - b.gi) || (a.ix - b.ix)',1);${W}"
+  "${P}old='((a.lo || 9999) - (b.lo || 9999)) || (a.gi - b.gi) || (a.ix - b.ix)';assert old in s;s=s.replace(old,'(a.gi - b.gi) || (a.ix - b.ix)',1);${W}" guards "" 141
 
 run_case "141: releaseCmp stops keying on the year" \
   "no longer keys on the year, then the catalogue" \
-  "${P}old='return (a.y - b.y) || (a.gi - b.gi) || (a.ix - b.ix);';assert old in s;s=s.replace(old,'return a.gi - b.gi;',1);${W}"
+  "${P}old='return (a.y - b.y) || (a.gi - b.gi) || (a.ix - b.ix);';assert old in s;s=s.replace(old,'return a.gi - b.gi;',1);${W}" guards "" 141
 
 run_case "141: an ordering goes missing from orders.txt" \
 "the header promises three orderings" \
@@ -45,15 +45,15 @@ s=io.open(p,encoding='utf-8').read()
 old='ORDERING 2 OF 3'
 assert old in s
 io.open(p,'w',encoding='utf-8').write(s.replace(old,'ORDERING TWO',1))
-"
+" guards "" 141
 
 run_case "142: canSaveFile stops checking for somewhere to keep the handle" \
   "feature-detects both showSaveFilePicker and indexedDB" \
-  "${P}old=' && !!window.indexedDB';assert old in s;s=s.replace(old,'',1);${W}"
+  "${P}old=' && !!window.indexedDB';assert old in s;s=s.replace(old,'',1);${W}" guards "" 142
 
 run_case "142: backupToFile stamps the backup itself" \
   "stamps lastExportAt itself" \
-  "${P}old='return window.showSaveFilePicker({suggestedName:';assert old in s;s=s.replace(old,'S.lastExportAt = Date.now(); return window.showSaveFilePicker({suggestedName:',1);${W}"
+  "${P}old='return window.showSaveFilePicker({suggestedName:';assert old in s;s=s.replace(old,'S.lastExportAt = Date.now(); return window.showSaveFilePicker({suggestedName:',1);${W}" guards "" 142
 
 run_case "142: the handle is written without asking permission first" \
 "no longer queries the handle's permission" \
@@ -67,19 +67,19 @@ assert a in s and b in s
 s=s.replace(a,'typeof h.createWritable !== \"function\"',1)
 s=s.replace(b,'return Promise.resolve(\"granted\").then(function(p){',1)
 io.open(p,'w',encoding='utf-8').write(s)
-"
+" guards "" 142
 
 run_case "142: a cancelled save picker stamps the backup anyway" \
   "is not gated on the write succeeding" \
-  "${P}old='if(fOk){ S.lastExportAt = Date.now(); persist(); render(); }';assert old in s;s=s.replace(old,'S.lastExportAt = Date.now(); persist(); render();',1);${W}"
+  "${P}old='if(fOk){ S.lastExportAt = Date.now(); persist(); render(); }';assert old in s;s=s.replace(old,'S.lastExportAt = Date.now(); persist(); render();',1);${W}" guards "" 142
 
 run_case "142: the save control escapes the feature detect" \
   "no longer behind canSaveFile()" \
-  "${P}old='(canSaveFile() ? ';assert old in s;s=s.replace(old,'(true ? ',1);${W}"
+  "${P}old='(canSaveFile() ? ';assert old in s;s=s.replace(old,'(true ? ',1);${W}" guards "" 142
 
 run_case "142: nothing stamps the backup any more" \
   "nothing stamps lastExportAt any more" \
-  "${P}old='S.lastExportAt = Date.now()';assert old in s;s=s.replace(old,'S.lastExportXt = Date.now()');${W}"
+  "${P}old='S.lastExportAt = Date.now()';assert old in s;s=s.replace(old,'S.lastExportXt = Date.now()');${W}" guards "" 142
 
 rm -rf "$NEG"
 finish "negtest450"

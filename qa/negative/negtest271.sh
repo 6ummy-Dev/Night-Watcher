@@ -14,13 +14,13 @@ echo "--- the era note does not touch the header rule"
 
 run_case "the group body loses its top padding again" \
   "the era note sits against the 1px rule" \
-  "${P}s=s.replace('.gbody{display:none;padding:12px 15px 6px;}','.gbody{display:none;}',1);${W}"
+  "${P}s=s.replace('.gbody{display:none;padding:12px 15px 6px;}','.gbody{display:none;}',1);${W}" guards "" 108
 
 echo "--- the rating sits on the badge line, not beside the link"
 
 run_case "the rating goes back beside Where to watch, in the hero" \
   "sits next to the Where-to-watch link again" \
-  "${P}s=s.replace('<div class=\"linkrow\">'+chr(39)+'+watchLinks(f)+'+chr(39)+'</div>'+chr(39)+'+','<div class=\"linkrow\">'+chr(39)+'+ratingBadge(f)+watchLinks(f)+'+chr(39)+'</div>'+chr(39)+'+',1);${W}"
+  "${P}s=s.replace('<div class=\"linkrow\">'+chr(39)+'+watchLinks(f)+'+chr(39)+'</div>'+chr(39)+'+','<div class=\"linkrow\">'+chr(39)+'+ratingBadge(f)+watchLinks(f)+'+chr(39)+'</div>'+chr(39)+'+',1);${W}" guards "" 92
 
 run_case "the entry row drops the rating from its badges" \
   "the entry row does not carry the rating" \
@@ -32,20 +32,20 @@ run_case "the Next-up hero drops the rating from its badges" \
 
 run_case "a fourth seat is added that nobody named" \
   "ratingBadge() is called" \
-  "${P}s=s.replace('function watchUrl(f){','function unused(f){ return ratingBadge(f); }\nfunction watchUrl(f){',1);${W}"
+  "${P}s=s.replace('function watchUrl(f){','function unused(f){ return ratingBadge(f); }\nfunction watchUrl(f){',1);${W}" guards "" 92
 
 echo "--- the share card's bottom block stays where the eye expects it"
 
 run_case "the card's link line is lifted back into the empty half" \
   "the share card's bottom block has moved" \
-  "${P}s=s.replace('\"nightwatcher.life\", 1750','\"nightwatcher.life\", 1595',1);${W}"
+  "${P}s=s.replace('\"nightwatcher.life\", 1750','\"nightwatcher.life\", 1595',1);${W}" guards "" 108
 
 echo "--- the share block reads like every other block"
 
 run_case "the description goes back under the buttons as a centred note" \
   "the share block's description is not a plain <p>" \
   "${P}s=s.replace('<p>A story card of your progress. Drawn in your browser, nothing uploaded.</p>'+chr(39)+'+\n    ','',1)
-s=s.replace('</div></div>'+chr(39)+';\n}\nfunction cardFile','</div><p class=\"note\">A story card of your progress.</p></div>'+chr(39)+';\n}\nfunction cardFile',1);${W}"
+s=s.replace('</div></div>'+chr(39)+';\n}\nfunction cardFile','</div><p class=\"note\">A story card of your progress.</p></div>'+chr(39)+';\n}\nfunction cardFile',1);${W}" guards "" 108
 
 rm -rf "$NEG"
 finish "2.7.1 negative tests"

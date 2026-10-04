@@ -11,23 +11,23 @@ echo "--- 96: the pouches animate once, on the open"
 run_case "the base rule regains the animation" \
   "base .includes .scope rule carries an animation" \
   "${P}a='box-shadow:inset 0 10px 14px -10px rgba(0,0,0,.85);}';assert s.count(a)==1
-s=s.replace(a,'box-shadow:inset 0 10px 14px -10px rgba(0,0,0,.85);animation:pouch .22s ease-out backwards;}',1);${W}"
+s=s.replace(a,'box-shadow:inset 0 10px 14px -10px rgba(0,0,0,.85);animation:pouch .22s ease-out backwards;}',1);${W}" guards "" 96
 
 run_case "the opening flag leaks past the one render" \
   "does not scope the opening flag" \
   "${P}a='S.beltOpen = true; S.beltOpening = true; render(); S.beltOpening = false;';assert a in s
-s=s.replace(a,'S.beltOpen = true; S.beltOpening = true; render();',1);${W}"
+s=s.replace(a,'S.beltOpen = true; S.beltOpening = true; render();',1);${W}" guards "" 96
 
 run_case "includeBlock stops reading the flag" \
   "does not read the opening flag" \
   "${P}a='''<div class=\"includes'+(S.beltOpening ? \" opening\" : \"\")+'\"''';assert a in s
-s=s.replace(a,'<div class=\"includes opening\"',1);${W}"
+s=s.replace(a,'<div class=\"includes opening\"',1);${W}" guards "" 96
 
 echo "--- 99: the ratings sentence flows beside its badges"
 run_case "the flex block comes back" \
   "lost its inline flow" \
   "${P}a='.legend .rleg{display:block;';assert a in s
-s=s.replace(a,'.legend .rleg{display:flex;',1);${W}"
+s=s.replace(a,'.legend .rleg{display:flex;',1);${W}" guards "" 99
 
 echo "--- 29: the owner's ceilings, held by arithmetic"
 run_case "the file grows past the gzip budget" \
@@ -36,25 +36,25 @@ run_case "the file grows past the gzip budget" \
 pad=''; seed=b'night-watcher'
 while len(pad)<120000: seed=hashlib.md5(seed).hexdigest().encode(); pad+=seed.decode()
 a='\"use strict\";';assert a in s
-s=s.replace(a,'\"use strict\"; var PAD_GZ = \"'+pad+'\";',1);${W}"
+s=s.replace(a,'\"use strict\"; var PAD_GZ = \"'+pad+'\";',1);${W}" guards "" 29
 
 echo "--- 78: the seed carries the whole catalogue"
 run_case "an entry vanishes from the seed" \
   "no longer matches the data" \
   "${P}a=' (1989) · live action · essential</li>';assert a in s
-s=s.replace(a,' (1989) · live action</li>',1);${W}"
+s=s.replace(a,' (1989) · live action</li>',1);${W}" guards "" 78
 
 run_case "an unreleased entry stops saying so in the seed" \
   "no longer matches the data" \
   "${P}a=' · not out yet</li>';assert a in s
-s=s.replace(a,'</li>',1);${W}"
+s=s.replace(a,'</li>',1);${W}" guards "" 78
 
 echo "--- the harness heals: a deleted file comes back between fixtures"
 run_case "and the heal brought it back for the next fixture" \
   "base .includes .scope rule carries an animation" \
   "import os;assert os.path.exists('docs/404.html'), 'heal failed: 404.html still missing'
 ${P}a='box-shadow:inset 0 10px 14px -10px rgba(0,0,0,.85);}';assert s.count(a)==1
-s=s.replace(a,'box-shadow:inset 0 10px 14px -10px rgba(0,0,0,.85);animation:pouch .22s ease-out backwards;}',1);${W}"
+s=s.replace(a,'box-shadow:inset 0 10px 14px -10px rgba(0,0,0,.85);animation:pouch .22s ease-out backwards;}',1);${W}" guards "" 96
 
 echo "--- 102: a tick burst writes once, and leaving flushes"
 run_case "persist writes inline again" \
@@ -67,17 +67,17 @@ run_case "persist writes inline again" \
 s=s.replace(a,'''function persist(){
   if(!store || readFailed) return;
   persistNow();
-}''',1);${W}"
+}''',1);${W}" guards "" 102
 
 run_case "the pagehide flush is dropped" \
   "nothing flushes on pagehide" \
   "${P}a='window.addEventListener(\"pagehide\", flushPersist);';assert a in s
-s=s.replace(a,'',1);${W}"
+s=s.replace(a,'',1);${W}" guards "" 102
 
 run_case "the flush writes with nothing pending" \
   "writes even with nothing pending" \
   "${P}a='  if(!persistTimer) return;';assert a in s
-s=s.replace(a,'',1);${W}"
+s=s.replace(a,'',1);${W}" guards "" 102
 
 run_case "and smoke sees the burst write synchronously" \
   "a tick burst does not write synchronously" \
@@ -100,12 +100,12 @@ run_case "a toggle stops going through tickUpdate" \
   persist(); tickUpdate(id);''';assert a in s
 s=s.replace(a,'''  if(S.skipped[id]){ delete S.skipped[id]; stampMark(\"s\", id); }
   else { S.skipped[id] = 1; stampMark(\"s\", id); unmarkWatched(id); askDurable(); }
-  persist(); render();''',1);${W}"
+  persist(); render();''',1);${W}" guards "" 103
 
 run_case "the fallback condition is dropped" \
   "lost its fallback condition" \
   "${P}a='  if(S.tab !== \"watch\" || S.filter !== \"all\" || S.q){\n    var keep = null;';assert a in s
-s=s.replace(a,'  if(S.tab !== \"watch\"){\n    var keep = null;',1);${W}"
+s=s.replace(a,'  if(S.tab !== \"watch\"){\n    var keep = null;',1);${W}" guards "" 103
 
 run_case "and the gate catches a repaint that goes stale" \
   "surgical paths are byte-identical to a full render" \
@@ -132,7 +132,7 @@ s=s.replace(a,'''  var gm''',1);${W}" \
 run_case "the tick goes back to rebuilding the whole group" \
   "builds a group again" \
   "${P}a='  var gm = head.querySelector(\".meta\");';assert a in s
-s=s.replace(a,'  var gbx = groupBlock(g, S.q.toLowerCase());\n  var gm = head.querySelector(\".meta\");',1);${W}"
+s=s.replace(a,'  var gbx = groupBlock(g, S.q.toLowerCase());\n  var gm = head.querySelector(\".meta\");',1);${W}" guards "" 103
 
 run_case "the row builder is inlined instead of shared" \
   "does not rebuild the row through filmRow(f, row.hidden)" \
@@ -141,17 +141,17 @@ run_case "the row builder is inlined instead of shared" \
   var gm''';assert a in s
 s=s.replace(a,'''  scratch.innerHTML = String(f.id);
   row.parentNode.replaceChild(scratch.firstChild, row);
-  var gm''',1);${W}"
+  var gm''',1);${W}" guards "" 103
 
 run_case "the group head grows a second copy of its own tally" \
   "no longer writes the group head through gSub()" \
   "${P}a='  if(gm) gm.textContent = gSub(g);';assert a in s
-s=s.replace(a,'  if(gm) gm.textContent = gDone(g) + \" of \" + g.films.length;',1);${W}"
+s=s.replace(a,'  if(gm) gm.textContent = gDone(g) + \" of \" + g.films.length;',1);${W}" guards "" 103
 
 run_case "the tick bar stops going through gBarFill" \
   "no longer writes the group head through gSub()" \
   "${P}a='  if(gbar) gbar.innerHTML = gBarFill(g);';assert a in s
-s=s.replace(a,'  if(gbar) gbar.innerHTML = gbar.innerHTML;',1);${W}"
+s=s.replace(a,'  if(gbar) gbar.innerHTML = gbar.innerHTML;',1);${W}" guards "" 103
 
 run_case "a second place learns how to build a group" \
   "is built in 2 places" \

@@ -10,12 +10,12 @@ echo "--- 71: the two tier mutations the 1.7.2 QA got past every guard"
 run_case "tierOf never returns Optional (survived the whole harness in 1.7.2)" \
   "in tier" \
   "${P}a='function tierOf(f){ return f.b.indexOf(\"e\") >= 0 ? \"e\" : (f.o ? \"o\" : \"k\"); }'
-assert a in s;s=s.replace(a,'function tierOf(f){ return f.b.indexOf(\"e\") >= 0 ? \"e\" : \"k\"; }',1);${W}"
+assert a in s;s=s.replace(a,'function tierOf(f){ return f.b.indexOf(\"e\") >= 0 ? \"e\" : \"k\"; }',1);${W}" guards "" 71
 
 run_case "tierOf calls everything Optional" \
   "the other tiers have collapsed into it" \
   "${P}a='function tierOf(f){ return f.b.indexOf(\"e\") >= 0 ? \"e\" : (f.o ? \"o\" : \"k\"); }'
-assert a in s;s=s.replace(a,'function tierOf(f){ return \"o\"; }',1);${W}"
+assert a in s;s=s.replace(a,'function tierOf(f){ return \"o\"; }',1);${W}" guards "" 71
 
 run_case "a tier fixture quietly changes tier in the data" \
   "batwheels-season-1-2022" \
@@ -44,7 +44,7 @@ s=s[:m.start()]+m.group(1)+'(false){'+s[m.end():];${W}"
 run_case "combined tokens stop splitting" \
   "a combined route token stopped splitting" \
   "${P}a='h.slice(1).toLowerCase().split(/[-+]/)';assert a in s
-s=s.replace(a,'[h.slice(1).toLowerCase()]',1);${W}"
+s=s.replace(a,'[h.slice(1).toLowerCase()]',1);${W}" guards "" 72
 
 # NOT TESTED here any more. This widened idHash to push the link past a 2254
 # ratchet. 1.7.7 replaced the ratchet with the real 2000 ceiling and made
@@ -55,7 +55,7 @@ echo "--- 74: a history that runs both ways"
 run_case "two releases are dated out of order" \
   "the history runs backwards" \
   "${C}import re;m=re.search(r'## \\[4\\.0\\.1\\] \\u2014 (\\d{4}-\\d{2}-\\d{2})',s);assert m
-s=s[:m.start(1)]+'2026-09-04'+s[m.end(1):];${W}"
+s=s[:m.start(1)]+'2026-09-04'+s[m.end(1):];${W}" guards "" 74
 
 run_case "a version is written down twice" \
   "lists 4.0.2 twice" \
@@ -69,29 +69,29 @@ run_case "an entry is deleted without being retired" \
 run_case "a retired slug is put back in the data" \
   "removal is not reversible by re-adding the slug" \
   "${P}a=' {i:\"scooby-doo-meets-batman-2002\"';assert a in s
-i=s.index(a);s=s[:i]+' {i:\"scooby-doo-and-krypto-too-2023\",t:\"Krypto\",y:2023,e:0,out:\"none\",d:\"Back again.\",o:1},\n'+s[i:];${W}"
+i=s.index(a);s=s[:i]+' {i:\"scooby-doo-and-krypto-too-2023\",t:\"Krypto\",y:2023,e:0,out:\"none\",d:\"Back again.\",o:1},\n'+s[i:];${W}" guards "" 2
 
 run_case "a retirement is recorded without a reason" \
   "gives no real reason" \
   "import io,json;p='qa/retired-ids.json'
-json.dump({'scooby-doo-and-krypto-too-2023':'wrong'},io.open(p,'w'))"
+json.dump({'scooby-doo-and-krypto-too-2023':'wrong'},io.open(p,'w'))" guards "" 2
 
 echo "--- 14: the README's era names, which had drifted two releases"
 run_case "an era is renamed and the front page is not" \
   "not an era this build ships" \
-  "${P}a='name:\"The Grayson years\"';assert a in s;s=s.replace(a,'name:\"The Robin years\"',1);${W}"
+  "${P}a='name:\"The Grayson years\"';assert a in s;s=s.replace(a,'name:\"The Robin years\"',1);${W}" guards "" 14
 
 run_case "an era is added and the front page does not list it" \
   "omits the era(s)" \
   "${P}a=' {k:0,  name:\"Outside any timeline\"';assert a in s
-s=s.replace(a,' {k:12, name:\"A twelfth era\", note:\"Nothing here yet.\"},\n {k:0,  name:\"Outside any timeline\"',1);${W}"
+s=s.replace(a,' {k:12, name:\"A twelfth era\", note:\"Nothing here yet.\"},\n {k:0,  name:\"Outside any timeline\"',1);${W}" guards "" 14
 
 echo "--- 50: what the extracted markWatched() made checkable"
 run_case "marking watched stops clearing a skip" \
   "left it skipped as well as watched" \
   "${P}a='''  S.watched[id] = 1; stampMark(\"w\", id);
   if(S.skipped[id]){ delete S.skipped[id]; stampMark(\"s\", id); }''';assert a in s
-s=s.replace(a,'  S.watched[id] = 1; stampMark(\"w\", id);',1);${W}"
+s=s.replace(a,'  S.watched[id] = 1; stampMark(\"w\", id);',1);${W}" guards "" 50
 
 echo "--- the scope preference"
 run_case "a deep link writes the scope preference again" \

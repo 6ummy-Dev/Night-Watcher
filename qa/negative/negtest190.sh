@@ -5,22 +5,22 @@
 echo "--- 91: the card file itself"
 run_case "the card is deleted out from under its metas" \
   "docs/share.png is missing" \
-  "import os;os.remove('docs/share.png')"
+  "import os;os.remove('docs/share.png')" guards "" 91
 
 run_case "the card is replaced by something the wrong size" \
   "the card is 1200×630" \
-  "import shutil;shutil.copy('docs/icon.png','docs/share.png')"
+  "import shutil;shutil.copy('docs/icon.png','docs/share.png')" guards "" 91
 
 echo "--- 91: the promises in the page"
 run_case "the card type quietly reverts to a thumbnail" \
   "without summary_large_image" \
   "${P}a='<meta name=\"twitter:card\" content=\"summary_large_image\">';assert a in s
-s=s.replace(a,'<meta name=\"twitter:card\" content=\"summary\">',1);${W}"
+s=s.replace(a,'<meta name=\"twitter:card\" content=\"summary\">',1);${W}" guards "" 91
 
 run_case "one reference drifts back to the icon" \
   "must all agree" \
   "${P}a='<meta property=\"og:image\" content=\"https://nightwatcher.life/share.png\">';assert a in s
-s=s.replace(a,'<meta property=\"og:image\" content=\"https://nightwatcher.life/icon.png\">',1);${W}"
+s=s.replace(a,'<meta property=\"og:image\" content=\"https://nightwatcher.life/icon.png\">',1);${W}" guards "" 91
 
 echo "--- 91: the offline shell stays app-only"
 run_case "the card is smuggled into the service-worker precache" \
