@@ -14,6 +14,18 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.5.9] — 2026-10-04
+
+**How we work wears the app’s type.** Section titles on the crew page were set in Big Shoulders, the face the item titles wear. They wear NW Deco now, tracked like the app’s landmarks. The counts wear `--num`. Body copy sits at a line-height of 1.5, and each `@font-face` sets `font-style: normal`. The catalogue does not move, nothing saved changes shape, and the counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.**
+
+### Fixed
+
+- **`/hww` type roles.** Section titles wear NW Deco at `.02em`. Item titles stay Big Shoulders Display at `.05em`. The counts wear `--num` at `.025em`. Body line-height is 1.5. Every `@font-face` declares `font-style: normal`.
+
+### Why PATCH
+
+Copy and CSS. No new control, no catalogue entry, no key, no saved-shape change. No tag, no notes.
+
 ## [6.5.8] — 2026-10-04
 
 **Weekday pull requests are the Cursor agent’s.** The owner still approves and squash-merges, and a merge to `main` publishes the site. `npm run deploy` stays recovery. The Sunday desk does not move. The catalogue does not move, nothing saved changes shape, and the counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.**
