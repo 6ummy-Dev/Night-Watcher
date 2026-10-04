@@ -348,11 +348,14 @@ import io
 p='qa/negative/negtest410.sh'
 s=io.open(p,encoding='utf-8').read()
 # Section 135 is reached by two fixtures, so both expects have to go blind or
-# the section stays covered by the survivor.
+# the section stays covered by the survivor. A pinned fixture whose phrase is
+# in no section's text credits its section blind, so the pin leaves with the
+# expect — otherwise §135 stays covered and this case proves nothing.
 a='no longer contains the token'
 b='docs/auth.md is gone'
 assert a in s and b in s
 s=s.replace(a,'nothing will ever print this').replace(b,'nor will this ever print')
+s=s.replace(' guards '+chr(34)*2+' 135','')
 io.open(p,'w',encoding='utf-8').write(s)
 " guards "" 138
 

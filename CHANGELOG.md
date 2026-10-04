@@ -17,9 +17,11 @@ change that gets undone by the next person who touches the line.
 ## [6.6.2] — 2026-10-04
 
 **Why PATCH.** Tooling and copy. No catalogue change, no new control, and
-nothing saved changes shape. 598 negative fixtures now name the one guard
-section whose `fail()` text contains their expect. 142 stay unpinned: 124
-phrases appear in no section's text, and 18 appear in more than one. The
+nothing saved changes shape. 597 negative fixtures now name the one guard
+section whose `fail()` text contains their expect. 143 stay unpinned: 124
+phrases appear in no section's text, 18 appear in more than one, and the
+marker-format fixture, whose mutation erases the section headers so the
+failure line carries no §. The
 eight static header and tab buttons carry `type="button"`. The browser job
 serves through the header-aware server, so `docs/_headers` apply in CI.
 The crew page records the last independent audit as 6.6.0, the tree that

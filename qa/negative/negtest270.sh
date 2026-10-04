@@ -102,7 +102,7 @@ run_case "the marker format changes and the census silently measures nothing" \
   "the marker format changed and this guard is now measuring nothing" \
   "import io,re;p='qa/guards.js';s=io.open(p,encoding='utf-8').read()
 s=re.sub(r'/\* -{3,} (\d+)\.', r'/* === \1.', s)
-io.open(p,'w',encoding='utf-8').write(s)" guards "" 107
+io.open(p,'w',encoding='utf-8').write(s)"
 
 rm -rf "$NEG"
 finish "2.7.0 negative tests"
