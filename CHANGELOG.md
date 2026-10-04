@@ -14,6 +14,16 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.6.1] — 2026-10-04
+
+**Why PATCH.** Documentation, the duplicate paper step, eight repeated
+fixtures, a pinned fixture that stops after its own section, two crew-page
+sentences, the crew-page faces, and three CODEOWNERS lines. No new control,
+no catalogue row, and nothing saved changes shape. The counts stay at 137
+films, 71 seasons and 44 continuities. **No reinstall is needed.** The
+service worker's version string changed, so a returning browser picks up
+the new shell on its next visit.
+
 ## [6.6.0] — 2026-10-04
 
 **A MINOR by the owner's call on 4 October.** README would have filed the
