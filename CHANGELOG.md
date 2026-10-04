@@ -14,6 +14,21 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.6.2] — 2026-10-04
+
+**Why PATCH.** Tooling and copy. No catalogue change, no new control, and
+nothing saved changes shape. 598 negative fixtures now name the one guard
+section whose `fail()` text contains their expect. 142 stay unpinned: 124
+phrases appear in no section's text, and 18 appear in more than one. The
+eight static header and tab buttons carry `type="button"`. The browser job
+serves through the header-aware server, so `docs/_headers` apply in CI.
+The crew page records the last independent audit as 6.6.0, the tree that
+pass read. `DATA-MODEL.md` already matches the live save, so it is
+unchanged. The parked `when` dates are untouched. The counts stay at 137
+films, 71 seasons and 44 continuities. **No reinstall is needed.** The
+service worker's version string changed, so a returning browser picks up
+the new shell on its next visit.
+
 ## [6.6.1] — 2026-10-04
 
 **Why PATCH.** Documentation, the duplicate paper step, eight repeated
