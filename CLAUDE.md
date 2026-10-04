@@ -3,6 +3,7 @@
 A single-file static app (`docs/index.html`: markup, styles, catalogue and logic), served by a Cloudflare Worker (`worker.js`, `wrangler.jsonc`) with `docs/` as its assets. A numbered guard file and a mutation-tested negative wall argue back on every change. Most rules here exist because something broke; the reasons are in `NOTES.md`.
 
 ## Read first
+- `qa/hww.js`: who does the work. Do not restate it.
 - `ARCHITECTURE.md`: the script's sections, the state bag `S`, the counting pipeline, routes, and one render.
 - `CONTRIBUTING.md`: how a change lands, and how to add a guard section or a negative suite.
 - `RELEASING.md`: the release checklist, wire checks, rollback, and the `main` ruleset.
@@ -31,11 +32,11 @@ The belt (`masterChooser()`) heads all four tabs; the rows below are what each t
 - **Every tracked file has a row in README's file table**, including this file and anything under `.claude/`. A directory row with a trailing slash (`` `.claude/` ``) covers everything under it.
 - **`i:` slugs are frozen.** Change titles freely, never ids (`qa/frozen-ids.json`; ledgers in `qa/*-ids.json`).
 - **Guard sections are append-only**, with the reason in the comment above and a negative fixture in the same commit (CONTRIBUTING has the checklist).
-- **Generated files are never hand-edited:** `docs/nocturne/**` (`npm run nocturne:build`), `docs/hww/**` (`npm run hww:build`), `docs/orders.txt`, the CSP hash / crawler seed / JSON-LD in `index.html`, `qa/script-bytes.json`, `qa/contrast.md`, `qa/share-card.json` (`npm run bless`), and the images and fonts (their `qa/make-*` and `qa/subset-fonts.py` scripts). Bless only when a change is deliberate, and read the diff.
+- **Generated files are never hand-edited:** `docs/nocturne/**` (`npm run nocturne:build`), `docs/hww/**` (`npm run hww:build`), `docs/orders.txt`, the CSP hash / crawler seed / JSON-LD in `index.html`, `qa/script-bytes.json`, `qa/contrast.md`, `qa/share-card.json` (`npm run bless`), and the images and fonts (their `qa/make-*` and `qa/subset-fonts.py` scripts). Bless only when a change is deliberate, and read the diff. A version bump changes `BUILD` inside the hashed script; `npm run bless` then updates the CSP hash and `qa/script-bytes.json`. A bless that rewrites catalogue exports when the catalogue did not move is a stop.
 - LF line endings everywhere (`.gitattributes`); the guards hash bytes.
 
 ## Git and releases
-- A merge to `main` publishes the site. Weekday work is a pull request from the Cursor agent. The owner squash-merges. Don't push `main`, merge, or run `npm run deploy` / `rollback` unless asked. `npm run deploy` is recovery, not the normal release.
+- A merge to `main` publishes the site. Weekday work is a pull request from the Cursor agent. Semver is `README.md` ("Releasing"). Which merge methods the ruleset allows is the table in `RELEASING.md`. Don't push `main`, merge, or run `npm run deploy` / `rollback` unless asked. `npm run deploy` is recovery, not the normal release.
 - Nocturne issue PRs come from `nocturne-night-final[bot]` and may touch only the paper (`nocturne-fence.yml`). `.github/`, `qa/` and the agent's rules are code-owned.
 
 ## QA and audits
