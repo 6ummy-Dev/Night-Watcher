@@ -177,7 +177,7 @@ function page(f){
            '</div><div class="lanes two">' +
            '<div class="lane"><b>Cursor agent</b><span class="who">Weekday push</span><p>Opens the pull request. Does not merge. Does not push main. Does not approve.</p></div>' +
            '<div class="lane"><b>nocturne-night-final</b><span class="who">Sunday app</span><p>The same limits, and the fence on top. Four paths only. Not reused on a weekday.</p></div>' +
-           '</div><div class="join"></div><div class="box"><b>CI on that pull request</b><small>The full wall · green on that commit</small></div><div class="stem"></div>' +
+           '</div><div class="join"></div><div class="box"><b>CI on that pull request</b><small>App pull request: the full wall. Paper pull request: guards only</small></div><div class="stem"></div>' +
            '<div class="box"><b>The owner squash-merges</b><small>One commit · not while a Night Final is open</small></div><div class="stem"></div>' +
            '<div class="box"><b>A merge publishes</b><small>nightwatcher.life · one origin</small></div></div>');
   out.push('<p class="note chipnote">The reader does not move. One file, no account, no server, progress in the browser.</p>');
@@ -222,7 +222,7 @@ function page(f){
   out.push('<section aria-labelledby="s6"><h2 id="s6"><span class="no">06</span>Releases</h2><div class="tw"><table><thead><tr><th>Kind</th><th>When</th><th>Tag</th><th>How it lands</th></tr></thead><tbody>' +
     '<tr><td>Major</td><td>Anything that re-means saved progress</td><td>Yes</td><td>Squash-merge. One commit.</td></tr>' +
     '<tr><td>Minor</td><td>A feature</td><td>Yes</td><td>Squash-merge. One commit.</td></tr>' +
-    '<tr><td>Patch</td><td>Fixes, copy, research, catalogue triggers</td><td>No</td><td>Squash-merge. One commit. The full wall is CI, not a local selection.</td></tr>' +
+    '<tr><td>Patch</td><td>Fixes, copy, QA tooling, documentation</td><td>No</td><td>Squash-merge. One commit. The full wall is CI, not a local selection.</td></tr>' +
     '<tr><td>Night Final</td><td>Sunday</td><td>No</td><td>The desk’s pull request. Not a version.</td></tr>' +
     '</tbody></table></div>' +
     '<p>No zip. The Cursor agent opens the pull request. The owner squash-merges, so a rollback is one commit. If the owner pushes a commit onto that branch, the approval is dismissed and the owner cannot approve the new tip. The fix comes from the Cursor agent. Never inside a Sunday window. A colophon change rewrites every paper page, so that pull request does not land while a Night Final is open.</p>' +
