@@ -46,7 +46,7 @@ run_case "npm test skipped for every pull request" \
 
 run_case "npm test starts carrying NW_STOP" \
   "qa.yml must not set NW_STOP" \
-  "${QA}a='        run: npm test\\n';assert s.count(a)==1;s=s.replace(a,'        run: NW_STOP=1 npm test\\n',1);${W}" \
+  "${QA}a='name: QA\\n';assert s.count(a)==1;s=s.replace(a,'name: QA\\n# NW_STOP\\n',1);${W}" \
   guards "" 173
 
 run_case "an issue pull request builds the paper twice" \

@@ -18,7 +18,9 @@ change that gets undone by the next person who touches the line.
 
 **Why PATCH.** Documentation, the duplicate paper step, eight repeated
 fixtures, a pinned fixture that stops after its own section, two crew-page
-sentences, the crew-page faces, and three CODEOWNERS lines. No new control,
+sentences, the crew-page faces, and three CODEOWNERS lines. The fixture
+that proves `qa.yml` must not carry `NW_STOP` plants that token on its own
+line, so the pinned `npm test` step stays intact. No new control,
 no catalogue row, and nothing saved changes shape. The counts stay at 137
 films, 71 seasons and 44 continuities. **No reinstall is needed.** The
 service worker's version string changed, so a returning browser picks up

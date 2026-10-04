@@ -16937,6 +16937,26 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   note("paper: " + pages + " pages end on the support line, once, under the colophon");
 })();
 
+/* ---------- 173. A pinned fixture may stop, the release run may not ----- */
+/* 6.6.1. A negative fixture that names its section does not need the
+   coverage map or the paper tail after that section has spoken. npm test
+   and the qa.yml step that runs it stay a full file. NW_STOP under CI is
+   legal only when the negative harness set it. */
+
+(function(){
+  var pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+  if(/NW_STOP/.test((pkg.scripts && pkg.scripts.test) || "")){
+    fail("npm test must not set NW_STOP — the release run is the full file (6.6.1)");
+  }
+  var qa173 = fs.readFileSync(path.join(ROOT, ".github", "workflows", "qa.yml"), "utf8");
+  if(/NW_STOP/.test(qa173)){
+    fail("qa.yml must not set NW_STOP — the release run is the full file (6.6.1)");
+  }
+  if(process.env.NW_STOP && process.env.CI && process.env.NW_HARNESS !== "1"){
+    fail("NW_STOP is set under CI outside the negative harness (6.6.1)");
+  }
+})();
+
 /* ---------- report ---------- */
 
 console.log("\nNight Watcher guards — " + FILMS.length + " entries, " + PATH.length + " continuities");
@@ -16964,26 +16984,6 @@ if(BLESS){
                                                     {stdio: "inherit"});
   process.exit(reverify.status === 0 ? 0 : 1);
 }
-/* ---------- 173. A pinned fixture may stop, the release run may not ----- */
-/* 6.6.1. A negative fixture that names its section does not need the
-   coverage map or the paper tail after that section has spoken. npm test
-   and the qa.yml step that runs it stay a full file. NW_STOP under CI is
-   legal only when the negative harness set it. */
-
-(function(){
-  var pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
-  if(/NW_STOP/.test((pkg.scripts && pkg.scripts.test) || "")){
-    fail("npm test must not set NW_STOP — the release run is the full file (6.6.1)");
-  }
-  var qa173 = fs.readFileSync(path.join(ROOT, ".github", "workflows", "qa.yml"), "utf8");
-  if(/run:\s*NW_STOP=/.test(qa173)){
-    fail("qa.yml must not set NW_STOP — the release run is the full file (6.6.1)");
-  }
-  if(process.env.NW_STOP && process.env.CI && process.env.NW_HARNESS !== "1"){
-    fail("NW_STOP is set under CI outside the negative harness (6.6.1)");
-  }
-})();
-
 /* 4.9.0: A WARNING IS NOT A PASS IN CI. Nine sites used to warn where the
    thing they check had gone missing — "could not find the count to verify"
    switched a section off and the run printed "all guards passed (1
