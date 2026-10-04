@@ -25,7 +25,9 @@ failure line carries no §. The
 eight static header and tab buttons carry `type="button"`. The browser job
 serves through the header-aware server, so `docs/_headers` apply in CI.
 The crew page records the last independent audit as 6.6.0, the tree that
-pass read. `DATA-MODEL.md` already matches the live save, so it is
+pass read. Nocturne documents send the three Link relations the homepage
+already sends: sitemap, canonical, and describedby. An issue's canonical is
+that issue's own URL. Font preloads stay on the homepage. `DATA-MODEL.md` already matches the live save, so it is
 unchanged. The parked `when` dates are untouched. The counts stay at 137
 films, 71 seasons and 44 continuities. **No reinstall is needed.** The
 service worker's version string changed, so a returning browser picks up

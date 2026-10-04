@@ -8445,6 +8445,65 @@ var ROUTE_VOCAB = [
     }
   });
 
+  /* 6.6.2. THE PAPER'S DOCUMENTS ADVERTISE WHAT / ADVERTISES. / sends three
+     document Link relations and seven font preloads. /nocturne/ does not
+     match that rule, so a paper page sent none of them. The relations sit
+     on the documents, not on /nocturne/*: that star also covers the
+     stylesheet, the scripts, the feed and the faces, which is the reason
+     3.7.1 took the same lines off /*. The front's canonical is the front.
+     An issue is one path segment, and :issue is that segment — the assets
+     plane writes the matched segment into the header value, so each issue's
+     canonical is its own URL. Sitemap and describedby name the same
+     resources / already names. The paper's pages do not preload faces, so
+     the seven hints stay under /. api-catalog and service-doc stay off:
+     the site has no API, and / does not send them. */
+  (function(){
+    function linkLine(body, line){
+      var esc = line.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp("^\\s+Link:\\s*" + esc + "\\s*$", "m").test(body);
+    }
+    var paperLinks = [
+      ["/nocturne/", [
+        '<https://nightwatcher.life/sitemap.xml>; rel="sitemap"',
+        '<https://nightwatcher.life/nocturne/>; rel="canonical"',
+        '</llms.txt>; rel="describedby"']],
+      ["/nocturne/:issue/", [
+        '<https://nightwatcher.life/sitemap.xml>; rel="sitemap"',
+        '<https://nightwatcher.life/nocturne/:issue/>; rel="canonical"',
+        '</llms.txt>; rel="describedby"']]
+    ];
+    paperLinks.forEach(function(rule){
+      var body = block104(rule[0]);
+      if(!body){
+        fail("docs/_headers has no " + rule[0] + " rule — a paper document would send no Link relations");
+        return;
+      }
+      rule[1].forEach(function(line){
+        if(linkLine(body, line)) return;
+        var rel = (line.match(/rel="([^"]+)"/) || [])[1];
+        if(rule[0] === "/nocturne/" && rel === "canonical"){
+          fail("the paper front does not declare its own canonical Link");
+        } else if(rel === "canonical"){
+          fail("an issue page does not declare its own canonical Link");
+        } else if(rel === "describedby"){
+          fail(rule[0] + " does not carry describedby pointing at /llms.txt");
+        } else {
+          fail(rule[0] + " does not carry the sitemap relation / already advertises");
+        }
+      });
+      if(/rel=preload/.test(body)){
+        fail("the paper preloads a face it does not preload — " + rule[0] +
+             " carries rel=preload, and the paper's pages have no font preload");
+      }
+      if(/rel="(?:api-catalog|service-doc)"/.test(body)){
+        fail("the paper advertises api-catalog or service-doc — the homepage does not, and the site has no API");
+      }
+    });
+    if(/^\s+Link:/m.test(block104("/nocturne/*"))){
+      fail("a Link relation sits under /nocturne/* — that star covers the stylesheet, the scripts, the feed and the faces");
+    }
+  })();
+
   /* The two the edge owns must not be duplicated here. Two sources for one
      header is the drift this file exists to avoid. */
   ["Strict-Transport-Security", "X-Content-Type-Options"].forEach(function(k){
@@ -8626,7 +8685,8 @@ var ROUTE_VOCAB = [
      is the file whose scopes are the thing under test. */
   note("_headers: " + PINNED104.map(function(t){ return t[0] + " on " + t[3]; }).join(", ") +
        ", no-cache on / and /sw.js, a year on /fonts/*, a day on the icon " +
-       "set, and out of the offline shell");
+       "set, and out of the offline shell; paper documents carry sitemap, " +
+       "their own canonical and describedby, with no font preload");
 })();
 
 /* ---------- 105. The catalogue answers in plain text ------------------ */
