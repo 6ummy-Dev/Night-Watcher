@@ -14,6 +14,19 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.5.8] — 2026-10-04
+
+**Weekday pull requests are the Cursor agent’s.** The owner still approves and squash-merges, and a merge to `main` publishes the site. `npm run deploy` stays recovery. The Sunday desk does not move. The catalogue does not move, nothing saved changes shape, and the counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.**
+
+### Changed
+
+- **`/hww` names the weekday pusher.** The Cursor agent opens the weekday pull request. It does not merge, does not push `main`, does not approve, and does not use the Sunday app. The owner is the only approver and the only merger, because the pusher is not the owner. The Sunday lane stays `nocturne-night-final`, with the fence, the four paths, and the 17:00 Montevideo rule.
+- **`AGENTS.md` and `CLAUDE.md`** say the same: the weekday push is the Cursor agent, not the owner and not the Sunday bot.
+
+### Why PATCH
+
+Copy and documentation. No new control, no catalogue entry, no key, no saved-shape change. No tag, no notes.
+
 ## [6.5.7] — 2026-10-03
 
 **The org lines meet the lanes.** On How we work, the stems under Cursor and Outside help stopped short of the bar above the two apps, and the bar under those apps ran past them. The catalogue does not move, nothing saved changes shape, and the counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.**

@@ -15,7 +15,7 @@ Those five rule files are the owner's. The one exception already made, the colop
 
 ## How weekday work lands
 
-- Push as `night-watcher-build[bot]`. Not as the owner. Not as `nocturne-night-final[bot]`.
+- Push as the Cursor agent. Not as the owner. Not as `nocturne-night-final[bot]`.
 - Open a pull request. Do not merge. Do not push `main`. Do not approve.
 - Do not bless a check to make it green.
 - A merge to `main` publishes the site. Do not run `npm run deploy` on a normal release. That command is recovery, in `RELEASING.md`.
