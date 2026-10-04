@@ -63,14 +63,18 @@ produced it: `NOTES-history.md`.)
    edited after the first.
 4. **The suites.** `npm test` (guards + smoke), then the negative matrix:
    `bash qa/negative/run-all.sh` (≈84 CPU-minutes under `time` — 44 minutes
-   on two shared cores, measured for 5.4.0 with 1,337 fixtures; the first
+   on two shared cores, measured for 5.4.0 with 1,337 fixtures; the live
+   count is the README's, which guard 65 holds; the first
    three minutes are the four pristine smoke signatures the wall captures
    once and hands to every suite; suite numbers can
-   be passed to run one). **The full wall, not a selection, before any cut**:
-   several guard messages have fixture twins in suites far from the change —
-   the listener count alone is pinned from three different suites — and a
+   be passed to run one). For a weekday pull request, the four required
+   `negative` checks on that head are the wall. The local command is how
+   you iterate, and how you cut when that head has no green run. Several
+   guard messages have fixture twins in suites far from the change — the
+   listener count alone is pinned from three different suites — and a
    selective run is exactly the run that misses them. Selections are for
-   iterating on a fixture, never for release verification.
+   iterating on a fixture, never for release verification. The push to
+   `main` runs the wall again. Do not put the wall inside `npm test`.
 5. **The browser check.** Serve the tree and drive it:
 
    ```
@@ -171,10 +175,10 @@ curl -s -o /dev/null https://nightwatcher.life/            # primes the hint cac
 curl -sv -o /dev/null https://nightwatcher.life/ 2>&1 | grep -A7 -E '< HTTP/[23] 103'
 ```
 
-Expected: an `HTTP/2 103` (or `HTTP/3 103`, if curl negotiated h3) block carrying the six `link:
+Expected: an `HTTP/2 103` (or `HTTP/3 103`, if curl negotiated h3) block carrying the seven `link:
 </fonts/…>; rel=preload; as=font; crossorigin` lines from `_headers`, then
 the `200`. If the 103 never appears, the toggle is off — flip it and
-re-check; the six Link lines on the `200` are `_headers` working either
+re-check; the seven Link lines on the `200` are `_headers` working either
 way, and the toggle only adds the early copy.
 
 One more, read once per platform change rather than per deploy:
@@ -415,7 +419,7 @@ a decision with its own entry, cut by this same checklist. These notes are
 for whoever runs the suites on any cut, sealed or later.
 
 - **Guard 140 is the only clock.** It fails thirty days before
-  `docs/.well-known/security.txt`'s `Expires` (2027-08-01 as sealed), with
+  `docs/.well-known/security.txt`'s `Expires` (2027-09-01), with
   no edit anywhere. On a live tree that is the reminder to renew and ship.
   For an archival run of the sealed tree, `NW_TODAY=YYYY-MM-DD node
   qa/guards.js` pins the clock to the date given; it does nothing else and

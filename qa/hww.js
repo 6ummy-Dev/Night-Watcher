@@ -47,7 +47,11 @@ function facts(){
   while((rm = rre.exec(html))){
     (rm[2].match(/--[a-z0-9-]+\s*:[^;]+/g) || []).forEach(function(d){ var i = d.indexOf(":"); var k = d.slice(0, i).trim(); if(!(k in tok)) tok[k] = d.slice(i + 1).trim(); });
   }
-  return {build: build, sections: sections, suites: tot.suites, fixtures: tot.fixtures, smoke: +smoke, mark: mark, tok: tok};
+  var faces = (html.match(/@font-face\{[^}]*\}/g) || []).map(function(b){
+    return b.replace(/url\("fonts\//g, 'url("/fonts/');
+  });
+  if(faces.length !== 7) throw new Error("the app declares " + faces.length + " faces, not 7");
+  return {build: build, sections: sections, suites: tot.suites, fixtures: tot.fixtures, smoke: +smoke, mark: mark, tok: tok, faces: faces};
 }
 
 /* ---------- the stylesheet ---------- */
@@ -63,12 +67,7 @@ function css(f){
   return [
 "/* /hww — written by qa/hww.js; never edited by hand. The app's tokens and faces. */",
 "/* Landmarks wear --deco at .02em. Item titles wear --disp at .05em and --t-heading. Counts wear --num at .025em. */",
-"@font-face{font-family:\"NW Deco\";src:url(\"/fonts/limelight-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-style:normal;font-display:swap;}",
-"@font-face{font-family:\"Big Shoulders Display\";src:url(\"/fonts/big-shoulders-display-latin-700-normal.woff2\") format(\"woff2\");font-weight:700;font-style:normal;font-display:swap;}",
-"@font-face{font-family:\"NW Sans\";src:url(\"/fonts/ibm-plex-sans-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-style:normal;font-display:swap;}",
-"@font-face{font-family:\"NW Sans\";src:url(\"/fonts/ibm-plex-sans-latin-600-normal.woff2\") format(\"woff2\");font-weight:600;font-style:normal;font-display:swap;}",
-"@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-style:normal;font-display:swap;}",
-"@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-600-normal.woff2\") format(\"woff2\");font-weight:600;font-style:normal;font-display:swap;}",
+].concat(f.faces).concat([
 ":root{" + vars + "}",
 "*{box-sizing:border-box;}html,body{margin:0;padding:0;}",
 "body{background:var(--ink);color:var(--bone);font-family:var(--body);font-size:var(--t-body);line-height:1.5;-webkit-font-smoothing:antialiased;}",
@@ -147,7 +146,7 @@ function css(f){
 ".rules li{margin:0 0 8px;}",
 ".rules li::marker{color:var(--signal);font-family:var(--mono);}",
 ".foot{margin-top:40px;padding-top:22px;text-align:center;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);line-height:1.8;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}",
-""].join("\n");
+""]).join("\n");
 }
 
 /* ---------- the page ---------- */
@@ -177,7 +176,7 @@ function page(f){
            '</div><div class="lanes two">' +
            '<div class="lane"><b>Cursor agent</b><span class="who">Weekday push</span><p>Opens the pull request. Does not merge. Does not push main. Does not approve.</p></div>' +
            '<div class="lane"><b>nocturne-night-final</b><span class="who">Sunday app</span><p>The same limits, and the fence on top. Four paths only. Not reused on a weekday.</p></div>' +
-           '</div><div class="join"></div><div class="box"><b>CI on that pull request</b><small>The full wall · green on that commit</small></div><div class="stem"></div>' +
+           '</div><div class="join"></div><div class="box"><b>CI on that pull request</b><small>App pull request: the full wall. Paper pull request: guards only</small></div><div class="stem"></div>' +
            '<div class="box"><b>The owner squash-merges</b><small>One commit · not while a Night Final is open</small></div><div class="stem"></div>' +
            '<div class="box"><b>A merge publishes</b><small>nightwatcher.life · one origin</small></div></div>');
   out.push('<p class="note chipnote">The reader does not move. One file, no account, no server, progress in the browser.</p>');
@@ -222,7 +221,7 @@ function page(f){
   out.push('<section aria-labelledby="s6"><h2 id="s6"><span class="no">06</span>Releases</h2><div class="tw"><table><thead><tr><th>Kind</th><th>When</th><th>Tag</th><th>How it lands</th></tr></thead><tbody>' +
     '<tr><td>Major</td><td>Anything that re-means saved progress</td><td>Yes</td><td>Squash-merge. One commit.</td></tr>' +
     '<tr><td>Minor</td><td>A feature</td><td>Yes</td><td>Squash-merge. One commit.</td></tr>' +
-    '<tr><td>Patch</td><td>Fixes, copy, research, catalogue triggers</td><td>No</td><td>Squash-merge. One commit. The full wall is CI, not a local selection.</td></tr>' +
+    '<tr><td>Patch</td><td>Fixes, copy, QA tooling, documentation</td><td>No</td><td>Squash-merge. One commit. The full wall is CI, not a local selection.</td></tr>' +
     '<tr><td>Night Final</td><td>Sunday</td><td>No</td><td>The desk’s pull request. Not a version.</td></tr>' +
     '</tbody></table></div>' +
     '<p>No zip. The Cursor agent opens the pull request. The owner squash-merges, so a rollback is one commit. If the owner pushes a commit onto that branch, the approval is dismissed and the owner cannot approve the new tip. The fix comes from the Cursor agent. Never inside a Sunday window. A colophon change rewrites every paper page, so that pull request does not land while a Night Final is open.</p>' +

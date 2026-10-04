@@ -6,6 +6,7 @@
 @font-face{font-family:"NW Sans";src:url("/fonts/ibm-plex-sans-latin-600-normal.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap;}
 @font-face{font-family:"NW Mono";src:url("/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;}
 @font-face{font-family:"NW Mono";src:url("/fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap;}
+@font-face{font-family:"Bodoni Moda";src:url("/fonts/bodoni-moda-latin-700-normal.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;}
 :root{--ink:#08090F;--sunk:#0C111C;--card:#141B2C;--card2:#1B2438;--line:#252E42;--line2:#33405C;--bone:#E7E9F0;--dust:#93A0B8;--dim:#8B97B1;--signal:#FFCF1F;--steel:#7295CC;--signalline:rgba(255,207,31,.4);--deco:"NW Deco","Big Shoulders Display",serif;--disp:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;--num:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;--body:"NW Sans",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;--mono:"NW Mono",ui-monospace,"SF Mono",Menlo,monospace;--t-display:clamp(24px,6.5vw,36px);--t-title:24px;--t-heading:clamp(17px,5.5vw,20px);--t-num:38px;--t-body:16px;--t-desc:14px;--t-note:12px;--t-label:10px;--t-fine:9px;}
 *{box-sizing:border-box;}html,body{margin:0;padding:0;}
 body{background:var(--ink);color:var(--bone);font-family:var(--body);font-size:var(--t-body);line-height:1.5;-webkit-font-smoothing:antialiased;}

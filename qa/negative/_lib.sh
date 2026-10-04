@@ -194,7 +194,11 @@ run_case () {
   # `guards.js --bless`); set it on its own line above the fixtures so the
   # column-anchored fixture counter in guards.js still sees every case.
   local out sig rc
-  out=$(cd "$NEG" && SMOKE_ONLY="$phase" node qa/$suite.js ${NEG_ARGS:-} 2>&1); rc=$?
+  if [ -n "$sect" ] && [ "$suite" = "guards" ]; then
+    out=$(cd "$NEG" && SMOKE_ONLY="$phase" NW_STOP="$sect" NW_HARNESS=1 node qa/$suite.js ${NEG_ARGS:-} 2>&1); rc=$?
+  else
+    out=$(cd "$NEG" && SMOKE_ONLY="$phase" node qa/$suite.js ${NEG_ARGS:-} 2>&1); rc=$?
+  fi
   sig=$(printf '%s\n' "$out" | grep -vE '^  (ok|·) ')
   if printf '%s' "$sig" | grep -qF "$expect"; then
     # A fixture that names its section requires the match on that section's

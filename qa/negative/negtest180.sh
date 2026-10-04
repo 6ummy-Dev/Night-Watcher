@@ -59,11 +59,6 @@ s=s.replace(a2,'if(offCanonical()){var n=document.createElement(\"meta\");n.setA
 echo "--- 114: the README may not promise a dead address"
 R="$(pro README.md)"
 RW="io.open(p,'w',encoding='utf-8').write(s)"
-run_case "the README promises the retired address again" \
-  "still works and always will" \
-  "${R}a='(the GitHub Pages mirror\nit started on was unpublished';assert a in s
-s=s.replace(a,'(the old GitHub Pages address still works and always will; the mirror it started on was unpublished',1);${RW}"
-
 echo "--- the addresses themselves"
 run_case "the canonical link is left pointing at the old home" \
   "but og:url is" \

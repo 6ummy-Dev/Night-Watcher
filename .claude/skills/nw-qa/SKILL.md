@@ -5,7 +5,13 @@ description: Run a full, read-only engineering QA audit of the Night Watcher rep
 
 # Night Watcher QA audit
 
-The goal is the report a senior engineer would hand the team after a release: what was run and with what result, every finding with evidence and a fix, and an honest verdict on each finding from the last audit. It is read-only by design. The owner releases by uploading zips to `main`, so an audit that writes to the tree would hand them an unreviewed change. Everything you produce (tools, scratch servers, the report) lives outside the repository.
+The goal is the report a senior engineer would hand the team after a release: what was run and with what result, every finding with evidence and a fix, and an honest verdict on each finding from the last audit. It is read-only by design. Weekday work is a pull request. An audit that writes to the tree would hand the owner an unreviewed change. Everything you produce (tools, scratch servers, the report) lives outside the repository.
+
+## Weekday box
+
+A weekday change does not relaunch this audit. Run `node qa/guards.js`, then only the suite that commit edited (`bash qa/negative/run-all.sh NNN`). Chromium locally only when the change touches the belt, scrolling, focus, sticky, content-visibility, or the service worker. Do not start the negative wall. Do not run WebKit. Do not serve the app for a wording change. CI's required contexts are the wall and both browsers.
+
+`npm run nocturne:check` and `npm run hww:check` are for editing those builders, not a second pass after guards. The paper's failing checks and the crew page already run inside `node qa/guards.js`.
 
 ## Ground rules
 
@@ -27,6 +33,9 @@ Start the slow work first and read code while it runs.
 `npm ci`. If it fails with `EBADENGINE` because the sandbox's Node patch is behind `engines`, rerun with `npm ci --engine-strict=false` and record that in the report. CI uses `check-latest`, so this is a local-only workaround.
 
 ### 2. The project's own suites
+
+If `test (22)`, `test (24)`, `test (26)`, all four `negative` shards, `browser (chromium)`, and `browser (webkit)` are green on this SHA, cite the run ID and do not relaunch the wall or either browser. Re-run a job only when that run is missing, red, cancelled, or the finding is not what the job proves. A paper-scoped pull request skips the wall on purpose. Do not treat that skip as a green wall.
+
 | Run | Command | Notes |
 |---|---|---|
 | Guards | `node qa/guards.js` | About 2 s. Any warning is a failure in CI |
@@ -61,7 +70,7 @@ Read `git diff <baseline-commit>..HEAD -- docs/index.html docs/sw.js worker.js w
 ### 6. CI and process (GitHub tools)
 - Use `actions_list` for workflow runs on `qa.yml`. Count cancelled and failed runs on `main` since the baseline, and use `get_job_logs` (failed_only) on any red one.
 - Use `list_pull_requests` (state all) to see what merged and whether it merged before or after green. Note open Dependabot PRs and whether their QA passed.
-- Re-read the `RELEASING.md` ruleset table: are `test`, `negative` and `browser` required yet? Does `package.json` have a `predeploy` gate yet?
+- Re-read the `RELEASING.md` ruleset table. It lists the ten required contexts. `package.json` has no `predeploy` gate: a normal release is a merge, not `npm run deploy`.
 
 ### 7. Data freshness
 Parse `PATH` in `docs/index.html`. Flag any parked entry (`b` contains `"u"`) whose `when` date has passed (it should have been un-parked) or falls within the next 30 days (a heads-up for the owner).

@@ -16,3 +16,8 @@
 /CLAUDE.md           @6ummy-Dev
 /AGENTS.md           @6ummy-Dev
 /.claude/            @6ummy-Dev
+# 6.6.1. The publish path. A weekday pull request can change these. The
+# Sunday fence cannot: they are outside its four paths.
+/worker.js           @6ummy-Dev
+/wrangler.jsonc      @6ummy-Dev
+/docs/_headers       @6ummy-Dev

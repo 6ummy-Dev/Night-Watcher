@@ -15,10 +15,12 @@ Four other places carry part of the story and are not repeated here:
   required reading before a change; everything here is written in the
   present tense.
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 172 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 173 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
+
+Weekday process is `qa/hww.js`. The Cursor desk note is `AGENTS.md`. The tripwire sheet is `CLAUDE.md`. The script map is `ARCHITECTURE.md`.
 
 If you are about to change something in `index.html` that looks redundant, look
 for it here first. Most of it is load-bearing, and this project has a long

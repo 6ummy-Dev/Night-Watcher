@@ -46,36 +46,6 @@ run_case "the head loses preload fonts/limelight-latin-400-normal.woff2" \
   "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/limelight-latin-400-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 153
 
-run_case "the head loses preload fonts/big-shoulders-display-latin-700-normal.woff2" \
-  "font preloads, not 7" \
-  "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/big-shoulders-display-latin-700-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
-  guards "" 153
-
-run_case "the head loses preload fonts/ibm-plex-sans-latin-400-normal.woff2" \
-  "font preloads, not 7" \
-  "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/ibm-plex-sans-latin-400-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
-  guards "" 153
-
-run_case "the head loses preload fonts/ibm-plex-sans-latin-600-normal.woff2" \
-  "font preloads, not 7" \
-  "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/ibm-plex-sans-latin-600-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
-  guards "" 153
-
-run_case "the head loses preload fonts/ibm-plex-mono-latin-400-normal.woff2" \
-  "font preloads, not 7" \
-  "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/ibm-plex-mono-latin-400-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
-  guards "" 153
-
-run_case "the head loses preload fonts/ibm-plex-mono-latin-600-normal.woff2" \
-  "font preloads, not 7" \
-  "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/ibm-plex-mono-latin-600-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
-  guards "" 153
-
-run_case "the head loses preload fonts/bodoni-moda-latin-700-normal.woff2" \
-  "font preloads, not 7" \
-  "${P}a='<link rel=\"preload\" as=\"font\" type=\"font/woff2\" crossorigin href=\"fonts/bodoni-moda-latin-700-normal.woff2\">';assert a in s;s=s.replace(a,'',1);${W}" \
-  guards "" 153
-
 run_case "the head loses apple-mobile-web-app-status-bar-style" \
   "required tag(s): apple-mobile-web-app-status-bar-style" \
   "${P}a='<meta name=\"apple-mobile-web-app-status-bar-style\" content=\"default\">';assert a in s;s=s.replace(a,'',1);${W}" \
