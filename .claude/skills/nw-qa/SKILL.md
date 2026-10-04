@@ -41,7 +41,7 @@ If `test (22)`, `test (24)`, `test (26)`, all four `negative` shards, `browser (
 | Guards | `node qa/guards.js` | About 2 s. Any warning is a failure in CI |
 | Smoke | `node qa/smoke.js` | About 70 s; it prints its check count |
 | Paper | `node qa/nocturne.js check` · `node qa/hww.js check` | |
-| Browser | serve with `python3 -m http.server 8099 --directory docs` in the background (keep `$!`), then `NW_ENGINE=chromium NW_ONLY=all node qa/browser-check.mjs` | If Playwright's pinned Chromium isn't installed, set `NW_CHROME=/opt/pw-browsers/chromium` (or wherever one is) and record the revision skew. Run WebKit too if it's installed; otherwise say CI covers it |
+| Browser | serve with `node .claude/skills/nw-qa/scripts/hdr-server.mjs docs 8099` in the background (keep `$!`), then `NW_ENGINE=chromium NW_ONLY=all node qa/browser-check.mjs` | The server applies `docs/_headers`. If Playwright's pinned Chromium isn't installed, set `NW_CHROME=/opt/pw-browsers/chromium` (or wherever one is) and record the revision skew. Run WebKit too if it's installed; otherwise say CI covers it |
 | Negative wall | `bash qa/negative/run-all.sh > neg.log 2>&1` **in the background, first** | About 30 min on 4 cores. Report suites and fixtures from its totals line |
 
 ### 3. Probes the suites don't cover
@@ -49,7 +49,7 @@ If `test (22)`, `test (24)`, `test (26)`, all four `negative` shards, `browser (
 
 | Verdict | Re-tests |
 |---|---|
-| `L2` | CSP under real headers on every page, including issue pages from the sitemap (CI's `http.server` never applies `_headers`) |
+| `L2` | CSP under real headers on every page, including issue pages from the sitemap (the browser job serves through `hdr-server.mjs`, which applies `docs/_headers`) |
 | `L1` | Service worker: does each unique query string cache another copy of the page? |
 | `M4` | Pace forecast after a backup-code restore |
 | `M3` | Unreadable progress payload: permanent read-only mode, and whether reset escapes it |
