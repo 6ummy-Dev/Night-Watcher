@@ -241,7 +241,12 @@ run_case "the sitemap block drops the archive" \
 
 run_case "the holding page promises a date" \
   "the holding page carries a date" \
-  "${N}a='The first Night Final is being set.';assert a in s;s=s.replace(a,'The first Night Final is being set for 27 September.',1);${W}" \
+  "${N}a='<p class=\"sub\">The first Night Final is being set.';assert a in s;s=s.replace(a,'<p class=\"sub\">The first Night Final is being set for 27 September.',1);${W}" \
+  guards "" 167
+
+run_case "the holding markdown promises a date" \
+  "the holding page carries a date" \
+  "${N}a='\"The first Night Final is being set. Nocturne is the weekly paper of Night Watcher.\", \"\"';assert a in s;s=s.replace(a,'\"The first Night Final is being set for 27 September. Nocturne is the weekly paper of Night Watcher.\", \"\"',1);${W}" \
   guards "" 167
 
 run_case "the holding page loses its noindex" \

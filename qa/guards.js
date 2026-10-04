@@ -16816,13 +16816,15 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   try { HOLD = NOC.build(ROOT, {src: "qa/nocturne-fixture/no-issues"}); }
   catch(err){ fail("the Nocturne build throws with no issues: " + err.message); return; }
   var hold = (HOLD.files["index.html"] || Buffer.from("")).toString("utf8");
+  var holdMd = (HOLD.files["index.md"] || Buffer.from("")).toString("utf8");
   var hfeed = (HOLD.files["feed.xml"] || Buffer.from("")).toString("utf8");
   var NOINDEX = '<meta name="robots" content="noindex">';
   if(HOLD.errors.length || HOLD.list.length) fail("the build with no issues reports issues or errors");
   if(hold.indexOf('<h1 class="banner">On the press</h1>') < 0 || hold.indexOf(NOINDEX) < 0){
     fail("with no issue on disk /nocturne/ is not the holding page — On the press, noindex (6.2.1)");
   }
-  if(/\b(19|20)\d\d\b|\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/.test(hold.replace(/<head>[\s\S]*?<\/head>/, ""))){
+  var holdDate = /\b(19|20)\d\d\b|\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/;
+  if(holdDate.test(hold.replace(/<head>[\s\S]*?<\/head>/, "")) || holdDate.test(holdMd)){
     fail("the holding page carries a date — it promises none, because a founding issue that isn't good moves a week");
   }
   if(!hfeed || /<item>/.test(hfeed)) fail("with no issue on disk the feed is missing or not empty — it ships open and empty (6.2.1)");
