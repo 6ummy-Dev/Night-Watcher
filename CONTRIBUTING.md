@@ -40,8 +40,9 @@ pull request from a `nocturne/` branch, opened by the desk's GitHub App as
 content, not a release: no version, no tag, no CHANGELOG entry. The
 agent's rules are `nocturne/BRIEF.md` and `nocturne/VOICE.md`, and only the
 owner edits them. The version rule is in `README.md` ("Releasing"); the
-checklist is `RELEASING.md`. Before a cut, the full negative wall runs, not
-a selection.
+checklist is `RELEASING.md`. For a weekday cut, the four required
+`negative` checks on that head are the wall. A selection is for iterating
+on a fixture.
 
 The tree was sealed at 4.5.3 (`README.md`, "Status"). The seal is a record
 that the tree was audited three times and each cut shipped its audit whole;
