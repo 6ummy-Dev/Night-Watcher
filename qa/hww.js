@@ -90,9 +90,10 @@ function css(f){
 ".stem{width:1px;height:18px;background:var(--line2);margin:0 auto;}",
 ".lanes{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap);padding-top:18px;}",
 ".lanes.two{grid-template-columns:1fr 1fr;}",
-/* 6.5.7: the bar above the two apps keeps the three-desk inset. A two-column
+/* 6.5.7: the bar above the lower pair keeps the three-desk inset. A two-column
    inset stopped short of the stems coming down from Cursor and Outside help.
-   The extra pixel on the right covers the stem, whose left edge sits at 50%. */
+   The extra pixel on the right covers the stem, whose left edge sits at 50%.
+   6.5.8: the weekday lane is the Cursor agent. Two columns remain, so the inset stays. */
 ".lanes::before{content:\"\";position:absolute;top:0;height:1px;background:var(--line2);left:calc((100% - 2 * var(--gap)) / 6);right:calc((100% - 2 * var(--gap)) / 6 - 1px);}",
 ".lane{position:relative;border:1px solid var(--line2);background:linear-gradient(175deg,var(--card2),var(--card) 70%);padding:12px 14px;}",
 /* The lane's border puts the padding edge 1px below the bar, so the stem
@@ -103,7 +104,7 @@ function css(f){
 ".lane p{font-size:var(--t-desc);color:var(--dust);margin:0;}",
 ".join{position:relative;padding-top:18px;margin-top:0;}",
 ".join::before{content:\"\";position:absolute;top:0;height:1px;background:var(--line2);left:calc((100% - 2 * var(--gap)) / 6);right:calc((100% - 2 * var(--gap)) / 6 - 1px);}",
-/* The join under the two apps ends on their stems. The three-desk inset
+/* The join under the lower pair ends on their stems. The three-desk inset
    left that bar hanging past both cards. */
 ".lanes.two+.join::before{left:calc((100% - var(--gap)) / 4);right:calc((100% - var(--gap)) / 4 - 1px);}",
 ".join::after{content:\"\";position:absolute;left:50%;top:0;width:1px;height:18px;background:var(--line2);}",
@@ -162,18 +163,18 @@ function page(f){
   out.push('<link rel="icon" href="/icon.svg" type="image/svg+xml">\n<link rel="stylesheet" href="/hww/hww.css">\n</head>\n<body>\n<main class="page">');
   out.push('<header class="top">' + f.mark.replace('<svg viewBox="8 16 84 70" aria-hidden="true">', '<svg class="mk" viewBox="8 16 84 70" aria-hidden="true">') +
            '<p class="k">Night Watcher · As of ' + esc(f.build) + '</p><h1>How we work</h1>' +
-           '<p class="lede">Who does what, in what order, and the rules that hold it. Cursor is the weekday build desk. The Sunday desk does not move. Every change goes through one gate: the owner reviews it and the owner merges it.</p></header>');
+           '<p class="lede">Who does what, in what order, and the rules that hold it. Cursor is the weekday build desk, and the Cursor agent opens the pull request. The Sunday desk does not move. Every change goes through one gate: the owner reviews it and the owner merges it.</p></header>');
 
   /* 6.5.6: the prose is the short next brief, now in force. The page's design
      stays 6.5.0's. Counts still come from the tree. */
   out.push('<section aria-labelledby="s1"><h2 id="s1"><span class="no">01</span>The shape of it</h2>');
   out.push('<div class="flow"><div class="gate"><b>The owner</b><small>Still the only approver · the only merger</small></div><div class="stem"></div>' +
            '<div class="lanes">' +
-           '<div class="lane"><b>Cursor</b><span class="who">The build desk</span><p>Plans, mocks, builds, QA, release prep, the research dig. The push is the app’s, not the owner’s login. Does not merge.</p></div>' +
+           '<div class="lane"><b>Cursor</b><span class="who">The build desk</span><p>Plans, mocks, builds, QA, release prep, the research dig. The push is the Cursor agent’s, not the owner’s login. Does not merge. Does not use the Sunday app.</p></div>' +
            '<div class="lane"><b>Grok Bot</b><span class="who">The Nocturne desk</span><p>Unchanged. Eight agents. Dr Eggbot runs the week. One Sunday pull request as nocturne-night-final.</p></div>' +
            '<div class="lane"><b>Outside help</b><span class="who">Ad hoc</span><p>Independent research teams and independent auditors. None of them opens work.</p></div>' +
            '</div><div class="lanes two">' +
-           '<div class="lane"><b>night-watcher-build</b><span class="who">Weekday app</span><p>A one-hour token, a branch, a pull request. Contents and pull requests only. Cannot approve. Cannot push main.</p></div>' +
+           '<div class="lane"><b>Cursor agent</b><span class="who">Weekday push</span><p>Opens the pull request. Does not merge. Does not push main. Does not approve.</p></div>' +
            '<div class="lane"><b>nocturne-night-final</b><span class="who">Sunday app</span><p>The same limits, and the fence on top. Four paths only. Not reused on a weekday.</p></div>' +
            '</div><div class="join"></div><div class="box"><b>CI on that pull request</b><small>The full wall · green on that commit</small></div><div class="stem"></div>' +
            '<div class="box"><b>The owner squash-merges</b><small>One commit · not while a Night Final is open</small></div><div class="stem"></div>' +
@@ -183,8 +184,7 @@ function page(f){
 
   out.push('<section aria-labelledby="s2"><h2 id="s2"><span class="no">02</span>Who owns what</h2><div class="cards">' +
     card("The owner", "Every decision, every merge, the device passes, the Sunday review, the “I” on X and every post there, the five rule files. Approves the weekday pull request because the pusher is not the owner.", "") +
-    card("Cursor", "Plans, builds, QA reports, release prep, the dig that tries to disprove a claim.", "Merge. Push main. Push as the owner. Use the Sunday app. Edit the five rule files. Bless a check to make it green.") +
-    card("night-watcher-build", "The weekday branch and the pull request. Working login night-watcher-build[bot].", "Approve. Push main. Workflows. The bypass list. The Sunday name.") +
+    card("Cursor", "Plans, builds, QA reports, release prep, the dig that tries to disprove a claim. The weekday pull request, as the Cursor agent.", "Merge. Push main. Approve. Push as the owner. Use the Sunday app. Edit the five rule files. Bless a check to make it green.") +
     card("The Sunday desk", "The paper, exactly as now. Eggbot, the six-seat room, SEO by DM.", "Retuned for a weekday. The fence stays keyed on nocturne-night-final[bot].") +
     card("Research teams", "Studies, until the owner rules.", "A commit. The dig and the catalogue edit are two steps.") +
     card("Independent auditors", "An independent read of the live release.", "Open work. A branch.") +
@@ -224,13 +224,13 @@ function page(f){
     '<tr><td>Patch</td><td>Fixes, copy, research, catalogue triggers</td><td>No</td><td>Squash-merge. One commit. The full wall is CI, not a local selection.</td></tr>' +
     '<tr><td>Night Final</td><td>Sunday</td><td>No</td><td>The desk’s pull request. Not a version.</td></tr>' +
     '</tbody></table></div>' +
-    '<p>No zip. The weekday app opens the pull request. The owner squash-merges, so a rollback is one commit. If the owner pushes a commit onto that branch, the approval is dismissed and the owner cannot approve the new tip. The fix comes from the app. Never inside a Sunday window. A colophon change rewrites every paper page, so that pull request does not land while a Night Final is open.</p>' +
+    '<p>No zip. The Cursor agent opens the pull request. The owner squash-merges, so a rollback is one commit. If the owner pushes a commit onto that branch, the approval is dismissed and the owner cannot approve the new tip. The fix comes from the Cursor agent. Never inside a Sunday window. A colophon change rewrites every paper page, so that pull request does not land while a Night Final is open.</p>' +
     '<p class="note">A merge to main publishes the site. The wire is read in a private window.</p></section>');
 
   out.push('<section aria-labelledby="s7"><h2 id="s7"><span class="no">07</span>The stack</h2><ul class="chips">' +
     ['Cursor<small>weekday build desk</small>', 'Independent auditors<small>ad hoc</small>', 'Grok Bot<small>the Sunday desk</small>',
-     'GitHub<small>repo, CI, both apps</small>', 'Cloudflare<small>hosting, DNS, the edge</small>'].map(function(c){ return '<li>' + c + '</li>'; }).join("") +
-    '</ul><p class="note chipnote">Claude is off the build desk. No new service. The weekday app is the same GitHub the desk already uses, a second app. In the repo: one file for the app, the paper’s builder, the guards, smoke, the negative wall, and the browser check. No server, no account. Handoff is on the box, not in the repo.</p></section>');
+     'GitHub<small>repo, CI, the Sunday app</small>', 'Cloudflare<small>hosting, DNS, the edge</small>'].map(function(c){ return '<li>' + c + '</li>'; }).join("") +
+    '</ul><p class="note chipnote">Claude is off the build desk. No new service. In the repo: one file for the app, the paper’s builder, the guards, smoke, the negative wall, and the browser check. No server, no account. Handoff is on the box, not in the repo.</p></section>');
 
   out.push('<section aria-labelledby="s8"><h2 id="s8"><span class="no">08</span>The rules</h2><ol class="rules">' +
     '<li>The owner merges. No bot, no session, no auditor lands anything.</li>' +
@@ -239,7 +239,7 @@ function page(f){
     '<li>One source of truth per thing. The Cursor file points at the rules. It is not a second brief.</li>' +
     '<li>No new third-party services. Use what is already paid for.</li>' +
     '<li>Short, direct, transparent. Say what was not checked.</li>' +
-    '<li>Weekday pushes go out as night-watcher-build[bot]. Not as the owner. Not as the Sunday bot.</li>' +
+    '<li>Weekday pushes go out as the Cursor agent. Not as the owner. Not as the Sunday bot.</li>' +
     '</ol></section>');
   out.push('<p class="foot">Unlisted, not secret: out of the sitemap and linked from nothing on the site; its source is in the repo. Dark deco only, because the page runs no script. Its counts are read from the tree at ' + esc(f.build) + '.</p>');
   out.push('</main>\n</body>\n</html>\n');
