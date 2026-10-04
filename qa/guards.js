@@ -238,6 +238,7 @@ function blessHtml(next){
      169  The paper sets type on the app's scale
      170  The crew's page is built and unlisted
      172  The paper carries the app's one ask, under its colophon
+     173  A pinned fixture may stop, the release run may not
 
    META
      65   The file points at where its reasoning went
@@ -354,6 +355,12 @@ process.on("uncaughtException", function(e){
 });
 function warn(m){ warns.push(m); }
 function note(m){ notes.push(m); }
+/* 6.6.1. A pinned fixture names its section. Past that section, the coverage
+   map and the paper tail are not its claim. npm test never sets NW_STOP. */
+function nwStop(n){
+  var stop = +process.env.NW_STOP;
+  return stop > 0 && stop < n;
+}
 
 /* The "every section can fail" censuses in sections 107 and 138 count
    `fail(` in code, not in the block comments that routinely QUOTE fail(...)
@@ -13112,6 +13119,7 @@ var ROUTE_VOCAB = [
    sentence this section exists to retire. */
 
 (function(){
+  if(nwStop(138)) return;
   var negDir = path.join(ROOT, "qa", "negative");
   if(!fs.existsSync(negDir)){ fail("qa/negative/ is gone"); return; }
 
@@ -16092,6 +16100,7 @@ var ROUTE_VOCAB = [
 
 var NOC = null, NOC_REAL = null, NOC_FIX = null;
 (function(){
+  if(nwStop(163)) return;
   try { NOC = require("./nocturne.js"); }
   catch(e){ fail("qa/nocturne.js does not load: " + e.message); return; }
   try { NOC_REAL = NOC.build(ROOT); }
@@ -16208,6 +16217,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    issue's, and every page's twitter:image is its og:image. */
 
 (function(){
+  if(nwStop(164)) return;
   var CSP164 = "default-src 'none'; script-src 'self' https://static.cloudflareinsights.com; " +
                "connect-src https://cloudflareinsights.com; style-src 'self'; img-src 'self'; font-src 'self'; " +
                "base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
@@ -16316,6 +16326,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    same-site new-tab link is a device check (RELEASING), not a guard. */
 
 (function(){
+  if(nwStop(165)) return;
   var skip = 'if(url.pathname.indexOf("/nocturne/") === 0) return;';
   var at = SW.indexOf(skip), respond = SW.indexOf("e.respondWith(");
   if(at < 0){
@@ -16379,6 +16390,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    weekly No. 1 whose On-the-map box reads a parked title out of the app. */
 
 (function(){
+  if(nwStop(166)) return;
   if(NOC_REAL){
     NOC_REAL.errors.forEach(function(m){ fail("an issue breaks the contract: " + m); });
   }
@@ -16527,6 +16539,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    markers once each, after the two URLs section 67 reads by position. */
 
 (function(){
+  if(nwStop(167)) return;
   var sm = fs.readFileSync(path.join(PUBLIC, "sitemap.xml"), "utf8");
   if(!NOC) return;
   var b = sm.indexOf(NOC.BEGIN), e = sm.indexOf(NOC.END);
@@ -16628,6 +16641,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    of the SVG it was drawn from, and named by the page's og:image. */
 
 (function(){
+  if(nwStop(168)) return;
   if(!NOC) return;
   var L = NOC.LIMITS;
   if(L.page !== 40 * 1024 || L.image !== 250 * 1024 || L.images !== 3 || L.side !== 1600){
@@ -16682,6 +16696,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    writes carries a character outside the fonts. */
 
 (function(){
+  if(nwStop(169)) return;
   if(!NOC) return;
   var root169 = (HTML.match(/:root\{[^}]*--t-display[^}]*\}/) || [""])[0];
   var app = {};
@@ -16802,6 +16817,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    the manifest or the agent files. */
 
 (function(){
+  if(nwStop(170)) return;
   var HWW;
   try { HWW = require("./hww.js"); }
   catch(e){ fail("qa/hww.js does not load: " + e.message); return; }
@@ -16857,6 +16873,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    itself. Same shape as section 164's twitter:image clause. */
 
 (function(){
+  if(nwStop(171)) return;
   function twins(h, where){
     [["title", "og:title"], ["description", "og:description"]].forEach(function(p){
       var og = h.match(new RegExp('<meta property="' + p[1] + '" content="([^"]*)">', "g")) || [];
@@ -16896,6 +16913,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    a reader follows. */
 
 (function(){
+  if(nwStop(172)) return;
   var want = '<p class="support">Keep the path lit. <a href="https://publishers.basicattentiontoken.org/en/c/nightwatcher" target="_blank" rel="noopener noreferrer">Support</a></p>';
   if(NOC.SUPPORT === undefined || '<p class="support">' + NOC.SUPPORT + '</p>' !== want){
     fail("qa/nocturne.js's support line is not the owner's: " + want + " (6.5.5)");
@@ -16946,6 +16964,26 @@ if(BLESS){
                                                     {stdio: "inherit"});
   process.exit(reverify.status === 0 ? 0 : 1);
 }
+/* ---------- 173. A pinned fixture may stop, the release run may not ----- */
+/* 6.6.1. A negative fixture that names its section does not need the
+   coverage map or the paper tail after that section has spoken. npm test
+   and the qa.yml step that runs it stay a full file. NW_STOP under CI is
+   legal only when the negative harness set it. */
+
+(function(){
+  var pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+  if(/NW_STOP/.test((pkg.scripts && pkg.scripts.test) || "")){
+    fail("npm test must not set NW_STOP — the release run is the full file (6.6.1)");
+  }
+  var qa173 = fs.readFileSync(path.join(ROOT, ".github", "workflows", "qa.yml"), "utf8");
+  if(/run:\s*NW_STOP=/.test(qa173)){
+    fail("qa.yml must not set NW_STOP — the release run is the full file (6.6.1)");
+  }
+  if(process.env.NW_STOP && process.env.CI && process.env.NW_HARNESS !== "1"){
+    fail("NW_STOP is set under CI outside the negative harness (6.6.1)");
+  }
+})();
+
 /* 4.9.0: A WARNING IS NOT A PASS IN CI. Nine sites used to warn where the
    thing they check had gone missing — "could not find the count to verify"
    switched a section off and the run printed "all guards passed (1
