@@ -2,22 +2,23 @@
 
 The Night Final. Every Sunday, late. Price: nothing. No account.
 
-Latest. No. 0. Sunday 27 September 2026.
+Latest. No. 1. Sunday 4 October 2026.
 
-## [Somebody has to stay up with Batman, and we will](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/)
+## [Clayface has a final trailer. The R is still not the studio's.](/nocturne/2026-w40-clayface-final-trailer-the-r-is-still-not-the-studios/)
 
-Sunday before the wire starts. No listing moved, and the paper still owes you a first night: who we are, who this is for, and the map next door.
+A final trailer is already up. The date the studio will print is not the same thing as the letter it will not. The week held both.
 
 In this issue
 
-1. [Somebody has to stay up with Batman, and we will](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s1)
-2. [Next door, one path runs through every Batman on screen](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s2)
-3. [He wasn't finished in 1939, and he still isn't](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s3)
-4. [We read the wire, and we tell you when it's the street](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s4)
-5. [We think a Batman paper owes you a paper trail](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s5)
+1. [screen Clayface has a final trailer. The R is still not the studio's.](/nocturne/2026-w40-clayface-final-trailer-the-r-is-still-not-the-studios/#s1)
+2. [comics Williamson named Batman: Justice Year. DC's site has not.](/nocturne/2026-w40-clayface-final-trailer-the-r-is-still-not-the-studios/#s2)
+3. [screen Deadline moves Dynamic Duo to 22 September 2028. TheWrap names four.](/nocturne/2026-w40-clayface-final-trailer-the-r-is-still-not-the-studios/#s3)
+4. [comics Absolute Batman goes quiet after issue 25](/nocturne/2026-w40-clayface-final-trailer-the-r-is-still-not-the-studios/#s4)
+5. [toys Hot Toys Japan dates Absolute Batman for January 2027](/nocturne/2026-w40-clayface-final-trailer-the-r-is-still-not-the-studios/#s5)
+6. [other Late wires](/nocturne/2026-w40-clayface-final-trailer-the-r-is-still-not-the-studios/#s6)
 
-[Read the Night Final](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/)
+[Read the Night Final](/nocturne/2026-w40-clayface-final-trailer-the-r-is-still-not-the-studios/)
 
 ## The morgue
 
-No. 0 is the first. Back issues file here from next Sunday.
+- No. 0. Sunday 27 September 2026. [Somebody has to stay up with Batman, and we will](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/)

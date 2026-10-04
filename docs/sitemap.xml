@@ -34,9 +34,15 @@
   <!-- nocturne:begin — written by npm run nocturne:build, never by hand -->
   <url>
     <loc>https://nightwatcher.life/nocturne/</loc>
-    <lastmod>2026-09-27</lastmod>
+    <lastmod>2026-10-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://nightwatcher.life/nocturne/2026-w40-clayface-final-trailer-the-r-is-still-not-the-studios/</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
   </url>
   <url>
     <loc>https://nightwatcher.life/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/</loc>
