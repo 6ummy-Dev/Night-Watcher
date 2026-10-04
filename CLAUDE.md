@@ -23,7 +23,7 @@ The belt (`masterChooser()`) heads all four tabs; the rows below are what each t
 - `npm test`: guards and smoke (about 75 s). `node qa/guards.js` alone takes about 2 s.
 - Browser check: `python3 -m http.server 8099 --directory docs &` then `npm run browser`. A change to the belt, scrolling, focus, sticky, content-visibility or the service worker isn't verified until this is green.
 - Negative wall: `bash qa/negative/run-all.sh` (about 30 min), or a single suite with `bash qa/negative/run-all.sh 760`.
-- Paper and crew page: `npm run nocturne:check`, `npm run hww:check`.
+- Paper and crew page: the failing checks run inside `node qa/guards.js`. Run `npm run nocturne:check` or `npm run hww:check` only while editing `qa/nocturne.js` or `qa/hww.js`, before the guard pass.
 - Node must satisfy `engines` (`^22.22.2 || ^24.15.0 || >=26`) because `.npmrc` sets `engine-strict`; `.nvmrc` names `22.22.2`, so `nvm use` picks one that installs. In a sandbox whose Node lags, `npm ci --engine-strict=false` is acceptable for local checks only. Say you did it.
 - If Playwright's pinned Chromium is missing, set `NW_CHROME=/path/to/chrome` (the browser check's escape hatch).
 
