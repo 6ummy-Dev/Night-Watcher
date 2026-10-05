@@ -176,7 +176,7 @@ function page(f){
            '</div><div class="lanes two">' +
            '<div class="lane"><b>Cursor agent</b><span class="who">Weekday push</span><p>Opens the pull request. Does not merge. Does not push main. Does not approve.</p></div>' +
            '<div class="lane"><b>nocturne-night-final</b><span class="who">Sunday app</span><p>The same limits, and the fence on top. Four paths only. Not reused on a weekday.</p></div>' +
-           '</div><div class="join"></div><div class="box"><b>CI on that pull request</b><small>App pull request: the full wall. Paper pull request: guards only</small></div><div class="stem"></div>' +
+           '</div><div class="join"></div><div class="box"><b>CI on that pull request</b><small>App pull request: the full wall. Paper pull request: every guard and the paper half of the browser check, on Chromium and WebKit. Skips smoke, the wall and the app half of the browser check</small></div><div class="stem"></div>' +
            '<div class="box"><b>The owner squash-merges</b><small>One commit · not while a Night Final is open</small></div><div class="stem"></div>' +
            '<div class="box"><b>A merge publishes</b><small>nightwatcher.life · one origin</small></div></div>');
   out.push('<p class="note chipnote">The reader does not move. One file, no account, no server, progress in the browser.</p>');
@@ -215,7 +215,7 @@ function page(f){
     '<div class="stat"><b>' + n(f.smoke) + '</b><span>Smoke checks</span></div>' +
     '<div class="stat"><b>' + esc(LAST_AUDIT) + '</b><span>Last independent audit</span></div>' +
     '</div>' +
-    '<p><b>The harness</b> runs on the pull request, before the merge, and again on main. ' + n(f.sections) + ' guard sections, ' + n(f.fixtures) + ' negative fixtures, ' + n(f.smoke) + ' smoke checks. Chromium and WebKit, with axe. While iterating, the pass can be scoped. The merge gate is the full wall on that commit. A paper-only pull request runs every guard and skips smoke and the wall. Every push to main runs all of it.</p>' +
+    '<p><b>The harness</b> runs on the pull request, before the merge, and again on main. ' + n(f.sections) + ' guard sections, ' + n(f.fixtures) + ' negative fixtures, ' + n(f.smoke) + ' smoke checks. Chromium and WebKit, with axe. While iterating, the pass can be scoped. The merge gate is the full wall on that commit. A paper-only pull request runs every guard and the paper half of the browser check, on Chromium and WebKit, and skips smoke, the wall and the app half of the browser check. Every push to main runs all of it.</p>' +
     '<p><b>Cursor’s QA reports</b> read the whole repo, each finding with a way to reproduce it. <b>Independent auditors</b> read the live release and do not open work. <b>The owner’s eye</b> covers devices, VoiceOver, High Contrast, and the Sunday review.</p>' +
     '<p class="note">A QA-driven cut takes every finding in one release, and anything left out gets its reason. Standing decisions do not reopen because a scanner proposes their opposite.</p></section>');
 

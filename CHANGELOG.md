@@ -14,6 +14,14 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.6.7] — 2026-10-05
+
+**Why PATCH.** Copy on the crew page. A paper pull request runs every guard and the paper half of the browser check, on Chromium and WebKit, and skips smoke, the wall and the app half of the browser check. The CI line and the harness paragraph say that. No catalogue change, no new script, and nothing saved changes shape. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Changed
+
+- **What a paper pull request runs.** The CI line and the harness paragraph on the crew page say the same thing. A paper pull request runs every guard and the paper half of the browser check, on Chromium and WebKit, and skips smoke, the wall and the app half of the browser check. `/hww` is rebuilt from the tree. The page prints 6.6.7.
+
 ## [6.6.6] — 2026-10-05
 
 **Why PATCH.** The front's document title names Batman news and no spoilers. Under the morgue the front carries six Batman questions, on the page and in the markdown, and in one JSON-LD block with the periodical and a FAQPage. Issue pages stay NewsArticle. No catalogue change, no new script, and nothing saved changes shape. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
