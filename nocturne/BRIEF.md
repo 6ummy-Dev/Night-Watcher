@@ -59,16 +59,16 @@ the RSS feed at `/nocturne/feed.xml` and the weekly X post.** `/nocturne/` is
 the front, which the build writes from your issues: the latest issue's
 headline, hero, cold open and story heads, one *Read the Night Final* button,
 and back issues under *The morgue* (6.4.0). Never write or edit it.
-The front's document title names Batman news and no spoilers. The six questions are in the front's FAQPage for crawlers and in the front markdown; the renderer writes them, they are not printed on the page, and they are not on an issue. The footer carries one link, *The map*, to `/`.
+The front's document title names Batman news and no spoilers. The six questions are in the front's FAQPage for crawlers and in the front markdown; the renderer writes them, they are not printed on the page, and they are not on an issue.
 The footer opens with *RSS* (the feed) and, on issues, *Share* and *The
-morgue*, then *The map*, in one row; under it the *Night Watcher* button that carries the
+morgue* in one row; under it the *Night Watcher* button that carries the
 app's mark and leads back to the map; then the *Dark deco* / *Darker* switch,
 each row 30px from the next (6.5.1); then the colophon under the app's diamond
 rule. The sign-off above it is set in the reading face, italic (6.5.1). After
 the sign-off and before the foot, each issue carries *Previous* and *Next*
 when another published issue exists, and the link names that issue. The
 founding issue shows *Next* only. The latest shows *Previous* only. The
-renderer writes the row. *RSS*, *Share*, *The morgue*, *The map*, and the way back to the
+renderer writes the row. *RSS*, *Share*, *The morgue*, and the way back to the
 map stay as they are. The renderer writes all of it.
 
 ### The masthead

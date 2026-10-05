@@ -2,9 +2,9 @@
 # negtest810 — 6.6.6. The front's title names Batman news and no spoilers.
 # One JSON-LD block: a WebPage of the Periodical, and a FAQPage of six
 # Batman questions, in order. 6.6.8: the questions stay in that FAQPage
-# and in the markdown, and the visible page must not print them. The
-# footer carries one link, The map, to /. An issue carries neither the
-# FAQ block nor the question text (175).
+# and in the markdown, and the visible page must not print them. An issue
+# carries neither the FAQ block nor the question text (175). The footer
+# is not required to carry a The map link.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="$(pro qa/nocturne.js)"
@@ -94,11 +94,6 @@ run_case "the wire link leaves the feed" \
 run_case "the watch-order answer gains a second link" \
   "front markdown watch-order answer is not the one link" \
   "${N}a='[nightwatcher.life](/).';assert s.count(a)==1;s=s.replace(a,'[nightwatcher.life](/) [also](/x).',1);${W}" \
-  guards "" 175
-
-run_case "the footer drops the map link" \
-  "front footer has no map link" \
-  "${N}a=' + MAP_LINK';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
   guards "" 175
 
 finish "negtest810"

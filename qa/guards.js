@@ -17196,8 +17196,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    order. No. 0 has Next only, No. 1 has Previous only, and each link names
    that issue. The same address is the head's rel=prev or rel=next. A side
    with no neighbor is omitted, and the front page has no such row. The
-   footer's RSS, Share and The morgue stay where they are, and 6.6.8 adds
-   The map after them: the one link to the map. The arrow is the
+   footer's RSS, Share and The morgue stay where they are. The arrow is the
    paper's inline SVG, never U+2197, and print hides the row with the buttons.
    A link's visible text drops tags until none remain, then any leftover
    angle bracket. One pass of a tag pattern leaves a tag that was split
@@ -17279,7 +17278,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       });
       var ft = (html.match(/<footer class="foot">[\s\S]*?<\/footer>/) || [""])[0];
       var more = ((ft.match(/<div class="more">[\s\S]*?<\/div>/) || [""])[0]).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-      if(more !== "RSS Share The morgue The map" || /rel="prev"|rel="next"|issue-nav/.test(ft)){
+      if(more !== "RSS Share The morgue" || /rel="prev"|rel="next"|issue-nav/.test(ft)){
         fail(label + "the issue footer .acts row gained a neighbor link (6.6.4)");
       }
     });
@@ -17327,10 +17326,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    title and every issue title stay as they were.
    6.6.8. The owner took the visible list off the front. A reader does not
    see the six questions or their answers under the morgue. The same six,
-   same order, stay in the FAQPage and in the front markdown. The footer
-   carries one link, The map, to /, on the front and on every issue. The
-   homepage's straight answers have no id, and #faq is not an anchor, so
-   the label does not name a question list. */
+   same order, stay in the FAQPage and in the front markdown. */
 
 (function(){
   if(nwStop(175)) return;
@@ -17434,19 +17430,15 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     if(links.length !== 1 || links[0] !== "[nightwatcher.life](/)"){
       fail(label + "front markdown watch-order answer is not the one link");
     }
-    var ft = (html.match(/<footer class="foot">[\s\S]*?<\/footer>/) || [""])[0];
-    if(ft.indexOf('<a class="btn ghost" href="/">The map</a>') < 0) fail(label + "front footer has no map link");
     b.list.forEach(function(is){
       var page = (b.files[is.id + "/index.html"] || Buffer.from("")).toString("utf8");
       if(page.indexOf("FAQPage") >= 0) fail(label + "issue page carries the FAQ block");
       if(NAMES.some(function(n){ return page.indexOf(n) >= 0; })) fail(label + "issue page carries the front question");
-      var ift = (page.match(/<footer class="foot">[\s\S]*?<\/footer>/) || [""])[0];
-      if(ift.indexOf('<a class="btn ghost" href="/">The map</a>') < 0) fail(label + "issue footer has no map link");
     });
   }
   checkFront(NOC_REAL, "docs/nocturne/ ");
   checkFront(NOC_FIX, "the fixture's ");
-  note("front: Batman news in the title, one WebPage and FAQPage, six questions in the markdown and off the page, one map link in the footer, off every issue");
+  note("front: Batman news in the title, one WebPage and FAQPage, six questions in the markdown and off the page, off every issue");
 })();
 
 /* ---------- report ---------- */

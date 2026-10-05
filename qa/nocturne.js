@@ -1022,14 +1022,9 @@ function dateline(a, b, c){
 var SUPPORT_URL = "https://publishers.basicattentiontoken.org/en/c/nightwatcher";
 var SUPPORT = 'Keep the path lit. <a href="' + SUPPORT_URL + '" target="_blank" rel="noopener noreferrer">Support</a>';
 
-/* 6.6.8. One link in the paper's row, on the front and on every issue.
-   The homepage's straight answers have no id, and #faq is not an anchor,
-   so this points at the map and does not name a question list. */
-var MAP_LINK = '<a class="btn ghost" href="/">The map</a>';
-
 function footer(extra){
   return '<footer class="foot">\n<div class="acts">' +
-    '<div class="more"><a class="btn ghost" href="/nocturne/feed.xml" type="application/rss+xml">' + RSS + 'RSS</a>' + (extra || "") + MAP_LINK + '</div>' +
+    '<div class="more"><a class="btn ghost" href="/nocturne/feed.xml" type="application/rss+xml">' + RSS + 'RSS</a>' + (extra || "") + '</div>' +
     '<a class="btn home" href="/">' + MARK + '<span class="lbl"><b>Night Watcher</b><small>Open the map' + ARROW + '</small></span></a></div>\n' +
     '<div class="themerow" role="group" aria-label="Theme"><button type="button" data-theme-set="dark" aria-pressed="true">Dark deco</button>' +
     '<button type="button" data-theme-set="darker" aria-pressed="false">Darker</button></div>\n' +
