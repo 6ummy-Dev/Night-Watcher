@@ -762,34 +762,47 @@ var THEME_JS = [
 var THEME_TAG = '<script src="/nocturne/theme.js"></script>';
 /* 6.5.0. paper.js, the paper's second script of its own, on every page,
    deferred. Two jobs, both owner's calls.
-   The Share button (issues): where the browser has a share sheet (phones,
-   most tablets, Safari) it opens it with the issue's title and link; where
-   it has none, it copies the link and says so, in the button and in a
-   polite live region.
+   Share this issue (issues): where the browser has a share sheet it opens
+   it with the issue's title and link; where it has none, or the sheet fails
+   for any reason but AbortError, it copies the link and says so, in the
+   button and in a polite live region. Copy link and Post on X are in that
+   same row and start hidden. This script shows them only when
+   navigator.share is missing. It adds no other script and opens nothing itself.
    The theme switch (every page): Dark deco or Darker, the app's two themes.
    The choice is the paper's own, kept under its own key (nocturne-theme),
    and never written into the app's settings; until a reader flips it the
    paper follows the app, as theme.js has since 6.3.0. It fetches nothing and
    stores nothing else (guard 164). */
 var PAPER_JS = [
-"/* Nocturne \u2014 the Share button and the theme switch. Written by qa/nocturne.js; never edited by hand. */",
-"(function(){var root=document.documentElement,IDLE=\"Share\",timer=0;",
+"/* Nocturne \u2014 Share this issue, and the theme switch. Written by qa/nocturne.js; never edited by hand. */",
+"(function(){var root=document.documentElement,IDLE=\"Share this issue\",timer=0;",
 "function markTheme(){var now=root.getAttribute(\"data-theme\")===\"darker\"?\"darker\":\"dark\";[].forEach.call(document.querySelectorAll(\"[data-theme-set]\"),function(b){b.setAttribute(\"aria-pressed\",String(b.getAttribute(\"data-theme-set\")===now));});}",
 "function setTheme(v){if(v===\"darker\")root.setAttribute(\"data-theme\",\"darker\");else root.removeAttribute(\"data-theme\");try{localStorage.setItem(\"nocturne-theme\",v);}catch(err){}markTheme();}",
 "function label(button,text){var word=button.querySelector(\".sl\");clearTimeout(timer);if(word)word.textContent=text;button.classList.toggle(\"failed\",text!==IDLE);if(text!==IDLE)timer=setTimeout(function(){label(button,IDLE);},2400);}",
 "function copied(button,out){label(button,IDLE);if(out){out.classList.remove(\"fail\");out.textContent=\"Link copied\";}}",
 "function failed(button,out,url){label(button,\"Copy failed\");if(out){out.classList.add(\"fail\");out.textContent=url;}}",
 "function copy(button,out,url){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(function(){copied(button,out);},function(){failed(button,out,url);});return;}failed(button,out,url);}",
-"function share(button){var url=button.getAttribute(\"data-url\"),title=button.getAttribute(\"data-title\"),out=button.nextElementSibling;if(!out||!out.classList.contains(\"shout\"))out=null;",
+"function shout(button){var row=button.closest(\".more\"),out=row&&row.querySelector(\".shout\");return out||null;}",
+"function share(button){var url=button.getAttribute(\"data-url\"),title=button.getAttribute(\"data-title\"),out=shout(button);",
 "if(navigator.share){navigator.share({title:title,url:url}).catch(function(err){if(!err||err.name!==\"AbortError\")copy(button,out,url);});return;}copy(button,out,url);}",
-"markTheme();",
-"document.addEventListener(\"click\",function(e){var themeButton=e.target.closest(\"[data-theme-set]\");if(themeButton){setTheme(themeButton.getAttribute(\"data-theme-set\")===\"darker\"?\"darker\":\"dark\");return;}var shareButton=e.target.closest(\"[data-share]\");if(shareButton)share(shareButton);});})();",
+"function showSheetless(){if(navigator.share)return;[].forEach.call(document.querySelectorAll(\".btn.share\"),function(b){var row=b.closest(\".more\");if(!row)return;[].forEach.call(row.querySelectorAll(\"[hidden]\"),function(el){el.removeAttribute(\"hidden\");});});}",
+"markTheme();showSheetless();",
+"document.addEventListener(\"click\",function(e){var themeButton=e.target.closest(\"[data-theme-set]\");if(themeButton){setTheme(themeButton.getAttribute(\"data-theme-set\")===\"darker\"?\"darker\":\"dark\");return;}var copyButton=e.target.closest(\"[data-copy]\");if(copyButton){copy(copyButton,shout(copyButton),copyButton.getAttribute(\"data-url\"));return;}var shareButton=e.target.closest(\"[data-share]\");if(shareButton)share(shareButton);});})();",
 ""].join("\n");
 var PAPER_TAG = '<script src="/nocturne/paper.js" defer></script>';
 var SHARE_ICON = '<svg class="shr" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.4v6.8M3.3 4.1 6 1.4l2.7 2.7M2 6.4v4.2h8V6.4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
+/* 6.6.9. Share this issue always. Copy link and Post on X are in the same
+   row and start hidden; paper.js shows them only when there is no share sheet.
+   The post is a link to X's compose URL, the headline and the issue URL.
+   No script from X. */
 function shareButton(url, title){
+  var mark = " \u00b7 Nocturne";
+  var headline = title.slice(-mark.length) === mark ? title.slice(0, -mark.length) : title;
+  var post = "https://x.com/intent/post?text=" + encodeURIComponent(headline) + "&url=" + encodeURIComponent(url);
   return '<button class="btn share" type="button" data-share data-url="' + url + '" data-title="' + esc(title) + '">' +
-         SHARE_ICON + '<span class="sl">Share</span></button><span class="shout" role="status" aria-live="polite"></span>';
+         SHARE_ICON + '<span class="sl">Share this issue</span></button><span class="shout" role="status" aria-live="polite"></span>' +
+         '<button class="btn ghost" type="button" data-copy data-url="' + url + '" hidden>Copy link</button>' +
+         '<a class="btn ghost" href="' + esc(post) + '" target="_blank" rel="noopener noreferrer" hidden>Post on X</a>';
 }
 /* 6.3.0. Cloudflare Web Analytics, on the paper only: no cookies, nothing
    that follows a reader. The token is public by design; the app carries
@@ -825,25 +838,25 @@ var READ   = paperFont("newsreader-latin-400-normal.woff2");
 var READ_I = paperFont("newsreader-latin-400-italic.woff2");
 
 var CSS = [
-"/* Nocturne \u2014 the paper's one stylesheet. Written by qa/nocturne.js; never edited by hand. */",
-"@font-face{font-family:\"NW Deco\";src:url(\"/fonts/limelight-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-display:swap;}",
+"/* Nocturne */",
+"@font-face{font-family:\"NW Deco\";src:url(\"/fonts/limelight-latin-400-normal.woff2\") format(\"woff2\");font-display:swap;}",
 "@font-face{font-family:\"Big Shoulders Display\";src:url(\"/fonts/big-shoulders-display-latin-700-normal.woff2\") format(\"woff2\");font-weight:700;font-display:swap;}",
-"@font-face{font-family:\"NW Sans\";src:url(\"/fonts/ibm-plex-sans-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-display:swap;}",
+"@font-face{font-family:\"NW Sans\";src:url(\"/fonts/ibm-plex-sans-latin-400-normal.woff2\") format(\"woff2\");font-display:swap;}",
 "@font-face{font-family:\"NW Sans\";src:url(\"/nocturne/" + ITALIC.file + "\") format(\"woff2\");font-weight:400;font-style:italic;font-display:swap;}",
 "@font-face{font-family:\"NW Sans\";src:url(\"/fonts/ibm-plex-sans-latin-600-normal.woff2\") format(\"woff2\");font-weight:600;font-display:swap;}",
-"@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-400-normal.woff2\") format(\"woff2\");font-weight:400;font-display:swap;}",
+"@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-400-normal.woff2\") format(\"woff2\");font-display:swap;}",
 "@font-face{font-family:\"NW Mono\";src:url(\"/fonts/ibm-plex-mono-latin-600-normal.woff2\") format(\"woff2\");font-weight:600;font-display:swap;}",
 "@font-face{font-family:\"Bodoni Moda\";src:url(\"/fonts/bodoni-moda-latin-700-normal.woff2\") format(\"woff2\");font-weight:700;font-display:swap;}",
-"@font-face{font-family:\"Newsreader\";src:url(\"/nocturne/" + READ.file + "\") format(\"woff2\");font-weight:400;font-display:swap;}",
+"@font-face{font-family:\"Newsreader\";src:url(\"/nocturne/" + READ.file + "\") format(\"woff2\");font-display:swap;}",
 "@font-face{font-family:\"Newsreader\";src:url(\"/nocturne/" + READ_I.file + "\") format(\"woff2\");font-weight:400;font-style:italic;font-display:swap;}",
 ":root{--ink:#08090F;--sunk:#0C111C;--card:#141B2C;--card2:#1B2438;--line:#252E42;--line2:#33405C;",
-"  --bone:#E7E9F0;--dust:#93A0B8;--dim:#8B97B1;--suit:#A6ADBA;--signal:#FFCF1F;--steel:#7295CC;",
-"  --signalline:rgba(255,207,31,.4);",
-"  --deco:\"NW Deco\",\"Big Shoulders Display\",serif;--disp:\"Big Shoulders Display\",\"Arial Narrow\",Impact,sans-serif;",
-"  --body:\"NW Sans\",-apple-system,\"Segoe UI\",sans-serif;--mono:\"NW Mono\",ui-monospace,Menlo,monospace;",
-"  --press:\"Bodoni Moda\",Didot,\"Bodoni 72\",Georgia,serif;--read:\"Newsreader\",Georgia,serif;",
-"  " + TYPE_APP,
-"  " + TYPE_PAPER + "}",
+"--bone:#E7E9F0;--dust:#93A0B8;--dim:#8B97B1;--suit:#A6ADBA;--signal:#FFCF1F;--steel:#7295CC;",
+"--signalline:rgba(255,207,31,.4);",
+"--deco:\"NW Deco\",\"Big Shoulders Display\",serif;--disp:\"Big Shoulders Display\",\"Arial Narrow\",Impact,sans-serif;",
+"--body:\"NW Sans\",-apple-system,\"Segoe UI\",sans-serif;--mono:\"NW Mono\",ui-monospace,Menlo,monospace;",
+"--press:\"Bodoni Moda\",Didot,\"Bodoni 72\",Georgia,serif;--read:\"Newsreader\",Georgia,serif;",
+"" + TYPE_APP,
+"" + TYPE_PAPER + "}",
 ":root[data-theme=\"darker\"]{" + DARKER + "}",
 "*{box-sizing:border-box;}",
 "html,body{margin:0;padding:0;}",
@@ -921,12 +934,15 @@ var CSS = [
 /* 6.3.1: the colophon sits under the app's diamond rule, the way every tab closes (guard 169). Kept out of the served sheet: the stylesheet's ceiling is 16 KB. */
 ".foot{max-width:620px;margin:44px auto 0;}",
 ".colophon::before{content:\"\";position:absolute;top:0;left:50%;width:4.5px;height:4.5px;transform:translate(-50%,-50%) rotate(45deg);background:var(--signal);box-shadow:0 0 0 6px var(--ink);}",
-/* 6.5.0: the foot's buttons in two rows, the way back to the map on its own
-   and the paper's own buttons under it, equal widths, one style. */
+/* 6.5.0: the foot's buttons, equal widths, one style. 6.6.9: an issue adds a
+   share row above RSS. .btn.go is the app's Resume button. .btn sets display,
+   which would beat the hidden attribute, so .btn[hidden] puts it back. */
 ".acts{display:grid;gap:30px;max-width:460px;margin:0 auto 30px;}",
 ".acts .more{display:flex;flex-wrap:wrap;gap:10px;position:relative;}",
 ".acts .more .btn{flex:1 1 0;min-width:0;justify-content:center;}",
 ".btn{font-family:var(--mono);font-size:var(--t-label);font-weight:600;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;padding:12px 14px;min-height:44px;display:inline-flex;align-items:center;}",
+".btn.go{background:var(--suit);color:var(--ink);letter-spacing:.12em;min-height:46px;border:0;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}",
+".btn[hidden]{display:none}",
 ".btn.home{background:var(--signal);color:var(--ink);border:1px solid var(--signal);gap:12px;padding:10px 18px 10px 14px;text-align:left;}",
 ".btn.home .mk{width:36px;height:auto;flex:none;display:block;}",
 ".btn.home .lbl{display:flex;flex-direction:column;align-items:flex-start;gap:7px;}",
@@ -935,14 +951,13 @@ var CSS = [
 ".btn.home small .arr{width:9px;height:9px;margin-left:5px;}",
 ".btn .rss{width:12px;height:12px;margin-right:8px;flex:none;}",
 ".btn.home{justify-content:center;}",
-".btn.ghost{border:1px solid var(--line2);color:var(--steel);font-weight:400;}",
+".btn.ghost,.btn.share{border:1px solid var(--line2);color:var(--steel);font-weight:400;background:none;cursor:pointer;}",
 ".themerow{display:flex;max-width:460px;margin:0 auto 30px;border:1px solid var(--line2);}",
 ".themerow button{flex:1;min-height:44px;padding:8px 6px;background:none;border:0;border-right:1px solid var(--line2);font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.09em;text-transform:uppercase;color:var(--dust);cursor:pointer;}",
 ".themerow button:last-child{border-right:0;}",
 ".themerow button[aria-pressed=\"true\"]{background:var(--suit);color:var(--ink);font-weight:600;}",
 ".themerow button:focus-visible{outline:2px solid var(--signal);outline-offset:-2px;}",
-".btn.share{border:1px solid var(--line2);color:var(--steel);font-weight:400;background:none;cursor:pointer;}",
-".btn.share:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}",
+".acts button:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}",
 ".btn .shr{width:12px;height:12px;margin-right:8px;flex:none;}",
 ".shout{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}",
 ".shout.fail{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal;flex-basis:100%;order:1;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.04em;color:var(--steel);text-align:center;overflow-wrap:anywhere;user-select:all;}",
@@ -995,8 +1010,8 @@ var CSS = [
 ".issue-nav a[rel=prev] .arr{margin:0 8px 0 0}",
 /* Print (6.2.3): ink on white, the rules kept, no buttons. Same scale; only colour changes. */
 "@media print{:root,:root[data-theme=\"darker\"]{--ink:#FFFFFF;--sunk:#FFFFFF;--card:#FFFFFF;--card2:#FFFFFF;--line:#BBBBBB;--line2:#888888;--bone:#08090F;--dust:#333333;--dim:#444444;--suit:#08090F;--signal:#08090F;--steel:#333333;--signalline:rgba(8,9,15,.35);}",
-"  .acts{display:none;}.issue-nav{display:none;}.themerow{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}",
-"  figure,.map,.corr,.board{break-inside:avoid;}.story h2{break-after:avoid;}@page{margin:16mm 14mm;}}",
+".acts{display:none;}.issue-nav{display:none;}.themerow{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}",
+"figure,.map,.corr,.board{break-inside:avoid;}.story h2{break-after:avoid;}@page{margin:16mm 14mm;}}",
 ""].join("\n");
 
 var COLOPHON = "Nocturne is the weekly paper of Night Watcher, one fan\u2019s map of every Batman " +
@@ -1023,8 +1038,14 @@ var SUPPORT_URL = "https://publishers.basicattentiontoken.org/en/c/nightwatcher"
 var SUPPORT = 'Keep the path lit. <a href="' + SUPPORT_URL + '" target="_blank" rel="noopener noreferrer">Support</a>';
 
 function footer(extra){
-  return '<footer class="foot">\n<div class="acts">' +
-    '<div class="more"><a class="btn ghost" href="/nocturne/feed.xml" type="application/rss+xml">' + RSS + 'RSS</a>' + (extra || "") + '</div>' +
+  /* 6.6.9. An issue passes the share row. The front and the holding page pass
+     none, and stay RSS plus the Night Watcher button. */
+  var rss = '<a class="btn ghost" href="/nocturne/feed.xml" type="application/rss+xml">' + RSS + 'RSS</a>';
+  var rows = extra
+    ? '<div class="more">' + extra + '</div><div class="more">' + rss +
+      '<a class="btn go" href="/nocturne/">Back to Nocturne</a><a class="btn ghost" href="/nocturne/">The morgue</a></div>'
+    : '<div class="more">' + rss + '</div>';
+  return '<footer class="foot">\n<div class="acts">' + rows +
     '<a class="btn home" href="/">' + MARK + '<span class="lbl"><b>Night Watcher</b><small>Open the map' + ARROW + '</small></span></a></div>\n' +
     '<div class="themerow" role="group" aria-label="Theme"><button type="button" data-theme-set="dark" aria-pressed="true">Dark deco</button>' +
     '<button type="button" data-theme-set="darker" aria-pressed="false">Darker</button></div>\n' +
@@ -1195,7 +1216,7 @@ function renderIssue(is, cat, prev, next){
      and two diamonds that close together read as one too many. */
   out += '<p class="signoff">' + inline(fm.sign_off) + '</p>\n</article>\n' +
          neigh.nav +
-         footer(shareButton(url, plain(fm.title) + " \u00b7 Nocturne") + '<a class="btn ghost" href="/nocturne/">The morgue</a>') + '</main>\n' + BEACON + '\n</body>\n</html>\n';
+         footer(shareButton(url, plain(fm.title) + " \u00b7 Nocturne")) + '</main>\n' + BEACON + '\n</body>\n</html>\n';
   return out;
 }
 
