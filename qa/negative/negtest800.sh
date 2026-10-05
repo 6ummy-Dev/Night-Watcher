@@ -4,6 +4,8 @@
 # footer row stays RSS, Share and The morgue. The arrow is the inline SVG.
 # The front page has no issue nav. Print hides the row. The fixture's No. 2
 # gives No. 1 a neighbor on each side, so one page carries both (6.6.5).
+# 6.6.6: the front's questions sit between that section and the footer, so
+# the anchor that grows an issue nav includes frontQuestions().
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="$(pro qa/nocturne.js)"
@@ -32,7 +34,7 @@ run_case "Previous is drawn with a unicode arrow" \
 
 run_case "the front page grows an issue nav" \
   "the front page carries an issue nav" \
-  "${N}a=\"return out + '</section>\\\\n' + footer(\\\"\\\")\";assert s.count(a)==1;s=s.replace(a,\"return out + '</section>\\\\n' + '<nav class=\\\\\\\"issue-nav\\\\\\\" aria-label=\\\\\\\"Issues\\\\\\\"></nav>\\\\n' + footer(\\\"\\\")\",1);${W}" \
+  "${N}a=\"return out + '</section>\\\\n' + frontQuestions() + footer(\\\"\\\")\";assert s.count(a)==1;s=s.replace(a,\"return out + '</section>\\\\n' + frontQuestions() + '<nav class=\\\\\\\"issue-nav\\\\\\\" aria-label=\\\\\\\"Issues\\\\\\\"></nav>\\\\n' + footer(\\\"\\\")\",1);${W}" \
   guards "" 174
 
 run_case "print shows the issue nav" \

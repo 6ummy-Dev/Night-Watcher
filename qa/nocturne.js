@@ -1067,6 +1067,9 @@ function lastmod(is){
   (is.fm.corrections || []).forEach(function(c){ if(c.date > d) d = c.date; });
   return d;
 }
+function newestLastmod(list){
+  return list.map(lastmod).sort().pop();
+}
 
 function fullTitle(f){ return f.t + (f.sub ? " \u2014 " + f.sub : ""); }
 /* 6.3.0. Where a title sits, in a line: its neighbours in PATH. */
@@ -1196,11 +1199,62 @@ function renderIssue(is, cat, prev, next){
   return out;
 }
 
+/* 6.6.6. The front's document title names Batman news and no spoilers.
+   The nameplate stays Nocturne. The description stays the week's line.
+   Six questions sit under the morgue, on this page and in its markdown,
+   and in the one JSON-LD block. An issue does not carry them. The
+   apostrophe is the paper's. nightwatcher.life is the map. The wire is
+   the feed. */
+var FRONT_TITLE = "Nocturne \u00b7 Batman news, no spoilers \u00b7 Night Watcher";
+var FRONT_QS = [
+  ["Where do I read this week\u2019s Batman news without spoilers?",
+   "Nocturne, the Night Final, Sunday late (Montevideo). Screen, comics, games, toys, books. Every story links its source."],
+  ["Does Nocturne spoil Batman movies, series, or comics?",
+   "No. A story that touches the map says where a Batman title sits. It does not say what happens."],
+  ["Is Nocturne a Batman watch order?",
+   "No. The watch order is the map at nightwatcher.life. The paper is the week\u2019s Batman news."],
+  ["When does the Batman Night Final come out?",
+   "Sunday, late, Montevideo time. One issue. No issue in a week with nothing to run."],
+  ["Who writes Nocturne\u2019s Batman coverage?",
+   "A desk of agents drafts it. A person edits and publishes it. Not a named reporter."],
+  ["How do I follow Nocturne\u2019s Batman news?",
+   "The wire is /nocturne/feed.xml. No account. Price: nothing."]
+];
+function frontAnswerHtml(i){
+  if(i === 2) return "No. The watch order is the map at <a href=\"/\">nightwatcher.life</a>. The paper is the week\u2019s Batman news.";
+  if(i === 5) return "The wire is <a href=\"/nocturne/feed.xml\">/nocturne/feed.xml</a>. No account. Price: nothing.";
+  return esc(FRONT_QS[i][1]);
+}
+function frontAnswerMd(i){
+  if(i === 2) return "No. The watch order is the map at [nightwatcher.life](/). The paper is the week\u2019s Batman news.";
+  if(i === 5) return "The wire is [/nocturne/feed.xml](/nocturne/feed.xml). No account. Price: nothing.";
+  return FRONT_QS[i][1];
+}
+function frontGraph(list){
+  var url = SITE + "/nocturne/";
+  return {"@context": "https://schema.org", "@graph": [
+    {"@type": "WebPage", name: FRONT_TITLE, url: url, dateModified: newestLastmod(list),
+     isPartOf: {"@type": "Periodical", name: "Nocturne", url: url}},
+    {"@type": "FAQPage", mainEntity: FRONT_QS.map(function(q){
+      return {"@type": "Question", name: q[0], acceptedAnswer: {"@type": "Answer", text: q[1]}};
+    })}
+  ]};
+}
+function frontQuestions(){
+  var out = '<section class="back" aria-label="Batman questions">\n';
+  FRONT_QS.forEach(function(q, i){
+    out += '<div class="inside"><h2 class="hd">' + esc(q[0]) + '</h2></div>\n' +
+           '<div class="story"><p>' + frontAnswerHtml(i) + '</p></div>\n';
+  });
+  return out + '</section>\n';
+}
+
 /* The front's markdown (6.6.3). There is no source file for /nocturne/:
    the front is this function's HTML, and the markdown is the same page —
    the nameplate, the dateline, the latest issue's title and cold open,
    what is inside it, and the morgue. Nothing here is a second pitch.
-   An issue's markdown is its own issue.md, copied byte for byte. */
+   An issue's markdown is its own issue.md, copied byte for byte.
+   6.6.6: the six questions follow the morgue, in the same order as the page. */
 function mdLink(text, href){
   /* Backslash first: a \ before ] would otherwise escape the escape and close the label. */
   return "[" + String(text).replace(/\\/g, "\\\\").replace(/\]/g, "\\]") + "](" + href + ")";
@@ -1226,6 +1280,9 @@ function renderFrontMarkdown(list){
                 mdLink(b.fm.title, "/nocturne/" + b.id + "/"));
   });
   lines.push("");
+  FRONT_QS.forEach(function(q, i){
+    lines.push("## " + q[0], "", frontAnswerMd(i), "");
+  });
   return lines.join("\n");
 }
 function renderHoldingMarkdown(){
@@ -1249,8 +1306,9 @@ function renderHoldingMarkdown(){
 function renderArchive(list){
   var url = SITE + "/nocturne/";
   var desc = "The Night Final: the week\u2019s Batman news. Every Sunday, late. No spoilers, every source linked.";
-  var h = head({title: "Nocturne \u00b7 Night Watcher", ogTitle: "Nocturne \u00b7 Night Watcher", desc: desc,
-                url: url, ogType: "website", img: {url: url + "card.png", w: CARD.w, h: CARD.h, alt: CARD_ALT}});
+  var h = head({title: FRONT_TITLE, ogTitle: FRONT_TITLE, desc: desc,
+                url: url, ogType: "website", img: {url: url + "card.png", w: CARD.w, h: CARD.h, alt: CARD_ALT},
+                extra: ldjson(frontGraph(list))});
   var is = list[0], fm = is.fm, founding = fm.kind === "founding", href = "/nocturne/" + is.id + "/";
   var hero = fm.hero ? (fm.images || []).filter(function(im){ return im.file === fm.hero; })[0] : null;
   var out = h + '<body>\n<main class="paper">\n' +
@@ -1279,7 +1337,7 @@ function renderArchive(list){
     });
     out += '</ol>\n';
   }
-  return out + '</section>\n' + footer("") + '</main>\n' + BEACON + '\n</body>\n</html>\n';
+  return out + '</section>\n' + frontQuestions() + footer("") + '</main>\n' + BEACON + '\n</body>\n</html>\n';
 }
 
 /* ---------- the share card (6.4.0) ---------- */
@@ -1519,7 +1577,7 @@ function renderFeed(list){
     '  <atom:link href="' + SITE + '/nocturne/feed.xml" rel="self" type="application/rss+xml"/>\n' +
     '  <description>' + FEED_DESC + '</description>\n' +
     '  <language>en</language>\n' +
-    (list.length ? '  <lastBuildDate>' + rfc822(list.map(lastmod).sort().pop()) + '</lastBuildDate>\n' : "") +
+    (list.length ? '  <lastBuildDate>' + rfc822(newestLastmod(list)) + '</lastBuildDate>\n' : "") +
     items + '</channel>\n</rss>\n';
 }
 
@@ -1527,7 +1585,7 @@ var BEGIN = "<!-- nocturne:begin \u2014 written by npm run nocturne:build, never
 var END   = "<!-- nocturne:end -->";
 function sitemapBlock(list){
   if(!list.length) return BEGIN + "\n  " + END;
-  var newest = list.map(lastmod).sort().pop();
+  var newest = newestLastmod(list);
   var rows = ['  <url>\n    <loc>' + SITE + '/nocturne/</loc>\n    <lastmod>' + newest +
               '</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.5</priority>\n  </url>'];
   list.forEach(function(is){
