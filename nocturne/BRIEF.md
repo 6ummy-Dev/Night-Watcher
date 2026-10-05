@@ -376,7 +376,8 @@ corrections: []                        # {date: YYYY-MM-DD, story: 1-based numbe
 ```
 
 **A worked example of both kinds** is in `qa/nocturne-fixture/issues/`: a
-founding No. 0 and a weekly No. 1 about an invented title. The guards build
+founding No. 0, a weekly No. 1 about an invented title, and a weekly No. 2
+so one page carries both *Previous* and *Next*. The guards build
 and check them on every run, so they always pass the current contract. Copy
 their shape, never their content.
 

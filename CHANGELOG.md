@@ -16,12 +16,13 @@ change that gets undone by the next person who touches the line.
 
 ## [6.6.5] — 2026-10-05
 
-**Why PATCH.** Docs and copy. The brief tells the desk that the issue row is written by the renderer, and that the foot ends with the app's one ask. No catalogue change, no new script, and nothing saved changes shape. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+**Why PATCH.** Docs and copy. The brief tells the desk that the issue row is written by the renderer, and that the foot ends with the app's one ask. The live paper stays two issues. A fixture issue sits between the two test issues, so one rendered page carries both previous and next. No catalogue change, no new script, and nothing saved changes shape. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
 
 ### Changed
 
 - **The brief names the issue row.** After the sign-off and before the foot, each issue carries Previous and Next when another published issue exists, and the link names that issue. The founding issue shows Next only. The latest shows Previous only. The renderer writes the row. RSS, Share, The morgue, and the way back to the map stay as they are.
 - **The brief names the support line.** The foot ends with the app's one ask, the words "Keep the path lit." and the Support link. The renderer writes it.
+- **Both directions on one page.** Live Nocturne stays No. 0 next-only and No. 1 previous-only. The fixture gains a weekly No. 2, so its No. 1 carries both `rel="prev"` and `rel="next"` in the row and in the head. Guard 174 holds the live edges on the real build and holds that middle page to both links. Harness: 174 sections, 89 negative suites, 1,732 fixtures (from 1,731), 542 smoke checks.
 
 ## [6.6.4] — 2026-10-05
 

@@ -186,7 +186,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `qa/hww.js` | Builds and checks `docs/hww/` (`npm run hww:build`, `npm run hww:check`). Reads its counts from the tree: guard sections, negative suites and fixtures, the smoke count, BUILD, and the header's mark |
 | `qa/nocturne.js` | The paper's builder and checker (`npm run nocturne:build`, `npm run nocturne:check`). Reads the catalogue out of `docs/index.html`; guards 163–169 require the same file |
 | `qa/nocturne-fonts/` | The paper's own faces and their `record.json`: the italic (NW Sans Italic) and, from 6.4.0, Newsreader 400 and italic, subset by `qa/subset-fonts.py --paper`; `OFL-paper.txt`, the notices the build appends to the paper's `OFL.txt`; and `card/`, TrueType copies of the faces the share card sets (`--card`). The build copies the faces into `docs/nocturne/` and refuses bytes a record did not bless. Bodoni Moda 700, the paper's banner face, lives in `docs/fonts/` with the app's faces since 6.5.0, and the paper reads it from there |
-| `qa/nocturne-fixture/` | Two test issues (No. 0 and an invented No. 1) that guards 163–169 build and check on every run. Never published |
+| `qa/nocturne-fixture/` | Three test issues (a founding No. 0, an invented weekly No. 1, and a weekly No. 2 so No. 1 carries both Previous and Next) that guards 163–169 build and check on every run. Never published |
 | `qa/frozen-ids.json` | Snapshot of every `i:` slug, so a rename can't slip through |
 | `qa/script-bytes.json` | The blessed script's size and hash — the baseline every bless prints its size jump against; guard 43 holds it to the page |
 | `qa/make-favicon.py` | Rebuilds the favicon set (`favicon.ico`, the tab rasters, the touch icon, the tile) from `icon.png` |
@@ -235,7 +235,7 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 89 negative suites, 1731
+trusted. That evidence lives in `qa/negative/` — 89 negative suites, 1732
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
