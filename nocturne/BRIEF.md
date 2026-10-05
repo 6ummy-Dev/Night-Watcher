@@ -108,6 +108,7 @@ The renderer builds the masthead from the front matter. Never write it into the 
   them.
 - **The colophon** closes every issue, fixed text set by the renderer:
   "Nocturne is the weekly paper of Night Watcher, one fan's map of every Batman story on screen. Researched and drafted by a desk of AI agents, edited and published by hand. Every story links its source. Images credited to their rights holders. The paper counts visits anonymously, with Cloudflare Web Analytics: no cookies, nothing that follows you." Never edit or drop it.
+- The foot ends with the app's one ask, the words "Keep the path lit." and the *Support* link, which the renderer writes.
 
 ## 2 · Access and boundaries
 
