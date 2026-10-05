@@ -254,12 +254,12 @@ jobs:
 
       # A served copy, not file:// — sw.js registration and the CSP only
       # behave like production over HTTP. The port is browser-check's default.
-      # hdr-server.mjs applies docs/_headers. python's http.server does not,
+      # qa/hdr-server.mjs applies docs/_headers. python's http.server does not,
       # so the paper's CSP and the /* set would never be what this job saw.
       # The loop waits for the server to bind: a fixed sleep is a bet that a
       # loaded runner loses, and the loss reads as a browser bug.
       - run: |
-          node .claude/skills/nw-qa/scripts/hdr-server.mjs docs 8099 &
+          node qa/hdr-server.mjs docs 8099 &
           for i in $(seq 1 30); do
             curl -sf -o /dev/null http://127.0.0.1:8099/index.html && break
             sleep 0.5

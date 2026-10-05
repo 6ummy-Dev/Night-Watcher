@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Night Watcher QA probes, end to end: serve docs/ the way Workers Assets would
-# (hdr-server.mjs applies docs/_headers), run every browser probe and the
+# (qa/hdr-server.mjs applies docs/_headers), run every browser probe and the
 # worker probe, then stop the server by PID.
 #
 #   NW_REPO=/path/to/Night-Watcher bash run-probes.sh [port]
@@ -15,7 +15,7 @@ PORT="${1:-8123}"
 [ -d "$REPO/docs" ] && [ -d "$REPO/node_modules/playwright" ] || {
   echo "run-probes: NW_REPO must point at a Night Watcher checkout with node_modules installed (npm ci)"; exit 2; }
 
-node "$HERE/hdr-server.mjs" "$REPO/docs" "$PORT" >/dev/null 2>&1 &
+node "$REPO/qa/hdr-server.mjs" "$REPO/docs" "$PORT" >/dev/null 2>&1 &
 SRV=$!
 trap 'kill "$SRV" 2>/dev/null' EXIT
 for _ in $(seq 1 40); do curl -sf -o /dev/null "http://localhost:$PORT/" && break; sleep 0.25; done

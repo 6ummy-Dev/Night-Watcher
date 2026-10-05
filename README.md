@@ -213,6 +213,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `qa/share-card.html` | The card's layout, rendered headless by the script above |
 | `qa/contrast.md` | The measured contrast table — written by guard 20 under `npm run bless`, never typed; any other run fails if it is stale |
 | `qa/browser-check.mjs` | A real browser at 390×844, for the header, the jumps and the tick — the things jsdom cannot see — and the writer and reader of `qa/aria/`; its screenshots land in `qa/.shots/` (ignored by git, uploaded by CI on a red run) |
+| `qa/hdr-server.mjs` | Serves `docs/` with `docs/_headers` applied, the way the browser check and CI do. `python3 -m http.server` does not |
 | `CHANGELOG.md` | Every shipped change from 4.0.0, newest first. Enforced by the guards |
 | `CHANGELOG-archive.md` | The 1.x–3.x entries, moved whole; a record nothing checks |
 | `LICENSE` | AGPL-3.0 for the code, with the writing, DC's marks and the fonts set out separately |

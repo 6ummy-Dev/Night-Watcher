@@ -4,7 +4,7 @@
 //
 //   NW_REPO=/path/to/Night-Watcher node probes.mjs http://localhost:8123 [all|csp|sw|pace|latch|hostile]
 //
-// Needs: the repo's node_modules (Playwright), a page served by hdr-server.mjs
+// Needs: the repo's node_modules (Playwright), a page served by qa/hdr-server.mjs
 // on a *localhost* origin (the app registers its service worker only on https
 // or hostname "localhost"). NW_CHROME=/path/to/chrome overrides the browser.
 // The probes drive the app through its own globals (S, FILMS, exportCode,
