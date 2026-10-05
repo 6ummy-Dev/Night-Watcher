@@ -201,7 +201,8 @@ function page(f){
     '</ol>' +
     '<p>Handoff never ships. Four paths only. A quiet week with notebook lines gets one pull request, the notebook alone. Eggbot does not build until the SEO file exists. The token lasts one hour. A Night Final is not a release.</p></section>');
 
-  out.push('<section aria-labelledby="s4"><h2 id="s4"><span class="no">04</span>The research loop</h2><ol class="steps">' +
+  out.push('<section aria-labelledby="s4"><h2 id="s4"><span class="no">04</span>The research loop</h2>' +
+    '<p>The researchers’ loop and the auditors’ loop are the same loop.</p><ol class="steps">' +
     '<li><span class="when">Deliver</span><span class="what">An outside team delivers its files. Studies, not commits.</span></li>' +
     '<li><span class="when">Dig</span><span class="what">Cursor reopens every cited page and tries to disprove each claim that would change the repo. It does not edit the catalogue in that same turn.</span></li>' +
     '<li><span class="when">Sort</span><span class="what">Held, improved, unconfirmed, or wrong. Unopened is unconfirmed.</span></li>' +
