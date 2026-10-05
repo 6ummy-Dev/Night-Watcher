@@ -63,8 +63,12 @@ The footer opens with *RSS* (the feed) and, on issues, *Share* and *The
 morgue* in one row; under it the *Night Watcher* button that carries the
 app's mark and leads back to the map; then the *Dark deco* / *Darker* switch,
 each row 30px from the next (6.5.1); then the colophon under the app's diamond
-rule. The sign-off above it is set in the reading face, italic (6.5.1). The
-renderer writes all of it.
+rule. The sign-off above it is set in the reading face, italic (6.5.1). After
+the sign-off and before the foot, each issue carries *Previous* and *Next*
+when another published issue exists, and the link names that issue. The
+founding issue shows *Next* only. The latest shows *Previous* only. The
+renderer writes the row. *RSS*, *Share*, *The morgue*, and the way back to the
+map stay as they are. The renderer writes all of it.
 
 ### The masthead
 

@@ -14,6 +14,14 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.6.5] — 2026-10-05
+
+**Why PATCH.** Docs and copy. The brief tells the desk that the issue row is written by the renderer. No catalogue change, no new script, and nothing saved changes shape. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Changed
+
+- **The brief names the issue row.** After the sign-off and before the foot, each issue carries Previous and Next when another published issue exists, and the link names that issue. The founding issue shows Next only. The latest shows Previous only. The renderer writes the row. RSS, Share, The morgue, and the way back to the map stay as they are.
+
 ## [6.6.4] — 2026-10-05
 
 **Why PATCH.** Desk copy, and previous and next on each Nocturne issue. No catalogue change, no new script, and nothing saved changes shape. `CLAUDE.md` is the tripwire sheet Cursor already reads. The weekday desk is `AGENTS.md`. `.claude/` is the Claude Code hook plus the QA scripts CI already runs. The comments that called that setup the desk now say agent rules and the Claude Code hook. `/hww` still says Claude is off the build desk. On an issue, after the sign-off and before the foot, Previous and Next name the neighboring published issue by number. No. 0 shows Next only. No. 1 shows Previous only. RSS, Share, The morgue, and the way back to the map stay as they are. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
