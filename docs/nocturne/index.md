@@ -2,22 +2,24 @@
 
 The Night Final. Every Sunday, late. Price: nothing. No account.
 
-Latest. No. 0. Sunday 27 September 2026.
+Latest. No. 1. Sunday 4 October 2026.
 
-## [Somebody has to stay up with Batman, and we will](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/)
+## [Clayface's final trailer still belongs to the actor](/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/)
 
-Sunday before the wire starts. No listing moved, and the paper still owes you a first night: who we are, who this is for, and the map next door.
+Dates came in all week. One face did not move off the front. Read that one first.
 
 In this issue
 
-1. [Somebody has to stay up with Batman, and we will](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s1)
-2. [Next door, one path runs through every Batman on screen](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s2)
-3. [He wasn't finished in 1939, and he still isn't](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s3)
-4. [We read the wire, and we tell you when it's the street](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s4)
-5. [We think a Batman paper owes you a paper trail](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s5)
+1. [screen Clayface's final trailer still belongs to the actor](/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s1)
+2. [comics Williamson names Batman: Justice Year for 2027](/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s2)
+3. [screen Dick Grayson and Jason Todd have their voices, TheWrap says](/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s3)
+4. [comics Absolute Batman is off the December list, Comic Book Club says](/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s4)
+5. [books Neal Adams's Batman has an Absolute Edition out](/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s5)
+6. [toys Hot Toys dates Absolute Batman, and only for Japan](/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s6)
+7. [other Late wires](/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s7)
 
-[Read the Night Final](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/)
+[Read the Night Final](/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/)
 
 ## The morgue
 
-No. 0 is the first. Back issues file here from next Sunday.
+- No. 0. Sunday 27 September 2026. [Somebody has to stay up with Batman, and we will](/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/)
