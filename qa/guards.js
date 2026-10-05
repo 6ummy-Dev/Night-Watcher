@@ -17195,7 +17195,9 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    that issue. The same address is the head's rel=prev or rel=next. A side
    with no neighbor is omitted, and the front page has no such row. The
    footer's RSS, Share and The morgue stay where they are. The arrow is the
-   paper's inline SVG, never U+2197, and print hides the row with the buttons. */
+   paper's inline SVG, never U+2197, and print hides the row with the buttons.
+   A link's visible text drops tags until none remain. One pass of a tag
+   pattern leaves a tag that was split across the match. */
 
 (function(){
   if(nwStop(174)) return;
@@ -17220,7 +17222,9 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     return m ? m[1] : "";
   }
   function visible(inner){
-    return inner.replace(/<[^>]+>/g, "").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+    var t = String(inner);
+    while(/<[^>]+>/.test(t)) t = t.replace(/<[^>]+>/g, "");
+    return t.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
   }
   function named(is, rel){
     return (rel === "prev" ? "Previous" : "Next") + " No. " + is.fm.issue + " " + is.fm.title;

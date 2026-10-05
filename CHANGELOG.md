@@ -22,7 +22,7 @@ change that gets undone by the next person who touches the line.
 
 - **The tripwire sheet and the hook.** The README rows for `CLAUDE.md` and `.claude/` say what those paths are. One line under the `CLAUDE.md` title names `AGENTS.md` as the weekday desk. `CODEOWNERS`, guard 163, and the Claude Code hook comment say agent rules and the hook.
 - **Previous and next on an issue.** The row is a `<nav class="issue-nav" aria-label="Issues">` inside the paper, after the article and before the footer. Each side is an anchor, `rel="prev"` or `rel="next"`, reading Previous or Next, then No. N, then that issue's title. The head's `<link rel="prev">` and `<link rel="next">` name the same issues. A missing side is omitted. The front page has no row. Print hides it with the buttons. The arrow is an inline SVG.
-- **Guard 174** holds that behavior, with a negative suite. Harness: 174 sections, 89 negative suites, 1,731 fixtures (from 1,725), 542 smoke checks.
+- **Guard 174** holds that behavior, with a negative suite. Reading a link's text strips tags until the string stops changing, so one pass cannot leave a tag that was split across the match. Harness: 174 sections, 89 negative suites, 1,731 fixtures (from 1,725), 542 smoke checks.
 
 ## [6.6.3] — 2026-10-04
 
