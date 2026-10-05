@@ -68,7 +68,7 @@ function blessHtml(next){
      52   Nobody's world changes overnight
      53   Two questions, two control groups
      64   The year is not printed twice
-     84   The one slug whose year is deliberately wrong
+     84   The two slugs whose years are deliberately wrong
      85   Static Shock and Titans keep one row each
      86   The era scheme is eleven stages, plus outside
      89   The amnesty window is closed
@@ -6767,45 +6767,43 @@ var ROUTE_VOCAB = [
        "start_url, scope, display, names and colors pinned with it");
 })();
 
-/* ---------- 84. The one slug whose year is deliberately wrong --------- */
+/* ---------- 84. The two slugs whose years are deliberately wrong ------ */
 /* harley-quinn-season-5-2024 carries y:2025. The slug froze an announced date
-   that moved; the year is the one that shipped. Every other slug in the file
-   ends in the year its entry carries, so this reads as a typo and invites a fix
-   — and fixing it renames a frozen id, which voids whatever was ticked against
-   it and breaks that entry in every backup code already written.
+   that moved; the year is the one that shipped. 6.7.0:
+   justice-league-x-rwby-part-two-2024 carries y:2023. The film shows 2023,
+   so the year is fixed and the slug is not. Every other slug in the file
+   ends in the year its entry carries. Fixing either renames a frozen id,
+   which voids whatever was ticked against it.
 
-   The guard is the count, not the name alone: exactly one mismatch, and it is
-   this one. A second appearing means a real typo shipped. */
+   The guard is the count, not the name alone: exactly these two. A third
+   appearing means a real typo shipped. */
 
 (function(){
-  var EXPECT = "harley-quinn-season-5-2024";
+  var EXPECT = ["harley-quinn-season-5-2024", "justice-league-x-rwby-part-two-2024"];
   var off = [];
   FILMS.forEach(function(f){
     var m = String(f.id).match(/-(\d{4})(?:-(\d{4}))?$/);
     if(!m) return;
     var slugYear = parseInt(m[2] || m[1], 10);
-    if(slugYear !== f.y) off.push(f.id + " (slug " + slugYear + ", y:" + f.y + ")");
+    if(slugYear !== f.y) off.push({id: f.id, slug: slugYear, y: f.y});
   });
-  if(off.length === 1 && off[0].indexOf(EXPECT) === 0){
-    note("slug/year: the one recorded mismatch, " + EXPECT + ", still stands");
+  var ids = off.map(function(o){ return o.id; }).sort();
+  var want = EXPECT.slice().sort();
+  if(ids.length === want.length && ids.every(function(id, i){ return id === want[i]; })){
+    note("slug/year: the two recorded mismatches, " + EXPECT.join(" and ") + ", still stand");
     return;
   }
-  if(!off.length){
-    fail("no slug/year mismatch found, but " + EXPECT + " is supposed to carry " +
-         "one — either the slug was renamed, which voids saved progress, or " +
-         "the year was changed to match it, which makes the catalogue wrong. " +
-         "See NOTES.md");
-    return;
-  }
-  off.forEach(function(o){
-    if(o.indexOf(EXPECT) !== 0){
-      fail("slug and year disagree on " + o + " — only " + EXPECT + " is " +
-           "allowed to, and that is recorded. Fix the year, never the slug");
+  EXPECT.forEach(function(id){
+    if(ids.indexOf(id) < 0){
+      fail(id + " no longer carries its recorded slug/year mismatch — the year was changed to match the slug, or the slug was renamed. See NOTES.md");
     }
   });
-  if(!off.some(function(o){ return o.indexOf(EXPECT) === 0; })){
-    fail(EXPECT + " no longer carries its recorded slug/year mismatch");
-  }
+  off.forEach(function(o){
+    if(EXPECT.indexOf(o.id) < 0){
+      fail("slug and year disagree on " + o.id + " (slug " + o.slug + ", y:" + o.y + ") — only " +
+           EXPECT.join(" and ") + " are allowed to, and that is recorded. Fix the year, never the slug");
+    }
+  });
 })();
 
 /* ---------- 85. Static Shock and Titans keep one row each ------------- */

@@ -36,9 +36,7 @@
   - paragraph: The week’s Batman news, and where it sits on the map
   - link "Read the paper":
     - /url: /nocturne/
-  - group "Theme":
-    - button "Dark deco" [pressed]
-    - button "Darker"
+  - switch "Darker theme": Dark deco Darker
 # tabs
 - navigation "Views":
   - button "Home"

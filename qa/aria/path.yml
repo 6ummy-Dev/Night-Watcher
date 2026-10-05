@@ -203,14 +203,14 @@
     - text: Justice League x RWBY — Part One 2023 · Film OPTIONAL
     - img "Rated PG": PG
   - button "Mark Justice League x RWBY — Part Two watched"
-  - button "Justice League x RWBY — Part Two 2024 · Film OPTIONAL Rated PG":
-    - text: Justice League x RWBY — Part Two 2024 · Film OPTIONAL
+  - button "Justice League x RWBY — Part Two 2023 · Film OPTIONAL Rated PG":
+    - text: Justice League x RWBY — Part Two 2023 · Film OPTIONAL
     - img "Rated PG": PG
   - 'button "Mark Aztec Batman: Clash of Empires watched"'
   - 'button "Aztec Batman: Clash of Empires 2025 · Film CORE Rated R"':
     - text: "Aztec Batman: Clash of Empires 2025 · Film CORE"
     - img "Rated R": R
-  - button "Dynamic Duo Not out yet · 30 June 2028 CORE NOT OUT YET"
+  - button "Dynamic Duo Not out yet · 22 September 2028 CORE NOT OUT YET"
   - heading "2 The Batman (2004) 0 of 1" [level=2]:
     - button "2 The Batman (2004) 0 of 1" [expanded]
   - paragraph: Its own continuity with a younger, more athletic Bruce, a stylised Gotham and radically redesigned rogues. Starts in Batman’s third year and gradually builds the family around him.

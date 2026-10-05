@@ -32,14 +32,14 @@ run_case "the id is dropped entirely" \
   "import io,json;p='docs/manifest.json';d=json.load(io.open(p,encoding='utf-8'))
 del d['id'];io.open(p,'w',encoding='utf-8').write(json.dumps(d,indent=2))" guards "" 83
 
-echo "--- 84: the one deliberate slug/year mismatch"
+echo "--- 84: the two deliberate slug/year mismatches"
 run_case "the frozen slug is renamed to match its year" \
   "FROZEN ID REMOVED OR RENAMED: harley-quinn-season-5-2024" \
   "${P}a='harley-quinn-season-5-2024';assert a in s
 s=s.replace(a,'harley-quinn-season-5-2025',1);${W}"
 
 run_case "the year is changed to match the slug instead" \
-  "is supposed to carry one" \
+  "no longer carries its recorded slug/year mismatch" \
   "${P}import re
 m=re.search(r'\\{i:\"harley-quinn-season-5-2024\"[^}]*?,y:(2025)', s);assert m
 s=s[:m.start(1)]+'2024'+s[m.end(1):];${W}" guards "" 84

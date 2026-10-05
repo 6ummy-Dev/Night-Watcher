@@ -57,9 +57,7 @@
   - paragraph: The week’s Batman news, and where it sits on the map
   - link "Read the paper":
     - /url: /nocturne/
-  - group "Theme":
-    - button "Dark deco" [pressed]
-    - button "Darker"
+  - switch "Darker theme": Dark deco Darker
   - paragraph: Night Watcher · an unofficial fan guide · progress saves in this browser only · the host counts visits, never what you watch · free software under the AGPL · kept by 6ummy, with AI on the night shift
 # tabs
 - navigation "Views":

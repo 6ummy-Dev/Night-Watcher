@@ -114,7 +114,7 @@ ORDERING 1 OF 3 — BY UNIVERSE
   11. Battle of the Super Sons (2022) · animated · optional · PG-13
   12. The Doom That Came to Gotham (2023) · animated · core · PG-13
   13. Justice League x RWBY — Part One (2023) · animated · optional · PG
-  14. Justice League x RWBY — Part Two (2024) · animated · optional · PG
+  14. Justice League x RWBY — Part Two (2023) · animated · optional · PG
   15. Suicide Squad Isekai — Complete series (2024) · animated · series · optional · TV-MA
   16. Aztec Batman: Clash of Empires (2025) · animated · core · R
   17. Dynamic Duo (2028) · animated · core · NOT OUT YET
@@ -524,7 +524,7 @@ ORDERING 2 OF 3 — BRUCE'S LIFE
   31. DC Super Heroes vs. Eagle Talon (2017) · animated · optional · NR
   32. DC League of Super-Pets (2022) · animated · optional · PG
   33. Justice League x RWBY — Part One (2023) · animated · optional · PG
-  34. Justice League x RWBY — Part Two (2024) · animated · optional · PG
+  34. Justice League x RWBY — Part Two (2023) · animated · optional · PG
   35. Injustice (2021) · animated · core · R
   36. Superman: Man of Tomorrow (2020) · animated · optional · PG-13
   37. Justice Society: World War II (2021) · animated · optional · PG-13
@@ -826,16 +826,16 @@ ORDERING 3 OF 3 — RELEASE ORDER
   27. Justice League: Warworld (2023) · animated · core · R
   28. The Doom That Came to Gotham (2023) · animated · core · PG-13
   29. Justice League x RWBY — Part One (2023) · animated · optional · PG
-  30. The Flash (2023) · live action · optional · PG-13
-  31. Harley Quinn — Valentine’s Day special (2023) · animated · optional · TV-MA
-  32. Harley Quinn — Season 4 (2023) · animated · series · optional · TV-MA
-  33. Merry Little Batman (2023) · animated · essential · PG
-  34. Gotham Knights — Complete series (2023) · live action · series · optional · TV-14
-  35. Joker: Folie à Deux (2024) · live action · optional · R
-  36. Crisis on Infinite Earths — Part One (2024) · animated · core · PG-13
-  37. Crisis on Infinite Earths — Part Two (2024) · animated · core · PG-13
-  38. Crisis on Infinite Earths — Part Three (2024) · animated · core · PG-13
-  39. Justice League x RWBY — Part Two (2024) · animated · optional · PG
+  30. Justice League x RWBY — Part Two (2023) · animated · optional · PG
+  31. The Flash (2023) · live action · optional · PG-13
+  32. Harley Quinn — Valentine’s Day special (2023) · animated · optional · TV-MA
+  33. Harley Quinn — Season 4 (2023) · animated · series · optional · TV-MA
+  34. Merry Little Batman (2023) · animated · essential · PG
+  35. Gotham Knights — Complete series (2023) · live action · series · optional · TV-14
+  36. Joker: Folie à Deux (2024) · live action · optional · R
+  37. Crisis on Infinite Earths — Part One (2024) · animated · core · PG-13
+  38. Crisis on Infinite Earths — Part Two (2024) · animated · core · PG-13
+  39. Crisis on Infinite Earths — Part Three (2024) · animated · core · PG-13
   40. Suicide Squad Isekai — Complete series (2024) · animated · series · optional · TV-MA
   41. Batman: Caped Crusader — Season 1 (2024) · animated · series · essential · TV-14
   42. The Penguin — Season 1 (2024) · live action · series · core · TV-MA

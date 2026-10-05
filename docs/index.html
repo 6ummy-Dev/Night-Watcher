@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-vi1zkHUKaxZDsg6BA6YKKDB45+p2hBHS7dt+Mq+/Sog='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-YboAo5WZrDyb6hz4UlGOrChTrRHwfFYh9CJpO7h6tKM='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -679,7 +679,7 @@ main,.panel{scrollbar-gutter:stable both-edges;}
   <li>Battle of the Super Sons (2022) · animated</li>
   <li>The Doom That Came to Gotham (2023) · animated · core</li>
   <li>Justice League x RWBY — Part One (2023) · animated</li>
-  <li>Justice League x RWBY — Part Two (2024) · animated</li>
+  <li>Justice League x RWBY — Part Two (2023) · animated</li>
   <li>Suicide Squad Isekai — Complete series (2024) · animated · series</li>
   <li>Aztec Batman: Clash of Empires (2025) · animated · core</li>
   <li>Dynamic Duo (2028) · animated · core · not out yet</li>
@@ -1158,10 +1158,10 @@ var PATH = [
  {i:"battle-of-the-super-sons-2022",t:"Battle of the Super Sons",y:2022,e:8,lo:22,r:"PG-13",d:"Damian and Jon Kent team up. CG-animated and aimed younger.",o:1},
  {i:"the-doom-that-came-to-gotham-2023",t:"The Doom That Came to Gotham",y:2023,e:3,lo:6,r:"PG-13",d:"Mignola\u2019s Lovecraftian Gotham, 1920s. Bruce returns from an Antarctic expedition with something following him."},
  {i:"justice-league-x-rwby-part-one-2023",t:"Justice League x RWBY \u2014 Part One",y:2023,e:7,lo:33,r:"PG",d:"The League turned into teenagers in the world of Remnant. A crossover with a very specific audience.",o:1},
- {i:"justice-league-x-rwby-part-two-2024",t:"Justice League x RWBY \u2014 Part Two",y:2024,e:7,lo:34,r:"PG",d:"The second half of that crossover.",o:1},
+ {i:"justice-league-x-rwby-part-two-2024",t:"Justice League x RWBY \u2014 Part Two",y:2023,e:7,lo:34,r:"PG",d:"The second half of that crossover.",o:1},
  {i:"suicide-squad-isekai-complete-series-2024",t:"Suicide Squad Isekai",sub:"Complete series",y:2024,ep:10,k:"tv",e:0,out:"none",r:"TV-MA",d:"Task Force X dropped into a sword-and-sorcery anime world. Batman never appears in it \u2014 Katana takes Harley down in the Gotham prologue \u2014 but the city and its people are where it starts.",o:1},
  {i:"aztec-batman-clash-of-empires-2025",t:"Aztec Batman: Clash of Empires",y:2025,e:0,out:"who",r:"R",d:"Yohualli Coatl in the Aztec empire under Spanish invasion. A genuine reimagining, not a reskin."},
- {i:"dynamic-duo-2028",t:"Dynamic Duo",y:2028,e:3,lo:1,d:"Theatrical, from Swaybox \u2014 puppetry mixed with CG. Two would-be Robins, Dick Grayson and Jason Todd, and the two very different adults pulling at them.",b:["u"],when:"30 June 2028"}]},
+ {i:"dynamic-duo-2028",t:"Dynamic Duo",y:2028,e:3,lo:1,d:"Theatrical, from Swaybox \u2014 puppetry mixed with CG. Two would-be Robins, Dick Grayson and Jason Todd, and the two very different adults pulling at them.",b:["u"],when:"22 September 2028"}]},
 
 {n:"08",name:"The Batman (2004)",
  note:"Its own continuity with a younger, more athletic Bruce, a stylised Gotham and radically redesigned rogues. Starts in Batman\u2019s third year and gradually builds the family around him.",
@@ -1273,7 +1273,7 @@ var PATH = [
  films:[
  {i:"batwheels-season-1-2022",t:"Batwheels",sub:"Season 1",y:2022,ep:37,k:"tv",e:4,lo:14,r:"TV-Y",d:"The Batcomputer brings the vehicles to life while Batman is captured.",o:1},
  {i:"batwheels-season-2-2024",t:"Batwheels",sub:"Season 2",y:2024,ep:37,k:"tv",e:4,lo:15,r:"TV-Y",d:"More of the same, with Nightwing\u2019s bike added to the garage.",o:1},
- {i:"batwheels-season-3-2025",t:"Batwheels",sub:"Season 3",y:2025,ep:19,k:"tv",e:4,lo:16,r:"TV-Y",d:"Released in batches rather than as one run.",o:1}]},
+ {i:"batwheels-season-3-2025",t:"Batwheels",sub:"Season 3",y:2025,ep:24,k:"tv",e:4,lo:16,r:"TV-Y",d:"Released in batches rather than as one run.",o:1}]},
 
 {n:"24",name:"Titans",fmt:"live",
  note:"Dick Grayson out from under the shadow and not coping. Bruce Wayne recurs on screen from the second season \u2014 Iain Glen \u2014 but the cowl is kept almost entirely out of shot, on purpose.",
@@ -1492,8 +1492,9 @@ var MODENOTE = {
 /* IDs in i:"..." are FROZEN. Titles are display text — rename freely. Adding
    is safe; changing or removing an i breaks saved progress for real people.
    That includes harley-quinn-season-5-2024, whose "2024" is deliberately
-   wrong (the season slid to 2025 after the id shipped) — change y, never i;
-   guard 84 enforces it. */
+   wrong (the season slid to 2025 after the id shipped), and
+   justice-league-x-rwby-part-two-2024, whose year is 2023 — change y, never i;
+   guard 84 enforces both. */
 function idHash(id){
   var h = 2166136261, i;
   for(i = 0; i < id.length; i++){ h ^= id.charCodeAt(i); h = Math.imul(h, 16777619); }
