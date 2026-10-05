@@ -308,8 +308,9 @@ run_case "CODEOWNERS forgets the morgue file" \
   "$(pro .github/CODEOWNERS)a='/nocturne/MORGUE.md  @6ummy-Dev\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
   guards "" 163
 
-# 6.5.5: the Claude setup is the owner's too. .claude/settings.json runs a
-# shell command in every Claude Code session on the repo.
+# 6.5.5: the agent rules and the Claude Code hook are the owner's too.
+# .claude/settings.json runs a shell command in every Claude Code session
+# on the repo.
 run_case "CODEOWNERS forgets CLAUDE.md" \
   "does not give /CLAUDE.md to the owner" \
   "$(pro .github/CODEOWNERS)a='/CLAUDE.md           @6ummy-Dev\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \

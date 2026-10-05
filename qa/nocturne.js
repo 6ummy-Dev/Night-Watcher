@@ -200,6 +200,8 @@ var RSS = '<svg class="rss" viewBox="0 0 12 12" aria-hidden="true"><circle cx="2
 var ARROW = '<svg class="arr" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 9.5 9.2 2.8M4.2 2.5h5.3v5.3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 /* 6.4.0. Into the paper, not out of it: a plain right arrow. The ↗ stays for links that leave. */
 var ARROW_IN = '<svg class="arr" viewBox="0 0 12 12" aria-hidden="true"><path d="M1.8 6h8M6.6 2.6 10 6l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+/* 6.6.4. Previous is that arrow mirrored across the icon. No Unicode arrow. */
+var ARROW_BACK = '<svg class="arr" viewBox="0 0 12 12" aria-hidden="true"><path d="M10.2 6h-8M5.4 2.6 2 6l3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 function unesc(s){
   return String(s).replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 }
@@ -916,7 +918,7 @@ var CSS = [
 /* 6.5.1, owner's call: the sign-off is the reporter's last line, so it is set
    in the reading face, italic, in sentence case; it was NW Deco, a banner. */
 ".signoff{text-align:center;font-family:var(--read);font-style:italic;font-size-adjust:.5;font-size:var(--t-heading);line-height:1.45;margin:0;}",
-"/* 6.3.1: the colophon sits under the app's diamond rule, the way every tab in the app closes (guard 169). */",
+/* 6.3.1: the colophon sits under the app's diamond rule, the way every tab closes (guard 169). Kept out of the served sheet: the stylesheet's ceiling is 16 KB. */
 ".foot{max-width:620px;margin:44px auto 0;}",
 ".colophon::before{content:\"\";position:absolute;top:0;left:50%;width:4.5px;height:4.5px;transform:translate(-50%,-50%) rotate(45deg);background:var(--signal);box-shadow:0 0 0 6px var(--ink);}",
 /* 6.5.0: the foot's buttons in two rows, the way back to the map on its own
@@ -986,9 +988,14 @@ var CSS = [
 ".cols p{font-size:var(--t-desc);line-height:1.55;color:var(--dust);margin:0;}",
 "@media (max-width:560px){.cols{grid-template-columns:1fr;}.cols section{padding:16px 0 18px;}.cols section+section{border-left:0;border-top:1px solid var(--line2);}}",
 "@media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}.colophon::before{forced-color-adjust:none;background:CanvasText;box-shadow:0 0 0 6px Canvas;}.themerow button[aria-pressed=\"true\"]{forced-color-adjust:none;background:Highlight;color:HighlightText;}}",
-"/* Print (6.2.3): ink on white, the rules kept, no buttons. Same scale; only colour changes. */",
+/* 6.6.4. Previous and next, between the sign-off and the foot. The missing side leaves its column empty. The sheet is at its 16 KB ceiling, so this block stays short and the title wears the button's own type. */
+".issue-nav{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:28px}",
+".issue-nav .btn{min-width:0;white-space:normal}",
+".issue-nav a[rel=next]{grid-column:2;justify-content:flex-end}",
+".issue-nav a[rel=prev] .arr{margin:0 8px 0 0}",
+/* Print (6.2.3): ink on white, the rules kept, no buttons. Same scale; only colour changes. */
 "@media print{:root,:root[data-theme=\"darker\"]{--ink:#FFFFFF;--sunk:#FFFFFF;--card:#FFFFFF;--card2:#FFFFFF;--line:#BBBBBB;--line2:#888888;--bone:#08090F;--dust:#333333;--dim:#444444;--suit:#08090F;--signal:#08090F;--steel:#333333;--signalline:rgba(8,9,15,.35);}",
-"  .acts{display:none;}.themerow{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}",
+"  .acts{display:none;}.issue-nav{display:none;}.themerow{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}",
 "  figure,.map,.corr,.board{break-inside:avoid;}.story h2{break-after:avoid;}@page{margin:16mm 14mm;}}",
 ""].join("\n");
 
@@ -1116,7 +1123,25 @@ function figure(im, lazy, hero){
          esc(im.credit) + '</span></figcaption></figure>\n';
 }
 
-function renderIssue(is, cat){
+/* 6.6.4. Neighbors by issue number. prev is the greatest published number
+   below this one, next the least above. A missing side is omitted, and a
+   page with neither side gets no nav. The head link names the same issue. */
+function issueNeighbors(prev, next){
+  var nav = "", head = "";
+  function add(is, rel){
+    if(!is) return;
+    var word = rel === "prev" ? "Previous" : "Next";
+    var arrow = rel === "prev" ? ARROW_BACK : ARROW_IN;
+    var text = word + " No. " + is.fm.issue + " " + inline(is.fm.title);
+    var body = rel === "prev" ? arrow + text : text + arrow;
+    nav += '<a class="btn ghost" rel="' + rel + '" href="/nocturne/' + is.id + '/">' + body + '</a>';
+    head += '<link rel="' + rel + '" href="' + issueUrl(is) + '">\n';
+  }
+  add(prev, "prev");
+  add(next, "next");
+  return {nav: nav ? '<nav class="issue-nav" aria-label="Issues">' + nav + '</nav>\n' : "", head: head};
+}
+function renderIssue(is, cat, prev, next){
   var fm = is.fm, founding = fm.kind === "founding";
   var body = splitBody(is.body);
   var imgs = fm.images || [];
@@ -1136,9 +1161,10 @@ function renderIssue(is, cat){
             author: {"@type": "Organization", name: "Night Watcher", url: SITE + "/"},
             publisher: {"@type": "Organization", name: "Night Watcher", url: SITE + "/",
                         logo: {"@type": "ImageObject", url: SITE + "/icon.png"}}};
+  var neigh = issueNeighbors(prev, next);
   var h = head({title: fm.title + " \u00b7 Nocturne No. " + fm.issue + " \u00b7 Night Watcher",
                 ogTitle: fm.title + " \u00b7 Nocturne", desc: desc, url: url, ogType: "article", img: ogImg,
-                extra: '<meta property="article:published_time" content="' + fm.published + '">\n' + ldjson(ld)});
+                extra: neigh.head + '<meta property="article:published_time" content="' + fm.published + '">\n' + ldjson(ld)});
   var out = h + '<body>\n<main class="paper">\n' +
     masthead(dateline("No. " + fm.issue, esc(longDate(fm.published)), "Price: nothing. No account.")) +
     '<article>\n<h1 class="banner">' + inline(fm.title) + '</h1>\n' +
@@ -1165,6 +1191,7 @@ function renderIssue(is, cat){
   /* 6.5.0: no diamond before the sign-off. The footer's rule closes the page,
      and two diamonds that close together read as one too many. */
   out += '<p class="signoff">' + inline(fm.sign_off) + '</p>\n</article>\n' +
+         neigh.nav +
          footer(shareButton(url, plain(fm.title) + " \u00b7 Nocturne") + '<a class="btn ghost" href="/nocturne/">The morgue</a>') + '</main>\n' + BEACON + '\n</body>\n</html>\n';
   return out;
 }
@@ -1573,8 +1600,9 @@ function build(root, opts){
   var list = issues.filter(function(i){ return i.fm && Number.isInteger(i.fm.issue); })
                    .sort(function(a, b){ return b.fm.issue - a.fm.issue; });
   if(!errs.length && list.length){
-    list.forEach(function(is){
-      var page = renderIssue(is, cat);
+    list.forEach(function(is, i){
+      /* The list is newest first, so the greater issue number is the row above. */
+      var page = renderIssue(is, cat, i + 1 < list.length ? list[i + 1] : null, i > 0 ? list[i - 1] : null);
       renderedLinkErrors(is, page).forEach(function(m){ errs.push(m); });
       files[is.id + "/index.html"] = Buffer.from(page, "utf8");
       files[is.id + "/issue.md"] = fs.readFileSync(path.join(is.dir, "issue.md"));

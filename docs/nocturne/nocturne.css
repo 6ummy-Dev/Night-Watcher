@@ -86,7 +86,6 @@ figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;
 .ring{width:12px;height:12px;border-radius:50%;border:1.5px dashed var(--dust);flex:none;}
 .map.none p:last-child{margin:0;font-size:var(--t-desc);color:var(--dust);}
 .signoff{text-align:center;font-family:var(--read);font-style:italic;font-size-adjust:.5;font-size:var(--t-heading);line-height:1.45;margin:0;}
-/* 6.3.1: the colophon sits under the app's diamond rule, the way every tab in the app closes (guard 169). */
 .foot{max-width:620px;margin:44px auto 0;}
 .colophon::before{content:"";position:absolute;top:0;left:50%;width:4.5px;height:4.5px;transform:translate(-50%,-50%) rotate(45deg);background:var(--signal);box-shadow:0 0 0 6px var(--ink);}
 .acts{display:grid;gap:30px;max-width:460px;margin:0 auto 30px;}
@@ -154,7 +153,10 @@ figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;
 .cols p{font-size:var(--t-desc);line-height:1.55;color:var(--dust);margin:0;}
 @media (max-width:560px){.cols{grid-template-columns:1fr;}.cols section{padding:16px 0 18px;}.cols section+section{border-left:0;border-top:1px solid var(--line2);}}
 @media (forced-colors:active){.seal,.dsep,.drule i{forced-color-adjust:none;}.colophon::before{forced-color-adjust:none;background:CanvasText;box-shadow:0 0 0 6px Canvas;}.themerow button[aria-pressed="true"]{forced-color-adjust:none;background:Highlight;color:HighlightText;}}
-/* Print (6.2.3): ink on white, the rules kept, no buttons. Same scale; only colour changes. */
+.issue-nav{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:28px}
+.issue-nav .btn{min-width:0;white-space:normal}
+.issue-nav a[rel=next]{grid-column:2;justify-content:flex-end}
+.issue-nav a[rel=prev] .arr{margin:0 8px 0 0}
 @media print{:root,:root[data-theme="darker"]{--ink:#FFFFFF;--sunk:#FFFFFF;--card:#FFFFFF;--card2:#FFFFFF;--line:#BBBBBB;--line2:#888888;--bone:#08090F;--dust:#333333;--dim:#444444;--suit:#08090F;--signal:#08090F;--steel:#333333;--signalline:rgba(8,9,15,.35);}
-  .acts{display:none;}.themerow{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}
+  .acts{display:none;}.issue-nav{display:none;}.themerow{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}
   figure,.map,.corr,.board{break-inside:avoid;}.story h2{break-after:avoid;}@page{margin:16mm 14mm;}}

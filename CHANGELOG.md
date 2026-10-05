@@ -14,6 +14,16 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.6.4] — 2026-10-05
+
+**Why PATCH.** Desk copy, and previous and next on each Nocturne issue. No catalogue change, no new script, and nothing saved changes shape. `CLAUDE.md` is the tripwire sheet Cursor already reads. The weekday desk is `AGENTS.md`. `.claude/` is the Claude Code hook plus the QA scripts CI already runs. The comments that called that setup the desk now say agent rules and the Claude Code hook. `/hww` still says Claude is off the build desk. On an issue, after the sign-off and before the foot, Previous and Next name the neighboring published issue by number. No. 0 shows Next only. No. 1 shows Previous only. RSS, Share, The morgue, and the way back to the map stay as they are. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Changed
+
+- **The tripwire sheet and the hook.** The README rows for `CLAUDE.md` and `.claude/` say what those paths are. One line under the `CLAUDE.md` title names `AGENTS.md` as the weekday desk. `CODEOWNERS`, guard 163, and the Claude Code hook comment say agent rules and the hook.
+- **Previous and next on an issue.** The row is a `<nav class="issue-nav" aria-label="Issues">` inside the paper, after the article and before the footer. Each side is an anchor, `rel="prev"` or `rel="next"`, reading Previous or Next, then No. N, then that issue's title. The head's `<link rel="prev">` and `<link rel="next">` name the same issues. A missing side is omitted. The front page has no row. Print hides it with the buttons. The arrow is an inline SVG.
+- **Guard 174** holds that behavior, with a negative suite. Reading a link's text strips tags until the string stops changing, then drops any leftover angle bracket, so one pass cannot leave a tag that was split across the match or left unclosed. Harness: 174 sections, 89 negative suites, 1,731 fixtures (from 1,725), 542 smoke checks.
+
 ## [6.6.3] — 2026-10-04
 
 **Why PATCH.** Nocturne's documents answer `Accept: text/markdown`. HTML stays the default. An issue's markdown is that issue's own `issue.md`. The front's markdown is the front the build already writes: the latest Night Final, what is inside it, and the morgue. Stylesheets, scripts, images, fonts and the feed do not negotiate. No catalogue change. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
