@@ -239,6 +239,7 @@ function blessHtml(next){
      170  The crew's page is built and unlisted
      172  The paper carries the app's one ask, under its colophon
      173  A pinned fixture may stop, the release run may not
+     174  Previous and next, by issue number
 
    META
      65   The file points at where its reasoning went
@@ -17185,6 +17186,100 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   if(process.env.NW_STOP && process.env.CI && process.env.NW_HARNESS !== "1"){
     fail("NW_STOP is set under CI outside the negative harness (6.6.1)");
   }
+})();
+
+/* ---------- 174. Previous and next, by issue number ---------- */
+/* 6.6.4. An issue page offers the neighbor with the greatest published
+   issue number below it, and the least above it. The week slug is not the
+   order. No. 0 has Next only, No. 1 has Previous only, and each link names
+   that issue. The same address is the head's rel=prev or rel=next. A side
+   with no neighbor is omitted, and the front page has no such row. The
+   footer's RSS, Share and The morgue stay where they are. The arrow is the
+   paper's inline SVG, never U+2197, and print hides the row with the buttons. */
+
+(function(){
+  if(nwStop(174)) return;
+  if(!NOC_REAL || !NOC_FIX){ fail("the issue nav has no paper to read (6.6.4)"); return; }
+  function slugOf(href){
+    var m = String(href || "").match(/\/nocturne\/([^/?#"]+)\/?$/);
+    return m ? m[1] : "";
+  }
+  function navOf(html){
+    var i = html.indexOf('<nav class="issue-nav"');
+    if(i < 0) return "";
+    var j = html.indexOf("</nav>", i);
+    return j < 0 ? html.slice(i) : html.slice(i, j + 6);
+  }
+  function side(nav, rel){
+    var m = nav.match(new RegExp('<a class="btn ghost" rel="' + rel + '" href="([^"]*)">([\\s\\S]*?)</a>'));
+    return m ? {href: m[1], inner: m[2]} : null;
+  }
+  function headHref(html, rel){
+    var head = html.slice(0, html.indexOf("</head>"));
+    var m = head.match(new RegExp('<link rel="' + rel + '" href="([^"]*)">'));
+    return m ? m[1] : "";
+  }
+  function visible(inner){
+    return inner.replace(/<[^>]+>/g, "").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+  }
+  function named(is, rel){
+    return (rel === "prev" ? "Previous" : "Next") + " No. " + is.fm.issue + " " + is.fm.title;
+  }
+  function neighborsOf(list, is){
+    var prev = null, next = null;
+    list.forEach(function(o){
+      if(!o.fm || o.id === is.id) return;
+      if(o.fm.issue < is.fm.issue && (!prev || o.fm.issue > prev.fm.issue)) prev = o;
+      if(o.fm.issue > is.fm.issue && (!next || o.fm.issue < next.fm.issue)) next = o;
+    });
+    return {prev: prev, next: next};
+  }
+  function sideOk(html, rel, want){
+    var a = side(navOf(html), rel), h = headHref(html, rel);
+    if(!want) return !a && !h;
+    return !!(a && slugOf(a.href) === want.id && visible(a.inner) === named(want, rel) && slugOf(h) === want.id);
+  }
+  function checkBuild(b, label){
+    var front = (b.files["index.html"] || Buffer.from("")).toString("utf8");
+    if(front.indexOf('class="issue-nav"') >= 0) fail(label + "the front page carries an issue nav (6.6.4)");
+    var css = (b.files["nocturne.css"] || Buffer.from("")).toString("utf8");
+    if(css.indexOf("@media print{") < 0 || css.indexOf(".issue-nav{display:none;}") < css.indexOf("@media print{")){
+      fail(label + "print no longer hides the issue nav (6.6.4)");
+    }
+    var byNum = {};
+    b.list.forEach(function(is){ byNum[is.fm.issue] = is; });
+    b.list.forEach(function(is){
+      var html = (b.files[is.id + "/index.html"] || Buffer.from("")).toString("utf8");
+      var nb = neighborsOf(b.list, is);
+      var nav = navOf(html);
+      var art = html.indexOf("</article>"), foot = html.indexOf('<footer class="foot">'), navAt = html.indexOf('<nav class="issue-nav"');
+      if(nb.prev || nb.next){
+        if(navAt < 0 || !(art < navAt && navAt < foot)) fail(label + "the issue nav sits outside its seat (6.6.4)");
+      } else if(nav){
+        fail(label + "an issue with no neighbor still draws a nav (6.6.4)");
+      }
+      if(/\u2197/.test(nav)) fail(label + "the issue nav draws a unicode arrow (6.6.4)");
+      ["prev", "next"].forEach(function(rel){
+        var want = nb[rel], a = side(nav, rel);
+        if(a && !/<svg[^>]*class="arr"/.test(a.inner)) fail(label + "the issue nav draws a unicode arrow (6.6.4)");
+        if(!sideOk(html, rel, want)) fail(label + "No. " + is.fm.issue + " " + rel + " does not name its neighbor (6.6.4)");
+      });
+      var ft = (html.match(/<footer class="foot">[\s\S]*?<\/footer>/) || [""])[0];
+      var more = ((ft.match(/<div class="more">[\s\S]*?<\/div>/) || [""])[0]).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      if(more !== "RSS Share The morgue" || /rel="prev"|rel="next"|issue-nav/.test(ft)){
+        fail(label + "the issue footer .acts row gained a neighbor link (6.6.4)");
+      }
+    });
+    if(byNum[0] && byNum[1]){
+      var zero = (b.files[byNum[0].id + "/index.html"] || Buffer.from("")).toString("utf8");
+      var one = (b.files[byNum[1].id + "/index.html"] || Buffer.from("")).toString("utf8");
+      if(!sideOk(zero, "next", byNum[1]) || !sideOk(zero, "prev", null)) fail(label + "No. 0 page is next-only to No. 1 (6.6.4)");
+      if(!sideOk(one, "prev", byNum[0]) || !sideOk(one, "next", null)) fail(label + "No. 1 page is prev-only to No. 0 (6.6.4)");
+    }
+  }
+  checkBuild(NOC_REAL, "docs/nocturne/ ");
+  checkBuild(NOC_FIX, "the fixture's ");
+  note("issue nav: previous and next by issue number, omitted when absent, off the front and the print sheet");
 })();
 
 /* ---------- report ---------- */
