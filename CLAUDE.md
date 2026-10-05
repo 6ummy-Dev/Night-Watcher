@@ -1,5 +1,7 @@
 # Night Watcher: notes for Claude
 
+The weekday desk is `AGENTS.md`. This file is the tripwire sheet.
+
 A single-file static app (`docs/index.html`: markup, styles, catalogue and logic), served by a Cloudflare Worker (`worker.js`, `wrangler.jsonc`) with `docs/` as its assets. A numbered guard file and a mutation-tested negative wall argue back on every change. Most rules here exist because something broke; the reasons are in `NOTES.md`.
 
 ## Read first

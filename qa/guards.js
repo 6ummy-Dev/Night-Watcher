@@ -16380,13 +16380,13 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
      can change without the owner being asked (QA 6.3.1, P3-1). 6.3.3: four,
      with the reporter's casebook. 6.3.5: five, with the morgue file. The
      fence needs no change for it: its allow-list, pinned above, names four
-     paths and MORGUE.md is none of them. 6.5.5: seven, with the Claude
-     setup. .claude/settings.json runs a shell command in every Claude Code
-     session on the repo, so a pull request that changes it changes what runs
-     on the owner's machine; CLAUDE.md steers the agent as BRIEF.md steers
-     the desk. Neither is on the fence's allow-list either. 6.5.6: AGENTS.md
-     points Cursor at the rules and does not restate them, so it is the
-     owner's the same way. */
+     paths and MORGUE.md is none of them. 6.5.5: seven, with the agent rules
+     and the Claude Code hook. .claude/settings.json runs a shell command in
+     every Claude Code session on the repo, so a pull request that changes it
+     changes what runs on the owner's machine. CLAUDE.md is the tripwire
+     sheet. The weekday desk is AGENTS.md. Neither is on the fence's
+     allow-list. 6.5.6: AGENTS.md points Cursor at the rules and does not
+     restate them, so it is the owner's the same way. */
   var co = fs.existsSync(path.join(ROOT, ".github", "CODEOWNERS")) ? fs.readFileSync(path.join(ROOT, ".github", "CODEOWNERS"), "utf8") : "";
   ["/.github/", "/qa/", "/nocturne/BRIEF.md", "/nocturne/CASEBOOK.md", "/nocturne/MORGUE.md", "/nocturne/REPORTER.md", "/nocturne/VOICE.md",
    "/CLAUDE.md", "/AGENTS.md", "/.claude/"].forEach(function(f){
