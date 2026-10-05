@@ -25,6 +25,7 @@ change that gets undone by the next person who touches the line.
 - **Six questions, under the morgue.** They are on `/nocturne/` only, and in the front's markdown, in the same order. An issue does not carry them. The map link is nightwatcher.life, to the root, and it is the only link in that answer. The wire link is the feed.
 - **The brief says so.** The front's title names Batman news and no spoilers. Under the morgue the front carries these six questions, the renderer writes them, and they are not on an issue.
 - **Guard 175** holds the built front to that, with a negative suite. Harness: 175 sections, 90 negative suites, 1,750 fixtures (from 1,733), 542 smoke checks.
+- **The front-nav fixture follows the questions.** The six questions sit between the morgue and the footer, so the anchor that plants an issue nav on the front includes `frontQuestions()`. Guard 174 is unchanged.
 
 ## [6.6.5] — 2026-10-05
 
