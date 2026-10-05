@@ -239,7 +239,7 @@ function blessHtml(next){
      170  The crew's page is built and unlisted
      172  The paper carries the app's one ask, under its colophon
      173  A pinned fixture may stop, the release run may not
-     174  Previous and next, by issue number
+     174  The foot: Back page, then Keep reading
      175  The front names Batman news, and six questions
 
    META
@@ -6001,9 +6001,11 @@ var ROUTE_VOCAB = [
   /* 6.5.1 (outside QA, C11): two rows of buttons are styled through their
      container, not a class of their own, so the list above never saw them:
      the Theme row and the Movies / + Series switch under the belt, both
-     34px. Held by their exact selectors. Both rows clip their overflow, so
-     their focus ring is drawn inset, or the clip eats it. */
-  var ROWS75 = [".themerow button", ".includes .scope button"];
+     34px. Held by their exact selectors. The include switch still clips its
+     overflow, so its focus ring is drawn inset.
+     6.7.0: the theme control is the diamond switch, .dsw, min-height 44px,
+     with its own focus ring. It does not clip, so the ring is not inset. */
+  var ROWS75 = [".includes .scope button"];
   ROWS75.forEach(function(sel){
     var hs = rules.filter(function(rule){ return rule.slice(0, rule.indexOf("{")).trim() === sel; })
                   .map(function(rule){ var m = rule.match(/min-height:\s*([\d.]+)px/); return m ? parseFloat(m[1]) : null; })
@@ -6019,6 +6021,16 @@ var ROUTE_VOCAB = [
     });
     if(!ring) fail(sel + "'s focus ring is not drawn inset — the row clips its overflow, and the ring with it (6.5.1)");
   });
+  var dswH = rules.filter(function(rule){ return rule.slice(0, rule.indexOf("{")).trim() === ".dsw"; })
+                  .map(function(rule){ var m = rule.match(/min-height:\s*([\d.]+)px/); return m ? parseFloat(m[1]) : null; })
+                  .filter(function(v){ return v !== null; });
+  if(!dswH.length) fail(".dsw declares no min-height — the theme switch cannot be measured (6.7.0)");
+  else if(Math.min.apply(null, dswH) < 44) fail(".dsw gives a " + Math.min.apply(null, dswH) + "px touch target — 44 is the floor (6.7.0)");
+  var dswRing = rules.some(function(rule){
+    var sels = rule.slice(0, rule.indexOf("{")).split(",").map(function(x){ return x.trim(); });
+    return sels.indexOf(".dsw:focus-visible") >= 0 && /outline\s*:/.test(rule);
+  });
+  if(!dswRing) fail(".dsw's focus ring is missing — the switch draws its own (6.7.0)");
   note("touch targets measured: " + Object.keys(height).sort().map(function(c){
     return "." + c + " " + (height[c] + (pad[c] || 0));
   }).join(", ") + "; rows " + ROWS75.join(", ") + " at 44 or more, ring inset");
@@ -7632,18 +7644,18 @@ var ROUTE_VOCAB = [
     fail("the theme control is in the Belt \u2014 the one thing the owner said the " +
          "Belt must never hold");
   }
-  /* Width has now moved exactly twice, both owner's calls, and this clause
-     flipped with the second. 2.x: "a bit more compact" — 230px, centered,
-     and this guard required the max-width. 3.8.3 review: the chooser spans
-     the column like everything else on Home — the owner's words, same
-     review that cut the support card to a pill — so a max-width creeping
-     back is now the regression. Shorter-than-a-full-row stays: the 34px
-     buttons are the compact half that survived. */
+  /* 6.7.0, the owner's decision of 5 Oct 2026: the control is a compact,
+     centred switch. 3.8.3 had spanned a two-button row to the column. That
+     row is gone. A switch that is not centred undoes the decision. The
+     button keeps a data-theme attribute so this section still finds the
+     control. */
   var tr = (HTML.match(/\.themerow\{[^}]*\}/) || [""])[0];
-  if(/max-width/.test(tr)){
-    fail("the theme row is capped again \u2014 3.8.3 spanned it to the column " +
-         "width on the owner's call, and a returning max-width undoes a " +
-         "recorded decision");
+  if(!/justify-content:\s*center/.test(tr)){
+    fail("the theme switch is not centred \u2014 the owner's decision of 5 Oct 2026 is a compact switch, centred");
+  }
+  var rowSrc = optionalFn("themeRow");
+  if(!/data-theme-switch/.test(rowSrc) || !/role="switch"/.test(rowSrc) || !/data-theme=/.test(rowSrc)){
+    fail("Home's theme control is not the centred switch \u2014 one button, role=switch, and a data-theme attribute so this section still finds it (6.7.0)");
   }
 })();
 
@@ -15970,9 +15982,12 @@ var ROUTE_VOCAB = [
     })[0];
     return !!hit && Object.keys(want).every(function(k){ return hit.decls[k] === want[k]; });
   }
-  if(!stateRule([".chip[aria-pressed=\"true\"]", ".scope button[aria-pressed=\"true\"]", ".pathseg button[aria-pressed=\"true\"]", ".themerow button[aria-pressed=\"true\"]", ".film.done .tick"],
+  if(!stateRule([".chip[aria-pressed=\"true\"]", ".scope button[aria-pressed=\"true\"]", ".pathseg button[aria-pressed=\"true\"]", ".film.done .tick"],
                 {"forced-color-adjust": "none", background: "Highlight", color: "HighlightText", "border-color": "Highlight"})){
-    fail("a pressed chip, belt, scope or theme button, or a done tick, matches its unpressed twin under forced colors — the state repaints in Highlight/HighlightText");
+    fail("a pressed chip, belt or scope button, or a done tick, matches its unpressed twin under forced colors — the state repaints in Highlight/HighlightText");
+  }
+  if(!stateRule([".dsw .trk i"], {"forced-color-adjust": "none", background: "CanvasText"})){
+    fail("the theme switch's knob disappears under forced colors — it repaints in CanvasText (6.7.0)");
   }
   if(!stateRule(["#tabs button[aria-current]"], {"text-decoration": "underline"})){
     fail("the current tab is signal ink only, which forced colors flatten — it must underline");
@@ -16027,7 +16042,7 @@ var ROUTE_VOCAB = [
   var PAINTED = [".st", ".film.skip .tick::after", ".drule i", ".drule::before", ".drule::after", ".stars button.on .st", ".hero .dsep",
                  ".homefoot::before", ".note.foot::before", ".legend::before",
                  ".chip[aria-pressed=\"true\"]", ".scope button[aria-pressed=\"true\"]", ".pathseg button[aria-pressed=\"true\"]",
-                 ".themerow button[aria-pressed=\"true\"]", ".film.done .tick", ".segs i.on", ".sky .seg.lit .cr .p", ".sky .sh i",
+                 ".dsw .trk i", ".film.done .tick", ".segs i.on", ".sky .seg.lit .cr .p", ".sky .sh i",
                  "#beltpeek::after", ".gbar i",
                  ".includes .scope button[aria-pressed=\"true\"]"];
   rules159.forEach(function(r){
@@ -16476,8 +16491,8 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       }
       var isIssue = /\/index\.html$/.test(f) && f !== "index.html";
       if(h.split(NOC.PAPER_TAG).length !== 2) fail(where + " does not load paper.js exactly once — every page carries the theme switch (6.5.0)");
-      if((h.match(/<div class="themerow" role="group" aria-label="Theme"><button type="button" data-theme-set="dark" aria-pressed="true">Dark deco<\/button><button type="button" data-theme-set="darker" aria-pressed="false">Darker<\/button><\/div>/g) || []).length !== 1){
-        fail(where + " does not carry the Dark deco / Darker switch once in its foot (6.5.0)");
+      if((h.match(/<div class="themerow"><button class="dsw" type="button" role="switch" aria-checked="false" aria-label="Darker theme" data-theme-switch><span class="dl">Dark deco<\/span><span class="trk" aria-hidden="true"><i><\/i><\/span><span class="dl">Darker<\/span><\/button><\/div>/g) || []).length !== 1){
+        fail(where + " does not carry the Dark deco / Darker switch once in its foot (6.7.0)");
       }
       if(isIssue){
         var own164 = "https://nightwatcher.life/nocturne/" + f.replace(/index\.html$/, "");
@@ -16868,8 +16883,8 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    it. The numbers are pinned here too, so loosening a limit in the module
    is a change this file sees: 40 KB a page, 250 KB an image, three images
    an issue, 1600 px on the long side (BRIEF.md section 6).
-   6.4.0: the stylesheet's ceiling is 16 KB (the owner's call, for the
-   landing's front and the press faces), and every issue and the landing
+   6.7.0: the stylesheet's ceiling is 25 KiB (25,600 bytes). The owner set
+   that on 5 Oct 2026. Every issue and the landing
    carry a share card: a 1200x630 PNG at most 250 KB, stamped with the hash
    of the SVG it was drawn from, and named by the page's og:image. */
 
@@ -16888,7 +16903,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       var sz = bld.files[f].length; n++;
       if(/\.html$/.test(f) && sz > L.page) fail("the paper's " + f + " weighs " + sz + " bytes — a page is at most " + L.page);
       if(/\.webp$/.test(f) && sz > L.image) fail("the paper's " + f + " weighs " + sz + " bytes — an image is at most " + L.image);
-      if(f === "nocturne.css" && sz > 16 * 1024) fail("nocturne.css weighs " + sz + " bytes — the paper's stylesheet is at most 16 KB");
+      if(f === "nocturne.css" && sz > 25 * 1024) fail("nocturne.css weighs " + sz + " bytes — the paper's stylesheet is at most 25 KiB");
       if(/(^|\/)card\.png$/.test(f)){
         var png = bld.files[f];
         if(sz > L.image) fail("the paper's " + f + " weighs " + sz + " bytes — a card is at most " + L.image);
@@ -17029,8 +17044,8 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       if(ft.indexOf('<a class="btn home" href="/"><svg class="mk" viewBox="8 16 84 70" aria-hidden="true">') < 0 || ft.indexOf("<b>Night Watcher</b>") < 0){
         fail("the paper's " + f + " sends readers back to the app without its mark and name (6.3.1)");
       }
-      if(!/<a class="btn ghost" href="\/nocturne\/feed\.xml" type="application\/rss\+xml"><svg class="rss"[^>]*>[\s\S]*?<\/svg>RSS<\/a>/.test(ft)){
-        fail("the paper's " + f + " labels its feed something other than RSS with the feed glyph (6.3.1)");
+      if(!/<a class="ir" href="\/nocturne\/feed\.xml" type="application\/rss\+xml"><span class="k">Follow by RSS<\/span><span class="ld"><\/span><svg class="rss"/.test(ft)){
+        fail("the paper's " + f + " labels its feed something other than RSS with the feed glyph (6.7.0)");
       }
     });
   });
@@ -17190,39 +17205,38 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   }
 })();
 
-/* ---------- 174. Previous and next, by issue number ---------- */
-/* 6.6.4. An issue page offers the neighbor with the greatest published
-   issue number below it, and the least above it. The week slug is not the
-   order. No. 0 has Next only, No. 1 has Previous only, and each link names
-   that issue. The same address is the head's rel=prev or rel=next. A side
-   with no neighbor is omitted, and the front page has no such row. The
-   footer's two rows stay where they are: Share this issue, then RSS, Back to
-   Nocturne and The morgue. Copy link and Post on X sit in the share row,
-   hidden until there is no share sheet. The front stays RSS. The arrow is the
-   paper's inline SVG, never U+2197, and print hides the row with the buttons.
-   A link's visible text drops tags until none remain, then any leftover
-   angle bracket. One pass of a tag pattern leaves a tag that was split
-   across the match, and an unclosed tag has no closing bracket to match.
-   6.6.5. The live paper is still two issues, so those edges only ever saw
-   one direction. The fixture's No. 2 gives its No. 1 a neighbor on each
-   side, and that rendered page is held to carry both links. The live
+/* ---------- 174. The foot: Back page, then Keep reading ---------- */
+/* 6.7.0. An issue ends with the share row, then nav.idx headed Back page
+   (Back to Nocturne, The morgue at /nocturne/#morgue, Follow by RSS), then
+   nav.keep. Previous is the greatest published number below, Next the least
+   above. A missing side is a dashed card: the latest says Out Sunday, late,
+   and No. 0 says This is the first issue. The head's rel=prev and rel=next
+   name the same issues. The front and the holding page carry the Nocturne
+   index and one Follow by RSS row. Copy link and Post on X stay hidden in
+   the share row. The arrow is the paper's inline SVG, never U+2197, and
+   print hides .acts. A link's visible text drops tags until none remain,
+   then any leftover angle bracket.
+   6.6.5. The fixture's middle issue has a neighbor on each side. The live
    edges stay on the real build. */
 
 (function(){
   if(nwStop(174)) return;
-  if(!NOC_REAL || !NOC_FIX){ fail("the issue nav has no paper to read (6.6.4)"); return; }
+  if(!NOC_REAL || !NOC_FIX){ fail("the issue foot has no paper to read (6.7.0)"); return; }
   function slugOf(href){
     var m = String(href || "").match(/\/nocturne\/([^/?#"]+)\/?$/);
     return m ? m[1] : "";
   }
-  function navOf(html){
-    var i = html.indexOf('<nav class="issue-nav"');
+  function footOf(html){
+    return (html.match(/<footer class="foot">[\s\S]*?<\/footer>/) || [""])[0];
+  }
+  function block(html, cls){
+    var i = html.indexOf('<nav class="' + cls + '"');
     if(i < 0) return "";
     var j = html.indexOf("</nav>", i);
     return j < 0 ? html.slice(i) : html.slice(i, j + 6);
   }
   function side(nav, rel){
-    var m = nav.match(new RegExp('<a class="btn ghost" rel="' + rel + '" href="([^"]*)">([\\s\\S]*?)</a>'));
+    var m = nav.match(new RegExp('<a rel="' + rel + '" href="([^"]*)">([\\s\\S]*?)</a>'));
     return m ? {href: m[1], inner: m[2]} : null;
   }
   function headHref(html, rel){
@@ -17232,12 +17246,12 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   }
   function visible(inner){
     var t = String(inner);
-    while(/<[^>]+>/.test(t)) t = t.replace(/<[^>]+>/g, "");
+    while(/<[^>]+>/.test(t)) t = t.replace(/<[^>]+>/g, " ");
     t = t.replace(/[<>]/g, "");
     return t.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
   }
   function named(is, rel){
-    return (rel === "prev" ? "Previous" : "Next") + " No. " + is.fm.issue + " " + is.fm.title;
+    return (rel === "prev" ? "Previous" : "Next") + " · No. " + is.fm.issue + " " + is.fm.title;
   }
   function neighborsOf(list, is){
     var prev = null, next = null;
@@ -17248,70 +17262,101 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     });
     return {prev: prev, next: next};
   }
+  function soonTexts(nav){
+    var out = [], re = /<p class="soon">([\s\S]*?)<\/p>/g, m;
+    while((m = re.exec(nav))) out.push(visible(m[1]));
+    return out;
+  }
+  function dashedOk(nav, rel, is){
+    var want = rel === "prev" ? "Previous This is the first issue" : "Next · No. " + (is.fm.issue + 1) + " Out Sunday, late";
+    return soonTexts(nav).indexOf(want) >= 0;
+  }
   function sideOk(html, rel, want){
-    var a = side(navOf(html), rel), h = headHref(html, rel);
+    var a = side(block(footOf(html), "keep"), rel), h = headHref(html, rel);
     if(!want) return !a && !h;
-    return !!(a && slugOf(a.href) === want.id && visible(a.inner) === named(want, rel) && slugOf(h) === want.id);
+    return !!(a && slugOf(a.href) === want.id && visible(a.inner) === named(want, rel) && slugOf(h) === want.id && /<svg[^>]*class="arr"/.test(a.inner));
+  }
+  function rowHref(nav, label){
+    var m = nav.match(new RegExp('<a class="ir" href="([^"]*)"[^>]*><span class="k">' + label + '</span>'));
+    return m ? m[1] : "";
+  }
+  function checkPlain(html, label){
+    if(html.indexOf('class="issue-nav"') >= 0) fail(label + "the front page carries an issue nav (6.7.0)");
+    var ft = footOf(html);
+    if(/Share this issue|Back to Nocturne|The morgue|Copy link|Post on X|Keep reading|class="soon"|rel="prev"|rel="next"|btn go|issue-nav/.test(ft)){
+      fail(label + "the front footer is not the Nocturne index alone (6.7.0)");
+    }
+    var idx = block(ft, "idx");
+    if(idx.indexOf('aria-label="Nocturne"') < 0 || idx.indexOf(">Nocturne<") < 0 || idx.indexOf(">Every Sunday, late<") < 0 ||
+       (idx.match(/>Follow by RSS</g) || []).length !== 1 || idx.indexOf('href="/nocturne/feed.xml"') < 0){
+      fail(label + "the front index is not Nocturne with one Follow by RSS row (6.7.0)");
+    }
+    if(!(ft.indexOf('<nav class="idx"') < ft.indexOf('class="btn home"') && ft.indexOf('class="btn home"') < ft.indexOf("data-theme-switch"))){
+      fail(label + "the front foot is out of order (6.7.0)");
+    }
   }
   function checkBuild(b, label, edges){
-    var front = (b.files["index.html"] || Buffer.from("")).toString("utf8");
-    if(front.indexOf('class="issue-nav"') >= 0) fail(label + "the front page carries an issue nav (6.6.4)");
-    var frontFt = (front.match(/<footer class="foot">[\s\S]*?<\/footer>/) || [""])[0];
-    var frontRows = frontFt.match(/<div class="more">[\s\S]*?<\/div>/g) || [];
-    var frontText = (frontRows[0] || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-    if(frontRows.length !== 1 || frontText !== "RSS" || /Share this issue|Back to Nocturne|The morgue|Copy link|Post on X/.test(frontFt)){
-      fail(label + "the front footer is not RSS alone (6.6.9)");
-    }
+    checkPlain((b.files["index.html"] || Buffer.from("")).toString("utf8"), label);
     var css = (b.files["nocturne.css"] || Buffer.from("")).toString("utf8");
-    if(css.indexOf("@media print{") < 0 || css.indexOf(".issue-nav{display:none;}") < css.indexOf("@media print{")){
-      fail(label + "print no longer hides the issue nav (6.6.4)");
+    if(css.indexOf("@media print{") < 0 || css.indexOf(".acts{display:none;}") < css.indexOf("@media print{")){
+      fail(label + "print no longer hides the foot (6.7.0)");
     }
     var byNum = {};
     b.list.forEach(function(is){ byNum[is.fm.issue] = is; });
     b.list.forEach(function(is){
       var html = (b.files[is.id + "/index.html"] || Buffer.from("")).toString("utf8");
       var nb = neighborsOf(b.list, is);
-      var nav = navOf(html);
-      var art = html.indexOf("</article>"), foot = html.indexOf('<footer class="foot">'), navAt = html.indexOf('<nav class="issue-nav"');
-      if(nb.prev || nb.next){
-        if(navAt < 0 || !(art < navAt && navAt < foot)) fail(label + "the issue nav sits outside its seat (6.6.4)");
-      } else if(nav){
-        fail(label + "an issue with no neighbor still draws a nav (6.6.4)");
+      var ft = footOf(html), idx = block(ft, "idx"), keep = block(ft, "keep");
+      var art = html.indexOf("</article>"), footAt = html.indexOf('<footer class="foot">');
+      var between = art >= 0 && footAt > art ? html.slice(art, footAt) : "";
+      if(/issue-nav|rel="prev"|rel="next"|Keep reading/.test(between)) fail(label + "the neighbor cards sit outside the foot (6.7.0)");
+      if(/\u2197/.test(keep)) fail(label + "the issue nav draws a unicode arrow (6.7.0)");
+      var date = "No. " + is.fm.issue + " · " + NOC.footDate(is.fm.published);
+      if(idx.indexOf('aria-label="This issue"') < 0 || idx.indexOf(">Back page<") < 0 || idx.indexOf(">" + date + "<") < 0){
+        fail(label + "the Back page index does not name No. " + is.fm.issue + " (6.7.0)");
       }
-      if(/\u2197/.test(nav)) fail(label + "the issue nav draws a unicode arrow (6.6.4)");
-      ["prev", "next"].forEach(function(rel){
-        var want = nb[rel], a = side(nav, rel);
-        if(a && !/<svg[^>]*class="arr"/.test(a.inner)) fail(label + "the issue nav draws a unicode arrow (6.6.4)");
-        if(!sideOk(html, rel, want)) fail(label + "No. " + is.fm.issue + " " + rel + " does not name its neighbor (6.6.4)");
-      });
-      var ft = (html.match(/<footer class="foot">[\s\S]*?<\/footer>/) || [""])[0];
+      if(rowHref(idx, "Back to Nocturne") !== "/nocturne/") fail(label + "Back to Nocturne does not open /nocturne/ (6.7.0)");
+      if(rowHref(idx, "The morgue") !== "/nocturne/#morgue") fail(label + "The morgue does not open /nocturne/#morgue (6.7.0)");
+      if(rowHref(idx, "Follow by RSS") !== "/nocturne/feed.xml" || !/type="application\/rss\+xml"/.test(idx)){
+        fail(label + "Follow by RSS does not open the feed (6.7.0)");
+      }
+      if(/rel="prev"|rel="next"/.test(idx)) fail(label + "the issue footer .acts row gained a neighbor link (6.7.0)");
+      var shareAt = ft.indexOf("Share this issue"), idxAt = ft.indexOf('<nav class="idx"'), keepAt = ft.indexOf('<nav class="keep"');
+      var homeAt = ft.indexOf('class="btn home"'), swAt = ft.indexOf("data-theme-switch");
       var mores = ft.match(/<div class="more">[\s\S]*?<\/div>/g) || [];
-      function rowText(row){ return String(row || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(); }
-      var row1 = rowText(mores[0]), row2 = rowText(mores[1]);
-      var order = ft.indexOf("Share this issue") >= 0 && ft.indexOf("Share this issue") < ft.indexOf(">RSS</a>") &&
-                  ft.indexOf(">RSS</a>") < ft.indexOf("Back to Nocturne") &&
-                  ft.indexOf("Back to Nocturne") < ft.indexOf(">The morgue</a>") &&
-                  ft.indexOf(">The morgue</a>") < ft.indexOf('class="btn home"');
-      if(mores.length !== 2 || row1 !== "Share this issue Copy link Post on X" || row2 !== "RSS Back to Nocturne The morgue" ||
-         !order || /rel="prev"|rel="next"|issue-nav/.test(ft) ||
-         ft.indexOf('class="btn go" href="/nocturne/">Back to Nocturne') < 0 ||
-         ft.indexOf('hidden>Copy link') < 0 ||
+      var row1 = String(mores[0] || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      if(mores.length !== 1 || row1 !== "Share this issue Copy link Post on X" ||
+         !(shareAt >= 0 && shareAt < idxAt && idxAt < keepAt && keepAt < homeAt && homeAt < swAt) ||
+         ft.indexOf('class="btn go"') >= 0 || ft.indexOf('hidden>Copy link') < 0 ||
          !/href="https:\/\/x\.com\/intent\/post\?text=[^"]*&amp;url=[^"]*" target="_blank" rel="noopener noreferrer" hidden>Post on X/.test(ft)){
-        fail(label + "the issue footer .acts row gained a neighbor link (6.6.4)");
+        fail(label + "the issue foot is out of order (6.7.0)");
       }
+      if(keep.indexOf(">Keep reading<") < 0) fail(label + "Keep reading is missing (6.7.0)");
+      ["prev", "next"].forEach(function(rel){
+        var want = nb[rel], a = side(keep, rel);
+        if(a && !/<svg[^>]*class="arr"/.test(a.inner)) fail(label + "the issue nav draws a unicode arrow (6.7.0)");
+        if(want){
+          if(!sideOk(html, rel, want)) fail(label + "No. " + is.fm.issue + " " + rel + " does not name its neighbor (6.7.0)");
+        } else if(a || headHref(html, rel) || !dashedOk(keep, rel, is)){
+          fail(label + "No. " + is.fm.issue + " " + rel + " dashed card has the wrong words (6.7.0)");
+        }
+      });
     });
     if(edges && byNum[0] && byNum[1]){
       var zero = (b.files[byNum[0].id + "/index.html"] || Buffer.from("")).toString("utf8");
       var one = (b.files[byNum[1].id + "/index.html"] || Buffer.from("")).toString("utf8");
-      if(!sideOk(zero, "next", byNum[1]) || !sideOk(zero, "prev", null)) fail(label + "No. 0 page is next-only to No. 1 (6.6.4)");
-      if(!sideOk(one, "prev", byNum[0]) || !sideOk(one, "next", null)) fail(label + "No. 1 page is prev-only to No. 0 (6.6.4)");
+      if(!sideOk(zero, "next", byNum[1])) fail(label + "No. 0's next does not name No. 1 (6.7.0)");
+      if(!dashedOk(block(footOf(zero), "keep"), "prev", byNum[0])) fail(label + "No. 0's previous card is not the first issue (6.7.0)");
+      if(!sideOk(one, "prev", byNum[0])) fail(label + "No. 1's previous does not name No. 0 (6.7.0)");
+      if(!dashedOk(block(footOf(one), "keep"), "next", byNum[1])) fail(label + "No. 1's next card does not say it is out Sunday (6.7.0)");
     }
   }
   checkBuild(NOC_REAL, "docs/nocturne/ ", true);
   checkBuild(NOC_FIX, "the fixture's ", false);
-  /* The fixture's middle issue is the one page that has a neighbor on each
-     side. The live catalogue has no such page, so this is the assertion
-     that both links are present together. */
+  var hold174 = null;
+  try { hold174 = NOC.build(ROOT, {src: "qa/nocturne-fixture/no-issues"}); }
+  catch(err){ fail("the holding page does not build (6.7.0)"); }
+  if(hold174) checkPlain((hold174.files["index.html"] || Buffer.from("")).toString("utf8"), "the holding page ");
   var mid174 = null;
   if(NOC_FIX){
     NOC_FIX.list.forEach(function(is){
@@ -17322,12 +17367,12 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   if(!mid174) fail("the fixture has no issue between two neighbors (6.6.5)");
   else {
     var midHtml = (NOC_FIX.files[mid174.id + "/index.html"] || Buffer.from("")).toString("utf8");
-    var midNav = navOf(midHtml);
-    if(!(side(midNav, "prev") && side(midNav, "next") && headHref(midHtml, "prev") && headHref(midHtml, "next"))){
+    var midKeep = block(footOf(midHtml), "keep");
+    if(!(side(midKeep, "prev") && side(midKeep, "next") && headHref(midHtml, "prev") && headHref(midHtml, "next"))){
       fail("the fixture's middle issue does not carry both previous and next (6.6.5)");
     }
   }
-  note("issue nav: previous and next by issue number, omitted when absent, off the front and the print sheet; the fixture's middle page carries both");
+  note("issue foot: Back page, then Keep reading, a dashed card where a side is missing; the front and the holding page are the Nocturne index; the fixture's middle page carries both");
 })();
 
 /* ---------- 175. The front names Batman news, and six questions ---------- */

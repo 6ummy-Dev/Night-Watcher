@@ -931,9 +931,9 @@ Restore merges progress; it must not overwrite a path chosen here.
 
 ### `segmented()` / `segButtons()`
 
-One helper renders every segmented control — the three pouches, the theme
-row, the path segments and the filter chips — from a named option table
-(`FORMATS`, `SCOPES`, `TIERS`, `THEMES`, `PATHS`, `chipSet()`): a wrapper
+One helper renders every segmented control — the three pouches, the path
+segments and the filter chips — from a named option table
+(`FORMATS`, `SCOPES`, `TIERS`, `PATHS`, `chipSet()`): a wrapper
 with `role="group"` and an accessible name, and one button per option with
 its `data-*` attribute and `aria-pressed`. Six hand-rolled copies before
 4.9.0, none of them labelled as a group.
@@ -1411,9 +1411,11 @@ shape inside it, so all four labels and all four icons share one baseline.
 ### `.themerow`
 
 The only preference. It lived at the bottom of Progress as `.prefrow` until
-2.0.0 moved it to the bottom of Home, compact — the owner's call at the Belt
+2.0.0 moved it to the bottom of Home — the owner's call at the Belt
 design round, and the Belt was never allowed to hold it. Still no heading,
-no card, last row on the first screen.
+no card, last row on the first screen. 6.7.0, the owner's decision of
+5 Oct 2026: one diamond switch, Dark deco / Darker, centred, 18px under
+the Read the paper card.
 
 ### `.allbtn`
 

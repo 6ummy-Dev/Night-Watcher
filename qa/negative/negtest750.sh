@@ -304,7 +304,7 @@ run_case "the feed's stylesheet outgrows its budget" \
   guards "" 168
 
 run_case "the stylesheet outgrows its budget" \
-  "the paper's stylesheet is at most 16 KB" \
+  "the paper's stylesheet is at most 25 KiB" \
   "${N}a='\"*{box-sizing:border-box;}\",';assert a in s;s=s.replace(a,a+'\"/*'+'x'*13000+'*/\",',1);${W}" \
   guards "" 168
 

@@ -14,6 +14,20 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.7.0] — 2026-10-05
+
+**Why MINOR.** The owner called the foot a design change on 5 Oct 2026. An issue ends with the share row, then an index headed *Back page*, then *Keep reading*, then *Night Watcher*, then one centred *Dark deco* / *Darker* switch. The stylesheet ceiling is 25 KiB, set that day. The theme control is a compact, centred switch, replacing the 3.8.3 full-width row. Nothing saved changes shape. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Changed
+
+- **Back page.** On an issue the index is headed *Back page*, with `No. {n} · {short date}`. The rows are *Back to Nocturne* (`/nocturne/`), *The morgue* (`/nocturne/#morgue`), and *Follow by RSS* (`/nocturne/feed.xml`). The front and the holding page are headed *Nocturne* / *Every Sunday, late*, with one *Follow by RSS* row.
+- **Keep reading.** Previous and Next leave the gap between the article and the foot and sit under that label. A missing side is a dashed card. The latest issue's next card says *Out Sunday, late*. No. 0's previous card says *This is the first issue*. A middle issue shows both neighbors.
+- **One switch.** *Dark deco* / *Darker* is one button, `role="switch"`, named "Darker theme", centred under *Night Watcher* on the paper and on Home. `.btn.go` is retired. The share row is unchanged: *Copy link* and *Post on X* stay hidden unless `navigator.share` is missing, and *Link copied* stays in the live region.
+- **The sheet's ceiling is 25 KiB.** The owner set that on 5 Oct 2026. The paper's stylesheet is about 18 KB.
+- **The brief says so.** The desk's description of the foot matches the renderer.
+- **Guard 174** holds the foot. Guard 168 holds 25 KiB. Guard 97 holds the centred switch on Home. Harness: 175 sections, 90 negative suites, 1,750 fixtures, 542 smoke checks.
+- **`/hww` is rebuilt from the tree.** The page prints 6.7.0.
+
 ## [6.6.9] — 2026-10-05
 
 **Why PATCH.** An issue's foot is two rows. The first is *Share this issue*, and *Copy link* and *Post on X* only when the device has no share sheet. The next is *RSS*, *Back to Nocturne* (the app's Resume button), and *The morgue*. The front stays *RSS* and the *Night Watcher* button. No catalogue change, no new script, and nothing saved changes shape. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.

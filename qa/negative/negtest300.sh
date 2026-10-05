@@ -264,7 +264,7 @@ assert a in s;s=s.replace(a,'  scratch.innerHTML = filmRow(f, row.hidden).replac
 
 run_case "the theme toggle leaves the buttons stale" \
   "byte-identical to a full render" \
-  "${P}a='    b.setAttribute(\"aria-pressed\", String(S.theme === b.dataset.theme));'
+  "${P}a='    b.setAttribute(\"aria-checked\", S.theme === \"darker\" ? \"true\" : \"false\");'
 assert a in s;s=s.replace(a,'',1);${W}" \
   "smoke" "identity"
 

@@ -67,12 +67,12 @@ run_case "the way back to the map loses the name" \
 
 run_case "the feed is The wire again" \
   "labels its feed something other than RSS" \
-  "${N}a=\"RSS + 'RSS</a>'\";assert s.count(a)==1;s=s.replace(a,\"RSS + 'The wire</a>'\",1);${W}" \
+  "${N}a='\", \"Follow by RSS\", RSS,';assert s.count(a)==1;s=s.replace(a,'\", \"The wire\", RSS,',1);${W}" \
   guards "" 169
 
 run_case "the feed loses its glyph" \
   "labels its feed something other than RSS" \
-  "${N}a=\"+ RSS + 'RSS</a>'\";assert s.count(a)==1;s=s.replace(a,\"+ 'RSS</a>'\",1);${W}" \
+  "${N}a='\", \"Follow by RSS\", RSS,';assert s.count(a)==1;s=s.replace(a,'\", \"Follow by RSS\", \"\",',1);${W}" \
   guards "" 169
 
 echo "--- 166: the notebook"
@@ -421,17 +421,17 @@ run_case "paper.js writes the app's settings" \
 
 run_case "a page loses the theme switch" \
   "does not carry the Dark deco / Darker switch" \
-  "${N}a='>Dark deco</button>';assert s.count(a)==1;s=s.replace(a,'>Dark</button>',1);${W}" \
+  "${N}a='<span class=\"dl\">Dark deco</span>';assert s.count(a)==1;s=s.replace(a,'<span class=\"dl\">Dark</span>',1);${W}" \
   guards "" 164
 
 run_case "an issue's Share button names another issue" \
   "does not name the issue's own address" \
-  "${N}a='footer(shareButton(url, ';assert s.count(a)==1;s=s.replace(a,'footer(shareButton(SITE + \"/nocturne/2026-w01-another/\", ',1);${W}" \
+  "${N}a='var share = shareButton(url, ';assert s.count(a)==1;s=s.replace(a,'var share = shareButton(SITE + \"/nocturne/2026-w01-another/\", ',1);${W}" \
   guards "" 164
 
 run_case "an issue carries two Share buttons" \
   "does not carry its one Share button" \
-  "${N}a='footer(shareButton(url, ';assert s.count(a)==1;s=s.replace(a,'footer(shareButton(url, \"x\") + shareButton(url, ',1);${W}" \
+  "${N}a='var share = shareButton(url, ';assert s.count(a)==1;s=s.replace(a,'var share = shareButton(url, \"x\") + shareButton(url, ',1);${W}" \
   guards "" 164
 
 run_case "twitter:image points somewhere else than og:image" \

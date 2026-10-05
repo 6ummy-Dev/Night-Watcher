@@ -1,15 +1,11 @@
 #!/bin/bash
-# negtest800 — 6.6.4. Each issue carries Previous and Next by issue number
-# (174). No. 0 is next-only, to No. 1. No. 1 is prev-only, to No. 0. The
-# arrow is the inline SVG.
-# 6.6.9: an issue's foot is two rows. Share this issue, then Copy link and
-# Post on X, hidden until there is no share sheet. Then RSS, Back to
-# Nocturne and The morgue. A neighbor link in that second row still fails.
-# The front stays RSS.
-# The front page has no issue nav. Print hides the row. The fixture's No. 2
-# gives No. 1 a neighbor on each side, so one page carries both (6.6.5).
-# 6.6.8: the front's questions are off the page, so the anchor that grows
-# an issue nav is the morgue section joining the footer.
+# negtest800 — 6.7.0. Each issue's foot is Share, then the Back page index,
+# then Keep reading (174). No. 0's next names No. 1, and its previous card
+# says this is the first issue. No. 1's previous names No. 0, and its next
+# card says Out Sunday, late. The arrow is the inline SVG.
+# A neighbor link in the index still fails. The front stays the Nocturne
+# index. Print hides .acts. The fixture's No. 2 gives No. 1 a neighbor on
+# each side, so one page carries both (6.6.5).
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="$(pro qa/nocturne.js)"
@@ -17,18 +13,18 @@ N="$(pro qa/nocturne.js)"
 echo "--- 174: previous and next, by issue number"
 
 run_case "No. 0 loses Next" \
-  "No. 0 page is next-only to No. 1" \
+  "No. 0's next does not name No. 1" \
   "${N}a='add(next, \"next\");';assert s.count(a)==1;s=s.replace(a,'if(false) add(next, \"next\");',1);${W}" \
   guards "" 174
 
 run_case "No. 1 loses Previous" \
-  "No. 1 page is prev-only to No. 0" \
+  "No. 1's previous does not name No. 0" \
   "${N}a='add(prev, \"prev\");';assert s.count(a)==1;s=s.replace(a,'if(false) add(prev, \"prev\");',1);${W}" \
   guards "" 174
 
-run_case "a neighbor link joins the footer row" \
-  "the issue footer .acts row gained a neighbor link" \
-  "${N}a='<a class=\"btn ghost\" href=\"/nocturne/\">The morgue</a>';assert s.count(a)==1;s=s.replace(a,'<a class=\"btn ghost\" rel=\"next\" href=\"/nocturne/x/\">Next</a><a class=\"btn ghost\" href=\"/nocturne/\">The morgue</a>',1);${W}" \
+run_case "The morgue opens the front instead of the morgue" \
+  "The morgue does not open /nocturne/#morgue" \
+  "${N}a='indexRow(\"/nocturne/#morgue\", \"The morgue\", ROW_DOWN)';assert s.count(a)==1;s=s.replace(a,'indexRow(\"/nocturne/\", \"The morgue\", ROW_DOWN)',1);${W}" \
   guards "" 174
 
 run_case "Previous is drawn with a unicode arrow" \
@@ -41,9 +37,9 @@ run_case "the front page grows an issue nav" \
   "${N}a=\"return out + '</section>\\\\n' + footer(\\\"\\\")\";assert s.count(a)==1;s=s.replace(a,\"return out + '</section>\\\\n' + '<nav class=\\\\\\\"issue-nav\\\\\\\" aria-label=\\\\\\\"Issues\\\\\\\"></nav>\\\\n' + footer(\\\"\\\")\",1);${W}" \
   guards "" 174
 
-run_case "print shows the issue nav" \
-  "print no longer hides the issue nav" \
-  "${N}a='.acts{display:none;}.issue-nav{display:none;}';assert s.count(a)==1;s=s.replace(a,'.acts{display:none;}',1);${W}" \
+run_case "print shows the foot" \
+  "print no longer hides the foot" \
+  "${N}a='.acts{display:none;}.themerow{display:none;}';assert s.count(a)==1;s=s.replace(a,'.themerow{display:none;}',1);${W}" \
   guards "" 174
 
 run_case "the middle issue loses Next" \
