@@ -240,6 +240,7 @@ function blessHtml(next){
      172  The paper carries the app's one ask, under its colophon
      173  A pinned fixture may stop, the release run may not
      174  Previous and next, by issue number
+     175  The front names Batman news, and six questions
 
    META
      65   The file points at where its reasoning went
@@ -17309,6 +17310,125 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     }
   }
   note("issue nav: previous and next by issue number, omitted when absent, off the front and the print sheet; the fixture's middle page carries both");
+})();
+
+/* ---------- 175. The front names Batman news, and six questions ---------- */
+/* 6.6.6. The front's document title was "Nocturne · Night Watcher", so a
+   shared card did not say Batman news or no spoilers, and the page carried
+   no JSON-LD at all. The owner accepted six questions. They belong on the
+   front, under the morgue, in the front's markdown, and in one data block:
+   a WebPage that is part of the Periodical, and a FAQPage with those names
+   in order. dateModified is the newest published issue's lastmod, the date
+   the sitemap already gives the front. The front is not a NewsArticle and
+   names no person. An issue stays a NewsArticle and does not carry the
+   block or the first question. The holding page is out of this while the
+   live build has issues. The nameplate, the description, the feed's channel
+   title and every issue title stay as they were. */
+
+(function(){
+  if(nwStop(175)) return;
+  if(!NOC_REAL || !NOC_FIX){ fail("the front questions have no paper to read"); return; }
+  var TITLE = "Nocturne \u00b7 Batman news, no spoilers \u00b7 Night Watcher";
+  var NAMES = [
+    "Where do I read this week\u2019s Batman news without spoilers?",
+    "Does Nocturne spoil Batman movies, series, or comics?",
+    "Is Nocturne a Batman watch order?",
+    "When does the Batman Night Final come out?",
+    "Who writes Nocturne\u2019s Batman coverage?",
+    "How do I follow Nocturne\u2019s Batman news?"
+  ];
+  var ASK = NAMES[0];
+  function decode(s){
+    return String(s).replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+  }
+  function titleOf(html){
+    var m = html.match(/<title>([^<]*)<\/title>/);
+    return m ? decode(m[1]) : "";
+  }
+  function metaOne(html, attr, key){
+    var re = new RegExp('<meta ' + attr + '="' + key + '" content="([^"]*)">', "g");
+    var m, out = [];
+    while((m = re.exec(html))) out.push(decode(m[1]));
+    return out;
+  }
+  function typed(node, t){
+    if(!node || typeof node !== "object") return false;
+    if(Array.isArray(node)) return node.some(function(n){ return typed(n, t); });
+    if(node["@type"] === t) return true;
+    return Object.keys(node).some(function(k){ return typed(node[k], t); });
+  }
+  function newestOf(list){
+    return list.map(function(is){
+      var d = is.fm.published;
+      (is.fm.corrections || []).forEach(function(c){ if(c && c.date > d) d = c.date; });
+      return d;
+    }).sort().pop();
+  }
+  function ordered(text){
+    var at = -1, ok = true;
+    NAMES.forEach(function(n){
+      var i = text.indexOf(n);
+      if(i < 0 || i < at) ok = false;
+      if(i >= 0) at = i;
+    });
+    return ok;
+  }
+  function checkFront(b, label){
+    if(!b.list || !b.list.length) return;
+    var html = (b.files["index.html"] || Buffer.from("")).toString("utf8");
+    var md = (b.files["index.md"] || Buffer.from("")).toString("utf8");
+    var vis = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, "");
+    if(titleOf(html) !== TITLE) fail(label + "front title is not the Batman news line");
+    var og = metaOne(html, "property", "og:title");
+    var tw = metaOne(html, "name", "twitter:title");
+    if(og.length !== 1 || og[0] !== TITLE) fail(label + "front og:title is not the Batman news line");
+    if(tw.length !== 1 || tw[0] !== TITLE) fail(label + "front twitter:title is not the Batman news line");
+    var blocks = html.match(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g) || [];
+    if(blocks.length !== 1) fail(label + "front JSON-LD block count is not one");
+    else {
+      var raw = blocks[0].replace(/^<script type="application\/ld\+json">/, "").replace(/<\/script>$/, "");
+      var data = null;
+      try { data = JSON.parse(raw); }
+      catch(e){ fail(label + "front JSON-LD block does not parse"); }
+      var graph = data && data["@graph"];
+      if(!graph) fail(label + "front JSON-LD has no graph");
+      else {
+        if(typed(data, "NewsArticle")) fail(label + "front JSON-LD is a NewsArticle");
+        if(typed(data, "Person")) fail(label + "front JSON-LD names a Person");
+        var pages = graph.filter(function(n){ return n["@type"] === "WebPage"; });
+        var faqs = graph.filter(function(n){ return n["@type"] === "FAQPage"; });
+        var page = pages[0], faq = faqs[0];
+        var periodical = page && page.isPartOf;
+        var frontUrl = "https://nightwatcher.life/nocturne/";
+        if(pages.length !== 1 || !periodical || periodical["@type"] !== "Periodical" || periodical.name !== "Nocturne" || periodical.url !== frontUrl){
+          fail(label + "front JSON-LD has no Periodical");
+        }
+        var newest = newestOf(b.list);
+        var smDate = ((b.sitemap || "").match(/<loc>https:\/\/nightwatcher\.life\/nocturne\/<\/loc>\n    <lastmod>([^<]+)<\/lastmod>/) || [])[1];
+        if(!page || page.dateModified !== newest || page.dateModified !== smDate){
+          fail(label + "front dateModified is not the newest issue lastmod");
+        }
+        var names = faq && Array.isArray(faq.mainEntity) ? faq.mainEntity.map(function(q){ return q && q.name; }) : [];
+        if(faqs.length !== 1 || names.join("\n") !== NAMES.join("\n")) fail(label + "front FAQPage lost the six Batman questions");
+      }
+    }
+    if(!ordered(vis)) fail(label + "front does not show the six Batman questions");
+    if(vis.indexOf('<a href="/">nightwatcher.life</a>') < 0) fail(label + "front map link is not nightwatcher.life");
+    if(vis.indexOf('<a href="/nocturne/feed.xml">/nocturne/feed.xml</a>') < 0) fail(label + "front wire link is not the feed");
+    var q3 = vis.split(NAMES[2]).slice(1).join(NAMES[2]).split(NAMES[3])[0];
+    if((q3.match(/<a\b/g) || []).length !== 1 || q3.indexOf('<a href="/">nightwatcher.life</a>') < 0){
+      fail(label + "front watch-order answer is not the one link");
+    }
+    if(!ordered(md)) fail(label + "front markdown dropped a Batman question");
+    b.list.forEach(function(is){
+      var page = (b.files[is.id + "/index.html"] || Buffer.from("")).toString("utf8");
+      if(page.indexOf("FAQPage") >= 0) fail(label + "issue page carries the FAQ block");
+      if(page.indexOf(ASK) >= 0) fail(label + "issue page carries the front question");
+    });
+  }
+  checkFront(NOC_REAL, "docs/nocturne/ ");
+  checkFront(NOC_FIX, "the fixture's ");
+  note("front: Batman news in the title, one WebPage and FAQPage, six questions on the page and in the markdown, off every issue");
 })();
 
 /* ---------- report ---------- */

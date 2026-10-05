@@ -14,6 +14,18 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.6.6] — 2026-10-05
+
+**Why PATCH.** The front's document title names Batman news and no spoilers. Under the morgue the front carries six Batman questions, on the page and in the markdown, and in one JSON-LD block with the periodical and a FAQPage. Issue pages stay NewsArticle. No catalogue change, no new script, and nothing saved changes shape. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Changed
+
+- **The front is named.** The document title, og:title and twitter:title read "Nocturne · Batman news, no spoilers · Night Watcher". The nameplate stays Nocturne. The description stays the week's Batman news. The holding page, the feed's channel title and every issue title stay as they were.
+- **One block on the front.** A WebPage is part of the Periodical named Nocturne. Its dateModified is the newest published issue's lastmod, the date the sitemap already gives the front. A FAQPage in the same block carries the six questions in order. The front is not a NewsArticle and names no person.
+- **Six questions, under the morgue.** They are on `/nocturne/` only, and in the front's markdown, in the same order. An issue does not carry them. The map link is nightwatcher.life, to the root, and it is the only link in that answer. The wire link is the feed.
+- **The brief says so.** The front's title names Batman news and no spoilers. Under the morgue the front carries these six questions, the renderer writes them, and they are not on an issue.
+- **Guard 175** holds the built front to that, with a negative suite. Harness: 175 sections, 90 negative suites, 1,750 fixtures (from 1,733), 542 smoke checks.
+
 ## [6.6.5] — 2026-10-05
 
 **Why PATCH.** Docs and copy. The brief tells the desk that the issue row is written by the renderer, and that the foot ends with the app's one ask. The live paper stays two issues. A fixture issue sits between the two test issues, so one rendered page carries both previous and next. The header server lives at `qa/hdr-server.mjs` and still applies `docs/_headers`. Its row in the file table is in the delete-and-assert-red sweep. No catalogue change, no new script, and nothing saved changes shape. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
