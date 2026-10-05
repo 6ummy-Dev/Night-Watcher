@@ -1022,9 +1022,14 @@ function dateline(a, b, c){
 var SUPPORT_URL = "https://publishers.basicattentiontoken.org/en/c/nightwatcher";
 var SUPPORT = 'Keep the path lit. <a href="' + SUPPORT_URL + '" target="_blank" rel="noopener noreferrer">Support</a>';
 
+/* 6.6.8. One link in the paper's row, on the front and on every issue.
+   The homepage's straight answers have no id, and #faq is not an anchor,
+   so this points at the map and does not name a question list. */
+var MAP_LINK = '<a class="btn ghost" href="/">The map</a>';
+
 function footer(extra){
   return '<footer class="foot">\n<div class="acts">' +
-    '<div class="more"><a class="btn ghost" href="/nocturne/feed.xml" type="application/rss+xml">' + RSS + 'RSS</a>' + (extra || "") + '</div>' +
+    '<div class="more"><a class="btn ghost" href="/nocturne/feed.xml" type="application/rss+xml">' + RSS + 'RSS</a>' + (extra || "") + MAP_LINK + '</div>' +
     '<a class="btn home" href="/">' + MARK + '<span class="lbl"><b>Night Watcher</b><small>Open the map' + ARROW + '</small></span></a></div>\n' +
     '<div class="themerow" role="group" aria-label="Theme"><button type="button" data-theme-set="dark" aria-pressed="true">Dark deco</button>' +
     '<button type="button" data-theme-set="darker" aria-pressed="false">Darker</button></div>\n' +
@@ -1201,10 +1206,10 @@ function renderIssue(is, cat, prev, next){
 
 /* 6.6.6. The front's document title names Batman news and no spoilers.
    The nameplate stays Nocturne. The description stays the week's line.
-   Six questions sit under the morgue, on this page and in its markdown,
-   and in the one JSON-LD block. An issue does not carry them. The
-   apostrophe is the paper's. nightwatcher.life is the map. The wire is
-   the feed. */
+   6.6.8. The six questions stay in this order in the FAQPage and in the
+   front markdown. They are not printed on the page. An issue does not
+   carry them. The apostrophe is the paper's. nightwatcher.life is the
+   map. The wire is the feed. */
 var FRONT_TITLE = "Nocturne \u00b7 Batman news, no spoilers \u00b7 Night Watcher";
 var FRONT_QS = [
   ["Where do I read this week\u2019s Batman news without spoilers?",
@@ -1220,11 +1225,6 @@ var FRONT_QS = [
   ["How do I follow Nocturne\u2019s Batman news?",
    "The wire is /nocturne/feed.xml. No account. Price: nothing."]
 ];
-function frontAnswerHtml(i){
-  if(i === 2) return "No. The watch order is the map at <a href=\"/\">nightwatcher.life</a>. The paper is the week\u2019s Batman news.";
-  if(i === 5) return "The wire is <a href=\"/nocturne/feed.xml\">/nocturne/feed.xml</a>. No account. Price: nothing.";
-  return esc(FRONT_QS[i][1]);
-}
 function frontAnswerMd(i){
   if(i === 2) return "No. The watch order is the map at [nightwatcher.life](/). The paper is the week\u2019s Batman news.";
   if(i === 5) return "The wire is [/nocturne/feed.xml](/nocturne/feed.xml). No account. Price: nothing.";
@@ -1240,21 +1240,13 @@ function frontGraph(list){
     })}
   ]};
 }
-function frontQuestions(){
-  var out = '<section class="back" aria-label="Batman questions">\n';
-  FRONT_QS.forEach(function(q, i){
-    out += '<div class="inside"><h2 class="hd">' + esc(q[0]) + '</h2></div>\n' +
-           '<div class="story"><p>' + frontAnswerHtml(i) + '</p></div>\n';
-  });
-  return out + '</section>\n';
-}
-
 /* The front's markdown (6.6.3). There is no source file for /nocturne/:
    the front is this function's HTML, and the markdown is the same page —
    the nameplate, the dateline, the latest issue's title and cold open,
    what is inside it, and the morgue. Nothing here is a second pitch.
    An issue's markdown is its own issue.md, copied byte for byte.
-   6.6.6: the six questions follow the morgue, in the same order as the page. */
+   6.6.8: the six questions follow the morgue here, and only here.
+   The page a reader opens does not print them. */
 function mdLink(text, href){
   /* Backslash first: a \ before ] would otherwise escape the escape and close the label. */
   return "[" + String(text).replace(/\\/g, "\\\\").replace(/\]/g, "\\]") + "](" + href + ")";
@@ -1337,7 +1329,7 @@ function renderArchive(list){
     });
     out += '</ol>\n';
   }
-  return out + '</section>\n' + frontQuestions() + footer("") + '</main>\n' + BEACON + '\n</body>\n</html>\n';
+  return out + '</section>\n' + footer("") + '</main>\n' + BEACON + '\n</body>\n</html>\n';
 }
 
 /* ---------- the share card (6.4.0) ---------- */

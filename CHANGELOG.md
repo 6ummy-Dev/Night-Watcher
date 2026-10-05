@@ -14,6 +14,18 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.6.8] — 2026-10-05
+
+**Why PATCH.** The six Batman questions leave the visible front. They stay in the front's FAQPage for crawlers and in the front markdown, in the same order. The footer carries one link to the map. Issue pages stay NewsArticle. No catalogue change, no new script, and nothing saved changes shape. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Changed
+
+- **The questions leave the page.** Under the morgue the front no longer prints the six questions or their answers. The same six, in the same order, stay in the front's one JSON-LD block, a WebPage of the Periodical and a FAQPage, and in the front markdown. `dateModified` stays the newest issue's lastmod. An issue stays a NewsArticle and does not carry the questions.
+- **One link in the footer.** *The map* sits in the paper's row, on the front and on every issue, and points at `/`. The homepage's straight answers have no id, and `#faq` is not an anchor, so the link does not pretend to open a question list.
+- **The brief says so.** The six are for crawlers and for the markdown. They are not printed on the page and they are not on an issue. The footer carries the one link.
+- **Guard 175** holds that, and its negative suite fails if the visible list comes back. Harness: 175 sections, 90 negative suites, 1,751 fixtures (from 1,750), 542 smoke checks.
+- **`/hww` is rebuilt from the tree.** The page prints 6.6.8.
+
 ## [6.6.7] — 2026-10-05
 
 **Why PATCH.** Copy on the crew page. A paper pull request runs every guard and the paper half of the browser check, on Chromium and WebKit, and skips smoke, the wall and the app half of the browser check. The CI line and the harness paragraph say that. No catalogue change, no new script, and nothing saved changes shape. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
