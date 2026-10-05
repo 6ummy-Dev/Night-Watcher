@@ -63,8 +63,12 @@ The footer opens with *RSS* (the feed) and, on issues, *Share* and *The
 morgue* in one row; under it the *Night Watcher* button that carries the
 app's mark and leads back to the map; then the *Dark deco* / *Darker* switch,
 each row 30px from the next (6.5.1); then the colophon under the app's diamond
-rule. The sign-off above it is set in the reading face, italic (6.5.1). The
-renderer writes all of it.
+rule. The sign-off above it is set in the reading face, italic (6.5.1). After
+the sign-off and before the foot, each issue carries *Previous* and *Next*
+when another published issue exists, and the link names that issue. The
+founding issue shows *Next* only. The latest shows *Previous* only. The
+renderer writes the row. *RSS*, *Share*, *The morgue*, and the way back to the
+map stay as they are. The renderer writes all of it.
 
 ### The masthead
 
@@ -104,6 +108,7 @@ The renderer builds the masthead from the front matter. Never write it into the 
   them.
 - **The colophon** closes every issue, fixed text set by the renderer:
   "Nocturne is the weekly paper of Night Watcher, one fan's map of every Batman story on screen. Researched and drafted by a desk of AI agents, edited and published by hand. Every story links its source. Images credited to their rights holders. The paper counts visits anonymously, with Cloudflare Web Analytics: no cookies, nothing that follows you." Never edit or drop it.
+- The foot ends with the app's one ask, the words "Keep the path lit." and the *Support* link, which the renderer writes.
 
 ## 2 · Access and boundaries
 
@@ -371,7 +376,8 @@ corrections: []                        # {date: YYYY-MM-DD, story: 1-based numbe
 ```
 
 **A worked example of both kinds** is in `qa/nocturne-fixture/issues/`: a
-founding No. 0 and a weekly No. 1 about an invented title. The guards build
+founding No. 0, a weekly No. 1 about an invented title, and a weekly No. 2
+so one page carries both *Previous* and *Next*. The guards build
 and check them on every run, so they always pass the current contract. Copy
 their shape, never their content.
 

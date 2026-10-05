@@ -1676,7 +1676,7 @@ await swCtx.close();
 
 /* ---- Nocturne, the paper (6.2.0) ---------------------------------------
    The paper is static HTML the guards read as text; this is where it is
-   read as a page. The fixture's No. 0, No. 1 and archive are built in
+   read as a page. The fixture's No. 0, No. 1, No. 2 and archive are built in
    memory by the same qa/nocturne.js and served through a route under
    /nocturne-fixture/, so nothing is written into docs/ and the pages are
    exercised before a real issue exists. Real issues, once there are any,
@@ -1715,7 +1715,7 @@ async function paperChecks(){
   real.list.forEach(is => targets.push(["No. " + is.fm.issue, "nocturne/" + is.id + "/"]));
   if(real.list.length) targets.push(["archive", "nocturne/"]);
   else targets.push(["holding page", "nocturne/"]);   /* 6.2.1: no issue yet, /nocturne/ is On the press */
-  ok("nocturne: the fixture builds into pages to read", fix.errors.length === 0 && fix.list.length === 2,
+  ok("nocturne: the fixture builds into pages to read", fix.errors.length === 0 && fix.list.length === 3,
      fix.errors.length ? fix.errors[0] : fix.list.length + " issues");
   for(const [label, rel] of targets){
     const np = await nctx.newPage();

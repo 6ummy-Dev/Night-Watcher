@@ -16615,8 +16615,9 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    applied by qa/nocturne.js to every issue on disk. The fixture runs through
    the same check on every build, so the checker is exercised before a real
    issue exists and a change that breaks it fails here rather than on a
-   Sunday. The fixture is also held to its shape: a founding No. 0 and a
-   weekly No. 1 whose On-the-map box reads a parked title out of the app. */
+   Sunday. The fixture is also held to its shape: a founding No. 0, a
+   weekly No. 1 whose On-the-map box reads a parked title out of the app,
+   and a weekly No. 2 so No. 1 has a neighbor on each side. */
 
 (function(){
   if(nwStop(166)) return;
@@ -16626,9 +16627,9 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   if(!NOC_FIX) return;
   NOC_FIX.errors.forEach(function(m){ fail("the Nocturne fixture breaks the contract: " + m); });
   var kinds = NOC_FIX.list.map(function(i){ return i.fm.issue + ":" + (i.fm.kind || "weekly"); }).sort();
-  if(kinds.join(",") !== "0:founding,1:weekly"){
-    fail("the Nocturne fixture is not a founding No. 0 and a weekly No. 1 (" + kinds.join(", ") +
-         ") — both kinds must go through the check on every run");
+  if(kinds.join(",") !== "0:founding,1:weekly,2:weekly"){
+    fail("the Nocturne fixture is not a founding No. 0, a weekly No. 1 and a weekly No. 2 (" + kinds.join(", ") +
+         ") — both kinds must go through the check on every run, and No. 1 sits between them");
   }
   NOC_FIX.list.forEach(function(is){
     var h = (NOC_FIX.files[is.id + "/index.html"] || Buffer.from("")).toString("utf8");
@@ -16755,7 +16756,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     if(/warnings/.test(errLine)) fail("the sentence warnings refuse the run — they warn and never fail (6.3.4, owner)");
     if(cli.indexOf("\n  printWarnings(b.warnings);\n") < 0) fail("the sentence warnings are never printed (6.3.4)");
   }
-  note("nocturne: the fixture's No. 0 and No. 1 pass the contract; " +
+  note("nocturne: the fixture's No. 0, No. 1 and No. 2 pass the contract; " +
        (NOC_REAL ? NOC_REAL.list.length : 0) + " real issue(s) checked; the notebook holds its shape (" + nbEntries + " entries) and stays out of docs/. " +
        "Sentence warnings do not fail here; npm run nocturne:check prints them and exits 0.");
 })();
@@ -17198,7 +17199,11 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    paper's inline SVG, never U+2197, and print hides the row with the buttons.
    A link's visible text drops tags until none remain, then any leftover
    angle bracket. One pass of a tag pattern leaves a tag that was split
-   across the match, and an unclosed tag has no closing bracket to match. */
+   across the match, and an unclosed tag has no closing bracket to match.
+   6.6.5. The live paper is still two issues, so those edges only ever saw
+   one direction. The fixture's No. 2 gives its No. 1 a neighbor on each
+   side, and that rendered page is held to carry both links. The live
+   edges stay on the real build. */
 
 (function(){
   if(nwStop(174)) return;
@@ -17245,7 +17250,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     if(!want) return !a && !h;
     return !!(a && slugOf(a.href) === want.id && visible(a.inner) === named(want, rel) && slugOf(h) === want.id);
   }
-  function checkBuild(b, label){
+  function checkBuild(b, label, edges){
     var front = (b.files["index.html"] || Buffer.from("")).toString("utf8");
     if(front.indexOf('class="issue-nav"') >= 0) fail(label + "the front page carries an issue nav (6.6.4)");
     var css = (b.files["nocturne.css"] || Buffer.from("")).toString("utf8");
@@ -17276,16 +17281,34 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
         fail(label + "the issue footer .acts row gained a neighbor link (6.6.4)");
       }
     });
-    if(byNum[0] && byNum[1]){
+    if(edges && byNum[0] && byNum[1]){
       var zero = (b.files[byNum[0].id + "/index.html"] || Buffer.from("")).toString("utf8");
       var one = (b.files[byNum[1].id + "/index.html"] || Buffer.from("")).toString("utf8");
       if(!sideOk(zero, "next", byNum[1]) || !sideOk(zero, "prev", null)) fail(label + "No. 0 page is next-only to No. 1 (6.6.4)");
       if(!sideOk(one, "prev", byNum[0]) || !sideOk(one, "next", null)) fail(label + "No. 1 page is prev-only to No. 0 (6.6.4)");
     }
   }
-  checkBuild(NOC_REAL, "docs/nocturne/ ");
-  checkBuild(NOC_FIX, "the fixture's ");
-  note("issue nav: previous and next by issue number, omitted when absent, off the front and the print sheet");
+  checkBuild(NOC_REAL, "docs/nocturne/ ", true);
+  checkBuild(NOC_FIX, "the fixture's ", false);
+  /* The fixture's middle issue is the one page that has a neighbor on each
+     side. The live catalogue has no such page, so this is the assertion
+     that both links are present together. */
+  var mid174 = null;
+  if(NOC_FIX){
+    NOC_FIX.list.forEach(function(is){
+      var nb = neighborsOf(NOC_FIX.list, is);
+      if(nb.prev && nb.next) mid174 = is;
+    });
+  }
+  if(!mid174) fail("the fixture has no issue between two neighbors (6.6.5)");
+  else {
+    var midHtml = (NOC_FIX.files[mid174.id + "/index.html"] || Buffer.from("")).toString("utf8");
+    var midNav = navOf(midHtml);
+    if(!(side(midNav, "prev") && side(midNav, "next") && headHref(midHtml, "prev") && headHref(midHtml, "next"))){
+      fail("the fixture's middle issue does not carry both previous and next (6.6.5)");
+    }
+  }
+  note("issue nav: previous and next by issue number, omitted when absent, off the front and the print sheet; the fixture's middle page carries both");
 })();
 
 /* ---------- report ---------- */

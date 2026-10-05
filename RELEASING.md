@@ -78,7 +78,7 @@ produced it: `NOTES-history.md`.)
 5. **The browser check.** Serve the tree and drive it:
 
    ```
-   node .claude/skills/nw-qa/scripts/hdr-server.mjs docs 8099 &
+   node qa/hdr-server.mjs docs 8099 &
    npm run browser
    ```
 

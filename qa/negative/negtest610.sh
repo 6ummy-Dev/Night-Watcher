@@ -593,6 +593,11 @@ run_case "the README drops its row for qa/browser-check.mjs" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/browser-check.mjs')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
   guards "" 45
 
+run_case "the README drops its row for qa/hdr-server.mjs" \
+  "README's file table does not list: qa/hdr-server.mjs" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/hdr-server.mjs')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
 run_case "the README drops its row for CHANGELOG.md" \
   "README's file table does not list: CHANGELOG.md" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('CHANGELOG.md')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
