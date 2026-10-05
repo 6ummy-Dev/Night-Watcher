@@ -7,6 +7,8 @@
 # page with its open, empty feed (167). 6.2.2: the feed links its own
 # stylesheet and says all of Batman (167), self-hosted (164), weighed (168).
 # 6.2.3: the fence fixture reads nocturne-fence.yml, where the fence moved.
+# 6.6.6: the front's head already passes extra for its JSON-LD, so the
+# archive's noindex plant appends to that extra.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="$(pro qa/nocturne.js)"
@@ -261,7 +263,7 @@ run_case "the feed stays closed until the first issue" \
 
 run_case "the archive keeps the holding page's noindex" \
   "the archive carries noindex" \
-  "${N}a='alt: CARD_ALT}});';assert s.count(a)==1;s=s.replace(a,'alt: CARD_ALT}, extra: \'<meta name=\"robots\" content=\"noindex\">\\\\n\'});',1);${W}" \
+  "${N}a='extra: ldjson(frontGraph(list))';assert s.count(a)==1;s=s.replace(a,'extra: ldjson(frontGraph(list)) + \\'<meta name=\"robots\" content=\"noindex\">\\\\n\\'',1);${W}" \
   guards "" 167
 
 run_case "the feed stops linking its stylesheet" \
