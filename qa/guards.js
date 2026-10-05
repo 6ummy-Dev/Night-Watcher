@@ -17196,7 +17196,9 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    order. No. 0 has Next only, No. 1 has Previous only, and each link names
    that issue. The same address is the head's rel=prev or rel=next. A side
    with no neighbor is omitted, and the front page has no such row. The
-   footer's RSS, Share and The morgue stay where they are. The arrow is the
+   footer's two rows stay where they are: Share this issue, then RSS, Back to
+   Nocturne and The morgue. Copy link and Post on X sit in the share row,
+   hidden until there is no share sheet. The front stays RSS. The arrow is the
    paper's inline SVG, never U+2197, and print hides the row with the buttons.
    A link's visible text drops tags until none remain, then any leftover
    angle bracket. One pass of a tag pattern leaves a tag that was split
@@ -17254,6 +17256,12 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   function checkBuild(b, label, edges){
     var front = (b.files["index.html"] || Buffer.from("")).toString("utf8");
     if(front.indexOf('class="issue-nav"') >= 0) fail(label + "the front page carries an issue nav (6.6.4)");
+    var frontFt = (front.match(/<footer class="foot">[\s\S]*?<\/footer>/) || [""])[0];
+    var frontRows = frontFt.match(/<div class="more">[\s\S]*?<\/div>/g) || [];
+    var frontText = (frontRows[0] || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    if(frontRows.length !== 1 || frontText !== "RSS" || /Share this issue|Back to Nocturne|The morgue|Copy link|Post on X/.test(frontFt)){
+      fail(label + "the front footer is not RSS alone (6.6.9)");
+    }
     var css = (b.files["nocturne.css"] || Buffer.from("")).toString("utf8");
     if(css.indexOf("@media print{") < 0 || css.indexOf(".issue-nav{display:none;}") < css.indexOf("@media print{")){
       fail(label + "print no longer hides the issue nav (6.6.4)");
@@ -17277,8 +17285,18 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
         if(!sideOk(html, rel, want)) fail(label + "No. " + is.fm.issue + " " + rel + " does not name its neighbor (6.6.4)");
       });
       var ft = (html.match(/<footer class="foot">[\s\S]*?<\/footer>/) || [""])[0];
-      var more = ((ft.match(/<div class="more">[\s\S]*?<\/div>/) || [""])[0]).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-      if(more !== "RSS Share The morgue" || /rel="prev"|rel="next"|issue-nav/.test(ft)){
+      var mores = ft.match(/<div class="more">[\s\S]*?<\/div>/g) || [];
+      function rowText(row){ return String(row || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(); }
+      var row1 = rowText(mores[0]), row2 = rowText(mores[1]);
+      var order = ft.indexOf("Share this issue") >= 0 && ft.indexOf("Share this issue") < ft.indexOf(">RSS</a>") &&
+                  ft.indexOf(">RSS</a>") < ft.indexOf("Back to Nocturne") &&
+                  ft.indexOf("Back to Nocturne") < ft.indexOf(">The morgue</a>") &&
+                  ft.indexOf(">The morgue</a>") < ft.indexOf('class="btn home"');
+      if(mores.length !== 2 || row1 !== "Share this issue Copy link Post on X" || row2 !== "RSS Back to Nocturne The morgue" ||
+         !order || /rel="prev"|rel="next"|issue-nav/.test(ft) ||
+         ft.indexOf('class="btn go" href="/nocturne/">Back to Nocturne') < 0 ||
+         ft.indexOf('hidden>Copy link') < 0 ||
+         !/href="https:\/\/x\.com\/intent\/post\?text=[^"]*&amp;url=[^"]*" target="_blank" rel="noopener noreferrer" hidden>Post on X/.test(ft)){
         fail(label + "the issue footer .acts row gained a neighbor link (6.6.4)");
       }
     });

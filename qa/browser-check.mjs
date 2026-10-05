@@ -1743,10 +1743,11 @@ async function paperChecks(){
          C18): the share sheet and the clipboard are stubbed in the page, so
          every path is driven, not only the one headless Chromium happens to
          take. A copy says "Link copied" in the live region only, and the
-         button keeps its word. A refused copy says "Copy failed" and puts
-         the link on its own line; a second click inside the 2.4 s still
-         brings the word back to "Share". A share sheet that fails copies
-         instead; one the reader cancels does nothing. */
+         button keeps its word, which is "Share this issue". A refused copy
+         says "Copy failed" and puts the link on its own line; a second click
+         inside the 2.4 s still brings the word back to "Share this issue".
+         A share sheet that fails copies instead; one the reader cancels does
+         nothing. */
       if(/No\. /.test(label)){
         const stub = (share, copy) => np.evaluate(([share, copy]) => {
           window.__copies = 0;
@@ -1797,13 +1798,13 @@ async function paperChecks(){
       const sh = st.share || {};
       const c = sh.copied || {}, r = sh.refused || {}, f = sh.after || {}, x = sh.sheetFailed || {}, k = sh.cancelled || {};
       ok("nocturne (" + label + "): a copy says \"Link copied\" in the live region only; the button keeps its word",
-         c.out === "Link copied" && c.word === "Share" && !c.fail && c.copies === 1, JSON.stringify(c));
+         c.out === "Link copied" && c.word === "Share this issue" && !c.fail && c.copies === 1, JSON.stringify(c));
       ok("nocturne (" + label + "): a refused copy says \"Copy failed\" and shows the link, as written, on its own line",
          r.word === "Copy failed" && r.fail && r.out === r.url && r.copies === 2, JSON.stringify(r));
-      ok("nocturne (" + label + "): a second click inside 2.4 s still brings the word back to \"Share\"; the link stays",
-         f.word === "Share" && f.fail && f.out === f.url, JSON.stringify(f));
+      ok("nocturne (" + label + "): a second click inside 2.4 s still brings the word back to \"Share this issue\"; the link stays",
+         f.word === "Share this issue" && f.fail && f.out === f.url, JSON.stringify(f));
       ok("nocturne (" + label + "): a failed share sheet copies instead; a cancelled one does nothing",
-         x.copies === 1 && x.out === "Link copied" && k.copies === 0 && k.out === "Link copied" && k.word === "Share",
+         x.copies === 1 && x.out === "Link copied" && k.copies === 0 && k.out === "Link copied" && k.word === "Share this issue",
          JSON.stringify({ sheetFailed: x, cancelled: k }));
     }
     ok("nocturne (" + label + "): axe, no serious violations", st.axe && !st.axe.length,

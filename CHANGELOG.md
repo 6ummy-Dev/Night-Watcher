@@ -14,6 +14,21 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.6.9] — 2026-10-05
+
+**Why PATCH.** An issue's foot is two rows. The first is *Share this issue*, and *Copy link* and *Post on X* only when the device has no share sheet. The next is *RSS*, *Back to Nocturne* (the app's Resume button), and *The morgue*. The front stays *RSS* and the *Night Watcher* button. No catalogue change, no new script, and nothing saved changes shape. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Changed
+
+- **Share this issue.** The share button keeps the sheet: the issue's title and URL, and a copy of the URL when the sheet is missing or fails, except when the reader dismisses it. The label is *Share this issue*.
+- **Copy link and Post on X.** They are in that same row, hidden. `paper.js` shows them only when `navigator.share` is missing. *Copy link* copies the issue URL. *Post on X* is a link to `https://x.com/intent/post` with the headline and the issue URL. No X script, no SDK, and no new connect source.
+- **The way back.** The next row is *RSS*, *Back to Nocturne* (the Resume button, `.btn.go`), and *The morgue*. The *Night Watcher* button stays under them. The front does not get the share row, *Back to Nocturne*, or *The morgue*. Previous and Next stay where they are. Print still hides the buttons.
+- **The brief says so.** On an issue, one row is *Share this issue*, and *Copy link* and *Post on X* only when the device has no share sheet. The next row is *RSS*, *Back to Nocturne*, and *The morgue*. The renderer writes it.
+- **Guard 174** holds the two rows, and still fails if *Share this issue*, *Back to Nocturne*, or *The morgue* disappears, or a neighbor link joins the foot. Harness: 175 sections, 90 negative suites, 1,750 fixtures, 542 smoke checks.
+- **The browser check reads the idle word.** A copy still says "Link copied" in the live region, and the button keeps *Share this issue*. A second click inside 2.4 s brings that word back. A cancelled sheet still does nothing.
+- **The sheet stays within 16 KB.** The banner comment is shorter, four regular faces omit the default weight the feed already omits, and the ghost and share faces are one rule, so *Back to Nocturne* and the hidden-button rule fit.
+- **`/hww` is rebuilt from the tree.** The page prints 6.6.9.
+
 ## [6.6.8] — 2026-10-05
 
 **Why PATCH.** The six Batman questions leave the visible front. They stay in the front's FAQPage for crawlers and in the front markdown, in the same order. The extra footer link is not part of the release. Issue pages stay NewsArticle. No catalogue change, no new script, and nothing saved changes shape. The parked `when` dates are untouched. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
