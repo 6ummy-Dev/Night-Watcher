@@ -25,6 +25,7 @@ change that gets undone by the next person who touches the line.
 - **The way back.** The next row is *RSS*, *Back to Nocturne* (the Resume button, `.btn.go`), and *The morgue*. The *Night Watcher* button stays under them. The front does not get the share row, *Back to Nocturne*, or *The morgue*. Previous and Next stay where they are. Print still hides the buttons.
 - **The brief says so.** On an issue, one row is *Share this issue*, and *Copy link* and *Post on X* only when the device has no share sheet. The next row is *RSS*, *Back to Nocturne*, and *The morgue*. The renderer writes it.
 - **Guard 174** holds the two rows, and still fails if *Share this issue*, *Back to Nocturne*, or *The morgue* disappears, or a neighbor link joins the foot. Harness: 175 sections, 90 negative suites, 1,750 fixtures, 542 smoke checks.
+- **The browser check reads the idle word.** A copy still says "Link copied" in the live region, and the button keeps *Share this issue*. A second click inside 2.4 s brings that word back. A cancelled sheet still does nothing.
 - **The sheet stays within 16 KB.** The banner comment is shorter, four regular faces omit the default weight the feed already omits, and the ghost and share faces are one rule, so *Back to Nocturne* and the hidden-button rule fit.
 - **`/hww` is rebuilt from the tree.** The page prints 6.6.9.
 
