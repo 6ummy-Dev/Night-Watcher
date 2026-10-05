@@ -17316,14 +17316,17 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
 /* 6.6.6. The front's document title was "Nocturne · Night Watcher", so a
    shared card did not say Batman news or no spoilers, and the page carried
    no JSON-LD at all. The owner accepted six questions. They belong on the
-   front, under the morgue, in the front's markdown, and in one data block:
-   a WebPage that is part of the Periodical, and a FAQPage with those names
-   in order. dateModified is the newest published issue's lastmod, the date
-   the sitemap already gives the front. The front is not a NewsArticle and
+   front, in the front's markdown, and in one data block: a WebPage that is
+   part of the Periodical, and a FAQPage with those names in order.
+   dateModified is the newest published issue's lastmod, the date the
+   sitemap already gives the front. The front is not a NewsArticle and
    names no person. An issue stays a NewsArticle and does not carry the
-   block or the first question. The holding page is out of this while the
+   block or the question text. The holding page is out of this while the
    live build has issues. The nameplate, the description, the feed's channel
-   title and every issue title stay as they were. */
+   title and every issue title stay as they were.
+   6.6.8. The owner took the visible list off the front. A reader does not
+   see the six questions or their answers under the morgue. The same six,
+   same order, stay in the FAQPage and in the front markdown. */
 
 (function(){
   if(nwStop(175)) return;
@@ -17337,7 +17340,6 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     "Who writes Nocturne\u2019s Batman coverage?",
     "How do I follow Nocturne\u2019s Batman news?"
   ];
-  var ASK = NAMES[0];
   function decode(s){
     return String(s).replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
   }
@@ -17412,23 +17414,31 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
         if(faqs.length !== 1 || names.join("\n") !== NAMES.join("\n")) fail(label + "front FAQPage lost the six Batman questions");
       }
     }
-    if(!ordered(vis)) fail(label + "front does not show the six Batman questions");
-    if(vis.indexOf('<a href="/">nightwatcher.life</a>') < 0) fail(label + "front map link is not nightwatcher.life");
-    if(vis.indexOf('<a href="/nocturne/feed.xml">/nocturne/feed.xml</a>') < 0) fail(label + "front wire link is not the feed");
-    var q3 = vis.split(NAMES[2]).slice(1).join(NAMES[2]).split(NAMES[3])[0];
-    if((q3.match(/<a\b/g) || []).length !== 1 || q3.indexOf('<a href="/">nightwatcher.life</a>') < 0){
-      fail(label + "front watch-order answer is not the one link");
+    var gone = ["Sunday late (Montevideo)", "It does not say what happens.",
+      "The watch order is the map at", "No issue in a week with nothing to run.",
+      "Not a named reporter.", 'The wire is <a href="/nocturne/feed.xml">'];
+    if(NAMES.some(function(n){ return vis.indexOf(n) >= 0; }) ||
+       gone.some(function(n){ return vis.indexOf(n) >= 0; }) ||
+       vis.indexOf('aria-label="Batman questions"') >= 0){
+      fail(label + "front prints the six Batman questions");
     }
     if(!ordered(md)) fail(label + "front markdown dropped a Batman question");
+    if(md.indexOf("[nightwatcher.life](/)") < 0) fail(label + "front markdown map link is not nightwatcher.life");
+    if(md.indexOf("[/nocturne/feed.xml](/nocturne/feed.xml)") < 0) fail(label + "front markdown wire link is not the feed");
+    var q3 = md.split(NAMES[2]).slice(1).join(NAMES[2]).split(NAMES[3])[0];
+    var links = q3.match(/\[[^\]]*\]\([^)]*\)/g) || [];
+    if(links.length !== 1 || links[0] !== "[nightwatcher.life](/)"){
+      fail(label + "front markdown watch-order answer is not the one link");
+    }
     b.list.forEach(function(is){
       var page = (b.files[is.id + "/index.html"] || Buffer.from("")).toString("utf8");
       if(page.indexOf("FAQPage") >= 0) fail(label + "issue page carries the FAQ block");
-      if(page.indexOf(ASK) >= 0) fail(label + "issue page carries the front question");
+      if(NAMES.some(function(n){ return page.indexOf(n) >= 0; })) fail(label + "issue page carries the front question");
     });
   }
   checkFront(NOC_REAL, "docs/nocturne/ ");
   checkFront(NOC_FIX, "the fixture's ");
-  note("front: Batman news in the title, one WebPage and FAQPage, six questions on the page and in the markdown, off every issue");
+  note("front: Batman news in the title, one WebPage and FAQPage, six questions in the markdown and off the page, off every issue");
 })();
 
 /* ---------- report ---------- */

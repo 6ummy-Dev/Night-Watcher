@@ -1,8 +1,10 @@
 #!/bin/bash
 # negtest810 — 6.6.6. The front's title names Batman news and no spoilers.
 # One JSON-LD block: a WebPage of the Periodical, and a FAQPage of six
-# Batman questions, in order, on the page and in the markdown. An issue
-# carries neither the FAQ block nor the first question (175).
+# Batman questions, in order. 6.6.8: the questions stay in that FAQPage
+# and in the markdown, and the visible page must not print them. An issue
+# carries neither the FAQ block nor the question text (175). The footer
+# is not required to carry a The map link.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="$(pro qa/nocturne.js)"
@@ -59,9 +61,9 @@ run_case "the FAQPage loses the six names" \
   "${N}a='name: q[0], acceptedAnswer:';assert s.count(a)==1;s=s.replace(a,'name: \"Gone\", acceptedAnswer:',1);${W}" \
   guards "" 175
 
-run_case "the front hides the six questions" \
-  "front does not show the six Batman questions" \
-  "${N}a='esc(q[0])';assert s.count(a)==1;s=s.replace(a,'esc(\"Gone\")',1);${W}" \
+run_case "the front prints the six questions again" \
+  "front prints the six Batman questions" \
+  "${N}a=\"return out + '</section>\\\\n' + footer(\\\"\\\")\";assert s.count(a)==1;s=s.replace(a,\"return out + '</section>\\\\n' + '<p>Where do I read this week\\\\u2019s Batman news without spoilers?</p>' + footer(\\\"\\\")\",1);${W}" \
   guards "" 175
 
 run_case "the front markdown drops a question" \
@@ -80,18 +82,18 @@ run_case "an issue page prints the front question" \
   guards "" 175
 
 run_case "the map link leaves the root" \
-  "front map link is not nightwatcher.life" \
-  "${N}a='nightwatcher.life</a>';assert s.count(a)==1;s=s.replace(a,'example.invalid</a>',1);${W}" \
+  "front markdown map link is not nightwatcher.life" \
+  "${N}a='[nightwatcher.life](/)';assert s.count(a)==1;s=s.replace(a,'[example.invalid](https://example.invalid)',1);${W}" \
   guards "" 175
 
 run_case "the wire link leaves the feed" \
-  "front wire link is not the feed" \
-  "${N}a='/nocturne/feed.xml</a>';assert s.count(a)==1;s=s.replace(a,'/elsewhere</a>',1);${W}" \
+  "front markdown wire link is not the feed" \
+  "${N}a='[/nocturne/feed.xml](/nocturne/feed.xml)';assert s.count(a)==1;s=s.replace(a,'[/elsewhere](/elsewhere)',1);${W}" \
   guards "" 175
 
 run_case "the watch-order answer gains a second link" \
-  "front watch-order answer is not the one link" \
-  "${N}a='nightwatcher.life</a>.';assert s.count(a)==1;s=s.replace(a,'nightwatcher.life</a><a href=\\\\\"/x\\\\\">also</a>.',1);${W}" \
+  "front markdown watch-order answer is not the one link" \
+  "${N}a='[nightwatcher.life](/).';assert s.count(a)==1;s=s.replace(a,'[nightwatcher.life](/) [also](/x).',1);${W}" \
   guards "" 175
 
 finish "negtest810"

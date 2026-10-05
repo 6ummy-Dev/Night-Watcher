@@ -59,7 +59,7 @@ the RSS feed at `/nocturne/feed.xml` and the weekly X post.** `/nocturne/` is
 the front, which the build writes from your issues: the latest issue's
 headline, hero, cold open and story heads, one *Read the Night Final* button,
 and back issues under *The morgue* (6.4.0). Never write or edit it.
-The front's document title names Batman news and no spoilers. Under *The morgue* the front carries six questions; the renderer writes them, and they are not on an issue.
+The front's document title names Batman news and no spoilers. The six questions are in the front's FAQPage for crawlers and in the front markdown; the renderer writes them, they are not printed on the page, and they are not on an issue.
 The footer opens with *RSS* (the feed) and, on issues, *Share* and *The
 morgue* in one row; under it the *Night Watcher* button that carries the
 app's mark and leads back to the map; then the *Dark deco* / *Darker* switch,
