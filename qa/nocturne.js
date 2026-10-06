@@ -204,8 +204,10 @@ var ARROW = '<svg class="arr" viewBox="0 0 12 12" aria-hidden="true"><path d="M2
 var ARROW_IN = '<svg class="arr" viewBox="0 0 12 12" aria-hidden="true"><path d="M1.8 6h8M6.6 2.6 10 6l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 /* 6.6.4. Previous is that arrow mirrored across the icon. No Unicode arrow. */
 var ARROW_BACK = '<svg class="arr" viewBox="0 0 12 12" aria-hidden="true"><path d="M10.2 6h-8M5.4 2.6 2 6l3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
-/* 6.7.0. Index-row arrows. The right one is a hair longer than ARROW_IN. */
+/* 6.7.0. Index-row arrows. The right one is a hair longer than ARROW_IN.
+   6.7.2. Back to Nocturne uses the same arrow mirrored, so it points back. */
 var ROW_ON = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1.8 6h8.2M6.6 2.6 10 6l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+var ROW_BACK = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M10.2 6h-8.2M5.4 2.6 2 6l3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 var ROW_DOWN = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.8v8.2M2.6 6.6 6 10l3.4-3.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 var THEME_SWITCH = '<div class="themerow"><button class="dsw" type="button" role="switch" aria-checked="false" aria-label="Darker theme" data-theme-switch><span class="dl">Dark deco</span><span class="trk" aria-hidden="true"><i></i></span><span class="dl">Darker</span></button></div>\n';
 function unesc(s){
@@ -1074,7 +1076,7 @@ function footer(extra){
   var rss = indexRow("/nocturne/feed.xml", "Follow by RSS", RSS, "application/rss+xml");
   var idx = o
     ? '<nav class="idx" aria-label="This issue"><p class="ih"><span>Back page</span><span>No. ' + o.issue.n + ' \u00b7 ' + esc(o.issue.date) + '</span></p>' +
-      indexRow("/nocturne/", "Back to Nocturne", ROW_ON) +
+      indexRow("/nocturne/", "Back to Nocturne", ROW_BACK) +
       indexRow("/nocturne/#morgue", "The morgue", ROW_DOWN) + rss + '</nav>'
     : '<nav class="idx" aria-label="Nocturne"><p class="ih"><span>Nocturne</span><span>Every Sunday, late</span></p>' + rss + '</nav>';
   return '<footer class="foot">\n<div class="acts">' + (o && o.share ? '<div class="more">' + o.share + '</div>' : '') + idx + (o && o.keep ? o.keep : '') +

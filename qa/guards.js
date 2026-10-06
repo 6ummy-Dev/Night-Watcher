@@ -17315,6 +17315,8 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
         fail(label + "the Back page index does not name No. " + is.fm.issue + " (6.7.0)");
       }
       if(rowHref(idx, "Back to Nocturne") !== "/nocturne/") fail(label + "Back to Nocturne does not open /nocturne/ (6.7.0)");
+      var backRow = idx.match(/<a class="ir" href="\/nocturne\/">[\s\S]*?<\/a>/);
+      if(!backRow || backRow[0].indexOf("h-8.2") < 0) fail(label + "Back to Nocturne's arrow points forward (6.7.2)");
       if(rowHref(idx, "The morgue") !== "/nocturne/#morgue") fail(label + "The morgue does not open /nocturne/#morgue (6.7.0)");
       if(rowHref(idx, "Follow by RSS") !== "/nocturne/feed.xml" || !/type="application\/rss\+xml"/.test(idx)){
         fail(label + "Follow by RSS does not open the feed (6.7.0)");
