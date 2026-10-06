@@ -89,6 +89,7 @@ function blessHtml(next){
      87   A backup carries progress, not settings
      126  A restored path cannot reach the prototype chain
      127  A failed read stops the writes, a failed write does not
+     176  A bad settings key does not hide the progress
      134  A removal is a fact with a clock, not a hole
      142  A backup is stamped only when a copy left
      102  A tick burst writes once, and leaving flushes
@@ -17500,6 +17501,35 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   checkFront(NOC_REAL, "docs/nocturne/ ");
   checkFront(NOC_FIX, "the fixture's ");
   note("front: Batman news in the title, one WebPage and FAQPage, six questions in the markdown and off the page, off every issue");
+})();
+
+/* ---------- 176. A bad settings key does not hide the progress ---------- */
+/* 6.7.1, from the 6 Oct audit (M6). The two keys were one try. A truncated
+   settings key latched the whole read, the banner said the progress could
+   not be read, and the two-tap clear wrote an empty payload over marks that
+   had parsed. Settings now fail on their own and fall back. A progress key
+   that will not parse still latches, and Progress can hand the reader the
+   raw string before that clear. */
+
+(function(){
+  var rbody = optionalFn("restore", "nothing reads the saved state back");
+  if(/sraw && \(!so/.test(rbody)){
+    fail("restore() fails the progress read when the settings key does not parse");
+  }
+  var sAt = rbody.indexOf("JSON.parse(sraw)"), pAt = rbody.indexOf("JSON.parse(raw)");
+  if(sAt < 0 || pAt < 0 || pAt < sAt){
+    fail("restore() no longer parses the settings key on its own, ahead of the progress key");
+  } else if(!/catch/.test(rbody.slice(sAt, pAt))){
+    fail("the settings parse shares the progress try");
+  }
+  var stats = optionalFn("viewStats", "Progress would have nowhere to offer the unread bytes");
+  if(!/data-act="salvage"/.test(stats) || !/salvageRaw/.test(stats)){
+    fail("Progress no longer offers the unread progress bytes");
+  }
+  if(!/act === "salvage"/.test(HTML) || !/download\("night-watcher-unreadable\.txt", salvageRaw\)/.test(HTML)){
+    fail("the salvage control does not download the unread progress bytes");
+  }
+  note("a bad settings key falls back; an unread progress key can be downloaded before the clear");
 })();
 
 /* ---------- report ---------- */

@@ -144,7 +144,7 @@ TheWrap says it is unclear if Thames and Kim could reprise their roles. Four nam
 
 John Dodge at [CBR](https://www.cbr.com/absolute-batman-hiatus-date-confirmed/) says DC's solicitations date the release of *Absolute Batman* #25 to 28 October 2026. He says the series goes on hiatus after that issue. He puts the issue at 30 pages. Alex Zalben at [Comic Book Club](https://comicbookclublive.com/2026/09/20/absolute-batman-seemingly-going-on-hiatus-comic-book-industry-doomed/) says the main title is absent from DC's December solicitations.
 
-CBR says the series returns in 2027. Issue 26 has a guest artist. CBR puts Barbara Gordon's personal journey on that 2027 return, not on issue 26. Nick Dragotta is back for issue 27. Renan Fontes at [GameRant](https://gamerant.com/absolute-batman-hiatus/) reports no confirmed 2027 return, other than a TBP collection of recent issues. Comic Book Club says a Beyond Ark M Special will hit on 11 November.
+CBR says the series returns in 2027. Issue 26 has a guest artist. CBR puts Barbara Gordon's personal journey on that 2027 return, not on issue 26. Nick Dragotta is back for issue 27. Renan Fontes at [GameRant](https://gamerant.com/absolute-batman-hiatus/) reports no confirmed 2027 return, other than a TPB collection of recent issues. Comic Book Club says a Beyond Ark M Special will hit on 11 November.
 
 The December gap is what the three reports share. The return is where they split.
 

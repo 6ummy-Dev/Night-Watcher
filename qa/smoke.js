@@ -515,7 +515,7 @@ win.addEventListener("load", function(){
         var mm = [], n = 0;
         S.tab = "watch"; S.q = ""; win.setAllGroups(true); win.render();
         var inp = v.querySelector("#q");
-        ["bat", "batman begins", "zzzznomatch", "joker", "", "dark", ""].forEach(function(q){
+        ["bat", "batman begins", "zzzznomatch", "joker", "", "dark", "", "batman 1989", "snyder's", "folie a deux", ""].forEach(function(q){
           S.q = q; if(inp) inp.value = q; win.searchApply();
           var after = shot();
           win.render();
@@ -524,6 +524,18 @@ win.addEventListener("load", function(){
         });
         check("a search keystroke's in-place pass is byte-identical to a full render (" + n + " driven)",
               mm.length === 0, mm.join("  |  "));
+        function shownFor(q){
+          S.q = q; if(inp) inp.value = q; win.searchApply();
+          var nShown = 0;
+          v.querySelectorAll(".film").forEach(function(row){ if(!row.hidden) nShown++; });
+          return nShown;
+        }
+        var y1989 = shownFor("batman 1989");
+        var snyder = shownFor("snyder's");
+        var folie = shownFor("folie a deux");
+        check("a title and a year match across the empty subtitle", y1989 >= 1, String(y1989));
+        check("a straight apostrophe finds a curly one", snyder >= 1, String(snyder));
+        check("an unaccented query finds Folie a Deux", folie >= 1, String(folie));
         S.q = ""; win.render();
         var pw = win.panelOf("watch");
         S.tab = "next"; win.render();
@@ -2578,7 +2590,15 @@ win.addEventListener("load", function(){
             check("an unreadable store's banner says it could not be read, and how to start fresh",
                   /couldn\u2019t be read/.test(d5.getElementById("nosave").textContent) &&
                   /Clear all progress/.test(d5.getElementById("nosave").textContent),
-                  d5.getElementById("nosave").textContent.slice(0, 60));
+                  d5.getElementById("nosave").textContent.slice(0, 80));
+            w5.S.tab = "stats"; w5.render();
+            var sv = d5.querySelector('#view .panel:not([inert]) button[data-act="salvage"]');
+            check("an unreadable progress key offers the raw bytes for download",
+                  !!sv && w5.salvageRaw === corrupt, sv ? "present" : "missing");
+            if(sv) sv.click();
+            check("downloading the raw bytes leaves them on disk and keeps the latch",
+                  w5.localStorage.getItem("batwatch-v3") === corrupt && w5.readFailed === true,
+                  "readFailed=" + w5.readFailed);
             reboot(corrupt, "corrupt store, cleared", function(wc, dc){
               wc.S.tab = "stats"; wc.render();
               var rb = function(){ return dc.querySelector('#view .panel:not([inert]) button[data-act="reset"]'); };
@@ -2928,11 +2948,22 @@ win.addEventListener("load", function(){
               pk.watched[A] === 1 && pk.watched[FILMS[3].id] === 1 && !("theme" in pk) && !("path" in pk) &&
               !("tier" in pk) && !("format" in pk) && !("scope" in pk) && !("groupOpen" in pk),
               Object.keys(pk).join(","));
-        /* A corrupt settings key is a failed read like a corrupt progress key. */
-        reboot({m:JSON.stringify({watched:{}, skipped:{}, rated:{}, log:[]}), s:"{not json"}, "corrupt settings", function(w10, d10){
-          check("a corrupt settings key stops the writes like a corrupt progress key",
-                w10.readFailed === true && w10.canSave === false && !d10.getElementById("nosave").hidden,
-                "readFailed=" + w10.readFailed);
+        /* 6.7.1: a corrupt settings key is not a corrupt progress key. */
+        var keptId = "batman-1989";
+        var kept = JSON.stringify({watched:(function(o){ o[keptId] = 1; return o; })({}),
+          skipped:{}, rated:(function(o){ o[keptId] = 5; return o; })({}), log:[]});
+        reboot({m:kept, s:'{"theme":"dark"'}, "corrupt settings", function(w10, d10){
+          check("a corrupt settings key boots the marks and keeps saving",
+                w10.readFailed === false && w10.canSave === true &&
+                w10.S.watched[keptId] === 1 && w10.S.rated[keptId] === 5 &&
+                d10.getElementById("nosave").hidden,
+                "readFailed=" + w10.readFailed + " watched=" + w10.S.watched[keptId]);
+          w10.flushPersist();
+          var sk = w10.localStorage.getItem("batwatch-settings");
+          check("a corrupt settings key is rewritten and the progress key is left",
+                !!sk && sk.charAt(0) === "{" && !!JSON.parse(sk) &&
+                w10.localStorage.getItem("batwatch-v3") === kept,
+                sk);
         });
       });
     })();

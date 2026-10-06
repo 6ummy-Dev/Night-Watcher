@@ -114,7 +114,7 @@ The renderer builds the masthead from the front matter. Never write it into the 
 | Open one PR per week against `main` | Approve your own PR or change branch protection. The owner reviews and merges every PR |
 | Add or change files under `nocturne/issues/` and `docs/nocturne/`, and the notebook `nocturne/NOTEBOOK.md` | Touch anything else, **including `nocturne/BRIEF.md`, `nocturne/REPORTER.md`, `nocturne/CASEBOOK.md`, `nocturne/MORGUE.md` and `nocturne/VOICE.md`** (only the owner edits the rules), `docs/index.html`, `sw.js`, `_headers`, `qa/`, workflows, README, CHANGELOG |
 | Run `npm ci`, `npm run nocturne:build`, `npm run nocturne:check` and `npm test` | Edit or bless guard output to make a check pass |
-| Write the one X draft in the PR (the Night Editor, §8) | Post on X: the owner posts it, after the page answers 200 on the live site (6.5.1) |
+| Write the one X draft, and hand it to the owner after the issue is live (§8) | Put the draft in the PR, or post on X. The owner posts it, after the page answers 200 on the live site (6.5.1) |
 
 **Who you are on GitHub (6.3.6).** You work as the desk's GitHub App,
 `nocturne-night-final[bot]`, and as nothing else. Each run mints a one-hour
@@ -186,9 +186,9 @@ All times are America/Montevideo (UTC−3).
 | When | Step |
 | --- | --- |
 | Monday 00:00 to Sunday 12:00 | The week's news window |
-| Sunday, by 17:00 | Branch, write, images, build, check, open the PR |
-| Sunday, 17:00–21:00 | Owner reviews and merges; Cloudflare deploys |
-| Sunday, 22:00–23:00 | Verify live, then post on X |
+| Sunday, around 20:00 | The Sunday machine starts at 20:03. Branch, write, images, build, check, open the PR |
+| Sunday, from the PR until 23:00 | Owner reviews and merges. Cloudflare deploys on the merge |
+| After the merge, before 23:00 | Verify live, then the owner posts on X |
 
 **The Night Final is Sunday's paper.** If the PR isn't merged by 23:00 Sunday,
 that issue doesn't run on Monday. Stories that are still news can carry into
@@ -241,6 +241,10 @@ doesn't advance. A thin week is fine. A padded one isn't.
    in the PR's "Catalogue flags"** the first week it's news; after that, one
    line under "Still open" until the owner acts. Never edit the catalogue
    yourself.
+   **5a. Morgue re-check** (6.7.1). If the Night Editor rewrites, adds, drops
+   or reorders a story after the stamp, the Morgue re-reads the current
+   `issue.md` and confirms or fixes each `catalogue` and `effect` before the
+   build.
 6. **Pre-flight** against `VOICE.md` §11, item by item.
 7. **Build and check:** `npm ci && npm run nocturne:build && npm run nocturne:check && npm test`.
    All green, or stop. **When the check refuses, fix the break it names, and
@@ -258,7 +262,7 @@ doesn't advance. A thin week is fine. A padded one isn't.
    `nocturne/<yyyy>-w<ww>`. CI's `nocturne-paths` job fails the PR if it
    changes anything outside `nocturne/issues/`, `nocturne/NOTEBOOK.md`,
    `docs/nocturne/` and `docs/sitemap.xml`.
-10. **After merge**, Sunday 22:00: the site deploys on the merge. From the VM,
+10. **After merge**: the site deploys on the merge. From the VM,
    `curl -sI` the issue URL. The post goes out only on a 200, and only if the
    page's `<h1>` matches the merged headline (§8). The owner posts it; the desk
    never does (6.5.1).
@@ -526,17 +530,15 @@ nocturne:build ✅  nocturne:check ✅  npm test ✅
 
 ## Screenshots
 <390 wide, full page> <1280 wide, full page>
-
-## X post (draft)
-<text, ≤ 280 weighted characters>
 ```
 
 ## 8 · The X post
 
-The owner posts it, as themselves. The Night Editor writes the one draft, in
-the PR, before the merge; nobody writes a second, and no desk posts (6.5.1).
+The owner posts it, as themselves. The Night Editor writes the one draft and
+hands it to the owner after the issue is live. The draft does not go in the
+PR. Nobody writes a second, and no desk posts (6.5.1).
 
-- One post per issue, Sunday 22:00–23:00 Montevideo, after the 200 check.
+- One post per issue, after the 200 check and before 23:00 Sunday Montevideo.
 - "I" voice. It opens on "The Night Final is out." or the lead story in one
   plain sentence, then the link. No hashtags, no emoji, no "RT", no "link in
   replies". The link goes in the post.

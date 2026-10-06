@@ -78,7 +78,10 @@ stories:
     catalogue: none
     effect: none
 sign_off: "The city stays wet. Get some sleep, Night Watchers. The file's open again next Sunday."
-corrections: []
+corrections:
+  - date: 2026-10-06
+    story: 3
+    text: "The cover date of *Batman* #1 was printed as March 1940. It is Spring 1940, and the issue reached newsstands on 25 April 1940, after Robin in *Detective Comics* #38."
 ---
 
 ## Somebody has to stay up with Batman, and we will
@@ -103,7 +106,7 @@ One person built it and keeps it. The map keeps the order. The paper keeps the n
 
 ## He wasn't finished in 1939, and he still isn't
 
-Batman first appeared in *Detective Comics* #27, which [hit newsstands on 30 March 1939, cover-dated May 1939](https://www.dc.com/blog/2019/03/19/batman-a-history-of-heroics-the-beginning). [DC says](https://www.dc.com/characters/batman) the idea took a little time to form after that. His origin followed in *Detective Comics* #33, cover-dated November 1939. Dick Grayson, the first Robin, arrived in [*Detective Comics* #38, cover-dated April 1940](https://www.dc.com/blog/2019/03/20/batman-a-history-of-heroics-1940s-1950s), and we'll admit to a soft spot. The Joker and Catwoman came in *Batman* #1, cover-dated March 1940. [Alfred](https://www.dc.com/characters/alfred-pennyworth) arrived in *Batman* #16, cover-dated April 1943.
+Batman first appeared in *Detective Comics* #27, which [hit newsstands on 30 March 1939, cover-dated May 1939](https://www.dc.com/blog/2019/03/19/batman-a-history-of-heroics-the-beginning). [DC says](https://www.dc.com/characters/batman) the idea took a little time to form after that. His origin followed in *Detective Comics* #33, cover-dated November 1939. Dick Grayson, the first Robin, arrived in [*Detective Comics* #38, cover-dated April 1940](https://www.dc.com/blog/2019/03/20/batman-a-history-of-heroics-1940s-1950s), and we'll admit to a soft spot. The Joker and Catwoman came in *Batman* #1, cover-dated Spring 1940, on sale 25 April 1940. [Alfred](https://www.dc.com/characters/alfred-pennyworth) arrived in *Batman* #16, cover-dated April 1943.
 
 DC files his history in ages, from the Golden Age of 1939 through the New 52 and Rebirth. The lighter years ran all the way to the 1966 television show. Then, from the late '60s, he was given a new direction, and it led to the Batman we know.
 
