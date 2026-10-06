@@ -47,8 +47,10 @@ settings key when it exists and off the progress blob when it does not,
 and when the settings key was absent the boot writes it (one write of the
 settings side). The stale settings inside the progress blob are ignored
 from then on and leave it with the next progress write. A settings key that
-does not parse is a failed read like a progress key that does not parse:
-`readFailed` latches, nothing writes (guard 127).
+does not parse falls back to the defaults and is rewritten the next time
+settings are saved. It does not latch `readFailed` (6.7.1, guard 176). A
+progress key that does not parse still does: `readFailed` latches, nothing
+writes, and Progress can download the raw string before the clear (guard 127).
 
 | Key | Written as | Read back as |
 | --- | --- | --- |

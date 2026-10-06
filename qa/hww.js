@@ -194,9 +194,9 @@ function page(f){
     '<p>The Sunday desk does not move. Nocturne is the paper. The Night Final is the one Sunday edition. It is not the changelog. Times are Montevideo. A thin week is fine. A padded one is not.</p><ol class="steps">' +
     '<li><span class="when">Mon–Sat 08:38</span><span class="what">Stoop, then Wire. Plus the standing look at Justice Year. No pull request on a weekday from this desk.</span></li>' +
     '<li><span class="when">Sun before noon</span><span class="what">The last sweep. The window closes at 12:00.</span></li>' +
-    '<li><span class="when">Sun 12:38</span><span class="what">Night Editor, then SEO by DM, then Copy, then pictures, then the stamp, then the pre-flight, then eggbot builds and opens the pull request.</span></li>' +
-    '<li class="gate2"><span class="when">Sun 17:00–21:00</span><span class="what">The owner merges. Nothing else goes to main while it is open, weekday pull requests included. Land them before 17:00, or leave them.</span></li>' +
-    '<li><span class="when">Sun 22:00–23:00</span><span class="what">A 200 and the headline. The owner posts the one draft.</span></li>' +
+    '<li><span class="when">Sun 20:03</span><span class="what">Night Editor, then SEO by DM, then Copy, then pictures, then the stamp, then the pre-flight, then eggbot builds and opens the pull request around 20:00.</span></li>' +
+    '<li class="gate2"><span class="when">Until 23:00</span><span class="what">The owner merges. Nothing else goes to main while it is open. Weekday pull requests land before 17:00, or they wait.</span></li>' +
+    '<li><span class="when">After merge</span><span class="what">A 200 and the headline, then the owner posts the one draft, before 23:00. The draft is not in the pull request.</span></li>' +
     '<li><span class="when">Not by 23:00</span><span class="what">The issue does not run.</span></li>' +
     '</ol>' +
     '<p>Handoff never ships. Four paths only. A quiet week with notebook lines gets one pull request, the notebook alone. Eggbot does not build until the SEO file exists. The token lasts one hour. A Night Final is not a release.</p></section>');

@@ -56,7 +56,7 @@ async function csp() {
     total += hits.length; errors += errs.length;
     await page.close();
   }
-  verdict("L2", total || errors ? "REGRESSION" : "OK", `${paths.length} pages, ${total} CSP violations, ${errors} page errors (CI still does not apply _headers: check qa.yml)`);
+  verdict("L2", total || errors ? "REGRESSION" : "OK", `${paths.length} pages, ${total} CSP violations, ${errors} page errors`);
   await ctx.close();
 }
 

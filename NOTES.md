@@ -15,7 +15,7 @@ Four other places carry part of the story and are not repeated here:
   required reading before a change; everything here is written in the
   present tense.
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 175 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 176 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -361,6 +361,8 @@ turns saving back on and writes a fresh payload over both keys, because the
 reader has just confirmed, twice, that the old state is to go. On a blocked
 store it does nothing of the kind. No new control and no third key; the QA
 report of 1 Oct 2026 (M3) found the read-only state permanent.
+
+From 6.7.1 the two keys are not one read. A settings key that will not parse falls back to the defaults and is rewritten the next time settings are saved. It does not latch `readFailed`, and it does not hide marks that parsed. An unreadable progress key still latches, still refuses to write, and Progress offers the raw string for download before the two-tap clear. The clear is still the only overwrite, and it is still the reader's, twice.
 
 ### `saveWorked()`
 
@@ -749,6 +751,14 @@ The Path. A sub that is only the year says nothing the next field does not.
 One haystack. It was written out twice — once to decide what the list shows
 and once to decide what the "N matches" line calls hidden — so a field added
 to one and not the other made the count stop describing the list.
+
+From 6.7.1 the haystack is the non-empty parts joined by one space, then
+folded: a curly apostrophe becomes straight, à becomes a, and everything
+that is not a letter, a digit or an apostrophe becomes a space. `foldSearch`
+does that to the query too. `matches` asks for each word on its own, so
+"batman 1989" finds the film whose subtitle is empty, and "snyder's" finds
+the title spelled with a curly apostrophe. A short word still matches inside
+a longer one, which is how "bat" finds Batman.
 
 ### `GROUPINGS` / `modeGroups()` / `groupFilms()`
 

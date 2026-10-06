@@ -14,6 +14,24 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.7.1] — 2026-10-06
+
+**Why PATCH.** A truncated settings key was treated as unreadable progress, and the banner's remedy erased the marks. Search missed a title typed with its year, or with a straight apostrophe. No. 0 had *Batman* #1's cover date wrong, and No. 1 said TBP for a trade paperback. The Sunday clock in the brief and on `/hww` still said 17:00. Nothing saved changes shape. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Fixed
+
+- **The two keys are two reads.** A settings key that will not parse falls back to the defaults and is rewritten the next time settings are saved. The marks stay, and saving stays on. An unreadable progress key still stops the writes. Progress offers *Download what's saved* before *Clear all progress*, and the download leaves the bytes where they are. Guard 176 holds the split. Guard 127 still holds the latch.
+- **Search.** The haystack drops an empty subtitle instead of leaving two spaces, folds a curly apostrophe and à, and matches each word on its own. "batman 1989", "snyder's" and "folie a deux" find their titles. A short word still matches inside a longer one.
+- **No. 0.** Story 3 said *Batman* #1 was cover-dated March 1940. The correction, dated 6 Oct 2026, says Spring 1940, on sale 25 April 1940, after Robin. The sentence in the story says the same.
+- **No. 1.** "TBP" is "TPB".
+
+### Changed
+
+- **The Sunday clock.** The brief's table, step 10, and `/hww` follow the desk as of 6 Oct 2026. The machine starts at 20:03 and the pull request opens around 20:00. The owner reviews until 23:00. The live check is after the merge, and the post is before 23:00. The one X draft is handed to the owner after the issue is live. It is not in the pull request. Weekday pull requests still land before 17:00. Step 5a is the Morgue re-check, for a story rewritten after the stamp.
+- **The probe line.** The L2 verdict no longer says CI skips `_headers`.
+- **`source-map-js` is 1.2.2.** Dev only. The audit finding was the event-loop bug in 1.2.1.
+- **Harness.** 176 guard sections, 91 negative suites, 1,754 fixtures, 548 smoke checks. `/hww` is rebuilt from the tree.
+
 ## [6.7.0] — 2026-10-05
 
 **Why MINOR.** The owner called the foot a design change on 5 Oct 2026. An issue ends with the share row, then an index headed *Back page*, then *Keep reading*, then *Night Watcher*, then one centred *Dark deco* / *Darker* switch. The stylesheet ceiling is 25 KiB, set that day. The theme control is a compact, centred switch, replacing the 3.8.3 full-width row. Three catalogue corrections ride with it. Dynamic Duo's date moves from 30 June 2028 to 22 September 2028. Batwheels Season 3 moves from 19 episodes to 24. Justice League x RWBY — Part Two shows 2023, so the year is fixed and the slug is not. Nothing saved changes shape. Clayface's date and its rating stay. Teen Titans Go! stays at episode 454. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
