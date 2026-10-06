@@ -118,9 +118,9 @@ run_case "the second URL is not llms.txt" \
 
 echo "--- 75: the Theme row and the include switch are a finger's size"
 
-run_case "the Theme row back to 34px" \
-  ".themerow button gives a 34px touch target" \
-  "${P}a='.themerow button{flex:1;min-height:44px;';assert s.count(a)==1;s=s.replace(a,'.themerow button{flex:1;min-height:34px;',1);${W}" \
+run_case "the theme switch back to 34px" \
+  ".dsw gives a 34px touch target" \
+  "${P}a='.dsw{display:inline-grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;min-height:44px;';assert s.count(a)==1;s=s.replace(a,'.dsw{display:inline-grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;min-height:34px;',1);${W}" \
   guards "" 75
 
 run_case "the include switch back to 34px" \
@@ -128,9 +128,9 @@ run_case "the include switch back to 34px" \
   "${P}a='.includes .scope button{min-height:44px;';assert s.count(a)==1;s=s.replace(a,'.includes .scope button{min-height:34px;',1);${W}" \
   guards "" 75
 
-run_case "the rows' focus ring clipped again" \
-  "focus ring is not drawn inset" \
-  "${P}a='.themerow button:focus-visible,.includes .scope button:focus-visible{outline-offset:-2px;}\\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
+run_case "the theme switch loses its focus ring" \
+  ".dsw's focus ring is missing" \
+  "${P}a='.dsw:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}\\n';assert s.count(a)==1;s=s.replace(a,'',1);${W}" \
   guards "" 75
 
 finish "negtest790"

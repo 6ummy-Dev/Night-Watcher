@@ -64,10 +64,10 @@ run_case "the selector creeps into the Belt" \
 b='(S.beltOpen ? includeBlock() : \"\");';assert b in s
 s=s.replace(b,'(S.beltOpen ? includeBlock() + themeRow() : \"\");',1);${W}" guards "" 97
 
-run_case "the theme row gets capped again" \
-  "the theme row is capped again" \
-  "${P}a='.themerow{';assert a in s
-s=s.replace(a,'.themerow{max-width:230px;',1);${W}" guards "" 97
+run_case "the theme switch loses its centre" \
+  "the theme switch is not centred" \
+  "${P}a='.themerow{display:flex;justify-content:center;';assert a in s
+s=s.replace(a,'.themerow{display:flex;',1);${W}" guards "" 97
 
 echo "--- 98: the progress card"
 run_case "share loses the lead" \

@@ -1841,12 +1841,12 @@ async function paperChecks(){
       await sp.goto(SITE_URL + "nocturne/", { waitUntil: "load" });
       await sp.evaluate(() => localStorage.setItem("batwatch-settings", JSON.stringify({ theme: "dark" })));
       await sp.reload({ waitUntil: "load" });
-      await sp.click('[data-theme-set="darker"]');
-      const flipped = await sp.evaluate(() => document.documentElement.getAttribute("data-theme") + " " + document.querySelector('[data-theme-set="darker"]').getAttribute("aria-pressed"));
+      await sp.click('[data-theme-switch]');
+      const flipped = await sp.evaluate(() => document.documentElement.getAttribute("data-theme") + " " + document.querySelector("[data-theme-switch]").getAttribute("aria-checked"));
       await sp.reload({ waitUntil: "load" });
       await sp.waitForTimeout(200);
-      const held = await sp.evaluate(() => document.documentElement.getAttribute("data-theme") + " " + document.querySelector('[data-theme-set="darker"]').getAttribute("aria-pressed"));
-      await sp.click('[data-theme-set="dark"]');
+      const held = await sp.evaluate(() => document.documentElement.getAttribute("data-theme") + " " + document.querySelector("[data-theme-switch]").getAttribute("aria-checked"));
+      await sp.click('[data-theme-switch]');
       const back = await sp.evaluate(() => String(document.documentElement.getAttribute("data-theme")));
       const app = await sp.evaluate(() => localStorage.getItem("batwatch-settings"));
       got = { flipped, held, back, app };

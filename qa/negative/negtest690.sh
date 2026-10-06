@@ -176,9 +176,9 @@ run_case "render() forgets to expire a stale pick" \
   "${P}a='function render(o){\n  expirePick();';assert a in s;s=s.replace(a,'function render(o){',1);${W}" \
   guards "" 155
 
-run_case "the pressed chip washes out under forced colors" \
-  "matches its unpressed twin under forced colors" \
-  "${P}a='.chip[aria-pressed=\"true\"],.scope button[aria-pressed=\"true\"],.pathseg button[aria-pressed=\"true\"],.themerow button[aria-pressed=\"true\"],.film.done .tick{forced-color-adjust:none;background:Highlight;color:HighlightText;border-color:Highlight;}\n';assert a in s;s=s.replace(a,'',1);${W}" \
+run_case "the theme switch's knob disappears under forced colors" \
+  "the theme switch's knob disappears under forced colors" \
+  "${P}a='.dsw .trk i{forced-color-adjust:none;background:CanvasText;}\n';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 159
 
 run_case "the current tab is signal ink only again" \

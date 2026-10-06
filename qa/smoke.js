@@ -452,16 +452,15 @@ win.addEventListener("load", function(){
             });
             delete S.open[id];
           });
-          /* The theme toggle, which touches only the two document-level
-             attributes and the pressed state of its own two buttons. */
+          /* The theme switch, which touches the document theme and its aria-checked. */
           (function(){
             var t0 = S.tab; S.tab = "home"; win.render();
-            ["darker", "dark"].forEach(function(th){
-              var tb = v.querySelector('button[data-theme="' + th + '"]');
+            [0, 1].forEach(function(){
+              var tb = v.querySelector("[data-theme-switch]");
               if(tb) tb.click();
               var afterT = shot();
               win.render();
-              if(shot() !== afterT) mismatches.push("theme:" + th);
+              if(shot() !== afterT) mismatches.push("theme:" + S.theme);
               drove++;
             });
             S.tab = t0; win.render();
@@ -617,13 +616,13 @@ win.addEventListener("load", function(){
           doc.documentElement.getAttribute("data-theme") === "dark", bar());
     S.tab = "home"; win.render();
     check("the theme selector lives on Home now", !!doc.querySelector('#view .panel:not([inert]) .themerow'));
-    doc.querySelector('#view .panel:not([inert]) [data-theme="darker"]').click();
+    doc.querySelector('#view .panel:not([inert]) [data-theme-switch]').click();
     check("darker sets the document attribute",
           doc.documentElement.getAttribute("data-theme") === "darker");
     check("darker repaints the status bar", bar() === "#000000", bar());
     win.flushPersist();
     check("darker is persisted", /"theme":"darker"/.test(win.localStorage.getItem("batwatch-settings") || ""));
-    doc.querySelector('#view .panel:not([inert]) [data-theme="dark"]').click();
+    doc.querySelector('#view .panel:not([inert]) [data-theme-switch]').click();
     check("switching back restores the bar", bar() === "#0C111C", bar());
     S.tab = "stats"; win.render();
     check("Progress no longer carries the theme selector",
@@ -3479,6 +3478,10 @@ win.addEventListener("load", function(){
       S.skipped = {}; FILMS.forEach(function(f){ S.watched[f.id] = 1; }); win.render();
       doc.documentElement.setAttribute("data-theme", "darker"); sweep();
       doc.documentElement.setAttribute("data-theme", "dark");
+      /* 6.7.0: the switch's checked knob is on Home only when the theme is
+         Darker. Setting the attribute alone does not move aria-checked. */
+      S.theme = "darker"; S.tab = "home"; win.render(); sweep();
+      S.theme = "dark"; win.render();
       /* 3.5.0: the parked flag is set by an IntersectionObserver jsdom does not
          have, so the parked state is staged the way data-theme is — the sweep
          asks whether the selectors can match, not whether the observer fired. */

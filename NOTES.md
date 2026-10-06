@@ -259,9 +259,10 @@ where the season's is older or absent; a night only where the season has
 none; then the old slug leaves every container. `importCode()` maps the
 old hash to the old slug first, so a 5.x code is not "unknown" — it is
 three found. The bundle's `ep:51` is the three seasons' 20 + 18 + 13, so
-"2,000+" and the sum of sittings (2,011; 2,010 unique — the Crisis hour is
-still on the shelf twice, on purpose, and Season 1's row says so) did not
-move; the seasons count did (69 → 71).
+"2,000+" and the sum of sittings. When the seasons count moved (69 → 71)
+the sum stayed 2,011 (2,010 unique — the Crisis hour is still on the shelf
+twice, on purpose, and Season 1's row says so). 6.7.0 moved it to 2,016
+(2,015 unique) when Batwheels Season 3 went from 19 episodes to 24.
 
 ### `restoreLink()`
 
@@ -931,9 +932,9 @@ Restore merges progress; it must not overwrite a path chosen here.
 
 ### `segmented()` / `segButtons()`
 
-One helper renders every segmented control — the three pouches, the theme
-row, the path segments and the filter chips — from a named option table
-(`FORMATS`, `SCOPES`, `TIERS`, `THEMES`, `PATHS`, `chipSet()`): a wrapper
+One helper renders every segmented control — the three pouches, the path
+segments and the filter chips — from a named option table
+(`FORMATS`, `SCOPES`, `TIERS`, `PATHS`, `chipSet()`): a wrapper
 with `role="group"` and an accessible name, and one button per option with
 its `data-*` attribute and `aria-pressed`. Six hand-rolled copies before
 4.9.0, none of them labelled as a group.
@@ -1411,9 +1412,11 @@ shape inside it, so all four labels and all four icons share one baseline.
 ### `.themerow`
 
 The only preference. It lived at the bottom of Progress as `.prefrow` until
-2.0.0 moved it to the bottom of Home, compact — the owner's call at the Belt
+2.0.0 moved it to the bottom of Home — the owner's call at the Belt
 design round, and the Belt was never allowed to hold it. Still no heading,
-no card, last row on the first screen.
+no card, last row on the first screen. 6.7.0, the owner's decision of
+5 Oct 2026: one diamond switch, Dark deco / Darker, centred, 18px under
+the Read the paper card.
 
 ### `.allbtn`
 
@@ -2576,6 +2579,10 @@ follow, from the 5.3.0 audit's C-9:
   contradicted four others, so 5.4.0 struck it.) Widening guard 84's
   exception list would have taught the guard to accept more mismatches, the
   opposite of its job, for four rows nobody has ever mis-filed.
+  6.7.0: `justice-league-x-rwby-part-two-2024` shows the wrong year. The
+  film is 2023, so `y` is fixed and the slug is not. Guard 84 records
+  exactly that mismatch beside `harley-quinn-season-5-2024`. Release order
+  puts the row immediately after Part One.
 - **A running season carries no clock (5.4.0).** 4.9.0 retired "and
   counting" from the catalogue — nothing in it needs a clock to stay true —
   and 5.3.0 and 5.3.1 each put one back (Teen Titans Go! "and counting",
