@@ -6,6 +6,7 @@
 # A neighbor link in the index still fails. The front stays the Nocturne
 # index. Print hides .acts. The fixture's No. 2 gives No. 1 a neighbor on
 # each side, so one page carries both (6.6.5).
+# 6.7.2. Back to Nocturne's arrow points left.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="$(pro qa/nocturne.js)"
@@ -20,6 +21,11 @@ run_case "No. 0 loses Next" \
 run_case "No. 1 loses Previous" \
   "No. 1's previous does not name No. 0" \
   "${N}a='add(prev, \"prev\");';assert s.count(a)==1;s=s.replace(a,'if(false) add(prev, \"prev\");',1);${W}" \
+  guards "" 174
+
+run_case "Back to Nocturne points forward" \
+  "Back to Nocturne's arrow points forward" \
+  "${N}a='indexRow(\"/nocturne/\", \"Back to Nocturne\", ROW_BACK)';assert s.count(a)==1;s=s.replace(a,'indexRow(\"/nocturne/\", \"Back to Nocturne\", ROW_ON)',1);${W}" \
   guards "" 174
 
 run_case "The morgue opens the front instead of the morgue" \

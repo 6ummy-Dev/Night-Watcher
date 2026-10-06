@@ -14,6 +14,14 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.7.2] — 2026-10-06
+
+**Why PATCH.** On an issue, *Back to Nocturne* carried the right-pointing row arrow. It points back now, the same arrow mirrored. Nothing else in the foot moves. No catalogue change, and nothing saved changes shape. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Fixed
+
+- **Back to Nocturne.** The mark at the end of that row points left. *The morgue* still points down. *Follow by RSS* keeps the feed glyph. Guard 174 holds the direction.
+
 ## [6.7.1] — 2026-10-06
 
 **Why PATCH.** A truncated settings key was treated as unreadable progress, and the banner's remedy erased the marks. Search missed a title typed with its year, or with a straight apostrophe. No. 0 had *Batman* #1's cover date wrong, and No. 1 said TBP for a trade paperback. The Sunday clock in the brief and on `/hww` still said 17:00. Nothing saved changes shape. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
