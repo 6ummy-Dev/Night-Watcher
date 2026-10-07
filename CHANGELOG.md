@@ -16,11 +16,18 @@ change that gets undone by the next person who touches the line.
 
 ## [6.7.3] — 2026-10-07
 
-**Why PATCH.** The release checklist now says a minor or a major tag points at the squash commit on `main`, never at the pull-request head. `v6.7.0` was cut on the branch head, which `main` cannot reach. The trees match. Moving that tag is not this commit. No catalogue change, and nothing saved changes shape. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+**Why PATCH.** Search finds the official titles of the four shortened rows, and a query that folds to nothing no longer shows the whole path. A bad progress key keeps the settings that were saved beside it. On the paper, a Darker reader no longer sees the theme diamond slide in after load, and Share and Copy link no longer share a timer. The release checklist says a minor or a major tag points at the squash commit on `main`, never at the pull-request head. `v6.7.0` was cut on the branch head, which `main` cannot reach. The trees match. Moving that tag is not this commit. No catalogue change, and nothing saved changes shape. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Fixed
+
+- **Search.** The Crisis trilogy and *The Doom That Came to Gotham* answer to the words their rows drop. Accents fold, and so does an apostrophe, so "snyders" finds the Snyder cut. A star, a dash, or a word with no Latin letters shows nothing, and says so. Guard 177 holds it.
+- **Settings under a bad progress key.** Theme, path, scope, format and tier apply before the progress parse can fail. The latch still stops the writes. Guard 178 holds it. Guard 176 still holds the other direction.
+- **The paper's theme switch.** The diamond and the labels paint from the theme before `paper.js` runs, so a Darker page does not slide into place. Share and Copy link each keep their own timer. Guard 179 holds both, and the unused `data-theme` attribute on the app's switch.
 
 ### Changed
 
 - **Tagging.** RELEASING step 7: tag the squash on `main` after the merge, never the pull-request head.
+- **Harness.** 179 guard sections, 92 negative suites, 1,765 fixtures, 555 smoke checks. `/hww` is rebuilt from the tree.
 
 ## [6.7.2] — 2026-10-06
 

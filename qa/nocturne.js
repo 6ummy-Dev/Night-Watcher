@@ -787,10 +787,10 @@ var THEME_TAG = '<script src="/nocturne/theme.js"></script>';
    stores nothing else (guard 164). */
 var PAPER_JS = [
 "/* Nocturne \u2014 Share this issue, and the theme switch. Written by qa/nocturne.js; never edited by hand. */",
-"(function(){var root=document.documentElement,IDLE=\"Share this issue\",timer=0;",
+"(function(){var root=document.documentElement,IDLE=\"Share this issue\";",
 "function markTheme(){var on=root.getAttribute(\"data-theme\")===\"darker\";[].forEach.call(document.querySelectorAll(\"[data-theme-switch]\"),function(b){b.setAttribute(\"aria-checked\",on?\"true\":\"false\");});}",
 "function setTheme(v){if(v===\"darker\")root.setAttribute(\"data-theme\",\"darker\");else root.removeAttribute(\"data-theme\");try{localStorage.setItem(\"nocturne-theme\",v);}catch(err){}markTheme();}",
-"function label(button,text){var word=button.querySelector(\".sl\");clearTimeout(timer);if(word)word.textContent=text;button.classList.toggle(\"failed\",text!==IDLE);if(text!==IDLE)timer=setTimeout(function(){label(button,IDLE);},2400);}",
+"function label(button,text){var word=button.querySelector(\".sl\");clearTimeout(button._t);if(word)word.textContent=text;button.classList.toggle(\"failed\",text!==IDLE);if(text!==IDLE)button._t=setTimeout(function(){label(button,IDLE);},2400);}",
 "function copied(button,out){label(button,IDLE);if(out){out.classList.remove(\"fail\");out.textContent=\"Link copied\";}}",
 "function failed(button,out,url){label(button,\"Copy failed\");if(out){out.classList.add(\"fail\");out.textContent=url;}}",
 "function copy(button,out,url){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(function(){copied(button,out);},function(){failed(button,out,url);});return;}failed(button,out,url);}",
@@ -1016,6 +1016,9 @@ var CSS = [
 ".dsw .trk{position:relative;width:30px;height:0;margin:0 5px;border-top:1px solid var(--line2);}",
 ".dsw .trk i{position:absolute;top:-.5px;left:0;width:8px;height:8px;transform:translate(-50%,-50%) rotate(45deg);background:var(--signal);transition:left .18s;}",
 ".dsw[aria-checked=\"true\"] .trk i{left:100%;}",
+":root[data-theme=darker] .dsw .trk i{left:100%;}",
+":root[data-theme=darker] .dsw .dl:first-child{color:var(--dim);}",
+":root[data-theme=darker] .dsw .dl:last-child{color:var(--bone);}",
 ".dsw[aria-checked=\"false\"] .dl:first-child,.dsw[aria-checked=\"true\"] .dl:last-child{color:var(--bone);}",
 ".dsw:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}",
 ".idx{border-top:3px double var(--bone);}",

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-MPba/bBUMArZVxezU/A/qcegaOIeFAfSr2oNsqHbuME='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-+XRLIiENos3PFkRLLw5ic+8d1A3vSDHz6HAyHoA2Rlc='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -1058,7 +1058,7 @@ main,.panel{scrollbar-gutter:stable both-edges;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 176 sections, each one negative-tested, which section 138
+   qa/guards.js — 179 sections, each one negative-tested, which section 138
    checks rather than assumes.
 
    Read those before changing something that looks redundant. Most of it is
@@ -1734,6 +1734,12 @@ function splitPayload(o){
   }
   return moved;
 }
+var AKA = {
+  "crisis-on-infinite-earths-part-one-2024": "Justice League",
+  "crisis-on-infinite-earths-part-two-2024": "Justice League",
+  "crisis-on-infinite-earths-part-three-2024": "Justice League",
+  "the-doom-that-came-to-gotham-2023": "Batman"
+};
 function restore(){
   if(!store) return;
   var raw, sraw;
@@ -1747,6 +1753,14 @@ function restore(){
       if(!so || typeof so !== "object") so = null;
     }catch(e){ so = null; }
   }
+  if(so){
+    SCHEMA.forEach(function(r){
+      if(!r.s) return;
+      var v = r.read(so[r.k], so);
+      if(v === undefined) return;
+      if(r.put) r.put(v); else S[r.k] = v;
+    });
+  }
   readBad = true;
   salvageRaw = raw || "";
   try{
@@ -1754,6 +1768,7 @@ function restore(){
     if(!o || typeof o !== "object") throw new Error("not a payload");
     var moved = splitPayload(o);
     SCHEMA.forEach(function(r){
+      if(r.s && so) return;
       var src = (r.s && so) ? so : o;
       var v = r.read(src[r.k], src);
       if(v === undefined) return;
@@ -1777,7 +1792,7 @@ function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return ESCMAP[
 var BYID = Object.create(null);
 FILMS.forEach(function(f){
   f.tE = esc(f.t); f.dE = esc(f.d);
-  f.hay = foldSearch([f.t, f.sub, f.y, f.gname, f.d].filter(function(p){
+  f.hay = foldSearch([AKA[f.id], f.t, f.sub, f.y, f.gname, f.d].filter(function(p){
     return p !== undefined && p !== null && String(p) !== "";
   }).join(" "));
   BYID[f.id] = f;
@@ -1992,12 +2007,20 @@ function upNext(){
 function foldSearch(s){
   return String(s).toLowerCase()
     .replace(/\u2018/g, "'").replace(/\u2019/g, "'")
-    .replace(/\u00e0/g, "a")
-    .replace(/[^a-z0-9']+/g, " ")
+    .normalize("NFD").replace(new RegExp("[" + String.fromCharCode(768) + "-" + String.fromCharCode(879) + "]", "g"), "")
+    .replace(/'/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
     .replace(/ {2,}/g, " ")
     .replace(/^ +| +$/g, "");
 }
+function searchQuery(){
+  var raw = String(S.q || "");
+  var q = foldSearch(raw);
+  if(!q && /\S/.test(raw)) return null;
+  return q;
+}
 function matches(f, q){
+  if(q == null) return false;
   if(!q) return true;
   var words = q.split(" "), i;
   for(i = 0; i < words.length; i++){
@@ -2500,7 +2523,7 @@ function tierSwitch(){ return segmented("scope tier", "Tier", "tier", TIERS, S.t
 function scopeSwitch(){ return segmented("scope", "Scope", "scope", SCOPES, S.scope); }
 function themeRow(){
   var on = S.theme === "darker";
-  return '<div class="themerow"><button class="dsw" type="button" role="switch" aria-checked="' + on + '" aria-label="Darker theme" data-theme-switch data-theme="toggle"><span class="dl">Dark deco</span><span class="trk" aria-hidden="true"><i></i></span><span class="dl">Darker</span></button></div>';
+  return '<div class="themerow"><button class="dsw" type="button" role="switch" aria-checked="' + on + '" aria-label="Darker theme" data-theme-switch><span class="dl">Dark deco</span><span class="trk" aria-hidden="true"><i></i></span><span class="dl">Darker</span></button></div>';
 }
 function paperRow(){
   return '<div class="front"><p class="ftop"><span>A paper of<br>Night Watcher</span><span class="fseal">Night<br>Final</span></p>'+
@@ -2796,7 +2819,7 @@ function groupBlock(g, q, nid){
     rows+'</div></div>'};
 }
 function viewWatch(){
-  var q = foldSearch(S.q), ao = anyOpen();
+  var q = searchQuery(), ao = anyOpen();
   var viewing = "";
   if(!S.path){
     viewing = '<div class="viewing"><p>You haven\u2019t chosen a path yet. This is '+
@@ -2826,7 +2849,7 @@ function viewWatch(){
     shownTotal += gb.shown;
     body += gb.html;
   });
-  var html = head + scopeNote(q ? shownTotal : null) + body;
+  var html = head + scopeNote(q === "" ? null : shownTotal) + body;
   if(!any) html += emptyBlock(q);
   return html + legendBlock();
 }
@@ -2859,7 +2882,7 @@ function emptyBlock(q){
   return html;
 }
 function searchApply(){
-  var v = panelOf("watch"), q = foldSearch(S.q), total = 0;
+  var v = panelOf("watch"), q = searchQuery(), total = 0;
   if(!v || !v.querySelector(".allrow")){ render(); return; }
   Array.prototype.forEach.call(v.querySelectorAll(".group"), function(gel){
     var shown = 0;
@@ -2873,8 +2896,8 @@ function searchApply(){
     total += shown;
   });
   var sn = v.querySelector(".scopenote");
-  if(sn) sn.textContent = q ? total + (total === 1 ? " match" : " matches") : "";
-  else v.querySelector(".allrow").insertAdjacentHTML("afterend", scopeNote(q ? total : null));
+  if(sn) sn.textContent = q === "" ? "" : total + (total === 1 ? " match" : " matches");
+  else v.querySelector(".allrow").insertAdjacentHTML("afterend", scopeNote(q === "" ? null : total));
   var em = v.querySelector(".empty"), lg = v.querySelector(".legend");
   if(!total){
     if(em) em.outerHTML = emptyBlock(q);

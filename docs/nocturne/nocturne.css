@@ -153,6 +153,9 @@ figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;
 .dsw .trk{position:relative;width:30px;height:0;margin:0 5px;border-top:1px solid var(--line2);}
 .dsw .trk i{position:absolute;top:-.5px;left:0;width:8px;height:8px;transform:translate(-50%,-50%) rotate(45deg);background:var(--signal);transition:left .18s;}
 .dsw[aria-checked="true"] .trk i{left:100%;}
+:root[data-theme=darker] .dsw .trk i{left:100%;}
+:root[data-theme=darker] .dsw .dl:first-child{color:var(--dim);}
+:root[data-theme=darker] .dsw .dl:last-child{color:var(--bone);}
 .dsw[aria-checked="false"] .dl:first-child,.dsw[aria-checked="true"] .dl:last-child{color:var(--bone);}
 .dsw:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
 .idx{border-top:3px double var(--bone);}

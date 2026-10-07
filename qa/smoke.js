@@ -515,7 +515,7 @@ win.addEventListener("load", function(){
         var mm = [], n = 0;
         S.tab = "watch"; S.q = ""; win.setAllGroups(true); win.render();
         var inp = v.querySelector("#q");
-        ["bat", "batman begins", "zzzznomatch", "joker", "", "dark", "", "batman 1989", "snyder's", "folie a deux", ""].forEach(function(q){
+        ["bat", "batman begins", "zzzznomatch", "joker", "", "dark", "", "batman 1989", "snyder's", "folie a deux", "\u2605", "Curar\u00e9", ""].forEach(function(q){
           S.q = q; if(inp) inp.value = q; win.searchApply();
           var after = shot();
           win.render();
@@ -536,6 +536,21 @@ win.addEventListener("load", function(){
         check("a title and a year match across the empty subtitle", y1989 >= 1, String(y1989));
         check("a straight apostrophe finds a curly one", snyder >= 1, String(snyder));
         check("an unaccented query finds Folie a Deux", folie >= 1, String(folie));
+        var crisis = shownFor("Justice League: Crisis on Infinite Earths");
+        var doom = shownFor("Batman: The Doom That Came to Gotham");
+        var curare = shownFor("Curare");
+        var curareA = shownFor("Curar\u00e9");
+        var snyders = shownFor("snyders");
+        var star = shownFor("\u2605");
+        check("the official Crisis title finds the trilogy", crisis >= 3, String(crisis));
+        check("the official Doom title finds the film", doom === 1, String(doom));
+        check("Curare and Curaré find the same row", curare >= 1 && curare === curareA, curare + "/" + curareA);
+        check("snyders finds the Snyder cut", snyders >= 1, String(snyders));
+        check("a star matches nothing", star === 0, String(star));
+        S.q = "\u2605"; if(inp) inp.value = "\u2605"; win.searchApply();
+        var starEmpty = v.querySelector(".empty");
+        check("a star says nothing matches", !!starEmpty && /Nothing matches/.test(starEmpty.textContent),
+              starEmpty ? starEmpty.textContent.slice(0, 80) : "no empty");
         S.q = ""; win.render();
         var pw = win.panelOf("watch");
         S.tab = "next"; win.render();
@@ -2965,6 +2980,15 @@ win.addEventListener("load", function(){
                 w10.localStorage.getItem("batwatch-v3") === kept,
                 sk);
         });
+        reboot({m:'{"watched":', s:JSON.stringify({theme:"darker", path:"release", scope:"movies", format:"live", tier:"ess"})},
+          "bad progress keeps settings", function(w12, d12){
+            check("a bad progress key keeps the settings",
+              w12.readFailed === true && w12.canSave === false && w12.S.theme === "darker" &&
+              w12.S.path === "release" && w12.S.scopePref === "movies" && w12.S.format === "live" &&
+              w12.S.tier === "ess" && !d12.getElementById("nosave").hidden,
+              "theme=" + w12.S.theme + " path=" + w12.S.path + " scope=" + w12.S.scopePref +
+              " format=" + w12.S.format + " tier=" + w12.S.tier + " readFailed=" + w12.readFailed);
+          });
       });
     })();
 
