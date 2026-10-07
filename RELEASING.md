@@ -142,7 +142,10 @@ section until 4.1.1; it belongs in the checklist that runs.)
    5.3.1, 6.0.3 and 6.0.9 — the last because 6.0.9's revert took this
    sentence out with the rest of 6.0.4). Read the tags with
    `git ls-remote --tags origin`, never from a `--depth` clone, which omits
-   them and has produced a false "tagging lapsed" finding of its own.
+   them and has produced a false "tagging lapsed" finding of its own. Point
+   the tag at the squash commit on `main` after the merge, never at the
+   pull-request head. `v6.7.0` was pointed at the branch head, which `main`
+   cannot reach; the squash is what shipped, and the two trees match.
 
 ## The wire checks — after the merge publishes
 

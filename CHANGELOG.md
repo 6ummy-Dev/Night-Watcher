@@ -14,6 +14,14 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.7.3] — 2026-10-07
+
+**Why PATCH.** The release checklist now says a minor or a major tag points at the squash commit on `main`, never at the pull-request head. `v6.7.0` was cut on the branch head, which `main` cannot reach. The trees match. Moving that tag is not this commit. No catalogue change, and nothing saved changes shape. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Changed
+
+- **Tagging.** RELEASING step 7: tag the squash on `main` after the merge, never the pull-request head.
+
 ## [6.7.2] — 2026-10-06
 
 **Why PATCH.** On an issue, *Back to Nocturne* carried the right-pointing row arrow. It points back now, the same arrow mirrored. Nothing else in the foot moves. No catalogue change, and nothing saved changes shape. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
