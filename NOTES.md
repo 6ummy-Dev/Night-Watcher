@@ -15,7 +15,7 @@ Four other places carry part of the story and are not repeated here:
   required reading before a change; everything here is written in the
   present tense.
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 176 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 179 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -145,8 +145,8 @@ something.
 
 Two jobs that were one token. **`--bone` is ink on dark**: body text, the
 search field, `.lnk`, `.bd.s`, `.istats b`. **`--suit` is every surface you
-press**: the primary buttons, pressed chips, scope and theme buttons, both
-ticks, and the toast. The suit is grey (`#A6ADBA`, one value in both themes)
+press**: the primary buttons, pressed chips, scope buttons, both
+ticks, and the toast. The theme control is a switch and wears none of it. The suit is grey (`#A6ADBA`, one value in both themes)
 because the suit is grey — bone was a near-white standing in for it.
 
 Ink on the suit reads 8.81:1 in Dark Deco and 9.31:1 in Darker, so no text
@@ -2094,12 +2094,13 @@ season-granularity, not an oversight.
 The Crisis trilogy drops "Justice League:", *The Doom That Came to Gotham* drops
 "Batman:", and *The Batman: Part II* is punctuated here although the official
 title is not. Screen titles are set for the width of a row and the reader's
-recognition, not for the copyright card. The `i:` slug always carries the full
-form, so search still finds them.
+recognition, not for the copyright card. The dropped words sit on the search
+haystack, so the official title still finds them. The slug does not carry them.
 
 `harley-quinn-season-5-2024` carries `y:2025`. The slug froze an announced date
-that moved; the year is the one that shipped. It is the only such mismatch in
-the file and it stays, because the slug is frozen and the year is true.
+that moved; the year is the one that shipped. `justice-league-x-rwby-part-two-2024`
+carries `y:2023`. Those two are the mismatches in the file, and they stay,
+because the slug is frozen and the year is true.
 
 ### Two rationales that would not fit in the file they belong to
 

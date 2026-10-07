@@ -90,6 +90,7 @@ function blessHtml(next){
      126  A restored path cannot reach the prototype chain
      127  A failed read stops the writes, a failed write does not
      176  A bad settings key does not hide the progress
+     178  A bad progress key still applies the settings
      134  A removal is a fact with a clock, not a hole
      142  A backup is stamped only when a copy left
      102  A tick burst writes once, and leaving flushes
@@ -105,6 +106,7 @@ function blessHtml(next){
      33   One tagline, everywhere
      37   Progress does not restate The Path
      48   The footer describes the link that exists
+     177  Search finds a shortened title, and an empty fold matches nothing
 
      121  The privacy footer says what the README says
 
@@ -242,6 +244,7 @@ function blessHtml(next){
      173  A pinned fixture may stop, the release run may not
      174  The foot: Back page, then Keep reading
      175  The front names Batman news, and six questions
+     179  The paper switch paints from the theme, and each button times itself
 
    META
      65   The file points at where its reasoning went
@@ -7645,16 +7648,16 @@ var ROUTE_VOCAB = [
   }
   /* 6.7.0, the owner's decision of 5 Oct 2026: the control is a compact,
      centred switch. 3.8.3 had spanned a two-button row to the column. That
-     row is gone. A switch that is not centred undoes the decision. The
-     button keeps a data-theme attribute so this section still finds the
-     control. */
+     row is gone. A switch that is not centred undoes the decision. 6.7.3
+     dropped data-theme="toggle": nothing read it. data-theme-switch is how
+     this section finds the control. */
   var tr = (HTML.match(/\.themerow\{[^}]*\}/) || [""])[0];
   if(!/justify-content:\s*center/.test(tr)){
     fail("the theme switch is not centred \u2014 the owner's decision of 5 Oct 2026 is a compact switch, centred");
   }
   var rowSrc = optionalFn("themeRow");
-  if(!/data-theme-switch/.test(rowSrc) || !/role="switch"/.test(rowSrc) || !/data-theme=/.test(rowSrc)){
-    fail("Home's theme control is not the centred switch \u2014 one button, role=switch, and a data-theme attribute so this section still finds it (6.7.0)");
+  if(!/data-theme-switch/.test(rowSrc) || !/role="switch"/.test(rowSrc)){
+    fail("Home's theme control is not the centred switch \u2014 one button, role=switch (6.7.0)");
   }
 })();
 
@@ -17532,6 +17535,97 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     fail("the salvage control does not download the unread progress bytes");
   }
   note("a bad settings key falls back; an unread progress key can be downloaded before the clear");
+})();
+
+/* ---------- 177. Search finds a shortened title, and an empty fold matches nothing ---------- */
+/* 6.7.3, from the 6 Oct audit (L14, L15). Four rows print a shorter title
+   than the one on the box. The haystack carried the row, not the dropped
+   prefix, so the official title found nothing. A query whose letters all
+   folded away was treated as no query and showed every row. */
+
+(function(){
+  var aka = topVar("AKA");
+  if(!aka || aka.type !== "ObjectExpression"){
+    fail("search has no map of shortened titles");
+    return;
+  }
+  var want = {
+    "crisis-on-infinite-earths-part-one-2024": "Justice League",
+    "crisis-on-infinite-earths-part-two-2024": "Justice League",
+    "crisis-on-infinite-earths-part-three-2024": "Justice League",
+    "the-doom-that-came-to-gotham-2023": "Batman"
+  };
+  var got = {};
+  aka.properties.forEach(function(p){
+    if(!p.key || !p.value) return;
+    var k = p.key.type === "Literal" ? String(p.key.value) : (p.key.name || "");
+    var v = p.value.type === "Literal" ? String(p.value.value) : "";
+    got[k] = v;
+  });
+  Object.keys(want).forEach(function(id){
+    if(got[id] !== want[id]) fail(id + " lost the words search was given");
+  });
+  if(HTML.indexOf("foldSearch([AKA[f.id]") < 0){
+    fail("the haystack no longer carries the dropped prefix");
+  }
+  var sb = {};
+  try{
+    vm.createContext(sb);
+    vm.runInContext(fn("foldSearch") + "\n" + fn("searchQuery") + "\n" + fn("matches") + "\nvar S = {q:''};\n", sb);
+  }catch(e){
+    fail("search could not be extracted — " + e.message);
+    return;
+  }
+  if(sb.foldSearch("Curar\u00e9") !== "curare") fail("an accented query no longer folds to its letters");
+  if(sb.foldSearch("snyder's") !== "snyders") fail("an apostrophe no longer folds out of a query");
+  sb.S.q = "\u2605";
+  if(sb.searchQuery() !== null || sb.matches({hay:"batman"}, sb.searchQuery()) !== false){
+    fail("a symbol query still shows every row");
+  }
+  sb.S.q = "";
+  if(sb.searchQuery() !== "" || sb.matches({hay:"batman"}, "") !== true){
+    fail("a blank box hides the path");
+  }
+  note("search: four shortened titles keep their dropped words, accents and apostrophes fold, an empty fold matches nothing");
+})();
+
+/* ---------- 178. A bad progress key still applies the settings ---------- */
+/* 6.7.3, from the 6 Oct audit (L16). Settings parsed on their own, then
+   every schema row was applied inside the progress try. A progress key
+   that would not parse skipped theme, path, scope, format and tier for
+   the latch. The settings rows now land before that parse can throw.
+   A legacy blob with no settings key still reads them from the progress
+   payload, which section 127 holds. */
+
+(function(){
+  var rbody = optionalFn("restore", "nothing reads the saved state back");
+  var early = rbody.indexOf("if(!r.s) return");
+  var rawAt = rbody.indexOf("JSON.parse(raw)");
+  if(early < 0 || rawAt < 0 || early > rawAt){
+    fail("settings wait until the progress key parses");
+  }
+  note("settings land before a bad progress key can skip them");
+})();
+
+/* ---------- 179. The paper switch paints from the theme, and each button times itself ---------- */
+/* 6.7.3, from the 6 Oct audit (I11, I12, I13). The paper's switch shipped
+   with aria-checked false, and the diamond moved when paper.js caught up,
+   so a Darker reader saw it slide on every load. Share and Copy link
+   cleared one timer, so a failed Share could stick. The app's switch
+   carried data-theme="toggle", which nothing read. */
+
+(function(){
+  var src = fs.readFileSync(path.join(ROOT, "qa", "nocturne.js"), "utf8");
+  if(src.indexOf(":root[data-theme=darker] .dsw .trk i{left:100%;}") < 0){
+    fail("the paper switch still paints from aria-checked alone");
+  }
+  if(src.indexOf("clearTimeout(button._t)") < 0 || src.indexOf(",timer=0") >= 0){
+    fail("Share and Copy link still share one timer");
+  }
+  if(/data-theme="toggle"/.test(HTML)){
+    fail("the theme switch still carries a dead data-theme");
+  }
+  note("the paper switch paints from the theme, and each button keeps its own timer");
 })();
 
 /* ---------- report ---------- */
