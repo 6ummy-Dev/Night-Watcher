@@ -886,11 +886,16 @@ var CSS = [
 ".nameplate a{text-decoration:none;}",
 ".rule2{border:0;height:5px;margin:0;border-top:3px solid var(--bone);border-bottom:1px solid var(--bone);}",
 ".rule1{border:0;border-top:1px solid var(--line2);margin:0;}",
-".dateline{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.16em;text-transform:uppercase;color:var(--dust);display:flex;justify-content:center;flex-wrap:wrap;gap:4px 12px;padding:9px 0;margin:0;}",
+/* 6.7.4: the class is issued, not dateline. Firefox reader view treats a
+   class or id containing dateline as a byline and will steal the price line. */
+".issued{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.16em;text-transform:uppercase;color:var(--dust);display:flex;justify-content:center;flex-wrap:wrap;gap:4px 12px;padding:9px 0;margin:0;}",
 ".dl1,.dl2{display:inline-flex;gap:12px;align-items:center;}",
-"@media (max-width:560px){.dateline{flex-direction:column;align-items:center;gap:5px;}.dl2 .dsep{display:none;}}",
+"@media (max-width:560px){.issued{flex-direction:column;align-items:center;gap:5px;}.dl2 .dsep{display:none;}}",
 ".dsep{display:inline-block;width:4.5px;height:4.5px;background:var(--signal);transform:rotate(45deg);}",
-".banner{font-family:var(--press);font-weight:700;font-size:var(--t-banner);line-height:1.04;text-align:center;margin:26px 0 20px;text-wrap:balance;}",
+/* 6.7.4: no class. Readability deletes any class or id containing banner.
+   The issue headline, the front's lead and the holding page's h1 share the
+   rule. --t-banner stays; the word belongs to the brief, not the markup. */
+"article > h1,#lead,.paper > h1{font-family:var(--press);font-weight:700;font-size:var(--t-banner);line-height:1.04;text-align:center;margin:26px 0 20px;text-wrap:balance;}",
 "figure{margin:0 0 26px;}",
 "figure img{display:block;width:100%;height:auto;border:1px solid var(--line2);background:var(--sunk);}",
 "figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:7px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;}",
@@ -967,17 +972,19 @@ var CSS = [
 ".shout{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}",
 ".shout.fail{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal;flex-basis:100%;order:1;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.04em;color:var(--steel);text-align:center;overflow-wrap:anywhere;user-select:all;}",
 ".btn.share.failed .shr{display:none;}",
-".colophon{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:0;position:relative;padding-top:22px;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}",
-".support{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:6px 0 0;}",
+/* 6.7.4: these follow the footer element, so they keep the foot's measure
+   on their own. Reader view deletes the footer and keeps the paragraphs. */
+".colophon{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);max-width:620px;margin:0 auto;position:relative;padding-top:22px;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}",
+".support{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);max-width:620px;margin:6px auto 0;}",
 ".support a{text-decoration:underline;text-underline-offset:.2em;}",
 ".support a:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}",
 ".sub{text-align:center;color:var(--dust);font-size:var(--t-desc);margin:0 auto 26px;max-width:460px;}",
 ".front{max-width:680px;margin:0 auto;}",
 ".lead-kick{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.19em;text-transform:uppercase;color:var(--dust);display:flex;justify-content:center;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:26px 0 0;}",
 ".lead-kick .new{color:var(--signal);font-weight:600;}",
-".front .banner{margin-top:12px;}",
-".front .banner a{text-decoration:none;}",
-".front .banner a:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:.12em;text-decoration-color:var(--signal);}",
+".front #lead{margin-top:12px;}",
+".front #lead a{text-decoration:none;}",
+".front #lead a:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:.12em;text-decoration-color:var(--signal);}",
 ".front figure a{display:block;}",
 ".front .cold{margin-bottom:22px;}",
 ".inside{max-width:620px;margin:0 auto;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);padding:12px 0 6px;}",
@@ -1056,10 +1063,12 @@ function masthead(dateline, plateH1){
     '<div class="mast-top"><p class="presents">A paper of<br><a href="/">Night Watcher</a></p>' +
     '<p class="seal">Night<br>Final<small>Sunday</small></p></div>\n' +
     (plateH1 ? '<h1 class="nameplate"><a href="/nocturne/" aria-current="page">Nocturne</a></h1>\n' : '<p class="nameplate"><a href="/nocturne/">Nocturne</a></p>\n') +
-    '<hr class="rule2">\n<p class="dateline">' + dateline + '</p>\n<hr class="rule1">\n</header>\n';
+    '<hr class="rule2">\n<p class="issued">' + dateline + '</p>\n<hr class="rule1">\n</header>\n';
 }
+/* 6.7.4. The diamond is paint. A reader that drops it would otherwise run
+   the three labels together, so each label but the last carries a space. */
 function dateline(a, b, c){
-  return '<span class="dl1"><span>' + a + '</span><i class="dsep"></i><span>' + b + '</span></span>' +
+  return '<span class="dl1"><span>' + a + ' </span><i class="dsep"></i><span>' + b + ' </span></span>' +
          '<span class="dl2"><i class="dsep"></i><span>' + c + '</span></span>';
 }
 /* 6.5.5, owner's call (29 Sept): the paper carries the app's one ask, in the
@@ -1082,16 +1091,22 @@ function footer(extra){
       indexRow("/nocturne/", "Back to Nocturne", ROW_BACK) +
       indexRow("/nocturne/#morgue", "The morgue", ROW_DOWN) + rss + '</nav>'
     : '<nav class="idx" aria-label="Nocturne"><p class="ih"><span>Nocturne</span><span>Every Sunday, late</span></p>' + rss + '</nav>';
+  /* 6.7.4. The colophon is the AI disclosure. Firefox reader view deletes
+     footer and aside, so the colophon and the support line follow the footer
+     as paragraphs. On an issue the whole foot sits inside the article, and
+     the disclosure comes with the story. The nav stays in the footer. */
   return '<footer class="foot">\n<div class="acts">' + (o && o.share ? '<div class="more">' + o.share + '</div>' : '') + idx + (o && o.keep ? o.keep : '') +
     '<a class="btn home" href="/">' + MARK + '<span class="lbl"><b>Night Watcher</b><small>Open the map' + ARROW + '</small></span></a></div>\n' +
     THEME_SWITCH +
-    '<p class="colophon">' + COLOPHON + '</p>\n<p class="support">' + SUPPORT + '</p>\n</footer>\n';
+    '</footer>\n' +
+    '<p class="colophon">' + COLOPHON + '</p>\n<p class="support">' + SUPPORT + '</p>\n';
 }
 function head(o){
   return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' + THEME_TAG + '\n' + PAPER_TAG + '\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
     '<title>' + esc(o.title) + '</title>\n' +
     '<meta name="description" content="' + esc(o.desc) + '">\n' +
+    '<meta name="author" content="Night Watcher">\n' +
     '<link rel="canonical" href="' + o.url + '">\n' +
     '<link rel="alternate" type="application/rss+xml" title="Nocturne" href="/nocturne/feed.xml">\n' +
     '<link rel="icon" href="/icon.svg" type="image/svg+xml">\n' +
@@ -1179,7 +1194,7 @@ function board(fm, cat){
    lazy, and hinting several images high makes none of them high. */
 function figure(im, lazy, hero){
   return '<figure><img src="' + esc(im.file) + '" width="' + im.width + '" height="' + im.height +
-         '" alt=""' + (lazy ? ' loading="lazy"' : "") + (hero ? ' fetchpriority="high"' : "") + '><figcaption><span>' + esc(im.alt) + '</span><span>' +
+         '" alt=""' + (lazy ? ' loading="lazy"' : "") + (hero ? ' fetchpriority="high"' : "") + '><figcaption><span>' + esc(im.alt) + ' </span><span>' +
          esc(im.credit) + '</span></figcaption></figure>\n';
 }
 
@@ -1235,7 +1250,7 @@ function renderIssue(is, cat, prev, next){
                 extra: neigh.head + '<meta property="article:published_time" content="' + fm.published + '">\n' + ldjson(ld)});
   var out = h + '<body>\n<main class="paper">\n' +
     masthead(dateline("No. " + fm.issue, esc(longDate(fm.published)), "Price: nothing. No account.")) +
-    '<article>\n<h1 class="banner">' + inline(fm.title) + '</h1>\n' +
+    '<article>\n<h1>' + inline(fm.title) + '</h1>\n' +
     (founding ? "" : board(fm, cat));
   if(hero) out += figure(hero, false, true);
   out += '<p class="cold">' + inline(fm.cold_open) + '</p>\n<div class="drule" aria-hidden="true"><i></i></div>\n';
@@ -1244,8 +1259,10 @@ function renderIssue(is, cat, prev, next){
     var n = ("0" + (i + 1)).slice(-2);
     /* 6.2.3: every story has its own address, #s1, #s2 …, so a post or the
        feed can point at one. */
-    out += '<section class="story" id="s' + (i + 1) + '">\n<p class="kick"><span class="num">' + n + '</span>' +
-           (founding ? "" : '<span class="beat">' + st.beat + '</span><span class="st ' + st.status + '">' + STATUS[st.status] + '</span>' +
+    /* 6.7.4. The comma and the space are characters. Reader view drops the
+       flex gap, and adjacent spans otherwise run together as one word. */
+    out += '<section class="story" id="s' + (i + 1) + '">\n<p class="kick"><span class="num">' + n +
+           (founding ? '</span>' : ', </span><span class="beat">' + st.beat + ', </span><span class="st ' + st.status + '">' + STATUS[st.status] + (offMap(st) ? ', </span>' : '</span>') +
                             (offMap(st) ? '<span class="off">Off the map</span>' : "")) + '</p>\n';
     if(i) out += '<h2>' + inline(st.headline) + '</h2>\n';
     (fm.corrections || []).forEach(function(c){
@@ -1259,8 +1276,9 @@ function renderIssue(is, cat, prev, next){
   /* 6.5.0: no diamond before the sign-off. The footer's rule closes the page,
      and two diamonds that close together read as one too many. */
   var share = shareButton(url, plain(fm.title) + " \u00b7 Nocturne");
-  out += '<p class="signoff">' + inline(fm.sign_off) + '</p>\n</article>\n' +
-         footer({share: share, issue: {n: fm.issue, date: footDate(fm.published)}, keep: neigh.keep}) + '</main>\n' + BEACON + '\n</body>\n</html>\n';
+  out += '<p class="signoff">' + inline(fm.sign_off) + '</p>\n' +
+         footer({share: share, issue: {n: fm.issue, date: footDate(fm.published)}, keep: neigh.keep}) +
+         '</article>\n</main>\n' + BEACON + '\n</body>\n</html>\n';
   return out;
 }
 
@@ -1366,15 +1384,15 @@ function renderArchive(list){
   var out = h + '<body>\n<main class="paper">\n' +
     masthead(dateline("The Night Final", "Every Sunday, late", "Price: nothing. No account."), true) +
     '<article class="front" aria-labelledby="lead">\n' +
-    '<p class="lead-kick"><span class="new">Latest</span><i class="dsep"></i><span>No. ' + fm.issue + '</span><i class="dsep"></i><span>' + esc(longDate(fm.published)) + '</span></p>\n' +
-    '<h2 class="banner" id="lead"><a href="' + href + '">' + inline(fm.title) + '</a></h2>\n';
+    '<p class="lead-kick"><span class="new">Latest </span><i class="dsep"></i><span>No. ' + fm.issue + ' </span><i class="dsep"></i><span>' + esc(longDate(fm.published)) + '</span></p>\n' +
+    '<h2 id="lead"><a href="' + href + '">' + inline(fm.title) + '</a></h2>\n';
   if(hero) out += '<figure><a href="' + href + '" tabindex="-1" aria-hidden="true"><img src="' + is.id + '/' + esc(hero.file) + '" width="' + hero.width + '" height="' + hero.height +
-                  '" alt="" fetchpriority="high"></a><figcaption><span>' + esc(hero.alt) + '</span><span>' + esc(hero.credit) + '</span></figcaption></figure>\n';
+                  '" alt="" fetchpriority="high"></a><figcaption><span>' + esc(hero.alt) + ' </span><span>' + esc(hero.credit) + '</span></figcaption></figure>\n';
   out += '<p class="cold">' + inline(fm.cold_open) + '</p>\n' +
     '<nav class="inside" aria-label="In this issue"><p class="bh">In this issue</p><ol>\n';
   fm.stories.forEach(function(st, i){
-    out += '<li><a href="' + href + '#s' + (i + 1) + '"><span class="num">' + ("0" + (i + 1)).slice(-2) + '</span>' +
-           '<span class="hd">' + (founding ? "" : '<small class="beat">' + st.beat + '</small>') + inline(st.headline) + '</span></a></li>\n';
+    out += '<li><a href="' + href + '#s' + (i + 1) + '"><span class="num">' + ("0" + (i + 1)).slice(-2) + ' </span>' +
+           '<span class="hd">' + (founding ? "" : '<small class="beat">' + st.beat + ' </small>') + inline(st.headline) + '</span></a></li>\n';
   });
   out += '</ol></nav>\n<p class="read"><a class="btn read" href="' + href + '">Read the Night Final' + ARROW_IN + '</a></p>\n</article>\n' +
     '<div class="drule" aria-hidden="true"><i></i></div>\n' +
@@ -1573,7 +1591,7 @@ function renderHolding(){
   function col(h, t){ return '<section><h2>' + h + '</h2><p>' + t + '</p></section>'; }
   return h + '<body>\n<main class="paper">\n' +
     masthead(dateline("The Night Final", "Every Sunday, late", "Price: nothing. No account.")) +
-    '<h1 class="banner">On the press</h1>\n' +
+    '<h1>On the press</h1>\n' +
     '<p class="sub">The first Night Final is being set. Nocturne is the weekly paper of Night Watcher.</p>\n' +
     '<div class="cols">' +
     col("The beat", "Batman on screen, in comics, games, toys and books. The week\u2019s news, gathered once.") +

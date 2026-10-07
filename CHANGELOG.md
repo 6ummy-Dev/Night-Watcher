@@ -14,6 +14,18 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.7.4] — 2026-10-07
+
+**Why PATCH.** Firefox reader view was dropping the paper's AI disclosure and gluing a story's labels into one word. The colophon now follows the footer, inside the article, so the disclosure stays with the story. The headline no longer carries the class `banner`, and the mast date is no longer classed `dateline`, both of which that reader deletes or steals as a byline. A weekly kicker separates its number, beat and status with a comma, and a caption keeps a space before its credit. The mast, the front's latest line and the contents list do the same beside their diamonds. Every paper page names Night Watcher as its author. The reporter stays unnamed. No catalogue change, and nothing saved changes shape. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Fixed
+
+- **Reader view.** The colophon is a paragraph after the footer and, on an issue, inside the article. The nav stays in the footer. Guard 180 holds the headline, the mast date, the disclosure, the kicker, the credit and the author. Guard 172 now wants the support line after the footer, still under the colophon.
+
+### Changed
+
+- **Harness.** 180 guard sections, 93 negative suites, 1,772 fixtures, 555 smoke checks. `/hww` is rebuilt from the tree.
+
 ## [6.7.3] — 2026-10-07
 
 **Why PATCH.** Search finds the official titles of the four shortened rows, and a query that folds to nothing no longer shows the whole path. A bad progress key keeps the settings that were saved beside it. On the paper, a Darker reader no longer sees the theme diamond slide in after load, and Share and Copy link no longer share a timer. The release checklist says a minor or a major tag points at the squash commit on `main`, never at the pull-request head. `v6.7.0` was cut on the branch head, which `main` cannot reach. The trees match. Moving that tag is not this commit. No catalogue change, and nothing saved changes shape. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
