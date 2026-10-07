@@ -12,10 +12,10 @@
 REGRESS="${P}a='''      '<span class=\"albl\">'+(ao ? \"Collapse all\" : \"Expand all\")+'</span><span class=\"caret\" aria-hidden=\"true\"></span></button></div>';'''
 assert a in s
 s=s.replace(a,'''      '<span class=\"albl\">'+(ao ? \"Collapse all\" : \"Expand all\")+'</span><span class=\"caret\" aria-hidden=\"true\"></span></button></div>%%COUNT%%';''',1)
-b='''  var html = head + scopeNote(q ? shownTotal : null) + body;'''
+b='''  var html = head + scopeNote(q === \"\" ? null : shownTotal) + body;'''
 assert b in s
 s=s.replace(b,'''  var html = head + body;
-  html = html.replace(\"%%COUNT%%\", scopeNote(q ? shownTotal : null));''',1)
+  html = html.replace(\"%%COUNT%%\", scopeNote(q === \"\" ? null : shownTotal));''',1)
 ${W}"
 
 echo "--- 79: no marker a user could type"

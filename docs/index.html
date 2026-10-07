@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-+XRLIiENos3PFkRLLw5ic+8d1A3vSDHz6HAyHoA2Rlc='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-jXP8LvFZqmKm8NC3KpxF5C5V4rTUQgFXaCVtHhaMRpM='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -2007,7 +2007,7 @@ function upNext(){
 function foldSearch(s){
   return String(s).toLowerCase()
     .replace(/\u2018/g, "'").replace(/\u2019/g, "'")
-    .normalize("NFD").replace(new RegExp("[" + String.fromCharCode(768) + "-" + String.fromCharCode(879) + "]", "g"), "")
+    .normalize("NFD").replace(/\p{M}/gu,"")
     .replace(/'/g, "")
     .replace(/[^a-z0-9]+/g, " ")
     .replace(/ {2,}/g, " ")

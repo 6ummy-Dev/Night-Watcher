@@ -180,7 +180,7 @@ run_case "the listener ignores the settings key (smoke)" \
 
 run_case "a corrupt settings key hides the marks again (smoke)" \
   "a corrupt settings key boots the marks and keeps saving" \
-  "${P}a='  if(sraw){\n    try{\n      so = JSON.parse(sraw);\n      if(!so || typeof so !== \"object\") so = null;\n    }catch(e){ so = null; }\n  }\n  readBad = true;\n  salvageRaw = raw || \"\";\n  try{\n    var o = raw ? JSON.parse(raw) : {};\n    if(!o || typeof o !== \"object\") throw new Error(\"not a payload\");';assert a in s;s=s.replace(a,'  readBad = true;\n  salvageRaw = raw || \"\";\n  try{\n    var o = raw ? JSON.parse(raw) : {}, so = sraw ? JSON.parse(sraw) : null;\n    if(!o || typeof o !== \"object\" || (sraw && (!so || typeof so !== \"object\"))) throw new Error(\"not a payload\");',1);${W}" \
+  "${P}a='  if(sraw){\n    try{\n      so = JSON.parse(sraw);\n      if(!so || typeof so !== \"object\") so = null;\n    }catch(e){ so = null; }\n  }\n  if(so){\n    SCHEMA.forEach(function(r){\n      if(!r.s) return;\n      var v = r.read(so[r.k], so);\n      if(v === undefined) return;\n      if(r.put) r.put(v); else S[r.k] = v;\n    });\n  }\n  readBad = true;\n  salvageRaw = raw || \"\";\n  try{\n    var o = raw ? JSON.parse(raw) : {};\n    if(!o || typeof o !== \"object\") throw new Error(\"not a payload\");';assert a in s;s=s.replace(a,'  readBad = true;\n  salvageRaw = raw || \"\";\n  try{\n    var o = raw ? JSON.parse(raw) : {}, so = sraw ? JSON.parse(sraw) : null;\n    if(!o || typeof o !== \"object\" || (sraw && (!so || typeof so !== \"object\"))) throw new Error(\"not a payload\");',1);${W}" \
   "smoke" "main"
 
 run_case "a bundle skip lands on a watched season (smoke)" \

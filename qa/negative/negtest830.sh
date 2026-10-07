@@ -21,7 +21,7 @@ run_case "Doom loses the dropped word" \
 
 run_case "an accent no longer folds" \
   "an accented query no longer folds to its letters" \
-  "${P}a='.normalize(\"NFD\").replace(new RegExp(\"[\" + String.fromCharCode(768) + \"-\" + String.fromCharCode(879) + \"]\", \"g\"), \"\")';assert a in s;s=s.replace(a,'',1);${W}" \
+  "${P}a='.normalize(\"NFD\").replace(/\\\\p{M}/gu,\"\")';assert a in s;s=s.replace(a,'',1);${W}" \
   guards "" 177
 
 run_case "an apostrophe no longer folds" \
