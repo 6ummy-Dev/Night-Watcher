@@ -245,6 +245,7 @@ function blessHtml(next){
      174  The foot: Back page, then Keep reading
      175  The front names Batman news, and six questions
      179  The paper switch paints from the theme, and each button times itself
+     180  Reader view keeps the issue, the disclosure, and the byline
 
    META
      65   The file points at where its reasoning went
@@ -16668,7 +16669,9 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       var wantOff = sts.filter(function(st){ return st.catalogue === "none" && st.effect !== "new-entry" && st.headline !== "Late wires"; }).length;
       if(boxes !== wantBoxes) fail("the weekly fixture renders " + boxes + " On-the-map boxes where " + wantBoxes + " stories touch the catalogue (6.3.0)");
       if((h.match(/<span class="off">Off the map<\/span>/g) || []).length !== wantOff) fail("the weekly fixture's off-map stories do not each carry the Off the map chip (6.3.0)");
-      if((h.match(/<span class="beat">[a-z]+<\/span>/g) || []).length !== sts.length) fail("the weekly fixture's stories do not each carry their beat in the kicker (6.3.0)");
+      /* 6.7.4: the comma and the space are in the span, so reader view does not
+         glue the kicker into one word. */
+      if((h.match(/<span class="beat">[a-z]+, <\/span>/g) || []).length !== sts.length) fail("the weekly fixture's stories do not each carry their beat in the kicker (6.3.0)");
       if(!/<dt>Status<\/dt><dd class="parked"><i class="ring"><\/i>Parked until /.test(h)){
         fail("the weekly fixture's On-the-map box no longer reads a parked title out of the app");
       }
@@ -16840,7 +16843,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
   var hfeed = (HOLD.files["feed.xml"] || Buffer.from("")).toString("utf8");
   var NOINDEX = '<meta name="robots" content="noindex">';
   if(HOLD.errors.length || HOLD.list.length) fail("the build with no issues reports issues or errors");
-  if(hold.indexOf('<h1 class="banner">On the press</h1>') < 0 || hold.indexOf(NOINDEX) < 0){
+  if(hold.indexOf('<h1>On the press</h1>') < 0 || hold.indexOf(NOINDEX) < 0){
     fail("with no issue on disk /nocturne/ is not the holding page — On the press, noindex (6.2.1)");
   }
   var holdDate = /\b(19|20)\d\d\b|\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/;
@@ -17158,9 +17161,10 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
    now ends the same way, in the same words, as the last line of its foot
    under the colophon, so the front and every issue carry it. Pinned here:
    the words, the exact URL, its own tab with noopener noreferrer, once per
-   page, after the colophon and inside the footer. The host is NAMED in
-   section 42 and never fetched; the paper's CSP restricts loads, not a link
-   a reader follows. */
+   page, after the colophon. 6.7.4: both paragraphs follow the footer element.
+   Firefox reader view deletes footer, and the disclosure has to survive it.
+   The host is NAMED in section 42 and never fetched; the paper's CSP
+   restricts loads, not a link a reader follows. */
 
 (function(){
   if(nwStop(172)) return;
@@ -17179,7 +17183,7 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       if(hits !== 1 || h.split(want).length !== 2){
         fail(where + " does not carry the support line exactly once, as the owner wrote it — " +
              "“Keep the path lit.” with Support linking " + "the Brave Creators page in its own tab (6.5.5)");
-      } else if(col < 0 || at < col || end < 0 || at > end){
+      } else if(col < 0 || at < col || end < 0 || col < end || at < end){
         fail(where + "'s support line is not the last line of the foot, under the colophon — its seat is after the machinery, as on Progress (6.5.5)");
       }
     });
@@ -17626,6 +17630,75 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     fail("the theme switch still carries a dead data-theme");
   }
   note("the paper switch paints from the theme, and each button keeps its own timer");
+})();
+
+/* ---------- 180. Reader view keeps the issue, the disclosure, and the byline ---------- */
+/* 6.7.4. Firefox reader view is Mozilla Readability. It deletes an element
+   whose class or id contains banner, and it treats dateline as a byline, so
+   a page with no author meta was bylined with the price line. It also
+   deletes footer, which is where the colophon lived, and the colophon is the
+   AI disclosure. The kicker and the caption separated their words with CSS
+   gap, which reader view drops, so "01" "screen" "Confirmed" arrived as one
+   word and a credit ran into its caption. The headline carries no class.
+   The mast date's class is issued. On an issue the colophon is a paragraph
+   inside the article, after the footer. A weekly kicker has a comma and a
+   space between its labels. A caption has a space before its credit. Every
+   paper page names Night Watcher as its author. */
+
+(function(){
+  if(nwStop(180)) return;
+  var STRIP = /banner|header|footer|sidebar|social|rss|menu|dateline|byline|author|related|extra|supplemental/i;
+  var BYLINE = /dateline|byline|author|writtenby|p-author/i;
+  function pagesOf(pair){
+    if(!pair[0]) return;
+    Object.keys(pair[0].files).filter(function(f){ return /\.html$/.test(f); }).forEach(function(f){
+      check(pair[0].files[f].toString("utf8"), pair[1] + f);
+    });
+  }
+  function check(h, where){
+    if((h.match(/<meta name="author" content="Night Watcher">/g) || []).length !== 1){
+      fail(where + " has no author meta — reader view invents a byline from the mast (6.7.4)");
+    }
+    (h.match(/<h1\b[^>]*>|<h2\b[^>]*\bid="lead"[^>]*>/g) || []).forEach(function(tag){
+      var cls = (tag.match(/\bclass="([^"]*)"/) || ["", ""])[1];
+      var id = (tag.match(/\bid="([^"]*)"/) || ["", ""])[1];
+      if(STRIP.test(cls + " " + id)) fail(where + " the headline still carries a reader-view strip word (6.7.4)");
+    });
+    var mast = h.match(/<p class="([^"]*)"><span class="dl1">/);
+    if(!mast || BYLINE.test(mast[1])) fail(where + " the mast date is still classed as a byline (6.7.4)");
+    var issue = h.indexOf('"@type":"NewsArticle"') >= 0;
+    if(!issue) return;
+    var art = h.indexOf("<article"), artEnd = h.lastIndexOf("</article>");
+    var footEnd = h.indexOf("</footer>"), col = h.indexOf('<p class="colophon">');
+    if(art < 0 || artEnd < art || col < art || col > artEnd || footEnd < 0 || col < footEnd){
+      fail(where + " the colophon sits inside the footer, so reader view drops the disclosure (6.7.4)");
+    }
+    (h.match(/<p class="kick">[\s\S]*?<\/p>/g) || []).forEach(function(k){
+      if(!/<span class="beat">/.test(k)) return;
+      if(!/<span class="num">\d+, <\/span><span class="beat">[^<]+, <\/span>/.test(k)){
+        fail(where + " a weekly kicker has no comma between its labels (6.7.4)");
+      }
+      if(/<span class="off">/.test(k) && !/, <\/span><span class="off">/.test(k)){
+        fail(where + " a weekly kicker has no comma between its labels (6.7.4)");
+      }
+    });
+    if(/<figcaption><span>[^<]*[^ ]<\/span><span>/.test(h)){
+      fail(where + " a caption runs into its credit (6.7.4)");
+    }
+    if(/<p class="issued">/.test(h) && !/<span class="dl1"><span>[^<]+ <\/span><i class="dsep"><\/i><span>[^<]+ <\/span>/.test(h)){
+      fail(where + " a diamond is the only thing between two labels (6.7.4)");
+    }
+    if(/<span class="new">Latest<\/span>/.test(h) || /<small class="beat">[a-z]+<\/small>/.test(h)){
+      fail(where + " a diamond is the only thing between two labels (6.7.4)");
+    }
+  }
+  pagesOf([NOC_REAL, "docs/nocturne/"]);
+  pagesOf([NOC_FIX, "the fixture's "]);
+  var hold180 = null;
+  try { hold180 = NOC.build(ROOT, {src: "qa/nocturne-fixture/no-issues"}); }
+  catch(err){ fail("the holding page does not build for reader view (6.7.4)"); }
+  if(hold180) check((hold180.files["index.html"] || Buffer.from("")).toString("utf8"), "the holding page ");
+  note("reader view: the headline and the mast date keep their words, the disclosure stays in the article, and the kicker and the credit stay apart");
 })();
 
 /* ---------- report ---------- */

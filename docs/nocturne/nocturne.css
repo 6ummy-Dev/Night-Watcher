@@ -34,11 +34,11 @@ a:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
 .nameplate a{text-decoration:none;}
 .rule2{border:0;height:5px;margin:0;border-top:3px solid var(--bone);border-bottom:1px solid var(--bone);}
 .rule1{border:0;border-top:1px solid var(--line2);margin:0;}
-.dateline{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.16em;text-transform:uppercase;color:var(--dust);display:flex;justify-content:center;flex-wrap:wrap;gap:4px 12px;padding:9px 0;margin:0;}
+.issued{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.16em;text-transform:uppercase;color:var(--dust);display:flex;justify-content:center;flex-wrap:wrap;gap:4px 12px;padding:9px 0;margin:0;}
 .dl1,.dl2{display:inline-flex;gap:12px;align-items:center;}
-@media (max-width:560px){.dateline{flex-direction:column;align-items:center;gap:5px;}.dl2 .dsep{display:none;}}
+@media (max-width:560px){.issued{flex-direction:column;align-items:center;gap:5px;}.dl2 .dsep{display:none;}}
 .dsep{display:inline-block;width:4.5px;height:4.5px;background:var(--signal);transform:rotate(45deg);}
-.banner{font-family:var(--press);font-weight:700;font-size:var(--t-banner);line-height:1.04;text-align:center;margin:26px 0 20px;text-wrap:balance;}
+article > h1,#lead,.paper > h1{font-family:var(--press);font-weight:700;font-size:var(--t-banner);line-height:1.04;text-align:center;margin:26px 0 20px;text-wrap:balance;}
 figure{margin:0 0 26px;}
 figure img{display:block;width:100%;height:auto;border:1px solid var(--line2);background:var(--sunk);}
 figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:7px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;}
@@ -106,17 +106,17 @@ figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;
 .shout{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
 .shout.fail{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal;flex-basis:100%;order:1;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.04em;color:var(--steel);text-align:center;overflow-wrap:anywhere;user-select:all;}
 .btn.share.failed .shr{display:none;}
-.colophon{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:0;position:relative;padding-top:22px;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}
-.support{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);margin:6px 0 0;}
+.colophon{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);max-width:620px;margin:0 auto;position:relative;padding-top:22px;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}
+.support{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;color:var(--dim);max-width:620px;margin:6px auto 0;}
 .support a{text-decoration:underline;text-underline-offset:.2em;}
 .support a:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
 .sub{text-align:center;color:var(--dust);font-size:var(--t-desc);margin:0 auto 26px;max-width:460px;}
 .front{max-width:680px;margin:0 auto;}
 .lead-kick{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.19em;text-transform:uppercase;color:var(--dust);display:flex;justify-content:center;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:26px 0 0;}
 .lead-kick .new{color:var(--signal);font-weight:600;}
-.front .banner{margin-top:12px;}
-.front .banner a{text-decoration:none;}
-.front .banner a:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:.12em;text-decoration-color:var(--signal);}
+.front #lead{margin-top:12px;}
+.front #lead a{text-decoration:none;}
+.front #lead a:hover{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:.12em;text-decoration-color:var(--signal);}
 .front figure a{display:block;}
 .front .cold{margin-bottom:22px;}
 .inside{max-width:620px;margin:0 auto;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);padding:12px 0 6px;}

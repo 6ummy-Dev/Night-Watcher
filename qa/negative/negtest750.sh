@@ -62,7 +62,7 @@ run_case "the /nocturne/* rule removed" \
 
 run_case "the renderer writes a script into every issue" \
   "a script that is not a JSON-LD data block" \
-  "${N}a='<article>\\\\n<h1 class=\"banner\">';assert a in s;s=s.replace(a,'<script>void 0</script><article>\\\\n<h1 class=\"banner\">',1);${W}" \
+  "${N}a='<article>\\\\n<h1>';assert a in s;s=s.replace(a,'<script>void 0</script><article>\\\\n<h1>',1);${W}" \
   guards "" 164
 
 run_case "the renderer writes an inline handler" \
