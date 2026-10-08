@@ -9,6 +9,8 @@
 # 6.7.2. Back to Nocturne's arrow points left.
 # 6.8.0: the front's return line grew frontAsk() and the about link, so the
 # issue-nav fixture anchors on that line.
+# 6.8.1: print hides the skip link between .acts and .themerow, so the
+# foot fixture anchors on that longer rule and still removes only .acts.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="$(pro qa/nocturne.js)"
@@ -47,7 +49,7 @@ run_case "the front page grows an issue nav" \
 
 run_case "print shows the foot" \
   "print no longer hides the foot" \
-  "${N}a='.acts{display:none;}.themerow{display:none;}';assert s.count(a)==1;s=s.replace(a,'.themerow{display:none;}',1);${W}" \
+  "${N}a='.acts{display:none;}.skip{display:none;}.themerow{display:none;}';assert s.count(a)==1;s=s.replace(a,'.skip{display:none;}.themerow{display:none;}',1);${W}" \
   guards "" 174
 
 run_case "the middle issue loses Next" \

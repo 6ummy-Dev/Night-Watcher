@@ -25,7 +25,7 @@ change that gets undone by the next person who touches the line.
 ### Changed
 
 - **`llms.txt`.** The paper section names the front's title and the correction rule, and *Questions at the desk* lists the seven questions and answers the front prints. An issue still carries none of them.
-- **Harness.** 183 guard sections, 96 negative suites, 1,827 fixtures (`negtest870`). `/hww` is rebuilt from the tree.
+- **Harness.** 183 guard sections, 96 negative suites, 1,827 fixtures (`negtest870`). `negtest800`'s print fixture anchors on the longer print rule, now that the skip link sits between `.acts` and `.themerow`, and still removes only `.acts`. `/hww` is rebuilt from the tree.
 
 ## [6.8.0] — 2026-10-08
 
