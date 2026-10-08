@@ -58,7 +58,10 @@
   - link "Read the paper":
     - /url: /nocturne/
   - switch "Darker theme": Dark deco Darker
-  - paragraph: Night Watcher · an unofficial fan guide · progress saves in this browser only · the host counts visits, never what you watch · free software under the AGPL · kept by 6ummy, with AI on the night shift
+  - paragraph:
+    - text: Night Watcher · an unofficial fan guide · progress saves in this browser only · the host counts visits, never what you watch · free software under the AGPL · kept by 6ummy, with AI on the night shift ·
+    - link "Privacy":
+      - /url: /privacy
 # tabs
 - navigation "Views":
   - button "Home"
