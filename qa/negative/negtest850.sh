@@ -70,7 +70,7 @@ run_case "the mast date is words again" \
 
 run_case "a correction's date is words again" \
   "a correction's date is not a time element" \
-  "${N}a=\"'Corrected ' + timeTag(c.date, shortDate(c.date))\";assert s.count(a)==1;s=s.replace(a,\"'Corrected ' + shortDate(c.date)\",1);${W}" \
+  "${N}a=\"Corrected ' + timeTag(c.date, shortDate(c.date))\";assert s.count(a)==1;s=s.replace(a,\"Corrected ' + shortDate(c.date)\",1);${W}" \
   guards "" 181
 
 run_case "the front's lead date is words again" \
