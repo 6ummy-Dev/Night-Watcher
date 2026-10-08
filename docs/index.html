@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-FvOZjNGSlV1F/nycDcqkP1i+YpE8HEEtgHyI4Ct1FAA='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-QHP/eNfSJQMYo6Jt52+6JXnx/lg7UxIT6RzMyMHq7z8='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/limelight-latin-400-normal.woff2">
@@ -516,6 +516,7 @@ main,.panel{scrollbar-gutter:stable both-edges;}
   background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}
 .homefoot::before,.note.foot::before,.legend::before{content:"";position:absolute;top:0;left:50%;width:var(--dia-s);height:var(--dia-s);transform:translate(-50%,-50%) rotate(45deg);background:var(--signal);box-shadow:0 0 0 6px var(--ink);}
 .note a{color:inherit;text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:3px;}
+.homefoot a{color:inherit;text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:3px;}
 .note a:hover{color:var(--bone);text-decoration-color:currentColor;}
 #ringTrack{stroke:var(--line2);}
 #ringArc{stroke:var(--signal);}
@@ -1058,7 +1059,7 @@ main,.panel{scrollbar-gutter:stable both-edges;}
    Why it is written this way is deliberately NOT in here. Every constraint,
    every failure that produced a rule, and every decision that looks arbitrary
    is recorded in NOTES.md and CHANGELOG.md at the repo root, and enforced by
-   qa/guards.js — 183 sections, each one negative-tested, which section 138
+   qa/guards.js — 184 sections, each one negative-tested, which section 138
    checks rather than assumes.
 
    Read those before changing something that looks redundant. Most of it is
@@ -1529,7 +1530,7 @@ function pathName(id){
   for(var i = 0; i < PATHS.length; i++){ if(PATHS[i][0] === id) return PATHS[i][1]; }
   return "";
 }
-var BUILD = "6.8.1";
+var BUILD = "6.8.2";
 var BUILT = "2026-10-08";
 var KEY = "batwatch-v3";
 var SKEY = "batwatch-settings";
@@ -2672,7 +2673,8 @@ function viewHome(c){
   html += paperRow() + themeRow();
   html += '<p class="homefoot">Night Watcher \u00b7 an unofficial fan guide \u00b7 ' +
     'progress saves in this browser only \u00b7 the host counts visits, never what ' +
-    'you watch \u00b7 free software under the AGPL \u00b7 kept by 6ummy, with AI on the night shift</p>';
+    'you watch \u00b7 free software under the AGPL \u00b7 kept by 6ummy, with AI on the night shift \u00b7 ' +
+    '<a href="/privacy">Privacy</a></p>';
   return html;
 }
 

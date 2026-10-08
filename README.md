@@ -155,6 +155,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `docs/hww/index.html` | /hww, "How we work": who does what on Night Watcher and the rules that hold it. Unlisted (noindex in the page and its header, out of the sitemap and the worker, linked from nowhere). Written by `npm run hww:build` from the tree, never by hand; guard 170 holds it |
 | `docs/hww/hww.css` | Its stylesheet: the app's tokens and faces, no script anywhere on the page |
 | `docs/nocturne/` | Nocturne, the paper: every issue, its images, the front (the latest issue, with back issues under The morgue), each page's 1200×630 share card (`card.png`), the markdown each document negotiates (`index.md`, and each issue's own `issue.md`), the RSS feed with its browser stylesheet `feed.css`, `nocturne.css`, `theme.js` and `paper.js` (the paper's two scripts of its own), the paper's own faces and the `OFL.txt` that travels with it. Written by `npm run nocturne:build`, never by hand; guard 163 holds it to the build |
+| `docs/privacy/index.html` | `/privacy`, what stays on the device and the licence notice. The app's bar and Home's foot. noindex, out of the sitemap and the service worker, linked from Home's footer. Guard 184 holds the claims and the notice |
 | `docs/404.html` | The wrong-alley page. Self-contained, noindexed, served with a real 404 status |
 | `docs/.well-known/security.txt` | RFC 9116 disclosure pointer, with an `Expires` guard 140 watches — the tree's only clock |
 | `docs/.well-known/brave-rewards-verification.txt` | Brave Creators ownership token |
@@ -237,7 +238,7 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 96 negative suites, 1827
+trusted. That evidence lives in `qa/negative/` — 97 negative suites, 1837
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
@@ -313,7 +314,9 @@ When something sits on the line, the tie-breaker is the reader: would somebody w
 ## Licence
 
 AGPL-3.0-only (`SPDX-License-Identifier: AGPL-3.0-only`). Night Watcher is free
-and stays free — fork it, change it, host it. The one condition is that if you
+and stays free — fork it, change it, host it. The notice, here and on `/privacy`:
+Night Watcher is free software under the GNU Affero General Public License, version 3 only. Copyright (C) 2026 6ummy (6ummy-Dev on GitHub).
+The grant stays AGPL-3.0-only. The one condition is that if you
 put a modified version in front of other people, you publish your source too.
 The grant is version 3 and no later version, deliberately. The licence text below
 the divider in `LICENSE` is the canonical one from gnu.org, verbatim — its own

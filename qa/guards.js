@@ -109,6 +109,7 @@ function blessHtml(next){
      177  Search finds a shortened title, and an empty fold matches nothing
 
      121  The privacy footer says what the README says
+     184  The privacy page, the licence notice, and five in the morgue
 
    LAYOUT
      17   The type scale: one source for every size
@@ -1595,8 +1596,8 @@ if(PUBLIC !== ROOT){
      shell by rule, and section 165 fails the build if sw.js ever caches or
      answers for anything under /nocturne/. */
   /* 6.5.0: and hww/, the crew's page, which the worker steps aside for too
-     (section 170). */
-  var NOT_SHELLED_DIRS = ["nocturne/", "hww/"];
+     (section 170). 6.8.2: and privacy/, a document, not the map (section 184). */
+  var NOT_SHELLED_DIRS = ["nocturne/", "hww/", "privacy/"];
   function outOfShellDir(f){
     return NOT_SHELLED_DIRS.some(function(d){ return f.indexOf(d) === 0; });
   }
@@ -18032,13 +18033,81 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
       fail("the skip link stays clipped when it is focused");
     }
     if(css.indexOf(".skip{display:none;}") < 0) fail("print still shows the skip link");
+    /* 6.8.2. WebKit focuses #paper when a tap lands on ordinary text.
+       :focus painted a yellow page border. :focus-visible draws the ring
+       for the skip link's keyboard landing and for nothing a pointer does. */
+    if(css.indexOf(".paper:focus-visible{outline:2px solid var(--signal);outline-offset:-2px;}") < 0 ||
+       css.indexOf(".paper:focus{") >= 0){
+      fail("the paper ring is :focus, so a tap paints the page");
+    }
   });
   var lt = fs.readFileSync(path.join(PUBLIC, "llms.txt"), "utf8");
   if(lt.indexOf(NOC.FRONT_TITLE) < 0) fail("llms.txt does not carry the front title");
   NOC.FRONT_QS.forEach(function(q){
     if(lt.indexOf(q[0]) < 0 || lt.indexOf(q[1]) < 0) fail("llms.txt does not carry a question the front prints");
   });
-  note("skip link first on every paper page, clipped until focused; llms.txt carries the seven questions and the front title");
+  note("skip link first on every paper page, clipped until focused; llms.txt carries the seven questions and the front title; the paper ring is :focus-visible");
+})();
+
+/* ---------- 184. The privacy page, the licence notice, and five in the morgue ---------- */
+/* 6.8.2. /privacy says what stays on the device, in the words the page was
+   signed off with, and the licence notice is that page and the README, the
+   same sentence in both. AGPL-3.0-only stays. The page is noindex, out of
+   the sitemap, and the service worker steps aside for it. Home's footer is
+   the door. The front's morgue prints five back issues; See more is the
+   remainder, and it stays off until a sixth back issue is filed. */
+
+(function(){
+  if(nwStop(184)) return;
+  var NOTICE = "Night Watcher is free software under the GNU Affero General Public License, version 3 only. Copyright (C) 2026 6ummy (6ummy-Dev on GitHub).";
+  var LINES = [
+    "What you tick \u2014 a title watched, skipped, or rated \u2014 stays in this browser.",
+    "There is no copy of it on a server.",
+    "The count is Cloudflare Web Analytics: no cookies, and nothing that follows you from site to site.",
+    "The map does not carry that counter.",
+    "The paper is not saved for offline.",
+    "Where to watch, Support, and the source on GitHub are links you open.",
+    "If the behavior changes, this page changes in the same release."
+  ];
+  var fp = path.join(PUBLIC, "privacy", "index.html");
+  if(!fs.existsSync(fp)){ fail("the privacy page is not served"); return; }
+  var page = fs.readFileSync(fp, "utf8");
+  if(page.indexOf('<meta name="robots" content="noindex">') < 0) fail("the privacy page lost its noindex");
+  LINES.forEach(function(line){
+    if(page.indexOf(line) < 0) fail("the privacy page dropped a claim it makes");
+  });
+  if(page.indexOf(NOTICE) < 0) fail("the licence notice left the privacy page");
+  if(README.indexOf(NOTICE) < 0) fail("the licence notice left the README");
+  if(HTML.indexOf('<a href="/privacy">Privacy</a>') < 0) fail("the home footer does not open the privacy page");
+  var sm = fs.readFileSync(path.join(PUBLIC, "sitemap.xml"), "utf8");
+  if(/\/privacy/i.test(sm)) fail("the sitemap lists /privacy \u2014 the page is noindex");
+  var hdr = fs.readFileSync(path.join(PUBLIC, "_headers"), "utf8");
+  var block = (hdr.match(/^\/privacy\/\*\n((?:[ \t]+\S.*\n?)+)/m) || ["", ""])[1];
+  if(block.indexOf("X-Robots-Tag: noindex") < 0) fail("docs/_headers does not noindex /privacy");
+  if(!/Cache-Control:\s*no-cache/.test(block)) fail("docs/_headers does not set no-cache on /privacy");
+  var bare = 'if(url.pathname === "/privacy") return;';
+  var slashed = 'if(url.pathname.indexOf("/privacy/") === 0) return;';
+  if(SW.indexOf(bare) < 0 || SW.indexOf(bare) > SW.indexOf("e.respondWith(")){
+    fail("sw.js answers /privacy \u2014 the privacy page is not the map");
+  }
+  if(SW.indexOf(slashed) < 0 || SW.indexOf(slashed) > SW.indexOf("e.respondWith(")){
+    fail("sw.js answers /privacy/ \u2014 the privacy page is not the map");
+  }
+  if(!NOC_REAL || !NOC_FIX){ fail("the morgue cap has no paper to read"); return; }
+  function seeMore(html){
+    var back = String(html).split('id="morgue"')[1] || "";
+    return back.split('id="ask"')[0].indexOf(">See more<") >= 0;
+  }
+  [NOC_REAL, NOC_FIX].forEach(function(b){
+    var n = Math.max(0, (b.list || []).length - 1);
+    var see = seeMore((b.files["index.html"] || "").toString("utf8"));
+    if(n <= 5 && see) fail("See more is up before five back issues are filed");
+    if(n > 5 && !see) fail("the front's morgue lost its See more");
+  });
+  var nsrc = fs.readFileSync(path.join(__dirname, "nocturne.js"), "utf8");
+  if(nsrc.indexOf("var MORGUE_N = 5;") < 0) fail("the front's morgue no longer stops at five");
+  if(nsrc.indexOf(">See more<") < 0) fail("the front's morgue lost its See more");
+  note("privacy: the signed-off claims and the licence notice, on the page and in the README; noindex, out of the sitemap and the worker; the morgue prints five");
 })();
 
 /* ---------- report ---------- */

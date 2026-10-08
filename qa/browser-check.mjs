@@ -1818,10 +1818,25 @@ async function paperChecks(){
     });
     await np.locator("a.skip").focus();
     await np.keyboard.press("Enter");
-    const landedId = await np.evaluate(() => document.activeElement && document.activeElement.id);
-    const skipOk = skipFirst === "skip" && landedId === "paper";
+    const landed = await np.evaluate(() => {
+      const el = document.activeElement;
+      const cs = el ? getComputedStyle(el) : null;
+      return {
+        id: el && el.id,
+        width: cs && cs.outlineWidth,
+        style: cs && cs.outlineStyle,
+        color: cs && cs.outlineColor,
+        offset: cs && cs.outlineOffset
+      };
+    });
+    /* 6.8.2. The ring is :focus-visible. Enter from the skip link is a
+       keyboard landing, so the destination still draws. A pointer does not. */
+    const ring = landed.width === "2px" && landed.style === "solid" &&
+      landed.color === "rgb(255, 207, 31)" && landed.offset === "-2px";
+    const skipOk = skipFirst === "skip" && landed.id === "paper" && ring;
     ok("nocturne (" + label + "): the first control is the skip link, and Enter lands on the paper",
-       skipOk, "first " + skipFirst + ", landed " + landedId);
+       skipOk, "first " + skipFirst + ", landed " + landed.id +
+         (ring ? "" : ", ring " + landed.width + " " + landed.style + " " + landed.color + " " + landed.offset));
     if(errs.length || (st.axe && st.axe.length) || !skipOk){
       await np.screenshot({ path: shot("shot-nocturne-" + label.replace(/\W+/g, "-") + ".png"), fullPage: true });
     }
