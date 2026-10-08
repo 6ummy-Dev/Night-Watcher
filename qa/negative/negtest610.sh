@@ -684,6 +684,11 @@ run_case "the README drops its row for qa/llms-txt.json" \
   "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/llms-txt.json')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
   guards "" 45
 
+run_case "the README drops its row for qa/nocturne-entities.json" \
+  "README's file table does not list: qa/nocturne-entities.json" \
+  "import io,re;p='README.md';s=io.open(p,encoding='utf-8').read();a=re.search(r'^\| \`'+re.escape('qa/nocturne-entities.json')+r'\` \|.*\n',s,re.M).group(0);s=s.replace(a,'',1);io.open(p,'w',encoding='utf-8').write(s)" \
+  guards "" 45
+
 # The sweep guards its own completeness (4.9.1): the head half is held whole
 # by section 153's stray census, and this holds the README half the same way
 # — a row added to the table without a fixture here fails the suite, which
