@@ -14,6 +14,25 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.8.2] — 2026-10-08
+
+**Why PATCH.** Five small things, none of them a catalogue change, and nothing saved changes shape. A tap on ordinary text no longer paints a yellow border around a Nocturne page. The front's morgue prints the five newest back issues and files the rest under See more. `/privacy` says what stays on the device. The licence notice is that page and the README, and the grant stays AGPL-3.0-only. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Fixed
+
+- **The paper's focus ring.** `.paper:focus` is now `.paper:focus-visible`. WebKit focuses `#paper` when a tap lands on text that is not a control, and the old rule drew the signal outline around the whole page. A pointer draws nothing. Enter on the skip link still lands on the paper and still draws the ring. Guard 183 holds the rule. The paper half of the browser check holds the ring.
+
+### Added
+
+- **`/privacy`.** What stays on the device, and the one count the paper makes. The app's bar, Home's foot, noindex, out of the sitemap. Home's footer links it. The service worker steps aside, so an offline visit is an honest miss and not the map.
+- **The licence notice.** One sentence, on `/privacy` and in the README: free software under the GNU Affero General Public License, version 3 only, copyright 2026 6ummy. AGPL-3.0-only stays.
+- **See more.** The morgue on the front prints five back issues. A sixth files under See more. With fewer than that, the list is the whole file and See more stays off. The lead above the rule is not one of the five.
+- **Guard 184** holds the signed-off privacy lines, the licence notice in both places, the noindex, the sitemap's silence, the worker's step-aside, and the morgue's five.
+
+### Changed
+
+- **Harness.** 184 guard sections, 97 negative suites, 1,836 fixtures (`negtest880`). `/hww` is rebuilt from the tree.
+
 ## [6.8.1] — 2026-10-08
 
 **Why PATCH.** The 6.8.0 paper audit left two gaps a change can close. Accessibility stayed at 7.8 because a keyboard met the mast before the story, and GEO stayed at 8.8 because `llms.txt` still said only that the paper exists. Every paper page now opens with a skip link, clipped until a keyboard focuses it, and activating it moves focus to the paper. `llms.txt` carries the front's title and the seven questions the front prints, each answer the page's own words. No catalogue change, and nothing saved changes shape. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.

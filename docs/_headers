@@ -111,6 +111,13 @@
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-cache
 
+# /privacy/* is the privacy page (6.8.2). noindex, like the page's own meta,
+# and no-cache: the copy moves with a release. No CSP header: the page's
+# policy is the meta in the file, and a second one would sit beside it.
+/privacy/*
+  X-Robots-Tag: noindex
+  Cache-Control: no-cache
+
 /sw.js
   Cache-Control: no-cache
 

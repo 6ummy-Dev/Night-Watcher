@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0C111C">
+<meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Privacy · Night Watcher</title>
+<style>
+@font-face{font-family:"NW Deco";src:url("/fonts/limelight-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:"Big Shoulders Display";src:url("/fonts/big-shoulders-display-latin-700-normal.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;}
+@font-face{font-family:"NW Sans";src:url("/fonts/ibm-plex-sans-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:"NW Sans";src:url("/fonts/ibm-plex-sans-latin-600-normal.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap;}
+@font-face{font-family:"NW Mono";src:url("/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:"NW Mono";src:url("/fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap;}
+@font-face{font-family:"Bodoni Moda";src:url("/fonts/bodoni-moda-latin-700-normal.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;}
+:root{
+  --ink:#08090F; --sunk:#0C111C; --card:#141B2C; --card2:#1B2438;
+  --line:#252E42; --line2:#33405C;
+  --bone:#E7E9F0; --dust:#93A0B8; --dim:#8B97B1; --suit:#A6ADBA;
+  --signal:#FFCF1F; --signalline:rgba(255,207,31,.4);
+  --deco:"NW Deco","Big Shoulders Display",serif;
+  --disp:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --body:"NW Sans",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+  --mono:"NW Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --t-display:clamp(24px,6.5vw,36px); --t-title:24px; --t-heading:clamp(17px,5.5vw,20px);
+  --t-body:16px; --t-desc:14px; --t-label:10px; --t-fine:9px;
+  --hdr:rgba(10,12,17,.96);
+  --dia-s:4.5px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;}
+body{background:#000;color:var(--bone);font-family:var(--body);font-size:var(--t-body);line-height:1.5;-webkit-font-smoothing:antialiased;}
+a{color:inherit;}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
+#app{background:var(--ink);display:flex;flex-direction:column;height:100%;height:100dvh;overflow:hidden;}
+header{position:sticky;top:0;z-index:30;background:var(--hdr);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 12px) 18px 12px;}
+.hrow{display:flex;align-items:center;gap:14px;max-width:760px;margin:0 auto;}
+.mark{width:46px;flex:none;color:var(--signal);display:flex;justify-content:center;align-items:center;}
+.mark svg{display:block;width:44px;height:auto;}
+.wordmark{flex:1;min-width:0;text-align:center;}
+.wordmark h1{font-family:var(--deco);font-weight:400;letter-spacing:.02em;text-transform:uppercase;font-size:var(--t-title);line-height:.95;margin:0;}
+.wordmark p{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.17em;text-transform:uppercase;color:var(--dim);margin:4px 0 0;}
+.ring{width:46px;height:46px;flex:none;position:relative;}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:var(--t-label);font-weight:600;}
+#ringTrack{stroke:var(--line2);}
+#ringArc{stroke:var(--signal);}
+main{flex:1;min-height:0;overflow-y:auto;padding:18px 18px 28px;max-width:760px;margin:0 auto;width:100%;}
+.ititle{font-family:var(--deco);font-weight:400;text-transform:uppercase;font-size:var(--t-display);line-height:.94;margin:0 0 10px;letter-spacing:.02em;}
+.qhead{font-family:var(--mono);font-size:var(--t-label);letter-spacing:.17em;text-transform:uppercase;color:var(--signal);margin:22px 0 10px;font-weight:600;}
+p{margin:0 0 14px;}
+.lede{font-size:var(--t-desc);color:var(--dust);line-height:1.5;margin:0 0 8px;}
+.homefoot{color:var(--dim);margin:30px 0 4px;font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.08em;text-transform:uppercase;text-align:center;line-height:1.8;padding-top:18px;position:relative;background:linear-gradient(90deg,transparent,var(--signalline) 50%,transparent) top/100% 1px no-repeat;}
+.homefoot::before{content:"";position:absolute;top:0;left:50%;width:var(--dia-s);height:var(--dia-s);transform:translate(-50%,-50%) rotate(45deg);background:var(--signal);box-shadow:0 0 0 6px var(--ink);}
+.homefoot a{color:inherit;text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:3px;}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+<div class="hrow">
+<a class="mark" href="/" aria-label="Home"><svg viewBox="8 16 84 70" aria-hidden="true"><g fill="currentColor" transform="translate(0,5)"><path d="M50 36 C 44 25, 29 21, 12 30 C 21 34, 25 41, 24 50 C 31 45, 37 47, 39 55 C 43 50, 47 51, 49 58 L 50 61 L 51 58 C 53 51, 57 50, 61 55 C 63 47, 69 45, 76 50 C 75 41, 79 34, 88 30 C 71 21, 56 25, 50 36 Z"/><path d="M42 32 L49 29 L38 17 Z"/><path d="M58 32 L62 17 L51 29 Z"/><ellipse cx="50" cy="42" rx="10" ry="11"/><path d="M50 51 C 45 60, 45 69, 50 78 C 55 69, 55 60, 50 51 Z"/></g></svg></a>
+<div class="wordmark"><h1>Night Watcher</h1><p>Batman watch orders</p></div>
+<div class="ring" aria-hidden="true"><svg width="46" height="46" viewBox="0 0 46 46"><circle id="ringTrack" cx="23" cy="23" r="17.5" fill="none" stroke-width="3"></circle><circle id="ringArc" cx="23" cy="23" r="17.5" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray="109.96" stroke-dashoffset="109.96"></circle></svg><b>0%</b></div>
+</div>
+</header>
+<main>
+<h2 class="ititle">Privacy</h2>
+<p class="lede">Night Watcher is an unofficial fan guide, kept by 6ummy. It is free software. The source is public. This page says what stays on your device, and the one count the paper makes.</p>
+<h3 class="qhead">The map</h3>
+<p>The map is the watch orders. There is no account and no sign-in, and no advertising. Nothing tracks what you watch.</p>
+<p>What you tick — a title watched, skipped, or rated — stays in this browser. So do the settings: the path, the theme, the filters. None of it is sent anywhere. There is no copy of it on a server.</p>
+<p>A backup code is a string you copy yourself. A file you save stays where you put it. The browser only remembers the handle to that file, on this device.</p>
+<p>The app can be installed, and it can open offline. The copy it keeps for that is on this device too.</p>
+<p>Clearing this browser’s data clears the marks and the settings. It does not delete a file you saved.</p>
+<h3 class="qhead">The paper</h3>
+<p>Nocturne is the weekly paper. It is not the map, and it does not read what you have watched.</p>
+<p>It does count visits. The count is Cloudflare Web Analytics: no cookies, and nothing that follows you from site to site. The colophon on every issue says the same thing. The map does not carry that counter.</p>
+<p>The paper remembers whether you chose Dark deco or Darker, in this browser. If you have not chosen on the paper, it uses the theme you already set on the map. That choice stays on the device.</p>
+<p>The paper is not saved for offline. If the network is down, the issue does not open.</p>
+<h3 class="qhead">Links you follow</h3>
+<p>Where to watch, Support, and the source on GitHub are links you open. They go to those sites. This site does not bring their counters back with you.</p>
+<h3 class="qhead">The source</h3>
+<p>The claims on this page are the ones in the repository. If the behavior changes, this page changes in the same release.</p>
+<h3 class="qhead" id="licence">The licence</h3>
+<p>Night Watcher is free software under the GNU Affero General Public License, version 3 only. Copyright (C) 2026 6ummy (6ummy-Dev on GitHub).</p>
+<p>The grant stays version 3 and no later version. The source is public on <a href="https://github.com/6ummy-Dev/Night-Watcher">GitHub</a>.</p>
+<footer class="homefoot">Night Watcher · an unofficial fan guide · progress saves in this browser only · the host counts visits, never what you watch · free software under the AGPL · kept by 6ummy, with AI on the night shift</footer>
+</main>
+</div>
+</body>
+</html>

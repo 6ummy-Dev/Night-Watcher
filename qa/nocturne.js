@@ -878,7 +878,11 @@ var CSS = [
    focuses it, then it is a signal chip in the corner. Print drops it. */
 ".skip{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}",
 ".skip:focus{position:fixed;left:8px;top:8px;z-index:2;width:auto;height:auto;margin:0;overflow:visible;clip:auto;padding:8px 12px;background:var(--signal);color:var(--ink);font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;text-transform:uppercase;text-decoration:none;}",
-".paper:focus{outline:2px solid var(--signal);outline-offset:-2px;}",
+/* 6.8.2. :focus-visible, not :focus. WebKit focuses #paper when a tap lands
+   on ordinary text, and :focus painted a yellow border around the whole
+   page. A pointer draws nothing. Keyboard activation of the skip link
+   still draws the destination ring. */
+".paper:focus-visible{outline:2px solid var(--signal);outline-offset:-2px;}",
 "a{color:inherit;}",
 "a:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}",
 ".paper{max-width:760px;margin:0 auto;padding:22px 18px 48px;}",
@@ -1012,8 +1016,14 @@ var CSS = [
 ".issues li{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:16px 0;border-bottom:1px solid var(--line);}",
 ".issues .no{font-family:var(--deco);font-size:var(--t-num);line-height:1;grid-row:1/3;min-width:52px;}",
 ".issues .when{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}",
-".issues li:first-child .when{color:var(--signal);}",
 ".issues a{text-decoration:none;font-family:var(--press);font-weight:700;font-size:var(--t-heading);line-height:1.2;}",
+/* 6.8.2. The open list is the five newest back issues. The gold date is
+   that list's first row only, so the folded remainder does not grow a
+   second one. */
+".back>.issues li:first-child .when{color:var(--signal);}",
+".moreissues{max-width:620px;margin:0 auto;}",
+".moreissues summary{font-family:var(--mono);font-size:var(--t-label);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--signal);cursor:pointer;list-style:none;min-height:44px;display:flex;align-items:center;justify-content:center;}",
+".moreissues summary::-webkit-details-marker{display:none;}",
 /* 6.8.0. Questions at the desk: two columns of question and answer under
    the morgue, the question in the press face, the answer in the reading
    face at body size in dust. One column under 560px. The standfirst is the
@@ -1532,12 +1542,21 @@ function renderFrontMarkdown(list){
     lines.push((i + 1) + ". " + mdLink(label, href + "#s" + (i + 1)));
   });
   lines.push("", mdLink("Read the Night Final", href), "", "## The morgue", "");
-  var rest = list.slice(1);
-  if(!rest.length) lines.push("No. " + fm.issue + " is the first. Back issues file here from next Sunday.");
-  else rest.forEach(function(b){
-    lines.push("- No. " + b.fm.issue + ". " + longDate(b.fm.published) + ". " +
-                mdLink(b.fm.title, "/nocturne/" + b.id + "/"));
-  });
+  var split = morgueSplit(list);
+  if(!split.shown.length && !split.more.length) lines.push("No. " + fm.issue + " is the first. Back issues file here from next Sunday.");
+  else {
+    split.shown.forEach(function(b){
+      lines.push("- No. " + b.fm.issue + ". " + longDate(b.fm.published) + ". " +
+                  mdLink(b.fm.title, "/nocturne/" + b.id + "/"));
+    });
+    if(split.more.length){
+      lines.push("", "See more", "");
+      split.more.forEach(function(b){
+        lines.push("- No. " + b.fm.issue + ". " + longDate(b.fm.published) + ". " +
+                    mdLink(b.fm.title, "/nocturne/" + b.id + "/"));
+      });
+    }
+  }
   lines.push("", "## " + ASK_HEAD, "", ASK_SUB, "");
   FRONT_QS.forEach(function(q, i){
     lines.push("### " + q[0], "", frontAnswerMd(i), "");
@@ -1559,6 +1578,18 @@ function renderHoldingMarkdown(){
   ].join("\n");
 }
 
+/* 6.8.2. The morgue on the front prints the five newest back issues.
+   A sixth files under See more. Fewer than that print in full, and See
+   more stays off. The lead above the rule is not one of the five. */
+var MORGUE_N = 5;
+function morgueSplit(list){
+  var rest = list.slice(1);
+  return { shown: rest.slice(0, MORGUE_N), more: rest.slice(MORGUE_N) };
+}
+function morgueItem(b){
+  return '<li><span class="no">' + b.fm.issue + '</span><span class="when">' + timeTag(b.fm.published, esc(longDate(b.fm.published))) +
+         '</span><a href="/nocturne/' + b.id + '/">' + inline(b.fm.title) + '</a></li>\n';
+}
 /* The front (6.4.0). /nocturne/ leads with the latest Night Final: its
    headline, hero, cold open and what is inside, then one button into the
    issue. Back issues file below under The morgue. The nameplate is the h1. */
@@ -1586,15 +1617,17 @@ function renderArchive(list){
   out += '</ol></nav>\n<p class="read"><a class="btn read" href="' + href + '">Read the Night Final' + ARROW_IN + '</a></p>\n</article>\n' +
     '<div class="drule" aria-hidden="true"><i></i></div>\n' +
     '<section class="back" aria-labelledby="morgue"><h2 class="bh2" id="morgue">The morgue</h2>\n';
-  var rest = list.slice(1);
-  if(!rest.length) out += '<p class="sub">No. ' + fm.issue + ' is the first. Back issues file here from next Sunday.</p>\n';
+  var split = morgueSplit(list);
+  if(!split.shown.length && !split.more.length) out += '<p class="sub">No. ' + fm.issue + ' is the first. Back issues file here from next Sunday.</p>\n';
   else {
     out += '<ol class="issues" reversed>\n';
-    rest.forEach(function(b){
-      out += '<li><span class="no">' + b.fm.issue + '</span><span class="when">' + timeTag(b.fm.published, esc(longDate(b.fm.published))) +
-             '</span><a href="/nocturne/' + b.id + '/">' + inline(b.fm.title) + '</a></li>\n';
-    });
+    split.shown.forEach(function(b){ out += morgueItem(b); });
     out += '</ol>\n';
+    if(split.more.length){
+      out += '<details class="moreissues"><summary>See more</summary>\n<ol class="issues" reversed>\n';
+      split.more.forEach(function(b){ out += morgueItem(b); });
+      out += '</ol>\n</details>\n';
+    }
   }
   return out + '</section>\n' + frontAsk() + footer("", aboutHref(aboutOf(list))) + '</main>\n' + BEACON + '\n</body>\n</html>\n';
 }

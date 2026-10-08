@@ -9,7 +9,7 @@
  * the app is one index.html, so a sticky cache is a sticky catalogue and
  * sticky code with no way to push a fix. History: NOTES-history.md ("Where the served and config files' histories went").
  */
-var VERSION = "6.8.1";
+var VERSION = "6.8.2";
 var CACHE   = "night-watcher-" + VERSION;
 /* The shell: everything the page needs to open offline. Guard 13 diffs this
    list against what docs/ serves, crawler-facing files excluded; ./index.html
@@ -77,6 +77,10 @@ self.addEventListener("fetch", function(e){
   /* 6.5.0. /hww, the crew's page, is not the app either (guard 170). */
   if(url.pathname === "/hww") return;
   if(url.pathname.indexOf("/hww/") === 0) return;
+  /* 6.8.2. /privacy is a document, not the map. The slashless form is the
+     assets plane's redirect, and that is the network's to give. */
+  if(url.pathname === "/privacy") return;
+  if(url.pathname.indexOf("/privacy/") === 0) return;
 
   /* 6.5.5 (QA L1): a navigation is cached under its path, the query
      dropped. Every /?fbclid=… or /?utm_… visit used to store another full
