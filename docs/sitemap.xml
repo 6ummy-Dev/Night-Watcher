@@ -17,8 +17,10 @@
   paper's build (6.2.0): npm run nocturne:build rewrites it from the issues
   on disk, and guard 167 fails the build if it is edited by hand. It is empty
   until the first issue runs, and it always sits after the two URLs above.
+  The news namespace (6.8.0) is for the block's one Google News entry, on
+  the newest issue; guard 181 holds the declaration here and the entry there.
 -->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
   <url>
     <loc>https://nightwatcher.life/</loc>
     <lastmod>2026-10-07</lastmod>
@@ -43,6 +45,14 @@
     <lastmod>2026-10-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
+    <news:news>
+      <news:publication>
+        <news:name>Nocturne</news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:publication_date>2026-10-04</news:publication_date>
+      <news:title>Clayface's final trailer still belongs to the actor</news:title>
+    </news:news>
   </url>
   <url>
     <loc>https://nightwatcher.life/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/</loc>

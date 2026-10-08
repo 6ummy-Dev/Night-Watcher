@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/css" href="/nocturne/feed.css"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
 <channel>
   <title>Nocturne · Night Watcher</title>
   <link>https://nightwatcher.life/nocturne/</link>
   <atom:link href="https://nightwatcher.life/nocturne/feed.xml" rel="self" type="application/rss+xml"/>
+  <atom:link href="https://pubsubhubbub.appspot.com/" rel="hub"/>
   <description>The Night Final: the week’s Batman news. Every Sunday, late.</description>
   <language>en</language>
   <lastBuildDate>Tue, 06 Oct 2026 22:00:00 -0300</lastBuildDate>
@@ -13,7 +14,12 @@
     <link>https://nightwatcher.life/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/</link>
     <guid isPermaLink="true">https://nightwatcher.life/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/</guid>
     <pubDate>Sun, 04 Oct 2026 22:00:00 -0300</pubDate>
+    <category>Screen</category>
+    <category>Comics</category>
+    <category>Books</category>
+    <category>Toys</category>
     <description>Dates came in all week. One face did not move off the front. Read that one first.</description>
+    <content:encoded>&lt;p&gt;Dates came in all week. One face did not move off the front. Read that one first.&lt;/p&gt;&lt;p&gt;In this issue&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s1&quot;&gt;Screen: Clayface's final trailer still belongs to the actor&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s2&quot;&gt;Comics: Williamson names Batman: Justice Year for 2027&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s3&quot;&gt;Screen: Dick Grayson and Jason Todd have their voices, TheWrap says&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s4&quot;&gt;Comics: Absolute Batman is off the December list, Comic Book Club says&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s5&quot;&gt;Books: Neal Adams's Batman has an Absolute Edition out&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s6&quot;&gt;Toys: Hot Toys dates Absolute Batman, and only for Japan&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/#s7&quot;&gt;Other: Late wires&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w40-clayface-final-trailer-still-belongs-to-the-actor/&quot;&gt;Read the Night Final&lt;/a&gt;&lt;/p&gt;</content:encoded>
   </item>
   <item>
     <title>No. 0 · Somebody has to stay up with Batman, and we will</title>
@@ -21,6 +27,7 @@
     <guid isPermaLink="true">https://nightwatcher.life/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/</guid>
     <pubDate>Sun, 27 Sep 2026 22:00:00 -0300</pubDate>
     <description>Sunday before the wire starts. No listing moved, and the paper still owes you a first night: who we are, who this is for, and the map next door.</description>
+    <content:encoded>&lt;p&gt;Sunday before the wire starts. No listing moved, and the paper still owes you a first night: who we are, who this is for, and the map next door.&lt;/p&gt;&lt;p&gt;In this issue&lt;/p&gt;&lt;ol&gt;&lt;li&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s1&quot;&gt;Somebody has to stay up with Batman, and we will&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s2&quot;&gt;Next door, one path runs through every Batman on screen&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s3&quot;&gt;He wasn't finished in 1939, and he still isn't&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s4&quot;&gt;We read the wire, and we tell you when it's the street&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/#s5&quot;&gt;We think a Batman paper owes you a paper trail&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;&lt;a href=&quot;https://nightwatcher.life/nocturne/2026-w39-nocturne-somebody-has-to-stay-up-with-batman/&quot;&gt;Read the Night Final&lt;/a&gt;&lt;/p&gt;</content:encoded>
   </item>
 </channel>
 </rss>

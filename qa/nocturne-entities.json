@@ -1,0 +1,15 @@
+{
+  "_": "Catalogue id -> the title's public records, for the NewsArticle's mentions (6.8.0). Looked up on Wikidata (the entity, and its IMDb id from P345) the day each row was added; a row is added only when both have been read, and the id must exist in PATH. qa/nocturne.js refuses an id the catalogue does not have.",
+  "batman-1989": {"wikidata": "Q116852", "imdb": "tt0096895"},
+  "batman-begins-2005": {"wikidata": "Q166262", "imdb": "tt0372784"},
+  "batman-returns-1992": {"wikidata": "Q189054", "imdb": "tt0103776"},
+  "batman-the-animated-series-season-1-1992": {"wikidata": "Q673517", "imdb": "tt0103359"},
+  "batman-the-animated-series-season-2-1994": {"wikidata": "Q673517", "imdb": "tt0103359"},
+  "clayface-2026": {"wikidata": "Q131460936", "imdb": "tt34890576"},
+  "dynamic-duo-2028": {"wikidata": "Q136555546", "imdb": "tt33549695"},
+  "the-batman-2022": {"wikidata": "Q61117344", "imdb": "tt1877830"},
+  "the-batman-part-ii-2028": {"wikidata": "Q111187129", "imdb": "tt19850008"},
+  "the-dark-knight-2008": {"wikidata": "Q163872", "imdb": "tt0468569"},
+  "the-dark-knight-rises-2012": {"wikidata": "Q189330", "imdb": "tt1345836"},
+  "the-penguin-season-1-2024": {"wikidata": "Q111189743", "imdb": "tt15435876"}
+}
