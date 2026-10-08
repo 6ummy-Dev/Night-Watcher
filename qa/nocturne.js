@@ -874,6 +874,11 @@ var CSS = [
 "*{box-sizing:border-box;}",
 "html,body{margin:0;padding:0;}",
 "body{background:var(--ink);color:var(--bone);font-family:var(--body);font-size:var(--t-body);line-height:1.6;-webkit-font-smoothing:antialiased;}",
+/* 6.8.1. The skip link is the first control. It is clipped until a keyboard
+   focuses it, then it is a signal chip in the corner. Print drops it. */
+".skip{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}",
+".skip:focus{position:fixed;left:8px;top:8px;z-index:2;width:auto;height:auto;margin:0;overflow:visible;clip:auto;padding:8px 12px;background:var(--signal);color:var(--ink);font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;text-transform:uppercase;text-decoration:none;}",
+".paper:focus{outline:2px solid var(--signal);outline-offset:-2px;}",
 "a{color:inherit;}",
 "a:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}",
 ".paper{max-width:760px;margin:0 auto;padding:22px 18px 48px;}",
@@ -1062,7 +1067,7 @@ var CSS = [
 "@media (prefers-reduced-motion:reduce){.dsw .trk i{transition:none;}}",
 /* Print (6.2.3): ink on white, the rules kept, no buttons. Same scale; only colour changes. */
 "@media print{:root,:root[data-theme=\"darker\"]{--ink:#FFFFFF;--sunk:#FFFFFF;--card:#FFFFFF;--card2:#FFFFFF;--line:#BBBBBB;--line2:#888888;--bone:#08090F;--dust:#333333;--dim:#444444;--suit:#08090F;--signal:#08090F;--steel:#333333;--signalline:rgba(8,9,15,.35);}",
-".acts{display:none;}.themerow{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}",
+".acts{display:none;}.skip{display:none;}.themerow{display:none;}.paper{padding:0;max-width:none;}.map{background:none;}.seal{background:none;border:1px solid var(--bone);color:var(--bone);}",
 "figure,.map,.corr,.board{break-inside:avoid;}.story h2{break-after:avoid;}@page{margin:16mm 14mm;}}",
 ""].join("\n");
 
@@ -1071,6 +1076,12 @@ var COLOPHON = "Nocturne is the weekly paper of Night Watcher, one fan\u2019s ma
   "Every story links its source. Images credited to their rights holders. The paper counts " +
   "visits anonymously, with Cloudflare Web Analytics: no cookies, nothing that follows you.";
 
+/* 6.8.1. The first control on every paper page. Clipped until a keyboard
+   focuses it, and activating it moves focus to the paper. The front, an
+   issue and the holding page all open through here. */
+function openPaper(){
+  return '<body>\n<a class="skip" href="#paper">Skip to the paper</a>\n<main id="paper" class="paper" tabindex="-1">\n';
+}
 function masthead(dateline, plateH1){
   return '<header class="mast">\n' +
     '<div class="mast-top"><p class="presents">A paper of<br><a href="/">Night Watcher</a></p>' +
@@ -1394,7 +1405,7 @@ function renderIssue(is, cat, prev, next, about){
   var h = head({title: fm.title + " \u00b7 Nocturne No. " + fm.issue + " \u00b7 Night Watcher",
                 ogTitle: fm.title + " \u00b7 Nocturne", desc: desc, url: url, ogType: "article", img: ogImg,
                 extra: neigh.head + '<meta property="article:published_time" content="' + fm.published + '">\n' + ldjson(ld)});
-  var out = h + '<body>\n<main class="paper">\n' +
+  var out = h + openPaper() +
     masthead(dateline("No. " + fm.issue, timeTag(fm.published, esc(longDate(fm.published))), "Price: nothing. No account.")) +
     '<article>\n<h1>' + inline(fm.title) + '</h1>\n' +
     (founding ? "" : board(fm, cat));
@@ -1559,7 +1570,7 @@ function renderArchive(list){
                 extra: ldjson(frontGraph(list))});
   var is = list[0], fm = is.fm, founding = fm.kind === "founding", href = "/nocturne/" + is.id + "/";
   var hero = fm.hero ? (fm.images || []).filter(function(im){ return im.file === fm.hero; })[0] : null;
-  var out = h + '<body>\n<main class="paper">\n' +
+  var out = h + openPaper() +
     masthead(dateline("The Night Final", "Every Sunday, late", "Price: nothing. No account."), true) +
     '<article class="front" aria-labelledby="lead">\n' +
     '<p class="lead-kick"><span class="new">Latest </span><i class="dsep"></i><span>No. ' + fm.issue + ' </span><i class="dsep"></i><span>' + timeTag(fm.published, esc(longDate(fm.published))) + '</span></p>\n' +
@@ -1766,7 +1777,7 @@ function renderHolding(){
   var h = head({title: "Nocturne \u00b7 Night Watcher", ogTitle: "Nocturne \u00b7 Night Watcher", desc: desc,
                 url: url, ogType: "website", img: SHARE, robots: "noindex"});
   function col(h, t){ return '<section><h2>' + h + '</h2><p>' + t + '</p></section>'; }
-  return h + '<body>\n<main class="paper">\n' +
+  return h + openPaper() +
     masthead(dateline("The Night Final", "Every Sunday, late", "Price: nothing. No account.")) +
     '<h1>On the press</h1>\n' +
     '<p class="sub">The first Night Final is being set. Nocturne is the weekly paper of Night Watcher.</p>\n' +
