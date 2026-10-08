@@ -9,6 +9,9 @@
 # 6.2.3: the fence fixture reads nocturne-fence.yml, where the fence moved.
 # 6.6.6: the front's head already passes extra for its JSON-LD, so the
 # archive's noindex plant appends to that extra.
+# 6.8.0: head() writes the robots line itself (max-image-preview:large by
+# default), so the holding page passes robots: "noindex" and the fixture
+# that loses it drops that option instead of an extra meta.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="$(pro qa/nocturne.js)"
@@ -253,7 +256,7 @@ run_case "the holding markdown promises a date" \
 
 run_case "the holding page loses its noindex" \
   "is not the holding page" \
-  "${N}a='extra: \\'<meta name=\"robots\" content=\"noindex\">\\\\n\\'';assert a in s,a;s=s.replace(a,'extra: \\'\\'',1);${W}" \
+  "${N}a='img: SHARE, robots: \"noindex\"});';assert s.count(a)==1,a;s=s.replace(a,'img: SHARE});',1);${W}" \
   guards "" 167
 
 run_case "the feed stays closed until the first issue" \
