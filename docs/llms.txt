@@ -25,6 +25,19 @@ Source (AGPL, free software): https://github.com/6ummy-Dev/Night-Watcher
 
 - Nocturne, at [nightwatcher.life/nocturne/](https://nightwatcher.life/nocturne/), is Night Watcher's weekly paper: one issue, the Night Final, late on Sunday (Montevideo), with the week's Batman news across screen, comics, games, toys and books. No spoilers; every story links its source.
 - It is not part of the app and reads nothing the app stores. Its RSS feed is [nightwatcher.life/nocturne/feed.xml](https://nightwatcher.life/nocturne/feed.xml).
+- The front's title is "Batman news this week, no spoilers · Nocturne · Night Watcher". A correction is a dated line at the top of the story. Never a silent edit.
+
+## Questions at the desk
+
+Printed on the front, under the morgue, in this order. The same seven are the front's FAQPage. An issue does not carry them.
+
+- **Where do I read this week’s Batman news without spoilers?** Nocturne, the Night Final, Sunday late (Montevideo). Screen, comics, games, toys, books. Every story links its source.
+- **Does Nocturne spoil Batman movies, series, or comics?** No. A story that touches the map says where a Batman title sits. It does not say what happens.
+- **Is Nocturne a Batman watch order?** No. The watch order is the map at nightwatcher.life. The paper is the week’s Batman news.
+- **When does the Batman Night Final come out?** Sunday, late, Montevideo time. One issue. No issue in a week with nothing to run.
+- **Who writes Nocturne’s Batman coverage?** A desk of agents drafts it. A person edits and publishes it. Not a named reporter.
+- **How do I follow Nocturne’s Batman news?** The wire is /nocturne/feed.xml. No account. Price: nothing.
+- **How does Nocturne correct a story?** A dated correction at the top of the story. Never a silent edit.
 
 ## For engines
 

@@ -1809,7 +1809,20 @@ async function paperChecks(){
     }
     ok("nocturne (" + label + "): axe, no serious violations", st.axe && !st.axe.length,
        st.axe && st.axe.length ? st.axe.join(", ") : "");
-    if(errs.length || (st.axe && st.axe.length)){
+    /* 6.8.1. The skip link is the first control in tab order, and
+       activating it moves focus to the paper. */
+    const skipFirst = await np.evaluate(() => {
+      const all = [...document.querySelectorAll("a[href], button, input, select, textarea")];
+      const tabbable = all.filter(el => el.tabIndex >= 0);
+      return tabbable[0] ? tabbable[0].className : "";
+    });
+    await np.locator("a.skip").focus();
+    await np.keyboard.press("Enter");
+    const landedId = await np.evaluate(() => document.activeElement && document.activeElement.id);
+    const skipOk = skipFirst === "skip" && landedId === "paper";
+    ok("nocturne (" + label + "): the first control is the skip link, and Enter lands on the paper",
+       skipOk, "first " + skipFirst + ", landed " + landedId);
+    if(errs.length || (st.axe && st.axe.length) || !skipOk){
       await np.screenshot({ path: shot("shot-nocturne-" + label.replace(/\W+/g, "-") + ".png"), fullPage: true });
     }
     await np.close();

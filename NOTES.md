@@ -15,7 +15,7 @@ Four other places carry part of the story and are not repeated here:
   required reading before a change; everything here is written in the
   present tense.
 - **`CHANGELOG.md`** — what changed in each release and why, in the owner's voice.
-- **`qa/guards.js`** — 182 numbered sections, each one a rule with the failure that
+- **`qa/guards.js`** — 183 numbered sections, each one a rule with the failure that
   produced it written above it, and each one negative-tested — asserted by
   section 138 on every run, not merely stated here.
 - **`README.md`** — what the app promises and what it refuses to do.
@@ -2925,6 +2925,13 @@ The paper at `/nocturne/` (6.2.0). Why it is shaped this way:
   never carry markup the agent reached for.
 - **The weekly floor is 250 words.** VOICE.md first said 400, which three
   stories at the 120-word ceiling cannot reach.
+- **The skip link is first (6.8.1).** A keyboard used to meet the mast before
+  the story. Every paper page now opens with one control, clipped until it
+  is focused, and activating it moves focus to the paper. Print drops it.
+- **llms.txt carries the desk (6.8.1).** The paper section used to say only
+  that the paper exists. It now carries the front's title and the seven
+  questions the front prints, each answer the page's own words. An issue
+  still carries none of them.
 - **The questions are printed again (6.8.0).** 6.6.8 took them off the
   page and left the FAQPage. Google credits FAQ markup only for text the
   page shows, so for three days the block earned nothing. The Trends read

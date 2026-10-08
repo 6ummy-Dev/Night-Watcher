@@ -248,6 +248,7 @@ function blessHtml(next){
      180  Reader view keeps the issue, the disclosure, and the byline
      181  The paper announces itself
      182  The wire and the ping
+     183  The skip link, and the questions in llms.txt
 
    META
      65   The file points at where its reasoning went
@@ -17998,6 +17999,46 @@ var NOC = null, NOC_REAL = null, NOC_FIX = null;
     if(onSlug.length || onAlt.length || namedHead.length) fail("the label warning fires on a slug or an alt that carries the title");
   }
   note("the wire and the ping: a hub, content:encoded and categories per item, one news entry on the newest issue, the ping job after a green push to main, the label warning fires where it should");
+})();
+
+/* ---------- 183. The skip link, and the questions in llms.txt ---------- */
+/* 6.8.1. The 6.8.0 paper audit left accessibility at 7.8 because a keyboard
+   met the mast before the story, and left GEO at 8.8 because llms.txt's
+   paper section still said only that the paper exists. Every paper page
+   now opens on one control that a keyboard can take to the paper, and the
+   machine file carries the seven questions the front prints, each answer
+   the page's own words, plus the front's title. */
+
+(function(){
+  if(nwStop(183)) return;
+  if(!NOC || !NOC_REAL || !NOC_FIX){ fail("the skip link has no paper to read"); return; }
+  var SKIP = '<a class="skip" href="#paper">Skip to the paper</a>';
+  var MAIN = '<main id="paper" class="paper" tabindex="-1">';
+  var src = fs.readFileSync(path.join(__dirname, "nocturne.js"), "utf8");
+  if((src.match(/\+ openPaper\(\)/g) || []).length !== 3) fail("a paper page has no skip link to the paper");
+  [NOC_REAL, NOC_FIX].forEach(function(b){
+    var htmls = Object.keys(b.files).filter(function(f){ return /\.html$/.test(f); });
+    if(!htmls.length) fail("a paper page has no skip link to the paper");
+    htmls.forEach(function(f){
+      var h = b.files[f].toString("utf8");
+      var at = h.indexOf("<body>\n");
+      if(at < 0 || h.indexOf(SKIP + "\n" + MAIN, at) !== at + "<body>\n".length ||
+         (h.match(/class="skip"/g) || []).length !== 1){
+        fail("a paper page has no skip link to the paper");
+      }
+    });
+    var css = (b.files["nocturne.css"] || Buffer.from("")).toString("utf8");
+    if(css.indexOf(".skip{position:absolute;width:1px;height:1px;") < 0 || css.indexOf(".skip:focus{position:fixed;") < 0){
+      fail("the skip link stays clipped when it is focused");
+    }
+    if(css.indexOf(".skip{display:none;}") < 0) fail("print still shows the skip link");
+  });
+  var lt = fs.readFileSync(path.join(PUBLIC, "llms.txt"), "utf8");
+  if(lt.indexOf(NOC.FRONT_TITLE) < 0) fail("llms.txt does not carry the front title");
+  NOC.FRONT_QS.forEach(function(q){
+    if(lt.indexOf(q[0]) < 0 || lt.indexOf(q[1]) < 0) fail("llms.txt does not carry a question the front prints");
+  });
+  note("skip link first on every paper page, clipped until focused; llms.txt carries the seven questions and the front title");
 })();
 
 /* ---------- report ---------- */

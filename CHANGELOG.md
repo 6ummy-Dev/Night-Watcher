@@ -14,6 +14,19 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.8.1] — 2026-10-08
+
+**Why PATCH.** The 6.8.0 paper audit left two gaps a change can close. Accessibility stayed at 7.8 because a keyboard met the mast before the story, and GEO stayed at 8.8 because `llms.txt` still said only that the paper exists. Every paper page now opens with a skip link, clipped until a keyboard focuses it, and activating it moves focus to the paper. `llms.txt` carries the front's title and the seven questions the front prints, each answer the page's own words. No catalogue change, and nothing saved changes shape. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Fixed
+
+- **A skip link.** The first control on the front, on an issue and on the holding page. It is clipped until focused, print drops it, and Enter moves focus to the paper. Guard 183 holds the markup. The paper half of the browser check holds the focus.
+
+### Changed
+
+- **`llms.txt`.** The paper section names the front's title and the correction rule, and *Questions at the desk* lists the seven questions and answers the front prints. An issue still carries none of them.
+- **Harness.** 183 guard sections, 96 negative suites, 1,827 fixtures (`negtest870`). `/hww` is rebuilt from the tree.
+
 ## [6.8.0] — 2026-10-08
 
 **Why MINOR.** The paper learns to announce itself, and that is new work, not a fix. The Google Trends read of "batman news" (8 Oct 2026) said people type those two words and the paper's name after, so the front's title now opens with the Batman news line, and the seven questions come back onto the page under the morgue as *Questions at the desk*. **That reverses 6.6.8**, which took the six visible questions off the front: Google credits FAQ markup only for text the page shows, so the hidden block earned nothing, and the owner called the questions back on 8 Oct. Every page carries a robots line, every date is a `<time>`, every issue's description names its lead, and the NewsArticle says which issue it is, who publishes it and with what records, what it credits, which beats it carries and which titles it touches. The feed lists every story per item and names a WebSub hub; the newest issue carries a Google News entry; and after a green push to `main` a new CI job tells IndexNow and the hub what moved. No catalogue change, no new script on a page, and nothing saved changes shape. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
