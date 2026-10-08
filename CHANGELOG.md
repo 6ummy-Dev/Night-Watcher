@@ -31,7 +31,7 @@ change that gets undone by the next person who touches the line.
 
 ### Changed
 
-- **Harness.** 184 guard sections, 97 negative suites, 1,836 fixtures (`negtest880`). `/hww` is rebuilt from the tree.
+- **Harness.** 184 guard sections, 97 negative suites, 1,837 fixtures (`negtest880`). `negtest610` sweeps the README row for `docs/privacy/index.html`. `/hww` is rebuilt from the tree.
 
 ## [6.8.1] — 2026-10-08
 
