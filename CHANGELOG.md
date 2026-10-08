@@ -33,6 +33,7 @@ change that gets undone by the next person who touches the line.
 ### Changed
 
 - **The front's title** reads "Batman news this week, no spoilers · Nocturne · Night Watcher" in the document title, `og:title` and `twitter:title`. The nameplate stays Nocturne. The description, the feed's channel title and every issue title stay as they were.
+- **The brief says so.** With the owner's approval on 8 Oct, `nocturne/BRIEF.md` describes the renderer again: the seven printed questions, the *About the paper* row, the description that follows the cold open with the lead, and the new label warning as the SEO Desk's to answer.
 - **Deferred, said here so it is not lost.** A `Periodical` node for the paper in the app's own `@graph` waits: guard 165 pins the owner's call that the app names `/nocturne` once outside the crawler seed, and the node would be a second naming. The owner decides whether 165 moves.
 - **`/hww` is rebuilt from the tree.** The page prints 6.8.0.
 
