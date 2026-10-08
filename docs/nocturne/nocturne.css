@@ -140,6 +140,14 @@ figcaption{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.14em;
 .issues .when{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}
 .issues li:first-child .when{color:var(--signal);}
 .issues a{text-decoration:none;font-family:var(--press);font-weight:700;font-size:var(--t-heading);line-height:1.2;}
+.ask{max-width:620px;margin:0 auto;}
+.ask .sub{margin-bottom:14px;}
+.ask .qs{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;border-top:1px solid var(--line2);}
+.ask .q{padding:14px 0 13px;border-bottom:1px solid var(--line);}
+.ask h3{font-family:var(--press);font-weight:700;font-size:var(--t-heading);line-height:1.2;margin:0 0 6px;text-wrap:balance;}
+.ask .q p{font-family:var(--read);font-size-adjust:.5;font-size:var(--t-body);line-height:1.5;color:var(--dust);margin:0;}
+.ask .q p a{text-decoration:none;border-bottom:1px solid var(--signal);color:var(--bone);}
+@media (max-width:560px){.ask .qs{grid-template-columns:1fr;}}
 .cols{display:grid;grid-template-columns:repeat(3,1fr);max-width:760px;margin:0 auto 28px;border-top:3px double var(--bone);border-bottom:1px solid var(--line2);}
 .cols section{padding:16px 18px 18px;}
 .cols section+section{border-left:1px solid var(--line2);}

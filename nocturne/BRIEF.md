@@ -59,12 +59,12 @@ the RSS feed at `/nocturne/feed.xml` and the weekly X post.** `/nocturne/` is
 the front, which the build writes from your issues: the latest issue's
 headline, hero, cold open and story heads, one *Read the Night Final* button,
 and back issues under *The morgue* (6.4.0). Never write or edit it.
-The front's document title names Batman news and no spoilers. The six questions are in the front's FAQPage for crawlers and in the front markdown; the renderer writes them, they are not printed on the page, and they are not on an issue.
+The front's document title opens with Batman news and no spoilers. Under the morgue the front prints seven questions and their answers as *Questions at the desk*; the same seven, in the same order, are in the front's FAQPage and in the front markdown (6.8.0; 6.6.8 had taken them off the page). The renderer writes them, and they are not on an issue.
 On an issue the footer opens with *Share this issue*. *Copy link* and *Post on X* sit in that row and stay
 hidden unless the device has no share sheet; the paper's script shows them
-only then. Then an index headed *Back page*, with the issue's number and short date: *Back to Nocturne*, *The morgue* (`/nocturne/#morgue`), and *Follow by RSS*. Under that, *Keep reading* puts *Previous* on the left and *Next* on the right, and each link names that issue. A missing side is a dashed card: the latest says *Out Sunday, late*, and No. 0 says *This is the first issue*. Then the *Night Watcher*
+only then. Then an index headed *Back page*, with the issue's number and short date: *Back to Nocturne*, *The morgue* (`/nocturne/#morgue`), *About the paper* (No. 0, the founding issue; the row is not on No. 0 itself, 6.8.0), and *Follow by RSS*. Under that, *Keep reading* puts *Previous* on the left and *Next* on the right, and each link names that issue. A missing side is a dashed card: the latest says *Out Sunday, late*, and No. 0 says *This is the first issue*. Then the *Night Watcher*
 button, then one *Dark deco* / *Darker* switch, centred. The colophon sits under the app's diamond rule. The
-sign-off above the foot is set in the reading face, italic (6.5.1). The front and the holding page carry an index headed *Nocturne*, with *Every Sunday, late* and one *Follow by RSS* row, then the *Night Watcher* button and the switch. The renderer writes all of it.
+sign-off above the foot is set in the reading face, italic (6.5.1). The front and the holding page carry an index headed *Nocturne*, with *Every Sunday, late*, the *About the paper* row (the front only, once No. 0 exists) and the *Follow by RSS* row, then the *Night Watcher* button and the switch. The renderer writes all of it.
 
 ### The masthead
 
@@ -224,7 +224,8 @@ doesn't advance. A thin week is fine. A padded one isn't.
    may change a headline (the lead's is also `title`), the slug and alt text,
    and add a plain fact the cards already hold (a date, a title, a studio).
    Everything else goes back to the Night Editor: any wording in the body,
-   the cold open (it is also the page's description), any adjective, any
+   the cold open (it opens the page's description; the renderer adds the
+   lead's line after it, 6.8.0), any adjective, any
    shortened judgment, the sign-off, a desk "we" (banned in weekly copy, `VOICE.md` §1), an added "you". Its changes go
    in the PR as a diff.
    **Then the Copy Desk** (6.3.5) reads the issue against the checks below and
@@ -249,7 +250,9 @@ doesn't advance. A thin week is fine. A padded one isn't.
 7. **Build and check:** `npm ci && npm run nocturne:build && npm run nocturne:check && npm test`.
    All green, or stop. **When the check refuses, fix the break it names, and
    only that:** don't redraft the story around it (6.3.4). The check may also
-   print warnings (the sentence counts in `VOICE.md` §4); they don't stop the
+   print warnings (the sentence counts in `VOICE.md` §4; and, from 6.8.0, a
+   lead's catalogue title or a `names:` entry that neither the slug nor the
+   hero alt carries, which is the SEO Desk's to answer); they don't stop the
    run. Fix each one or keep it, and list them in the PR. The build rewrites
    `docs/nocturne/` and the Nocturne block in `docs/sitemap.xml`; commit both
    with the issue. Never edit either

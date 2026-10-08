@@ -1,15 +1,16 @@
 #!/bin/bash
 # negtest810 — 6.6.6. The front's title names Batman news and no spoilers.
-# One JSON-LD block: a WebPage of the Periodical, and a FAQPage of six
-# Batman questions, in order. 6.6.8: the questions stay in that FAQPage
-# and in the markdown, and the visible page must not print them. An issue
-# carries neither the FAQ block nor the question text (175). The footer
-# is not required to carry a The map link.
+# One JSON-LD block: a WebPage of the Periodical, and a FAQPage of Batman
+# questions, in order. 6.6.8 took the questions off the page; 6.8.0 put
+# seven back under the morgue as Questions at the desk, each answer the
+# block's (the printed-page fixtures are in negtest850). An issue carries
+# neither the FAQ block nor the question text (175). The footer is not
+# required to carry a The map link.
 . "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 N="$(pro qa/nocturne.js)"
 
-echo "--- 175: the front names Batman news, and six questions"
+echo "--- 175: the front names Batman news, and seven questions"
 
 run_case "the front title drops Batman news" \
   "front title is not the Batman news line" \
@@ -43,7 +44,7 @@ run_case "the front JSON-LD is a NewsArticle" \
 
 run_case "the front JSON-LD loses the Periodical" \
   "front JSON-LD has no Periodical" \
-  "${N}a='isPartOf: {\"@type\": \"Periodical\", name: \"Nocturne\", url: url}';assert s.count(a)==1;s=s.replace(a,'about: {\"@type\": \"Periodical\", name: \"Nocturne\", url: url}',1);${W}" \
+  "${N}a='isPartOf: periodical(), publisher: organization(aboutOf(list))';assert s.count(a)==1;s=s.replace(a,'about: periodical(), publisher: organization(aboutOf(list))',1);${W}" \
   guards "" 175
 
 run_case "the front dateModified is a fixed day" \
@@ -56,19 +57,14 @@ run_case "the front JSON-LD names a person" \
   "${N}a='name: FRONT_TITLE, url: url, dateModified:';assert s.count(a)==1;s=s.replace(a,'name: FRONT_TITLE, url: url, author: {\"@type\": \"Person\", name: \"X\"}, dateModified:',1);${W}" \
   guards "" 175
 
-run_case "the FAQPage loses the six names" \
-  "front FAQPage lost the six Batman questions" \
+run_case "the FAQPage loses the seven names" \
+  "front FAQPage lost the seven Batman questions" \
   "${N}a='name: q[0], acceptedAnswer:';assert s.count(a)==1;s=s.replace(a,'name: \"Gone\", acceptedAnswer:',1);${W}" \
-  guards "" 175
-
-run_case "the front prints the six questions again" \
-  "front prints the six Batman questions" \
-  "${N}a=\"return out + '</section>\\\\n' + footer(\\\"\\\")\";assert s.count(a)==1;s=s.replace(a,\"return out + '</section>\\\\n' + '<p>Where do I read this week\\\\u2019s Batman news without spoilers?</p>' + footer(\\\"\\\")\",1);${W}" \
   guards "" 175
 
 run_case "the front markdown drops a question" \
   "front markdown dropped a Batman question" \
-  "${N}a='\"## \" + q[0]';assert s.count(a)==1;s=s.replace(a,'\"## \" + \"Gone\"',1);${W}" \
+  "${N}a='\"### \" + q[0]';assert s.count(a)==1;s=s.replace(a,'\"### \" + \"Gone\"',1);${W}" \
   guards "" 175
 
 run_case "an issue page grows a FAQPage" \

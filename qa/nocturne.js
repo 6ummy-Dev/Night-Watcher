@@ -128,6 +128,7 @@ function loadCatalogue(root){
   box.PATH.forEach(function(g){
     g.films.forEach(function(f, ix){
       var e = {id: f.i, t: f.t, sub: f.sub || "", b: f.b || [], o: !!f.o, when: f.when || "",
+               k: f.k === "tv" ? "tv" : "film", y: f.y,
                gn: g.n, gname: g.name, prev: ix ? g.films[ix - 1] : null,
                next: ix < g.films.length - 1 ? g.films[ix + 1] : null};
       e.tier = box.tierOf(e);
@@ -1008,6 +1009,18 @@ var CSS = [
 ".issues .when{font-family:var(--mono);font-size:var(--t-fine);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}",
 ".issues li:first-child .when{color:var(--signal);}",
 ".issues a{text-decoration:none;font-family:var(--press);font-weight:700;font-size:var(--t-heading);line-height:1.2;}",
+/* 6.8.0. Questions at the desk: two columns of question and answer under
+   the morgue, the question in the press face, the answer in the reading
+   face at body size in dust. One column under 560px. The standfirst is the
+   paper's .sub, not an answer. */
+".ask{max-width:620px;margin:0 auto;}",
+".ask .sub{margin-bottom:14px;}",
+".ask .qs{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;border-top:1px solid var(--line2);}",
+".ask .q{padding:14px 0 13px;border-bottom:1px solid var(--line);}",
+".ask h3{font-family:var(--press);font-weight:700;font-size:var(--t-heading);line-height:1.2;margin:0 0 6px;text-wrap:balance;}",
+".ask .q p{font-family:var(--read);font-size-adjust:.5;font-size:var(--t-body);line-height:1.5;color:var(--dust);margin:0;}",
+".ask .q p a{text-decoration:none;border-bottom:1px solid var(--signal);color:var(--bone);}",
+"@media (max-width:560px){.ask .qs{grid-template-columns:1fr;}}",
 ".cols{display:grid;grid-template-columns:repeat(3,1fr);max-width:760px;margin:0 auto 28px;border-top:3px double var(--bone);border-bottom:1px solid var(--line2);}",
 ".cols section{padding:16px 18px 18px;}",
 ".cols section+section{border-left:1px solid var(--line2);}",
@@ -1071,6 +1084,12 @@ function dateline(a, b, c){
   return '<span class="dl1"><span>' + a + ' </span><i class="dsep"></i><span>' + b + ' </span></span>' +
          '<span class="dl2"><i class="dsep"></i><span>' + c + '</span></span>';
 }
+/* 6.8.0. A visible date is a <time> with its ISO date, so a crawler and a
+   reader's calendar read the same day the eye does. The text keeps the
+   trailing space 6.7.4 gave the mast (reader view), inside the element. */
+function timeTag(iso, text){
+  return '<time datetime="' + iso + '">' + text + '</time>';
+}
 /* 6.5.5, owner's call (29 Sept): the paper carries the app's one ask, in the
    app's words, as the last line of its foot, under the colophon. Same URL and
    same shape as the Progress build line: one word carries the link, it opens
@@ -1081,7 +1100,14 @@ var SUPPORT = 'Keep the path lit. <a href="' + SUPPORT_URL + '" target="_blank" 
 function indexRow(href, label, icon, type){
   return '<a class="ir" href="' + href + '"' + (type ? ' type="' + type + '"' : '') + '><span class="k">' + label + '</span><span class="ld"></span>' + icon + '</a>';
 }
-function footer(extra){
+/* 6.8.0. About the paper is the founding issue: who writes it, who it is
+   for, the map next door. The row sits above Follow by RSS on the front and
+   on every issue but No. 0 itself, which is the page it would open. */
+var ABOUT = "About the paper";
+function aboutRow(about){
+  return about ? indexRow(about, ABOUT, ROW_ON) : "";
+}
+function footer(extra, about){
   /* 6.7.0. An issue passes {share, issue, keep}. The front and the holding
      page pass "" and get the Nocturne index: one Follow by RSS row. */
   var o = extra && typeof extra === "object" ? extra : null;
@@ -1089,8 +1115,8 @@ function footer(extra){
   var idx = o
     ? '<nav class="idx" aria-label="This issue"><p class="ih"><span>Back page</span><span>No. ' + o.issue.n + ' \u00b7 ' + esc(o.issue.date) + '</span></p>' +
       indexRow("/nocturne/", "Back to Nocturne", ROW_BACK) +
-      indexRow("/nocturne/#morgue", "The morgue", ROW_DOWN) + rss + '</nav>'
-    : '<nav class="idx" aria-label="Nocturne"><p class="ih"><span>Nocturne</span><span>Every Sunday, late</span></p>' + rss + '</nav>';
+      indexRow("/nocturne/#morgue", "The morgue", ROW_DOWN) + aboutRow(about) + rss + '</nav>'
+    : '<nav class="idx" aria-label="Nocturne"><p class="ih"><span>Nocturne</span><span>Every Sunday, late</span></p>' + aboutRow(about) + rss + '</nav>';
   /* 6.7.4. The colophon is the AI disclosure. Firefox reader view deletes
      footer and aside, so the colophon and the support line follow the footer
      as paragraphs. On an issue the whole foot sits inside the article, and
@@ -1101,12 +1127,17 @@ function footer(extra){
     '</footer>\n' +
     '<p class="colophon">' + COLOPHON + '</p>\n<p class="support">' + SUPPORT + '</p>\n';
 }
+var ROBOTS = "max-image-preview:large";
 function head(o){
   return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' + THEME_TAG + '\n' + PAPER_TAG + '\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
     '<title>' + esc(o.title) + '</title>\n' +
     '<meta name="description" content="' + esc(o.desc) + '">\n' +
     '<meta name="author" content="Night Watcher">\n' +
+    /* 6.8.0. Discover and the image surfaces show a page's large image only
+       when the page allows the large preview; the default is a thumbnail.
+       The holding page passes noindex instead: nothing to find yet. */
+    '<meta name="robots" content="' + (o.robots || ROBOTS) + '">\n' +
     '<link rel="canonical" href="' + o.url + '">\n' +
     '<link rel="alternate" type="application/rss+xml" title="Nocturne" href="/nocturne/feed.xml">\n' +
     '<link rel="icon" href="/icon.svg" type="image/svg+xml">\n' +
@@ -1224,7 +1255,116 @@ function issueNeighbors(is, prev, next){
   add(next, "next");
   return {keep: '<nav class="keep" aria-label="Issues"><p class="fl">Keep reading</p><div class="pn">' + prevCard + nextCard + '</div></nav>\n', head: head};
 }
-function renderIssue(is, cat, prev, next){
+/* ---------- the data blocks (6.8.0) ---------- */
+/* What a crawler reads of the paper, in one place. The Periodical is the
+   same node on the front and on every issue; the publisher names its code,
+   its account, and where its principles and its corrections policy are
+   written; an issue says which beats it carries, which titles it touches,
+   and which number it is. Nothing here is a second pitch: every string is
+   one the page already prints or a public record of a title. */
+var REPO = "https://github.com/6ummy-Dev/Night-Watcher";
+var X_ACCOUNT = "https://x.com/6ummy";
+var ENTITIES_REL = "qa/nocturne-entities.json";
+var ENTITIES = (function(){
+  var m = JSON.parse(fs.readFileSync(path.join(__dirname, "nocturne-entities.json"), "utf8"));
+  delete m._;
+  return m;
+})();
+function entityErrors(cat){
+  var e = [];
+  Object.keys(ENTITIES).forEach(function(id){
+    var r = ENTITIES[id];
+    if(!cat[id]) e.push(ENTITIES_REL + ": " + id + " is not a catalogue id — a mention names a title the map has");
+    if(!r || typeof r !== "object" || !/^Q\d+$/.test(r.wikidata || "") || !/^tt\d+$/.test(r.imdb || "")){
+      e.push(ENTITIES_REL + ": " + id + " needs a Wikidata Q-id and an IMDb tt-id, both read before the row is added");
+    }
+  });
+  return e;
+}
+var PERIODICAL_DESC = "The weekly Batman news paper of Night Watcher: screen, comics, games, toys and books, " +
+  "every Sunday, late. No spoilers, every source linked.";
+function periodical(){
+  return {"@type": "Periodical", name: "Nocturne", alternateName: "The Night Final", url: SITE + "/nocturne/",
+          disambiguatingDescription: PERIODICAL_DESC};
+}
+/* about is the founding issue's URL when one is published: the paper's
+   principles are written there. Corrections are answered on the front, at
+   the question that says how a story is corrected. */
+function organization(about){
+  return {"@type": "Organization", name: "Night Watcher", url: SITE + "/",
+          logo: {"@type": "ImageObject", url: SITE + "/icon.png"},
+          sameAs: [REPO, X_ACCOUNT],
+          publishingPrinciples: about || SITE + "/nocturne/",
+          correctionsPolicy: SITE + "/nocturne/#ask"};
+}
+function holderOf(credit){ return String(credit || "").replace(/^Image: /, ""); }
+function imageObject(url, w, h, caption, holder){
+  return {"@type": "ImageObject", url: url, width: w, height: h, caption: caption, creditText: holder, copyrightNotice: holder};
+}
+function cap(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+/* The beats an issue carries, once each, capitalised; "other" is the Late
+   wires' beat and names nothing a reader would file under. */
+function beatsOf(fm){
+  var out = [];
+  (fm.stories || []).forEach(function(st){ if(st.beat && st.beat !== "other" && out.indexOf(cap(st.beat)) < 0) out.push(cap(st.beat)); });
+  return out;
+}
+/* The titles an issue touches, once each, as the catalogue spells them,
+   with the public records qa/nocturne-entities.json has read for them. */
+function mentionsOf(fm, cat){
+  var seen = {}, out = [];
+  (fm.stories || []).forEach(function(st){
+    var e = st.catalogue !== "none" ? cat[st.catalogue] : null;
+    if(!e || seen[e.id]) return;
+    seen[e.id] = 1;
+    var m = {"@type": e.k === "tv" ? "TVSeries" : "Movie", name: e.t};
+    var r = ENTITIES[e.id];
+    if(r) m.sameAs = ["https://www.wikidata.org/wiki/" + r.wikidata, "https://www.imdb.com/title/" + r.imdb + "/"];
+    out.push(m);
+  });
+  return out;
+}
+/* 6.8.0. The description tags carry the lead as well as the cold open: the
+   cold open is the week's line and names no title, so a result for the
+   title it leads with had nothing to show. The page's cold open does not
+   change; this is the head's line only. */
+function metaDesc(fm){
+  var lead = (fm.stories || [])[0];
+  var tail = fm.kind === "founding" || !lead ? "The founding issue of the Batman news paper."
+           : cap(lead.beat) + " lead: " + plain(lead.headline) + ".";
+  return plain(fm.cold_open) + " " + tail;
+}
+
+/* 6.8.0. The label warnings. A reader searching for a title finds the page
+   by its address and its image before anything else, and BRIEF.md §4 lets
+   the SEO Desk change the slug and the hero's alt. So when a weekly issue's
+   lead touches a catalogue title, or the issue names a title in names:, and
+   neither the slug nor the hero alt carries it, the check says so. A
+   warning: the desk may have a reason, and it answers in the PR. */
+function fold(s){ return String(s || "").toLowerCase().replace(/[\u2019']/g, "").replace(/[^a-z0-9]+/g, " ").trim(); }
+function labelWarnings(is, cat){
+  var fm = is.fm, out = [];
+  if(!fm || fm.kind === "founding" || !Array.isArray(fm.stories)) return out;
+  var hero = fm.hero && Array.isArray(fm.images) ? fm.images.filter(function(im){ return im && im.file === fm.hero; })[0] : null;
+  var where = [fold(is.id), fold(hero && hero.alt)];
+  var want = [];
+  var lead = fm.stories[0];
+  var e = lead && lead.catalogue && lead.catalogue !== "none" ? cat[lead.catalogue] : null;
+  if(e) want.push({t: e.t, why: "the lead touches"});
+  (Array.isArray(fm.names) ? fm.names : []).forEach(function(n){ if(typeof n === "string") want.push({t: n, why: "names: carries"}); });
+  want.forEach(function(w){
+    /* The whole name, or its head before a colon when the head is two
+       words or more: "The Tin Hour: Legendary Nights" is found by "the tin
+       hour"; "Batman: Justice Year" is not found by "batman". */
+    var f = fold(w.t), headOf = fold(String(w.t).split(":")[0]);
+    var forms = [f].concat(headOf !== f && headOf.split(" ").length >= 2 ? [headOf] : []);
+    if(!f || forms.some(function(x){ return where.some(function(h){ return h.indexOf(x) >= 0; }); })) return;
+    out.push(is.id + ": " + w.why + " \u201c" + w.t + "\u201d and neither the slug nor the hero alt carries it \u2014 a search for the title finds the page by its address and its image first (BRIEF.md \u00a74 lets the SEO Desk change both)");
+  });
+  return out;
+}
+
+function renderIssue(is, cat, prev, next, about){
   var fm = is.fm, founding = fm.kind === "founding";
   var body = splitBody(is.body);
   var imgs = fm.images || [];
@@ -1236,20 +1376,26 @@ function renderIssue(is, cat, prev, next){
   var url = issueUrl(is);
   /* 6.4.0: the issue shares as its own card; the hero stays the article's image. */
   var ogImg = {url: url + "card.png", w: CARD.w, h: CARD.h, alt: CARD_ALT + ": " + plain(fm.title)};
-  var desc = plain(fm.cold_open);
+  var desc = metaDesc(fm);
+  var beats = beatsOf(fm), mentions = mentionsOf(fm, cat);
   var ld = {"@context": "https://schema.org", "@type": "NewsArticle", headline: fm.title,
             datePublished: fm.published, dateModified: lastmod(is), url: url,
-            mainEntityOfPage: url, image: (hero ? [url + hero.file] : []).concat([ogImg.url]), description: desc,
-            isPartOf: {"@type": "Periodical", name: "Nocturne", url: SITE + "/nocturne/"},
-            author: {"@type": "Organization", name: "Night Watcher", url: SITE + "/"},
-            publisher: {"@type": "Organization", name: "Night Watcher", url: SITE + "/",
-                        logo: {"@type": "ImageObject", url: SITE + "/icon.png"}}};
+            mainEntityOfPage: url,
+            image: (hero ? [imageObject(url + hero.file, hero.width, hero.height, hero.alt, holderOf(hero.credit))] : [])
+                   .concat([imageObject(ogImg.url, ogImg.w, ogImg.h, ogImg.alt, "Night Watcher")]),
+            description: desc,
+            isPartOf: {"@type": "PublicationIssue", issueNumber: fm.issue, datePublished: fm.published, url: url, isPartOf: periodical()},
+            author: organization(about), publisher: organization(about)};
+  if(beats.length) ld.articleSection = beats;
+  ld.keywords = ["Batman news", "Batman"].concat(beats.map(function(b){ return b.toLowerCase(); }))
+                 .concat(mentions.map(function(m){ return m.name; }).filter(function(n, i, a){ return a.indexOf(n) === i; }));
+  if(mentions.length) ld.mentions = mentions;
   var neigh = issueNeighbors(is, prev, next);
   var h = head({title: fm.title + " \u00b7 Nocturne No. " + fm.issue + " \u00b7 Night Watcher",
                 ogTitle: fm.title + " \u00b7 Nocturne", desc: desc, url: url, ogType: "article", img: ogImg,
                 extra: neigh.head + '<meta property="article:published_time" content="' + fm.published + '">\n' + ldjson(ld)});
   var out = h + '<body>\n<main class="paper">\n' +
-    masthead(dateline("No. " + fm.issue, esc(longDate(fm.published)), "Price: nothing. No account.")) +
+    masthead(dateline("No. " + fm.issue, timeTag(fm.published, esc(longDate(fm.published))), "Price: nothing. No account.")) +
     '<article>\n<h1>' + inline(fm.title) + '</h1>\n' +
     (founding ? "" : board(fm, cat));
   if(hero) out += figure(hero, false, true);
@@ -1266,7 +1412,7 @@ function renderIssue(is, cat, prev, next){
                             (offMap(st) ? '<span class="off">Off the map</span>' : "")) + '</p>\n';
     if(i) out += '<h2>' + inline(st.headline) + '</h2>\n';
     (fm.corrections || []).forEach(function(c){
-      if(c.story === i + 1) out += '<p class="corr">Corrected ' + shortDate(c.date) + ': ' + inline(c.text) + '</p>\n';
+      if(c.story === i + 1) out += '<p class="corr">Corrected ' + timeTag(c.date, shortDate(c.date)) + ': ' + inline(c.text) + '</p>\n';
     });
     sec.paras.forEach(function(p){ out += '<p>' + inline(p) + '</p>\n'; });
     if(after[i + 1]) out += figure(after[i + 1], true);
@@ -1277,9 +1423,15 @@ function renderIssue(is, cat, prev, next){
      and two diamonds that close together read as one too many. */
   var share = shareButton(url, plain(fm.title) + " \u00b7 Nocturne");
   out += '<p class="signoff">' + inline(fm.sign_off) + '</p>\n' +
-         footer({share: share, issue: {n: fm.issue, date: footDate(fm.published)}, keep: neigh.keep}) +
+         footer({share: share, issue: {n: fm.issue, date: footDate(fm.published)}, keep: neigh.keep}, about === url ? "" : aboutHref(about)) +
          '</article>\n</main>\n' + BEACON + '\n</body>\n</html>\n';
   return out;
+}
+/* The About row links by path; the data blocks name the full URL. */
+function aboutHref(about){ return about ? about.replace(SITE, "") : ""; }
+function aboutOf(list){
+  var zero = list.filter(function(is){ return is.fm.kind === "founding"; })[0];
+  return zero ? issueUrl(zero) : "";
 }
 
 /* 6.6.6. The front's document title names Batman news and no spoilers.
@@ -1287,8 +1439,15 @@ function renderIssue(is, cat, prev, next){
    6.6.8. The six questions stay in this order in the FAQPage and in the
    front markdown. They are not printed on the page. An issue does not
    carry them. The apostrophe is the paper's. nightwatcher.life is the
-   map. The wire is the feed. */
-var FRONT_TITLE = "Nocturne \u00b7 Batman news, no spoilers \u00b7 Night Watcher";
+   map. The wire is the feed.
+   6.8.0, owner's call (8 Oct). The title leads with the words a reader
+   types, "Batman news", and the paper's name follows. The questions are
+   printed again, under the morgue, as Questions at the desk: Google reads
+   FAQ markup only for text the page shows, so a block the reader could not
+   see was a block the crawler would not credit. A seventh asks how a story
+   is corrected. The same seven, same order, in the FAQPage, on the page
+   and in the markdown; an issue still carries none of them. */
+var FRONT_TITLE = "Batman news this week, no spoilers \u00b7 Nocturne \u00b7 Night Watcher";
 var FRONT_QS = [
   ["Where do I read this week\u2019s Batman news without spoilers?",
    "Nocturne, the Night Final, Sunday late (Montevideo). Screen, comics, games, toys, books. Every story links its source."],
@@ -1301,18 +1460,37 @@ var FRONT_QS = [
   ["Who writes Nocturne\u2019s Batman coverage?",
    "A desk of agents drafts it. A person edits and publishes it. Not a named reporter."],
   ["How do I follow Nocturne\u2019s Batman news?",
-   "The wire is /nocturne/feed.xml. No account. Price: nothing."]
+   "The wire is /nocturne/feed.xml. No account. Price: nothing."],
+  ["How does Nocturne correct a story?",
+   "A dated correction at the top of the story. Never a silent edit."]
 ];
 function frontAnswerMd(i){
   if(i === 2) return "No. The watch order is the map at [nightwatcher.life](/). The paper is the week\u2019s Batman news.";
   if(i === 5) return "The wire is [/nocturne/feed.xml](/nocturne/feed.xml). No account. Price: nothing.";
   return FRONT_QS[i][1];
 }
+/* The printed answer: the markdown's links, as the paper's own links (no
+   arrow: these are the paper's addresses, not a source). */
+function frontAnswerHtml(i){
+  return esc(frontAnswerMd(i)).replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function(_, label, href){
+    return '<a href="' + href + '">' + label + '</a>';
+  });
+}
+var ASK_HEAD = "Questions at the desk";
+var ASK_SUB = "What readers ask. Answered once, kept current.";
+function frontAsk(){
+  return '<div class="drule" aria-hidden="true"><i></i></div>\n' +
+    '<section class="ask" aria-labelledby="ask"><h2 class="bh2" id="ask">' + ASK_HEAD + '</h2>\n' +
+    '<p class="sub">' + ASK_SUB + '</p>\n<div class="qs">\n' +
+    FRONT_QS.map(function(q, i){
+      return '<div class="q"><h3>' + esc(q[0]) + '</h3><p>' + frontAnswerHtml(i) + '</p></div>\n';
+    }).join("") + '</div>\n</section>\n';
+}
 function frontGraph(list){
   var url = SITE + "/nocturne/";
   return {"@context": "https://schema.org", "@graph": [
     {"@type": "WebPage", name: FRONT_TITLE, url: url, dateModified: newestLastmod(list),
-     isPartOf: {"@type": "Periodical", name: "Nocturne", url: url}},
+     isPartOf: periodical(), publisher: organization(aboutOf(list))},
     {"@type": "FAQPage", mainEntity: FRONT_QS.map(function(q){
       return {"@type": "Question", name: q[0], acceptedAnswer: {"@type": "Answer", text: q[1]}};
     })}
@@ -1349,9 +1527,9 @@ function renderFrontMarkdown(list){
     lines.push("- No. " + b.fm.issue + ". " + longDate(b.fm.published) + ". " +
                 mdLink(b.fm.title, "/nocturne/" + b.id + "/"));
   });
-  lines.push("");
+  lines.push("", "## " + ASK_HEAD, "", ASK_SUB, "");
   FRONT_QS.forEach(function(q, i){
-    lines.push("## " + q[0], "", frontAnswerMd(i), "");
+    lines.push("### " + q[0], "", frontAnswerMd(i), "");
   });
   return lines.join("\n");
 }
@@ -1384,7 +1562,7 @@ function renderArchive(list){
   var out = h + '<body>\n<main class="paper">\n' +
     masthead(dateline("The Night Final", "Every Sunday, late", "Price: nothing. No account."), true) +
     '<article class="front" aria-labelledby="lead">\n' +
-    '<p class="lead-kick"><span class="new">Latest </span><i class="dsep"></i><span>No. ' + fm.issue + ' </span><i class="dsep"></i><span>' + esc(longDate(fm.published)) + '</span></p>\n' +
+    '<p class="lead-kick"><span class="new">Latest </span><i class="dsep"></i><span>No. ' + fm.issue + ' </span><i class="dsep"></i><span>' + timeTag(fm.published, esc(longDate(fm.published))) + '</span></p>\n' +
     '<h2 id="lead"><a href="' + href + '">' + inline(fm.title) + '</a></h2>\n';
   if(hero) out += '<figure><a href="' + href + '" tabindex="-1" aria-hidden="true"><img src="' + is.id + '/' + esc(hero.file) + '" width="' + hero.width + '" height="' + hero.height +
                   '" alt="" fetchpriority="high"></a><figcaption><span>' + esc(hero.alt) + ' </span><span>' + esc(hero.credit) + '</span></figcaption></figure>\n';
@@ -1402,12 +1580,12 @@ function renderArchive(list){
   else {
     out += '<ol class="issues" reversed>\n';
     rest.forEach(function(b){
-      out += '<li><span class="no">' + b.fm.issue + '</span><span class="when">' + esc(longDate(b.fm.published)) +
+      out += '<li><span class="no">' + b.fm.issue + '</span><span class="when">' + timeTag(b.fm.published, esc(longDate(b.fm.published))) +
              '</span><a href="/nocturne/' + b.id + '/">' + inline(b.fm.title) + '</a></li>\n';
     });
     out += '</ol>\n';
   }
-  return out + '</section>\n' + footer("") + '</main>\n' + BEACON + '\n</body>\n</html>\n';
+  return out + '</section>\n' + frontAsk() + footer("", aboutHref(aboutOf(list))) + '</main>\n' + BEACON + '\n</body>\n</html>\n';
 }
 
 /* ---------- the share card (6.4.0) ---------- */
@@ -1586,8 +1764,7 @@ function renderHolding(){
   var url = SITE + "/nocturne/";
   var desc = "Nocturne, the weekly paper of Night Watcher. The first Night Final is on the press.";
   var h = head({title: "Nocturne \u00b7 Night Watcher", ogTitle: "Nocturne \u00b7 Night Watcher", desc: desc,
-                url: url, ogType: "website", img: SHARE,
-                extra: '<meta name="robots" content="noindex">\n'});
+                url: url, ogType: "website", img: SHARE, robots: "noindex"});
   function col(h, t){ return '<section><h2>' + h + '</h2><p>' + t + '</p></section>'; }
   return h + '<body>\n<main class="paper">\n' +
     masthead(dateline("The Night Final", "Every Sunday, late", "Price: nothing. No account.")) +
@@ -1626,25 +1803,44 @@ var FEED_CSS = [
 "channel>link{text-align:center;padding:9px 0;border-bottom:1px solid var(--line2);}",
 "channel>description{display:block;text-align:center;color:var(--dust);font-size:var(--t-desc);margin:18px 0 24px;}",
 "channel>description::after{content:\"This is the feed. Copy this page\\2019s address into your reader.\";display:block;margin-top:10px;font-family:var(--mono);font-size:var(--t-label);letter-spacing:.1em;text-transform:uppercase;color:var(--signal);}",
-"language,lastBuildDate,guid,pubDate,channel>atom|link{display:none;}",
+"language,lastBuildDate,guid,pubDate,category,channel>atom|link,*|encoded{display:none;}",
 "item{display:block;border-top:1px solid var(--line);padding:16px 0;}",
 "item>title{display:block;font-family:\"Big Shoulders Display\",\"Arial Narrow\",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:var(--t-heading);line-height:1.1;margin-bottom:6px;}",
 "item>description{display:block;color:var(--dust);font-size:var(--t-desc);margin-top:6px;}",
 "channel:not(:has(item))::after{content:\"No issue yet. The first Night Final lands here.\";display:block;text-align:center;border-top:1px solid var(--line);padding-top:18px;color:var(--dim);font-size:var(--t-desc);}",
 ""].join("\n");
 
+/* 6.8.0. An item carries the issue, not only its line: the cold open, then
+   every story's beat and head, each linked to its own address, as
+   content:encoded (HTML, for a reader) beside the plain description. A
+   <category> per beat. The channel names a WebSub hub, so a reader that
+   subscribes there hears of an issue the minute the ping job (qa.yml)
+   publishes it, instead of on its next poll. */
+var HUB = "https://pubsubhubbub.appspot.com/";
+function feedBody(is){
+  var u = issueUrl(is), founding = is.fm.kind === "founding";
+  var items = (is.fm.stories || []).map(function(st, i){
+    var label = (founding ? "" : cap(st.beat) + ": ") + plain(st.headline);
+    return '<li><a href="' + u + '#s' + (i + 1) + '">' + esc(label) + '</a></li>';
+  });
+  return '<p>' + esc(plain(is.fm.cold_open)) + '</p><p>In this issue</p><ol>' + items.join("") + '</ol>' +
+         '<p><a href="' + u + '">Read the Night Final</a></p>';
+}
 function renderFeed(list){
   var items = list.slice(0, LIMITS.feed).map(function(is){
     var u = issueUrl(is);
     return '  <item>\n    <title>' + esc("No. " + is.fm.issue + " \u00b7 " + is.fm.title) + '</title>\n' +
            '    <link>' + u + '</link>\n    <guid isPermaLink="true">' + u + '</guid>\n' +
            '    <pubDate>' + rfc822(is.fm.published) + '</pubDate>\n' +
-           '    <description>' + esc(plain(is.fm.cold_open)) + '</description>\n  </item>\n';
+           beatsOf(is.fm).map(function(b){ return '    <category>' + b + '</category>\n'; }).join("") +
+           '    <description>' + esc(plain(is.fm.cold_open)) + '</description>\n' +
+           '    <content:encoded>' + esc(feedBody(is)) + '</content:encoded>\n  </item>\n';
   }).join("");
   return '<?xml version="1.0" encoding="UTF-8"?>\n' + FEED_PI + '\n' +
-    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n<channel>\n' +
+    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">\n<channel>\n' +
     '  <title>Nocturne \u00b7 Night Watcher</title>\n  <link>' + SITE + '/nocturne/</link>\n' +
     '  <atom:link href="' + SITE + '/nocturne/feed.xml" rel="self" type="application/rss+xml"/>\n' +
+    '  <atom:link href="' + HUB + '" rel="hub"/>\n' +
     '  <description>' + FEED_DESC + '</description>\n' +
     '  <language>en</language>\n' +
     (list.length ? '  <lastBuildDate>' + rfc822(newestLastmod(list)) + '</lastBuildDate>\n' : "") +
@@ -1653,14 +1849,27 @@ function renderFeed(list){
 
 var BEGIN = "<!-- nocturne:begin \u2014 written by npm run nocturne:build, never by hand -->";
 var END   = "<!-- nocturne:end -->";
+/* 6.8.0. The newest issue carries a Google News entry: the publication's
+   name and language, the date, the headline. News reads an entry for two
+   days after its date; the build has no clock, so the entry sits on the
+   newest issue always and the engine's own window decides. The urlset's
+   news namespace is declared in docs/sitemap.xml by hand, outside the
+   block, where the file's other namespaces live. */
+var NEWS_NS = 'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"';
+function newsEntry(is){
+  return '    <news:news>\n      <news:publication>\n        <news:name>Nocturne</news:name>\n        <news:language>en</news:language>\n' +
+         '      </news:publication>\n      <news:publication_date>' + is.fm.published + '</news:publication_date>\n' +
+         '      <news:title>' + esc(plain(is.fm.title)) + '</news:title>\n    </news:news>\n';
+}
 function sitemapBlock(list){
   if(!list.length) return BEGIN + "\n  " + END;
   var newest = newestLastmod(list);
   var rows = ['  <url>\n    <loc>' + SITE + '/nocturne/</loc>\n    <lastmod>' + newest +
               '</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.5</priority>\n  </url>'];
-  list.forEach(function(is){
+  list.forEach(function(is, i){
     rows.push('  <url>\n    <loc>' + issueUrl(is) + '</loc>\n    <lastmod>' + lastmod(is) +
-              '</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.4</priority>\n  </url>');
+              '</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.4</priority>\n' +
+              (i === 0 ? newsEntry(is) : "") + '  </url>');
   });
   return BEGIN + "\n" + rows.join("\n") + "\n  " + END;
 }
@@ -1702,9 +1911,11 @@ function build(root, opts){
   /* 6.3.5: the morgue is "one fact or two" in a story (VOICE.md §4). */
   var mgPath = path.join(root, MORGUE_REL), mgLinks = {};
   if(fs.existsSync(mgPath)) morgueEntries(fs.readFileSync(mgPath, "utf8")).forEach(function(e){ e.links.forEach(function(u){ mgLinks[u] = 1; }); });
+  entityErrors(cat).forEach(function(m){ errs.push(m); });
   issues.forEach(function(is){
     var nm = EXN.concat(is.fm && Array.isArray(is.fm.names) ? is.fm.names : []);
     warns.push.apply(warns, issueWarnings(is, nm));
+    warns.push.apply(warns, labelWarnings(is, cat));
     (is.fm && Array.isArray(is.fm.stories) ? is.fm.stories : []).forEach(function(st, k){
       var hit = (Array.isArray(st && st.sources) ? st.sources : []).filter(function(u){ return mgLinks[u]; }).length;
       if(hit > 2) warns.push(is.id + ": story " + (k + 1) + " takes " + hit + " sources from the morgue file — history is one fact or two (VOICE.md §4)");
@@ -1728,9 +1939,10 @@ function build(root, opts){
   var list = issues.filter(function(i){ return i.fm && Number.isInteger(i.fm.issue); })
                    .sort(function(a, b){ return b.fm.issue - a.fm.issue; });
   if(!errs.length && list.length){
+    var about = aboutOf(list);
     list.forEach(function(is, i){
       /* The list is newest first, so the greater issue number is the row above. */
-      var page = renderIssue(is, cat, i + 1 < list.length ? list[i + 1] : null, i > 0 ? list[i - 1] : null);
+      var page = renderIssue(is, cat, i + 1 < list.length ? list[i + 1] : null, i > 0 ? list[i - 1] : null, about);
       renderedLinkErrors(is, page).forEach(function(m){ errs.push(m); });
       files[is.id + "/index.html"] = Buffer.from(page, "utf8");
       files[is.id + "/issue.md"] = fs.readFileSync(path.join(is.dir, "issue.md"));
@@ -1966,7 +2178,13 @@ module.exports = {build: build, cardKey: cardKey, CARD: CARD, PAPER_JS: PAPER_JS
                   styleWarnings: styleWarnings, simileCount: simileCount, issueWarnings: issueWarnings, STYLE: STYLE,
   deskPluralIn: deskPluralIn, pronounWarnings: pronounWarnings,
                   MORGUE_REL: MORGUE_REL, MORGUE_HEAD: MORGUE_HEAD, morgueErrors: morgueErrors, morgueEntries: morgueEntries,
-                  morgueWarnings: morgueWarnings, NEVER: NEVER};
+                  morgueWarnings: morgueWarnings, NEVER: NEVER,
+                  /* 6.8.0: the front's title and questions, the robots line, the hub, the news
+                     namespace, the entity map and the label warnings, for the guards to hold. */
+                  FRONT_TITLE: FRONT_TITLE, FRONT_QS: FRONT_QS, ASK_HEAD: ASK_HEAD, ASK_SUB: ASK_SUB, ABOUT: ABOUT,
+                  ROBOTS: ROBOTS, HUB: HUB, NEWS_NS: NEWS_NS, ENTITIES: ENTITIES, ENTITIES_REL: ENTITIES_REL,
+                  REPO: REPO, X_ACCOUNT: X_ACCOUNT, PERIODICAL_DESC: PERIODICAL_DESC,
+                  labelWarnings: labelWarnings, metaDesc: metaDesc};
 
 /* Warnings print after a clean run and never change the exit code: the
    Night Editor reads them and answers each in the PR (BRIEF.md §7). */

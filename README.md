@@ -170,7 +170,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `wrangler.jsonc` | Cloudflare Workers config (points `main` at `worker.js` and assets at `docs/`) |
 | `.gitignore` | Ignores `node_modules`, Wrangler state, editor files, etc. |
 | `package.json` | Dev scripts + the QA toolchain: jsdom for smoke, playwright and axe-core for the browser check, yaml for Nocturne's front matter, opentype.js and @resvg/resvg-js for the paper's share cards; deploys run wrangler through npx, version pinned in the script |
-| `.github/workflows/qa.yml` | Runs every suite on every push and again nightly, so a tampered commit fails in public. An issue pull request, whose every path is inside the paper's fence, runs every guard and the paper's browser check and skips the app's heavy suites (6.3.0) |
+| `.github/workflows/qa.yml` | Runs every suite on every push and again nightly, so a tampered commit fails in public. An issue pull request, whose every path is inside the paper's fence, runs every guard and the paper's browser check and skips the app's heavy suites (6.3.0). After a green push to `main` the `ping` job waits for the live sitemap to be the tree's, then tells IndexNow and the WebSub hub what moved (6.8.0; guard 182 holds its shape) |
 | `.github/workflows/nocturne-fence.yml` | The fence around the drafting agents: a pull request by `nocturne-night-final[bot]` (the desk's GitHub App) may change `nocturne/issues/`, `nocturne/NOTEBOOK.md`, `docs/nocturne/` and `docs/sitemap.xml` only. Runs on `pull_request_target`, so the copy on `main` judges it; executes nothing from the pull request. Guard 163 holds its shape |
 | `.github/CODEOWNERS` | The owner reviews every change to `.github/`, `qa/` and the agent's rules; the ruleset on `main` requires it |
 | `NOTES.md` | Why the code is written the way it is, in the present tense. Not served — `docs/index.html` carries no explanatory comments, and this is where they went |
@@ -185,6 +185,7 @@ The reasoning behind each file's shape lives in `NOTES.md`; this table says what
 | `nocturne/` | Nocturne's source: `BRIEF.md`, `VOICE.md`, `REPORTER.md`, `CASEBOOK.md` and `MORGUE.md` (the owner's rules, the reporter's profile, his closed past and the card catalogue of Batman's real history, which the agents never edit), `NOTEBOOK.md` (the desk's reading record, never published) and `issues/`, one folder per issue — `issue.md` and its images |
 | `qa/hww.js` | Builds and checks `docs/hww/` (`npm run hww:build`, `npm run hww:check`). Reads its counts from the tree: guard sections, negative suites and fixtures, the smoke count, BUILD, and the header's mark |
 | `qa/nocturne.js` | The paper's builder and checker (`npm run nocturne:build`, `npm run nocturne:check`). Reads the catalogue out of `docs/index.html`; guards 163–169 require the same file |
+| `qa/nocturne-entities.json` | The paper's entity map (6.8.0): catalogue ids with the Wikidata Q-id and IMDb tt-id the NewsArticle's `mentions` cite, each pair read from Wikidata before the row went in; the build refuses an id the map does not have, and guard 181 holds the shape |
 | `qa/nocturne-fonts/` | The paper's own faces and their `record.json`: the italic (NW Sans Italic) and, from 6.4.0, Newsreader 400 and italic, subset by `qa/subset-fonts.py --paper`; `OFL-paper.txt`, the notices the build appends to the paper's `OFL.txt`; and `card/`, TrueType copies of the faces the share card sets (`--card`). The build copies the faces into `docs/nocturne/` and refuses bytes a record did not bless. Bodoni Moda 700, the paper's banner face, lives in `docs/fonts/` with the app's faces since 6.5.0, and the paper reads it from there |
 | `qa/nocturne-fixture/` | Three test issues (a founding No. 0, an invented weekly No. 1, and a weekly No. 2 so No. 1 carries both Previous and Next) that guards 163–169 build and check on every run. Never published |
 | `qa/frozen-ids.json` | Snapshot of every `i:` slug, so a rename can't slip through |
@@ -236,7 +237,7 @@ One dev dependency for the guards — Acorn, which parses the page's script so e
 What they hold, in outline: the data (every `i:` present, unique and unchanged since the last snapshot; tiers, eras and backup codes all round-trip), the interface (contrast per theme, the chosen path never silently overwritten, the storage-blocked warning wired to every path that can turn saving off), the weight budget above, and the bookkeeping (version agreement across `index.html`, `sw.js` and `CHANGELOG.md`; this README's counts, size figure and file table held against the tree). The full statement of each rule is a comment in `qa/guards.js` beside the code that enforces it.
 
 Every guard section is negative-tested: made to fail on purpose before being
-trusted. That evidence lives in `qa/negative/` — 93 negative suites, 1772
+trusted. That evidence lives in `qa/negative/` — 95 negative suites, 1822
 fixtures. Each one breaks exactly one thing in a throwaway copy of the tree and
 asserts the right guard goes red for the right reason; `bash qa/negative/run-all.sh`
 runs them all, and CI runs them on every push and again nightly. Guard 138 maps
