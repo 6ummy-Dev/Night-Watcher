@@ -275,3 +275,54 @@ jobs:
           path: qa/.shots/
           if-no-files-found: ignore
           retention-days: 7
+
+  # 6.8.0. The ping. A merge to main publishes the site (Cloudflare builds
+  # from Git) and until now nothing told anyone: a search engine found a new
+  # issue on its next crawl, a feed reader on its next poll. This job runs on
+  # the push to main only, after the three suites are green, waits for the
+  # live sitemap to become the one in the tree (the deploy is not this
+  # workflow's, so it is watched, not assumed), then submits the paper's
+  # changed URLs and the root to IndexNow under the key docs/ already serves
+  # (3.4.0), and tells the feed's WebSub hub the feed moved. Both calls are
+  # one POST each, with nothing secret in them: the key is public by design.
+  # Guard 181 holds this job's shape. It does not wait on scope — guard 163
+  # counts the three jobs that do — and a pull request never runs it.
+  ping:
+    needs: [test, negative, browser]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - name: the live sitemap is the tree's
+        run: |
+          for i in $(seq 1 90); do
+            if curl -sf https://nightwatcher.life/sitemap.xml -o /tmp/live-sitemap.xml && cmp -s /tmp/live-sitemap.xml docs/sitemap.xml; then
+              echo "live after $i poll(s)"; exit 0
+            fi
+            sleep 10
+          done
+          echo "the live sitemap did not become the tree's within 15 minutes — the deploy did not land, so nothing is announced"
+          exit 1
+
+      - name: IndexNow, the root and the paper's URLs that changed
+        run: |
+          KEY=3e6082eed9f040d5bc8ab07531bf58b9
+          BLOCK=$(sed -n '/nocturne:begin/,/nocturne:end/p' docs/sitemap.xml)
+          NEWEST=$(printf '%s\n' "$BLOCK" | grep -m1 -o '<lastmod>[^<]*' | cut -c10-)
+          URLS=$(printf '%s\n' "$BLOCK" | awk -v d="$NEWEST" '/<loc>/{gsub(/.*<loc>|<\/loc>.*/,""); loc=$0} /<lastmod>/{gsub(/.*<lastmod>|<\/lastmod>.*/,""); if($0==d) print loc}')
+          printf '%s\n' "https://nightwatcher.life/" $URLS | jq -R . | jq -s --arg key "$KEY" \
+            '{host: "nightwatcher.life", key: $key, keyLocation: ("https://nightwatcher.life/" + $key + ".txt"), urlList: .}' > /tmp/indexnow.json
+          cat /tmp/indexnow.json
+          CODE=$(curl -sS -o /tmp/indexnow.out -w '%{http_code}' -X POST -H 'Content-Type: application/json; charset=utf-8' --data @/tmp/indexnow.json https://api.indexnow.org/indexnow)
+          echo "IndexNow answered $CODE"; cat /tmp/indexnow.out || true
+          case "$CODE" in 200|202) ;; *) exit 1 ;; esac
+
+      - name: WebSub, the feed moved
+        run: |
+          CODE=$(curl -sS -o /dev/null -w '%{http_code}' -d hub.mode=publish -d hub.url=https://nightwatcher.life/nocturne/feed.xml https://pubsubhubbub.appspot.com/)
+          echo "the hub answered $CODE"
+          case "$CODE" in 200|202|204) ;; *) exit 1 ;; esac
