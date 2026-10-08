@@ -2925,6 +2925,42 @@ The paper at `/nocturne/` (6.2.0). Why it is shaped this way:
   never carry markup the agent reached for.
 - **The weekly floor is 250 words.** VOICE.md first said 400, which three
   stories at the 120-word ceiling cannot reach.
+- **The questions are printed again (6.8.0).** 6.6.8 took them off the
+  page and left the FAQPage. Google credits FAQ markup only for text the
+  page shows, so for three days the block earned nothing. The Trends read
+  of "batman news" (8 Oct 2026) and the owner's call put them back, under
+  the morgue, each printed answer compared with the block's by guard 175.
+  That section was amended, not appended to, and says so in its header.
+- **The news entry has no clock.** Google News reads a `<news:news>` for
+  two days after its date. The build cannot know the day, and a block that
+  changed with the calendar would fail section 163's byte compare on every
+  run. So the entry sits on the newest issue always, and the engine's own
+  window decides whether it counts. An older issue never carries one.
+- **The ping waits for the edge.** IndexNow told of an address the edge
+  does not serve yet is a 404 crawled and remembered. The job polls the
+  live sitemap until it is byte-for-byte the tree's (up to fifteen
+  minutes) and only then posts; a deploy that never lands fails the job
+  and announces nothing. The job runs none of the tree's code: a push to
+  `main` is the owner's, but the job's shape is pinned by section 182 so a
+  pull request cannot widen it into a second deploy path.
+- **The entity map is read, not remembered.** Every Q-id and tt-id in
+  `qa/nocturne-entities.json` was fetched from Wikidata (`wbsearchentities`,
+  then P345 for the IMDb id) before the row went in. A wrong `sameAs` is
+  worse than none: it tells a knowledge graph the paper covers a different
+  title. A row for a title not in the catalogue fails the build.
+- **`www.google.com` is a name here, not a fetch.** Section 42 lists the
+  origins a served file may name. The news namespace URI is a name the
+  sitemap carries the way it carries `www.sitemaps.org`; nothing fetches it.
+  The entry is in NAMED, not FETCHED, and says so in its comment.
+- **A root `Periodical` waits.** The app's `@graph` could name the paper as
+  a `Periodical` of the WebSite, and section 165 pins the owner's call that
+  the app names `/nocturne` once outside the crawler seed. The node would be
+  a second naming. It is deferred, not forgotten; the CHANGELOG says so.
+- **The hub is Google's.** `pubsubhubbub.appspot.com` is the one WebSub hub
+  that still runs for free and that feed readers already know; the feed
+  names it and the ping job publishes to it. If it ever goes, the channel's
+  `rel="hub"` line and the job's last step go together, and section 182 is
+  told.
 
 ## What the install costs
 

@@ -315,6 +315,34 @@ image a rights holder objects to, the image out the same day. An issue is
 never deleted. If one ever has to go, it is taken out in a release whose
 CHANGELOG entry says why.
 
+**The ping (6.8.0 onward).** The push to `main` after a merge runs a
+fourth job, `ping`, once `test`, `negative` and `browser` are green. It
+polls `https://nightwatcher.life/sitemap.xml` until it is byte-for-byte
+the tree's (up to fifteen minutes), then posts the root and every paper
+address whose `lastmod` is the newest to IndexNow with the key the site
+serves (`/3e6082eed9f040d5bc8ab07531bf58b9.txt`), and tells the WebSub hub
+the feed moved. Read its log on the `main` run: `live after N poll(s)`, the
+JSON it posted, `IndexNow answered 200` (or `202`), `the hub answered 204`.
+A job that failed at the first step means the deploy did not land, and the
+rollback runbook below applies before anything else. The job runs none of
+the tree's code; guard 182 holds that. Then, on the wire:
+
+```
+curl -s https://nightwatcher.life/nocturne/ | grep -c 'id="ask"'
+curl -s https://nightwatcher.life/nocturne/feed.xml | grep -cE 'rel="hub"|<content:encoded>'
+curl -s https://nightwatcher.life/sitemap.xml | grep -c '<news:news>'
+curl -s https://nightwatcher.life/3e6082eed9f040d5bc8ab07531bf58b9.txt
+```
+
+Expected: `1` (the printed questions), `1` plus the item count (the hub
+line and one body per item), exactly `1` (the newest issue's news entry,
+never more), and the key echoed back. In Search Console, measure the paper
+by the queries a reader types — a title the issue led with, *batman news*,
+*night final*, *night watcher* — and not by *nocturne*: that word is an
+Apple TV series and a dozen other things, and its curve says nothing about
+the paper. The Trends read that set this release is
+`nocturne-trends-report-2026-10-08.md` in the owner's files, not the tree.
+
 ## Rollback
 
 The recovery story `sw.js` promises, written down:
