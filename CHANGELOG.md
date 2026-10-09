@@ -14,6 +14,18 @@ also fails if the newest version in this file has no `## [x.y.z]` section. That
 is the whole point of this file: a shipped change that nobody wrote down is a
 change that gets undone by the next person who touches the line.
 
+## [6.8.3] — 2026-10-09
+
+**Why PATCH.** The privacy page shipped with Home's colophon in the footer. The page signed off on 8 October ends the way Progress does: the privacy lines, then Keep the path lit and Support. No catalogue change, and nothing saved changes shape. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
+
+### Fixed
+
+- **The privacy footer.** Two lines under the diamond. The first line is the privacy claim: progress in this browser, the host counting visits and never what you watch. The source stays in the body. The second is Keep the path lit. Support. The name, the fan-guide line, the AGPL line and the night-shift line stay on Home.
+
+### Changed
+
+- **Harness.** `/hww` is rebuilt from the tree, so the page reads 6.8.3. Guard 184 is unchanged. It holds the body claims, and it does not pin the footer.
+
 ## [6.8.2] — 2026-10-08
 
 **Why PATCH.** Five small things, none of them a catalogue change, and nothing saved changes shape. A tap on ordinary text no longer paints a yellow border around a Nocturne page. The front's morgue prints the five newest back issues and files the rest under See more. `/privacy` says what stays on the device. The licence notice is that page and the README, and the grant stays AGPL-3.0-only. The counts stay at 137 films, 71 seasons and 44 continuities. **No reinstall is needed.** The service worker's version string changed, so a returning browser picks up the new shell on its next visit.
