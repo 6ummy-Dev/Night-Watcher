@@ -20,7 +20,7 @@ change that gets undone by the next person who touches the line.
 
 ### Fixed
 
-- **The privacy footer.** Two lines under the diamond. The first is progress in this browser, the host counting visits and never what you watch, and read the source. The second is Keep the path lit. Support. The name, the fan-guide line, the AGPL line and the night-shift line stay on Home.
+- **The privacy footer.** Two lines under the diamond. The first line is the privacy claim: progress in this browser, the host counting visits and never what you watch. The source stays in the body. The second is Keep the path lit. Support. The name, the fan-guide line, the AGPL line and the night-shift line stay on Home.
 
 ### Changed
 
